@@ -1,5 +1,7 @@
+package org.hisp.dhis.reservedvalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * @author Stian Sandvold
  */
-public interface ReservedValueService {
-  List<ReservedValue> reserve(
-      TrackedEntityAttribute trackedEntityAttribute,
-      int numberOfReservations,
-      Map<String, String> values,
-      Date expires)
-      throws ReserveValueException, TextPatternGenerationException;
+public interface ReservedValueService
+{
+    List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
+        throws ReserveValueException, TextPatternGenerationException;
 
-  boolean useReservedValue(TextPattern textPattern, String value);
+    boolean useReservedValue( TextPattern textPattern, String value );
 
-  boolean isReserved(TextPattern textPattern, String value);
+    boolean isReserved( TextPattern textPattern, String value );
 
-  void deleteReservedValueByUid(String uid);
+    void removeExpiredReservations();
 
-  void removeUsedOrExpiredReservations();
+    void deleteReservedValueByUid( String uid );
 }

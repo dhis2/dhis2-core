@@ -54,11 +54,13 @@
 
     <property name="showColumnTotals" />
 
-    <property name="disableDataElementAutoGroup" column="disabledataelementautogroup" />
-
     <!-- Dynamic attribute values -->
 
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="sectionattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="sectionid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
   </class>
 

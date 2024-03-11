@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,547 +27,775 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
-import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
-import static org.hisp.dhis.parser.expression.ProgramExpressionParams.DEFAULT_PROGRAM_EXPRESSION_PARAMS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_CONDITION;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_CONDITION;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_DAYS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_HAS_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MAX_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MINUTES_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MIN_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MONTHS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_OIZP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_RELATIONSHIP_COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_WEEKS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_YEARS_BETWEEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZING;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZPVC;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PS_EVENTDATE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STAGE_OFFSET;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_BRACE;
-
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.antlr.Parser;
-import org.hisp.dhis.antlr.ParserException;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.OperatorLogicalNot;
+import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.SqlFunction;
+import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.ZeroPositiveValueCountFunction;
+import org.hisp.dhis.commons.sqlfunc.HasValueSqlFunction;
+import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.expression.ExpressionParams;
-import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
-import org.hisp.dhis.parser.expression.ExpressionItemMethod;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.parser.expression.function.RepeatableProgramStageOffset;
-import org.hisp.dhis.parser.expression.function.VectorAvg;
-import org.hisp.dhis.parser.expression.function.VectorCount;
-import org.hisp.dhis.parser.expression.function.VectorMax;
-import org.hisp.dhis.parser.expression.function.VectorMin;
-import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
-import org.hisp.dhis.parser.expression.function.VectorSum;
-import org.hisp.dhis.parser.expression.function.VectorVariance;
-import org.hisp.dhis.parser.expression.literal.SqlLiteral;
-import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
-import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
-import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
-import org.hisp.dhis.program.function.D2Condition;
-import org.hisp.dhis.program.function.D2Count;
-import org.hisp.dhis.program.function.D2CountIfCondition;
-import org.hisp.dhis.program.function.D2CountIfValue;
-import org.hisp.dhis.program.function.D2DaysBetween;
-import org.hisp.dhis.program.function.D2HasValue;
-import org.hisp.dhis.program.function.D2MaxValue;
-import org.hisp.dhis.program.function.D2MinValue;
-import org.hisp.dhis.program.function.D2MinutesBetween;
-import org.hisp.dhis.program.function.D2MonthsBetween;
-import org.hisp.dhis.program.function.D2Oizp;
-import org.hisp.dhis.program.function.D2RelationshipCount;
-import org.hisp.dhis.program.function.D2WeeksBetween;
-import org.hisp.dhis.program.function.D2YearsBetween;
-import org.hisp.dhis.program.function.D2Zing;
-import org.hisp.dhis.program.function.D2Zpvc;
-import org.hisp.dhis.program.variable.ProgramVariableItem;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.Assert;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+
+import static org.apache.commons.lang3.StringUtils.trim;
 
 /**
  * @author Chau Thu Tran
  */
-@Service("org.hisp.dhis.program.ProgramIndicatorService")
-public class DefaultProgramIndicatorService implements ProgramIndicatorService {
-  private final ProgramIndicatorStore programIndicatorStore;
+public class DefaultProgramIndicatorService
+    implements ProgramIndicatorService
+{
 
-  private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
+    private static final Map<String, SqlFunction> SQL_FUNC_MAP = ImmutableMap.<String, SqlFunction> builder()
+        .put( ZeroIfNegativeSqlFunction.KEY, new ZeroIfNegativeSqlFunction() )
+        .put( OneIfZeroOrPositiveSqlFunction.KEY, new OneIfZeroOrPositiveSqlFunction() )
+        .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
+        .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
+        .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
+        .put( OperatorLogicalNot.KEY, new OperatorLogicalNot() )
+        .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
+    
+    private static final Map<String, ProgramIndicatorFunction> PI_FUNC_MAP = ImmutableMap.<String, ProgramIndicatorFunction> builder()
+        .put( CountIfValueProgramIndicatorFunction.KEY, new CountIfValueProgramIndicatorFunction() )
+        .put( CountProgramIndicatorFunction.KEY, new CountProgramIndicatorFunction() )
+        .put( CountIfConditionProgramIndicatorFunction.KEY, new CountIfConditionProgramIndicatorFunction() )
+        .put( DaysBetweenProgramIndicatorFunction.KEY, new DaysBetweenProgramIndicatorFunction() )
+        .put( WeeksBetweenProgramIndicatorFunction.KEY, new WeeksBetweenProgramIndicatorFunction() )
+        .put( MonthsBetweenProgramIndicatorFunction.KEY, new MonthsBetweenProgramIndicatorFunction() )
+        .put( YearsBetweenProgramIndicatorFunction.KEY, new YearsBetweenProgramIndicatorFunction() )
+        .put( MinutesBetweenProgramIndicatorFunction.KEY, new MinutesBetweenProgramIndicatorFunction() ).build();
 
-  private final ProgramStageService programStageService;
+    private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
+        .put( ProgramIndicator.VAR_COMPLETED_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_CURRENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_DUE_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "'COMPLETED'" )
+        .put( ProgramIndicator.VAR_EVENT_COUNT, "1" )
+        .put( ProgramIndicator.VAR_EVENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_EXECUTION_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_INCIDENT_DATE, "'2017-07-08'" )
+        .put( ProgramIndicator.VAR_ANALYTICS_PERIOD_START, "'2017-07-01'" )
+        .put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "'WZbXY0S00lP'" )
+        .put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "'First antenatal care visit'" )
+        .put( ProgramIndicator.VAR_TEI_COUNT, "1" )
+        .put( ProgramIndicator.VAR_VALUE_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT, "1" )
+        .put( ProgramIndicator.VAR_ANALYTICS_PERIOD_END, "'2017-07-07'" ).build();
 
-  private final IdentifiableObjectManager idObjectManager;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final StatementBuilder statementBuilder;
+    private ProgramIndicatorStore programIndicatorStore;
 
-  private final ExpressionService expressionService;
-
-  private final DimensionService dimensionService;
-
-  private final I18nManager i18nManager;
-
-  private final Cache<String> analyticsSqlCache;
-
-  public DefaultProgramIndicatorService(
-      ProgramIndicatorStore programIndicatorStore,
-      @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore")
-          IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
-      ProgramStageService programStageService,
-      IdentifiableObjectManager idObjectManager,
-      StatementBuilder statementBuilder,
-      ExpressionService expressionService,
-      DimensionService dimensionService,
-      I18nManager i18nManager,
-      CacheProvider cacheProvider) {
-    checkNotNull(programIndicatorStore);
-    checkNotNull(programIndicatorGroupStore);
-    checkNotNull(programStageService);
-    checkNotNull(idObjectManager);
-    checkNotNull(statementBuilder);
-    checkNotNull(expressionService);
-    checkNotNull(dimensionService);
-    checkNotNull(i18nManager);
-    checkNotNull(cacheProvider);
-
-    this.programIndicatorStore = programIndicatorStore;
-    this.programIndicatorGroupStore = programIndicatorGroupStore;
-    this.programStageService = programStageService;
-    this.idObjectManager = idObjectManager;
-    this.statementBuilder = statementBuilder;
-    this.expressionService = expressionService;
-    this.dimensionService = dimensionService;
-    this.i18nManager = i18nManager;
-    this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
-  }
-
-  public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS =
-      ImmutableMap.<Integer, ExpressionItem>builder()
-
-          // Common functions
-
-          .putAll(COMMON_EXPRESSION_ITEMS)
-
-          // Program functions
-
-          .put(D2_CONDITION, new D2Condition())
-          .put(D2_COUNT, new D2Count())
-          .put(D2_COUNT_IF_CONDITION, new D2CountIfCondition())
-          .put(D2_COUNT_IF_VALUE, new D2CountIfValue())
-          .put(D2_DAYS_BETWEEN, new D2DaysBetween())
-          .put(D2_HAS_VALUE, new D2HasValue())
-          .put(D2_MAX_VALUE, new D2MaxValue())
-          .put(D2_MINUTES_BETWEEN, new D2MinutesBetween())
-          .put(D2_MIN_VALUE, new D2MinValue())
-          .put(D2_MONTHS_BETWEEN, new D2MonthsBetween())
-          .put(D2_OIZP, new D2Oizp())
-          .put(D2_RELATIONSHIP_COUNT, new D2RelationshipCount())
-          .put(D2_WEEKS_BETWEEN, new D2WeeksBetween())
-          .put(D2_YEARS_BETWEEN, new D2YearsBetween())
-          .put(D2_ZING, new D2Zing())
-          .put(D2_ZPVC, new D2Zpvc())
-
-          // Program functions for custom aggregation
-
-          .put(AVG, new VectorAvg())
-          .put(COUNT, new VectorCount())
-          .put(MAX, new VectorMax())
-          .put(MIN, new VectorMin())
-          .put(STDDEV, new VectorStddevSamp())
-          .put(SUM, new VectorSum())
-          .put(VARIANCE, new VectorVariance())
-
-          // Data items
-
-          .put(HASH_BRACE, new ProgramItemStageElement())
-          .put(A_BRACE, new ProgramItemAttribute())
-          .put(PS_EVENTDATE, new ProgramItemPsEventdate())
-
-          // Program variables
-
-          .put(V_BRACE, new ProgramVariableItem())
-
-          // . functions
-          .put(STAGE_OFFSET, new RepeatableProgramStageOffset())
-          .build();
-
-  // -------------------------------------------------------------------------
-  // ProgramIndicator CRUD
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public long addProgramIndicator(ProgramIndicator programIndicator) {
-    programIndicatorStore.save(programIndicator);
-    return programIndicator.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateProgramIndicator(ProgramIndicator programIndicator) {
-    programIndicatorStore.update(programIndicator);
-  }
-
-  @Override
-  @Transactional
-  public void deleteProgramIndicator(ProgramIndicator programIndicator) {
-    programIndicatorStore.delete(programIndicator);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramIndicator getProgramIndicator(long id) {
-    return programIndicatorStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramIndicator getProgramIndicator(String name) {
-    return programIndicatorStore.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramIndicator getProgramIndicatorByUid(String uid) {
-    return programIndicatorStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramIndicator> getAllProgramIndicators() {
-    return programIndicatorStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramIndicator> getProgramIndicatorsWithNoExpression() {
-    return programIndicatorStore.getProgramIndicatorsWithNoExpression();
-  }
-
-  // -------------------------------------------------------------------------
-  // ProgramIndicator logic
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional(readOnly = true)
-  @Deprecated
-  public String getUntypedDescription(String expression) {
-    return getDescription(expression, null);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String getExpressionDescription(String expression) {
-    return getDescription(expression, Double.class);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String getFilterDescription(String expression) {
-    return getDescription(expression, Boolean.class);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean expressionIsValid(String expression) {
-    return isValid(expression, Double.class);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean filterIsValid(String filter) {
-    return isValid(filter, Boolean.class);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void validate(String expression, Class<?> clazz, Map<String, String> itemDescriptions) {
-    CommonExpressionVisitor visitor =
-        newVisitor(
-            ITEM_GET_DESCRIPTIONS, DEFAULT_EXPRESSION_PARAMS, DEFAULT_PROGRAM_EXPRESSION_PARAMS);
-
-    castClass(clazz, Parser.visit(expression, visitor));
-
-    itemDescriptions.putAll(visitor.getItemDescriptions());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String getAnalyticsSql(
-      String expression,
-      DataType dataType,
-      ProgramIndicator programIndicator,
-      Date startDate,
-      Date endDate) {
-    return getAnalyticsSqlCached(expression, dataType, programIndicator, startDate, endDate, null);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String getAnalyticsSql(
-      String expression,
-      DataType dataType,
-      ProgramIndicator programIndicator,
-      Date startDate,
-      Date endDate,
-      String tableAlias) {
-    return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, tableAlias);
-  }
-
-  private String getAnalyticsSqlCached(
-      String expression,
-      DataType dataType,
-      ProgramIndicator programIndicator,
-      Date startDate,
-      Date endDate,
-      String tableAlias) {
-    if (expression == null) {
-      return null;
+    public void setProgramIndicatorStore( ProgramIndicatorStore programIndicatorStore )
+    {
+        this.programIndicatorStore = programIndicatorStore;
     }
 
-    String cacheKey =
-        getAnalyticsSqlCacheKey(
-            expression, dataType, programIndicator, startDate, endDate, tableAlias);
+    private ProgramStageService programStageService;
 
-    return analyticsSqlCache.get(
-        cacheKey,
-        k ->
-            _getAnalyticsSql(
-                expression, dataType, programIndicator, startDate, endDate, tableAlias));
-  }
-
-  private String getAnalyticsSqlCacheKey(
-      String expression,
-      DataType dataType,
-      ProgramIndicator programIndicator,
-      Date startDate,
-      Date endDate,
-      String tableAlias) {
-    return expression
-        + "|"
-        + dataType.name()
-        + "|"
-        + programIndicator.getUid()
-        + dateIfPresent(startDate)
-        + dateIfPresent(endDate)
-        + "|"
-        + (tableAlias == null ? "" : tableAlias);
-  }
-
-  /**
-   * Returns the time in milliseconds if the date is present, otherwise an empty string.
-   *
-   * @param date the date
-   * @return the time in milliseconds if the date is present, otherwise an empty string.
-   */
-  private String dateIfPresent(Date date) {
-    return Optional.ofNullable(date)
-        .map(Date::getTime)
-        .map(millis -> "|" + millis)
-        .orElse(StringUtils.EMPTY);
-  }
-
-  private String _getAnalyticsSql(
-      String expression,
-      DataType dataType,
-      ProgramIndicator programIndicator,
-      Date startDate,
-      Date endDate,
-      String tableAlias) {
-    // Get the uids from the expression even if this is the filter
-    Set<String> uids =
-        getDataElementAndAttributeIdentifiers(
-            programIndicator.getExpression(), programIndicator.getAnalyticsType());
-
-    ExpressionParams params = ExpressionParams.builder().dataType(dataType).build();
-
-    ProgramExpressionParams progParams =
-        ProgramExpressionParams.builder()
-            .programIndicator(programIndicator)
-            .reportingStartDate(startDate)
-            .reportingEndDate(endDate)
-            .dataElementAndAttributeIdentifiers(uids)
-            .build();
-
-    CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams);
-
-    visitor.setExpressionLiteral(new SqlLiteral());
-
-    String sql = castString(Parser.visit(expression, visitor));
-
-    return (tableAlias != null
-        ? sql.replaceAll(ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\.")
-        : sql);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public String getAnyValueExistsClauseAnalyticsSql(
-      String expression, AnalyticsType analyticsType) {
-    if (expression == null) {
-      return null;
+    public void setProgramStageService( ProgramStageService programStageService )
+    {
+        this.programStageService = programStageService;
     }
 
-    try {
-      Set<String> uids = getDataElementAndAttributeIdentifiers(expression, analyticsType);
+    private DataElementService dataElementService;
 
-      if (uids.isEmpty()) {
-        return null;
-      }
-
-      String sql = StringUtils.EMPTY;
-
-      for (String uid : uids) {
-        sql += statementBuilder.columnQuote(uid) + " is not null or ";
-      }
-
-      return TextUtils.removeLastOr(sql).trim();
-    } catch (ParserException e) {
-      return null;
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  // ProgramIndicatorGroup
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public long addProgramIndicatorGroup(ProgramIndicatorGroup programIndicatorGroup) {
-    programIndicatorGroupStore.save(programIndicatorGroup);
-    return programIndicatorGroup.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateProgramIndicatorGroup(ProgramIndicatorGroup programIndicatorGroup) {
-    programIndicatorGroupStore.update(programIndicatorGroup);
-  }
-
-  @Override
-  @Transactional
-  public void deleteProgramIndicatorGroup(ProgramIndicatorGroup programIndicatorGroup) {
-    programIndicatorGroupStore.delete(programIndicatorGroup);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramIndicatorGroup getProgramIndicatorGroup(long id) {
-    return programIndicatorGroupStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramIndicatorGroup getProgramIndicatorGroup(String uid) {
-    return programIndicatorGroupStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups() {
-    return programIndicatorGroupStore.getAll();
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  private CommonExpressionVisitor newVisitor(
-      ExpressionItemMethod itemMethod,
-      ExpressionParams params,
-      ProgramExpressionParams progParams) {
-    return CommonExpressionVisitor.builder()
-        .idObjectManager(idObjectManager)
-        .dimensionService(dimensionService)
-        .programIndicatorService(this)
-        .programStageService(programStageService)
-        .statementBuilder(statementBuilder)
-        .i18nSupplier(Suppliers.memoize(i18nManager::getI18n))
-        .constantMap(expressionService.getConstantMap())
-        .itemMap(PROGRAM_INDICATOR_ITEMS)
-        .itemMethod(itemMethod)
-        .params(params)
-        .progParams(progParams)
-        .build();
-  }
-
-  private String getDescription(String expression, Class<?> clazz) {
-    Map<String, String> itemDescriptions = new HashMap<>();
-
-    validate(expression, clazz, itemDescriptions);
-
-    String description = expression;
-
-    for (Map.Entry<String, String> entry : itemDescriptions.entrySet()) {
-      description = description.replace(entry.getKey(), entry.getValue());
+    public void setDataElementService( DataElementService dataElementService )
+    {
+        this.dataElementService = dataElementService;
     }
 
-    return description;
-  }
+    private TrackedEntityAttributeService attributeService;
 
-  private boolean isValid(String expression, Class<?> clazz) {
-    if (expression != null) {
-      try {
-        validate(expression, clazz, new HashMap<>());
-      } catch (ParserException e) {
-        return false;
-      }
+    public void setAttributeService( TrackedEntityAttributeService attributeService )
+    {
+        this.attributeService = attributeService;
     }
 
-    return true;
-  }
+    private ConstantService constantService;
 
-  private Set<String> getDataElementAndAttributeIdentifiers(
-      String expression, AnalyticsType analyticsType) {
-    Set<String> items = new HashSet<>();
+    public void setConstantService( ConstantService constantService )
+    {
+        this.constantService = constantService;
+    }
 
-    ProgramElementsAndAttributesCollecter listener =
-        new ProgramElementsAndAttributesCollecter(items, analyticsType);
+    private StatementBuilder statementBuilder;
 
-    Parser.listen(expression, listener);
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
+    }
 
-    return items;
-  }
+    private IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
+
+    public void setProgramIndicatorGroupStore(
+        IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore )
+    {
+        this.programIndicatorGroupStore = programIndicatorGroupStore;
+    }
+
+    @Autowired
+    private I18nManager i18nManager;
+
+    // -------------------------------------------------------------------------
+    // ProgramIndicatorService implementation
+    // -------------------------------------------------------------------------
+
+    @Transactional
+    public int addProgramIndicator( ProgramIndicator programIndicator )
+    {
+        programIndicatorStore.save( programIndicator );
+        return programIndicator.getId();
+    }
+
+    @Transactional
+    public void updateProgramIndicator( ProgramIndicator programIndicator )
+    {
+        programIndicatorStore.update( programIndicator );
+    }
+
+    @Transactional
+    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    {
+        programIndicatorStore.delete( programIndicator );
+    }
+
+    @Transactional
+    public ProgramIndicator getProgramIndicator( int id )
+    {
+        return programIndicatorStore.get( id );
+    }
+
+    @Transactional
+    public ProgramIndicator getProgramIndicator( String name )
+    {
+        return programIndicatorStore.getByName( name );
+    }
+
+    @Transactional
+    public ProgramIndicator getProgramIndicatorByUid( String uid )
+    {
+        return programIndicatorStore.getByUid( uid );
+    }
+
+    @Transactional
+    public List<ProgramIndicator> getAllProgramIndicators()
+    {
+        return programIndicatorStore.getAll();
+    }
+
+    @Transactional
+    public String getExpressionDescription( String expression )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        I18n i18n = i18nManager.getI18n();
+
+        StringBuffer description = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 );
+            String uid = matcher.group( 2 );
+
+            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+            {
+                String de = matcher.group( 3 );
+
+                ProgramStage programStage = programStageService.getProgramStage( uid );
+                DataElement dataElement = dataElementService.getDataElement( de );
+
+                if ( programStage != null && dataElement != null )
+                {
+                    String programStageName = programStage.getDisplayName();
+                    String dataelementName = dataElement.getDisplayName();
+
+                    matcher.appendReplacement( description, programStageName + ProgramIndicator.SEPARATOR_ID
+                        + dataelementName );
+                }
+            }
+            else if ( ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
+            {
+                TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
+
+                if ( attribute != null )
+                {
+                    matcher.appendReplacement( description, attribute.getDisplayName() );
+                }
+            }
+            else if ( ProgramIndicator.KEY_CONSTANT.equals( key ) )
+            {
+                Constant constant = constantService.getConstant( uid );
+
+                if ( constant != null )
+                {
+                    matcher.appendReplacement( description, constant.getDisplayName() );
+                }
+            }
+            else if ( ProgramIndicator.KEY_PROGRAM_VARIABLE.equals( key ) )
+            {
+                String varName = i18n.getString( uid );
+
+                if ( varName != null )
+                {
+                    matcher.appendReplacement( description, varName );
+                }
+            }
+        }
+
+        matcher.appendTail( description );
+
+        return description.toString();
+    }
+
+    public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
+    {
+        return getAnalyticsSQl( expression, programIndicator, true, startDate, endDate );
+    }
+
+    public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues,
+        Date startDate, Date endDate )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        String sqlExpression = TextUtils.removeNewlines( expression );
+        
+        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
+
+        sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate, expression );
+
+        sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator, startDate,
+            endDate );
+
+        return sqlExpression;
+    }
+
+    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues,
+        ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        StringBuffer buffer = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.SQL_FUNC_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String func = trim( matcher.group( "func" ) );
+            String arguments = trim( matcher.group( "args" ) );
+            String logicalNot = trim( matcher.group( 1 ) );
+
+            if ( func != null && arguments != null )
+            {
+                String result = "";
+                
+                String[] args = arguments.split( ProgramIndicator.ARGS_SPLIT );
+
+                ProgramIndicatorFunction piFunction = PI_FUNC_MAP.get( func );
+                
+                if ( piFunction != null )
+                {
+                    result = piFunction.evaluate( programIndicator, statementBuilder, reportingStartDate, reportingEndDate, args );
+                }
+                else
+                {
+                    SqlFunction sqlFunction = SQL_FUNC_MAP.get( func );
+    
+                    if ( sqlFunction != null )
+                    {
+                        for ( int i = 0; i < args.length; i++ )
+                        {
+                            String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicator,
+                                reportingStartDate, reportingEndDate );
+                            args[i] = arg;
+                        }
+                        
+                        result = sqlFunction.evaluate( args );
+                    }
+                    else
+                    {
+                        throw new IllegalStateException( "Function not recognized: " + func );
+                    }
+                }
+
+                matcher.appendReplacement( buffer, result );
+            }
+
+            if ( logicalNot != null )
+            {
+                SqlFunction function = SQL_FUNC_MAP.get( logicalNot );
+
+                if ( function == null )
+                {
+                    throw new IllegalStateException( "Character not recognized: " + logicalNot );
+                }
+
+                String result = function.evaluate( null );
+
+                buffer.insert( 0, result );
+            }
+        }
+
+        return TextUtils.appendTail( matcher, buffer );
+    }
+
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicator programIndicator,
+        Date startDate, Date endDate, String originalExpression )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        StringBuffer buffer = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.VARIABLE_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String var = matcher.group( 1 );
+
+            String sql = getVariableAsSql( var, expression, programIndicator.getAnalyticsType(), startDate, endDate, programIndicator, originalExpression );
+
+            if ( sql != null )
+            {
+                matcher.appendReplacement( buffer, sql );
+            }
+        }
+
+        return TextUtils.appendTail( matcher, buffer );
+    }
+
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues,
+        ProgramIndicator programIndicator, Date startDate, Date endDate )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        StringBuffer buffer = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.EXPRESSION_EQUALSZEROOREMPTY_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 );
+            String el1 = matcher.group( 2 );
+            String el2 = matcher.group( 3 );
+            boolean equalsZero = matcher.group( 4 ) != null && matcher.group( 4 ).matches( ProgramIndicator.EQUALSZERO );
+            boolean equalsEmpty = matcher.group( 4 ) != null
+                && matcher.group( 4 ).matches( ProgramIndicator.EQUALSEMPTY );
+
+            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) || ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
+            {
+                String columnName;
+                ValueType valueType = ValueType.TEXT;
+
+                if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+                {
+                    columnName = statementBuilder.getProgramIndicatorDataValueSelectSql( el1, el2, startDate, endDate, programIndicator );
+
+                    DataElement dataElement = dataElementService.getDataElement( el2 );
+                    Assert.assertNotNull( dataElement );
+                    valueType = dataElement.getValueType();
+                }
+                else
+                // ProgramIndicator.KEY_ATTRIBUTE
+                {
+                    columnName = statementBuilder.columnQuote( el1 );
+                    TrackedEntityAttribute trackedEntityAttribute = attributeService.getTrackedEntityAttribute( el1 );
+                    Assert.assertNotNull( trackedEntityAttribute );
+                    valueType = trackedEntityAttribute.getValueType();
+                }
+
+                if ( equalsZero )
+                {
+                    columnName = getIgnoreNullSql( columnName, ValueType.NUMBER ) + " == 0 ";
+                }
+                else if ( equalsEmpty )
+                {
+                    columnName = getIgnoreNullSql( columnName, ValueType.TEXT ) + " == '' ";
+                }
+                else if ( ignoreMissingValues )
+                {
+                    columnName = getIgnoreNullSql( columnName, valueType );
+                }
+
+                matcher.appendReplacement( buffer, columnName );
+            }
+            else if ( ProgramIndicator.KEY_CONSTANT.equals( key ) )
+            {
+                Constant constant = constantService.getConstant( el1 );
+
+                if ( constant != null )
+                {
+                    matcher.appendReplacement( buffer, String.valueOf( constant.getValue() ) );
+                }
+            }
+        }
+
+        return TextUtils.appendTail( matcher, buffer );
+    }
+
+    public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
+    {
+        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType );
+
+        if ( uids.isEmpty() )
+        {
+            return null;
+        }
+
+        String sql = StringUtils.EMPTY;
+
+        for ( String uid : uids )
+        {
+            sql += statementBuilder.columnQuote( uid ) + " is not null or ";
+        }
+
+        return TextUtils.removeLastOr( sql ).trim();
+    }
+
+    @Transactional
+    public String expressionIsValid( String expression )
+    {
+        String expr = getSubstitutedSQLFunc( getSubstitutedExpression( expression ) );
+
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
+            || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
+        {
+            return expr;
+        }
+
+        if ( !ExpressionUtils.isValid( expr, null ) )
+        {
+            return ProgramIndicator.EXPRESSION_NOT_VALID;
+        }
+
+        return ProgramIndicator.VALID;
+    }
+
+    @Transactional
+    public String filterIsValid( String filter )
+    {
+        String expr = getSubstitutedSQLFunc( getSubstitutedExpression( filter ) );
+
+        if ( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION.equals( expr )
+            || ProgramIndicator.UNKNOWN_VARIABLE.equals( expr ) )
+        {
+            return expr;
+        }
+
+        if ( !ExpressionUtils.isBoolean( expr, null ) )
+        {
+            return ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE;
+        }
+
+        return ProgramIndicator.VALID;
+    }
+
+    /**
+     * Generates an expression where all items are substituted with a sample
+     * value in order to maintain a valid expression syntax.
+     *
+     * @param expression the expression.
+     */
+    private String getSubstitutedExpression( String expression )
+    {
+        StringBuffer expr = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String key = matcher.group( 1 );
+            String uid = matcher.group( 2 );
+
+            if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
+            {
+                String de = matcher.group( 3 );
+
+                ProgramStage programStage = programStageService.getProgramStage( uid );
+                DataElement dataElement = dataElementService.getDataElement( de );
+
+                if ( programStage != null && dataElement != null )
+                {
+                    String sample = ValidationUtils.getSubstitutionValue( dataElement.getValueType() );
+
+                    matcher.appendReplacement( expr, sample );
+                }
+                else
+                {
+                    return ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION;
+                }
+            }
+            else if ( ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
+            {
+                TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
+
+                if ( attribute != null )
+                {
+                    String sample = ValidationUtils.getSubstitutionValue( attribute.getValueType() );
+
+                    matcher.appendReplacement( expr, sample );
+                }
+                else
+                {
+                    return ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION;
+                }
+            }
+            else if ( ProgramIndicator.KEY_CONSTANT.equals( key ) )
+            {
+                Constant constant = constantService.getConstant( uid );
+
+                if ( constant != null )
+                {
+                    matcher.appendReplacement( expr, String.valueOf( constant.getValue() ) );
+                }
+                else
+                {
+                    return ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION;
+                }
+            }
+            else if ( ProgramIndicator.KEY_PROGRAM_VARIABLE.equals( key ) )
+            {
+                String sampleValue = VARIABLE_SAMPLE_VALUE_MAP.get( uid );
+
+                if ( sampleValue != null )
+                {
+                    matcher.appendReplacement( expr, sampleValue );
+                }
+                else
+                {
+                    return ProgramIndicator.UNKNOWN_VARIABLE;
+                }
+            }
+        }
+
+        matcher.appendTail( expr );
+        
+        return expr.toString();
+    }
+    
+    /**
+     * Generates an expression where all d2:functions are substituted with a sample
+     * value in order to maintain a valid expression syntax.
+     *
+     * @param expression the expression.
+     */
+    private String getSubstitutedSQLFunc( String expression )
+    {
+        StringBuffer expr = new StringBuffer();
+
+        Matcher matcher = ProgramIndicator.SQL_FUNC_PATTERN.matcher( expression );
+
+        while ( matcher.find() )
+        {
+            String d2FunctionName = matcher.group( "func" );
+            if ( SQL_FUNC_MAP.containsKey( d2FunctionName ) )
+            {
+                matcher.appendReplacement( expr, SQL_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
+            }
+            else if ( PI_FUNC_MAP.containsKey( d2FunctionName ) )
+            {
+                matcher.appendReplacement( expr, PI_FUNC_MAP.get( d2FunctionName ).getSampleValue() );
+            }
+        }
+
+        matcher.appendTail( expr );
+
+        return expr.toString();
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Creates a SQL select clause from the given program indicator variable
+     * based on the given expression. Wraps the count variables with
+     * <code>nullif</code> to avoid potential division by zero.
+     *
+     * @param var the program indicator variable.
+     * @param expression the program indicator expression.
+     * @return a SQL select clause.
+     */
+    private String getVariableAsSql( String var, String expression, AnalyticsType analyticsType, Date startDate,
+        Date endDate, ProgramIndicator indicator, String originalExpression )
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+
+        String variableColumnName = ProgramIndicator.getVariableColumnName( var );
+
+        if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
+        {
+            return "'" + DateUtils.getLongDateString() + "'";
+        }
+        else if ( ProgramIndicator.VAR_EVENT_DATE.equals( var ) )
+        {
+            return statementBuilder.getProgramIndicatorEventColumnSql( null, variableColumnName, startDate, endDate, indicator );
+        }
+        else if ( ProgramIndicator.VAR_VALUE_COUNT.equals( var ) )
+        {
+            String sql = "nullif(cast((";
+
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( originalExpression, analyticsType ) )
+            {
+                sql += "case when " + statementBuilder.columnQuote( uid ) + " is not null then 1 else 0 end + ";
+            }
+
+            return TextUtils.removeLast( sql, "+" ).trim() + ") as " + dbl + "),0)";
+        }
+        else if ( ProgramIndicator.VAR_ZERO_POS_VALUE_COUNT.equals( var ) )
+        {
+            String sql = "nullif(cast((";
+
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( originalExpression, analyticsType ) )
+            {
+                sql += "case when " + statementBuilder.columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
+            }
+
+            return TextUtils.removeLast( sql, "+" ).trim() + ") as " + dbl + "),0)";
+        }
+        else if ( ProgramIndicator.VAR_EVENT_COUNT.equals( var ) || ProgramIndicator.VAR_ENROLLMENT_COUNT.equals( var )
+            || ProgramIndicator.VAR_TEI_COUNT.equals( var ) )
+        {
+            return "distinct " + variableColumnName;
+        }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_NAME.equals( var ) )
+        {
+            if ( AnalyticsType.EVENT == analyticsType )
+            {
+                return "(select name from programstage where uid = ps)";
+            }
+            else
+            {
+                return "''";
+            }
+        }
+        else if ( ProgramIndicator.VAR_PROGRAM_STAGE_ID.equals( var ) )
+        {
+            if ( AnalyticsType.EVENT == analyticsType )
+            {
+                return variableColumnName;
+            }
+            else
+            {
+                return "''";
+            }
+        }
+        else if ( ProgramIndicator.VAR_ANALYTICS_PERIOD_START.equals( var ) )
+        {
+            return "'" + DateUtils.getSqlDateString( startDate ) + "'";
+        }
+        else if ( ProgramIndicator.VAR_ANALYTICS_PERIOD_END.equals( var ) )
+        {
+            return "'" + DateUtils.getSqlDateString( endDate ) + "'";
+        }
+
+        return variableColumnName;
+    }
+
+    private String getIgnoreNullSql( String column, ValueType valueType )
+    {
+        if ( valueType.equals( ValueType.DATE ) )
+        {
+            return "coalesce(" + column + "::date,'0001-01-01')";
+        }
+        else if ( valueType.equals( ValueType.TEXT ) )
+        {
+            return "coalesce(" + column + ",'')";
+        }
+        else
+        {
+            return "coalesce(" + column + "::numeric,0)";
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // ProgramIndicatorGroup
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public int addProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+        programIndicatorGroupStore.save( programIndicatorGroup );
+        return programIndicatorGroup.getId();
+    }
+
+    @Override
+    @Transactional
+    public void updateProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+        programIndicatorGroupStore.update( programIndicatorGroup );
+    }
+
+    @Override
+    @Transactional
+    public void deleteProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+        programIndicatorGroupStore.delete( programIndicatorGroup );
+    }
+
+    @Override
+    public ProgramIndicatorGroup getProgramIndicatorGroup( int id )
+    {
+        return programIndicatorGroupStore.get( id );
+    }
+
+    @Override
+    public ProgramIndicatorGroup getProgramIndicatorGroup( String uid )
+    {
+        return programIndicatorGroupStore.getByUid( uid );
+    }
+
+    @Override
+    public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups()
+    {
+        return programIndicatorGroupStore.getAll();
+    }
 }

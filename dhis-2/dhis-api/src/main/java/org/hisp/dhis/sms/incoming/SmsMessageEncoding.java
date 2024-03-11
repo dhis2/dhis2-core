@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.incoming;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.incoming;
 
-/** Enumeration representing available SMS message encodings. */
-public enum SmsMessageEncoding {
-  /** 7 bit encoding - standard GSM alphabet. */
-  ENC7BIT,
-  /** 8 bit encoding. */
-  ENC8BIT,
-  /** UCS2 (Unicode) encoding. */
-  ENCUCS2,
-  /** Custom encoding. Currently just defaults to 7-bit. */
-  ENCCUSTOM
+/**
+ * Enumeration representing available SMS message encodings.
+ */
+public enum SmsMessageEncoding
+{
+    /**
+     * 7 bit encoding - standard GSM alphabet.
+     */
+    ENC7BIT,
+    /**
+     * 8 bit encoding.
+     */
+    ENC8BIT,
+    /**
+     * UCS2 (Unicode) encoding.
+     */
+    ENCUCS2,
+    /**
+     * Custom encoding. Currently just defaults to 7-bit.
+     */
+    ENCCUSTOM
 }

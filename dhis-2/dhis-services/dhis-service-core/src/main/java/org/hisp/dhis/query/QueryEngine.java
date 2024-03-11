@@ -1,5 +1,7 @@
+package org.hisp.dhis.query;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface QueryEngine<T> {
-  /**
-   * Return objects matching given query, T typed according to QueryEngine implementation.
-   *
-   * @param query Query instance to use
-   * @return Matching objects
-   */
-  List<T> query(Query query);
+public interface QueryEngine<T>
+{
+    /**
+     * Return objects matching given query, T typed according to QueryEngine
+     * implementation.
+     *
+     * @param query Query instance to use
+     * @return Matching objects
+     */
+    List<T> query( Query query );
 
-  /**
-   * Returns how many objects matches the given query.
-   *
-   * @param query Query instance to use
-   * @return N number of matching objects
-   */
-  long count(Query query);
+    /**
+     * Returns how many objects matches the given query.
+     *
+     * @param query Query instance to use
+     * @return N number of matching objects
+     */
+    int count( Query query );
 }

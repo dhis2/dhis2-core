@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
- * Exception representing an illegal query.
- *
  * @author Lars Helge Overland
  */
-public class IllegalQueryException extends ErrorCodeException {
-  /**
-   * Constructor.
-   *
-   * @param message the exception message.
-   */
-  public IllegalQueryException(String message) {
-    super(message);
-  }
-
-  /**
-   * Constructor. Sets the message based on the error code message.
-   *
-   * @param errorCode the {@link ErrorCode}.
-   */
-  public IllegalQueryException(ErrorCode errorCode) {
-    super(errorCode);
-  }
-
-  /**
-   * Constructor. Sets the message and error code based on the error message.
-   *
-   * @param errorMessage the {@link ErrorMessage}.
-   */
-  public IllegalQueryException(ErrorMessage errorMessage) {
-    super(errorMessage);
-  }
-
-  /**
-   * Constructor. Sets the message based on the error code and arguments.
-   *
-   * @param errorCode the {@link ErrorCode}.
-   * @param args the message format arguments.
-   */
-  public IllegalQueryException(ErrorCode errorCode, Object... args) {
-    super(errorCode, args);
-  }
+public class IllegalQueryException
+    extends RuntimeException
+{
+    public IllegalQueryException( String message )
+    {
+        super( message );
+    }
+    
+    public IllegalQueryException( String message, Throwable throwable ) 
+    {
+        super( message, throwable );
+    }
 }

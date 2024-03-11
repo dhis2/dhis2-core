@@ -8,8 +8,6 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.mapping.MapView" table="mapview">
 
-    <cache usage="read-write" />
-
     <id name="id" column="mapviewid">
       <generator class="native" />
     </id>
@@ -24,7 +22,7 @@
     <list name="dataDimensionItems" table="mapview_datadimensionitems" cascade="all, delete-orphan">
       <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_datadimensionitems_mapviewid" />
-      <list-index column="sort_order"/>
+      <list-index column="sort_order" base="0" />
       <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
         foreign-key="fk_mapview_datadimensionitems_datadimensionitemid" />
     </list>
@@ -52,30 +50,6 @@
     <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
       cascade="all-delete-orphan" foreign-key="fk_mapview_relativeperiodsid" />
 
-    <list name="categoryDimensions" table="mapview_categorydimensions" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="mapviewid" foreign-key="fk_mapview_categorydimensions_mapviewid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many column="categorydimensionid" class="org.hisp.dhis.category.CategoryDimension"
-        foreign-key="fk_mapview_categorydimensions_categorydimensionid" />
-    </list>
-
-    <list name="organisationUnitGroupSetDimensions" table="mapview_orgunitgroupsetdimensions" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="mapviewid" foreign-key="fk_mapview_orgunitgroupsetdimensions_mapviewid" />
-      <list-index column="sort_order" />
-      <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
-        foreign-key="fk_mapview_dimensions_orgunitgroupsetdimensionid" />
-    </list>
-
-    <list name="categoryOptionGroupSetDimensions" table="mapview_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="mapviewid" foreign-key="fk_mapview_catoptiongroupsetdimensions_mapviewid" />
-      <list-index column="sort_order" />
-      <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.category.CategoryOptionGroupSetDimension"
-        foreign-key="fk_mapview_dimensions_catoptiongroupsetdimensionid" />
-    </list>
-
     <list name="organisationUnitLevels" table="mapview_orgunitlevels">
       <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_orgunitlevels_mapviewid" />
@@ -94,7 +68,6 @@
     <!-- EventAnalyticalObject -->
 
     <list name="attributeDimensions" table="mapview_attributedimensions" cascade="all, delete-orphan">
-      <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_attributedimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
@@ -102,7 +75,6 @@
     </list>
 
     <list name="dataElementDimensions" table="mapview_dataelementdimensions" cascade="all, delete-orphan">
-      <cache usage="read-write" />
       <key column="mapviewid" foreign-key="fk_mapview_dataelementdimensions_mapviewid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
@@ -114,13 +86,6 @@
       <key column="mapviewid" foreign-key="fk_mapview_columns_mapviewid" />
       <list-index column="sort_order" base="0" />
       <element type="string" column="dimension" />
-    </list>
-
-    <list name="filterDimensions" table="mapview_filters">
-      <cache usage="read-write" />
-      <key column="mapviewid" foreign-key="fk_mapview_filters_mapviewid" />
-      <list-index column="sort_order" base="0" />
-      <element type="string" column="dimension" />    
     </list>
 
     <property name="userOrganisationUnit" />
@@ -176,11 +141,7 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_mapview_maplegendsetid" />
-      
-    <property name="noDataColor" length="7" />
 
-    <property name="organisationUnitColor" length="7" />
-    
     <property name="radiusLow" />
 
     <property name="radiusHigh" />
@@ -204,55 +165,19 @@
 
     <property name="labelFontColor" />
 
-    <property name="labelTemplate" length="50" />
-
     <property name="eventClustering" />
 
     <property name="eventCoordinateField" />
 
-    <property name="orgUnitField" />
-
     <property name="eventPointColor" />
 
     <property name="eventPointRadius" />
-    
-    <property name="thematicMapType" length="50" column="thematicmaptype">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.mapping.ThematicMapType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-    
-    <property name="renderingStrategy" length="50" column="renderingstrategy" not-null="true">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.mapping.MapViewRenderingStrategy</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
-    <property name="eventStatus" length="50" column="eventstatus">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.mapping.EventStatus</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
 
     <property name="config" type="text" />
     
     <property name="styleDataItem" type="jbObject" />
 
     <property name="translations" type="jblTranslations"/>
-
-    <property name="userOrgUnitType" length="12" >
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.common.UserOrgUnitType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
 
   </class>
 

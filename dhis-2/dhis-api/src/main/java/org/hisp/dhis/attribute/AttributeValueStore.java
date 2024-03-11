@@ -1,5 +1,7 @@
+package org.hisp.dhis.attribute;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
 
-import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AttributeValueStore extends GenericStore<AttributeValue> {
-  List<AttributeValue> getAllByAttributes(List<Attribute> attributes);
+public interface AttributeValueStore
+    extends GenericStore<AttributeValue>
+{
+    List<AttributeValue> getAllByAttributes( List<Attribute> attributes );
 
-  List<AttributeValue> getAllByAttribute(Attribute attribute);
+    List<AttributeValue> getAllByAttribute( Attribute attribute );
 
-  List<AttributeValue> getAllByAttributeAndValue(Attribute attribute, String value);
+    List<AttributeValue> getAllByAttributeAndValue( Attribute attribute, String value );
 
-  /**
-   * Is attribute value unique, the value must either not exist, or just exist in given object.
-   *
-   * @param object Object
-   * @param attributeValue AV to check for
-   * @return true/false depending on uniqueness of AV
-   */
-  <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      T object, AttributeValue attributeValue);
+    /**
+     * Is attribute value unique, the value must either not exist, or just exist in given object.
+     *
+     * @param object         Object
+     * @param attributeValue AV to check for
+     * @return true/false depending on uniqueness of AV
+     */
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( T object, AttributeValue attributeValue );
 }

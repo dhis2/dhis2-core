@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 /**
- * We should probably rename this class at some point, but using it for now. It can be refactored
- * later on.
+ * We should probably rename this class at some point, but using it for now.
+ * It can be refactored later on.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DxfNamespaces {
-  public static final String DXF_2_0 = "http://dhis2.org/schema/dxf/2.0";
+public class DxfNamespaces
+{
+    public static final String DXF_2_0 = "http://dhis2.org/schema/dxf/2.0";
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Implementation of a runnable that makes sure the thread is run without any security context (user
- * = null). Useful for cases where you want to have access to all objects without the user flag
- * interfering.
+ * Implementation of a runnable that makes sure the thread is run without
+ * any security context (user = null). Useful for cases where you want to have
+ * access to all objects without the user flag interfering.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class NoSecurityContextRunnable implements Runnable {
-  @Override
-  public final void run() {
-    SecurityContextHolder.clearContext();
-    call();
-  }
+public abstract class NoSecurityContextRunnable
+    implements Runnable
+{
+    @Override
+    final public void run()
+    {
+        SecurityContextHolder.clearContext();
+        call();
+    }
 
-  public abstract void call();
+    public abstract void call();
 }

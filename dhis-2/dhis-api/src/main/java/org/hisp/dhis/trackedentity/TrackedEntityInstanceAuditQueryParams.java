@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +27,177 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.Pager;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-@Data
-@Accessors(chain = true)
-public class TrackedEntityInstanceAuditQueryParams {
-  private List<String> trackedEntityInstances = new ArrayList<>();
+public class TrackedEntityInstanceAuditQueryParams
+{
+    /**
+     * Tracked entity instances to fetch audits for
+     */
+    private Set<String> trackedEntityInstances = new HashSet<>();
+    
+    /**
+     * Users to fetch audits for
+     */
+    private Set<String> users = new HashSet<>();
+    
+    /**
+     * AuditType to fetch for
+     */
+    private AuditType auditType;
 
-  private List<String> users = new ArrayList<>();
+    /**
+     * Starting date.
+     */
+    private Date startDate = null;
 
-  private List<AuditType> auditTypes = new ArrayList<>();
+    /**
+     * Ending date.
+     */
+    private Date endDate = null;
+    
+    /**
+     * Tracked entity instance audit count start
+     */
+    private int first;
+    
+    /**
+     * Tracked entity instance audit count end
+     */
+    private int max;    
 
-  private Date startDate = null;
+    /**
+     * Traked entity instance audit skip paging or not
+     */
+    private boolean skipPaging;
 
-  private Date endDate = null;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  private Pager pager;
+    public TrackedEntityInstanceAuditQueryParams()
+    {
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public boolean hasTrackedEntityInstances() {
-    return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
-  }
+    public boolean hasTrackedEntityInstances()
+    {
+        return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
+    }
+    
+    public boolean hasUsers()
+    {
+        return users != null && !users.isEmpty();
+    }
+    
+    public boolean hasAuditType()
+    {
+        return auditType != null;
+    }
 
-  public boolean hasUsers() {
-    return users != null && !users.isEmpty();
-  }
+    public boolean hasStartDate()
+    {
+        return startDate != null;
+    }
 
-  public boolean hasAuditTypes() {
-    return auditTypes != null && !auditTypes.isEmpty();
-  }
+    public boolean hasEndDate()
+    {
+        return endDate != null;
+    }
 
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
+    public Set<String> getTrackedEntityInstances()
+    {
+        return trackedEntityInstances;
+    }
 
-  public boolean hasPaging() {
-    return pager != null;
-  }
+    public void setTrackedEntityInstances( Set<String> trackedEntityInstances )
+    {
+        this.trackedEntityInstances = trackedEntityInstances;
+    }    
+
+    public Set<String> getUsers()
+    {
+        return users;
+    }
+
+    public void setUsers( Set<String> users )
+    {
+        this.users = users;
+    }    
+
+    public AuditType getAuditType()
+    {
+        return auditType;
+    }
+
+    public void setAuditType( AuditType auditType )
+    {
+        this.auditType = auditType;
+    }
+
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
+    }
+
+    public int getFirst()
+    {
+        return first;
+    }
+
+    public void setFirst( int first )
+    {
+        this.first = first;
+    }
+
+    public int getMax()
+    {
+        return max;
+    }
+
+    public void setMax( int max )
+    {
+        this.max = max;
+    }    
+
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public void setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
 }

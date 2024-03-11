@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.parse;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.parse;
 
-public enum ParserType {
-  KEY_VALUE_PARSER,
-  J2ME_PARSER,
-  ALERT_PARSER,
-  UNREGISTERED_PARSER,
-  TRACKED_ENTITY_REGISTRATION_PARSER,
-  PROGRAM_STAGE_DATAENTRY_PARSER,
-  EVENT_REGISTRATION_PARSER;
+public enum ParserType
+{
+    KEY_VALUE_PARSER, J2ME_PARSER, ALERT_PARSER, UNREGISTERED_PARSER, TRACKED_ENTITY_REGISTRATION_PARSER, PROGRAM_STAGE_DATAENTRY_PARSER, EVENT_REGISTRATION_PARSER
 }

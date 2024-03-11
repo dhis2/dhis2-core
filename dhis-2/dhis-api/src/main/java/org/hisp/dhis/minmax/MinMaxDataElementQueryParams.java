@@ -1,5 +1,7 @@
+package org.hisp.dhis.minmax;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,94 +27,109 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
 
 import com.google.common.base.MoreObjects;
-import java.util.List;
-import org.apache.commons.lang3.BooleanUtils;
-import org.hisp.dhis.common.OpenApi;
+import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+
+import java.util.List;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class MinMaxDataElementQueryParams {
-  public static final MinMaxDataElementQueryParams EMPTY = new MinMaxDataElementQueryParams();
+public class MinMaxDataElementQueryParams
+{
+    public static final MinMaxDataElementQueryParams EMPTY = new MinMaxDataElementQueryParams();
 
-  private List<String> filters;
+    private List<String> filters;
 
-  private Boolean skipPaging;
+    private Boolean skipPaging;
 
-  private Boolean paging;
+    private Boolean paging;
 
-  private int page = 1;
+    private int page = 1;
 
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-  private int total;
+    private int total;
 
-  public MinMaxDataElementQueryParams() {}
+    public MinMaxDataElementQueryParams()
+    {
+    }
 
-  public boolean isSkipPaging() {
-    return PagerUtils.isSkipPaging(skipPaging, paging);
-  }
+    public boolean isSkipPaging()
+    {
+        return PagerUtils.isSkipPaging( skipPaging, paging );
+    }
 
-  public void setSkipPaging(Boolean skipPaging) {
-    this.skipPaging = skipPaging;
-  }
+    public void setSkipPaging( Boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
 
-  public boolean isPaging() {
-    return BooleanUtils.toBoolean(paging);
-  }
+    public boolean isPaging()
+    {
+        return BooleanUtils.toBoolean( paging );
+    }
 
-  public void setPaging(Boolean paging) {
-    this.paging = paging;
-  }
+    public void setPaging( Boolean paging )
+    {
+        this.paging = paging;
+    }
 
-  public int getPage() {
-    return page;
-  }
+    public int getPage()
+    {
+        return page;
+    }
 
-  public void setPage(int page) {
-    this.page = page;
-  }
+    public void setPage( int page )
+    {
+        this.page = page;
+    }
 
-  public int getPageSize() {
-    return pageSize;
-  }
+    public int getPageSize()
+    {
+        return pageSize;
+    }
 
-  public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
-  }
+    public void setPageSize( int pageSize )
+    {
+        this.pageSize = pageSize;
+    }
 
-  public int getTotal() {
-    return total;
-  }
+    public int getTotal()
+    {
+        return total;
+    }
 
-  public void setTotal(int total) {
-    this.total = total;
-  }
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
 
-  @OpenApi.Ignore
-  public Pager getPager() {
-    return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
-  }
+    public Pager getPager()
+    {
+        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
+    }
 
-  public List<String> getFilters() {
-    return this.filters;
-  }
+    public List<String> getFilters()
+    {
+        return this.filters;
+    }
 
-  public void setFilters(List<String> filters) {
-    this.filters = filters;
-  }
+    public void setFilters( List<String> filters )
+    {
+        this.filters = filters;
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("page", page)
-        .add("pageSize", pageSize)
-        .add("total", total)
-        .toString();
-  }
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "total", total )
+            .toString();
+    }
 }

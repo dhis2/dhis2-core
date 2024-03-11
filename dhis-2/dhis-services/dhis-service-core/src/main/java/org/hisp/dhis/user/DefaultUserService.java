@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,954 +27,696 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.time.ZoneId.systemDefault;
-import static java.time.ZonedDateTime.now;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 import com.google.common.collect.Lists;
-import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
-import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
-import org.jboss.aerogear.security.otp.api.Base32;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
+import org.hisp.dhis.system.util.DateUtils;
+import org.joda.time.DateTime;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Chau Thu Tran
  */
-@Slf4j
-@Lazy
-@Service("org.hisp.dhis.user.UserService")
-public class DefaultUserService implements UserService {
-  private final UserStore userStore;
+public class DefaultUserService
+    implements UserService
+{
+    private static final Log log = LogFactory.getLog( DefaultUserService.class );
 
-  private final UserGroupService userGroupService;
+    private static final int EXPIRY_THRESHOLD = 14;
 
-  private final UserRoleStore userRoleStore;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final CurrentUserService currentUserService;
+    private UserStore userStore;
 
-  private final SystemSettingManager systemSettingManager;
-
-  private final PasswordManager passwordManager;
-
-  private final SecurityService securityService;
-
-  private final Cache<String> userDisplayNameCache;
-
-  private final AclService aclService;
-
-  private final OrganisationUnitService organisationUnitService;
-
-  public DefaultUserService(
-      UserStore userStore,
-      UserGroupService userGroupService,
-      UserRoleStore userRoleStore,
-      CurrentUserService currentUserService,
-      SystemSettingManager systemSettingManager,
-      CacheProvider cacheProvider,
-      @Lazy PasswordManager passwordManager,
-      @Lazy SecurityService securityService,
-      AclService aclService,
-      @Lazy OrganisationUnitService organisationUnitService) {
-    checkNotNull(userStore);
-    checkNotNull(userGroupService);
-    checkNotNull(userRoleStore);
-    checkNotNull(systemSettingManager);
-    checkNotNull(passwordManager);
-    checkNotNull(securityService);
-    checkNotNull(aclService);
-    checkNotNull(organisationUnitService);
-
-    this.userStore = userStore;
-    this.userGroupService = userGroupService;
-    this.userRoleStore = userRoleStore;
-    this.currentUserService = currentUserService;
-    this.systemSettingManager = systemSettingManager;
-    this.passwordManager = passwordManager;
-    this.securityService = securityService;
-    this.userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
-    this.aclService = aclService;
-    this.organisationUnitService = organisationUnitService;
-  }
-
-  @Override
-  @Transactional
-  public long addUser(User user) {
-    String currentUsername = currentUserService.getCurrentUsername();
-    AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
-
-    userStore.save(user);
-
-    return user.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateUser(User user) {
-    userStore.update(user);
-
-    AuditLogUtil.infoWrapper(
-        log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
-  }
-
-  @Override
-  @Transactional
-  public void deleteUser(User user) {
-    AuditLogUtil.infoWrapper(
-        log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE);
-
-    userStore.delete(user);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getAllUsers() {
-    return userStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUser(long userId) {
-    return userStore.get(userId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUser(String uid) {
-    return userStore.getByUidNoAcl(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByUuid(UUID uuid) {
-    return userStore.getUserByUuid(uuid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByUsername(String username) {
-    return userStore.getUserByUsername(username, false);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByUsernameIgnoreCase(String username) {
-    return userStore.getUserByUsername(username, true);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByIdentifier(String id) {
-    User user = null;
-
-    if (isValidUid(id) && (user = getUser(id)) != null) {
-      return user;
+    public void setUserStore( UserStore userStore )
+    {
+        this.userStore = userStore;
     }
 
-    if (uuidIsValid(id) && (user = getUserByUuid(UUID.fromString(id))) != null) {
-      return user;
+    private UserGroupService userGroupService;
+
+    public void setUserGroupService( UserGroupService userGroupService )
+    {
+        this.userGroupService = userGroupService;
     }
 
-    if (usernameIsValid(id, false) && (user = getUserByUsername(id)) != null) {
-      return user;
+    private UserCredentialsStore userCredentialsStore;
+
+    public void setUserCredentialsStore( UserCredentialsStore userCredentialsStore )
+    {
+        this.userCredentialsStore = userCredentialsStore;
     }
 
-    return user;
-  }
+    private UserAuthorityGroupStore userAuthorityGroupStore;
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getUsers(@Nonnull Collection<String> uids) {
-    return userStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getAllUsersBetweenByName(String name, int first, int max) {
-    UserQueryParams params = new UserQueryParams();
-    params.setQuery(name);
-    params.setFirst(first);
-    params.setMax(max);
-
-    return userStore.getUsers(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getUsers(UserQueryParams params) {
-    return getUsers(params, null);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
-    handleUserQueryParams(params);
-
-    if (!validateUserQueryParams(params)) {
-      return Lists.newArrayList();
+    public void setUserAuthorityGroupStore( UserAuthorityGroupStore userAuthorityGroupStore )
+    {
+        this.userAuthorityGroupStore = userAuthorityGroupStore;
     }
 
-    return userStore.getUsers(params, orders);
-  }
+    private CurrentUserService currentUserService;
 
-  @Override
-  @Transactional(readOnly = true)
-  public int getUserCount(UserQueryParams params) {
-    handleUserQueryParams(params);
-
-    if (!validateUserQueryParams(params)) {
-      return 0;
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
-    return userStore.getUserCount(params);
-  }
+    private SystemSettingManager systemSettingManager;
 
-  @Override
-  @Transactional(readOnly = true)
-  public int getUserCount() {
-    return userStore.getUserCount();
-  }
-
-  private void handleUserQueryParams(UserQueryParams params) {
-    boolean canSeeOwnRoles =
-        params.isCanSeeOwnRoles()
-            || systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
-    params.setDisjointRoles(!canSeeOwnRoles);
-
-    if (!params.hasUser()) {
-      params.setUser(currentUserService.getCurrentUser());
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
     }
 
-    if (params.hasUser() && params.getUser().isSuper()) {
-      params.setCanManage(false);
-      params.setAuthSubset(false);
-      params.setDisjointRoles(false);
+    private PasswordManager passwordManager;
+
+    public void setPasswordManager( PasswordManager passwordManager )
+    {
+        this.passwordManager = passwordManager;
     }
 
-    if (params.getInactiveMonths() != null) {
-      Calendar cal = PeriodType.createCalendarInstance();
-      cal.add(Calendar.MONTH, (params.getInactiveMonths() * -1));
-      params.setInactiveSince(cal.getTime());
+    private SessionRegistry sessionRegistry;
+
+    public void setSessionRegistry( SessionRegistry sessionRegistry )
+    {
+        this.sessionRegistry = sessionRegistry;
+    }
+    // -------------------------------------------------------------------------
+    // UserService implementation
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // User
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public int addUser( User user )
+    {
+        AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
+
+        userStore.save( user );
+
+        return user.getId();
     }
 
-    if (params.hasUser()) {
-      UserOrgUnitType orgUnitBoundary = params.getOrgUnitBoundary();
-      if (params.isUserOrgUnits() || orgUnitBoundary == UserOrgUnitType.DATA_CAPTURE) {
-        params.setOrganisationUnits(params.getUser().getOrganisationUnits());
-        params.setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
-      } else if (orgUnitBoundary == UserOrgUnitType.DATA_OUTPUT) {
-        params.setOrganisationUnits(params.getUser().getDataViewOrganisationUnits());
-      } else if (orgUnitBoundary == UserOrgUnitType.TEI_SEARCH) {
-        params.setOrganisationUnits(params.getUser().getTeiSearchOrganisationUnits());
-      }
-    }
-  }
+    @Override
+    @Transactional
+    public void updateUser( User user )
+    {
+        userStore.update( user );
 
-  private boolean validateUserQueryParams(UserQueryParams params) {
-    if (params.isCanManage()
-        && (params.getUser() == null || !params.getUser().hasManagedGroups())) {
-      log.warn("Cannot get managed users as user does not have any managed groups");
-      return false;
+        AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE );
     }
 
-    if (params.isAuthSubset() && (params.getUser() == null || !params.getUser().hasAuthorities())) {
-      log.warn("Cannot get users with authority subset as user does not have any authorities");
-      return false;
+    @Override
+    @Transactional
+    public void deleteUser( User user )
+    {
+        AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
+
+        userStore.delete( user );
     }
 
-    if (params.isDisjointRoles()
-        && (params.getUser() == null || !params.getUser().hasUserRoles())) {
-      log.warn("Cannot get users with disjoint roles as user does not have any user roles");
-      return false;
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers()
+    {
+        return userStore.getAll();
     }
 
-    return true;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getUsersByPhoneNumber(String phoneNumber) {
-    UserQueryParams params = new UserQueryParams();
-    params.setPhoneNumber(phoneNumber);
-    return getUsers(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isLastSuperUser(User user) {
-    if (!user.isSuper()) {
-      return false; // Cannot be last if not superuser
+    @Override
+    @Transactional(readOnly = true)
+    public User getUser( int userId )
+    {
+        return userStore.get( userId );
     }
 
-    Collection<User> allUsers = userStore.getAll();
-
-    for (User u : allUsers) {
-      if (u.isSuper() && !u.equals(user)) {
-        return false;
-      }
+    @Override
+    @Transactional(readOnly = true)
+    public User getUser( String uid )
+    {
+        return userStore.getByUid( uid );
     }
 
-    return true;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean canAddOrUpdateUser(Collection<String> userGroups) {
-    return canAddOrUpdateUser(userGroups, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean canAddOrUpdateUser(Collection<String> userGroups, User currentUser) {
-    if (currentUser == null) {
-      return false;
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsers( Collection<String> uids )
+    {
+        return userStore.getByUid( uids );
     }
 
-    boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getAllUsersBetweenByName( String name, int first, int max )
+    {
+        UserQueryParams params = new UserQueryParams();
+        params.setQuery( name );
+        params.setFirst( first );
+        params.setMax( max );
 
-    if (canAdd) {
-      return true;
+        return userStore.getUsers( params );
     }
 
-    boolean canAddInGroup = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP);
-
-    if (!canAddInGroup) {
-      return false;
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsers( UserQueryParams params )
+    {
+        return getUsers( params, null );
     }
 
-    boolean canManageAnyGroup = false;
+    @Override
+    @Transactional( readOnly = true )
+    public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
+    {
+        handleUserQueryParams( params );
 
-    for (String uid : userGroups) {
-      UserGroup userGroup = userGroupService.getUserGroup(uid);
+        if ( !validateUserQueryParams( params ) )
+        {
+            return Lists.newArrayList();
+        }
 
-      if (currentUser.canManage(userGroup)) {
-        canManageAnyGroup = true;
-        break;
-      }
+        return userStore.getUsers( params, orders );
     }
 
-    return canManageAnyGroup;
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public int getUserCount( UserQueryParams params )
+    {
+        handleUserQueryParams( params );
 
-  // -------------------------------------------------------------------------
-  // UserRole
-  // -------------------------------------------------------------------------
+        if ( !validateUserQueryParams( params ) )
+        {
+            return 0;
+        }
 
-  @Override
-  @Transactional
-  public long addUserRole(UserRole userRole) {
-    userRoleStore.save(userRole);
-    return userRole.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateUserRole(UserRole userRole) {
-    userRoleStore.update(userRole);
-  }
-
-  @Override
-  @Transactional
-  public void deleteUserRole(UserRole userRole) {
-    userRoleStore.delete(userRole);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getAllUserRoles() {
-    return userRoleStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserRole getUserRole(long id) {
-    return userRoleStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserRole getUserRole(String uid) {
-    return userRoleStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public UserRole getUserRoleByName(String name) {
-    return userRoleStore.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesByUid(@Nonnull Collection<String> uids) {
-    return userRoleStore.getByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesBetween(int first, int max) {
-    return userRoleStore.getAllOrderedName(first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserRole> getUserRolesBetweenByName(String name, int first, int max) {
-    return userRoleStore.getAllLikeName(name, first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataSetUserRoles(DataSet dataSet) {
-    return userRoleStore.countDataSetUserRoles(dataSet);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void canIssueFilter(Collection<UserRole> userRoles) {
-    User user = currentUserService.getCurrentUser();
-
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
-
-    FilterUtils.filter(userRoles, new UserRoleCanIssueFilter(user, canGrantOwnUserRoles));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<User> getUsersByUsernames(Collection<String> usernames) {
-    return userStore.getUserByUsernames(usernames);
-  }
-
-  @Override
-  @Transactional
-  public void encodeAndSetPassword(User user, String rawPassword) {
-    if (StringUtils.isEmpty(rawPassword) && !user.isExternalAuth()) {
-      return; // Leave unchanged if internal authentication and no
-      // password supplied
+        return userStore.getUserCount( params );
     }
 
-    if (user.isExternalAuth()) {
-      user.setPassword(UserService.PW_NO_INTERNAL_LOGIN);
-
-      return; // Set unusable, not-encoded password if external
-      // authentication
+    @Override
+    @Transactional(readOnly = true)
+    public int getUserCount()
+    {
+        return userStore.getUserCount();
     }
 
-    boolean isNewPassword =
-        StringUtils.isBlank(user.getPassword())
-            || !passwordManager.matches(rawPassword, user.getPassword());
+    private void handleUserQueryParams( UserQueryParams params )
+    {
+        boolean canGrantOwnRoles = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        params.setDisjointRoles( !canGrantOwnRoles );
 
-    if (isNewPassword) {
-      user.setPasswordLastUpdated(new Date());
+        if ( !params.hasUser() )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
+        if ( params.hasUser() && params.getUser().isSuper() )
+        {
+            params.setCanManage( false );
+            params.setAuthSubset( false );
+            params.setDisjointRoles( false );
+        }
+
+        if ( params.getInactiveMonths() != null )
+        {
+            Calendar cal = PeriodType.createCalendarInstance();
+            cal.add( Calendar.MONTH, (params.getInactiveMonths() * -1) );
+            params.setInactiveSince( cal.getTime() );
+        }
+
+        if ( params.isUserOrgUnits() && params.hasUser() )
+        {
+            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
+        }
     }
 
-    // Encode and set password
-    Matcher matcher = UserService.BCRYPT_PATTERN.matcher(rawPassword);
-    if (matcher.matches()) {
-      throw new IllegalArgumentException("Raw password look like BCrypt: " + rawPassword);
+    private boolean validateUserQueryParams(UserQueryParams params)
+    {
+        if ( params.isCanManage() && (params.getUser() == null || !params.getUser().hasManagedGroups()) )
+        {
+            log.warn( "Cannot get managed users as user does not have any managed groups" );
+            return false;
+        }
+
+        if ( params.isAuthSubset() && (params.getUser() == null || !params.getUser().getUserCredentials().hasAuthorities()) )
+        {
+            log.warn( "Cannot get users with authority subset as user does not have any authorities" );
+            return false;
+        }
+
+        if ( params.isDisjointRoles() && (params.getUser() == null || !params.getUser().getUserCredentials().hasUserAuthorityGroups()) )
+        {
+            log.warn( "Cannot get users with disjoint roles as user does not have any user roles" );
+            return false;
+        }
+
+        return true;
     }
 
-    String encode = passwordManager.encode(rawPassword);
-    user.setPassword(encode);
-    user.getPreviousPasswords().add(encode);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByIdToken(String token) {
-    return userStore.getUserByIdToken(token);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserWithEagerFetchAuthorities(String username) {
-    User user = userStore.getUserByUsername(username, false);
-
-    if (user != null) {
-      user.getAllAuthorities();
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getUsersByPhoneNumber( String phoneNumber )
+    {
+        UserQueryParams params = new UserQueryParams();
+        params.setPhoneNumber( phoneNumber );
+        return getUsers( params );
     }
 
-    return user;
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isLastSuperUser( UserCredentials userCredentials )
+    {
+        if ( !userCredentials.isSuper() )
+        {
+            return false; // Cannot be last if not super user
+        }
 
-  @Override
-  @Transactional(readOnly = true)
-  @CheckForNull
-  public User getUserByOpenId(@Nonnull String openId) {
-    User user = userStore.getUserByOpenId(openId);
+        Collection<UserCredentials> users = userCredentialsStore.getAll();
 
-    if (user != null) {
-      user.getAllAuthorities();
-    }
-
-    return user;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public User getUserByLdapId(String ldapId) {
-    return userStore.getUserByLdapId(ldapId);
-  }
-
-  @Override
-  @Transactional
-  public void setLastLogin(String username) {
-    User user = getUserByUsername(username);
-
-    if (user != null) {
-      user.setLastLogin(new Date());
-      updateUser(user);
-    }
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getActiveUsersCount(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-
-    return getActiveUsersCount(cal.getTime());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getActiveUsersCount(Date since) {
-    UserQueryParams params = new UserQueryParams();
-    params.setLastLogin(since);
-
-    return getUserCount(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean userNonExpired(User user) {
-    int credentialsExpires = systemSettingManager.credentialsExpires();
-
-    if (credentialsExpires == 0) {
-      return true;
-    }
-
-    if (user == null || user.getPasswordLastUpdated() == null) {
-      return true;
-    }
-
-    int months = DateUtils.monthsBetween(user.getPasswordLastUpdated(), new Date());
-
-    return months < credentialsExpires;
-  }
-
-  @Override
-  public boolean isAccountExpired(User user) {
-    return !user.isAccountNonExpired();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserCreateOrUpdateAccess(User user, User currentUser) {
-
-    List<ErrorReport> errors = new ArrayList<>();
-
-    if (currentUser == null || user == null || currentUser.isSuper()) {
-      return errors;
-    }
-
-    User userToChange = userStore.get(user.getId());
-    if (userToChange != null && userToChange.isSuper()) {
-      errors.add(new ErrorReport(User.class, ErrorCode.E3041, currentUser.getUsername()));
-    }
-
-    checkHasAccessToUserRoles(user, currentUser, errors);
-    checkHasAccessToUserGroups(user, currentUser, errors);
-
-    checkIsInOrgUnitHierarchy(user.getOrganisationUnits(), currentUser, errors);
-    checkIsInOrgUnitHierarchy(user.getDataViewOrganisationUnits(), currentUser, errors);
-    checkIsInOrgUnitHierarchy(user.getTeiSearchOrganisationUnits(), currentUser, errors);
-
-    return errors;
-  }
-
-  private void checkIsInOrgUnitHierarchy(
-      Set<OrganisationUnit> organisationUnits, User currentUser, List<ErrorReport> errors) {
-    for (OrganisationUnit orgUnit : organisationUnits) {
-      boolean inUserHierarchy = organisationUnitService.isInUserHierarchy(currentUser, orgUnit);
-      if (!inUserHierarchy) {
-        errors.add(
-            new ErrorReport(
-                OrganisationUnit.class,
-                ErrorCode.E7617,
-                orgUnit.getUid(),
-                currentUser.getUsername()));
-      }
-    }
-  }
-
-  private void checkHasAccessToUserGroups(User user, User currentUser, List<ErrorReport> errors) {
-
-    boolean canAdd = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD);
-    if (canAdd) {
-      return;
-    }
-
-    boolean canAddInGroup = currentUser.isAuthorized(UserGroup.AUTH_USER_ADD_IN_GROUP);
-    if (!canAddInGroup) {
-      errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3004, currentUser));
-      return;
-    }
-
-    user.getGroups()
-        .forEach(
-            ug -> {
-              if (!(currentUser.canManage(ug)
-                  || userGroupService.canAddOrRemoveMember(ug.getUid()))) {
-                errors.add(new ErrorReport(UserGroup.class, ErrorCode.E3005, currentUser, ug));
-              }
-            });
-  }
-
-  private void checkHasAccessToUserRoles(User user, User currentUser, List<ErrorReport> errors) {
-    Set<UserRole> userRoles = user.getUserRoles();
-
-    boolean canGrantOwnUserRoles =
-        systemSettingManager.getBoolSetting(SettingKey.CAN_GRANT_OWN_USER_ROLES);
-
-    if (userRoles != null) {
-      List<UserRole> roles =
-          userRoleStore.getByUid(
-              userRoles.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
-
-      roles.forEach(
-          ur -> {
-            if (ur == null) {
-              errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, user.getUsername()));
-
-            } else if (!currentUser.canIssueUserRole(ur, canGrantOwnUserRoles)) {
-              errors.add(
-                  new ErrorReport(
-                      UserRole.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName()));
+        for ( UserCredentials user : users )
+        {
+            if ( user.isSuper() && !user.equals( userCredentials ) )
+            {
+                return false;
             }
-          });
-    }
-  }
+        }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<ErrorReport> validateUserRoleCreateOrUpdate(UserRole role, User currentUser) {
-
-    List<ErrorReport> errors = new ArrayList<>();
-
-    if (currentUser == null || role == null) {
-      return errors;
+        return true;
     }
 
-    if (!currentUser.isSuper() && role.isSuper()) {
-      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
+    {
+        Collection<UserAuthorityGroup> groups = userAuthorityGroupStore.getAll();
+
+        for ( UserAuthorityGroup group : groups )
+        {
+            if ( group.isSuper() && group.getId() != userAuthorityGroup.getId() )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    UserRole userRoleBefore = userRoleStore.get(role.getId());
-    if (!currentUser.isSuper() && userRoleBefore != null && userRoleBefore.isSuper()) {
-      errors.add(new ErrorReport(UserRole.class, ErrorCode.E3032, currentUser.getUsername()));
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canAddOrUpdateUser( Collection<String> userGroups )
+    {
+        return canAddOrUpdateUser( userGroups, currentUserService.getCurrentUser() );
     }
 
-    return errors;
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser )
+    {
+        if ( currentUser == null )
+        {
+            return false;
+        }
 
-  @Override
-  public List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays) {
-    return userStore.getExpiringUserAccounts(inDays);
-  }
+        boolean canAdd = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD );
 
-  @Transactional
-  @Override
-  public void resetTwoFactor(User user) {
-    user.setSecret(null);
-    updateUser(user);
-  }
+        if ( canAdd )
+        {
+            return true;
+        }
 
-  @Transactional
-  @Override
-  public void enableTwoFa(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException(
-          "User has not asked for a QR code yet, call the /qr endpoint first");
+        boolean canAddInGroup = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD_IN_GROUP );
+
+        if ( !canAddInGroup )
+        {
+            return false;
+        }
+
+        boolean canManageAnyGroup = false;
+
+        for ( String uid : userGroups )
+        {
+            UserGroup userGroup = userGroupService.getUserGroup( uid );
+
+            if ( currentUser.canManage( userGroup ) )
+            {
+                canManageAnyGroup = true;
+                break;
+            }
+        }
+
+        return canManageAnyGroup;
     }
 
-    if (!UserService.hasTwoFactorSecretForApproval(user)) {
-      throw new IllegalStateException(
-          "QR already approved, you must call /disable and then call /qr before you can enable");
+    // -------------------------------------------------------------------------
+    // UserAuthorityGroup
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    {
+        userAuthorityGroupStore.save( userAuthorityGroup );
+        return userAuthorityGroup.getId();
     }
 
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      throw new IllegalStateException("Invalid code");
+    @Override
+    @Transactional
+    public void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    {
+        userAuthorityGroupStore.update( userAuthorityGroup );
     }
 
-    approveTwoFactorSecret(user);
-  }
-
-  @Transactional
-  @Override
-  public void disableTwoFa(User user, String code) {
-    if (user.getSecret() == null) {
-      throw new IllegalStateException("Two factor is not enabled, enable first");
+    @Override
+    @Transactional
+    public void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    {
+        userAuthorityGroupStore.delete( userAuthorityGroup );
     }
 
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      throw new IllegalStateException("Invalid code");
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAuthorityGroup> getAllUserAuthorityGroups()
+    {
+        return userAuthorityGroupStore.getAll();
     }
 
-    resetTwoFactor(user);
-  }
-
-  @Override
-  @Transactional
-  public void privilegedTwoFactorDisable(
-      User currentUser, String userUid, Consumer<ErrorReport> errors) {
-    User user = getUser(userUid);
-    if (user == null) {
-      throw new IllegalArgumentException("User not found");
+    @Override
+    @Transactional(readOnly = true)
+    public UserAuthorityGroup getUserAuthorityGroup( int id )
+    {
+        return userAuthorityGroupStore.get( id );
     }
 
-    if (currentUser.getUid().equals(user.getUid())
-        || !canCurrentUserCanModify(currentUser, user, errors)) {
-      throw new UpdateAccessDeniedException(ErrorCode.E3021.getMessage());
+    @Override
+    @Transactional(readOnly = true)
+    public UserAuthorityGroup getUserAuthorityGroup( String uid )
+    {
+        return userAuthorityGroupStore.getByUid( uid );
     }
 
-    resetTwoFactor(user);
-  }
-
-  @Override
-  public void expireActiveSessions(User user) {
-    currentUserService.invalidateUserSessions(user.getUid());
-  }
-
-  @Override
-  @Transactional
-  public int disableUsersInactiveSince(Date inactiveSince) {
-    if (ZonedDateTime.ofInstant(inactiveSince.toInstant(), systemDefault())
-        .plusMonths(1)
-        .isAfter(now())) {
-      // we never disable users that have been active during last month
-      return 0;
-    }
-    return userStore.disableUsersInactiveSince(inactiveSince);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Optional<Locale>> findNotifiableUsersWithLastLoginBetween(Date from, Date to) {
-    return userStore.findNotifiableUsersWithLastLoginBetween(from, to);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween(
-      Date from, Date to) {
-    return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween(from, to);
-  }
-
-  @Override
-  public String getDisplayName(String userUid) {
-    return userDisplayNameCache.get(userUid, c -> userStore.getDisplayName(userUid));
-  }
-
-  @Override
-  public List<User> getUsersWithAuthority(String authority) {
-    return userStore.getHasAuthority(authority);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public CurrentUserDetails createUserDetails(User user) {
-    Objects.requireNonNull(user);
-
-    String username = user.getUsername();
-    boolean enabled = !user.isDisabled();
-    boolean credentialsNonExpired = userNonExpired(user);
-    boolean accountNonLocked = !securityService.isLocked(user.getUsername());
-    boolean accountNonExpired = !isAccountExpired(user);
-
-    if (ObjectUtils.anyIsFalse(
-        enabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
-      log.info(
-          String.format(
-              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
-              username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
+    @Override
+    @Transactional(readOnly = true)
+    public UserAuthorityGroup getUserAuthorityGroupByName( String name )
+    {
+        return userAuthorityGroupStore.getByName( name );
     }
 
-    return createUserDetails(user, accountNonLocked, credentialsNonExpired);
-  }
-
-  @Override
-  public CurrentUserDetailsImpl createUserDetails(
-      User user, boolean accountNonLocked, boolean credentialsNonExpired) {
-    return CurrentUserDetailsImpl.builder()
-        .uid(user.getUid())
-        .username(user.getUsername())
-        .password(user.getPassword())
-        .enabled(user.isEnabled())
-        .accountNonExpired(user.isAccountNonExpired())
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
-        .authorities(user.getAuthorities())
-        .userSettings(new HashMap<>())
-        .userGroupIds(
-            user.getUid() == null
-                ? Set.of()
-                : currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs())
-        .isSuper(user.isSuper())
-        .build();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean canCurrentUserCanModify(
-      User currentUser, User userToModify, Consumer<ErrorReport> errors) {
-    if (!aclService.canUpdate(currentUser, userToModify)) {
-      errors.accept(
-          new ErrorReport(
-              UserRole.class, ErrorCode.E3001, currentUser.getUsername(), userToModify.getName()));
-      return false;
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids )
+    {
+        return userAuthorityGroupStore.getByUid( uids );
     }
 
-    if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUser.canModifyUser(userToModify)) {
-      errors.accept(new ErrorReport(UserRole.class, ErrorCode.E3020, userToModify.getName()));
-      return false;
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAuthorityGroup> getUserRolesBetween( int first, int max )
+    {
+        return userAuthorityGroupStore.getAllOrderedName( first, max );
     }
 
-    return true;
-  }
-
-  @Override
-  @Transactional
-  public void generateTwoFactorOtpSecretForApproval(User user) {
-    String newSecret = TWO_FACTOR_CODE_APPROVAL_PREFIX + Base32.random();
-    user.setSecret(newSecret);
-    updateUser(user);
-  }
-
-  @Override
-  @Transactional
-  public void approveTwoFactorSecret(User user) {
-    if (user.getSecret() != null && UserService.hasTwoFactorSecretForApproval(user)) {
-      user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user);
-    }
-  }
-
-  @Override
-  public boolean hasTwoFactorRoleRestriction(User user) {
-    return user.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
-  }
-
-  @Override
-  @Transactional
-  public void validateTwoFactorUpdate(boolean before, boolean after, User userToModify) {
-    if (before == after) {
-      return;
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max )
+    {
+        return userAuthorityGroupStore.getAllLikeName( name, first, max );
     }
 
-    if (!before) {
-      throw new UpdateAccessDeniedException(
-          "You can not enable 2FA with this API endpoint, only disable.");
+    @Override
+    @Transactional(readOnly = true)
+    public int countDataSetUserAuthorityGroups( DataSet dataSet )
+    {
+        return userAuthorityGroupStore.countDataSetUserAuthorityGroups( dataSet );
     }
 
-    CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUserDetails == null) {
-      throw new UpdateAccessDeniedException("No current user in session, can not update user.");
+    @Override
+    @Transactional(readOnly = true)
+    public void canIssueFilter( Collection<UserAuthorityGroup> userRoles )
+    {
+        User user = currentUserService.getCurrentUser();
+
+        boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+
+        FilterUtils.filter( userRoles, new UserAuthorityGroupCanIssueFilter( user, canGrantOwnUserAuthorityGroups ) );
     }
 
-    // Current user can not update their own 2FA settings, must use
-    // /2fa/enable or disable API, even if they are admin.
-    if (currentUserDetails.getUid().equals(userToModify.getUid())) {
-      throw new UpdateAccessDeniedException(ErrorCode.E3030.getMessage());
+    // -------------------------------------------------------------------------
+    // UserCredentials
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public int addUserCredentials( UserCredentials userCredentials )
+    {
+        userCredentialsStore.save( userCredentials );
+        return userCredentials.getId();
     }
 
-    // If current user has access to manage this user, they can disable 2FA.
-    User currentUser = getUser(currentUserDetails.getUid());
-    if (!aclService.canUpdate(currentUser, userToModify)) {
-      throw new UpdateAccessDeniedException(
-          String.format(
-              "User `%s` is not allowed to update object `%s`.",
-              currentUser.getUsername(), userToModify));
+    @Override
+    @Transactional
+    public void updateUserCredentials( UserCredentials userCredentials )
+    {
+        userCredentialsStore.update( userCredentials );
     }
 
-    if (!canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
-        || !currentUser.canModifyUser(userToModify)) {
-      throw new UpdateAccessDeniedException(
-          "You don't have the proper permissions to update this user.");
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserCredentials> getAllUserCredentials()
+    {
+        return userCredentialsStore.getAll();
     }
-  }
 
-  @Override
-  @Nonnull
-  @Transactional(readOnly = true)
-  public List<User> getLinkedUserAccounts(@Nonnull User actingUser) {
-    return userStore.getLinkedUserAccounts(actingUser);
-  }
-
-  @Override
-  @Transactional
-  public void setActiveLinkedAccounts(@Nonnull User actingUser, @Nonnull String activeUsername) {
-    Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
-    Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
-
-    List<User> linkedUserAccounts = getLinkedUserAccounts(actingUser);
-    for (User user : linkedUserAccounts) {
-      user.setLastLogin(
-          user.getUsername().equals(activeUsername)
-              ? Date.from(oneHourInTheFuture)
-              : Date.from(oneHourAgo));
-
-      updateUser(user);
+    @Override
+    @Transactional
+    public void encodeAndSetPassword( User user, String rawPassword )
+    {
+        encodeAndSetPassword( user.getUserCredentials(), rawPassword );
     }
-  }
+
+    @Override
+    @Transactional
+    public void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword )
+    {
+        if ( StringUtils.isEmpty( rawPassword ) && !userCredentials.isExternalAuth() )
+        {
+            return; // Leave unchanged if internal authentication and no password supplied
+        }
+
+        if ( userCredentials.isExternalAuth() )
+        {
+            userCredentials.setPassword( UserService.PW_NO_INTERNAL_LOGIN );
+
+            return; // Set unusable, not-encoded password if external authentication
+        }
+
+        boolean isNewPassword = StringUtils.isBlank( userCredentials.getPassword() ) ||
+            !passwordManager.matches( rawPassword, userCredentials.getPassword() );
+
+        if ( isNewPassword )
+        {
+            userCredentials.setPasswordLastUpdated( new Date() );
+        }
+
+        // Encode and set password
+
+        userCredentials.setPassword( passwordManager.encode( rawPassword ) );
+        userCredentials.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserCredentials getUserCredentialsByUsername( String username )
+    {
+        return userCredentialsStore.getUserCredentialsByUsername( username );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    {
+        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
+
+        if ( userCredentials != null )
+        {
+            userCredentials.getAllAuthorities();
+        }
+
+        return userCredentials;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserCredentials getUserCredentialsByOpenId( String openId )
+    {
+        return userCredentialsStore.getUserCredentialsByOpenId( openId );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserCredentials getUserCredentialsByLdapId( String ldapId )
+    {
+        return userCredentialsStore.getUserCredentialsByLdapId( ldapId );
+    }
+
+    @Override
+    @Transactional
+    public void setLastLogin( String username )
+    {
+        UserCredentials credentials = getUserCredentialsByUsername( username );
+
+        if ( credentials != null )
+        {
+            credentials.setLastLogin( new Date() );
+            updateUserCredentials( credentials );
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int getActiveUsersCount( int days )
+    {
+        Calendar cal = PeriodType.createCalendarInstance();
+        cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
+
+        return getActiveUsersCount( cal.getTime() );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int getActiveUsersCount( Date since )
+    {
+        UserQueryParams params = new UserQueryParams();
+        params.setLastLogin( since );
+
+        return getUserCount( params );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean credentialsNonExpired( UserCredentials credentials )
+    {
+        int credentialsExpires = systemSettingManager.credentialsExpires();
+
+        if ( credentialsExpires == 0 )
+        {
+            return true;
+        }
+
+        if ( credentials == null || credentials.getPasswordLastUpdated() == null )
+        {
+            return true;
+        }
+
+        int months = DateUtils.monthsBetween( credentials.getPasswordLastUpdated(), new Date() );
+
+        return months < credentialsExpires;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ErrorReport> validateUser( User user, User currentUser )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( currentUser == null || currentUser.getUserCredentials() == null || user == null || user.getUserCredentials() == null )
+        {
+            return errors;
+        }
+
+        // Validate user role
+
+        boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+
+        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials().getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+
+        roles.forEach( ur ->
+        {
+            if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
+            {
+                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName() ) );
+            }
+        } );
+
+        // Validate user group
+
+        boolean canAdd = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD );
+
+        if ( canAdd )
+        {
+            return errors;
+        }
+
+        boolean canAddInGroup = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD_IN_GROUP );
+
+        if ( !canAddInGroup )
+        {
+            errors.add( new ErrorReport( UserGroup.class, ErrorCode.E3004, currentUser ) );
+            return errors;
+        }
+
+        user.getGroups().forEach( ug ->
+        {
+            if ( ! ( currentUser.canManage( ug ) || userGroupService.canAddOrRemoveMember( ug.getUid() ) ) )
+            {
+                errors.add( new ErrorReport( UserGroup.class, ErrorCode.E3005, currentUser, ug ) );
+            }
+        } );
+
+        return errors;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getExpiringUsers()
+    {
+        int daysBeforePasswordChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+
+        Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD ).toDate();
+
+        UserQueryParams userQueryParams = new UserQueryParams()
+            .setDisabled( false )
+            .setPasswordLastUpdated( daysPassed );
+
+        return userStore.getExpiringUsers( userQueryParams );
+    }
+
+    public void set2FA( User user, Boolean twoFa )
+    {
+        user.getUserCredentials().setTwoFA( twoFa );
+
+        updateUser( user );
+    }
+
+    @Override
+    public void expireActiveSessions( UserCredentials credentials )
+    {
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions( credentials, false );
+
+        sessions.forEach( SessionInformation::expireNow );
+    }
 }

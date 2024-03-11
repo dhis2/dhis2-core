@@ -1,5 +1,7 @@
+package org.hisp.dhis.option;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,101 +27,118 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.HashSet;
-import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@JacksonXmlRootElement(localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0)
-public class OptionGroup extends BaseDimensionalItemObject implements MetadataObject {
-  private Set<Option> members = new HashSet<>();
+@JacksonXmlRootElement( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0 )
+public class OptionGroup
+    extends BaseDimensionalItemObject implements MetadataObject
+{
+    private Set<Option> members = new HashSet<>();
 
-  private OptionSet optionSet;
+    private OptionSet optionSet;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public OptionGroup() {}
-
-  public OptionGroup(String name) {
-    this.name = name;
-  }
-
-  // -------------------------------------------------------------------------
-  // DimensionalItemObject
-  // -------------------------------------------------------------------------
-
-  @Override
-  public DimensionItemType getDimensionItemType() {
-    return DimensionItemType.OPTION_GROUP;
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty("options")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "options", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "option", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Option> getMembers() {
-    return members;
-  }
-
-  public void setMembers(Set<Option> members) {
-    this.members = members;
-  }
-
-  @JsonProperty("optionSet")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(localName = "optionSet", namespace = DxfNamespaces.DXF_2_0)
-  public OptionSet getOptionSet() {
-    return optionSet;
-  }
-
-  public void setOptionSet(OptionSet optionSet) {
-    this.optionSet = optionSet;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public void addOption(Option option) {
-    members.add(option);
-  }
-
-  public void removeOption(Option option) {
-    members.remove(option);
-  }
-
-  public void updateOptions(Set<Option> updates) {
-    for (Option option : new HashSet<>(members)) {
-      if (!updates.contains(option)) {
-        removeOption(option);
-      }
+    public OptionGroup()
+    {
     }
 
-    for (Option option : updates) {
-      addOption(option);
+    public OptionGroup( String name )
+    {
+        this.name = name;
     }
-  }
 
-  public void removeAllOptions() {
-    members.clear();
-  }
+    // -------------------------------------------------------------------------
+    // DimensionalItemObject
+    // -------------------------------------------------------------------------
+
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.OPTION_GROUP;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    @JsonProperty( "options" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "options", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Option> getMembers()
+    {
+        return members;
+    }
+
+    public void setMembers( Set<Option> members )
+    {
+        this.members = members;
+    }
+
+    @JsonProperty( "optionSet" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getOptionSet()
+    {
+        return optionSet;
+    }
+
+    public void setOptionSet( OptionSet optionSet )
+    {
+        this.optionSet = optionSet;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void addOption( Option option )
+    {
+        members.add( option );
+    }
+
+    public void removeOption( Option option )
+    {
+        members.remove( option );
+    }
+
+    public void updateOptions( Set<Option> updates )
+    {
+        for ( Option option : new HashSet<>( members ) )
+        {
+            if ( !updates.contains( option ) )
+            {
+                removeOption( option );
+            }
+        }
+
+        for ( Option option : updates )
+        {
+            addOption( option );
+        }
+    }
+
+    public void removeAllOptions()
+    {
+        members.clear();
+    }
 }

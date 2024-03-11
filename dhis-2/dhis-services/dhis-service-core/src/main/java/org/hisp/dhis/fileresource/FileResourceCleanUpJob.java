@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,142 +27,161 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
 
-import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
-
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Component;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload FileResources and
- * deletes them from the database and/or file store.
+ * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload
+ * FileResources and deletes them from the database and/or file store.
  *
  * @author Halvdan Hoem Grelland
  */
-@Slf4j
-@AllArgsConstructor
-@Component
-public class FileResourceCleanUpJob implements Job {
-  private final FileResourceService fileResourceService;
+public class FileResourceCleanUpJob
+    extends AbstractJob
+{
+    private static final Log log = LogFactory.getLog( FileResourceCleanUpJob.class );
 
-  private final SystemSettingManager systemSettingManager;
+    @Autowired
+    private FileResourceService fileResourceService;
 
-  private final FileResourceContentStore fileResourceContentStore;
+    @Autowired
+    private DataValueAuditService dataValueAuditService;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.FILE_RESOURCE_CLEANUP;
-  }
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Clean-up file resources");
-    FileResourceRetentionStrategy retentionStrategy =
-        systemSettingManager.getSystemSetting(
-            SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class);
+    @Autowired
+    private DataElementService dataElementService;
 
-    List<Entry<String, String>> deletedOrphans = new ArrayList<>();
-    List<Entry<String, String>> deletedAuditFiles = new ArrayList<>();
+    @Autowired
+    private FileResourceContentStore fileResourceContentStore;
 
-    // Delete expired FRs
-    if (!FileResourceRetentionStrategy.FOREVER.equals(retentionStrategy)) {
-      List<FileResource> expired = fileResourceService.getExpiredFileResources(retentionStrategy);
-      progress.startingStage("Deleting expired file resources", expired.size(), SKIP_ITEM_OUTLIER);
-      progress.runStage(
-          expired,
-          FileResourceCleanUpJob::toIdentifier,
-          fr -> {
-            if (safeDelete(fr)) {
-              deletedAuditFiles.add(new SimpleEntry<>(fr.getName(), fr.getUid()));
-            }
-          });
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.FILE_RESOURCE_CLEANUP;
     }
 
-    // Delete failed uploads
-    List<FileResource> orphanedFileResources =
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
+        List<Pair<String, String>> deletedOrphans = new ArrayList<>();
+
+        List<Pair<String, String>> deletedAuditFiles = new ArrayList<>();
+
         fileResourceService.getOrphanedFileResources().stream()
-            .filter(fr -> !isFileStored(fr))
-            .collect(toList());
-    progress.startingStage(
-        "Deleting failed uploads", orphanedFileResources.size(), SKIP_ITEM_OUTLIER);
-    progress.runStage(
-        orphanedFileResources,
-        FileResourceCleanUpJob::toIdentifier,
-        fr -> {
-          if (safeDelete(fr)) {
-            deletedOrphans.add(new SimpleEntry<>(fr.getName(), fr.getUid()));
-          }
-        });
+            .filter( fr -> !isFileStored( fr ) )
+            .filter( fr -> safeDelete( fr ) )
+            .forEach( fr -> deletedOrphans.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
 
-    if (!deletedOrphans.isEmpty()) {
-      log.info(
-          String.format(
-              "Deleted %d orphaned FileResources: %s",
-              deletedOrphans.size(), prettyPrint(deletedOrphans)));
+
+        if ( retentionStrategy != FileResourceRetentionStrategy.FOREVER )
+        {
+            deletedAuditFiles = getExpiredFileResources( retentionStrategy ).stream()
+                .filter( pair -> safeDelete( fileResourceService.getFileResource( pair.getRight() ) ) )
+                .collect( Collectors.toList() );
+        }
+
+        if ( !deletedOrphans.isEmpty() )
+        {
+            log.warn( String.format( "Deleted %d orphaned FileResources: %s", deletedOrphans.size(), prettyPrint( deletedOrphans ) ) );
+        }
+
+        if ( !deletedAuditFiles.isEmpty() )
+        {
+            log.warn( String.format( "Deleted %d expired FileResource audits: %s", deletedAuditFiles.size(), prettyPrint( deletedAuditFiles ) ) );
+        }
     }
 
-    if (!deletedAuditFiles.isEmpty()) {
-      log.info(
-          String.format(
-              "Deleted %d expired FileResource audits: %s",
-              deletedAuditFiles.size(), prettyPrint(deletedAuditFiles)));
-    }
-    progress.completedProcess(null);
-  }
+    private List<Pair<String, String>> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy )
+    {
+        List<Pair<String, String>> expiredFileResources = new ArrayList<>();
 
-  private static String toIdentifier(FileResource fr) {
-    return fr.getUid() + ":" + fr.getName();
-  }
+        List<DataElement> elements = dataElementService.getAllDataElementsByValueType( ValueType.FILE_RESOURCE );
 
-  private String prettyPrint(List<Entry<String, String>> list) {
-    if (list.isEmpty()) {
-      return "";
-    }
+        if ( !elements.isEmpty() )
+        {
+            dataValueAuditService.getDataValueAudits( elements, new ArrayList<Period>(),
+                new ArrayList<OrganisationUnit>(), null, null, null ).stream()
+                .filter( audit -> new DateTime( audit.getCreated() ).plus( retentionStrategy.getRetentionTime() )
+                    .isBefore( DateTime.now() ) )
+                .map( audit -> fileResourceService.getFileResource( audit.getValue() ) )
+                .filter( fr -> fr != null )
+                .forEach( fr -> expiredFileResources.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
+        }
 
-    StringBuilder sb = new StringBuilder("[ ");
-
-    list.forEach(
-        pair -> sb.append(pair.getKey()).append(" , uid: ").append(pair.getValue()).append(", "));
-
-    sb.deleteCharAt(sb.lastIndexOf(",")).append("]");
-
-    return sb.toString();
-  }
-
-  private boolean isFileStored(FileResource fileResource) {
-    return fileResourceContentStore.fileResourceContentExists(fileResource.getStorageKey());
-  }
-
-  /**
-   * Attempts to delete a fileresource. Fixes the isAssigned status if it turns out to be referenced
-   * by something else
-   *
-   * @param fileResource the fileresource to delete
-   * @return true if the delete was successful
-   */
-  private boolean safeDelete(FileResource fileResource) {
-    try {
-      fileResourceService.deleteFileResource(fileResource);
-      return true;
-    } catch (DeleteNotAllowedException e) {
-      fileResource.setAssigned(true);
-      fileResourceService.updateFileResource(fileResource);
+        return expiredFileResources;
     }
 
-    return false;
-  }
+    private String prettyPrint( List<Pair<String, String>> list )
+    {
+        if ( list.isEmpty() )
+        {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder( "[ " );
+
+        list.forEach(
+            pair -> sb.append( pair.getLeft() ).append( " , uid: " ).append( pair.getRight() ).append( ", " ) );
+
+        sb.deleteCharAt( sb.lastIndexOf( "," ) ).append( "]" );
+
+        return sb.toString();
+    }
+
+    private boolean isFileStored( FileResource fileResource )
+    {
+        return fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
+    }
+
+    /**
+     * Attempts to delete a fileresource. Fixes the isAssigned status if it turns out to be referenced by something else
+     * @param fileResource the fileresource to delete
+     * @return true if the delete was successful
+     */
+    private boolean safeDelete( FileResource fileResource )
+    {
+        try
+        {
+            fileResourceService.deleteFileResource( fileResource );
+            return true;
+        }
+        catch ( DeleteNotAllowedException e )
+        {
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+            log.info( String.format( "corrected the assigned status of fileresource '%s'", fileResource.getUid() ) );
+        }
+
+        return false;
+    }
+
 }

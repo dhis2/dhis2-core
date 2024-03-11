@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.table.scheduling;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.scheduling;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-@Component("resourceTableJob")
-public class ResourceTableJob implements Job {
-  private final AnalyticsTableGenerator analyticsTableGenerator;
+public class ResourceTableJob
+    extends AbstractJob
+{
+    @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
-  public ResourceTableJob(AnalyticsTableGenerator analyticsTableGenerator) {
-    checkNotNull(analyticsTableGenerator);
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-    this.analyticsTableGenerator = analyticsTableGenerator;
-  }
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.RESOURCE_TABLE;
+    }
 
-  @Override
-  public JobType getJobType() {
-    return JobType.RESOURCE_TABLE;
-  }
-
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    analyticsTableGenerator.generateResourceTables(progress);
-  }
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        analyticsTableGenerator.generateResourceTables( jobConfiguration );
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.command;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,115 +27,120 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command;
 
 import java.util.List;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.sms.command.SMSCommandService")
-public class DefaultSMSCommandService implements SMSCommandService {
-  private final SMSCommandStore smsCommandStore;
+@Transactional
+public class DefaultSMSCommandService
+    implements SMSCommandService
+{
+    @Autowired
+    private SMSCommandStore smsCommandStore;
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<SMSCommand> getSMSCommands() {
-    return smsCommandStore.getAll();
-  }
-
-  @Override
-  @Transactional
-  public void save(SMSCommand cmd) {
-    smsCommandStore.save(cmd);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public SMSCommand getSMSCommand(long id) {
-    return smsCommandStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public SMSCommand getSMSCommand(String name) {
-    return smsCommandStore.getByName(name);
-  }
-
-  @Override
-  @Transactional
-  public void addSmsCodes(Set<SMSCode> codes, long commandId) {
-    SMSCommand command = smsCommandStore.get(commandId);
-
-    if (command != null) {
-      command.getCodes().addAll(codes);
-
-      smsCommandStore.update(command);
+    @Override
+    public List<SMSCommand> getSMSCommands()
+    {
+        return smsCommandStore.getAll();
     }
-  }
 
-  @Override
-  @Transactional
-  public void delete(SMSCommand cmd) {
-    smsCommandStore.delete(cmd);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<SMSCommand> getJ2MESMSCommands() {
-    return smsCommandStore.getJ2MESMSCommands();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public SMSCommand getSMSCommand(String commandName, ParserType parserType) {
-    return smsCommandStore.getSMSCommand(commandName, parserType);
-  }
-
-  @Override
-  @Transactional
-  public void addSpecialCharacterSet(Set<SMSSpecialCharacter> specialCharacters, long commandId) {
-    SMSCommand command = smsCommandStore.get(commandId);
-
-    if (command != null) {
-      command.getSpecialCharacters().addAll(specialCharacters);
-
-      smsCommandStore.update(command);
+    public void setSmsCommandStore( SMSCommandStore smsCommandStore )
+    {
+        this.smsCommandStore = smsCommandStore;
     }
-  }
 
-  @Override
-  @Transactional
-  public void deleteCodeSet(Set<SMSCode> codes, long commandId) {
-    SMSCommand command = smsCommandStore.get(commandId);
-    if (command != null) {
-      command.getCodes().removeAll(codes);
-
-      smsCommandStore.update(command);
+    @Override
+    public void save( SMSCommand cmd )
+    {
+        smsCommandStore.save( cmd );
     }
-  }
 
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataSetSmsCommands(DataSet dataSet) {
-    return smsCommandStore.countDataSetSmsCommands(dataSet);
-  }
-
-  @Override
-  @Transactional
-  public void deleteSpecialCharacterSet(
-      Set<SMSSpecialCharacter> specialCharacters, long commandId) {
-    SMSCommand command = smsCommandStore.get(commandId);
-    if (command != null) {
-      command.getSpecialCharacters().removeAll(specialCharacters);
-
-      smsCommandStore.update(command);
+    @Override
+    public SMSCommand getSMSCommand( int id )
+    {
+        return smsCommandStore.get( id );
     }
-  }
+
+    @Override
+    public SMSCommand getSMSCommand( String name )
+    {
+        return smsCommandStore.getByName( name );
+    }
+
+    @Override
+    public void addSmsCodes( Set<SMSCode> codes, int commandId )
+    {
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        if ( command != null )
+        {
+            command.getCodes().addAll( codes);
+
+            smsCommandStore.update( command );
+        }
+    }
+
+    @Override
+    public void delete( SMSCommand cmd )
+    {
+        smsCommandStore.delete( cmd );
+    }
+
+    @Override
+    public List<SMSCommand> getJ2MESMSCommands()
+    {
+        return smsCommandStore.getJ2MESMSCommands();
+    }
+
+    @Override
+    public SMSCommand getSMSCommand( String commandName, ParserType parserType )
+    {
+        return smsCommandStore.getSMSCommand( commandName, parserType );
+    }
+
+    @Override
+    public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
+    {
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        if ( command != null )
+        {
+            command.getSpecialCharacters().addAll( specialCharacters );
+
+            smsCommandStore.update( command );
+        }
+    }
+
+    @Override
+    public void deleteCodeSet( Set<SMSCode> codes, int commandId )
+    {
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        command.getCodes().removeAll( codes );
+
+        smsCommandStore.update( command );
+    }
+
+    @Override
+    public int countDataSetSmsCommands( DataSet dataSet )
+    {
+        return smsCommandStore.countDataSetSmsCommands( dataSet );
+    }
+
+    @Override
+    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, int commandId )
+    {
+        SMSCommand command = smsCommandStore.get( commandId );
+
+        command.getSpecialCharacters().removeAll( specialCharacters );
+
+        smsCommandStore.update( command );
+    }
 }

@@ -68,13 +68,29 @@
 
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicator_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicator_userid" />
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="indicatorusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="indicatoruseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
     <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="indicatorattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
   </class>
 

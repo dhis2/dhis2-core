@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,53 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+
 
 /**
  * @author Chau Thu Tran
+ * @version ProgramStageSectionService.java 11:12:41 AM Aug 22, 2012 $
  */
-public interface ProgramStageSectionService {
-  String ID = ProgramStageSection.class.getName();
+public interface ProgramStageSectionService
+{
+    String ID = ProgramStageSection.class.getName();
 
-  // -------------------------------------------------------------------------
-  // ProgramStageSection
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // ProgramStageSection
+    // -------------------------------------------------------------------------
 
-  /**
-   * Adds an {@link ProgramStageSection}
-   *
-   * @param programStageSection The to ProgramStageSection add.
-   * @return A generated unique id of the added {@link ProgramStageSection}.
-   */
-  long saveProgramStageSection(ProgramStageSection programStageSection);
+    /**
+     * Adds an {@link ProgramStageSection}
+     *
+     * @param programStageSection The to ProgramStageSection add.
+     * @return A generated unique id of the added {@link ProgramStageSection}.
+     */
+    int saveProgramStageSection( ProgramStageSection programStageSection );
 
-  /**
-   * Deletes a {@link ProgramStageSection}.
-   *
-   * @param programStageSection the ProgramStageSection to delete.
-   */
-  void deleteProgramStageSection(ProgramStageSection programStageSection);
+    /**
+     * Deletes a {@link ProgramStageSection}.
+     *
+     * @param programStageSection the ProgramStageSection to delete.
+     */
+    void deleteProgramStageSection( ProgramStageSection programStageSection );
 
-  /**
-   * Updates an {@link ProgramStageSection}.
-   *
-   * @param programStageSection the ProgramStageSection to update.
-   */
-  void updateProgramStageSection(ProgramStageSection programStageSection);
+    /**
+     * Updates an {@link ProgramStageSection}.
+     *
+     * @param programStageSection the ProgramStageSection to update.
+     */
+    void updateProgramStageSection( ProgramStageSection programStageSection );
 
-  /**
-   * Returns a {@link ProgramStageSection}.
-   *
-   * @param id the id of the ProgramStageSection to return.
-   * @return the ProgramStageSection with the given id
-   */
-  ProgramStageSection getProgramStageSection(long id);
-
-  /**
-   * Returns a {@link ProgramStageSection}.
-   *
-   * @param uid the uid of the ProgramStageSection to return.
-   * @return the ProgramStageSection with the given id
-   */
-  ProgramStageSection getProgramStageSection(String uid);
+    /**
+     * Returns a {@link ProgramStageSection}.
+     *
+     * @param id the id of the ProgramStageSection to return.
+     * @return the ProgramStageSection with the given id
+     */
+    ProgramStageSection getProgramStageSection( int id );
 }

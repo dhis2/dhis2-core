@@ -1,5 +1,7 @@
+package org.hisp.dhis.outboundmessage;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outboundmessage;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.hisp.dhis.common.DeliveryChannel;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class OutboundMessageBatch {
-  private List<OutboundMessage> messages = new ArrayList<>();
 
-  private final DeliveryChannel deliveryChannel;
+public class OutboundMessageBatch
+{
+    private List<OutboundMessage> messages = new ArrayList<>();
 
-  public OutboundMessageBatch(List<OutboundMessage> messages, DeliveryChannel deliveryChannel) {
-    this.messages = messages;
-    this.deliveryChannel = deliveryChannel;
-  }
+    private final DeliveryChannel deliveryChannel;
 
-  public OutboundMessageBatch(DeliveryChannel deliveryChannel) {
-    this.deliveryChannel = deliveryChannel;
-  }
+    public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
+    {
+        this.messages = messages;
+        this.deliveryChannel = deliveryChannel;
+    }
 
-  public List<OutboundMessage> getMessages() {
-    return messages;
-  }
+    public OutboundMessageBatch( DeliveryChannel deliveryChannel )
+    {
+        this.deliveryChannel = deliveryChannel;
+    }
 
-  public DeliveryChannel getDeliveryChannel() {
-    return deliveryChannel;
-  }
+    public List<OutboundMessage> getMessages()
+    {
+        return messages;
+    }
 
-  public void setMessages(List<OutboundMessage> messages) {
-    this.messages = messages;
-  }
+    public DeliveryChannel getDeliveryChannel()
+    {
+        return deliveryChannel;
+    }
 
-  public int size() {
-    return messages.size();
-  }
+    public void setMessages( List<OutboundMessage> messages )
+    {
+        this.messages = messages;
+    }
+
+    public int size()
+    {
+        return messages.size();
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.notification;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,64 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
-import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
-import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
-import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
-import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
-import org.hisp.dhis.programrule.engine.TrackerEventWebHookEvent;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-/** Created by zubair@dhis2.org on 18.01.18. */
+/**
+ * Created by zubair@dhis2.org on 18.01.18.
+ */
 @Async
-@RequiredArgsConstructor
-@Component("org.hisp.dhis.program.notification.ProgramNotificationListener")
-public class ProgramNotificationListener {
-  private final ProgramNotificationService programNotificationService;
+public class ProgramNotificationListener
+{
+    @Autowired
+    private ProgramNotificationService notificationService;
 
-  private final TrackerNotificationWebHookService trackerNotificationWebHookService;
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
+    public void onEnrollment( ProgramNotificationEvent event )
+    {
+        notificationService.sendEnrollmentNotifications( event.getProgramInstance() );
+    }
 
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onEnrollment(ProgramEnrollmentNotificationEvent event) {
-    programNotificationService.sendEnrollmentNotifications(event.getProgramInstance());
-  }
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
+    public void onCompletion( ProgramNotificationEvent event )
+    {
+        notificationService.sendCompletionNotifications( event.getProgramInstance() );
+    }
 
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onCompletion(ProgramEnrollmentCompletionNotificationEvent event) {
-    programNotificationService.sendEnrollmentCompletionNotifications(event.getProgramInstance());
-  }
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
+    public void onProgramRuleEnrollment( ProgramNotificationEvent event )
+    {
+        notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
+    }
 
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onEvent(ProgramStageCompletionNotificationEvent event) {
-    programNotificationService.sendEventCompletionNotifications(event.getProgramStageInstance());
-  }
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
+    public void onEvent( ProgramNotificationEvent event )
+    {
+        notificationService.sendCompletionNotifications( event.getProgramStageInstance() );
+    }
 
-  // Published by rule engine
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onProgramRuleEnrollment(ProgramRuleEnrollmentEvent event) {
-    programNotificationService.sendProgramRuleTriggeredNotifications(
-        event.getTemplate(), event.getProgramInstance());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onProgramRuleEvent(ProgramRuleStageEvent event) {
-    programNotificationService.sendProgramRuleTriggeredEventNotifications(
-        event.getTemplate(), event.getProgramStageInstance());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onTrackerEventWebHook(TrackerEventWebHookEvent event) {
-    trackerNotificationWebHookService.handleEvent(event.getProgramStageInstance());
-  }
-
-  @TransactionalEventListener(fallbackExecution = true)
-  public void onTrackerEnrollmentWebHook(TrackerEnrollmentWebHookEvent event) {
-    trackerNotificationWebHookService.handleEnrollment(event.getProgramInstance());
-  }
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
+    public void onProgramRuleEvent( ProgramNotificationEvent event )
+    {
+        notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
+    }
 }

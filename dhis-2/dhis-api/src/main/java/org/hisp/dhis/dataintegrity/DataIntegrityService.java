@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataintegrity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,61 +27,191 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.validation.ValidationRule;
+
+import java.util.*;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * @author Fredrik Fjeld
  */
-public interface DataIntegrityService {
-  /*
-   * Old API
-   */
+public interface DataIntegrityService
+{
+    String ID = DataIntegrityService.class.getName();
 
-  /**
-   * @deprecated Replaced by {@link #getSummaries(Set, long)} and {@link #getDetails(Set, long)},
-   *     kept for backwards compatibility until new UI exists
-   */
-  @Deprecated(since = "2.38", forRemoval = true)
-  @Nonnull
-  FlattenedDataIntegrityReport getReport(Set<String> checks, JobProgress progress);
+    // -------------------------------------------------------------------------
+    // DataIntegrityService
+    // -------------------------------------------------------------------------
 
-  /*
-   * New generic API
-   */
+    // -------------------------------------------------------------------------
+    // DataElement
+    // -------------------------------------------------------------------------
 
-  default @Nonnull Collection<DataIntegrityCheck> getDataIntegrityChecks() {
-    return getDataIntegrityChecks(Set.of());
-  }
+    /**
+     * Gets all data elements which are not assigned to any data set.
+     */
+    List<DataElement> getDataElementsWithoutDataSet();
 
-  @Nonnull
-  Collection<DataIntegrityCheck> getDataIntegrityChecks(Set<String> checks);
+    /**
+     * Gets all data elements which are not members of any groups.
+     */
+    List<DataElement> getDataElementsWithoutGroups();
+    
+    /**
+     * Gets all data elements units which are members of more than one group
+     * which enter into an exclusive group set.
+     */    
+    SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets();
 
-  @Nonnull
-  Map<String, DataIntegritySummary> getSummaries(@Nonnull Set<String> checks, long timeout);
+    /**
+     * Returns all data elements which are members of data sets with different
+     * period types.
+     */
+    SortedMap<DataElement, Collection<DataSet>> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
 
-  @Nonnull
-  Map<String, DataIntegrityDetails> getDetails(@Nonnull Set<String> checks, long timeout);
+    /**
+     * Returns all data elements which are member of a data set but not part of
+     * either the custom form or sections of the data set.
+     */
+    SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm();
+    
+    /**
+     * Returns all invalid category combinations.
+     */
+    List<CategoryCombo> getInvalidCategoryCombos();
 
-  void runSummaryChecks(@Nonnull Set<String> checks, JobProgress progress);
+    // -------------------------------------------------------------------------
+    // DataSet
+    // -------------------------------------------------------------------------
 
-  void runDetailsChecks(@Nonnull Set<String> checks, JobProgress progress);
+    /**
+     * Gets all data sets which are not assigned to any organisation units.
+     */
+    List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
+    
+    // -------------------------------------------------------------------------
+    // Indicator
+    // -------------------------------------------------------------------------
 
-  @Nonnull
-  Set<String> getRunningSummaryChecks();
+    /**
+     * Gets all indicators with identical numerator and denominator.
+     */
+    Set<Set<Indicator>> getIndicatorsWithIdenticalFormulas();
 
-  @Nonnull
-  Set<String> getRunningDetailsChecks();
+    /**
+     * Gets all indicators which are not assigned to any groups.
+     */
+    List<Indicator> getIndicatorsWithoutGroups();
 
-  @Nonnull
-  Set<String> getCompletedSummaryChecks();
+    /**
+     * Gets all indicators with invalid indicator numerators.
+     */
+    SortedMap<Indicator, String> getInvalidIndicatorNumerators();
 
-  @Nonnull
-  Set<String> getCompletedDetailsChecks();
+    /**
+     * Gets all indicators with invalid indicator denominators.
+     */
+    SortedMap<Indicator, String> getInvalidIndicatorDenominators();
+    
+    /**
+     * Gets all indicators units which are members of more than one group
+     * which enter into an exclusive group set.
+     */    
+    SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets();
+    
+    // -------------------------------------------------------------------------
+    // OrganisationUnit
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets all organisation units which are related to each other in a cyclic reference.
+     */
+    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
+
+    /**
+     * Gets all organisation units with no parents or children.
+     */
+    List<OrganisationUnit> getOrphanedOrganisationUnits();
+
+    /**
+     * Gets all organisation units which are not assigned to any groups.
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+
+    /**
+     * Gets all organisation units which are members of more than one group
+     * which enter into an exclusive group set.
+     */
+    SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets();
+
+    // -------------------------------------------------------------------------
+    // Period
+    // -------------------------------------------------------------------------
+
+    /**
+     * Lists all Periods which are duplicates, based on the period type and start date.
+     */
+    List<Period> getDuplicatePeriods();
+    
+    // -------------------------------------------------------------------------
+    // OrganisationUnitGroup
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets all organisation unit groups which are not assigned to any group set.
+     */
+    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets();
+
+    // -------------------------------------------------------------------------
+    // ValidationRule
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets all ValidationRules which are not members fo one or more groups.
+     */
+    List<ValidationRule> getValidationRulesWithoutGroups();
+    
+    /**
+     * Gets all ValidationRules with invalid left side expressions.
+     */
+    SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions();
+    
+    /**
+     * Gets all ValidationRules with invalid right side expressions.
+     */
+    SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions();
+
+    // -------------------------------------------------------------------------
+    // DataIntegrityReport
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a DataIntegrityReport.
+     */
+    DataIntegrityReport getDataIntegrityReport();
+
+    /**
+     * Returns a FlattenedDataIntegrityReport.
+     */
+    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport();
+
+    /**
+     * Get all ProgramIndicators with invalid expressions.
+     */
+    Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions();
+
+    /**
+     * Get all ProgramIndicators with invalid filters.
+     */
+    Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters();
 }

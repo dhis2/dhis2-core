@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,130 +27,150 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-@JacksonXmlRootElement(localName = "programTempOwnershipAudit", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramTempOwnershipAudit implements Serializable {
-  private static final long serialVersionUID = 6713155272099925278L;
+@JacksonXmlRootElement( localName = "programTempOwnershipAudit", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramTempOwnershipAudit implements Serializable
+{
+    private static final long serialVersionUID = 6713155272099925278L;
 
-  private int id;
+    private int id;
 
-  private Program program;
+    private Program program;
 
-  private String reason;
+    private String reason;
 
-  private Date created;
+    private Date created;
 
-  private String accessedBy;
+    private String accessedBy;
 
-  private TrackedEntityInstance entityInstance;
+    private TrackedEntityInstance entityInstance;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public ProgramTempOwnershipAudit() {}
-
-  public ProgramTempOwnershipAudit(
-      Program program, TrackedEntityInstance entityInstance, String reason, String accessedBy) {
-    this.program = program;
-    this.reason = reason;
-    this.accessedBy = accessedBy;
-    this.created = new Date();
-    this.entityInstance = entityInstance;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(program, entityInstance, reason, created, accessedBy);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
+    public ProgramTempOwnershipAudit()
+    {
     }
 
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
+    public ProgramTempOwnershipAudit( Program program, TrackedEntityInstance entityInstance, String reason,
+        String accessedBy )
+    {
+        this.program = program;
+        this.reason = reason;
+        this.accessedBy = accessedBy;
+        this.created = new Date();
+        this.entityInstance = entityInstance;
     }
 
-    final ProgramTempOwnershipAudit other = (ProgramTempOwnershipAudit) obj;
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( program, entityInstance, reason, created, accessedBy );
+    }
 
-    return Objects.equals(this.program, other.program)
-        && Objects.equals(this.reason, other.reason)
-        && Objects.equals(this.created, other.created)
-        && Objects.equals(this.accessedBy, other.accessedBy)
-        && Objects.equals(this.entityInstance, other.entityInstance);
-  }
+    @Override
+    public boolean equals( Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+        if ( obj == null || getClass() != obj.getClass() )
+        {
+            return false;
+        }
 
-  public int getId() {
-    return id;
-  }
+        final ProgramTempOwnershipAudit other = (ProgramTempOwnershipAudit) obj;
 
-  public void setId(int id) {
-    this.id = id;
-  }
+        return Objects.equals( this.program, other.program )
+            && Objects.equals( this.reason, other.reason ) && Objects.equals( this.created, other.created )
+            && Objects.equals( this.accessedBy, other.accessedBy ) && Objects.equals( this.entityInstance, other.entityInstance );
+    }
 
-  public Program getProgram() {
-    return program;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setProgram(Program program) {
-    this.program = program;
-  }
+    public int getId()
+    {
+        return id;
+    }
 
-  public TrackedEntityInstance getEntityInstance() {
-    return entityInstance;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  public void setEntityInstance(TrackedEntityInstance entityInstance) {
-    this.entityInstance = entityInstance;
-  }
+    public Program getProgram()
+    {
+        return program;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getReason() {
-    return reason;
-  }
+    public void setProgram( Program program )
+    {
+        this.program = program;
+    }
 
-  public void setReason(String reason) {
-    this.reason = reason;
-  }
+    public TrackedEntityInstance getEntityInstance()
+    {
+        return entityInstance;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCreated() {
-    return created;
-  }
+    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    {
+        this.entityInstance = entityInstance;
+    }
 
-  public void setCreated(Date created) {
-    this.created = created;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getReason()
+    {
+        return reason;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getAccessedBy() {
-    return accessedBy;
-  }
+    public void setReason( String reason )
+    {
+        this.reason = reason;
+    }
 
-  public void setAccessedBy(String accessedBy) {
-    this.accessedBy = accessedBy;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAccessedBy()
+    {
+        return accessedBy;
+    }
+
+    public void setAccessedBy( String accessedBy )
+    {
+        this.accessedBy = accessedBy;
+    }
 }

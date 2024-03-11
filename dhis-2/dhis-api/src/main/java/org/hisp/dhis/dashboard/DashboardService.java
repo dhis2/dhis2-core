@@ -1,5 +1,7 @@
+package org.hisp.dhis.dashboard;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,81 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard;
 
-import java.util.List;
-import java.util.Set;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
-public interface DashboardService {
-  String ID = DashboardService.class.getName();
+public interface DashboardService
+{
+    String ID = DashboardService.class.getName();
 
-  // -------------------------------------------------------------------------
-  // Dashboard
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Dashboard
+    // -------------------------------------------------------------------------
 
-  DashboardSearchResult search(String query);
+    DashboardSearchResult search( String query );
 
-  DashboardSearchResult search(
-      String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount);
+    DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes );
+    
+    DashboardSearchResult search( Set<DashboardItemType> maxTypes );
 
-  DashboardSearchResult search(String query, Set<DashboardItemType> maxTypes);
+    DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid );
 
-  DashboardSearchResult search(Set<DashboardItemType> maxTypes, Integer count, Integer maxCount);
+    void mergeDashboard( Dashboard dashboard );
 
-  DashboardSearchResult search(Set<DashboardItemType> maxTypes);
+    void mergeDashboardItem( DashboardItem item );
 
-  DashboardItem addItemContent(String dashboardUid, DashboardItemType type, String contentUid);
+    int saveDashboard( Dashboard dashboard );
 
-  void mergeDashboard(Dashboard dashboard);
+    void updateDashboard( Dashboard dashboard );
 
-  void mergeDashboardItem(DashboardItem item);
+    void deleteDashboard( Dashboard dashboard );
 
-  long saveDashboard(Dashboard dashboard);
+    Dashboard getDashboard( int id );
 
-  void updateDashboard(Dashboard dashboard);
+    Dashboard getDashboard( String uid );
 
-  void deleteDashboard(Dashboard dashboard);
+    // -------------------------------------------------------------------------
+    // DashboardItem
+    // -------------------------------------------------------------------------
 
-  Dashboard getDashboard(long id);
+    void updateDashboardItem( DashboardItem item );
+    
+    DashboardItem getDashboardItem( String uid );
 
-  Dashboard getDashboard(String uid);
+    Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
 
-  // -------------------------------------------------------------------------
-  // DashboardItem
-  // -------------------------------------------------------------------------
+    void deleteDashboardItem( DashboardItem item );
+    
+    int countMapDashboardItems( Map map );
 
-  void updateDashboardItem(DashboardItem item);
+    int countChartDashboardItems( Chart chart );
 
-  DashboardItem getDashboardItem(String uid);
+    int countEventChartDashboardItems( EventChart eventChart );
 
-  Dashboard getDashboardFromDashboardItem(DashboardItem dashboardItem);
+    int countReportTableDashboardItems( ReportTable reportTable );
 
-  void deleteDashboardItem(DashboardItem item);
+    int countReportDashboardItems( Report report );
 
-  List<DashboardItem> getVisualizationDashboardItems(Visualization visualization);
-
-  List<DashboardItem> getEventVisualizationDashboardItems(EventVisualization eventVisualization);
-
-  List<DashboardItem> getEventChartDashboardItems(EventChart eventChart);
-
-  List<DashboardItem> getMapDashboardItems(Map map);
-
-  List<DashboardItem> getEventReportDashboardItems(EventReport eventReport);
-
-  List<DashboardItem> getUserDashboardItems(User user);
-
-  List<DashboardItem> getReportDashboardItems(Report report);
-
-  List<DashboardItem> getDocumentDashboardItems(Document document);
+    int countDocumentDashboardItems( Document document );
+    
+    int countUserDashboardItems( User user );
 }

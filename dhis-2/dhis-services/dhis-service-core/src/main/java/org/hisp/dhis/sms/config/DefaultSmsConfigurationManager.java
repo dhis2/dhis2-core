@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.config;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +27,102 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.List;
 
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Component;
 
-/** Manages the {@link SmsConfiguration} for the instance. */
-@Component("org.hisp.dhis.sms.config.SmsConfigurationManager")
-public class DefaultSmsConfigurationManager implements SmsConfigurationManager {
-  private final SystemSettingManager systemSettingManager;
+import org.springframework.beans.factory.annotation.Autowired;
 
-  public DefaultSmsConfigurationManager(SystemSettingManager systemSettingManager) {
-    checkNotNull(systemSettingManager);
+/**
+ * Manages the {@link SmsConfiguration} for the instance.
+ */
+public class DefaultSmsConfigurationManager
+    implements SmsConfigurationManager
+{
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
-    this.systemSettingManager = systemSettingManager;
-  }
-
-  @Override
-  public SmsConfiguration getSmsConfiguration() {
-    return systemSettingManager.getSystemSetting(SettingKey.SMS_CONFIG, SmsConfiguration.class);
-  }
-
-  @Override
-  public void updateSmsConfiguration(SmsConfiguration config) {
-    systemSettingManager.saveSystemSetting(SettingKey.SMS_CONFIG, config);
-  }
-
-  @Override
-  public SmsGatewayConfig checkInstanceOfGateway(Class<?> clazz) {
-    if (getSmsConfiguration() == null) {
-      SmsConfiguration smsConfig = new SmsConfiguration(true);
-      updateSmsConfiguration(smsConfig);
+    @Override
+    public SmsConfiguration getSmsConfiguration()
+    {
+        return (SmsConfiguration) systemSettingManager.getSystemSetting( SettingKey.SMS_CONFIG );
     }
 
-    for (SmsGatewayConfig gateway : getSmsConfiguration().getGateways()) {
-      if (gateway.getClass().equals(clazz)) {
-        return gateway;
-      }
+    @Override
+    public void updateSmsConfiguration( SmsConfiguration config )
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.SMS_CONFIG, config );
     }
 
-    return null;
-  }
+    @Override
+    public SmsGatewayConfig checkInstanceOfGateway( Class<?> clazz )
+    {
+        if ( getSmsConfiguration() == null )
+        {
+            SmsConfiguration smsConfig = new SmsConfiguration( true );
+            updateSmsConfiguration( smsConfig );
+        }
+
+        for ( SmsGatewayConfig gateway : getSmsConfiguration().getGateways() )
+        {
+            if ( gateway.getClass().equals( clazz ) )
+            {
+                return gateway;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean setDefaultSMSGateway( String gatewayId )
+    {
+        boolean result = false;
+
+        SmsConfiguration config = getSmsConfiguration();
+
+        if ( config == null )
+        {
+            return result;
+        }
+
+        List<SmsGatewayConfig> smsGatewayList = config.getGateways();
+
+        for ( SmsGatewayConfig gw : smsGatewayList )
+        {
+            if ( gw.getName().equals( gatewayId ) )
+            {
+                gw.setDefault( true );
+                
+                result = true;
+            }
+            else
+            {
+                gw.setDefault( false );
+            }
+        }
+
+        updateSmsConfiguration( config );
+
+        return result;
+    }
+
+    @Override
+    public boolean gatewayExists( String gatewayId )
+    {
+        SmsConfiguration config = getSmsConfiguration();
+        List<SmsGatewayConfig> gatewayList = config.getGateways();
+
+        for ( SmsGatewayConfig gw : gatewayList )
+        {
+            if ( gw.getName().equals( gatewayId ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

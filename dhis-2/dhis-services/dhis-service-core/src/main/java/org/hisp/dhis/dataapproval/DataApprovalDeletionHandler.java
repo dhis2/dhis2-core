@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataapproval;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +27,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
 
-import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Jim Grace
  */
-@Component
-public class DataApprovalDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(DataApproval.class);
+public class DataApprovalDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void register() {
-    whenVetoing(DataApprovalLevel.class, this::allowDeleteDataApprovalLevel);
-    whenVetoing(DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow);
-    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
-  }
+    private JdbcTemplate jdbcTemplate;
 
-  private DeletionVeto allowDeleteDataApprovalLevel(DataApprovalLevel dataApprovalLevel) {
-    String sql = "select 1 from dataapproval where dataapprovallevelid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", dataApprovalLevel.getId()));
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  private DeletionVeto allowDeleteDataApprovalWorkflow(DataApprovalWorkflow workflow) {
-    String sql = "select 1 from dataapproval where workflowid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", workflow.getId()));
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
-    String sql = "select 1 from dataapproval where attributeoptioncomboid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
-  }
+    @Override
+    public String getClassName()
+    {
+        return DataApproval.class.getSimpleName();
+    }
+
+    @Override
+    public String allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
+    {
+        String sql = "select count(*) from dataapproval where dataapprovallevelid=" + dataApprovalLevel.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    {
+        String sql = "select count(*) from dataapproval where workflowid=" + workflow.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    {
+        String sql = "select count(*) from dataapproval where attributeoptioncomboid=" + optionCombo.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

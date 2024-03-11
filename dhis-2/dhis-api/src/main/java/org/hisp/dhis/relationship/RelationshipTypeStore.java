@@ -1,5 +1,7 @@
+package org.hisp.dhis.relationship;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Abyot Asalefew Gizaw
+ * @version $Id$
  */
-public interface RelationshipTypeStore extends IdentifiableObjectStore<RelationshipType> {
-  /**
-   * Retrieves a relationship.
-   *
-   * @param aIsToB The A side
-   * @param bIsToA The B side
-   * @return RelationshipType
-   */
-  RelationshipType getRelationshipType(String aIsToB, String bIsToA);
+public interface RelationshipTypeStore
+    extends IdentifiableObjectStore<RelationshipType>
+{
+    String ID = RelationshipTypeStore.class.getName();
+
+    /**
+     * Retrieve a relationship
+     * 
+     * @param aIsToB The A side
+     * @param bIsToA The B side
+     * 
+     * @return RelationshipType
+     */
+    RelationshipType getRelationshipType( String aIsToB, String bIsToA );
+
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.deletedobject;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deletedobject;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DeletedObjectStore {
-  long save(DeletedObject deletedObject);
+public interface DeletedObjectStore
+{
+    int save( DeletedObject deletedObject );
 
-  void delete(DeletedObject deletedObject);
+    void delete( DeletedObject deletedObject );
 
-  void delete(DeletedObjectQuery query);
+    void delete( DeletedObjectQuery query );
 
-  List<DeletedObject> getByKlass(String klass);
+    List<DeletedObject> getByKlass( String klass );
 
-  int count(DeletedObjectQuery query);
+    int count( DeletedObjectQuery query );
 
-  List<DeletedObject> query(DeletedObjectQuery query);
+    List<DeletedObject> query( DeletedObjectQuery query );
 }

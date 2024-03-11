@@ -1,5 +1,7 @@
+package org.hisp.dhis.patch;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +27,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.patch;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "patch", namespace = DxfNamespaces.DXF_2_0)
-public class Patch {
-  private List<Mutation> mutations = new ArrayList<>();
+@JacksonXmlRootElement( localName = "patch", namespace = DxfNamespaces.DXF_2_0 )
+public class Patch
+{
+    private List<Mutation> mutations = new ArrayList<>();
 
-  public Patch() {}
-
-  public Patch(List<Mutation> mutations) {
-    this.mutations = mutations;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public List<Mutation> getMutations() {
-    return mutations;
-  }
-
-  public void setMutations(List<Mutation> mutations) {
-    this.mutations = mutations;
-  }
-
-  public Patch addMutation(Mutation mutation) {
-    if (mutation != null) {
-      mutations.add(mutation);
+    public Patch()
+    {
     }
 
-    return this;
-  }
+    public Patch( List<Mutation> mutations )
+    {
+        this.mutations = mutations;
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("mutations", mutations).toString();
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<Mutation> getMutations()
+    {
+        return mutations;
+    }
+
+    public void setMutations( List<Mutation> mutations )
+    {
+        this.mutations = mutations;
+    }
+
+    public Patch addMutation( Mutation mutation )
+    {
+        if ( mutation != null )
+        {
+            mutations.add( mutation );
+        }
+
+        return this;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "mutations", mutations )
+            .toString();
+    }
 }

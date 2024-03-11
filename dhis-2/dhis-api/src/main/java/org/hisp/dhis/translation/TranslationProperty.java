@@ -1,5 +1,7 @@
+package org.hisp.dhis.translation;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.translation;
 
 /**
- * This enum defined a translatable property. The value of this enum is used for mapping this
- * translation with the object property name. The capitol Enum string is used as a key when storing
- * translation in Jsonb format.
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TranslationProperty {
-  NAME("name"),
-  SHORT_NAME("shortName"),
-  DESCRIPTION("description"),
-  FORM_NAME("formName"),
-  NUMERATOR_DESCRIPTION("numeratorDescription"),
-  DENOMINATOR_DESCRIPTION("denominatorDescription"),
-  RELATIONSHIP_FROM_TO_NAME("fromToName"),
-  RELATIONSHIP_TO_FROM_NAME("toFromName"),
-  INSTRUCTION("instruction"),
-  INCIDENT_DATE_LABEL("incidentDateLabel"),
-  ENROLLMENT_DATE_LABEL("enrollmentDateLabel"),
-  EXECUTION_DATE_LABEL("executionDateLabel"),
-  DUE_DATE_LABEL("dueDateLabel"),
-  CONTENT("content");
+public enum TranslationProperty
+{
+    NAME ( "name" ),
+    SHORT_NAME ( "shortName" ),
+    DESCRIPTION ("description" ),
+    FORM_NAME ( "formName" );
 
-  private String name;
+    private String name;
 
-  TranslationProperty(String name) {
-    this.name = name;
-  }
-
-  public static TranslationProperty fromValue(String value) {
-    for (TranslationProperty type : TranslationProperty.values()) {
-      if (type.getName().equalsIgnoreCase(value)) {
-        return type;
-      }
+    TranslationProperty( String name )
+    {
+        this.name = name;
     }
 
-    return null;
-  }
+    public static TranslationProperty fromValue( String value )
+    {
+        for ( TranslationProperty type : TranslationProperty.values() )
+        {
+            if ( type.name().equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
 
-  public String getName() {
-    return name;
-  }
+        return null;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 }

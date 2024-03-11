@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,71 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.*;
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class ValueTypeTest {
-  @Test
-  void rightInstancesOfEnumsAreConstructedWhenUsed() {
-    ValueType posInt = ValueType.INTEGER_POSITIVE;
-    ValueType longText = ValueType.LONG_TEXT;
-
-    assertTrue(posInt.isNumeric());
-    assertTrue(longText.isText());
-  }
-
-  @Test
-  void aggregatableFlagOfTextValueTypeIsTrueWhenCalled() {
-    assertTrue(ValueType.TEXT.isAggregatable(AggregationType.NONE));
-    assertTrue(ValueType.LONG_TEXT.isAggregatable(AggregationType.NONE));
-    assertTrue(ValueType.LETTER.isAggregatable(AggregationType.NONE));
-    assertTrue(ValueType.USERNAME.isAggregatable(AggregationType.NONE));
-    assertTrue(ValueType.EMAIL.isAggregatable(AggregationType.NONE));
-    assertTrue(ValueType.PHONE_NUMBER.isAggregatable(AggregationType.NONE));
-    assertTrue(ValueType.URL.isAggregatable(AggregationType.NONE));
-  }
-
-  @Test
-  void aggregatableFlagOfNumericValueTypeIsTrueWhenCalled() {
-    assertTrue(ValueType.NUMBER.isAggregatable(AggregationType.COUNT));
-    assertTrue(ValueType.UNIT_INTERVAL.isAggregatable(AggregationType.AVERAGE));
-    assertTrue(ValueType.PERCENTAGE.isAggregatable(AggregationType.LAST));
-    assertTrue(ValueType.INTEGER_POSITIVE.isAggregatable(AggregationType.LAST));
-    assertTrue(ValueType.INTEGER_NEGATIVE.isAggregatable(AggregationType.LAST));
-    assertTrue(ValueType.INTEGER_ZERO_OR_POSITIVE.isAggregatable(AggregationType.LAST));
-  }
-
-  @Test
-  void aggregatableFlagOfNumericValueTypeIsFalseWhenCalled() {
-    assertFalse(ValueType.NUMBER.isAggregatable(AggregationType.NONE));
-    assertFalse(ValueType.UNIT_INTERVAL.isAggregatable(AggregationType.NONE));
-    assertFalse(ValueType.PERCENTAGE.isAggregatable(AggregationType.DEFAULT));
-    assertFalse(ValueType.INTEGER_POSITIVE.isAggregatable(AggregationType.CUSTOM));
-    assertFalse(ValueType.INTEGER_NEGATIVE.isAggregatable(AggregationType.NONE));
-    assertFalse(ValueType.INTEGER_ZERO_OR_POSITIVE.isAggregatable(AggregationType.NONE));
-  }
-
-  @Test
-  void aggregatableFlagOfFileResourceValueTypeIsTrueWhenCalled() {
-    assertTrue(ValueType.FILE_RESOURCE.isAggregatable(AggregationType.COUNT));
-  }
-
-  @Test
-  void aggregatableFlagOfFileResourceValueTypeIsFalseWhenCalled() {
-    assertFalse(ValueType.FILE_RESOURCE.isAggregatable(AggregationType.AVERAGE));
-    assertFalse(ValueType.FILE_RESOURCE.isAggregatable(AggregationType.NONE));
-    assertFalse(ValueType.FILE_RESOURCE.isAggregatable(AggregationType.DEFAULT));
-  }
-
-  @Test
-  void referenceTypeTest() {
-    assertFalse(ValueType.REFERENCE.isAggregatable());
-    assertTrue(ValueType.REFERENCE.isReference());
-    assertFalse(ValueType.NUMBER.isReference());
-  }
+public class ValueTypeTest
+{
+    @Test
+    public void test()
+    {
+        ValueType posInt = ValueType.INTEGER_POSITIVE;
+        ValueType longText = ValueType.LONG_TEXT;
+        
+        assertTrue( posInt.isNumeric() );
+        assertTrue( longText.isText() );
+    }
 }

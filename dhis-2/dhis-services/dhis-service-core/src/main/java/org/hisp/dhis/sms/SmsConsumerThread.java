@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,72 +27,89 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-@Slf4j
-@RequiredArgsConstructor
-@Component("org.hisp.dhis.sms.SmsConsumerThread")
-public class SmsConsumerThread {
-  private List<IncomingSmsListener> listeners;
+public class SmsConsumerThread
+{
+    private static final Log log = LogFactory.getLog( SmsConsumerThread.class );
 
-  private final MessageQueue messageQueue;
+    private List<IncomingSmsListener> listeners;
 
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
+    @Autowired
+    private MessageQueue messageQueue;
 
-  private final IncomingSmsService incomingSmsService;
+    @Autowired
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
 
-  public void spawnSmsConsumer() {
-    IncomingSms message = messageQueue.get();
+    @Autowired
+    private IncomingSmsService incomingSmsService;
 
-    while (message != null) {
-      log.info("Received SMS: " + message.getText());
-
-      try {
-        for (IncomingSmsListener listener : listeners) {
-          if (listener.accept(message)) {
-            listener.receive(message);
-            messageQueue.remove(message);
-            return;
-          }
-        }
-
-        log.warn("No SMS command found in received data");
-
-        message.setStatus(SmsMessageStatus.UNHANDLED);
-
-        smsSender.sendMessage(null, "No command found", message.getOriginator());
-      } catch (Exception e) {
-        e.printStackTrace();
-
-        message.setStatus(SmsMessageStatus.FAILED);
-        message.setParsed(false);
-      } finally {
-        messageQueue.remove(message);
-
-        incomingSmsService.update(message);
-
-        message = messageQueue.get();
-      }
+    public SmsConsumerThread()
+    {
     }
-  }
 
-  @Autowired
-  public void setListeners(List<IncomingSmsListener> listeners) {
-    this.listeners = listeners;
+    public void spawnSmsConsumer()
+    {
+        IncomingSms message = messageQueue.get();
 
-    log.info("Following listeners are registered: " + listeners);
-  }
+        while ( message != null )
+        {
+            log.info( "Received SMS: " + message.getText() );
+            
+            try
+            {
+                for ( IncomingSmsListener listener : listeners )
+                {
+                    if ( listener.accept( message ) )
+                    {
+                        listener.receive( message );
+                        messageQueue.remove( message );
+                        return;
+                    }
+                }
+
+                log.warn( "No SMS command found in received data" );
+
+                message.setStatus( SmsMessageStatus.UNHANDLED );
+
+                smsSender.sendMessage( null, "No command found", message.getOriginator() );
+            }
+            catch ( Exception e )
+            {
+                e.printStackTrace();
+
+                message.setStatus( SmsMessageStatus.FAILED );
+                message.setParsed( false );
+            }
+            finally
+            {
+                messageQueue.remove( message );
+
+                incomingSmsService.update( message );
+
+                message = messageQueue.get();
+            }
+        }
+    }
+
+    @Autowired
+    public void setListeners( List<IncomingSmsListener> listeners )
+    {
+        this.listeners = listeners;
+
+        log.info( "Following listners are registered: " + listeners );
+    }
 }

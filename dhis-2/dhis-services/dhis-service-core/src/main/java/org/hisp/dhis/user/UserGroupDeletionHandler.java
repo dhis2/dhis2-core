@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
-@RequiredArgsConstructor
-public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup> {
-  private final CurrentUserService currentUserService;
+public class UserGroupDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(User.class, this::deleteUser);
-    whenDeleting(UserGroup.class, this::deleteUserGroup);
-  }
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
-  private void deleteUser(User user) {
-    Set<UserGroup> userGroups = user.getGroups();
+    private JdbcTemplate jdbcTemplate;
 
-    for (UserGroup group : userGroups) {
-      group.getMembers().remove(user);
-      idObjectManager.updateNoAcl(group);
-    }
-  }
-
-  private void deleteUserGroup(UserGroup userGroup) {
-    Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
-    for (UserGroup group : userGroups) {
-      group.getManagedGroups().remove(userGroup);
-      idObjectManager.updateNoAcl(group);
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    userGroup
-        .getMembers()
-        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected String getClassName()
+    {
+        return UserGroup.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteUser( User user )
+    {
+        Set<UserGroup> userGroups = user.getGroups();
+        
+        for ( UserGroup group : userGroups )
+        {
+            group.getMembers().remove( user );
+            idObjectManager.updateNoAcl( group );
+        }
+    }
+    
+    @Override
+    public String allowDeleteUserGroup( UserGroup group )
+    {
+        int count = jdbcTemplate.queryForObject( "select count(*) from usergroupaccess where usergroupid=" + group.getId(), Integer.class );
+        
+        return count == 0 ? null : "";
+    }
+
+    @Override
+    public void deleteUserGroup( UserGroup userGroup )
+    {
+        Set<UserGroup> userGroups = userGroup.getManagedByGroups();
+        
+        for ( UserGroup group : userGroups )
+        {
+            group.getManagedGroups().remove( userGroup );
+            idObjectManager.updateNoAcl( group );
+        }
+    }
 }

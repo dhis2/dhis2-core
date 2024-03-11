@@ -1,5 +1,7 @@
+package org.hisp.dhis.datavalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,152 +27,81 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
 
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.datavalue.DataValueAuditService")
-public class DefaultDataValueAuditService implements DataValueAuditService {
-  private final DataValueAuditStore dataValueAuditStore;
+@Transactional
+public class DefaultDataValueAuditService
+    implements DataValueAuditService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final DataValueStore dataValueStore;
+    private DataValueAuditStore dataValueAuditStore;
 
-  private final CategoryOptionComboStore categoryOptionComboStore;
-
-  // -------------------------------------------------------------------------
-  // DataValueAuditService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void addDataValueAudit(DataValueAudit dataValueAudit) {
-    dataValueAuditStore.addDataValueAudit(dataValueAudit);
-  }
-
-  @Override
-  @Transactional
-  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
-    dataValueAuditStore.deleteDataValueAudits(organisationUnit);
-  }
-
-  @Override
-  @Transactional
-  public void deleteDataValueAudits(DataElement dataElement) {
-    dataValueAuditStore.deleteDataValueAudits(dataElement);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValue dataValue) {
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
-            .setDataElements(List.of(dataValue.getDataElement()))
-            .setPeriods(List.of(dataValue.getPeriod()))
-            .setOrgUnits(List.of(dataValue.getSource()))
-            .setCategoryOptionCombo(dataValue.getCategoryOptionCombo())
-            .setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
-
-    return dataValueAuditStore.getDataValueAudits(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
-    CategoryOptionCombo coc =
-        ObjectUtils.firstNonNull(
-            categoryOptionCombo,
-            categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME));
-
-    CategoryOptionCombo aoc =
-        ObjectUtils.firstNonNull(
-            attributeOptionCombo,
-            categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME));
-
-    DataValue dataValue =
-        dataValueStore.getDataValue(dataElement, period, organisationUnit, coc, aoc, true);
-
-    if (dataValue == null) {
-      return List.of();
+    public void setDataValueAuditStore( DataValueAuditStore dataValueAuditStore )
+    {
+        this.dataValueAuditStore = dataValueAuditStore;
     }
 
-    DataValueAuditQueryParams params =
-        new DataValueAuditQueryParams()
-            .setDataElements(List.of(dataElement))
-            .setPeriods(List.of(period))
-            .setOrgUnits(List.of(organisationUnit))
-            .setCategoryOptionCombo(coc)
-            .setAttributeOptionCombo(aoc);
+    // -------------------------------------------------------------------------
+    // DataValueAuditService implementation
+    // -------------------------------------------------------------------------
 
-    List<DataValueAudit> dataValueAudits =
-        dataValueAuditStore.getDataValueAudits(params).stream()
-            .map(x -> DataValueAudit.from(x, x.getCreated()))
-            .collect(Collectors.toList());
-
-    if (dataValueAudits.isEmpty()) {
-      dataValueAudits.add(createDataValueAudit(dataValue));
-      return dataValueAudits;
+    @Override
+    public void addDataValueAudit( DataValueAudit dataValueAudit )
+    {
+        dataValueAuditStore.addDataValueAudit( dataValueAudit );
+    }
+    
+    @Override
+    public void deleteDataValueAudits( OrganisationUnit organisationUnit )
+    {
+        dataValueAuditStore.deleteDataValueAudits( organisationUnit );
     }
 
-    // case if the audit trail started out with DELETE
-    if (dataValueAudits.get(dataValueAudits.size() - 1).getAuditType() == AuditType.DELETE) {
-      DataValueAudit valueAudit = createDataValueAudit(dataValue);
-      valueAudit.setValue(dataValueAudits.get(dataValueAudits.size() - 1).getValue());
-      dataValueAudits.add(valueAudit);
+    @Override
+    public void deleteDataValueAudits( DataElement dataElement )
+    {
+        dataValueAuditStore.deleteDataValueAudits( dataElement );
     }
 
-    // unless top is CREATE, inject current DV as audit on top
-    if (!dataValue.isDeleted() && dataValueAudits.get(0).getAuditType() != AuditType.CREATE) {
-      DataValueAudit dataValueAudit = createDataValueAudit(dataValue);
-      dataValueAudit.setAuditType(AuditType.UPDATE);
-      dataValueAudit.setCreated(dataValue.getLastUpdated());
-      dataValueAudits.add(0, dataValueAudit);
+    @Override
+    public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
+    {
+        return dataValueAuditStore.getDataValueAudits( dataValue );
     }
 
-    dataValueAudits.get(dataValueAudits.size() - 1).setAuditType(AuditType.CREATE);
+    @Override
+    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
+    {
+        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+    }
 
-    return dataValueAudits;
-  }
+    @Override
+    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+    {
+        return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType, first, max );
+    }
 
-  private static DataValueAudit createDataValueAudit(DataValue dataValue) {
-    DataValueAudit dataValueAudit =
-        new DataValueAudit(
-            dataValue, dataValue.getValue(), dataValue.getStoredBy(), AuditType.CREATE);
-    dataValueAudit.setCreated(dataValue.getCreated());
-
-    return dataValueAudit;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.getDataValueAudits(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countDataValueAudits(DataValueAuditQueryParams params) {
-    return dataValueAuditStore.countDataValueAudits(params);
-  }
+    @Override
+    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
+    {
+        return dataValueAuditStore.countDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+    }
 }

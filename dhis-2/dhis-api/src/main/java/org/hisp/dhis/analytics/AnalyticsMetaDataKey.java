@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 /**
  * Represents keys for the meta data part of analytics responses.
  *
  * @author Lars Helge Overland
  */
-public enum AnalyticsMetaDataKey {
-  ITEMS("items"),
-  DIMENSIONS("dimensions"),
-  PAGER("pager"),
-  ORG_UNIT_HIERARCHY("ouHierarchy"),
-  ORG_UNIT_NAME_HIERARCHY("ouNameHierarchy"),
-  ORG_UNIT_ANCESTORS("ouAncestors");
+public enum AnalyticsMetaDataKey
+{
+    ITEMS( "items" ),
+    DIMENSIONS( "dimensions" ),
+    PAGER( "pager" ),
+    ORG_UNIT_HIERARCHY( "ouHierarchy" ),
+    ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" ),
+    ORG_UNIT_ANCESTORS( "ouAncestors");
 
-  private String key;
+    private String key;
 
-  AnalyticsMetaDataKey(String key) {
-    this.key = key;
-  }
+    AnalyticsMetaDataKey( String key )
+    {
+        this.key = key;
+    }
 
-  public String getKey() {
-    return key;
-  }
+    public String getKey()
+    {
+        return key;
+    }
 }

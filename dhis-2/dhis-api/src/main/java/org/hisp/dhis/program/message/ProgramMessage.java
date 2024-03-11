@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.message;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,89 +27,224 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Getter
-@Setter
-@Builder(builderClassName = "ProgramMessageBuilder")
-@NoArgsConstructor
-@AllArgsConstructor
-@JacksonXmlRootElement(localName = "programMessage", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramMessage extends BaseIdentifiableObject implements Serializable {
-  private static final long serialVersionUID = -5882823752156937730L;
+@JacksonXmlRootElement( localName = "programMessage", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramMessage
+    extends BaseIdentifiableObject
+    implements Serializable
+{
+    private static final long serialVersionUID = -5882823752156937730L;
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  private ProgramInstance programInstance;
+    private ProgramInstance programInstance;
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  private ProgramStageInstance programStageInstance;
+    private ProgramStageInstance programStageInstance;
 
-  @JsonProperty private ProgramMessageRecipients recipients;
+    private ProgramMessageRecipients recipients;
 
-  @JsonProperty private Set<DeliveryChannel> deliveryChannels = new HashSet<>();
+    private Set<DeliveryChannel> deliveryChannels = new HashSet<>();
 
-  @JsonProperty private ProgramMessageStatus messageStatus;
+    private ProgramMessageStatus messageStatus;
 
-  @JsonProperty private String notificationTemplate;
+    private String subject;
 
-  @JsonProperty private String subject;
+    private String text;
 
-  @JsonProperty private String text;
+    private Date processedDate;
 
-  @JsonProperty private Date processedDate;
+    private transient boolean storeCopy = true;
 
-  @JsonProperty private transient boolean storeCopy = true;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    public ProgramMessage()
+    {
+    }
 
-  public boolean hasProgramInstance() {
-    return this.programInstance != null;
-  }
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients )
+    {
+        this.subject = subject;
+        this.text = text;
+        this.recipients = recipients;
+    }
 
-  public boolean hasProgramStageInstance() {
-    return this.programStageInstance != null;
-  }
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+        ProgramInstance programInstance )
+    {
+        this( subject, text, recipients );
+        this.deliveryChannels = deliveryChannels;
+        this.programInstance = programInstance;
+    }
 
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class ProgramMessageBuilder {}
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+        ProgramStageInstance programStageInstance )
+    {
+        this( subject, text, recipients );
+        this.deliveryChannels = deliveryChannels;
+        this.programStageInstance = programStageInstance;
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("uid", uid)
-        .add("program stage instance", programStageInstance)
-        .add("program instance", programInstance)
-        .add("recipients", recipients)
-        .add("delivery channels", deliveryChannels)
-        .add("subject", subject)
-        .add("text", text)
-        .toString();
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasProgramInstance()
+    {
+        return this.programInstance != null;
+    }
+
+    public boolean hasProgramStageInstance()
+    {
+        return this.programStageInstance != null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Setters and getters
+    // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramInstance getProgramInstance()
+    {
+        return programInstance;
+    }
+
+    public void setProgramInstance( ProgramInstance programInstance )
+    {
+        this.programInstance = programInstance;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStageInstance getProgramStageInstance()
+    {
+        return programStageInstance;
+    }
+
+    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        this.programStageInstance = programStageInstance;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramMessageRecipients getRecipients()
+    {
+        return recipients;
+    }
+
+    public void setRecipients( ProgramMessageRecipients programMessagerecipients )
+    {
+        this.recipients = programMessagerecipients;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "deliveryChannels", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DeliveryChannel> getDeliveryChannels()
+    {
+        return deliveryChannels;
+    }
+
+    public void setDeliveryChannels( Set<DeliveryChannel> deliveryChannels )
+    {
+        this.deliveryChannels = deliveryChannels;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramMessageStatus getMessageStatus()
+    {
+        return messageStatus;
+    }
+
+    public void setMessageStatus( ProgramMessageStatus messageStatus )
+    {
+        this.messageStatus = messageStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSubject()
+    {
+        return subject;
+    }
+
+    public void setSubject( String messageSubject )
+    {
+        this.subject = messageSubject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getText()
+    {
+        return text;
+    }
+
+    public void setText( String text )
+    {
+        this.text = text;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getProcessedDate()
+    {
+        return processedDate;
+    }
+
+    public void setProcessedDate( Date processedDate )
+    {
+        this.processedDate = processedDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStoreCopy()
+    {
+        return storeCopy;
+    }
+
+    public void setStoreCopy( boolean storeCopy )
+    {
+        this.storeCopy = storeCopy;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "uid", uid )
+            .add( "program stage instance", programStageInstance )
+            .add( "program instance", programInstance )
+            .add( "recipients", recipients )
+            .add( "delivery channels", deliveryChannels )
+            .add( "subject", subject )
+            .add( "text", text )
+            .toString();
+    }
 }

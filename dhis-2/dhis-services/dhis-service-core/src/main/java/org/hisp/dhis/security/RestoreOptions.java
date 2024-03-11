@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,69 +27,83 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
 /**
- * Options for user account restore operation. These options are represented in the user account
- * restore email as a prefix to the restore token. This token is hashed, and the hash is stored in
- * the database. This means that the options cannot be hacked to change them, because then the token
+ * Options for user account restore operation. These options are represented
+ * in the user account restore email as a prefix to the restore token.
+ * This token is hashed, and the hash is stored in the database. This means
+ * that the options cannot be hacked to change them, because then the token
  * would no longer match the saved hash in the database.
  *
  * @author Jim Grace
  */
-public enum RestoreOptions {
-  RECOVER_PASSWORD_OPTION("R", RestoreType.RECOVER_PASSWORD, false),
-  INVITE_WITH_USERNAME_CHOICE("IC", RestoreType.INVITE, true),
-  INVITE_WITH_DEFINED_USERNAME("ID", RestoreType.INVITE, false);
 
-  /** Prefix to be used on restore token, to represent this set of options. */
-  private final String tokenPrefix;
+public enum RestoreOptions
+{
+    RECOVER_PASSWORD_OPTION ( "R", RestoreType.RECOVER_PASSWORD, false ),
+    INVITE_WITH_USERNAME_CHOICE ( "IC", RestoreType.INVITE, true ),
+    INVITE_WITH_DEFINED_USERNAME ( "ID", RestoreType.INVITE, false );
 
-  /**
-   * The type of restore operation to perform (i.e. password recovery or invite to create account.)
-   */
-  private final RestoreType restoreType;
+    /**
+     * Prefix to be used on restore token, to represent this set of options.
+     */
+    private final String tokenPrefix;
 
-  /** Defines whether the user can choose a username at the time of restore. */
-  private final boolean usernameChoice;
+    /**
+     * The type of restore operation to perform (i.e. password recovery
+     * or invite to create account.)
+     */
+    private final RestoreType restoreType;
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    /**
+     * Defines whether the user can choose a username at the time of restore.
+     */
+    private final boolean usernameChoice;
 
-  private RestoreOptions(String tokenPrefix, RestoreType restoreType, boolean usernameChoice) {
-    this.tokenPrefix = tokenPrefix;
-    this.restoreType = restoreType;
-    this.usernameChoice = usernameChoice;
-  }
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Get Restore Options from a token string
-  // -------------------------------------------------------------------------
-
-  public static RestoreOptions getRestoreOptions(String token) {
-    for (RestoreOptions ro : RestoreOptions.values()) {
-      if (token.startsWith(ro.getTokenPrefix())) {
-        return ro;
-      }
+    private RestoreOptions( String tokenPrefix, RestoreType restoreType, boolean usernameChoice )
+    {
+        this.tokenPrefix = tokenPrefix;
+        this.restoreType = restoreType;
+        this.usernameChoice = usernameChoice;
     }
 
-    return null;
-  }
+    // -------------------------------------------------------------------------
+    // Get Restore Options from a token string
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Getters
-  // -------------------------------------------------------------------------
+    static public RestoreOptions getRestoreOptions( String token )
+    {
+        for ( RestoreOptions ro : RestoreOptions.values() )
+        {
+            if ( token.startsWith( ro.getTokenPrefix() ) )
+            {
+                return ro;
+            }
+        }
 
-  public String getTokenPrefix() {
-    return tokenPrefix;
-  }
+        return null;
+    }
 
-  public RestoreType getRestoreType() {
-    return restoreType;
-  }
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
 
-  public boolean isUsernameChoice() {
-    return usernameChoice;
-  }
+    public String getTokenPrefix()
+    {
+        return tokenPrefix;
+    }
+
+    public RestoreType getRestoreType()
+    {
+        return restoreType;
+    }
+
+    public boolean isUsernameChoice()
+    {
+        return usernameChoice;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
 
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 /**
  * @author Stian Sandvold
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.ExternalFileResourceService")
-public class DefaultExternalFileResourceService implements ExternalFileResourceService {
-  private final ExternalFileResourceStore externalFileResourceStore;
+public class DefaultExternalFileResourceService
+    implements ExternalFileResourceService
+{
+    private ExternalFileResourceStore externalFileResourceStore;
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalFileResource getExternalFileResourceByAccessToken(String accessToken) {
-    return externalFileResourceStore.getExternalFileResourceByAccessToken(accessToken);
-  }
+    public void setExternalFileResourceStore(
+        ExternalFileResourceStore externalFileResourceStore )
+    {
+        this.externalFileResourceStore = externalFileResourceStore;
+    }
 
-  @Override
-  @Transactional
-  public String saveExternalFileResource(ExternalFileResource externalFileResource) {
-    Assert.notNull(externalFileResource, "External file resource cannot be null");
-    Assert.notNull(
-        externalFileResource.getFileResource(), "External file resource entity cannot be null");
+    @Override
+    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
+    {
+        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
+    }
 
-    externalFileResource.setAccessToken(CodeGenerator.getRandomUrlToken());
+    @Override
+    @Transactional
+    public String saveExternalFileResource( ExternalFileResource externalFileResource )
+    {
+        Assert.notNull( externalFileResource, "External file resource cannot be null" );
+        Assert.notNull( externalFileResource.getFileResource(), "External file resource entity cannot be null" );
 
-    externalFileResourceStore.save(externalFileResource);
+        externalFileResource.setAccessToken( CodeGenerator.getRandomUrlToken() );
 
-    return externalFileResource.getAccessToken();
-  }
+        externalFileResourceStore.save( externalFileResource );
+
+        return externalFileResource.getAccessToken();
+    }
 }

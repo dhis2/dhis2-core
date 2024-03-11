@@ -1,1 +1,0 @@
-alter table expression add column if not exists translations jsonb default '[]'::jsonb;

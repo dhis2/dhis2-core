@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset.notifications;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +27,72 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.notifications;
+
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
 
 import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
-
 /**
- * @author zubair (original)
- * @author Jan Bernitt (job progress tracking)
+ * Created by zubair@dhis2.org on 21.07.17.
  */
-@Component
-@AllArgsConstructor
-public class DataSetNotificationJob implements Job {
-  private final DataSetNotificationService dataSetNotificationService;
+public class DataSetNotificationJob
+    extends AbstractJob
+{
+    @Autowired
+    private DataSetNotificationService dataSetNotificationService;
 
-  @Override
-  public JobType getJobType() {
-    return DATA_SET_NOTIFICATION;
-  }
+    @Autowired
+    private MessageService messageService;
 
-  @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    progress.startingProcess("Dataset notification");
-    dataSetNotificationService.sendScheduledDataSetNotificationsForDay(new Date(), progress);
-    progress.completedProcess(null);
-  }
+    @Autowired
+    private Notifier notifier;
+
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public JobType getJobType()
+    {
+        return DATA_SET_NOTIFICATION;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+        throws Exception
+    {
+        final Clock clock = new Clock().startClock();
+
+        notifier.notify( jobConfiguration, "Sending scheduled dataset notifications" );
+
+        try
+        {
+            send();
+
+            notifier.notify( jobConfiguration, NotificationLevel.INFO, "Sent scheduled dataset notifications: " + clock.time(), true );
+        }
+        catch ( RuntimeException ex )
+        {
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+
+            messageService.sendSystemErrorNotification( "Scheduled dataset notifications failed", ex );
+
+            throw ex;
+        }
+    }
+
+    private void send()
+    {
+        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date() );
+    }
+
 }

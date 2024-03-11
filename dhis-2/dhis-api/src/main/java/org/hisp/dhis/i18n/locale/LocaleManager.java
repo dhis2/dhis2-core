@@ -1,5 +1,7 @@
+package org.hisp.dhis.i18n.locale;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.i18n.locale;
 
 import java.util.List;
 import java.util.Locale;
@@ -33,18 +34,19 @@ import java.util.Locale;
 /**
  * @author Torgeir Lorange Ostby
  */
-public interface LocaleManager {
-  String ID = LocaleManager.class.getName();
+public interface LocaleManager
+{
+    String ID = LocaleManager.class.getName();
 
-  Locale DEFAULT_LOCALE = Locale.ENGLISH;
+    Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
-  Locale getCurrentLocale();
+    Locale getCurrentLocale();
 
-  void setCurrentLocale(Locale locale);
+    void setCurrentLocale( Locale locale );
 
-  List<Locale> getLocalesOrderedByPriority();
+    List<Locale> getLocalesOrderedByPriority();
 
-  Locale getFallbackLocale();
-
-  List<Locale> getAvailableLocales();
+    Locale getFallbackLocale();
+    
+    List<Locale> getAvailableLocales();
 }

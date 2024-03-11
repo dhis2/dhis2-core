@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,326 +27,337 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Sets;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.SerializableOptional;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Declare transactions on individual methods. The get-methods do not have transactions declared,
- * instead a programmatic transaction is initiated on cache miss in order to reduce the number of
- * transactions to improve performance.
+ * Declare transactions on individual methods. The get-methods do not have
+ * transactions declared, instead a programmatic transaction is initiated on
+ * cache miss in order to reduce the number of transactions to improve performance.
  *
  * @author Torgeir Lorange Ostby
  */
-@Service("org.hisp.dhis.user.UserSettingService")
-public class DefaultUserSettingService implements UserSettingService {
-  private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP =
-      Sets.newHashSet(SettingKey.values()).stream()
-          .collect(Collectors.toMap(SettingKey::getName, s -> s));
+public class DefaultUserSettingService implements UserSettingService
+{
+    /**
+     * Cache for user settings. Does not accept nulls. Disabled during test phase.
+     */
+    private Cache<Serializable> userSettingCache;
 
-  /** Cache for user settings. Does not accept nulls. Disabled during test phase. */
-  private final Cache<SerializableOptional> userSettingCache;
+    private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final CurrentUserService currentUserService;
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
-  private final UserSettingStore userSettingStore;
+    @Autowired
+    private CacheProvider cacheProvider;
 
-  private final UserService userService;
+    private CurrentUserService currentUserService;
 
-  private final SystemSettingManager systemSettingManager;
-
-  public DefaultUserSettingService(
-      CacheProvider cacheProvider,
-      CurrentUserService currentUserService,
-      UserSettingStore userSettingStore,
-      UserService userService,
-      SystemSettingManager systemSettingManager) {
-    checkNotNull(cacheProvider);
-    checkNotNull(currentUserService);
-    checkNotNull(userSettingStore);
-    checkNotNull(userService);
-    checkNotNull(systemSettingManager);
-
-    this.currentUserService = currentUserService;
-    this.userSettingStore = userSettingStore;
-    this.userService = userService;
-    this.systemSettingManager = systemSettingManager;
-    this.userSettingCache = cacheProvider.createUserSettingCache();
-  }
-
-  // -------------------------------------------------------------------------
-  // UserSettingService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void saveUserSetting(UserSettingKey key, Serializable value, String username) {
-    User user = userService.getUserByUsername(username);
-
-    if (user != null) {
-      saveUserSetting(key, value, user);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void saveUserSetting(UserSettingKey key, Serializable value) {
-    User currentUser = currentUserService.getCurrentUser();
-
-    saveUserSetting(key, value, currentUser);
-  }
-
-  @Override
-  @Transactional
-  public void saveUserSetting(UserSettingKey key, Serializable value, User user) {
-    if (user == null) {
-      return;
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
-    userSettingCache.invalidate(getCacheKey(key.getName(), user.getUsername()));
+    private UserSettingStore userSettingStore;
 
-    UserSetting userSetting = userSettingStore.getUserSetting(user, key.getName());
-
-    if (userSetting == null) {
-      userSetting = new UserSetting(user, key.getName(), value);
-
-      userSettingStore.addUserSetting(userSetting);
-    } else {
-      userSetting.setValue(value);
-
-      userSettingStore.updateUserSetting(userSetting);
+    public void setUserSettingStore( UserSettingStore userSettingStore )
+    {
+        this.userSettingStore = userSettingStore;
     }
-  }
 
-  @Override
-  @Transactional
-  public void saveUserSettings(UserSettings settings, User user) {
-    if (settings == null) {
-      return; // nothing to do
+    private UserService userService;
+
+    public void setUserService( UserService userService )
+    {
+        this.userService = userService;
     }
-    for (UserSettingKey key : UserSettingKey.values()) {
-      Serializable value = key.getGetter().apply(settings);
-      if (value != null) {
-        saveUserSetting(key, value, user);
-      }
+
+    private SystemSettingManager systemSettingManager;
+
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
     }
-  }
 
-  @Override
-  @Transactional
-  public void deleteUserSetting(UserSetting userSetting) {
-    userSettingCache.invalidate(
-        getCacheKey(userSetting.getName(), userSetting.getUser().getUsername()));
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
 
-    userSettingStore.deleteUserSetting(userSetting);
-  }
+    @PostConstruct
+    public void init()
+    {
+        userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
+            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
 
-  @Override
-  @Transactional
-  public void deleteUserSetting(UserSettingKey key) {
-    User currentUser = currentUserService.getCurrentUser();
-
-    if (currentUser != null) {
-      UserSetting setting = userSettingStore.getUserSetting(currentUser, key.getName());
-
-      if (setting != null) {
-        deleteUserSetting(setting);
-      }
     }
-  }
 
-  @Override
-  @Transactional
-  public void deleteUserSetting(UserSettingKey key, User user) {
-    UserSetting setting = userSettingStore.getUserSetting(user, key.getName());
+    // -------------------------------------------------------------------------
+    // UserSettingService implementation
+    // -------------------------------------------------------------------------
 
-    if (setting != null) {
-      deleteUserSetting(setting);
+    @Override
+    @Transactional
+    public void saveUserSetting( UserSettingKey key, Serializable value, String username )
+    {
+        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+
+        if ( credentials != null )
+        {
+            saveUserSetting( key, value, credentials.getUserInfo() );
+        }
     }
-  }
 
-  /**
-   * Note: No transaction for this method, transaction is instead initiated at the store level
-   * behind the cache to avoid the transaction overhead for cache hits.
-   */
-  @Override
-  @Transactional(readOnly = true)
-  public Serializable getUserSetting(UserSettingKey key) {
-    return getUserSetting(key, Optional.empty()).get();
-  }
+    @Override
+    @Transactional
+    public void saveUserSetting( UserSettingKey key, Serializable value )
+    {
+        User currentUser = currentUserService.getCurrentUser();
 
-  /**
-   * Note: No transaction for this method, transaction is instead initiated at the store level
-   * behind the cache to avoid the transaction overhead for cache hits.
-   */
-  @Override
-  @Transactional(readOnly = true)
-  public Serializable getUserSetting(UserSettingKey key, User user) {
-    return getUserSetting(key, Optional.ofNullable(user)).get();
-  }
+        saveUserSetting( key, value, currentUser );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserSetting> getAllUserSettings() {
-    User currentUser = currentUserService.getCurrentUser();
+    @Override
+    @Transactional
+    public void saveUserSetting( UserSettingKey key, Serializable value, User user )
+    {
+        if ( user == null )
+        {
+            return;
+        }
 
-    return getUserSettings(currentUser);
-  }
+        userSettingCache.invalidate( getCacheKey( key.getName(), user.getUsername() ) );
 
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap(
-      User user, Set<UserSettingKey> userSettingKeys, boolean useFallback) {
-    Map<String, Serializable> result =
-        Sets.newHashSet(getUserSettings(user)).stream()
-            .filter(
-                userSetting ->
-                    userSetting != null
-                        && userSetting.getName() != null
-                        && userSetting.getValue() != null)
-            .collect(Collectors.toMap(UserSetting::getName, UserSetting::getValue));
+        UserSetting userSetting = userSettingStore.getUserSetting( user, key.getName() );
 
-    userSettingKeys.forEach(
-        userSettingKey -> {
-          if (!result.containsKey(userSettingKey.getName())) {
-            Optional<SettingKey> systemSettingKey = SettingKey.getByName(userSettingKey.getName());
+        if ( userSetting == null )
+        {
+            userSetting = new UserSetting( user, key.getName(), value );
 
-            if (useFallback && systemSettingKey.isPresent()) {
-              SettingKey setting = systemSettingKey.get();
-              result.put(
-                  userSettingKey.getName(),
-                  systemSettingManager.getSystemSetting(setting, setting.getClazz()));
-            } else {
-              result.put(userSettingKey.getName(), null);
+            userSettingStore.addUserSetting( userSetting );
+        }
+        else
+        {
+            userSetting.setValue( value );
+
+            userSettingStore.updateUserSetting( userSetting );
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserSetting( UserSetting userSetting )
+    {
+        userSettingCache.invalidate( getCacheKey( userSetting.getName(), userSetting.getUser().getUsername() ) );
+
+        userSettingStore.deleteUserSetting( userSetting );
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserSetting( UserSettingKey key )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser != null )
+        {
+            UserSetting setting = userSettingStore.getUserSetting( currentUser, key.getName() );
+
+            if ( setting != null )
+            {
+                deleteUserSetting( setting );
             }
-          }
-        });
-
-    return result;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserSetting> getUserSettings(User user) {
-    if (user == null) {
-      return new ArrayList<>();
+        }
     }
 
-    List<UserSetting> userSettings = userSettingStore.getAllUserSettings(user);
-    Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings(user);
+    @Override
+    @Transactional
+    public void deleteUserSetting( UserSettingKey key, User user )
+    {
+        UserSetting setting = userSettingStore.getUserSetting( user, key.getName() );
 
-    userSettings.addAll(
-        defaultUserSettings.stream()
-            .filter(x -> !userSettings.contains(x))
-            .collect(Collectors.toList()));
-
-    return userSettings;
-  }
-
-  @Override
-  public void invalidateCache() {
-    userSettingCache.invalidateAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Serializable> getUserSettingsAsMap() {
-    Set<UserSettingKey> userSettingKeys =
-        Stream.of(UserSettingKey.values()).collect(Collectors.toSet());
-
-    return getUserSettingsWithFallbackByUserAsMap(
-        currentUserService.getCurrentUser(), userSettingKeys, false);
-  }
-
-  // -------------------------------------------------------------------------
-  // Private methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns a user setting optional. If the user settings does not have a value or default value, a
-   * corresponding system setting will be looked up.
-   *
-   * @param key the user setting key.
-   * @param user an optional {@link User}.
-   * @return an optional user setting value.
-   */
-  private SerializableOptional getUserSetting(UserSettingKey key, Optional<User> user) {
-    if (key == null) {
-      return SerializableOptional.empty();
+        if ( setting != null )
+        {
+            deleteUserSetting( setting );
+        }
     }
 
-    String username =
-        user.isPresent() ? user.get().getUsername() : currentUserService.getCurrentUsername();
-
-    String cacheKey = getCacheKey(key.getName(), username);
-
-    SerializableOptional result =
-        userSettingCache.get(cacheKey, c -> getUserSettingOptional(key, username));
-
-    if (!result.isPresent() && NAME_SETTING_KEY_MAP.containsKey(key.getName())) {
-      SettingKey settingKey = NAME_SETTING_KEY_MAP.get(key.getName());
-      return SerializableOptional.of(
-          systemSettingManager.getSystemSetting(settingKey, settingKey.getClazz()));
-    } else {
-      return result;
-    }
-  }
-
-  /**
-   * Get user setting optional. If the user setting exists and has a value, the value is returned.
-   * If not, the default value for the key is returned, if not present, an empty optional is
-   * returned. The return object is never null in order to cache requests for system settings which
-   * have no value or default value.
-   *
-   * @param key the user setting key.
-   * @param username the username of the user.
-   * @return an optional user setting value.
-   */
-  private SerializableOptional getUserSettingOptional(UserSettingKey key, String username) {
-    User user = userService.getUserByUsername(username);
-
-    if (user == null) {
-      return SerializableOptional.empty();
+    /**
+     * No transaction for this method, transaction is initiated in
+     * {@link #getUserSettingOptional}.
+     */
+    @Override
+    public Serializable getUserSetting( UserSettingKey key )
+    {
+        return getUserSetting( key, Optional.empty() ).orElse( null );
     }
 
-    UserSetting setting = userSettingStore.getUserSettingTx(user, key.getName());
+    /**
+     * No transaction for this method, transaction is initiated in
+     * {@link #getUserSettingOptional}.
+     */
+    @Override
+    public Serializable getUserSetting( UserSettingKey key, User user )
+    {
+        return getUserSetting( key, Optional.ofNullable( user ) ).orElse( null );
+    }
 
-    Serializable value =
-        setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
+    @Override
+    @Transactional
+    public List<UserSetting> getAllUserSettings()
+    {
+        User currentUser = currentUserService.getCurrentUser();
 
-    return SerializableOptional.of(value);
-  }
+        return getUserSettings( currentUser );
+    }
 
-  /**
-   * Returns the cache key for the given setting name and username.
-   *
-   * @param settingName the setting name.
-   * @param username the username.
-   * @return the cache key.
-   */
-  private String getCacheKey(String settingName, String username) {
-    return settingName + DimensionalObject.ITEM_SEP + username;
-  }
+    @Override
+    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
+        boolean useFallback )
+    {
+        Map<String, Serializable> result = Sets.newHashSet( getUserSettings( user ) ).stream()
+            .filter( userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
+            .collect( Collectors.toMap( UserSetting::getName, UserSetting::getValue ) );
+
+        userSettingKeys.forEach( userSettingKey -> {
+            if ( !result.containsKey( userSettingKey.getName() ) )
+            {
+                Optional<SettingKey> systemSettingKey = SettingKey.getByName( userSettingKey.getName() );
+
+                if ( useFallback && systemSettingKey.isPresent() )
+                {
+                    result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
+                }
+                else
+                {
+                    result.put( userSettingKey.getName(), null );
+                }
+            }
+        } );
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public List<UserSetting> getUserSettings( User user )
+    {
+        if ( user == null )
+        {
+            return new ArrayList<>();
+        }
+        List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
+        Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
+
+        userSettings.addAll( defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
+
+        return userSettings;
+    }
+
+    @Override
+    public void invalidateCache()
+    {
+        userSettingCache.invalidateAll();
+    }
+
+    @Override
+    public Map<String, Serializable> getUserSettingsAsMap()
+    {
+        Set<UserSettingKey> userSettingKeys = Stream.of( UserSettingKey.values() ).collect( Collectors.toSet() );
+
+        return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), userSettingKeys, false );
+    }
+
+    // -------------------------------------------------------------------------
+    // Private methods
+    // -------------------------------------------------------------------------
+
+    private Optional<Serializable> getUserSetting( UserSettingKey key, Optional<User> user )
+    {
+        if ( key == null )
+        {
+            return Optional.empty();
+        }
+
+        String username = user.isPresent() ? user.get().getUsername() : currentUserService.getCurrentUsername();
+
+        String cacheKey = getCacheKey( key.getName(), username );
+
+        Optional<Serializable> result = userSettingCache
+            .get( cacheKey, c -> getUserSettingOptional( key, username ).orElse( null ) );
+
+        if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
+        {
+            return Optional.ofNullable(
+                systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) );
+        }
+        else
+        {
+            return result;
+        }
+    }
+
+    /**
+     * Get user setting optional. The database call is executed in a
+     * programmatic transaction. If the user setting exists and has a value,
+     * the value is returned. If not, the default value for the key is returned,
+     * if not present, an empty optional is returned.
+     *
+     * @param key      the user setting key.
+     * @param username the username of the user.
+     * @return an optional user setting value.
+     */
+    private Optional<Serializable> getUserSettingOptional( UserSettingKey key, String username )
+    {
+        UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
+
+        if ( userCredentials == null )
+        {
+            return Optional.empty();
+        }
+
+        UserSetting setting = transactionTemplate.execute( new TransactionCallback<UserSetting>()
+        {
+            public UserSetting doInTransaction( TransactionStatus status )
+            {
+                return userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() );
+            }
+        } );
+
+        Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
+
+        return Optional.ofNullable( value );
+    }
+
+    private String getCacheKey( String settingName, String username )
+    {
+        return settingName + DimensionalObject.ITEM_SEP + username;
+    }
 }

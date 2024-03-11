@@ -1,5 +1,7 @@
+package org.hisp.dhis.query;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +27,69 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
-
-import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import lombok.Getter;
+
 import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class Criteria {
-  @Getter protected final List<Criterion> criterions = new ArrayList<>();
+public abstract class Criteria
+{
+    protected List<Criterion> criterions = new ArrayList<>();
 
-  @Getter private final Set<String> aliases = new HashSet<>();
+    protected Set<String> aliases = new HashSet<>();
 
-  protected final Schema schema;
+    protected final Schema schema;
 
-  Criteria(Schema schema) {
-    this.schema = schema;
-  }
+    public Criteria( Schema schema )
+    {
+        this.schema = schema;
+    }
 
-  public Criteria add(Criterion criterion) {
-    this.criterions.add(criterion);
-    return this;
-  }
+    public List<Criterion> getCriterions()
+    {
+        return criterions;
+    }
 
-  public Criteria add(Criterion... criterions) {
-    this.criterions.addAll(asList(criterions));
-    return this;
-  }
+    public Set<String> getAliases()
+    {
+        return aliases;
+    }
 
-  public Criteria add(Collection<Criterion> criterions) {
-    this.criterions.addAll(criterions);
-    return this;
-  }
+    public Criteria add( Criterion criterion )
+    {
+        if ( !(criterion instanceof Restriction) )
+        {
+            this.criterions.add( criterion ); // if conjunction/disjunction just add it and move forward
+            return this;
+        }
+
+        Restriction restriction = (Restriction) criterion;
+
+        this.criterions.add( restriction );
+
+        return this;
+    }
+
+    public Criteria add( Criterion... criterions )
+    {
+        for ( Criterion criterion : criterions )
+        {
+            add( criterion );
+        }
+
+        return this;
+    }
+
+    public Criteria add( Collection<Criterion> criterions )
+    {
+        criterions.forEach( this::add );
+        return this;
+    }
 }

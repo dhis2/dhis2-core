@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +27,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-/** Created by zubair on 17.03.17. */
-public class CredentialsInfo {
-  private String username;
+/**
+ * Created by zubair on 17.03.17.
+ */
+public class CredentialsInfo
+{
+    private String username;
 
-  private String password;
+    private String password;
 
-  private String email;
+    private String email;
 
-  private boolean newUser;
+    private boolean newUser;
 
-  protected CredentialsInfo() {}
+    protected CredentialsInfo()
+    {
+    }
 
-  public CredentialsInfo(String username, String password, String email, boolean newUser) {
-    this.username = username;
-    this.password = password;
-    this.email = email;
-    this.newUser = newUser;
-  }
+    public CredentialsInfo( String username, String password, String email, boolean newUser )
+    {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.newUser = newUser;
+    }
 
-  public CredentialsInfo(String password, boolean newUser) {
-    this.password = password;
-    this.newUser = newUser;
-  }
+    public CredentialsInfo( String password, boolean newUser )
+    {
+        this.password = password;
+        this.newUser = newUser;
+    }
 
-  public String getUsername() {
-    return username;
-  }
+    public String getUsername()
+    {
+        return username;
+    }
 
-  public String getPassword() {
-    return password;
-  }
+    public String getPassword()
+    {
+        return password;
+    }
 
-  public String getEmail() {
-    return email;
-  }
+    public String getEmail()
+    {
+        return email;
+    }
 
-  public boolean isNewUser() {
-    return newUser;
-  }
+    public boolean isNewUser()
+    {
+        return newUser;
+    }
 }

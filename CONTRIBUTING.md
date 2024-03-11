@@ -1,9 +1,5 @@
 # Contributing
 
-## Guidelines
-
-Read the contribution [guidelines](https://developers.dhis2.org/docs/conceptual/contribute/).
-
 ## Requirements
 
 You'll need the following software to run DHIS2 on your machine:
@@ -58,7 +54,3 @@ You can get such a file in your DHIS2_HOME folder with a simple call:
      wget -O $DHIS2_HOME/dhis.conf https://gist.githubusercontent.com/vanakenm/87b729fbf78ec52ca4c5da7856c62584/raw/9554680c8ab62d7f2bbecc3847406fa17d551a2e/dhis.conf 
 
 You can now start tomcat and go to localhost:8080/dhis - get in with admin/district as user/password.
-
-## Alternative - Build and run in Docker
-
-It is possible to build and run DHIS2 with Docker, on any operating system with no dependencies on local Java, Maven, or Tomcat, refer to the [documentation](https://github.com/dhis2/dhis2-core/blob/master/docker/README.md).

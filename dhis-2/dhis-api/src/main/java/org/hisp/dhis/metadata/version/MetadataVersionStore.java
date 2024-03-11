@@ -1,5 +1,7 @@
+package org.hisp.dhis.metadata.version;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata.version;
 
+import org.hisp.dhis.common.GenericStore;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.GenericStore;
 
 /**
  * Define MetadataStore to interact with the database.
  *
  * @author aamerm
  */
-public interface MetadataVersionStore extends GenericStore<MetadataVersion> {
-  String ID = MetadataVersionStore.class.getName();
+public interface MetadataVersionStore
+    extends GenericStore<MetadataVersion>
+{
+    String ID = MetadataVersionStore.class.getName();
 
-  /**
-   * @param id Key to lookup.
-   * @return MetadataVersion Value that matched key, or null if there was no match.
-   */
-  MetadataVersion getVersionByKey(long id);
+    /**
+     * @param id Key to lookup.
+     * @return MetadataVersion Value that matched key, or null if there was no match.
+     */
+    MetadataVersion getVersionByKey( int id );
 
-  /**
-   * Get the version by name.
-   *
-   * @param versionName
-   * @return MetadataVersion object matched by the name
-   */
-  MetadataVersion getVersionByName(String versionName);
+    /**
+     * Get the version by name.
+     *
+     * @param versionName
+     * @return MetadataVersion object matched by the name
+     */
+    MetadataVersion getVersionByName( String versionName );
 
-  /**
-   * Gets the current version in the system.
-   *
-   * @return MetadataVersion object which is the latest in the system
-   */
-  MetadataVersion getCurrentVersion();
+    /**
+     * Gets the current version in the system.
+     *
+     * @return MetadataVersion object which is the latest in the system
+     */
+    MetadataVersion getCurrentVersion();
 
-  /**
-   * Gets MetadataVersion 's based on start created and end created dates
-   *
-   * @param startDate
-   * @param endDate
-   * @return List of MetadataVersion objects lying in that range of dates
-   */
-  List<MetadataVersion> getAllVersionsInBetween(Date startDate, Date endDate);
+    /**
+     * Gets MetadataVersion 's based on start created and end created dates
+     *
+     * @param startDate
+     * @param endDate
+     * @return List of MetadataVersion objects lying in that range of dates
+     */
+    List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate );
 
-  /**
-   * @return Initial/First MetadataVersion of the system
-   */
-  MetadataVersion getInitialVersion();
+    /**
+     *
+     * @return Initial/First MetadataVersion of the system
+     */
+    MetadataVersion getInitialVersion();
 }

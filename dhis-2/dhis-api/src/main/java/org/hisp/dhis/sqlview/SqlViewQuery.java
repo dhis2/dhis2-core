@@ -1,5 +1,7 @@
+package org.hisp.dhis.sqlview;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,102 +27,118 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
 
 import com.google.common.base.MoreObjects;
-import java.util.Set;
-import org.apache.commons.lang3.BooleanUtils;
-import org.hisp.dhis.common.OpenApi;
+import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+
+import java.util.Set;
 
 /**
  * @author Kristian Wærstad
  */
-public class SqlViewQuery {
-  public static final SqlViewQuery EMPTY = new SqlViewQuery();
+public class SqlViewQuery
+{
+    public static final SqlViewQuery EMPTY = new SqlViewQuery();
 
-  private Set<String> criteria;
+    private Set<String> criteria;
 
-  private Set<String> var;
+    private Set<String> var;
 
-  private Boolean skipPaging;
+    private Boolean skipPaging;
 
-  private Boolean paging;
+    private Boolean paging;
 
-  private int page = 1;
+    private int page = 1;
 
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-  private int total;
+    private int total;
 
-  public Set<String> getCriteria() {
-    return criteria;
-  }
 
-  public void setCriteria(Set<String> criteria) {
-    this.criteria = criteria;
-  }
+    public Set<String> getCriteria()
+    {
+        return criteria;
+    }
 
-  public Set<String> getVar() {
-    return var;
-  }
+    public void setCriteria( Set<String> criteria )
+    {
+        this.criteria = criteria;
+    }
 
-  public void setVar(Set<String> var) {
-    this.var = var;
-  }
+    public Set<String> getVar()
+    {
+        return var;
+    }
 
-  public boolean isSkipPaging() {
-    return PagerUtils.isSkipPaging(skipPaging, paging);
-  }
+    public void setVar( Set<String> var )
+    {
+        this.var = var;
+    }
 
-  public void setSkipPaging(Boolean skipPaging) {
-    this.skipPaging = skipPaging;
-  }
+    public boolean isSkipPaging()
+    {
+        return PagerUtils.isSkipPaging( skipPaging, paging );
+    }
 
-  public boolean isPaging() {
-    return BooleanUtils.toBoolean(paging);
-  }
+    public void setSkipPaging( Boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
 
-  public void setPaging(Boolean paging) {
-    this.paging = paging;
-  }
+    public boolean isPaging()
+    {
+        return BooleanUtils.toBoolean( paging );
+    }
 
-  public int getPage() {
-    return page;
-  }
+    public void setPaging( Boolean paging )
+    {
+        this.paging = paging;
+    }
 
-  public void setPage(int page) {
-    this.page = page;
-  }
+    public int getPage()
+    {
+        return page;
+    }
 
-  public int getPageSize() {
-    return pageSize;
-  }
+    public void setPage( int page )
+    {
+        this.page = page;
+    }
 
-  public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
-  }
+    public int getPageSize()
+    {
+        return pageSize;
+    }
 
-  public int getTotal() {
-    return total;
-  }
+    public void setPageSize( int pageSize )
+    {
+        this.pageSize = pageSize;
+    }
 
-  public void setTotal(int total) {
-    this.total = total;
-  }
+    public int getTotal()
+    {
+        return total;
+    }
 
-  @OpenApi.Ignore
-  public Pager getPager() {
-    return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
-  }
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("page", page)
-        .add("pageSize", pageSize)
-        .add("total", total)
-        .toString();
-  }
+    public Pager getPager()
+    {
+        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "total", total )
+            .toString();
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.notification;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
-/** Created by zubair@dhis2.org on 16.11.17. */
+/**
+ * Created by zubair@dhis2.org on 16.11.17.
+ */
 public interface ProgramNotificationTemplateStore
-    extends IdentifiableObjectStore<ProgramNotificationTemplate> {
-  String ID = ProgramNotificationTemplate.class.getName();
+    extends IdentifiableObjectStore<ProgramNotificationTemplate>
+{
+    String ID = ProgramNotificationTemplate.class.getName();
 
-  List<ProgramNotificationTemplate> getProgramNotificationByTriggerType(
-      NotificationTrigger triggers);
-
-  boolean isProgramLinkedToWebHookNotification(Long pId);
-
-  boolean isProgramStageLinkedToWebHookNotification(Long psId);
-
-  List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications(Program program);
-
-  List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications(
-      ProgramStage programStage);
-
-  int countProgramNotificationTemplates(ProgramNotificationTemplateParam param);
-
-  List<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateParam param);
+    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_DIGIT;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 08.03.17. */
-public class DigitPatternValidationRule implements PasswordValidationRule {
-  private static final Pattern DIGIT_PATTERN = Pattern.compile(".*\\d.*");
+/**
+ * Created by zubair on 08.03.17.
+ */
+public class DigitPatternValidationRule implements PasswordValidationRule
+{
+    private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
 
-  @Override
-  public PasswordValidationResult validate(CredentialsInfo credentials) {
-    return !DIGIT_PATTERN.matcher(credentials.getPassword()).matches()
-        ? new PasswordValidationResult(PASSWORD_MUST_HAVE_DIGIT)
-        : PasswordValidationResult.VALID;
-  }
+    public static final String ERROR = "Password must have at least one digit";
+    private static final String I18_ERROR = "password_digit_validation";
+
+    @Override
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
+        if ( !DIGIT_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
+        {
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
+        }
+
+        return new PasswordValidationResult( true );
+    }
+
+    @Override
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    {
+        return true;
+    }
 }

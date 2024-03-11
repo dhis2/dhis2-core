@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityfilter;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +13,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ * be used to endorse or promote products derived daysFromToday this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -25,93 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter;
 
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.event.EventStatus;
+
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.event.EventStatus;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@OpenApi.Shared(name = "EventFilterInfo")
-public class EventFilter implements Serializable {
-  /** */
-  private static final long serialVersionUID = 1L;
+public class EventFilter implements Serializable
+{
+    private String programStage;
 
-  private String programStage;
+    private EventStatus eventStatus;
 
-  private EventStatus eventStatus;
+    private FilterPeriod eventCreatedPeriod;
 
-  private FilterPeriod eventCreatedPeriod;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  private AssignedUserSelectionMode assignedUserMode;
+    public EventFilter()
+    {
 
-  private Set<String> assignedUsers = new HashSet<>();
+    }
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public EventFilter() {}
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getProgramStage()
+    {
+        return programStage;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public void setProgramStage( String programStage )
+    {
+        this.programStage = programStage;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getProgramStage() {
-    return programStage;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventStatus getEventStatus()
+    {
+        return eventStatus;
+    }
 
-  public void setProgramStage(String programStage) {
-    this.programStage = programStage;
-  }
+    public void setEventStatus( EventStatus eventStatus )
+    {
+        this.eventStatus = eventStatus;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public EventStatus getEventStatus() {
-    return eventStatus;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FilterPeriod getEventCreatedPeriod()
+    {
+        return eventCreatedPeriod;
+    }
 
-  public void setEventStatus(EventStatus eventStatus) {
-    this.eventStatus = eventStatus;
-  }
+    public void setEventCreatedPeriod( FilterPeriod eventCreatedPeriod )
+    {
+        this.eventCreatedPeriod = eventCreatedPeriod;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public FilterPeriod getEventCreatedPeriod() {
-    return eventCreatedPeriod;
-  }
-
-  public void setEventCreatedPeriod(FilterPeriod eventCreatedPeriod) {
-    this.eventCreatedPeriod = eventCreatedPeriod;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public AssignedUserSelectionMode getAssignedUserMode() {
-    return assignedUserMode;
-  }
-
-  public void setAssignedUserMode(AssignedUserSelectionMode assignedUserMode) {
-    this.assignedUserMode = assignedUserMode;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Set<String> getAssignedUsers() {
-    return assignedUsers;
-  }
-
-  public void setAssignedUsers(Set<String> assignedUsers) {
-    this.assignedUsers = assignedUsers;
-  }
 }

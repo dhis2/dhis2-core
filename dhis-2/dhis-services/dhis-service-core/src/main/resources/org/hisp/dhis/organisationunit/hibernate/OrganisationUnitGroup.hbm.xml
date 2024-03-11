@@ -17,9 +17,7 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
-
-    <property name="description" type="text" />
+    <property name="shortName" column="shortname" unique="true" length="50" />
 
     <property name="symbol" />
     
@@ -40,15 +38,32 @@
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" column="orgunitgroupsetid" />
     </set>
 
-    <property name="geometry" />
+    <property name="coordinates" type="text" />
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroup_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroup_userid" />
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="orgunitgroupusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="orgunitgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
     <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="orgunitgroupattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
   </class>
 
 </hibernate-mapping>

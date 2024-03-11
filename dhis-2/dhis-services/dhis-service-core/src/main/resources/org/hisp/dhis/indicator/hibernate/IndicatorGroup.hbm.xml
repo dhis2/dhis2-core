@@ -17,8 +17,6 @@
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="description" type="text" />
-
     <property name="translations" type="jblTranslations"/>
 
     <set name="members" table="indicatorgroupmembers">
@@ -28,19 +26,34 @@
         foreign-key="fk_indicatorgroup_indicatorid" />
     </set>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicatorgroup_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicatorgroup_userid" />
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
 
-    <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
-
-    <set name="groupSets" table="indicatorgroupsetmembers" inverse="true">
+    <set name="userGroupAccesses" table="indicatorgroupusergroupaccesses" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="indicatorgroupid" />
-      <many-to-many class="org.hisp.dhis.indicator.IndicatorGroupSet" column="indicatorgroupsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
+
+    <set name="userAccesses" table="indicatorgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="indicatorgroupattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <join table="indicatorgroupsetmembers" inverse="true">
+      <key column="indicatorgroupid" />
+      <many-to-one column="indicatorgroupsetid" name="groupSet" />
+    </join>
 
   </class>
 

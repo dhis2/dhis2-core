@@ -1,5 +1,7 @@
+package org.hisp.dhis.indicator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,113 +27,149 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
 
-import static org.apache.commons.collections4.CollectionUtils.containsAny;
-import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Iterator;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
+ * @version $Id$
  */
-@Component
-@RequiredArgsConstructor
-public class IndicatorDeletionHandler extends IdObjectDeletionHandler<Indicator> {
-  private final IndicatorService indicatorService;
+public class IndicatorDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final ExpressionService expressionService;
+    private IndicatorService indicatorService;
 
-  @Override
-  protected void registerHandler() {
-    whenVetoing(IndicatorType.class, this::allowDeleteIndicatorType);
-    whenDeleting(IndicatorGroup.class, this::deleteIndicatorGroup);
-    whenDeleting(DataSet.class, this::deleteDataSet);
-    whenDeleting(LegendSet.class, this::deleteLegendSet);
-    whenVetoing(DataElement.class, this::allowDeleteDataElement);
-    whenVetoing(CategoryCombo.class, this::allowDeleteCategoryCombo);
-  }
-
-  private DeletionVeto allowDeleteIndicatorType(IndicatorType indicatorType) {
-    for (Indicator indicator : indicatorService.getAllIndicators()) {
-      if (indicator.getIndicatorType().equals(indicatorType)) {
-        return new DeletionVeto(Indicator.class, indicator.getName());
-      }
+    public void setIndicatorService( IndicatorService indicatorService )
+    {
+        this.indicatorService = indicatorService;
     }
 
-    return ACCEPT;
-  }
+    private ExpressionService expressionService;
 
-  private void deleteIndicatorGroup(IndicatorGroup group) {
-    for (Indicator indicator : group.getMembers()) {
-      indicator.getGroups().remove(group);
-      indicatorService.updateIndicator(indicator);
+    public void setExpressionService( ExpressionService expressionService )
+    {
+        this.expressionService = expressionService;
     }
-  }
 
-  private void deleteDataSet(DataSet dataSet) {
-    for (Indicator indicator : dataSet.getIndicators()) {
-      indicator.getDataSets().remove(dataSet);
-      indicatorService.updateIndicator(indicator);
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return Indicator.class.getSimpleName();
     }
-  }
 
-  private void deleteLegendSet(LegendSet legendSet) {
-    for (Indicator indicator : indicatorService.getAllIndicators()) {
-      for (Iterator<LegendSet> itr = indicator.getLegendSets().iterator(); itr.hasNext(); ) {
-        if (legendSet.equals(itr.next())) {
-          itr.remove();
-          indicatorService.updateIndicator(indicator);
+    @Override
+    public String allowDeleteIndicatorType( IndicatorType indicatorType )
+    {
+        for ( Indicator indicator : indicatorService.getAllIndicators() )
+        {
+            if ( indicator.getIndicatorType().equals( indicatorType ) )
+            {
+                return indicator.getName();
+            }
         }
-      }
-    }
-  }
 
-  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
-    for (Indicator indicator : indicatorService.getAllIndicators()) {
-      if (getElementIds(indicator.getNumerator()).contains(dataElement.getUid())
-          || getElementIds(indicator.getDenominator()).contains(dataElement.getUid())) {
-        return new DeletionVeto(Indicator.class, indicator.getName());
-      }
+        return null;
     }
 
-    return ACCEPT;
-  }
-
-  private Set<String> getElementIds(String expression) {
-    return expressionService.getExpressionDataElementIds(expression, INDICATOR_EXPRESSION);
-  }
-
-  private DeletionVeto allowDeleteCategoryCombo(CategoryCombo categoryCombo) {
-    Set<String> optionComboIds =
-        categoryCombo.getOptionCombos().stream()
-            .map(CategoryOptionCombo::getUid)
-            .collect(Collectors.toSet());
-
-    for (Indicator indicator : indicatorService.getAllIndicators()) {
-      if (containsAny(getOptionComboIds(indicator.getNumerator()), optionComboIds)
-          || containsAny(getOptionComboIds(indicator.getDenominator()), optionComboIds)) {
-        return new DeletionVeto(Indicator.class, indicator.getName());
-      }
+    @Override
+    public void deleteIndicatorGroup( IndicatorGroup group )
+    {
+        for ( Indicator indicator : group.getMembers() )
+        {
+            indicator.getGroups().remove( group );
+            indicatorService.updateIndicator( indicator );
+        }
     }
 
-    return ACCEPT;
-  }
+    @Override
+    public void deleteDataSet( DataSet dataSet )
+    {
+        for ( Indicator indicator : dataSet.getIndicators() )
+        {
+            indicator.getDataSets().remove( dataSet );
+            indicatorService.updateIndicator( indicator );
+        }
+    }
+    
+    @Override
+    public void deleteLegendSet( LegendSet legendSet )
+    {
+        for ( Indicator indicator : indicatorService.getAllIndicators() )
+        {
+            for ( LegendSet ls : indicator.getLegendSets() )
+            {
+                if( legendSet.equals( ls ) )
+                {
+                    indicator.getLegendSets().remove( ls );
+                    indicatorService.updateIndicator( indicator );
+                }
 
-  private Set<String> getOptionComboIds(String expression) {
-    return expressionService.getExpressionOptionComboIds(expression, INDICATOR_EXPRESSION);
-  }
+            }
+        }
+    }
+
+    @Override
+    public String allowDeleteDataElement( DataElement dataElement )
+    {
+        for ( Indicator indicator : indicatorService.getAllIndicators() )
+        {
+            Set<DataElement> daels = expressionService.getDataElementsInExpression( indicator.getNumerator() );
+
+            if ( daels != null && daels.contains( dataElement ) )
+            {
+                return indicator.getName();
+            }
+
+            daels = expressionService.getDataElementsInExpression( indicator.getDenominator() );
+
+            if ( daels != null && daels.contains( dataElement ) )
+            {
+                return indicator.getName();
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        for ( Indicator indicator : indicatorService.getAllIndicators() )
+        {
+            Set<CategoryOptionCombo> optionCombos = expressionService.getOptionCombosInExpression( indicator
+                .getNumerator() );
+            optionCombos.retainAll( categoryCombo.getOptionCombos() );
+
+            if ( !optionCombos.isEmpty() )
+            {
+                return indicator.getName();
+            }
+
+            optionCombos = expressionService.getOptionCombosInExpression( indicator.getDenominator() );
+            optionCombos.retainAll( categoryCombo.getOptionCombos() );
+
+            if ( !optionCombos.isEmpty() )
+            {
+                return indicator.getName();
+            }
+        }
+
+        return null;
+    }
 }

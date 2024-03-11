@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
 
 import org.joda.time.Months;
 import org.joda.time.Period;
@@ -35,19 +36,22 @@ import org.joda.time.Years;
 /**
  * @author Kristian Wærstad
  */
-public enum FileResourceRetentionStrategy {
-  NONE(Seconds.ZERO.toPeriod()),
-  THREE_MONTHS(Months.THREE.toPeriod()),
-  ONE_YEAR(Years.ONE.toPeriod()),
-  FOREVER(null);
+public enum FileResourceRetentionStrategy
+{
+    NONE ( Seconds.ZERO.toPeriod() ),
+    THREE_MONTHS ( Months.THREE.toPeriod() ),
+    ONE_YEAR ( Years.ONE.toPeriod() ),
+    FOREVER ( null );
 
-  private Period retentionTime;
+    private Period retentionTime;
 
-  FileResourceRetentionStrategy(Period retentionTime) {
-    this.retentionTime = retentionTime;
-  }
+    FileResourceRetentionStrategy( Period retentionTime )
+    {
+        this.retentionTime = retentionTime;
+    }
 
-  public Period getRetentionTime() {
-    return retentionTime;
-  }
+    public Period getRetentionTime()
+    {
+        return retentionTime;
+    }
 }

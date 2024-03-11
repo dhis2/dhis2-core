@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -33,107 +34,141 @@ import java.util.Set;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public class ProgramTempOwnershipAuditQueryParams {
+public class ProgramTempOwnershipAuditQueryParams
+{
+    
+    /**
+     * Programs to fetch audits for
+     */
+    private Set<Program> programs = new HashSet<>();
+    
+    /**
+     * Users to fetch audits for
+     */
+    private Set<String> users = new HashSet<>();
+    
+    /**
+     * Starting date.
+     */
+    private Date startDate = null;
 
-  /** Programs to fetch audits for */
-  private Set<Program> programs = new HashSet<>();
+    /**
+     * Ending date.
+     */
+    private Date endDate = null;
+    
+    /**
+     * Program temp ownership audit count start
+     */
+    private int first;
+    
+    /**
+     * Program temp ownership audit count end
+     */
+    private int max;    
 
-  /** Users to fetch audits for */
-  private Set<String> users = new HashSet<>();
+    /**
+     * Program temp ownership audit skip paging or not
+     */
+    private boolean skipPaging;
 
-  /** Starting date. */
-  private Date startDate = null;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  /** Ending date. */
-  private Date endDate = null;
+    public boolean hasPrograms()
+    {
+        return programs != null && !programs.isEmpty();
+    }
+    
+    public boolean hasUsers()
+    {
+        return users != null && !users.isEmpty();
+    }
+    
+    public boolean hasStartDate()
+    {
+        return startDate != null;
+    }
 
-  /** Program temp ownership audit count start */
-  private int first;
+    public boolean hasEndDate()
+    {
+        return endDate != null;
+    }
 
-  /** Program temp ownership audit count end */
-  private int max;
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  /** Program temp ownership audit skip paging or not */
-  private boolean skipPaging;
+    public Set<Program> getPrograms()
+    {
+        return programs;
+    }
+    
+    public void setPrograms( Set<Program> programs )
+    {
+        this.programs = programs;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    public Set<String> getUsers()
+    {
+        return users;
+    }
 
-  public boolean hasPrograms() {
-    return programs != null && !programs.isEmpty();
-  }
+    public void setUsers( Set<String> users )
+    {
+        this.users = users;
+    }    
 
-  public boolean hasUsers() {
-    return users != null && !users.isEmpty();
-  }
+    public Date getStartDate()
+    {
+        return startDate;
+    }
 
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
 
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
+    public Date getEndDate()
+    {
+        return endDate;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
+    }
 
-  public Set<Program> getPrograms() {
-    return programs;
-  }
+    public int getFirst()
+    {
+        return first;
+    }
 
-  public void setPrograms(Set<Program> programs) {
-    this.programs = programs;
-  }
+    public void setFirst( int first )
+    {
+        this.first = first;
+    }
 
-  public Set<String> getUsers() {
-    return users;
-  }
+    public int getMax()
+    {
+        return max;
+    }
 
-  public void setUsers(Set<String> users) {
-    this.users = users;
-  }
+    public void setMax( int max )
+    {
+        this.max = max;
+    }    
 
-  public Date getStartDate() {
-    return startDate;
-  }
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
-  }
-
-  public Date getEndDate() {
-    return endDate;
-  }
-
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
-  }
-
-  public int getFirst() {
-    return first;
-  }
-
-  public void setFirst(int first) {
-    this.first = first;
-  }
-
-  public int getMax() {
-    return max;
-  }
-
-  public void setMax(int max) {
-    this.max = max;
-  }
-
-  public boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  public void setSkipPaging(boolean skipPaging) {
-    this.skipPaging = skipPaging;
-  }
+    public void setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+    }
 }

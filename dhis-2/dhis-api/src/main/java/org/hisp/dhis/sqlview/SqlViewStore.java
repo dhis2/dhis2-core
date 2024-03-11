@@ -1,5 +1,7 @@
+package org.hisp.dhis.sqlview;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
 
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.Grid;
 
 /**
  * @author Dang Duy Hieu
  */
-public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
-  String ID = SqlViewStore.class.getName();
+public interface SqlViewStore
+    extends IdentifiableObjectStore<SqlView>
+{
+    String ID = SqlViewStore.class.getName();
 
-  String createViewTable(SqlView sqlView);
+    boolean viewTableExists( String viewTableName );
 
-  void dropViewTable(SqlView sqlView);
+    String createViewTable( SqlView sqlView );
 
-  void populateSqlViewGrid(Grid grid, String sql);
+    void dropViewTable( SqlView sqlView );
 
-  boolean refreshMaterializedView(SqlView sqlView);
+    void populateSqlViewGrid( Grid grid, String sql );
+
+    /**
+     * Tests the given SQL for validity.
+     * 
+     * @param sql the SQL string.
+     * @return a non-null description if invalid, and null if valid.
+     */
+    String testSqlGrammar( String sql );
+    
+    boolean refreshMaterializedView( SqlView sqlView );
 }

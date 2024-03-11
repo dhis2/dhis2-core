@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-@RequiredArgsConstructor
-public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler {
-  private final SessionFactory sessionFactory;
+public class TrackedEntityDataElementDimensionDeletionHandler
+    extends DeletionHandler
+{
+    @Autowired
+    private SessionFactory sessionFactory;
 
-  @Override
-  protected void register() {
-    whenDeleting(LegendSet.class, this::deleteLegendSet);
-  }
-
-  @SuppressWarnings("unchecked")
-  private void deleteLegendSet(LegendSet legendSet) {
-    // TODO Move this get-method to service layer
-
-    Query query =
-        sessionFactory
-            .getCurrentSession()
-            .createQuery("FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet");
-    query.setParameter("legendSet", legendSet);
-
-    List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
-
-    for (TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions) {
-      dataElementDimension.setLegendSet(null);
-      sessionFactory.getCurrentSession().update(dataElementDimension);
+    @Override
+    protected String getClassName()
+    {
+        return TrackedEntityDataElementDimension.class.getSimpleName();
     }
-  }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public void deleteLegendSet( LegendSet legendSet )
+    {
+        Query query = sessionFactory.getCurrentSession()
+            .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
+        query.setParameter( "legendSet", legendSet );
+
+        List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
+
+        for ( TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions )
+        {
+            dataElementDimension.setLegendSet( null );
+            sessionFactory.getCurrentSession().update( dataElementDimension );
+        }
+    }
 }

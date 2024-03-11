@@ -8,14 +8,12 @@
   <class name="org.hisp.dhis.message.UserMessage" table="usermessage">
 
     <id name="id" column="usermessageid">
-      <generator class="sequence">
-         <param name="sequence_name">usermessage_sequence</param>
-      </generator>
+      <generator class="native" />
     </id>
 
     <property name="key" column="usermessagekey"/>
 
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" 
 	  foreign-key="fk_usermessage_user" not-null="true" index="usermessage_userid" />
 
     <property name="read" column="isread" not-null="true" index="usermessage_isread" />

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,112 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-public interface GenericStore<T> {
-  /** Class of the object for this store. */
-  @Nonnull
-  Class<T> getClazz();
+public interface GenericStore<T>
+{
+    /**
+     * Class of the object for this store.
+     */
+    Class<T> getClazz();
 
-  /**
-   * Saves the given object instance, with clear sharing set to true.
-   *
-   * @param object the object instance.
-   */
-  void save(@Nonnull T object);
+    /**
+     * Saves the given object instance, with clear sharing set to true.
+     *
+     * @param object the object instance.
+     */
+    void save( T object );
 
-  /**
-   * Updates the given object instance.
-   *
-   * @param object the object instance.
-   */
-  void update(@Nonnull T object);
+    /**
+     * Updates the given object instance.
+     *
+     * @param object the object instance.
+     */
+    void update( T object );
 
-  /**
-   * Removes the given object instance.
-   *
-   * @param object the object instance to delete.
-   */
-  void delete(@Nonnull T object);
+    /**
+     * Removes the given object instance.
+     *
+     * @param object the object instance to delete.
+     */
+    void delete( T object );
 
-  /**
-   * Retrieves the object with the given identifier. This method will first look in the current
-   * Session, then hit the database if not existing.
-   *
-   * @param id the object identifier.
-   * @return the object identified by the given identifier or null
-   */
-  @CheckForNull
-  T get(long id);
+    /**
+     * Retrieves the object with the given identifier. This method will first
+     * look in the current Session, then hit the database if not existing.
+     *
+     * @param id the object identifier.
+     * @return the object identified by the given identifier.
+     */
+    T get( int id );
 
-  long countAllValuesByAttributes(@Nonnull List<Attribute> attributes);
+    /**
+     * Gets the count of objects.
+     *
+     * @return the count of objects.
+     */
+    int getCount();
 
-  @Nonnull
-  List<AttributeValue> getAttributeValueByAttribute(@Nonnull Attribute attribute);
+    /**
+     * Retrieves a List of all objects.
+     *
+     * @return a List of all objects.
+     */
+    List<T> getAll();
 
-  /**
-   * Gets the count of objects.
-   *
-   * @return the count of objects.
-   */
-  int getCount();
+    List<T> getAllByAttributes( List<Attribute> attributes );
 
-  /**
-   * Retrieves a List of all objects.
-   *
-   * @return a List of all objects.
-   */
-  @Nonnull
-  List<T> getAll();
+    List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
-  @Nonnull
-  List<T> getByAttribute(@Nonnull Attribute attribute);
+    List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );
 
-  @Nonnull
-  List<T> getByAttributeAndValue(@Nonnull Attribute attribute, String value);
+    <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
 
-  @Nonnull
-  List<T> getAllByAttributes(@Nonnull List<Attribute> attributes);
-
-  @Nonnull
-  List<AttributeValue> getAllValuesByAttributes(@Nonnull List<Attribute> attributes);
-
-  @Nonnull
-  List<AttributeValue> getAttributeValueByAttributeAndValue(
-      @Nonnull Attribute attribute, @Nonnull String value);
-
-  @Nonnull
-  List<T> getByAttributeValue(@Nonnull AttributeValue attributeValue);
-
-  boolean isAttributeValueUnique(@Nonnull T object, @Nonnull AttributeValue attributeValue);
-
-  boolean isAttributeValueUnique(
-      @Nonnull T object, @Nonnull Attribute attribute, @Nonnull String value);
-
-  @Nonnull
-  List<T> getAllByAttributeAndValues(@Nonnull Attribute attribute, @Nonnull List<String> values);
-
-  /**
-   * Update a specific attribute of all objects.
-   *
-   * <p>This can be used to both set (init) or clear a particular attribute.
-   *
-   * @param attribute the attribute to update for all objects
-   * @param newValue the attribute value to store (might override existing value for that attribute)
-   * @param createMissing true, if a attribute should be created should it not yet exist, false to
-   *     skip such objects
-   * @return number of objects affected (note that this will not distinguish between attribute
-   *     values that changed by this update and those that stay the same)
-   */
-  int updateAllAttributeValues(
-      @Nonnull Attribute attribute, @Nonnull String newValue, boolean createMissing);
+    <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
 }

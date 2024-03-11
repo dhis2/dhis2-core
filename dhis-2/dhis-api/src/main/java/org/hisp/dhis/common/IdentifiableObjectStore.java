@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,438 +27,286 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
  */
-public interface IdentifiableObjectStore<T> extends GenericStore<T> {
-  /**
-   * Saves the given object instance.
-   *
-   * @param object the object instance.
-   * @param clearSharing indicates whether to clear all sharing related properties.
-   */
-  void save(@Nonnull T object, boolean clearSharing);
+public interface IdentifiableObjectStore<T>
+    extends GenericStore<T>
+{
+    /**
+     * Saves the given object instance.
+     *
+     * @param object       the object instance.
+     * @param clearSharing Should we clear all sharing related properties?
+     */
+    void save( T object, boolean clearSharing );
 
-  /**
-   * Saves the given object instance.
-   *
-   * @param object the object instance.
-   * @param user the user currently in the security context.
-   */
-  void save(@Nonnull T object, @CheckForNull User user);
+    /**
+     * Updates the given object instance.
+     *
+     * @param object the object instance.
+     * @param user   User
+     */
+    void update( T object, User user );
 
-  /**
-   * Updates the given object instance.
-   *
-   * @param object the object instance.
-   * @param user User
-   */
-  void update(@Nonnull T object, @CheckForNull User user);
+    /**
+     * Update object. Bypasses the ACL system.
+     *
+     * @param object Object update
+     */
+    void updateNoAcl( T object );
 
-  /**
-   * Update object. Bypasses the ACL system.
-   *
-   * @param object Object update
-   */
-  void updateNoAcl(@Nonnull T object);
+    /**
+     * Removes the given object instance.
+     *
+     * @param object the object instance to delete.
+     * @param user   User
+     */
+    void delete( T object, User user );
 
-  /**
-   * Removes the given object instance.
-   *
-   * @param object the object instance to delete.
-   * @param user User
-   */
-  void delete(@Nonnull T object, @CheckForNull User user);
+    /**
+     * Retrieves the object with the given uid.
+     *
+     * @param uid the uid.
+     * @return the object with the given uid.
+     */
+    T getByUid( String uid );
 
-  /**
-   * Retrieves the object with the given UID, or null if no object exists.
-   *
-   * @param uid the UID.
-   * @return the object with the given UID.
-   */
-  @CheckForNull
-  T getByUid(@Nonnull String uid);
+    /**
+     * Retrieves the object with the given uid. Bypasses the ACL system.
+     *
+     * @param uid the uid.
+     * @return the object with the given uid.
+     */
+    T getByUidNoAcl( String uid );
 
-  /**
-   * Retrieves the object with the given UID, throws exception if no object exists.
-   *
-   * @param uid the UID.
-   * @return the object with the given UID.
-   * @throws IllegalQueryException if no object exists.
-   */
-  @Nonnull
-  T loadByUid(@Nonnull String uid);
+    /**
+     * Retrieves the object with the given name.
+     *
+     * @param name the name.
+     * @return the object with the given name.
+     */
+    T getByName( String name );
 
-  /**
-   * Retrieves the object with the given uid. Bypasses the ACL system.
-   *
-   * @param uid the uid.
-   * @return the object with the given uid.
-   */
-  @CheckForNull
-  T getByUidNoAcl(@Nonnull String uid);
+    /**
+     * Retrieves the object with the given code.
+     *
+     * @param code the code.
+     * @return the object with the given code.
+     */
+    T getByCode( String code );
 
-  /**
-   * Retrieves the object with the given code. Bypasses the ACL system.
-   *
-   * @param code the code.
-   * @return the object with the given code.
-   */
-  @CheckForNull
-  T getByCodeNoAcl(@Nonnull String code);
+    /**
+     * Retrieves the attribute value associated with the unique attribute and
+     * the given value.
+     *
+     * @param attribute the attribute.
+     * @param value     the value.
+     * @return the attribute value.
+     */
+    T getByUniqueAttributeValue( Attribute attribute, String value );
 
-  /**
-   * Retrieves the object with the given name.
-   *
-   * @param name the name.
-   * @return the object with the given name.
-   */
-  @CheckForNull
-  T getByName(@Nonnull String name);
+    /**
+     * Retrieves a List of all objects (sorted on name).
+     *
+     * @return a List of all objects.
+     */
+    List<T> getAllOrderedName();
 
-  /**
-   * Retrieves the object with the given code, or null if no object exists.
-   *
-   * @param code the code.
-   * @return the object with the given code.
-   */
-  @CheckForNull
-  T getByCode(@Nonnull String code);
+    /**
+     * Retrieves the objects determined by the given first result and max result.
+     *
+     * @param first the first result object to return.
+     * @param max   the max number of result objects to return.
+     * @return list of objects.
+     */
+    List<T> getAllOrderedName( int first, int max );
 
-  /**
-   * Retrieves the object with the given code, throws exception if no object exists.
-   *
-   * @param code the code.
-   * @return the object with the given code.
-   * @throws IllegalQueryException if no object exists.
-   */
-  @Nonnull
-  T loadByCode(@Nonnull String code);
+    /**
+     * Retrieves a List of objects where the name is equal the given name.
+     *
+     * @param name the name.
+     * @return a List of objects.
+     */
+    List<T> getAllEqName( String name );
 
-  /**
-   * Retrieves the attribute value associated with the unique attribute and the given value.
-   *
-   * @param attribute the attribute.
-   * @param value the value.
-   * @return the attribute value or null if not found
-   */
-  @CheckForNull
-  T getByUniqueAttributeValue(@Nonnull Attribute attribute, @Nonnull String value);
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
+     * @param name the name.
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name );
 
-  /**
-   * Retrieves the attribute value associated with the unique attribute, the given value and given
-   * user.
-   *
-   * @param attribute the attribute.
-   * @param value the value.
-   * @param user the user.
-   * @return the attribute value or null if not found
-   */
-  @CheckForNull
-  T getByUniqueAttributeValue(
-      @Nonnull Attribute attribute, @Nonnull String value, @CheckForNull User user);
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
+     * @param name the name.
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name, boolean caseSensitive );
 
-  /**
-   * Retrieves a List of all objects (sorted on name).
-   *
-   * @return a List of all objects.
-   */
-  @Nonnull
-  List<T> getAllOrderedName();
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
+     * @param name  the name.
+     * @param first the first result object to return.
+     * @param max   the max number of result objects to return.
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name, int first, int max );
 
-  /**
-   * Retrieves the objects determined by the given first result and max result.
-   *
-   * @param first the first result object to return.
-   * @param max the max number of result objects to return.
-   * @return list of objects.
-   */
-  @Nonnull
-  List<T> getAllOrderedName(int first, int max);
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
+     * @param name          the name.
+     * @param first         the first result object to return.
+     * @param max           the max number of result objects to return.
+     * @param caseSensitive Case sensitive matches or not
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive );
 
-  /**
-   * Retrieves a List of objects where the name is equal the given name.
-   *
-   * @param name the name.
-   * @return a List of objects.
-   */
-  @Nonnull
-  List<T> getAllEqName(@Nonnull String name);
+    /**
+     * Retrieves a List of objects where the name matches the conjunction of the
+     * given set of words.
+     *
+     * @param words the set of words.
+     * @param first the first result object to return.
+     * @param max   the max number of result objects to return.
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( Set<String> words, int first, int max );
 
-  /**
-   * Retrieves a List of objects where the name is like the given name.
-   *
-   * @param name the name.
-   * @return a List of objects.
-   */
-  @Nonnull
-  List<T> getAllLikeName(@Nonnull String name);
+    /**
+     * Retrieves the objects determined by the given first result and max result.
+     * The returned list is ordered by the last updated property descending.
+     *
+     * @param first the first result object to return.
+     * @param max   the max number of result objects to return.
+     * @return List of objects.
+     */
+    List<T> getAllOrderedLastUpdated( int first, int max );
 
-  /**
-   * Retrieves a List of objects where the name is like the given name.
-   *
-   * @param name the name.
-   * @return a List of objects.
-   */
-  @Nonnull
-  List<T> getAllLikeName(@Nonnull String name, boolean caseSensitive);
+    /**
+     * Gets the count of objects which name is like the given name.
+     *
+     * @param name the name which result object names must be like.
+     * @return the count of objects.
+     */
+    int getCountLikeName( String name );
 
-  /**
-   * Retrieves a List of objects where the name is like the given name.
-   *
-   * @param name the name.
-   * @param first the first result object to return.
-   * @param max the max number of result objects to return.
-   * @return a List of objects.
-   */
-  @Nonnull
-  List<T> getAllLikeName(@Nonnull String name, int first, int max);
+    /**
+     * Retrieves a list of objects referenced by the given collection of ids.
+     *
+     * @param ids a collection of ids.
+     * @return a list of objects.
+     */
+    List<T> getById( Collection<Integer> ids );
 
-  /**
-   * Retrieves a List of objects where the name is like the given name.
-   *
-   * @param name the name.
-   * @param first the first result object to return.
-   * @param max the max number of result objects to return.
-   * @param caseSensitive Case sensitive matches or not
-   * @return a List of objects.
-   */
-  @Nonnull
-  List<T> getAllLikeName(@Nonnull String name, int first, int max, boolean caseSensitive);
+    /**
+     * Retrieves a list of objects referenced by the given collection of uids.
+     *
+     * @param uids a collection of uids.
+     * @return a list of objects.
+     */
+    List<T> getByUid( Collection<String> uids );
 
-  /**
-   * Retrieves a List of objects where the name matches the conjunction of the given set of words.
-   *
-   * @param words the set of words.
-   * @param first the first result object to return.
-   * @param max the max number of result objects to return.
-   * @return a List of objects.
-   */
-  @Nonnull
-  List<T> getAllLikeName(@Nonnull Set<String> words, int first, int max);
+    /**
+     * Retrieves a list of objects referenced by the given collection of codes.
+     *
+     * @param codes a collection of codes.
+     * @return a list of objects.
+     */
+    List<T> getByCode( Collection<String> codes );
 
-  /**
-   * Retrieves the objects determined by the given first result and max result. The returned list is
-   * ordered by the last updated property descending.
-   *
-   * @param first the first result object to return.
-   * @param max the max number of result objects to return.
-   * @return List of objects.
-   */
-  @Nonnull
-  List<T> getAllOrderedLastUpdated(int first, int max);
+    /**
+     * Retrieves a list of objects referenced by the given collection of names.
+     *
+     * @param names a collection of names.
+     * @return a list of objects.
+     */
+    List<T> getByName( Collection<String> names );
 
-  /**
-   * Gets the count of objects which name is like the given name.
-   *
-   * @param name the name which result object names must be like.
-   * @return the count of objects.
-   */
-  int getCountLikeName(@Nonnull String name);
+    /**
+     * Retrieves a list of objects referenced by the given List of uids.
+     * Bypasses the ACL system.
+     *
+     * @param uids a List of uids.
+     * @return a list of objects.
+     */
+    List<T> getByUidNoAcl( Collection<String> uids );
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of ids.
-   *
-   * @param ids a collection of ids.
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getById(@Nonnull Collection<Long> ids);
+    /**
+     * Returns all objects that are equal to or newer than given date.
+     *
+     * @param created Date to compare with.
+     * @return All objects equal or newer than given date.
+     */
+    List<T> getAllGeCreated( Date created );
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of ids.
-   *
-   * @param ids a collection of ids.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getById(@Nonnull Collection<Long> ids, @CheckForNull User user);
+    /**
+     * Returns all objects which are equal to or older than the given date.
+     *
+     * @param created Date to compare with.
+     * @return All objects equals to or older than the given date.
+     */
+    List<T> getAllLeCreated( Date created );
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of uids.
-   *
-   * @param uids a collection of uids.
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByUid(@Nonnull Collection<String> uids);
+    /**
+     * Returns all objects that are equal to or newer than given date.
+     *
+     * @param lastUpdated Date to compare with.
+     * @return All objects equal or newer than given date.
+     */
+    List<T> getAllGeLastUpdated( Date lastUpdated );
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of uids.
-   *
-   * <p>Objects which are soft-deleted (deleted=true) are filtered out
-   *
-   * @param uids a collection of uids.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByUid(@Nonnull Collection<String> uids, @CheckForNull User user);
+    /**
+     * Returns all objects without considering sharing.
+     *
+     * @return a list of all objects.
+     */
+    List<T> getAllNoAcl();
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of codes.
-   *
-   * @param codes a collection of codes.
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByCode(@Nonnull Collection<String> codes);
+    /**
+     * Returns the date of the last updated object.
+     *
+     * @return a Date / time stamp.
+     */
+    Date getLastUpdated();
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of codes.
-   *
-   * @param codes a collection of codes.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByCode(@Nonnull Collection<String> codes, @CheckForNull User user);
+    /**
+     * Returns the number of objects that are equal to or newer than given last updated date.
+     *
+     * @param lastUpdated Date to compare to.
+     * @return the number of objects equal or newer than given date.
+     */
+    int getCountGeLastUpdated( Date lastUpdated );
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of names.
-   *
-   * @param names a collection of names.
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByName(@Nonnull Collection<String> names);
+    /**
+     * Returns the number of objects that are equal to or newer than given created date.
+     *
+     * @param created Date to compare to.
+     * @return the number of objects equal or newer than given date.
+     */
+    int getCountGeCreated( Date created );
 
-  /**
-   * Retrieves a list of objects referenced by the given collection of names.
-   *
-   * @param names a collection of names.
-   * @param user the {@link User} for sharing restrictions
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByName(@Nonnull Collection<String> names, @CheckForNull User user);
+    List<T> getDataReadAll();
 
-  /**
-   * Retrieves a list of objects referenced by the given List of uids. Bypasses the ACL system.
-   *
-   * @param uids a List of uids.
-   * @return a list of objects.
-   */
-  @Nonnull
-  List<T> getByUidNoAcl(@Nonnull Collection<String> uids);
+    List<T> getDataReadAll( User user );
 
-  /**
-   * Returns all objects which are equal to or older than the given date.
-   *
-   * @param created Date to compare with.
-   * @return All objects equals to or older than the given date.
-   */
-  @Nonnull
-  List<T> getAllLeCreated(@Nonnull Date created);
+    List<T> getDataWriteAll();
 
-  /**
-   * Returns all objects that are equal to or newer than given date.
-   *
-   * @param lastUpdated Date to compare with.
-   * @return All objects equal or newer than given date.
-   */
-  @Nonnull
-  List<T> getAllGeLastUpdated(@Nonnull Date lastUpdated);
+    List<T> getDataWriteAll( User user );
 
-  /**
-   * Returns all objects without considering sharing.
-   *
-   * @return a list of all objects.
-   */
-  @Nonnull
-  List<T> getAllNoAcl();
-
-  /**
-   * Returns the date of the last updated object.
-   *
-   * @return a Date / time stamp or null if no objects exist
-   */
-  @CheckForNull
-  Date getLastUpdated();
-
-  /**
-   * Returns the number of objects that are equal to or newer than given last updated date.
-   *
-   * @param lastUpdated Date to compare to.
-   * @return the number of objects equal or newer than given date.
-   */
-  int getCountGeLastUpdated(@Nonnull Date lastUpdated);
-
-  /**
-   * Returns the number of objects that are equal to or newer than given created date.
-   *
-   * @param created Date to compare to.
-   * @return the number of objects equal or newer than given date.
-   */
-  int getCountGeCreated(@Nonnull Date created);
-
-  /**
-   * Returns the UID of all objects created before a given date.
-   *
-   * @param date the date.
-   * @return the UID of all objects created before a given date.
-   */
-  @Nonnull
-  List<String> getUidsCreatedBefore(@Nonnull Date date);
-
-  @Nonnull
-  List<T> getDataReadAll();
-
-  @Nonnull
-  List<T> getDataReadAll(@CheckForNull User user);
-
-  @Nonnull
-  List<T> getDataWriteAll();
-
-  @Nonnull
-  List<T> getDataWriteAll(@CheckForNull User user);
-
-  /** Remove given UserGroup UID from all sharing records in database */
-  void removeUserGroupFromSharing(@Nonnull String userGroupUID, @Nonnull String tableName);
-
-  /**
-   * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link
-   * User}
-   *
-   * @param user the {@link User} for filtering
-   * @return List of objects found.
-   */
-  List<T> findByUser(@Nonnull User user);
-
-  /**
-   * Look up list objects which have property lastUpdatedBy linked to given {@link User}
-   *
-   * @param user the {@link User} for filtering
-   * @return List of objects found.
-   */
-  List<T> findByLastUpdatedBy(@Nonnull User user);
-
-  /**
-   * Look up list objects which have property createdBy linked to given {@link User}
-   *
-   * @param user the {@link User} for filtering
-   * @return List of objects found.
-   */
-  List<T> findByCreatedBy(@Nonnull User user);
-
-  /**
-   * Look up list objects which have property createdBy or lastUpdatedBy linked to given {@link
-   * User}
-   *
-   * @param user the {@link User} for filtering
-   * @return TRUE if objects exist. FALSE otherwise.
-   */
-  boolean existsByUser(@Nonnull User user, final Set<String> checkProperties);
+    List<T> getDataReadAll( int first, int max );
 }

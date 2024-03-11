@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,45 @@
 package org.hisp.dhis.relationship;
 
 import java.util.Objects;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Enrico Colasante
  */
-@Component
-@RequiredArgsConstructor
-public class RelationshipTypeDeletionHandler extends IdObjectDeletionHandler<RelationshipType> {
-  private final RelationshipTypeService relationshipTypeService;
+public class RelationshipTypeDeletionHandler
+    extends
+    DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Program.class, this::deleteProgram);
-  }
+    private RelationshipTypeService relationshipTypeService;
 
-  private void deleteProgram(Program program) {
-    relationshipTypeService.getAllRelationshipTypes().stream()
-        .filter(
-            type ->
-                Objects.equals(type.getFromConstraint().getProgram(), program)
-                    || Objects.equals(type.getToConstraint().getProgram(), program))
-        .forEach(relationshipTypeService::deleteRelationshipType);
-  }
+    public void setRelationshipTypeSevice( RelationshipTypeService relationshipTypeService )
+    {
+        this.relationshipTypeService = relationshipTypeService;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return RelationshipType.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteProgram( Program program )
+    {
+        relationshipTypeService.getAllRelationshipTypes().stream()
+            .filter( type -> Objects.equals( type.getFromConstraint().getProgram(), program )
+                || Objects.equals( type.getToConstraint().getProgram(), program ) )
+            .forEach( relationshipTypeService::deleteRelationshipType );
+    }
 }

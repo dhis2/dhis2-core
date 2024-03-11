@@ -1,5 +1,7 @@
+package org.hisp.dhis.system;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,168 +27,707 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.kafka.KafkaConfig;
+import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
+
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class SystemInfo {
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
+@JacksonXmlRootElement( localName = "systemInfo", namespace = DxfNamespaces.DXF_2_0 )
+public class SystemInfo
+{
+    // -------------------------------------------------------------------------
+    // Transient properties
+    // -------------------------------------------------------------------------
 
-  @JsonProperty private String contextPath;
+    private String contextPath;
 
-  @JsonProperty private String userAgent;
+    private String userAgent;
 
-  // -------------------------------------------------------------------------
-  // Volatile properties
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Volatile properties
+    // -------------------------------------------------------------------------
 
-  @JsonProperty private String calendar;
+    private String calendar;
 
-  @JsonProperty private String dateFormat;
+    private String dateFormat;
 
-  @JsonProperty private Date serverDate;
+    private Date serverDate;
 
-  @JsonProperty private String serverTimeZoneId;
+    private Date lastAnalyticsTableSuccess;
 
-  @JsonProperty private String serverTimeZoneDisplayName;
+    private String intervalSinceLastAnalyticsTableSuccess;
 
-  @JsonProperty private Date lastAnalyticsTableSuccess;
+    private String lastAnalyticsTableRuntime;
 
-  @JsonProperty private String intervalSinceLastAnalyticsTableSuccess;
+    private Date lastSystemMonitoringSuccess;
 
-  @JsonProperty private String lastAnalyticsTableRuntime;
+    // -------------------------------------------------------------------------
+    // Stable properties
+    // -------------------------------------------------------------------------
 
-  @JsonProperty private Date lastSystemMonitoringSuccess;
+    private String version;
 
-  @JsonProperty private Date lastAnalyticsTablePartitionSuccess;
+    private String revision;
 
-  @JsonProperty private String intervalSinceLastAnalyticsTablePartitionSuccess;
+    private Date buildTime;
 
-  @JsonProperty private String lastAnalyticsTablePartitionRuntime;
+    private String jasperReportsVersion;
 
-  // -------------------------------------------------------------------------
-  // Stable properties
-  // -------------------------------------------------------------------------
+    private String environmentVariable;
 
-  @JsonProperty private String version;
+    private String fileStoreProvider;
 
-  @JsonProperty private String revision;
+    private String cacheProvider;
 
-  @JsonProperty private Date buildTime;
+    private String readOnlyMode;
 
-  @JsonProperty private String jasperReportsVersion;
+    private String nodeId;
 
-  @JsonProperty private String environmentVariable;
+    private String javaVersion;
 
-  @JsonProperty private String fileStoreProvider;
+    private String javaVendor;
 
-  @JsonProperty private String readOnlyMode;
+    private String javaOpts;
 
-  @JsonProperty private String nodeId;
+    private String osName;
 
-  @JsonProperty private String javaVersion;
+    private String osArchitecture;
 
-  @JsonProperty private String javaVendor;
+    private String osVersion;
 
-  @JsonProperty private String javaOpts;
+    private String externalDirectory;
 
-  @JsonProperty private String osName;
+    private DatabaseInfo databaseInfo;
 
-  @JsonProperty private String osArchitecture;
+    private Integer readReplicaCount;
 
-  @JsonProperty private String osVersion;
+    private String memoryInfo;
 
-  @JsonProperty private String externalDirectory;
+    private Integer cpuCores;
 
-  @JsonProperty private DatabaseInfo databaseInfo;
+    private boolean encryption;
 
-  @JsonProperty private Integer readReplicaCount;
+    private boolean emailConfigured;
+    
+    private boolean redisEnabled;
+    
+    private String redisHostname;
 
-  @JsonProperty private String memoryInfo;
+    private String systemId;
 
-  @JsonProperty private Integer cpuCores;
+    private String systemName;
 
-  @JsonProperty private boolean encryption;
+    private String systemMetadataVersion;
 
-  @JsonProperty private boolean emailConfigured;
+    private String instanceBaseUrl;
 
-  @JsonProperty private boolean redisEnabled;
+    private String systemMonitoringUrl;
 
-  @JsonProperty private String redisHostname;
+    private Boolean isMetadataVersionEnabled;
 
-  @JsonProperty private String systemId;
+    private Date lastMetadataVersionSyncAttempt;
 
-  @JsonProperty private String systemName;
+    private boolean isMetadataSyncEnabled;
 
-  @JsonProperty private String systemMetadataVersion;
+    private MetadataAudit metadataAudit;
 
-  @JsonProperty private String instanceBaseUrl;
+    private RabbitMQ rabbitMQ;
 
-  @JsonProperty private String systemMonitoringUrl;
+    private KafkaConfig kafka;
 
-  @JsonProperty private String clusterHostname;
+    private LoggingConfig logging;
 
-  @JsonProperty private Boolean isMetadataVersionEnabled;
-
-  @JsonProperty private Date lastMetadataVersionSyncAttempt;
-
-  @JsonProperty private Boolean isMetadataSyncEnabled;
-
-  public SystemInfo instance() {
-    SystemInfo info = new SystemInfo();
-    BeanUtils.copyProperties(this, info);
-    // clear sensitive info may reset the data
-    info.setDatabaseInfo(databaseInfo == null ? null : databaseInfo.instance());
-    return info;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /**
-   * Clears sensitive system info properties.
-   *
-   * <p>Note that {@code systemId} must be present for {@link MonitoringService} to function.
-   */
-  public void clearSensitiveInfo() {
-    this.jasperReportsVersion = null;
-    this.environmentVariable = null;
-    this.fileStoreProvider = null;
-    this.readOnlyMode = null;
-    this.nodeId = null;
-    this.javaVersion = null;
-    this.javaVendor = null;
-    this.javaOpts = null;
-    this.osName = null;
-    this.osArchitecture = null;
-    this.osVersion = null;
-    this.externalDirectory = null;
-    this.readReplicaCount = null;
-    this.memoryInfo = null;
-    this.cpuCores = null;
-    this.systemMonitoringUrl = null;
-    this.encryption = false;
-    this.redisEnabled = false;
-    this.redisHostname = null;
-    this.clusterHostname = null;
-
-    if (this.databaseInfo != null) {
-      this.databaseInfo.clearSensitiveInfo();
+    public SystemInfo instance()
+    {
+        SystemInfo info = new SystemInfo();
+        BeanUtils.copyProperties( this, info );
+        return info;
     }
-  }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void clearSensitiveInfo()
+    {
+        this.fileStoreProvider = null;
+        this.readOnlyMode = null;
+        this.nodeId = null;
+        this.javaVersion = null;
+        this.javaVendor = null;
+        this.javaOpts = null;
+        this.osName = null;
+        this.osArchitecture = null;
+        this.osVersion = null;
+        this.externalDirectory = null;
+        this.readReplicaCount = null;
+        this.memoryInfo = null;
+        this.cpuCores = null;
+        this.systemMonitoringUrl = null;
+        this.metadataAudit = null;
+
+        if ( this.databaseInfo != null )
+        {
+            this.databaseInfo.clearSensitiveInfo();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getContextPath()
+    {
+        return contextPath;
+    }
+
+    public void setContextPath( String contextPath )
+    {
+        this.contextPath = contextPath;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUserAgent()
+    {
+        return userAgent;
+    }
+
+    public void setUserAgent( String userAgent )
+    {
+        this.userAgent = userAgent;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCalendar()
+    {
+        return calendar;
+    }
+
+    public void setCalendar( String calendar )
+    {
+        this.calendar = calendar;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDateFormat()
+    {
+        return dateFormat;
+    }
+
+    public void setDateFormat( String dateFormat )
+    {
+        this.dateFormat = dateFormat;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getServerDate()
+    {
+        return serverDate;
+    }
+
+    public void setServerDate( Date serverDate )
+    {
+        this.serverDate = serverDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastAnalyticsTableSuccess()
+    {
+        return lastAnalyticsTableSuccess;
+    }
+
+    public void setLastAnalyticsTableSuccess( Date lastAnalyticsTableSuccess )
+    {
+        this.lastAnalyticsTableSuccess = lastAnalyticsTableSuccess;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIntervalSinceLastAnalyticsTableSuccess()
+    {
+        return intervalSinceLastAnalyticsTableSuccess;
+    }
+
+    public void setIntervalSinceLastAnalyticsTableSuccess( String intervalSinceLastAnalyticsTableSuccess )
+    {
+        this.intervalSinceLastAnalyticsTableSuccess = intervalSinceLastAnalyticsTableSuccess;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLastAnalyticsTableRuntime()
+    {
+        return lastAnalyticsTableRuntime;
+    }
+
+    public void setLastAnalyticsTableRuntime( String lastAnalyticsTableRuntime )
+    {
+        this.lastAnalyticsTableRuntime = lastAnalyticsTableRuntime;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastSystemMonitoringSuccess()
+    {
+        return lastSystemMonitoringSuccess;
+    }
+
+    public void setLastSystemMonitoringSuccess( Date lastSystemMonitoringSuccess )
+    {
+        this.lastSystemMonitoringSuccess = lastSystemMonitoringSuccess;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getVersion()
+    {
+        return version;
+    }
+
+    public void setVersion( String version )
+    {
+        this.version = version;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRevision()
+    {
+        return revision;
+    }
+
+    public void setRevision( String revision )
+    {
+        this.revision = revision;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getBuildTime()
+    {
+        return buildTime;
+    }
+
+    public void setBuildTime( Date buildTime )
+    {
+        this.buildTime = buildTime;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getJasperReportsVersion()
+    {
+        return jasperReportsVersion;
+    }
+
+    public void setJasperReportsVersion( String jasperReportsVersion )
+    {
+        this.jasperReportsVersion = jasperReportsVersion;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getEnvironmentVariable()
+    {
+        return environmentVariable;
+    }
+
+    public void setEnvironmentVariable( String environmentVariable )
+    {
+        this.environmentVariable = environmentVariable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFileStoreProvider()
+    {
+        return fileStoreProvider;
+    }
+
+    public void setFileStoreProvider( String fileStoreProvider )
+    {
+        this.fileStoreProvider = fileStoreProvider;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCacheProvider()
+    {
+        return cacheProvider;
+    }
+
+    public void setCacheProvider( String cacheProvider )
+    {
+        this.cacheProvider = cacheProvider;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getReadOnlyMode()
+    {
+        return readOnlyMode;
+    }
+
+    public void setReadOnlyMode( String readOnlyMode )
+    {
+        this.readOnlyMode = readOnlyMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getNodeId()
+    {
+        return nodeId;
+    }
+
+    public void setNodeId( String nodeId )
+    {
+        this.nodeId = nodeId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getJavaVersion()
+    {
+        return javaVersion;
+    }
+
+    public void setJavaVersion( String javaVersion )
+    {
+        this.javaVersion = javaVersion;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getJavaVendor()
+    {
+        return javaVendor;
+    }
+
+    public void setJavaVendor( String javaVendor )
+    {
+        this.javaVendor = javaVendor;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getJavaOpts()
+    {
+        return javaOpts;
+    }
+
+    public void setJavaOpts( String javaOpts )
+    {
+        this.javaOpts = javaOpts;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOsName()
+    {
+        return osName;
+    }
+
+    public void setOsName( String osName )
+    {
+        this.osName = osName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOsArchitecture()
+    {
+        return osArchitecture;
+    }
+
+    public void setOsArchitecture( String osArchitecture )
+    {
+        this.osArchitecture = osArchitecture;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOsVersion()
+    {
+        return osVersion;
+    }
+
+    public void setOsVersion( String osVersion )
+    {
+        this.osVersion = osVersion;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getExternalDirectory()
+    {
+        return externalDirectory;
+    }
+
+    public void setExternalDirectory( String externalDirectory )
+    {
+        this.externalDirectory = externalDirectory;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DatabaseInfo getDatabaseInfo()
+    {
+        return databaseInfo;
+    }
+
+    public void setDatabaseInfo( DatabaseInfo databaseInfo )
+    {
+        this.databaseInfo = databaseInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getReadReplicaCount()
+    {
+        return readReplicaCount;
+    }
+
+    public void setReadReplicaCount( Integer readReplicaCount )
+    {
+        this.readReplicaCount = readReplicaCount;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getMemoryInfo()
+    {
+        return memoryInfo;
+    }
+
+    public void setMemoryInfo( String memoryInfo )
+    {
+        this.memoryInfo = memoryInfo;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getCpuCores()
+    {
+        return cpuCores;
+    }
+
+    public void setCpuCores( Integer cpuCores )
+    {
+        this.cpuCores = cpuCores;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEncryption()
+    {
+        return encryption;
+    }
+
+    public void setEncryption( boolean encryption )
+    {
+        this.encryption = encryption;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEmailConfigured()
+    {
+        return emailConfigured;
+    }
+
+    public void setEmailConfigured( boolean emailConfigured )
+    {
+        this.emailConfigured = emailConfigured;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRedisEnabled()
+    {
+        return redisEnabled;
+    }
+
+    public void setRedisEnabled( boolean redisEnabled )
+    {
+        this.redisEnabled = redisEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRedisHostname()
+    {
+        return redisHostname;
+    }
+
+    public void setRedisHostname( String redisHostname )
+    {
+        this.redisHostname = redisHostname;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemId()
+    {
+        return systemId;
+    }
+
+    public void setSystemId( String systemId )
+    {
+        this.systemId = systemId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemName()
+    {
+        return systemName;
+    }
+
+    public void setSystemName( String systemName )
+    {
+        this.systemName = systemName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemMetadataVersion()
+    {
+        return systemMetadataVersion;
+    }
+
+    public void setSystemMetadataVersion( String systemMetadataVersion )
+    {
+        this.systemMetadataVersion = systemMetadataVersion;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getInstanceBaseUrl()
+    {
+        return instanceBaseUrl;
+    }
+
+    public void setInstanceBaseUrl( String instanceBaseUrl )
+    {
+        this.instanceBaseUrl = instanceBaseUrl;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemMonitoringUrl()
+    {
+        return systemMonitoringUrl;
+    }
+
+    public void setSystemMonitoringUrl( String systemMonitoringUrl )
+    {
+        this.systemMonitoringUrl = systemMonitoringUrl;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getIsMetadataVersionEnabled()
+    {
+        return isMetadataVersionEnabled;
+    }
+
+    public void setIsMetadataVersionEnabled( Boolean isMetadataVersionEnabled )
+    {
+        this.isMetadataVersionEnabled = isMetadataVersionEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastMetadataVersionSyncAttempt()
+    {
+        return lastMetadataVersionSyncAttempt;
+    }
+
+    public void setLastMetadataVersionSyncAttempt( Date lastMetadataVersionSyncAttempt )
+    {
+        this.lastMetadataVersionSyncAttempt = lastMetadataVersionSyncAttempt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMetadataSyncEnabled()
+    {
+        return isMetadataSyncEnabled;
+    }
+
+    public void setMetadataSyncEnabled( boolean isMetadataSyncEnabled )
+    {
+        this.isMetadataSyncEnabled = isMetadataSyncEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MetadataAudit getMetadataAudit()
+    {
+        return metadataAudit;
+    }
+
+    public void setMetadataAudit( MetadataAudit metadataAudit )
+    {
+        this.metadataAudit = metadataAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RabbitMQ getRabbitMQ()
+    {
+        return rabbitMQ;
+    }
+
+    public void setRabbitMQ( RabbitMQ rabbitMQ )
+    {
+        this.rabbitMQ = rabbitMQ;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public KafkaConfig getKafka()
+    {
+        return kafka;
+    }
+
+    public void setKafka( KafkaConfig kafka )
+    {
+        this.kafka = kafka;
+    }
+
+    public boolean isKafka()
+    {
+        return kafka != null && kafka.isValid();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LoggingConfig getLogging()
+    {
+        return logging;
+    }
+
+    public void setLogging( LoggingConfig loggingConfig )
+    {
+        this.logging = loggingConfig;
+    }
 }

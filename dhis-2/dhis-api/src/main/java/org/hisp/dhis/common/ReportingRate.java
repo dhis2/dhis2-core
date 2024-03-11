@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,118 +27,121 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.List;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+
+import java.util.List;
+
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0)
-public class ReportingRate extends BaseDimensionalItemObject implements EmbeddedObject {
-  private static final String SPACED_DASH = " - ";
+@JacksonXmlRootElement( localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0 )
+public class ReportingRate
+    extends BaseDimensionalItemObject implements EmbeddedObject
+{
+    private DataSet dataSet;
 
-  private DataSet dataSet;
+    private ReportingRateMetric metric;
 
-  private ReportingRateMetric metric;
+    public ReportingRate()
+    {
+    }
 
-  public ReportingRate() {}
+    public ReportingRate( DataSet dataSet )
+    {
+        this.dataSet = dataSet;
+        this.metric = ReportingRateMetric.REPORTING_RATE;
+    }
 
-  public ReportingRate(DataSet dataSet) {
-    this.dataSet = dataSet;
-    this.metric = ReportingRateMetric.REPORTING_RATE;
-  }
+    public ReportingRate( DataSet dataSet, ReportingRateMetric metric )
+    {
+        this.dataSet = dataSet;
+        this.metric = metric;
+    }
 
-  public ReportingRate(DataSet dataSet, ReportingRateMetric metric) {
-    this.dataSet = dataSet;
-    this.metric = metric;
-  }
+    // -------------------------------------------------------------------------
+    // DimensionalItemObject
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // DimensionalItemObject
-  // -------------------------------------------------------------------------
+    @Override
+    public String getUid()
+    {
+        return dataSet.getUid();
+    }
 
-  @Override
-  public String getUid() {
-    return dataSet.getUid();
-  }
+    @Override
+    public String getName()
+    {
+        String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-  @Override
-  public String getName() {
-    String metricName =
-        metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
+        return dataSet.getName() + " " + metricName;
+    }
 
-    return dataSet.getName() + SPACED_DASH + metricName;
-  }
+    @Override
+    public String getShortName()
+    {
+        String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-  @Override
-  public String getShortName() {
-    String metricName =
-        metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
+        return dataSet.getShortName() + " " + metricName;
+    }
 
-    return dataSet.getShortName() + SPACED_DASH + metricName;
-  }
+    @Override
+    public String getDimensionItem()
+    {
+        return dataSet.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + metric.name();
+    }
 
-  @Override
-  public String getDimensionItem() {
-    return dataSet.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + metric.name();
-  }
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.REPORTING_RATE;
+    }
 
-  @Override
-  public DimensionItemType getDimensionItemType() {
-    return DimensionItemType.REPORTING_RATE;
-  }
+    @Override
+    public List<LegendSet> getLegendSets()
+    {
+        return dataSet.getLegendSets();
+    }
+    
+    @Override
+    public TotalAggregationType getTotalAggregationType()
+    {
+        return TotalAggregationType.AVERAGE;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  @Override
-  public List<LegendSet> getLegendSets() {
-    return dataSet.getLegendSets();
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseNameableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataSet getDataSet()
+    {
+        return dataSet;
+    }
 
-  @Override
-  public TotalAggregationType getTotalAggregationType() {
-    return TotalAggregationType.AVERAGE;
-  }
+    public void setDataSet( DataSet dataSet )
+    {
+        this.dataSet = dataSet;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ReportingRateMetric getMetric()
+    {
+        return metric;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(
-      value = PropertyType.REFERENCE,
-      required = Property.Value.TRUE,
-      owner = Property.Value.TRUE)
-  public DataSet getDataSet() {
-    return dataSet;
-  }
-
-  public void setDataSet(DataSet dataSet) {
-    this.dataSet = dataSet;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(
-      value = PropertyType.CONSTANT,
-      required = Property.Value.TRUE,
-      owner = Property.Value.TRUE)
-  public ReportingRateMetric getMetric() {
-    return metric;
-  }
-
-  public void setMetric(ReportingRateMetric metric) {
-    this.metric = metric;
-  }
+    public void setMetric( ReportingRateMetric metric )
+    {
+        this.metric = metric;
+    }
 }

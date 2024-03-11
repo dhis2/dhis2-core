@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,447 +27,524 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
+import com.vividsolutions.jts.geom.Geometry;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.locationtech.jts.geom.Geometry;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
  */
-@Auditable(scope = AuditScope.TRACKER)
-@JacksonXmlRootElement(localName = "programInstance", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramInstance extends SoftDeletableObject {
-  private Date createdAtClient;
+@JacksonXmlRootElement( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramInstance
+    extends BaseIdentifiableObject
+{
+    private Date createdAtClient;
 
-  private Date lastUpdatedAtClient;
+    private Date lastUpdatedAtClient;
 
-  private ProgramStatus status = ProgramStatus.ACTIVE;
+    private ProgramStatus status = ProgramStatus.ACTIVE;
 
-  @AuditAttribute private OrganisationUnit organisationUnit;
+    private OrganisationUnit organisationUnit;
 
-  private Date incidentDate;
+    private Date incidentDate;
 
-  private Date enrollmentDate;
+    private Date enrollmentDate;
 
-  private Date endDate;
+    private Date endDate;
 
-  private UserInfoSnapshot createdByUserInfo;
+    private TrackedEntityInstance entityInstance;
 
-  private UserInfoSnapshot lastUpdatedByUserInfo;
+    private Program program;
 
-  @AuditAttribute private TrackedEntityInstance entityInstance;
+    private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
 
-  @AuditAttribute private Program program;
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-  private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+    private List<MessageConversation> messageConversations = new ArrayList<>();
 
-  private Set<RelationshipItem> relationshipItems = new HashSet<>();
+    private Boolean followup = false;
 
-  private List<MessageConversation> messageConversations = new ArrayList<>();
+    private List<TrackedEntityComment> comments = new ArrayList<>();
 
-  private Boolean followup = false;
+    private String completedBy;
 
-  private List<TrackedEntityComment> comments = new ArrayList<>();
+    private Geometry geometry;
 
-  private String completedBy;
+    private Boolean deleted = false;
 
-  private Geometry geometry;
+    private String storedBy;
 
-  private String storedBy;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public ProgramInstance() {}
-
-  public ProgramInstance(
-      Date enrollmentDate,
-      Date incidentDate,
-      TrackedEntityInstance entityInstance,
-      Program program) {
-    this.enrollmentDate = enrollmentDate;
-    this.incidentDate = incidentDate;
-    this.entityInstance = entityInstance;
-    this.program = program;
-  }
-
-  public ProgramInstance(
-      Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit) {
-    this.program = program;
-    this.entityInstance = entityInstance;
-    this.organisationUnit = organisationUnit;
-  }
-
-  @Override
-  public void setAutoFields() {
-    super.setAutoFields();
-
-    if (createdAtClient == null) {
-      createdAtClient = created;
+    public ProgramInstance()
+    {
     }
 
-    lastUpdatedAtClient = lastUpdated;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /**
-   * Updated the bi-directional associations between this program instance and the given entity
-   * instance and program.
-   *
-   * @param entityInstance the entity instance to enroll.
-   * @param program the program to enroll the entity instance to.
-   */
-  public void enrollTrackedEntityInstance(TrackedEntityInstance entityInstance, Program program) {
-    setEntityInstance(entityInstance);
-    entityInstance.getProgramInstances().add(this);
-
-    setProgram(program);
-  }
-
-  public boolean isCompleted() {
-    return this.status == ProgramStatus.COMPLETED;
-  }
-
-  public ProgramStageInstance getProgramStageInstanceByStage(int stage) {
-    int count = 1;
-
-    for (ProgramStageInstance programInstanceStage : programStageInstances) {
-      if (count == stage) {
-        return programInstanceStage;
-      }
-
-      count++;
+    public ProgramInstance( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance, Program program )
+    {
+        this.enrollmentDate = enrollmentDate;
+        this.incidentDate = incidentDate;
+        this.entityInstance = entityInstance;
+        this.program = program;
     }
 
-    return null;
-  }
-
-  public ProgramStageInstance getActiveProgramStageInstance() {
-    for (ProgramStageInstance programStageInstance : programStageInstances) {
-      if (programStageInstance.getProgramStage().getOpenAfterEnrollment()
-          && !programStageInstance.isCompleted()
-          && (programStageInstance.getStatus() != null
-              && programStageInstance.getStatus() != EventStatus.SKIPPED)) {
-        return programStageInstance;
-      }
+    public ProgramInstance( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit )
+    {
+        this.program = program;
+        this.entityInstance = entityInstance;
+        this.organisationUnit = organisationUnit;
     }
 
-    for (ProgramStageInstance programStageInstance : programStageInstances) {
-      if (!programStageInstance.isCompleted()
-          && (programStageInstance.getStatus() != null
-              && programStageInstance.getStatus() != EventStatus.SKIPPED)) {
-        return programStageInstance;
-      }
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        lastUpdatedAtClient = lastUpdated;
     }
 
-    return null;
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public boolean hasActiveProgramStageInstance(ProgramStage programStage) {
-    for (ProgramStageInstance programStageInstance : programStageInstances) {
-      if (!programStageInstance.isDeleted()
-          && programStageInstance.getProgramStage().getUid().equalsIgnoreCase(programStage.getUid())
-          && programStageInstance.getStatus() == EventStatus.ACTIVE) {
+    /**
+     * Updated the bi-directional associations between this program instance and
+     * the given entity instance and program.
+     *
+     * @param entityInstance the entity instance to enroll.
+     * @param program        the program to enroll the entity instance to.
+     */
+    public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
+    {
+        setEntityInstance( entityInstance );
+        entityInstance.getProgramInstances().add( this );
+
+        setProgram( program );
+    }
+
+    public ProgramStageInstance getProgramStageInstanceByStage( int stage )
+    {
+        int count = 1;
+
+        for ( ProgramStageInstance programInstanceStage : programStageInstances )
+        {
+            if ( count == stage )
+            {
+                return programInstanceStage;
+            }
+
+            count++;
+        }
+
+        return null;
+    }
+
+    public ProgramStageInstance getActiveProgramStageInstance()
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( programStageInstance.getProgramStage().getOpenAfterEnrollment()
+                && !programStageInstance.isCompleted()
+                && (programStageInstance.getStatus() != null && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+            {
+                return programStageInstance;
+            }
+        }
+
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( !programStageInstance.isCompleted()
+                && (programStageInstance.getStatus() != null && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+            {
+                return programStageInstance;
+            }
+        }
+
+        return null;
+    }
+    
+    public boolean hasActiveProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public boolean hasProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
+            {
+                return true;
+            }
+        }
+        
+        return false;        
+    }
+
+    // -------------------------------------------------------------------------
+    // equals and hashCode
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = super.hashCode();
+
+        result = prime * result + ((incidentDate == null) ? 0 : incidentDate.hashCode());
+        result = prime * result + ((enrollmentDate == null) ? 0 : enrollmentDate.hashCode());
+        result = prime * result + ((entityInstance == null) ? 0 : entityInstance.hashCode());
+        result = prime * result + ((program == null) ? 0 : program.hashCode());
+
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( !getClass().isAssignableFrom( object.getClass() ) )
+        {
+            return false;
+        }
+
+        final ProgramInstance other = (ProgramInstance) object;
+
+        if ( incidentDate == null )
+        {
+            if ( other.incidentDate != null )
+            {
+                return false;
+            }
+        }
+        else if ( !incidentDate.equals( other.incidentDate ) )
+        {
+            return false;
+        }
+
+        if ( enrollmentDate == null )
+        {
+            if ( other.enrollmentDate != null )
+            {
+                return false;
+            }
+        }
+        else if ( !enrollmentDate.equals( other.enrollmentDate ) )
+        {
+            return false;
+        }
+
+        if ( entityInstance == null )
+        {
+            if ( other.entityInstance != null )
+            {
+                return false;
+            }
+        }
+        else if ( !entityInstance.equals( other.entityInstance ) )
+        {
+            return false;
+        }
+
+        if ( program == null )
+        {
+            if ( other.program != null )
+            {
+                return false;
+            }
+        }
+        else if ( !program.equals( other.program ) )
+        {
+            return false;
+        }
+
         return true;
-      }
     }
 
-    return false;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // equals and hashCode
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
 
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
 
-    result = prime * result + ((incidentDate == null) ? 0 : incidentDate.hashCode());
-    result = prime * result + ((enrollmentDate == null) ? 0 : enrollmentDate.hashCode());
-    result = prime * result + ((entityInstance == null) ? 0 : entityInstance.hashCode());
-    result = prime * result + ((program == null) ? 0 : program.hashCode());
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
 
-    return result;
-  }
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj || obj instanceof ProgramInstance && objectEquals((ProgramInstance) obj);
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
 
-  private boolean objectEquals(ProgramInstance other) {
-    return Objects.equals(incidentDate, other.incidentDate)
-        && Objects.equals(enrollmentDate, other.enrollmentDate)
-        && Objects.equals(entityInstance, other.entityInstance)
-        && Objects.equals(program, other.program);
-  }
+    public ProgramInstance setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
+        return this;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getIncidentDate()
+    {
+        return incidentDate;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCreatedAtClient() {
-    return createdAtClient;
-  }
+    public void setIncidentDate( Date incidentDate )
+    {
+        this.incidentDate = incidentDate;
+    }
 
-  public void setCreatedAtClient(Date createdAtClient) {
-    this.createdAtClient = createdAtClient;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getEnrollmentDate()
+    {
+        return enrollmentDate;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getLastUpdatedAtClient() {
-    return lastUpdatedAtClient;
-  }
+    public void setEnrollmentDate( Date enrollmentDate )
+    {
+        this.enrollmentDate = enrollmentDate;
+    }
 
-  public void setLastUpdatedAtClient(Date lastUpdatedAtClient) {
-    this.lastUpdatedAtClient = lastUpdatedAtClient;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getEndDate()
+    {
+        return endDate;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
+    }
 
-  public ProgramInstance setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-    return this;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getStatus()
+    {
+        return status;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getIncidentDate() {
-    return incidentDate;
-  }
+    public void setStatus( ProgramStatus status )
+    {
+        this.status = status;
+    }
 
-  public void setIncidentDate(Date incidentDate) {
-    this.incidentDate = incidentDate;
-  }
+    @JsonProperty( "trackedEntityInstance" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityInstance getEntityInstance()
+    {
+        return entityInstance;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getEnrollmentDate() {
-    return enrollmentDate;
-  }
+    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    {
+        this.entityInstance = entityInstance;
+    }
 
-  public void setEnrollmentDate(Date enrollmentDate) {
-    this.enrollmentDate = enrollmentDate;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Program getProgram()
+    {
+        return program;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getEndDate() {
-    return endDate;
-  }
+    public void setProgram( Program program )
+    {
+        this.program = program;
+    }
 
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programStageInstances", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programStageInstance", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramStageInstance> getProgramStageInstances()
+    {
+        return programStageInstances;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getCreatedByUserInfo() {
-    return createdByUserInfo;
-  }
+    public void setProgramStageInstances( Set<ProgramStageInstance> programStageInstances )
+    {
+        this.programStageInstances = programStageInstances;
+    }
 
-  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
-    this.createdByUserInfo = createdByUserInfo;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getFollowup()
+    {
+        return followup;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getLastUpdatedByUserInfo() {
-    return lastUpdatedByUserInfo;
-  }
+    public void setFollowup( Boolean followup )
+    {
+        this.followup = followup;
+    }
 
-  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
-    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
+    public List<MessageConversation> getMessageConversations()
+    {
+        return messageConversations;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getStatus() {
-    return status;
-  }
+    public void setMessageConversations( List<MessageConversation> messageConversations )
+    {
+        this.messageConversations = messageConversations;
+    }
 
-  public void setStatus(ProgramStatus status) {
-    this.status = status;
-  }
+    @JsonProperty( "trackedEntityComments" )
+    @JacksonXmlElementWrapper( localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityComment> getComments()
+    {
+        return comments;
+    }
 
-  @JsonProperty("trackedEntityInstance")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
-  public TrackedEntityInstance getEntityInstance() {
-    return entityInstance;
-  }
+    public void setComments( List<TrackedEntityComment> comments )
+    {
+        this.comments = comments;
+    }
 
-  public void setEntityInstance(TrackedEntityInstance entityInstance) {
-    this.entityInstance = entityInstance;
-  }
+    public String getCompletedBy()
+    {
+        return completedBy;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Program getProgram() {
-    return program;
-  }
+    public void setCompletedBy( String completedBy )
+    {
+        this.completedBy = completedBy;
+    }
 
-  public void setProgram(Program program) {
-    this.program = program;
-  }
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programStageInstances", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programStageInstance", namespace = DxfNamespaces.DXF_2_0)
-  public Set<ProgramStageInstance> getProgramStageInstances() {
-    return programStageInstances;
-  }
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
 
-  public void setProgramStageInstances(Set<ProgramStageInstance> programStageInstances) {
-    this.programStageInstances = programStageInstances;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
+    {
+        return deleted;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getFollowup() {
-    return followup;
-  }
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
+    }
 
-  public void setFollowup(Boolean followup) {
-    this.followup = followup;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0)
-  public List<MessageConversation> getMessageConversations() {
-    return messageConversations;
-  }
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
+    }
 
-  public void setMessageConversations(List<MessageConversation> messageConversations) {
-    this.messageConversations = messageConversations;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
 
-  @JsonProperty("trackedEntityComments")
-  @JacksonXmlElementWrapper(localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityComment> getComments() {
-    return comments;
-  }
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
+    }
 
-  public void setComments(List<TrackedEntityComment> comments) {
-    this.comments = comments;
-  }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCompletedBy() {
-    return completedBy;
-  }
-
-  public void setCompletedBy(String completedBy) {
-    this.completedBy = completedBy;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Geometry getGeometry() {
-    return geometry;
-  }
-
-  public void setGeometry(Geometry geometry) {
-    this.geometry = geometry;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getStoredBy() {
-    return storedBy;
-  }
-
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0)
-  public Set<RelationshipItem> getRelationshipItems() {
-    return relationshipItems;
-  }
-
-  public void setRelationshipItems(Set<RelationshipItem> relationshipItems) {
-    this.relationshipItems = relationshipItems;
-  }
-
-  @Override
-  public String toString() {
-    return "ProgramInstance{"
-        + "id="
-        + id
-        + ", uid='"
-        + uid
-        + '\''
-        + ", code='"
-        + code
-        + '\''
-        + ", name='"
-        + name
-        + '\''
-        + ", created="
-        + created
-        + ", lastUpdated="
-        + lastUpdated
-        + ", status="
-        + status
-        + ", organisationUnit="
-        + (organisationUnit != null ? organisationUnit.getUid() : "null")
-        + ", incidentDate="
-        + incidentDate
-        + ", enrollmentDate="
-        + enrollmentDate
-        + ", entityInstance="
-        + (entityInstance != null ? entityInstance.getUid() : "null")
-        + ", program="
-        + program
-        + ", deleted="
-        + isDeleted()
-        + ", storedBy='"
-        + storedBy
-        + '\''
-        + '}';
-  }
+    @Override public String toString()
+    {
+        return "ProgramInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            ", name='" + name + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", status=" + status +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", incidentDate=" + incidentDate +
+            ", enrollmentDate=" + enrollmentDate +
+            ", entityInstance=" + entityInstance.getUid() +
+            ", program=" + program +
+            ", deleted=" + deleted +
+            ", storedBy='" + storedBy + '\'' +
+            '}';
+    }
 }

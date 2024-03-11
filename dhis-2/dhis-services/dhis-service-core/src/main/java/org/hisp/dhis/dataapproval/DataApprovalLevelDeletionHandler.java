@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataapproval;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
 
-import java.util.Map;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Jim Grace
  */
-@Component
-public class DataApprovalLevelDeletionHandler extends IdObjectDeletionHandler<DataApprovalLevel> {
-  @Override
-  protected void registerHandler() {
-    whenVetoing(CategoryOptionGroupSet.class, this::allowDeleteCategoryOptionGroupSet);
-    whenVetoing(DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow);
-  }
+public class DataApprovalLevelDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  public DeletionVeto allowDeleteCategoryOptionGroupSet(
-      CategoryOptionGroupSet categoryOptionGroupSet) {
-    String sql = "select 1 from dataapprovallevel where categoryoptiongroupsetid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", categoryOptionGroupSet.getId()));
-  }
+    private JdbcTemplate jdbcTemplate;
 
-  public DeletionVeto allowDeleteDataApprovalWorkflow(DataApprovalWorkflow workflow) {
-    String sql = "select 1 from dataapprovalworkflowlevels where workflowid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", workflow.getId()));
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return DataApproval.class.getSimpleName();
+    }
+
+    @Override
+    public String allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
+    {
+        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid=" + categoryOptionGroupSet.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    {
+        String sql = "select count(*) from dataapprovalworkflowmembers where workflowid=" + workflow.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

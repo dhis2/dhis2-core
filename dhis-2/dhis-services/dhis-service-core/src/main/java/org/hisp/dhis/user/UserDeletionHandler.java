@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,82 +27,75 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Map;
-import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-@AllArgsConstructor
-@Component
-public class UserDeletionHandler extends JdbcDeletionHandler {
-  private final IdentifiableObjectManager idObjectManager;
+public class UserDeletionHandler
+    extends DeletionHandler
+{
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
-  private final UserStore userStore;
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-  private static final DeletionVeto VETO = new DeletionVeto(User.class);
-
-  @Override
-  protected void register() {
-    whenDeleting(UserRole.class, this::deleteUserRole);
-    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
-    whenDeleting(UserGroup.class, this::deleteUserGroup);
-    whenVetoing(UserRole.class, this::allowDeleteUserRole);
-    whenVetoing(FileResource.class, this::allowDeleteFileResource);
-  }
-
-  private void deleteUserRole(UserRole role) {
-    for (User user : role.getMembers()) {
-      user.getUserRoles().remove(role);
-      idObjectManager.updateNoAcl(user);
+    @Override
+    public String getClassName()
+    {
+        return User.class.getSimpleName();
     }
-  }
 
-  private void deleteOrganisationUnit(OrganisationUnit unit) {
-    for (User user : unit.getUsers()) {
-      user.getOrganisationUnits().remove(unit);
-      idObjectManager.updateNoAcl(user);
-    }
-    for (User user : userStore.getUsers(new UserQueryParams().addDataViewOrganisationUnit(unit))) {
-      user.getDataViewOrganisationUnits().remove(unit);
-      idObjectManager.updateNoAcl(user);
-    }
-    for (User user : userStore.getUsers(new UserQueryParams().addTeiSearchOrganisationUnit(unit))) {
-      user.getTeiSearchOrganisationUnits().remove(unit);
-      idObjectManager.updateNoAcl(user);
-    }
-  }
-
-  private void deleteUserGroup(UserGroup group) {
-    for (User user : group.getMembers()) {
-      user.getGroups().remove(group);
-      idObjectManager.updateNoAcl(user);
-    }
-  }
-
-  private DeletionVeto allowDeleteUserRole(UserRole userRole) {
-    for (User credentials : userRole.getMembers()) {
-      for (UserRole role : credentials.getUserRoles()) {
-        if (role.equals(userRole)) {
-          return new DeletionVeto(User.class, credentials.getName());
+    @Override
+    public void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    {
+        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        {
+            credentials.getUserAuthorityGroups().remove( authorityGroup );
+            idObjectManager.updateNoAcl( credentials );
         }
-      }
     }
-    return ACCEPT;
-  }
 
-  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
-    String sql = "select 1 from userinfo where avatar=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", fileResource.getId()));
-  }
+    @Override
+    public void deleteOrganisationUnit( OrganisationUnit unit )
+    {
+        for ( User user : unit.getUsers() )
+        {
+            user.getOrganisationUnits().remove( unit );
+            idObjectManager.updateNoAcl( user );
+        }
+    }
+
+    @Override
+    public void deleteUserGroup( UserGroup group )
+    {
+        for ( User user : group.getMembers() )
+        {
+            user.getGroups().remove( group );
+            idObjectManager.updateNoAcl( user );
+        }
+    }
+
+    @Override
+    public String allowDeleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    {
+        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        {
+            for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+            {
+                if ( role.equals( authorityGroup ) )
+                {
+                    return credentials.getName();
+                }
+            }
+        }
+
+        return null;
+    }
 }

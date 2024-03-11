@@ -1,5 +1,7 @@
+package org.hisp.dhis.importexport;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.importexport;
 
 /**
  * @author Lars Helge Overland
  */
-public enum ImportStrategy {
-  CREATE,
-  UPDATE,
-  CREATE_AND_UPDATE,
-  DELETE,
-  SYNC,
+public enum ImportStrategy
+{
+    CREATE,
+    UPDATE,
+    CREATE_AND_UPDATE,
+    DELETE,
+    SYNC,
 
-  NEW_AND_UPDATES,
-  NEW,
-  UPDATES,
-  DELETES;
+    NEW_AND_UPDATES,
+    NEW,
+    UPDATES,
+    DELETES;
 
-  public boolean isCreate() {
-    return this == NEW || this == CREATE;
-  }
+    public boolean isCreate()
+    {
+        return this == NEW || this == CREATE;
+    }
 
-  public boolean isUpdate() {
-    return this == UPDATES || this == UPDATE;
-  }
+    public boolean isUpdate()
+    {
+        return this == UPDATES || this == UPDATE;
+    }
 
-  public boolean isCreateAndUpdate() {
-    return this == NEW_AND_UPDATES || this == CREATE_AND_UPDATE;
-  }
+    public boolean isCreateAndUpdate()
+    {
+        return this == NEW_AND_UPDATES || this == CREATE_AND_UPDATE;
+    }
 
-  public boolean isDelete() {
-    return this == DELETE || this == DELETES;
-  }
+    public boolean isDelete()
+    {
+        return this == DELETE || this == DELETES;
+    }
 
-  public boolean isSync() {
-    return this == SYNC;
-  }
+    public boolean isSync()
+    {
+        return this == SYNC;
+    }
+
 }

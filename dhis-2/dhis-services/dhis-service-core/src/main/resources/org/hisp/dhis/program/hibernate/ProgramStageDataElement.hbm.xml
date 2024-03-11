@@ -17,7 +17,7 @@
       foreign-key="fk_programstagedataelement_programstageid" unique-key="programstagedataelement_unique_key" />
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-      not-null="true" foreign-key="fk_programstagedataelement_dataelementid" unique-key="programstagedataelement_unique_key" />
+      foreign-key="fk_programstagedataelement_dataelementid" unique-key="programstagedataelement_unique_key" />
 
     <property name="compulsory" column="compulsory" not-null="true" />
 
@@ -34,8 +34,6 @@
     <property name="renderType" type="jbValueRenderType" column="rendertype" />
 
     <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
-    
-    <property name="skipAnalytics" column="skipanalytics" not-null="true" />
 
   </class>
 

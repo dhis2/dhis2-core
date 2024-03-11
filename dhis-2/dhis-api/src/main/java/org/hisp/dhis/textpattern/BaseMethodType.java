@@ -1,5 +1,7 @@
+package org.hisp.dhis.textpattern;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.textpattern;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,36 +34,44 @@ import java.util.regex.Pattern;
 /**
  * @author Stian Sandvold
  */
-public abstract class BaseMethodType implements MethodType {
-  private Pattern pattern;
+public abstract class BaseMethodType
+    implements MethodType
+{
+    private Pattern pattern;
 
-  BaseMethodType(Pattern pattern) {
-    this.pattern = pattern;
-  }
-
-  @Override
-  public boolean validatePattern(String raw) {
-    return pattern.matcher(raw).matches();
-  }
-
-  @Override
-  public boolean validateText(String format, String text) {
-    return Pattern.compile(getValueRegex(format)).matcher(text).matches();
-  }
-
-  @Override
-  public String getParam(String raw) {
-    Matcher m = pattern.matcher(raw);
-
-    if (m.matches()) {
-      return m.group(1);
+    BaseMethodType( Pattern pattern )
+    {
+        this.pattern = pattern;
     }
 
-    return null;
-  }
+    @Override
+    public boolean validatePattern( String raw )
+    {
+        return pattern.matcher( raw ).matches();
+    }
 
-  @Override
-  public String getFormattedText(String format, String value) {
-    return value;
-  }
+    @Override
+    public boolean validateText( String format, String text )
+    {
+        return Pattern.compile( getValueRegex( format ) ).matcher( text ).matches();
+    }
+
+    @Override
+    public String getParam( String raw )
+    {
+        Matcher m = pattern.matcher( raw );
+
+        if ( m.matches() )
+        {
+            return m.group( 1 );
+        }
+
+        return null;
+    }
+
+    @Override
+    public String getFormattedText( String format, String value )
+    {
+        return value;
+    }
 }

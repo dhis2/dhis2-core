@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.config;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,73 +27,85 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import java.io.Serializable;
-import lombok.EqualsAndHashCode;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@EqualsAndHashCode(of = {"key", "value", "confidential", "encode", "header"})
-public class GenericGatewayParameter implements Serializable {
-  private static final long serialVersionUID = -863990758156009672L;
+public class GenericGatewayParameter
+    implements Serializable
+{
+    private static final long serialVersionUID = -863990758156009672L;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private String key;
+    private boolean header;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private String value;
+    private String key;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private boolean header;
+    private String value;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private boolean encode;
+    private boolean classified;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private boolean confidential;
+    public GenericGatewayParameter()
+    {
+    }
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  public String getKey() {
-    return key;
-  }
+    public GenericGatewayParameter( String key, String value, boolean classified )
+    {
+        super();
+        this.key = key;
+        this.value = value;
+        this.classified = classified;
+    }
 
-  public void setKey(String key) {
-    this.key = key;
-  }
+    @JsonProperty( value = "key" )
+    public String getKey()
+    {
+        return key;
+    }
 
-  public String getValue() {
-    return value;
-  }
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
+    @JsonProperty( value = "value" )
+    public String getValue()
+    {
+        return classified ? "" : value;
+    }
 
-  public boolean isConfidential() {
-    return confidential;
-  }
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
 
-  public void setConfidential(boolean confidential) {
-    this.confidential = confidential;
-  }
+    public String getValueForKey()
+    {
+        return value;
+    }
 
-  public boolean isHeader() {
-    return header;
-  }
+    @JsonProperty( value = "classified" )
+    public boolean isClassified()
+    {
+        return classified;
+    }
 
-  public void setHeader(boolean header) {
-    this.header = header;
-  }
+    public void setClassified( boolean classified )
+    {
+        this.classified = classified;
+    }
 
-  public boolean isEncode() {
-    return encode;
-  }
+    @JsonProperty
+    public boolean isHeader()
+    {
+        return header;
+    }
 
-  public void setEncode(boolean encode) {
-    this.encode = encode;
-  }
+    public void setHeader( boolean header )
+    {
+        this.header = header;
+    }
 }

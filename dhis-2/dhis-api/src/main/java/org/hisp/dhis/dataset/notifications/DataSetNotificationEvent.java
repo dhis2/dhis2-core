@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset.notifications;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.notifications;
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.context.ApplicationEvent;
 
-/** Created by zubair@dhis2.org on 18.01.18. */
-public class DataSetNotificationEvent extends ApplicationEvent {
-  private CompleteDataSetRegistration registration;
+/**
+ * Created by zubair@dhis2.org on 18.01.18.
+ */
+public class DataSetNotificationEvent extends ApplicationEvent
+{
+    private CompleteDataSetRegistration registration;
 
-  public DataSetNotificationEvent(Object source, CompleteDataSetRegistration registration) {
-    super(source);
-    this.registration = registration;
-  }
+    public DataSetNotificationEvent( Object source, CompleteDataSetRegistration registration )
+    {
+        super(source);
+        this.registration = registration;
+    }
 
-  public CompleteDataSetRegistration getRegistration() {
-    return registration;
-  }
+    public CompleteDataSetRegistration getRegistration()
+    {
+        return registration;
+    }
 }

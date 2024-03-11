@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,154 +27,192 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import java.util.Objects;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryCombo;
+
+import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0)
-public class DataSetElement implements EmbeddedObject, Serializable {
-  /** The database internal identifier for this Object. */
-  private int id;
+@JacksonXmlRootElement( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
+public class DataSetElement implements EmbeddedObject
+{
+    /**
+     * The database internal identifier for this Object.
+     */
+    private int id;
 
-  /** Data set, never null. */
-  private DataSet dataSet;
+    /**
+     * Data set, never null.
+     */
+    private DataSet dataSet;
 
-  /** Data element, never null. */
-  private DataElement dataElement;
+    /**
+     * Data element, never null.
+     */
+    private DataElement dataElement;
 
-  /** Category combination, potentially null. */
-  private CategoryCombo categoryCombo;
+    /**
+     * Category combination, potentially null.
+     */
+    private CategoryCombo categoryCombo;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public DataSetElement() {}
+    public DataSetElement()
+    {
 
-  public DataSetElement(DataSet dataSet, DataElement dataElement) {
-    this.dataSet = dataSet;
-    this.dataElement = dataElement;
-  }
+    }
 
-  public DataSetElement(DataSet dataSet, DataElement dataElement, CategoryCombo categoryCombo) {
-    this.dataSet = dataSet;
-    this.dataElement = dataElement;
-    this.categoryCombo = categoryCombo;
-  }
+    public DataSetElement( DataSet dataSet, DataElement dataElement )
+    {
+        this.dataSet = dataSet;
+        this.dataElement = dataElement;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    public DataSetElement( DataSet dataSet, DataElement dataElement, CategoryCombo categoryCombo )
+    {
+        this.dataSet = dataSet;
+        this.dataElement = dataElement;
+        this.categoryCombo = categoryCombo;
+    }
 
-  /**
-   * Returns the category combination of this data set element, if null, then returns the category
-   * combination of the data element of this data set element.
-   */
-  public CategoryCombo getResolvedCategoryCombo() {
-    return hasCategoryCombo() ? getCategoryCombo() : dataElement.getCategoryCombo();
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public boolean hasCategoryCombo() {
-    return categoryCombo != null;
-  }
+    /**
+     * Returns the category combination of this data set element, if null,
+     * then returns the category combination of the data element of this data
+     * set element.
+     */
+    public CategoryCombo getResolvedCategoryCombo()
+    {
+        return hasCategoryCombo() ? getCategoryCombo() : dataElement.getDataElementCategoryCombo();
+    }
 
-  // -------------------------------------------------------------------------
-  // Hash code and equals
-  // -------------------------------------------------------------------------
+    public boolean hasCategoryCombo()
+    {
+        return categoryCombo != null;
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), dataSet, dataElement);
-  }
+    // -------------------------------------------------------------------------
+    // Hash code and equals
+    // -------------------------------------------------------------------------
 
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj || obj instanceof DataSetElement && objectEquals((DataSetElement) obj);
-  }
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( super.hashCode(), dataSet, dataElement );
+    }
 
-  public boolean objectEquals(DataSetElement other) {
-    return dataSet.equals(other.getDataSet()) && dataElement.equals(other.getDataElement());
-  }
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
 
-  @Override
-  public String toString() {
-    return "{"
-        + "\"class\":\""
-        + getClass()
-        + "\", "
-        + "\"dataSet\":\""
-        + dataSet
-        + "\", "
-        + "\"dataElement\":\""
-        + dataElement
-        + "\" "
-        + "\"categoryCombo\":\""
-        + categoryCombo
-        + "\" "
-        + "}";
-  }
+        if ( object == null )
+        {
+            return false;
+        }
 
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
+        if ( !getClass().isAssignableFrom( object.getClass() ) )
+        {
+            return false;
+        }
 
-  @JsonIgnore
-  public int getId() {
-    return id;
-  }
+        DataSetElement other = (DataSetElement) object;
 
-  public void setId(int id) {
-    this.id = id;
-  }
+        return objectEquals( other );
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataSet getDataSet() {
-    return dataSet;
-  }
+    public boolean objectEquals( DataSetElement other )
+    {
+        return dataSet.equals( other.getDataSet() ) && dataElement.equals( other.getDataElement() );
+    }
 
-  public void setDataSet(DataSet dataSet) {
-    this.dataSet = dataSet;
-  }
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"dataSet\":\"" + dataSet + "\", " +
+            "\"dataElement\":\"" + dataElement + "\" " +
+            "\"categoryCombo\":\"" + categoryCombo + "\" " +
+            "}";
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataElement getDataElement() {
-    return dataElement;
-  }
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
-  public void setDataElement(DataElement dataElement) {
-    this.dataElement = dataElement;
-  }
+    @JsonIgnore
+    public int getId()
+    {
+        return id;
+    }
 
-  /**
-   * Category combination of this data set element. Can be null, use {@link
-   * #getResolvedCategoryCombo} to get fall back to category combination of data element.
-   */
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public CategoryCombo getCategoryCombo() {
-    return categoryCombo;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  public void setCategoryCombo(CategoryCombo categoryCombo) {
-    this.categoryCombo = categoryCombo;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataSet getDataSet()
+    {
+        return dataSet;
+    }
+
+    public void setDataSet( DataSet dataSet )
+    {
+        this.dataSet = dataSet;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElement getDataElement()
+    {
+        return dataElement;
+    }
+
+    public void setDataElement( DataElement dataElement )
+    {
+        this.dataElement = dataElement;
+    }
+
+    /**
+     * Category combination of this data set element. Can be null, use
+     * {@link #getResolvedCategoryCombo} to get fall back to category
+     * combination of data element.
+     */
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public CategoryCombo getCategoryCombo()
+    {
+        return categoryCombo;
+    }
+
+    public void setCategoryCombo( CategoryCombo categoryCombo )
+    {
+        this.categoryCombo = categoryCombo;
+    }
 }

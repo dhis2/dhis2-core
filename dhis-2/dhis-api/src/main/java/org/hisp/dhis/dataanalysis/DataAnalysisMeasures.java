@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataanalysis;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
 
 /**
- * DataAnalysisMeasures contains the average and standard deviation measures of data for a given
- * combination of organisation unit and category option combo. (The data element is fixed.)
+ * DataAnalysisMeasures contains the average and standard deviation measures
+ * of data for a given combination of organisation unit and
+ * category option combo. (The data element is fixed.)
  *
  * @author Jim Grace
  */
-public class DataAnalysisMeasures {
-  private long orgUnitId;
+public class DataAnalysisMeasures
+{
+    private int orgUnitId;
 
-  private long categoryOptionComboId;
+    private int categoryOptionComboId;
 
-  private double average;
+    private double average;
 
-  private double standardDeviation;
+    private double standardDeviation;
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  public DataAnalysisMeasures(
-      int orgUnitId, int categoryOptionComboId, double average, double standardDeviation) {
-    this.orgUnitId = orgUnitId;
-    this.categoryOptionComboId = categoryOptionComboId;
-    this.average = average;
-    this.standardDeviation = standardDeviation;
-  }
+    public DataAnalysisMeasures( int orgUnitId, int categoryOptionComboId,
+        double average, double standardDeviation )
+    {
+        this.orgUnitId = orgUnitId;
+        this.categoryOptionComboId = categoryOptionComboId;
+        this.average = average;
+        this.standardDeviation = standardDeviation;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
 
-  public long getOrgUnitId() {
-    return orgUnitId;
-  }
+    public int getOrgUnitId()
+    {
+        return orgUnitId;
+    }
 
-  public long getCategoryOptionComboId() {
-    return categoryOptionComboId;
-  }
+    public int getCategoryOptionComboId()
+    {
+        return categoryOptionComboId;
+    }
 
-  public double getAverage() {
-    return average;
-  }
+    public double getAverage()
+    {
+        return average;
+    }
 
-  public double getStandardDeviation() {
-    return standardDeviation;
-  }
+    public double getStandardDeviation()
+    {
+        return standardDeviation;
+    }
 }

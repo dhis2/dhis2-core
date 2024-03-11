@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.outbound;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +27,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.outbound;
+
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import java.util.Set;
 
-/** Zubair <rajazubair.asghar@gmail.com> */
-@JacksonXmlRootElement(localName = "requestEntityClickatell")
-public class ClickatellRequestEntity {
-  private String content;
+/**
+ * Zubair <rajazubair.asghar@gmail.com>
+ */
 
-  private Set<String> to;
+@JacksonXmlRootElement( localName = "requestEntity" )
+public class ClickatellRequestEntity
+{
+    private String content;
 
-  @JsonProperty(value = "content")
-  @JacksonXmlProperty(localName = "content")
-  public String getContent() {
-    return content;
-  }
+    private Set<String> to;
 
-  public void setContent(String content) {
-    this.content = content;
-  }
+    public ClickatellRequestEntity()
+    {
+        super();
+    }
 
-  @JsonProperty(value = "to")
-  @JacksonXmlProperty(localName = "to")
-  public Set<String> getTo() {
-    return to;
-  }
+    public ClickatellRequestEntity( String content, Set<String> to )
+    {
+        super();
+        this.content = content;
+        this.to = to;
+    }
+    
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).
+            add( "content", content ).add( "to", to ).toString();
+    }
 
-  public void setTo(Set<String> to) {
-    this.to = to;
-  }
+    @JsonProperty( value = "content" )
+    @JacksonXmlProperty( localName = "content" )
+    public String getContent()
+    {
+        return content;
+    }
 
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("content", content).add("to", to).toString();
-  }
+    public void setContent( String content )
+    {
+        this.content = content;
+    }
+
+    @JsonProperty( value = "to" )
+    @JacksonXmlProperty( localName = "to" )
+    public Set<String> getTo()
+    {
+        return to;
+    }
+
+    public void setTo( Set<String> to )
+    {
+        this.to = to;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import static org.hisp.dhis.common.IdScheme.CODE;
-import static org.hisp.dhis.common.IdScheme.NAME;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.Program;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
  */
-class BaseIdentifiableObjectTest {
+public class BaseIdentifiableObjectTest
+{
+    @Test
+    public void testGetValue()
+    {
+        DataElement deA = new DataElement();
+        deA.setUid( "A1234567890" );
+        deA.setCode( "CodeA" );
+        deA.setName( "NameA" );        
 
-  @Test
-  void testGetValue() {
-    DataElement deA = new DataElement();
-    deA.setUid("A1234567890");
-    deA.setCode("CodeA");
-    deA.setName("NameA");
-    DataElement deB = new DataElement();
-    IdScheme idSchemeUid = IdScheme.from(IdentifiableProperty.UID);
-    IdScheme idSchemeCode = IdScheme.from(IdentifiableProperty.CODE);
-    IdScheme idSchemeName = IdScheme.from(IdentifiableProperty.NAME);
-    assertEquals("A1234567890", deA.getPropertyValue(idSchemeUid));
-    assertEquals("CodeA", deA.getPropertyValue(idSchemeCode));
-    assertEquals("NameA", deA.getPropertyValue(idSchemeName));
-    assertNull(deB.getPropertyValue(idSchemeCode));
-  }
+        DataElement deB = new DataElement();
 
-  @Test
-  void testGetDisplayPropertyValueName() {
-    IdScheme idSchemeName = NAME;
-    Program p = new Program("Any program");
-    p.setCode("AnyCode");
-
-    String value = p.getDisplayPropertyValue(idSchemeName);
-
-    assertEquals("Any program", value);
-  }
-
-  @Test
-  void testGetDisplayPropertyValueCode() {
-    IdScheme idSchemeCode = CODE;
-    Program p = new Program("Any program");
-    p.setCode("AnyCode");
-
-    String value = p.getDisplayPropertyValue(idSchemeCode);
-
-    assertEquals("AnyCode", value);
-  }
+        IdScheme idSchemeUid = IdScheme.from( IdentifiableProperty.UID );
+        IdScheme idSchemeCode = IdScheme.from( IdentifiableProperty.CODE );
+        IdScheme idSchemeName = IdScheme.from( IdentifiableProperty.NAME );
+        
+        assertEquals( "A1234567890", deA.getPropertyValue( idSchemeUid ) );
+        assertEquals( "CodeA", deA.getPropertyValue( idSchemeCode ) );
+        assertEquals( "NameA", deA.getPropertyValue( idSchemeName ) );
+        
+        assertNull( deB.getPropertyValue( idSchemeCode ) );
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.appmanager;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
 
-public enum AppType {
-  /** Normal app (to be displayed in menus, and rendered through /api/apps/{app-name}) */
-  APP,
+public enum AppType
+{
+    /**
+     * Normal app (to be displayed in menus, and rendered through /api/apps/{app-name})
+     */
+    APP,
 
-  /**
-   * Resource, not displayed in any menus. Simple way to have multiple apps using the same JS/CSS
-   * bundles etc.
-   */
-  RESOURCE,
+    /**
+     * Resource, not displayed in any menus. Simple way to have multiple apps using the same JS/CSS bundles etc.
+     */
+    RESOURCE,
 
-  /** Dashboard widget, can be placed on the main system dashboard as 'widgets' (portlets). */
-  DASHBOARD_WIDGET,
+    /**
+     * Dashboard widget, can be placed on the main system dashboard as 'widgets' (portlets).
+     */
+    DASHBOARD_WIDGET,
 
-  /** Tracker dashboard widget, used for tracker capture dashboard. */
-  TRACKER_DASHBOARD_WIDGET
+    /**
+     * Tracker dashboard widget, used for tracker capture dashboard.
+     */
+    TRACKER_DASHBOARD_WIDGET
 }

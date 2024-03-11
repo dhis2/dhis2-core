@@ -1,5 +1,7 @@
+package org.hisp.dhis.textpattern;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.textpattern;
 
 import java.util.List;
 import java.util.Map;
@@ -33,25 +34,25 @@ import java.util.Map;
 /**
  * @author Stian Sandvold
  */
-public interface TextPatternService {
-  /**
-   * Resolves a pattern by injecting values into the TextPattern and returning a fully resolved
-   * pattern
-   *
-   * @param pattern the pattern to inject values into
-   * @param values the values to inject
-   * @return a string represeting the pattern with values
-   */
-  String resolvePattern(TextPattern pattern, Map<String, String> values)
-      throws TextPatternGenerationException;
+public interface TextPatternService
+{
+    /**
+     * Resolves a pattern by injecting values into the TextPattern and returning a fully resolved pattern
+     *
+     * @param pattern the pattern to inject values into
+     * @param values  the values to inject
+     * @return a string represeting the pattern with values
+     */
+    String resolvePattern( TextPattern pattern, Map<String, String> values )
+        throws TextPatternGenerationException;
 
-  /**
-   * Returns a list of values that are required to resolve the pattern
-   *
-   * @param pattern the pattern to check
-   * @return a list of method names, or an empty list if no values are rquired
-   */
-  Map<String, List<String>> getRequiredValues(TextPattern pattern);
+    /**
+     * Returns a list of values that are required to resolve the pattern
+     *
+     * @param pattern the pattern to check
+     * @return a list of method names, or an empty list if no values are rquired
+     */
+    Map<String, List<String>> getRequiredValues( TextPattern pattern );
 
-  boolean validate(TextPattern pattern, String text);
+    boolean validate( TextPattern pattern, String text );
 }

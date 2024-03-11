@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.basic;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.basic;
 
 import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
@@ -33,9 +34,14 @@ import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class HttpBasicWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
+public class HttpBasicWebAuthenticationDetails
+    extends ForwardedIpAwareWebAuthenticationDetails
+{
 
-  public HttpBasicWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-  }
+    public HttpBasicWebAuthenticationDetails( HttpServletRequest request )
+    {
+        super( request );
+    }
+
 }
+

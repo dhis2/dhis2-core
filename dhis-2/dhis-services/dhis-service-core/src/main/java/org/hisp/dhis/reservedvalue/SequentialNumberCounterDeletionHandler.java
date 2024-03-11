@@ -1,5 +1,7 @@
+package org.hisp.dhis.reservedvalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
 
-import lombok.AllArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.stereotype.Component;
 
-@Component
-@AllArgsConstructor
-public class SequentialNumberCounterDeletionHandler extends DeletionHandler {
-  private final SequentialNumberCounterStore sequentialNumberCounterStore;
+public class SequentialNumberCounterDeletionHandler
+    extends DeletionHandler
+{
 
-  @Override
-  protected void register() {
-    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
-  }
+    private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-  private void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    sequentialNumberCounterStore.deleteCounter(attribute.getUid());
-  }
+    public SequentialNumberCounterDeletionHandler(
+        SequentialNumberCounterStore sequentialNumberCounterStore )
+    {
+        this.sequentialNumberCounterStore = sequentialNumberCounterStore;
+    }
+
+    @Override
+    protected String getClassName()
+    {
+        return SequentialNumberCounter.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    {
+        sequentialNumberCounterStore.deleteCounter( attribute.getUid() );
+    }
 }

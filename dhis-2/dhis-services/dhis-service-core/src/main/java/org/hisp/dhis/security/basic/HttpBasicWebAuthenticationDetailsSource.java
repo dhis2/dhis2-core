@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.basic;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.basic;
 
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -37,9 +38,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class HttpBasicWebAuthenticationDetailsSource
-    implements AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> {
-  @Override
-  public WebAuthenticationDetails buildDetails(HttpServletRequest request) {
-    return new HttpBasicWebAuthenticationDetails(request);
-  }
+    implements AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails>
+{
+    @Override
+    public WebAuthenticationDetails buildDetails( HttpServletRequest request )
+    {
+        return new HttpBasicWebAuthenticationDetails( request );
+    }
 }
+

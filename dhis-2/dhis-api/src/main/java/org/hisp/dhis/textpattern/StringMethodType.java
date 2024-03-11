@@ -1,5 +1,7 @@
+package org.hisp.dhis.textpattern;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +27,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.textpattern;
 
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Stian Sandvold
  */
-public class StringMethodType extends BaseMethodType {
-  StringMethodType(Pattern pattern) {
-    super(pattern);
-  }
-
-  @Override
-  public String getValueRegex(String format) {
-    if (format.isEmpty()) {
-      format = ".*";
+public class StringMethodType
+    extends BaseMethodType
+{
+    StringMethodType( Pattern pattern )
+    {
+        super( pattern );
     }
 
-    format = format.replaceAll("\\^", "");
-    format = format.replaceAll("\\$", "");
-    return format;
-  }
+    @Override
+    public String getValueRegex( String format )
+    {
+        if ( format.isEmpty() )
+        {
+            format = ".*";
+        }
 
-  @Override
-  public boolean validateText(String format, String text) {
-    if (StringUtils.isEmpty(format)) {
-      return true;
+        format = format.replaceAll( "\\^", "" );
+        format = format.replaceAll( "\\$", "" );
+        return format;
     }
 
-    return super.validateText(format, text);
-  }
+    @Override
+    public boolean validateText( String format, String text )
+    {
+        if ( format.isEmpty() )
+        {
+            return true;
+        }
 
-  @Override
-  public String getFormattedText(String format, String value) {
-    if (StringUtils.isEmpty(format)) {
-      return value;
+        return super.validateText( format, text );
     }
 
-    return TextPatternMethodUtils.formatText(format, value);
-  }
+    @Override
+    public String getFormattedText( String format, String value )
+    {
+        if ( format.isEmpty() )
+        {
+            return value;
+        }
+
+        return TextPatternMethodUtils.formatText( format, value );
+    }
 }

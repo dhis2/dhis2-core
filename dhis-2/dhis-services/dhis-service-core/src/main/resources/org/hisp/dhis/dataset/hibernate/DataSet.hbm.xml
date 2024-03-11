@@ -17,7 +17,7 @@
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
+    <property name="shortName" unique="false" length="50" />
 
     <property name="description" type="text" />
 
@@ -98,8 +98,6 @@
 
     <property name="openFuturePeriods" column="openfutureperiods" />
 
-    <property name="openPeriodsAfterCoEndDate" column="openperiodsaftercoenddate" />
-
     <property name="fieldCombinationRequired" />
 
     <property name="validCompleteOnly" />
@@ -127,13 +125,28 @@
 
     <!-- Dynamic attribute values -->
 
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="datasetattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataset_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataset_userid" />
 
-    <!-- Sharing -->
-    
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="datasetusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="datasetuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
   </class>
 

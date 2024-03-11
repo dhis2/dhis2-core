@@ -1,5 +1,7 @@
+package org.hisp.dhis.interpretation.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +27,84 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.interpretation.hibernate;
 
-import java.util.List;
-import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.User;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-@Repository("org.hisp.dhis.interpretation.InterpretationStore")
-public class HibernateInterpretationStore extends HibernateIdentifiableObjectStore<Interpretation>
-    implements InterpretationStore {
-  @Autowired
-  public HibernateInterpretationStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Interpretation.class,
-        currentUserService,
-        aclService,
-        false);
-  }
+public class HibernateInterpretationStore
+    extends HibernateIdentifiableObjectStore<Interpretation> implements InterpretationStore
+{
+    @SuppressWarnings("unchecked")
+    public List<Interpretation> getInterpretations( User user )
+    {
+        String hql = "select distinct i from Interpretation i left join i.comments c " +
+            "where i.user = :user or c.user = :user order by i.lastUpdated desc";
 
-  @Override
-  public List<Interpretation> getInterpretations(Map map) {
-    return getQuery("select distinct i from Interpretation i where i.map = :map")
-        .setParameter("map", map)
-        .list();
-  }
+        Query query = getQuery( hql );
+        query.setParameter( "user", user );
 
-  @Override
-  public List<Interpretation> getInterpretations(Visualization visualization) {
-    return getQuery(
-            "select distinct i from Interpretation i where i.visualization = :visualization")
-        .setParameter("visualization", visualization)
-        .list();
-  }
+        return query.list();
+    }
 
-  @Override
-  public List<Interpretation> getInterpretations(EventVisualization eventVisualization) {
-    return getQuery(
-            "select distinct i from Interpretation i where i.eventVisualization = :eventVisualization")
-        .setParameter("eventVisualization", eventVisualization)
-        .list();
-  }
+    @SuppressWarnings("unchecked")
+    public List<Interpretation> getInterpretations( User user, int first, int max )
+    {
+        String hql = "select distinct i from Interpretation i left join i.comments c " +
+            "where i.user = :user or c.user = :user order by i.lastUpdated desc";
+
+        Query query = getQuery( hql );
+        query.setParameter( "user", user );
+        query.setMaxResults( first );
+        query.setMaxResults( max );
+
+        return query.list();
+    }
+
+    @Override
+    public int countMapInterpretations( Map map )
+    {
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.map=:map" );
+        query.setParameter( "map", map );
+
+        return ((Long) query.uniqueResult()).intValue();
+    }
+
+    @Override
+    public int countChartInterpretations( Chart chart )
+    {
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.chart=:chart" );
+        query.setParameter( "chart", chart );
+
+        return ((Long) query.uniqueResult()).intValue();
+    }
+
+    @Override
+    public int countReportTableInterpretations( ReportTable reportTable )
+    {
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.reportTable=:reportTable" );
+        query.setParameter( "reportTable", reportTable );
+
+        return ((Long) query.uniqueResult()).intValue();
+    }
+
+    @Override
+    public Interpretation getByChartId( int id )
+    {
+        String hql = "from Interpretation i where i.chart.id = " + id;
+        
+        Query query = getSession().createQuery( hql );
+        
+        return (Interpretation) query.uniqueResult();
+    }
 }

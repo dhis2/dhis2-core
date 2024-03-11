@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataanalysis;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
-public class UpdateFollowUpForDataValuesRequest {
-  private List<FollowupParams> followups;
+public class UpdateFollowUpForDataValuesRequest
+{
+    private List<FollowupParams> followups;
 
-  public UpdateFollowUpForDataValuesRequest() {}
+    public UpdateFollowUpForDataValuesRequest()
+    {
+    }
 
-  public UpdateFollowUpForDataValuesRequest(List<FollowupParams> followups) {
-    this.followups = followups;
-  }
+    public UpdateFollowUpForDataValuesRequest( List<FollowupParams> followups )
+    {
+        this.followups = followups;
+    }
 
-  @JsonProperty
-  public List<FollowupParams> getFollowups() {
-    return followups;
-  }
+    @JsonProperty
+    public List<FollowupParams> getFollowups()
+    {
+        return followups;
+    }
 
-  public void setFollowups(List<FollowupParams> followups) {
-    this.followups = followups;
-  }
+    public void setFollowups( List<FollowupParams> followups )
+    {
+        this.followups = followups;
+    }
 
-  @Override
-  public String toString() {
-    return "UpdateFollowUpForDataValuesRequest{" + "followups=" + followups + '}';
-  }
+    @Override
+    public String toString()
+    {
+        return "UpdateFollowUpForDataValuesRequest{" +
+            "followups=" + followups +
+            '}';
+    }
 }

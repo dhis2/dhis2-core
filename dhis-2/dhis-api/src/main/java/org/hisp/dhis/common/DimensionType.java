@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 /**
  * @author Lars Helge Overland
  */
-public enum DimensionType {
-  DATA_X(0),
-  PROGRAM_DATA_ELEMENT,
-  PROGRAM_ATTRIBUTE,
-  PROGRAM_INDICATOR,
-  DATA_COLLAPSED,
-  CATEGORY_OPTION_COMBO(1),
-  ATTRIBUTE_OPTION_COMBO(2),
-  PERIOD,
-  ORGANISATION_UNIT,
-  CATEGORY_OPTION_GROUP_SET,
-  DATA_ELEMENT_GROUP_SET,
-  ORGANISATION_UNIT_GROUP_SET,
-  ORGANISATION_UNIT_GROUP,
-  CATEGORY,
-  OPTION_GROUP_SET,
-  VALIDATION_RULE,
-  STATIC,
-  ORGANISATION_UNIT_LEVEL;
-
-  private static final int LAST_ORDER = 999;
-
-  private int order = LAST_ORDER;
-
-  DimensionType() {}
-
-  DimensionType(int order) {
-    this.order = order;
-  }
-
-  public int getOrder() {
-    return order;
-  }
+public enum DimensionType
+{
+    DATA_X( 0 ),
+    PROGRAM_DATA_ELEMENT,
+    PROGRAM_ATTRIBUTE,
+    PROGRAM_INDICATOR,
+    DATA_COLLAPSED,
+    CATEGORY_OPTION_COMBO( 1 ),
+    ATTRIBUTE_OPTION_COMBO( 2 ),
+    PERIOD,
+    ORGANISATION_UNIT,
+    CATEGORY_OPTION_GROUP_SET,
+    DATA_ELEMENT_GROUP_SET,
+    ORGANISATION_UNIT_GROUP_SET,
+    ORGANISATION_UNIT_GROUP,
+    CATEGORY,
+    OPTION_GROUP_SET,
+    VALIDATION_RULE,
+    STATIC,
+    ORGANISATION_UNIT_LEVEL;
+    
+    private static final int LAST_ORDER = 999;
+    
+    private int order = LAST_ORDER;
+    
+    DimensionType()
+    {
+    }
+    
+    DimensionType( int order )
+    {
+        this.order = order;
+    }
+    
+    public int getOrder()
+    {
+        return order;
+    }
 }

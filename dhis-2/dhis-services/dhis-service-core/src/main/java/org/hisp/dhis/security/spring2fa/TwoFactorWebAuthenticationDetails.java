@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.spring2fa;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
 
 import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
@@ -34,21 +35,28 @@ import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
  * @author Henning Håkonsen
  * @author Lars Helge Øverland
  */
-public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
-  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+public class TwoFactorWebAuthenticationDetails
+    extends ForwardedIpAwareWebAuthenticationDetails
+{
 
-  private String code;
+    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
 
-  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
-  }
+    private String code;
 
-  public String getCode() {
-    return code;
-  }
+    public TwoFactorWebAuthenticationDetails( HttpServletRequest request )
+    {
+        super( request );
+        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
+    }
 
-  public void setCode(String code) {
-    this.code = code;
-  }
+    public String getCode()
+    {
+        return code;
+    }
+
+    public void setCode( String code )
+    {
+        this.code = code;
+    }
 }
+

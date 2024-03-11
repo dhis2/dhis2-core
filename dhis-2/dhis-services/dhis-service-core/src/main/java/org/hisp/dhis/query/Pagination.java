@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+package org.hisp.dhis.query;
 
 /**
  * Simple POJO containing the pagination directive from the HTTP Request
- *
+ * 
  * @author Luciano Fiandesio
  */
-@ToString
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Pagination {
-  @Getter private final int firstResult;
+public class Pagination
+{
+    private int firstResult;
 
-  @Getter private final int size;
+    private int size;
 
-  private final boolean hasPagination;
+    private boolean hasPagination = false;
 
-  public Pagination(int firstResult, int size) {
-    this(firstResult, size, true);
-  }
+    public Pagination(int firstResult, int size )
+    {
+        assert (size > 0);
+        this.firstResult = firstResult;
+        this.size = size;
+        this.hasPagination = true;
+    }
 
-  /** This constructor can be used to signal that there is no pagination data */
-  public Pagination() {
-    this(0, 0, false);
-  }
+    /**
+     * This constructor can be used to signal that there is no pagination data
+     */
+    public Pagination()
+    {
+        // empty constructor
+    }
 
-  public boolean hasPagination() {
-    return hasPagination;
-  }
+    public int getFirstResult()
+    {
+        return firstResult;
+    }
+
+    public int getSize()
+    {
+        return size;
+    }
+
+    public boolean hasPagination()
+    {
+        return hasPagination;
+    }
 }

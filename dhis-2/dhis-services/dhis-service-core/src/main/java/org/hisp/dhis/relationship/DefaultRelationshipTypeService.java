@@ -1,5 +1,7 @@
+package org.hisp.dhis.relationship;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.relationship.RelationshipTypeService")
-public class DefaultRelationshipTypeService implements RelationshipTypeService {
-  private final RelationshipTypeStore relationshipTypeStore;
+@Transactional
+public class DefaultRelationshipTypeService
+    implements RelationshipTypeService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    private RelationshipTypeStore relationshipTypeStore;
 
-  @Override
-  @Transactional
-  public void deleteRelationshipType(RelationshipType relationshipType) {
-    relationshipTypeStore.delete(relationshipType);
-  }
+    public void setRelationshipTypeStore( RelationshipTypeStore relationshipTypeStore )
+    {
+        this.relationshipTypeStore = relationshipTypeStore;
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<RelationshipType> getAllRelationshipTypes() {
-    return relationshipTypeStore.getAll();
-  }
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public RelationshipType getRelationshipType(long id) {
-    return relationshipTypeStore.get(id);
-  }
+    @Override
+    public void deleteRelationshipType( RelationshipType relationshipType )
+    {
+        relationshipTypeStore.delete( relationshipType );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public RelationshipType getRelationshipType(String uid) {
-    return relationshipTypeStore.getByUid(uid);
-  }
+    @Override
+    public List<RelationshipType> getAllRelationshipTypes()
+    {
+        return relationshipTypeStore.getAll();
+    }
 
-  @Override
-  @Transactional
-  public long addRelationshipType(RelationshipType relationshipType) {
-    relationshipTypeStore.save(relationshipType);
-    return relationshipType.getId();
-  }
+    @Override
+    public RelationshipType getRelationshipType( int id )
+    {
+        return relationshipTypeStore.get( id );
+    }
 
-  @Override
-  @Transactional
-  public void updateRelationshipType(RelationshipType relationshipType) {
-    relationshipTypeStore.update(relationshipType);
-  }
+    @Override
+    public RelationshipType getRelationshipType( String uid )
+    {
+        return relationshipTypeStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public RelationshipType getRelationshipType(String aIsToB, String bIsToA) {
-    return relationshipTypeStore.getRelationshipType(aIsToB, bIsToA);
-  }
+    @Override
+    public int addRelationshipType( RelationshipType relationshipType )
+    {
+        relationshipTypeStore.save( relationshipType );
+        return relationshipType.getId();
+    }
+
+    @Override
+    public void updateRelationshipType( RelationshipType relationshipType )
+    {
+        relationshipTypeStore.update( relationshipType );
+    }
+
+    @Override
+    public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
+    {
+        return relationshipTypeStore.getRelationshipType( aIsToB, bIsToA );
+    }
 }

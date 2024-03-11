@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +27,133 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-public abstract class AggregatedValue {
-  public static final Double ZERO = 0d;
+public abstract class AggregatedValue
+{
+    public static final Double ZERO = 0d;
 
-  // ----------------------------------------------------------------------
-  // Properties
-  // ----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
+    // Properties
+    // ----------------------------------------------------------------------
+    
+    protected int periodId;
+    
+    protected int periodTypeId;
+    
+    protected int organisationUnitId;
+    
+    protected int organisationUnitGroupId;
+    
+    protected int level;
+    
+    protected double value;
 
-  protected long periodId;
+    protected transient String periodName;
+    
+    protected transient String organisationUnitName;
+    
+    protected transient double trendValue;
 
-  protected long periodTypeId;
+    // ----------------------------------------------------------------------
+    // Abstract methods
+    // ----------------------------------------------------------------------
+    
+    public abstract int getElementId();
 
-  protected long organisationUnitId;
+    // ----------------------------------------------------------------------
+    // Getters and setters
+    // ----------------------------------------------------------------------
+    
+    public int getPeriodId()
+    {
+        return periodId;
+    }
 
-  protected long organisationUnitGroupId;
+    public void setPeriodId( int periodId )
+    {
+        this.periodId = periodId;
+    }
 
-  protected int level;
+    public int getPeriodTypeId()
+    {
+        return periodTypeId;
+    }
 
-  protected double value;
+    public void setPeriodTypeId( int periodTypeId )
+    {
+        this.periodTypeId = periodTypeId;
+    }
 
-  protected transient String periodName;
+    public int getOrganisationUnitId()
+    {
+        return organisationUnitId;
+    }
 
-  protected transient String organisationUnitName;
+    public void setOrganisationUnitId( int organisationUnitId )
+    {
+        this.organisationUnitId = organisationUnitId;
+    }
 
-  protected transient double trendValue;
+    public int getOrganisationUnitGroupId()
+    {
+        return organisationUnitGroupId;
+    }
 
-  // ----------------------------------------------------------------------
-  // Abstract methods
-  // ----------------------------------------------------------------------
+    public void setOrganisationUnitGroupId( int organisationUnitGroupId )
+    {
+        this.organisationUnitGroupId = organisationUnitGroupId;
+    }
 
-  public abstract long getElementId();
+    public int getLevel()
+    {
+        return level;
+    }
+
+    public void setLevel( int level )
+    {
+        this.level = level;
+    }
+
+    public double getValue()
+    {
+        return value;
+    }
+
+    public void setValue( double value )
+    {
+        this.value = value;
+    }
+
+    public String getPeriodName()
+    {
+        return periodName;
+    }
+
+    public void setPeriodName( String periodName )
+    {
+        this.periodName = periodName;
+    }
+
+    public String getOrganisationUnitName()
+    {
+        return organisationUnitName;
+    }
+
+    public void setOrganisationUnitName( String organisationUnitName )
+    {
+        this.organisationUnitName = organisationUnitName;
+    }
+
+    public double getTrendValue()
+    {
+        return trendValue;
+    }
+
+    public void setTrendValue( double trendValue )
+    {
+        this.trendValue = trendValue;
+    }
 }

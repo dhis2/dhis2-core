@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_UPPER;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 08.03.17. */
-public class UpperCasePatternValidationRule implements PasswordValidationRule {
-  private static final Pattern UPPERCASE_PATTERN = Pattern.compile(".*[A-Z].*");
+/**
+ * Created by zubair on 08.03.17.
+ */
+public class UpperCasePatternValidationRule implements PasswordValidationRule
+{
+    private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );
 
-  @Override
-  public PasswordValidationResult validate(CredentialsInfo credentialsInfo) {
-    return !UPPERCASE_PATTERN.matcher(credentialsInfo.getPassword()).matches()
-        ? new PasswordValidationResult(PASSWORD_MUST_HAVE_UPPER)
-        : PasswordValidationResult.VALID;
-  }
+    public static final String ERROR = "Password must have at least one upper case";
+    public static final String I18_ERROR = "password_uppercase_validation";
+
+    @Override
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
+        if ( !UPPERCASE_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
+        {
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
+        }
+
+        return new PasswordValidationResult( true );
+    }
+
+    @Override
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    {
+        return true;
+    }
 }

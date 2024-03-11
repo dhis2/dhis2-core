@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,103 +27,76 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Set;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.sharing.Sharing;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
 public interface IdentifiableObject
-    extends PrimaryKeyObject, LinkableObject, Comparable<IdentifiableObject>, Serializable {
-  String getCode();
+    extends LinkableObject, Comparable<IdentifiableObject>, Serializable
+{
+    String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName() };
 
-  String getName();
+    int getId();
 
-  String getDisplayName();
+    String getUid();
 
-  Date getCreated();
+    String getCode();
 
-  Date getLastUpdated();
+    String getName();
 
-  User getLastUpdatedBy();
+    String getDisplayName();
 
-  Set<AttributeValue> getAttributeValues();
+    Date getCreated();
 
-  void setAttributeValues(Set<AttributeValue> attributeValues);
+    Date getLastUpdated();
 
-  Set<Translation> getTranslations();
+    User getLastUpdatedBy();
 
-  Set<String> getFavorites();
+    Set<AttributeValue> getAttributeValues();
 
-  boolean isFavorite();
+    Set<Translation> getTranslations();
+    
+    Set<String> getFavorites();
 
-  boolean setAsFavorite(User user);
+    boolean isFavorite();
+    
+    boolean setAsFavorite( User user );
+    
+    boolean removeAsFavorite( User user );
+    
+    //-----------------------------------------------------------------------------
+    // Sharing
+    //-----------------------------------------------------------------------------
 
-  boolean removeAsFavorite(User user);
+    User getUser();
 
-  // -----------------------------------------------------------------------------
-  // Sharing
-  // -----------------------------------------------------------------------------
+    String getPublicAccess();
 
-  /** Return User who created this object This field is immutable and must not be updated */
-  User getCreatedBy();
+    boolean getExternalAccess();
 
-  /**
-   * @deprecated This method is replaced by {@link #getCreatedBy()} Currently it is only used for
-   *     web api backward compatibility
-   */
-  @Deprecated
-  User getUser();
+    Set<UserGroupAccess> getUserGroupAccesses();
 
-  void setCreatedBy(User createdBy);
+    Set<UserAccess> getUserAccesses();
 
-  /**
-   * @deprecated This method is replaced by {@link #setCreatedBy(User)} ()} Currently it is only
-   *     used for web api backward compatibility
-   */
-  @Deprecated
-  void setUser(User user);
+    Access getAccess();
 
-  /**
-   * @deprecated PublicAccess property is replaced by {@link Sharing#getPublicAccess()}
-   */
-  @Deprecated
-  String getPublicAccess();
+    //-----------------------------------------------------------------------------
+    // Utility methods
+    //-----------------------------------------------------------------------------
 
-  /** External property is replaced by {@link Sharing#isExternal()} */
-  boolean getExternalAccess();
-
-  Set<UserGroupAccess> getUserGroupAccesses();
-
-  Set<UserAccess> getUserAccesses();
-
-  Access getAccess();
-
-  /**
-   * Return all sharing settings of current object
-   *
-   * @return
-   */
-  Sharing getSharing();
-
-  // -----------------------------------------------------------------------------
-  // Utility methods
-  // -----------------------------------------------------------------------------
-
-  @JsonIgnore
-  String getPropertyValue(IdScheme idScheme);
-
-  @JsonIgnore
-  String getDisplayPropertyValue(IdScheme idScheme);
+    @JsonIgnore
+    String getPropertyValue( IdScheme idScheme );
 }

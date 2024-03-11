@@ -1,5 +1,6 @@
+package org.hisp.dhis.dataset;
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +26,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
-import java.util.Map;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Stian Sandvold
  */
-@Component
-public class DataInputPeriodDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(DataInputPeriod.class);
+public class DataInputPeriodDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void register() {
-    whenVetoing(Period.class, this::allowDeletePeriod);
-  }
+    private JdbcTemplate jdbcTemplate;
 
-  private DeletionVeto allowDeletePeriod(Period period) {
-    String sql = "select 1 from datainputperiod where periodid= :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String allowDeletePeriod( Period period )
+    {
+        String sql = "SELECT COUNT(*) FROM datainputperiod where periodid=" + period.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    protected String getClassName()
+    {
+        return DataInputPeriod.class.getSimpleName();
+    }
 }

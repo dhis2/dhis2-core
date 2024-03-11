@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.outbound;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.outbound;
 
 import java.util.List;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface OutboundSmsStore extends IdentifiableObjectStore<OutboundSms> {
-  void saveOutboundSms(OutboundSms sms);
+public interface OutboundSmsStore
+{
+    void saveOutboundSms( OutboundSms sms );
 
-  List<OutboundSms> getAllOutboundSms(Integer min, Integer max, boolean hasPagination);
+    List<OutboundSms> getAllOutboundSms();
 
-  List<OutboundSms> get(OutboundSmsStatus status);
+    List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
 
-  List<OutboundSms> get(OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination);
+    OutboundSms getOutboundSmsbyId( int id );
+
+    List<OutboundSms> get( OutboundSmsStatus status );
+
+    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max );
+
+    void updateOutboundSms( OutboundSms sms );
+
+    void deleteOutboundSms( OutboundSms sms );
 }

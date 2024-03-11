@@ -8,9 +8,7 @@
   <class name="org.hisp.dhis.message.MessageConversation" table="messageconversation">
 
     <id name="id" column="messageconversationid">
-      <generator class="sequence">
-         <param name="sequence_name">messageconversation_sequence</param>
-      </generator>
+      <generator class="native" />
     </id>
 
     <property name="uid" column="uid" length="11" />
@@ -22,9 +20,7 @@
     <property name="lastUpdated" type="timestamp"  not-null="true"/>
 
     <property name="subject" column="subject" not-null="true" />
-
-    <property name="extMessageId" column="extmessageid" not-null="false" />
-
+    
     <property name="messageType" column="messageType">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.message.MessageType</param>
@@ -73,11 +69,11 @@
 
     <property name="lastMessage" column="lastmessage" index="messageconversation_lastmessage" />
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
-                 foreign-key="fk_messageconversation_user_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
+      foreign-key="fk_messageconversation_user_userid" />
   </class>
 
   <filter-def name="userMessageUser">
-    <filter-param name="userid" type="long" />
+    <filter-param name="userid" type="int" />
   </filter-def>
 </hibernate-mapping>

@@ -14,9 +14,6 @@
 
     <property name="systemId" column="systemid" />
 
-    <many-to-one name="systemUpdateNotificationRecipients" class="org.hisp.dhis.user.UserGroup"
-                 column="systemupdatenotificationrecipientsid" foreign-key="fk_configuration_systemupdatenotification_recipients" />
-
     <many-to-one name="feedbackRecipients" class="org.hisp.dhis.user.UserGroup"
         column="feedbackrecipientsid" foreign-key="fk_configuration_feedback_recipients" />
 
@@ -32,19 +29,13 @@
     <many-to-one name="infrastructuralPeriodType" class="org.hisp.dhis.period.PeriodType"
         column="infrastructuralperiodtypeid" foreign-key="fk_configuration_infrastructural_periodtype" />
 
-    <many-to-one name="selfRegistrationRole" class="org.hisp.dhis.user.UserRole"
+    <many-to-one name="selfRegistrationRole" class="org.hisp.dhis.user.UserAuthorityGroup"
         column="selfregistrationrole" foreign-key="fk_configuration_selfregistrationrole" />
 
     <many-to-one name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-        column="selfregistrationorgunit" foreign-key="fk_configuration_selfregistrationorgunit" />
+        column="selfRegistrationOrgUnit" foreign-key="fk_configuration_selfregistrationorgunit" />
 
-    <many-to-one name="facilityOrgUnitGroupSet" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet"
-        column="facilityorgunitgroupset" foreign-key="fk_configuration_facilityorgunitgroupset" />
-    
-    <many-to-one name="facilityOrgUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel"
-        column="facilityorgunitlevel" foreign-key="fk_configuration_facilityorgunitlevel" />
-
-    <set name="corsWhitelist" table="configuration_corswhitelist" lazy="false">
+    <set name="corsWhitelist" table="configuration_corswhitelist">
       <cache usage="read-write" />
       <key column="configurationid" foreign-key="fk_configuration_corswhitelist" />
       <element type="string" column="corswhitelist" />

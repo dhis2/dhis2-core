@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityattributevalue.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue.hibernate;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
@@ -39,123 +36,125 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
  */
-@Repository("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore")
 public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
-    implements TrackedEntityAttributeValueStore {
-  public HibernateTrackedEntityAttributeValueStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false);
-  }
+    implements TrackedEntityAttributeValueStore
+{
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    @Override
+    public void saveVoid( TrackedEntityAttributeValue attributeValue )
+    {
+        sessionFactory.getCurrentSession().save( attributeValue );
+    }
 
-  @Override
-  public void saveVoid(TrackedEntityAttributeValue attributeValue) {
-    sessionFactory.getCurrentSession().save(attributeValue);
-  }
+    @Override
+    public int deleteByTrackedEntityInstance( TrackedEntityInstance entityInstance )
+    {
+        Query<TrackedEntityAttributeValue> query = getQuery( "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
+        query.setParameter( "entityInstance", entityInstance );
+        return query.executeUpdate();
+    }
 
-  @Override
-  public int deleteByTrackedEntityInstance(TrackedEntityInstance entityInstance) {
-    Query<TrackedEntityAttributeValue> query =
-        getQuery("delete from TrackedEntityAttributeValue where entityInstance = :entityInstance");
-    query.setParameter("entityInstance", entityInstance);
-    return query.executeUpdate();
-  }
+    @Override
+    public TrackedEntityAttributeValue get( TrackedEntityInstance entityInstance, TrackedEntityAttribute attribute )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and attribute =:attribute";
 
-  @Override
-  public TrackedEntityAttributeValue get(
-      TrackedEntityInstance entityInstance, TrackedEntityAttribute attribute) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and attribute =:attribute";
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "entityInstance", entityInstance )
+            .setParameter( "attribute", attribute );
 
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query)
-            .setParameter("entityInstance", entityInstance)
-            .setParameter("attribute", attribute);
+        return getSingleResult( typedQuery );
+    }
 
-    return getSingleResult(typedQuery);
-  }
+    @Override
+    public List<TrackedEntityAttributeValue> get( TrackedEntityInstance entityInstance )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
 
-  @Override
-  public List<TrackedEntityAttributeValue> get(TrackedEntityInstance entityInstance) {
-    String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance", entityInstance );
 
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query).setParameter("entityInstance", entityInstance);
+        return getList( typedQuery );
+    }
 
-    return getList(typedQuery);
-  }
+    @Override
+    public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute";
 
-  @Override
-  public List<TrackedEntityAttributeValue> get(TrackedEntityAttribute attribute) {
-    String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute";
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "attribute", attribute );
 
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query).setParameter("attribute", attribute);
+        return getList( typedQuery );
+    }
 
-    return getList(typedQuery);
-  }
+    @Override
+    public List<TrackedEntityAttributeValue> get( Collection<TrackedEntityInstance> entityInstances )
+    {
+        if ( entityInstances == null || entityInstances.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
 
-  @Override
-  public List<TrackedEntityAttributeValue> get(
-      TrackedEntityAttribute attribute, Collection<String> values) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) in :values";
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance  in :entityInstances";
 
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query)
-            .setParameter("attribute", attribute)
-            .setParameter(
-                "values", values.stream().map(StringUtils::lowerCase).collect(Collectors.toList()));
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstances", entityInstances );
 
-    return getList(typedQuery);
-  }
+        return getList( typedQuery );
+    }
 
-  @Override
-  public List<TrackedEntityAttributeValue> get(TrackedEntityAttribute attribute, String value) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :value";
+    @Override
+    public List<TrackedEntityAttributeValue> searchByValue( TrackedEntityAttribute attribute, String searchText )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :searchText";
 
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query)
-            .setParameter("attribute", attribute)
-            .setParameter("value", StringUtils.lowerCase(value));
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "attribute", attribute )
+            .setParameter( "searchText", "%" + StringUtils.lowerCase( searchText  ) + "%");
 
-    return getList(typedQuery);
-  }
+        return getList( typedQuery );
+    }
 
-  @Override
-  public List<TrackedEntityAttributeValue> get(
-      TrackedEntityInstance entityInstance, Program program) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and v.attribute.program =:program";
+    @Override
+    public List<TrackedEntityAttributeValue> get( TrackedEntityAttribute attribute, String value )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :value";
 
-    Query<TrackedEntityAttributeValue> typedQuery = getQuery(query);
-    typedQuery.setParameter("entityInstance", entityInstance);
-    typedQuery.setParameter("program", program);
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
+            .setParameter( "attribute", attribute )
+            .setParameter( "value", StringUtils.lowerCase( value ) );
 
-    return getList(typedQuery);
-  }
+        return getList( typedQuery );
+    }
 
-  @Override
-  public int getCountOfAssignedTEAValues(TrackedEntityAttribute attribute) {
-    Query<?> query =
-        getQuery(
-            "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute");
-    query.setParameter("attribute", attribute);
+    @Override
+    public List<TrackedEntityAttributeValue> get( TrackedEntityInstance entityInstance, Program program )
+    {
+        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and v.attribute.program =:program";
 
-    return ((Long) query.getSingleResult()).intValue();
-  }
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query );
+        typedQuery.setParameter( "entityInstance", entityInstance );
+        typedQuery.setParameter( "program", program );
+
+        return getList( typedQuery );
+    }
+
+    @Override
+    public int getCountOfAssignedTEAValues( TrackedEntityAttribute attribute )
+    {
+        Query query = getQuery( "select count(distinct c) from TrackedEntityAttributeValue c where c.attribute = :attribute" );
+        query.setParameter( "attribute", attribute );
+
+        return ((Long) query.getSingleResult()).intValue();
+    }
 }

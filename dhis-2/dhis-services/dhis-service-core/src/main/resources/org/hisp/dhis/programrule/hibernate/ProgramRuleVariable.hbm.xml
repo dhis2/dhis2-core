@@ -17,8 +17,6 @@
 
     <property name="name" column="name" not-null="true" length="230" />
 
-    <property name="translations" type="jblTranslations" />
-
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programrulevariable_program" not-null="true" />
 
@@ -40,14 +38,6 @@
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_programrulevariable_programstage" />
-
-    <property name="valueType" column="valuetype" not-null="true">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.common.ValueType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
 
   </class>
 

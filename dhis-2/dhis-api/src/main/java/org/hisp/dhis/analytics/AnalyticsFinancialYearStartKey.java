@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
@@ -35,25 +36,29 @@ import org.hisp.dhis.period.FinancialPeriodType;
 /**
  * @author Henning Håkonsen
  */
-public enum AnalyticsFinancialYearStartKey {
-  FINANCIAL_YEAR_APRIL("FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType()),
-  FINANCIAL_YEAR_JULY("FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType()),
-  FINANCIAL_YEAR_OCTOBER("FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType());
+public enum AnalyticsFinancialYearStartKey
+{
+    FINANCIAL_YEAR_APRIL( "FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType() ),
+    FINANCIAL_YEAR_JULY( "FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType() ),
+    FINANCIAL_YEAR_OCTOBER( "FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType() );
 
-  private final String name;
+    private final String name;
 
-  private final FinancialPeriodType financialPeriodType;
+    private final FinancialPeriodType financialPeriodType;
 
-  AnalyticsFinancialYearStartKey(String name, FinancialPeriodType financialPeriodType) {
-    this.name = name;
-    this.financialPeriodType = financialPeriodType;
-  }
+    AnalyticsFinancialYearStartKey( String name, FinancialPeriodType financialPeriodType )
+    {
+        this.name = name;
+        this.financialPeriodType = financialPeriodType;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  public FinancialPeriodType getFinancialPeriodType() {
-    return financialPeriodType;
-  }
+    public FinancialPeriodType getFinancialPeriodType()
+    {
+        return financialPeriodType;
+    }
 }

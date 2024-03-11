@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-public enum SortProperty {
-  NAME("name"),
-  SHORT_NAME("shortName");
+public enum SortProperty
+{
+    NAME( "name" ), SHORT_NAME( "shortName" );
 
-  private String name;
+    private String name;
 
-  SortProperty(String name) {
-    this.name = name;
-  }
-
-  public static SortProperty fromValue(String value) {
-    for (SortProperty type : SortProperty.values()) {
-      if (type.getName().equalsIgnoreCase(value)) {
-        return type;
-      }
+    SortProperty( String name )
+    {
+        this.name = name;
     }
 
-    return null;
-  }
+    public static SortProperty fromValue( String value )
+    {
+        for ( SortProperty type : SortProperty.values() )
+        {
+            if ( type.getName().equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
 
-  public String getName() {
-    return name;
-  }
+        return null;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 }

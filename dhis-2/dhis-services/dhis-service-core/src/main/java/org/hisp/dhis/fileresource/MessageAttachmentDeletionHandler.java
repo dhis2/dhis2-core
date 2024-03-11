@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.Map;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+public class MessageAttachmentDeletionHandler extends DeletionHandler
+{
+    private JdbcTemplate jdbcTemplate;
 
-@Component
-public class MessageAttachmentDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(FileResource.class);
-
-  @Override
-  protected void register() {
-    whenVetoing(FileResource.class, this::allowDeleteFileResource);
-    whenDeleting(FileResource.class, this::deleteFileResource);
-  }
-
-  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
-    if (fileResource.getStorageStatus() != FileResourceStorageStatus.STORED) {
-      return ACCEPT;
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
     }
-    String sql = "select 1 from messageattachments where fileresourceid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", fileResource.getId()));
-  }
 
-  private void deleteFileResource(FileResource fileResource) {
-    delete(
-        "delete from messageattachments where fileresourceid=:id",
-        Map.of("id", fileResource.getId()));
-  }
+    @Override
+    protected String getClassName()
+    {
+        return FileResource.class.getName();
+    }
+
+    @Override
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        String sql = "SELECT COUNT(*) FROM messageattachments WHERE fileresourceid=" + fileResource.getId();
+
+        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+    }
+
+    @Override
+    public void deleteFileResource( FileResource fileResource )
+    {
+        String sql = "DELETE FROM messageattachments WHERE fileresourceid=" + fileResource.getId();
+
+        jdbcTemplate.execute( sql );
+    }
 }

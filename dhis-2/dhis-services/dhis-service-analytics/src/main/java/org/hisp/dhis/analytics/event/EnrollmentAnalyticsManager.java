@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
 
 import org.hisp.dhis.common.Grid;
 
 /**
  * @author Markus Bekken
  */
-public interface EnrollmentAnalyticsManager {
-  /**
-   * Retrieves aggregated data based on enrollments.
-   *
-   * @param params the query to retrieve aggregated data for.
-   * @param grid the grid to insert data into.
-   * @param maxLimit the max number of records to retrieve.
-   * @return a grid with data.
-   */
-  Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit);
-
-  /**
-   * Retrieves aggregated data based on enrollments.
-   *
-   * @param params the query to retrieve enrollments for.
-   * @param grid the grid to insert data into.
-   * @param maxLimit the max number of records to retrieve.
-   * @return a grid with data.
-   */
-  void getEnrollments(EventQueryParams params, Grid grid, int maxLimit);
-
-  /**
-   * Retrieves count of enrollments based on params.
-   *
-   * @param params the qyery to count enrollments for,
-   * @return number of enrollments macting the parameter criteria.
-   */
-  long getEnrollmentCount(EventQueryParams params);
+public interface EnrollmentAnalyticsManager
+{
+    /**
+     * Retrieves aggregated data based on enrollments.
+     *
+     * @param params the query to retrieve aggregated data for.
+     * @param grid the grid to insert data into.
+     * @param maxLimit the max number of records to retrieve.
+     * @return a grid with data.
+     */
+    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
 }
+

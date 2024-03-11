@@ -6,8 +6,6 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.interpretation.Interpretation" table="interpretation">
 
-    <cache usage="read-write" />
-    
     <id name="id" column="interpretationid">
       <generator class="native" />
     </id>
@@ -16,11 +14,11 @@
 
     <property name="lastUpdated" type="timestamp" index="interpretation_lastupdated" not-null="true" />
 
-    <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
-      foreign-key="fk_interpretation_visualizationid" />
+    <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" column="reporttableid"
+      foreign-key="fk_interpretation_reporttableid" />
 
-    <many-to-one name="eventVisualization" class="org.hisp.dhis.eventvisualization.EventVisualization" column="eventvisualizationid"
-      foreign-key="fk_interpretation_evisualizationid" />
+    <many-to-one name="chart" class="org.hisp.dhis.chart.Chart" column="chartid"
+      foreign-key="fk_interpretation_chartid" />
 
     <many-to-one name="map" class="org.hisp.dhis.mapping.Map" column="mapid"
       foreign-key="fk_interpretation_mapid" />
@@ -45,7 +43,6 @@
     <property name="created" not-null="true" type="timestamp" />
 
     <list name="comments" table="interpretation_comments" cascade="all,delete-orphan">
-      <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_comments_interpretationid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.interpretation.InterpretationComment" column="interpretationcommentid"
@@ -55,18 +52,29 @@
     <property name="likes" />
 
     <set name="likedBy" table="intepretation_likedby">
-      <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_likedby_interpretationid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userid"
         foreign-key="fk_intepretation_likedby_userid" />
     </set>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_interpretation_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_interpretation_userid" />
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="interpretationusergroupaccesses" cascade="all-delete-orphan">
+      <key column="interpretationid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="interpretationuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="interpretationid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
     
     <property name="mentions" type="jlbMentions" />
 
   </class>
+
 </hibernate-mapping>

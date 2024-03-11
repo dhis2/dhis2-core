@@ -1,5 +1,7 @@
+package org.hisp.dhis.leader.election;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Job that attempts to elect the current instance as the leader of the cluster.
- *
- * @author Ameen Mohamed (original)
- * @author Jan Bernitt (job progress tracking)
+ * 
+ * @author Ameen Mohamed
  */
-@Component
-@AllArgsConstructor
-public class LeaderElectionJob implements Job {
-  private final LeaderManager leaderManager;
+public class LeaderElectionJob extends AbstractJob
+{
+    @Autowired
+    private LeaderManager leaderManager;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.LEADER_ELECTION;
-  }
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    progress.startingProcess("Elect leader node");
-    progress.endingProcess(progress.runStage(() -> leaderManager.electLeader(progress)));
-  }
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.LEADER_ELECTION;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+            leaderManager.electLeader();
+    }
 }

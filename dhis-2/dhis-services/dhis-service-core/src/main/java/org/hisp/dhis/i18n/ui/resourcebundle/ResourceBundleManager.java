@@ -1,5 +1,7 @@
+package org.hisp.dhis.i18n.ui.resourcebundle;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.i18n.ui.resourcebundle;
 
 import java.util.List;
 import java.util.Locale;
@@ -34,13 +35,17 @@ import java.util.ResourceBundle;
 /**
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
+ * @version $Id: ResourceBundleManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
-public interface ResourceBundleManager {
-  String ID = ResourceBundleManager.class.getName();
+public interface ResourceBundleManager
+{
+    String ID = ResourceBundleManager.class.getName();
 
-  ResourceBundle getSpecificResourceBundle(String clazzName, Locale locale);
+    ResourceBundle getSpecificResourceBundle( Class<?> clazz, Locale locale );
 
-  ResourceBundle getGlobalResourceBundle(Locale locale) throws ResourceBundleManagerException;
+    ResourceBundle getSpecificResourceBundle( String clazzName, Locale locale );
 
-  List<Locale> getAvailableLocales() throws ResourceBundleManagerException;
+    ResourceBundle getGlobalResourceBundle( Locale locale ) throws ResourceBundleManagerException;
+
+    List<Locale> getAvailableLocales() throws ResourceBundleManagerException;
 }

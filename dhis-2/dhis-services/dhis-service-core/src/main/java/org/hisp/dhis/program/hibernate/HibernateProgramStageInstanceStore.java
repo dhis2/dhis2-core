@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,220 +27,152 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
+import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.time.DateUtils;
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.program.notification.NotificationTrigger;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew
  */
-@Repository("org.hisp.dhis.program.ProgramStageInstanceStore")
 public class HibernateProgramStageInstanceStore
-    extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
-    implements ProgramStageInstanceStore {
-  private static final String PSI_HQL_BY_UIDS =
-      "from ProgramStageInstance as psi where psi.uid in (:uids)";
+    extends HibernateIdentifiableObjectStore<ProgramStageInstance>
+    implements ProgramStageInstanceStore
+{
+    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
+        Sets.intersection(
+            NotificationTrigger.getAllApplicableToProgramStageInstance(),
+            NotificationTrigger.getAllScheduledTriggers()
+        );
 
-  private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
-      Sets.intersection(
-          NotificationTrigger.getAllApplicableToProgramStageInstance(),
-          NotificationTrigger.getAllScheduledTriggers());
+    @Override
+    public ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  public HibernateProgramStageInstanceStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        ProgramStageInstance.class,
-        currentUserService,
-        aclService,
-        false);
-  }
+        List<ProgramStageInstance> list = getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "programInstance" ), programInstance ) )
+            .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
+            .addOrder( root -> builder.asc( root.get( "id" ) ) )
+            .setMaxResults( 1 ) );
 
-  @Override
-  public List<ProgramStageInstance> get(
-      Collection<ProgramInstance> programInstances, EventStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("status"), status))
-            .addPredicate(root -> root.get("programInstance").in(programInstances)));
-  }
-
-  @Override
-  public List<ProgramStageInstance> get(TrackedEntityInstance entityInstance, EventStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("status"), status))
-            .addPredicate(
-                root ->
-                    builder.equal(
-                        root.join("programInstance").get("entityInstance"), entityInstance)));
-  }
-
-  @Override
-  public long getProgramStageInstanceCountLastUpdatedAfter(Date time) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getCount(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.greaterThanOrEqualTo(root.get("lastUpdated"), time))
-            .count(builder::countDistinct));
-  }
-
-  @Override
-  public boolean exists(String uid) {
-    if (uid == null) {
-      return false;
+        return list.isEmpty() ? null : list.get( 0 );
     }
 
-    Query<?> query =
-        getSession()
-            .createNativeQuery(
-                "select exists(select 1 from programstageinstance where uid=:uid and deleted is false)");
-    query.setParameter("uid", uid);
+    @Override
+    public List<ProgramStageInstance> get( Collection<ProgramInstance> programInstances, EventStatus status )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public boolean existsIncludingDeleted(String uid) {
-    if (uid == null) {
-      return false;
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
+            .addPredicate( root -> root.get( "programInstance" ).in( programInstances ) ) );
     }
 
-    Query<?> query =
-        getSession()
-            .createNativeQuery("select exists(select 1 from programstageinstance where uid=:uid)");
-    query.setParameter("uid", uid);
+    @Override
+    public List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-    return ((Boolean) query.getSingleResult()).booleanValue();
-  }
-
-  @Override
-  public List<String> getUidsIncludingDeleted(List<String> uids) {
-    final String hql = "select psi.uid " + PSI_HQL_BY_UIDS;
-    List<String> resultUids = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        resultUids.addAll(
-            getSession().createQuery(hql, String.class).setParameter("uids", uidsPartition).list());
-      }
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
+            .addPredicate( root -> builder.equal( root.join( "programInstance" ).get( "entityInstance" ), entityInstance ) ) );
     }
 
-    return resultUids;
-  }
+    @Override
+    public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public List<ProgramStageInstance> getIncludingDeleted(List<String> uids) {
-    List<ProgramStageInstance> programStageInstances = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        programStageInstances.addAll(
-            getSession()
-                .createQuery(PSI_HQL_BY_UIDS, ProgramStageInstance.class)
-                .setParameter("uids", uidsPartition)
-                .list());
-      }
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) )
+            .count( root -> builder.countDistinct( root ) ) );
     }
 
-    return programStageInstances;
-  }
-
-  @Override
-  public void updateProgramStageInstancesSyncTimestamp(
-      List<String> programStageInstanceUIDs, Date lastSynchronized) {
-    String hql =
-        "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
-
-    getQuery(hql)
-        .setParameter("lastSynchronized", lastSynchronized)
-        .setParameter("programStageInstances", programStageInstanceUIDs)
-        .executeUpdate();
-  }
-
-  @Override
-  public List<ProgramStageInstance> getWithScheduledNotifications(
-      ProgramNotificationTemplate template, Date notificationDate) {
-    if (notificationDate == null
-        || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains(template.getNotificationTrigger())) {
-      return Lists.newArrayList();
+    @Override
+    public boolean exists( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
+        return result != null && result > 0;
     }
 
-    if (template.getRelativeScheduledDays() == null) {
-      return Lists.newArrayList();
+    @Override
+    public boolean existsIncludingDeleted( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
+        return result != null && result > 0;
     }
 
-    Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
+    @Override
+    public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
+    {
+        String hql = "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
+        Query query = getQuery( hql );
+        query.setParameter( "lastSynchronized", lastSynchronized );
+        query.setParameter( "programStageInstances", programStageInstanceUIDs );
 
-    String hql =
-        "select distinct psi from ProgramStageInstance as psi "
-            + "inner join psi.programStage as ps "
-            + "where :notificationTemplate in elements(ps.notificationTemplates) "
-            + "and psi.dueDate is not null "
-            + "and psi.executionDate is null "
-            + "and psi.status != :skippedEventStatus "
-            + "and cast(:targetDate as date) = psi.dueDate "
-            + "and psi.deleted is false";
+        query.executeUpdate();
+    }
 
-    return getQuery(hql)
-        .setParameter("notificationTemplate", template)
-        .setParameter("skippedEventStatus", EventStatus.SKIPPED)
-        .setParameter("targetDate", targetDate)
-        .list();
-  }
+    @Override
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    {
+        if ( notificationDate == null || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+        {
+            return Lists.newArrayList();
+        }
 
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<ProgramStageInstance>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
+        if ( template.getRelativeScheduledDays() == null )
+        {
+            return Lists.newArrayList();
+        }
 
-  @Override
-  protected ProgramStageInstance postProcessObject(ProgramStageInstance programStageInstance) {
-    return (programStageInstance == null || programStageInstance.isDeleted())
-        ? null
-        : programStageInstance;
-  }
+        Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
+
+        String hql =
+            "select distinct psi from ProgramStageInstance as psi " +
+                "inner join psi.programStage as ps " +
+                "where :notificationTemplate in elements(ps.notificationTemplates) " +
+                "and psi.dueDate is not null " +
+                "and psi.executionDate is null " +
+                "and psi.status != :skippedEventStatus " +
+                "and cast(:targetDate as date) = psi.dueDate " +
+                "and psi.deleted is false";
+
+        return getQuery( hql )
+            .setParameter( "notificationTemplate", template )
+            .setParameter( "skippedEventStatus", EventStatus.SKIPPED )
+            .setParameter( "targetDate", targetDate ).list();
+    }
+
+    @Override
+    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<ProgramStageInstance>, Predicate>> predicates )
+    {
+        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
+    }
+
+    @Override
+    protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
+    {
+        return (programStageInstance == null || programStageInstance.isDeleted()) ? null : programStageInstance;
+    }
 }

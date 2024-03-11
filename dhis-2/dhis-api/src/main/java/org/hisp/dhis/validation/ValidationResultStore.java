@@ -1,5 +1,7 @@
+package org.hisp.dhis.validation;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation;
 
-import java.util.Collection;
-import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * @author Stian Sandvold
  */
-public interface ValidationResultStore extends GenericStore<ValidationResult> {
-  List<ValidationResult> getAllUnreportedValidationResults();
+public interface ValidationResultStore
+    extends GenericStore<ValidationResult>
+{
+    List<ValidationResult> getAllUnreportedValidationResults();
 
-  ValidationResult getById(long id);
+    ValidationResult getById( int id );
 
-  List<ValidationResult> query(ValidationResultQuery query);
+    List<ValidationResult> query( ValidationResultQuery query );
 
-  int count(ValidationResultQuery query);
+    int count( ValidationResultQuery query );
 
-  List<ValidationResult> getValidationResults(
-      OrganisationUnit orgUnit,
-      boolean includeOrgUnitDescendants,
-      Collection<ValidationRule> validationRules,
-      Collection<Period> periods);
-
-  void delete(ValidationResultsDeletionRequest request);
+    List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
+        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +27,66 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
 import java.io.Serializable;
 import java.util.Objects;
 
-public class ObjectStyle implements Serializable, EmbeddedObject {
-  private String color;
+public class ObjectStyle
+    implements Serializable
+{
+    private String color;
 
-  private String icon;
+    private String icon;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getColor() {
-    return color;
-  }
-
-  public void setColor(String color) {
-    this.color = color;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getIcon() {
-    return icon;
-  }
-
-  public void setIcon(String icon) {
-    this.icon = icon;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getColor()
+    {
+        return color;
     }
 
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+    public void setColor( String color )
+    {
+        this.color = color;
     }
 
-    ObjectStyle that = (ObjectStyle) o;
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIcon()
+    {
+        return icon;
+    }
 
-    return Objects.equals(color, that.color) && Objects.equals(icon, that.icon);
-  }
+    public void setIcon( String icon )
+    {
+        this.icon = icon;
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(color, icon);
-  }
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        ObjectStyle that = (ObjectStyle) o;
+
+        return Objects.equals( color, that.color ) &&
+            Objects.equals( icon, that.icon );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( color, icon );
+    }
 }

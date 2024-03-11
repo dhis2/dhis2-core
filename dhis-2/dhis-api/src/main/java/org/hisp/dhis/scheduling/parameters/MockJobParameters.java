@@ -1,5 +1,7 @@
+package org.hisp.dhis.scheduling.parameters;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Henning Håkonsen
  */
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class MockJobParameters implements JobParameters {
-  @JsonProperty private String message;
+public class MockJobParameters
+    implements JobParameters
+{
+    private static final long serialVersionUID = 3600315605964091689L;
+
+    @JsonProperty
+    private String message;
+
+    public MockJobParameters()
+    {
+    }
+
+    public MockJobParameters( String message )
+    {
+        this.message = message;
+    }
+
+    @JacksonXmlProperty
+    @JsonProperty
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public void setMessage( String message )
+    {
+        this.message = message;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        return null;
+    }
 }

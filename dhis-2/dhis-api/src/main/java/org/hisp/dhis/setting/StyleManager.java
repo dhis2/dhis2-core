@@ -1,5 +1,7 @@
+package org.hisp.dhis.setting;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.setting;
 
 import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-public interface StyleManager {
-  String ID = StyleManager.class.getName();
-
-  void setSystemStyle(String file);
-
-  void setUserStyle(String style);
-
-  String getCurrentStyle();
-
-  String getSystemStyle();
-
-  String getCurrentStyleDirectory();
-
-  List<StyleObject> getStyles();
+public interface StyleManager
+{
+    String ID = StyleManager.class.getName();
+    
+    void setSystemStyle( String file );
+    
+    void setUserStyle( String style );
+    
+    String getCurrentStyle();
+    
+    String getSystemStyle();
+    
+    String getCurrentStyleDirectory();
+        
+    List<StyleObject> getStyles();
 }

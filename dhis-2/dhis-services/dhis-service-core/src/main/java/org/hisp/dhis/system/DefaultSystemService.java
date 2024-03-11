@@ -1,5 +1,7 @@
+package org.hisp.dhis.system;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,262 +27,318 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.TimeZone;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.datasource.DataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.kafka.KafkaConfig;
+import org.hisp.dhis.logging.LogFormat;
+import org.hisp.dhis.logging.LogLevel;
+import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
 
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.system.SystemService")
-public class DefaultSystemService implements SystemService, InitializingBean {
-  private final LocationManager locationManager;
+public class DefaultSystemService
+    implements SystemService, InitializingBean
+{
+    private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
-  private final DatabaseInfo databaseInfo;
+    @Autowired
+    private LocationManager locationManager;
 
-  private final ConfigurationService configurationService;
+    @Autowired
+    private DatabaseInfo databaseInfo;
 
-  private final DhisConfigurationProvider dhisConfig;
+    @Autowired
+    private ConfigurationService configurationService;
 
-  private final CalendarService calendarService;
+    @Autowired
+    private DhisConfigurationProvider dhisConfig;
 
-  private final SystemSettingManager systemSettingManager;
+    @Autowired
+    private CalendarService calendarService;
 
-  /** Variable holding fixed system info state. */
-  private SystemInfo systemInfo = null;
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
-  @Override
-  public void afterPropertiesSet() {
-    systemInfo = getFixedSystemInfo();
+    @Autowired
+    private DataSourceManager dataSourceManager;
 
-    List<String> info =
-        List.of(
-            "DHIS 2 Version: " + systemInfo.getVersion(),
-            "Revision: " + systemInfo.getRevision(),
-            "Build date: " + systemInfo.getBuildTime(),
-            "Database name: " + systemInfo.getDatabaseInfo().getName(),
-            "Java version: " + systemInfo.getJavaVersion());
+    /**
+     * Variable holding fixed system info state.
+     */
+    private SystemInfo systemInfo = null;
 
-    log.info(StringUtils.join(info, ", "));
-  }
+    @Override
+    public void afterPropertiesSet() throws Exception
+    {
+        systemInfo = getFixedSystemInfo();
 
-  // -------------------------------------------------------------------------
-  // SystemService implementation
-  // -------------------------------------------------------------------------
+        List<String> info = ImmutableList.<String>builder()
+            .add( "Version: " + systemInfo.getVersion() )
+            .add( "Revision: " + systemInfo.getRevision() )
+            .add( "Build date: " + systemInfo.getBuildTime() )
+            .add( "Database name: " + systemInfo.getDatabaseInfo().getName() )
+            .add( "Java version: " + systemInfo.getJavaVersion() )
+            .build();
 
-  @Override
-  @Transactional(readOnly = true)
-  public SystemInfo getSystemInfo() {
-    SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
-    TimeZone tz = Calendar.getInstance().getTimeZone();
-
-    if (info == null) {
-      return null;
+        log.info( StringUtils.join( info, ", " ) );
     }
 
-    Date lastAnalyticsTableSuccess =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
-    String lastAnalyticsTableRuntime =
-        systemSettingManager.getStringSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME);
-    Date lastAnalyticsTablePartitionSuccess =
-        systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE);
-    String lastAnalyticsTablePartitionRuntime =
-        systemSettingManager.getStringSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME);
-    Date lastSystemMonitoringSuccess =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH);
-    String systemName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
-    String instanceBaseUrl = dhisConfig.getServerBaseUrl();
+    // -------------------------------------------------------------------------
+    // SystemService implementation
+    // -------------------------------------------------------------------------
 
-    Date now = new Date();
+    @Override
+    public SystemInfo getSystemInfo()
+    {
+        SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
 
-    info.setCalendar(calendarService.getSystemCalendar().name());
-    info.setDateFormat(calendarService.getSystemDateFormat().getJs());
-    info.setServerDate(new Date());
-    info.setServerTimeZoneId(tz.getID());
-    info.setServerTimeZoneDisplayName(tz.getDisplayName());
+        if ( info == null )
+        {
+            return null;
+        }
 
-    info.setLastAnalyticsTableSuccess(lastAnalyticsTableSuccess);
-    info.setIntervalSinceLastAnalyticsTableSuccess(
-        DateUtils.getPrettyInterval(lastAnalyticsTableSuccess, now));
-    info.setLastAnalyticsTableRuntime(lastAnalyticsTableRuntime);
+        Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
+        String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
 
-    info.setLastAnalyticsTablePartitionSuccess(lastAnalyticsTablePartitionSuccess);
-    info.setIntervalSinceLastAnalyticsTablePartitionSuccess(
-        DateUtils.getPrettyInterval(lastAnalyticsTablePartitionSuccess, now));
-    info.setLastAnalyticsTablePartitionRuntime(lastAnalyticsTablePartitionRuntime);
+        Date now = new Date();
 
-    info.setLastSystemMonitoringSuccess(lastSystemMonitoringSuccess);
+        info.setCalendar( calendarService.getSystemCalendar().name() );
+        info.setDateFormat( calendarService.getSystemDateFormat().getJs() );
+        info.setServerDate( new Date() );
+        info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
+        info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
+        info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
+        info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
+        info.setSystemName( systemName );
+        info.setInstanceBaseUrl( instanceBaseUrl );
+        info.setEmailConfigured( systemSettingManager.emailConfigured() );
 
-    info.setSystemName(systemName);
-    info.setInstanceBaseUrl(instanceBaseUrl);
-    info.setEmailConfigured(systemSettingManager.emailConfigured());
+        setSystemMetadataVersionInfo( info );
 
-    setSystemMetadataVersionInfo(info);
+        // ---------------------------------------------------------------------
+        // Kafka
+        // ---------------------------------------------------------------------
 
-    return info;
-  }
+        KafkaConfig kafka = new KafkaConfig(
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_BOOTSTRAP_SERVERS ),
+            dhisConfig.getProperty( ConfigurationKey.KAFKA_CLIENT_ID ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_RETRIES ) ),
+            Integer.valueOf( dhisConfig.getProperty( ConfigurationKey.KAFKA_MAX_POLL_RECORDS ) )
+        );
 
-  private SystemInfo getFixedSystemInfo() {
-    Configuration config = configurationService.getConfiguration();
+        if ( kafka.isValid() )
+        {
+            info.setKafka( kafka );
+        }
 
-    // ---------------------------------------------------------------------
-    // Version
-    // ---------------------------------------------------------------------
+        info.setLogging( new LoggingConfig(
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE ),
+            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_NAME )),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_FORMAT )).toUpperCase() ),
+            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_TOPIC ))
+        ) );
 
-    SystemInfo info = loadBuildProperties();
-
-    // ---------------------------------------------------------------------
-    // External directory
-    // ---------------------------------------------------------------------
-
-    info.setEnvironmentVariable(locationManager.getEnvironmentVariable());
-
-    try {
-      File directory = locationManager.getExternalDirectory();
-
-      info.setExternalDirectory(directory.getAbsolutePath());
-    } catch (LocationManagerException ex) {
-      info.setExternalDirectory("Not set");
+        return info;
     }
 
-    info.setFileStoreProvider(dhisConfig.getProperty(ConfigurationKey.FILESTORE_PROVIDER));
-    info.setReadOnlyMode(dhisConfig.getProperty(ConfigurationKey.SYSTEM_READ_ONLY_MODE));
-    info.setNodeId(dhisConfig.getProperty(ConfigurationKey.NODE_ID));
-    info.setSystemMonitoringUrl(dhisConfig.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL));
-    info.setSystemId(config.getSystemId());
-    info.setClusterHostname(dhisConfig.getProperty(ConfigurationKey.CLUSTER_HOSTNAME));
-    info.setRedisEnabled(dhisConfig.isEnabled(ConfigurationKey.REDIS_ENABLED));
+    private SystemInfo getFixedSystemInfo()
+    {
+        SystemInfo info = new SystemInfo();
 
-    if (info.isRedisEnabled()) {
-      info.setRedisHostname(dhisConfig.getProperty(ConfigurationKey.REDIS_HOST));
+        Configuration config = configurationService.getConfiguration();
+
+        // ---------------------------------------------------------------------
+        // Version
+        // ---------------------------------------------------------------------
+
+        ClassPathResource resource = new ClassPathResource( "build.properties" );
+
+        if ( resource.isReadable() )
+        {
+            try ( InputStream in = resource.getInputStream() )
+            {
+                Properties properties = new Properties();
+
+                properties.load( in );
+
+                info.setVersion( properties.getProperty( "build.version" ) );
+                info.setRevision( properties.getProperty( "build.revision" ) );
+                info.setJasperReportsVersion( properties.getProperty( "jasperreports.version" ) );
+
+                String buildTime = properties.getProperty( "build.time" );
+
+                DateTimeFormatter dateFormat = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" );
+
+                info.setBuildTime( new DateTime( dateFormat.parseDateTime( buildTime ) ).toDate() );
+            }
+            catch ( IOException ex )
+            {
+                // Do nothing
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // External directory
+        // ---------------------------------------------------------------------
+
+        info.setEnvironmentVariable( locationManager.getEnvironmentVariable() );
+
+        try
+        {
+            File directory = locationManager.getExternalDirectory();
+
+            info.setExternalDirectory( directory.getAbsolutePath() );
+        }
+        catch ( LocationManagerException ex )
+        {
+            info.setExternalDirectory( "Not set" );
+        }
+
+        info.setFileStoreProvider( dhisConfig.getProperty( ConfigurationKey.FILESTORE_PROVIDER ) );
+        info.setCacheProvider( dhisConfig.getProperty( ConfigurationKey.CACHE_PROVIDER ) );
+        info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
+        info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
+        info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
+        info.setSystemId( config.getSystemId() );
+        info.setRedisEnabled( Boolean.valueOf( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
+        
+        if ( info.isRedisEnabled() )
+        {
+            info.setRedisHostname( dhisConfig.getProperty( ConfigurationKey.REDIS_HOST ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Database
+        // ---------------------------------------------------------------------
+
+        info.setDatabaseInfo( databaseInfo );
+        info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
+
+        // ---------------------------------------------------------------------
+        // Metadata Audit
+        // ---------------------------------------------------------------------
+
+        info.setMetadataAudit( new MetadataAudit(
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" ),
+            Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
+        ) );
+
+        // ---------------------------------------------------------------------
+        // RabbitMQ
+        // ---------------------------------------------------------------------
+
+        RabbitMQ rabbitMQ = new RabbitMQ(
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
+            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
+        );
+
+        rabbitMQ.setExchange( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ) );
+        rabbitMQ.setAddresses( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_ADDRESSES ) );
+        rabbitMQ.setVirtualHost( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ) );
+        rabbitMQ.setConnectionTimeout( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) ) );
+
+        if ( rabbitMQ.isValid() )
+        {
+            info.setRabbitMQ( rabbitMQ );
+        }
+
+        // ---------------------------------------------------------------------
+        // System env variables and properties
+        // ---------------------------------------------------------------------
+
+        try
+        {
+            info.setJavaOpts( System.getenv( "JAVA_OPTS" ) );
+        }
+        catch ( SecurityException ex )
+        {
+            info.setJavaOpts( "Unknown" );
+        }
+
+        Properties props = System.getProperties();
+
+        info.setJavaVersion( props.getProperty( "java.version" ) );
+        info.setJavaVendor( props.getProperty( "java.vendor" ) );
+        info.setOsName( props.getProperty( "os.name" ) );
+        info.setOsArchitecture( props.getProperty( "os.arch" ) );
+        info.setOsVersion( props.getProperty( "os.version" ) );
+
+        info.setMemoryInfo( SystemUtils.getMemoryString() );
+        info.setCpuCores( SystemUtils.getCpuCores() );
+        info.setEncryption( dhisConfig.getEncryptionStatus().isOk() );
+
+        return info;
     }
 
-    // ---------------------------------------------------------------------
-    // Database
-    // ---------------------------------------------------------------------
+    private void setSystemMetadataVersionInfo( SystemInfo info )
+    {
+        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
 
-    info.setDatabaseInfo(databaseInfo.instance());
-    info.setReadReplicaCount(
-        Integer.valueOf(dhisConfig.getProperty(ConfigurationKey.ACTIVE_READ_REPLICAS)));
-
-    // ---------------------------------------------------------------------
-    // System env variables and properties
-    // ---------------------------------------------------------------------
-
-    try {
-      info.setJavaOpts(System.getenv("JAVA_OPTS"));
-    } catch (SecurityException ex) {
-      info.setJavaOpts("Unknown");
+        info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
+        info.setSystemMetadataVersion( systemMetadataVersion );
+        info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 
-    Properties props = System.getProperties();
+    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
+    {
+        if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
+        {
+            return null;
+        }
+        else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
+        {
+            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+        }
 
-    info.setJavaVersion(props.getProperty("java.version"));
-    info.setJavaVendor(props.getProperty("java.vendor"));
-    info.setOsName(props.getProperty("os.name"));
-    info.setOsArchitecture(props.getProperty("os.arch"));
-    info.setOsVersion(props.getProperty("os.version"));
-
-    info.setMemoryInfo(SystemUtils.getMemoryString());
-    info.setCpuCores(SystemUtils.getCpuCores());
-    info.setEncryption(dhisConfig.getEncryptionStatus().isOk());
-
-    return info;
-  }
-
-  public static SystemInfo loadBuildProperties() {
-    SystemInfo info = new SystemInfo();
-    ClassPathResource resource = new ClassPathResource("build.properties");
-
-    if (resource.isReadable()) {
-      try (InputStream in = resource.getInputStream()) {
-        Properties properties = new Properties();
-
-        properties.load(in);
-
-        info.setVersion(properties.getProperty("build.version"));
-        info.setRevision(properties.getProperty("build.revision"));
-        info.setJasperReportsVersion(properties.getProperty("jasperreports.version"));
-
-        String buildTime = properties.getProperty("build.time");
-
-        DateTimeFormatter dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-
-        info.setBuildTime(new DateTime(dateFormat.parseDateTime(buildTime)).toDate());
-      } catch (IOException ex) {
-        // Do nothing
-      }
-    } else {
-      log.error(
-          "build.properties is not available in the classpath. "
-              + "Make sure you build the project with Maven before you start the embedded Jetty server.");
+        return (lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
     }
-
-    return info;
-  }
-
-  private void setSystemMetadataVersionInfo(SystemInfo info) {
-    Boolean isMetadataVersionEnabled =
-        systemSettingManager.getBooleanSetting(SettingKey.METADATAVERSION_ENABLED);
-    Date lastSuccessfulMetadataSync =
-        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_METADATA_SYNC);
-    Date metadataLastFailedTime =
-        systemSettingManager.getDateSetting(SettingKey.METADATA_LAST_FAILED_TIME);
-    String systemMetadataVersion =
-        systemSettingManager.getStringSetting(SettingKey.SYSTEM_METADATA_VERSION);
-    Date lastMetadataVersionSyncAttempt =
-        getLastMetadataVersionSyncAttempt(lastSuccessfulMetadataSync, metadataLastFailedTime);
-
-    info.setIsMetadataVersionEnabled(isMetadataVersionEnabled);
-    info.setSystemMetadataVersion(systemMetadataVersion);
-    info.setLastMetadataVersionSyncAttempt(lastMetadataVersionSyncAttempt);
-  }
-
-  private Date getLastMetadataVersionSyncAttempt(
-      Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime) {
-    if (lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null) {
-      return null;
-    } else if (lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null) {
-      return (lastFailedMetadataSyncTime != null
-          ? lastFailedMetadataSyncTime
-          : lastSuccessfulMetadataSyncTime);
-    }
-
-    return (lastSuccessfulMetadataSyncTime.compareTo(lastFailedMetadataSyncTime) < 0)
-        ? lastFailedMetadataSyncTime
-        : lastSuccessfulMetadataSyncTime;
-  }
 }

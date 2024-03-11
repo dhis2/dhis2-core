@@ -1,5 +1,7 @@
+package org.hisp.dhis.util;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import java.util.List;
-import org.hisp.dhis.dataelement.DataElement;
-import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class ObjectUtilsTest {
+public class ObjectUtilsTest
+{
+    @Test
+    public void testJoin()
+    {
+        DataElement deA = new DataElement( "DataElementA" );
+        DataElement deB = new DataElement( "DataElementB" );
+        DataElement deC = new DataElement( "DataElementC" );
 
-  @Test
-  void testJoin() {
-    DataElement deA = new DataElement("DataElementA");
-    DataElement deB = new DataElement("DataElementB");
-    DataElement deC = new DataElement("DataElementC");
-    List<DataElement> elements = Lists.newArrayList(deA, deB, deC);
-    String actual = ObjectUtils.join(elements, ", ", de -> de.getName());
-    assertEquals("DataElementA, DataElementB, DataElementC", actual);
-    assertEquals(null, ObjectUtils.join(null, ", ", null));
-  }
+        List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
+
+        String actual = ObjectUtils.join( elements, ", ", de -> de.getName() );
+
+        assertEquals( "DataElementA, DataElementB, DataElementC", actual );
+        assertEquals( null, ObjectUtils.join( null, ", ", null ) );
+    }
 }

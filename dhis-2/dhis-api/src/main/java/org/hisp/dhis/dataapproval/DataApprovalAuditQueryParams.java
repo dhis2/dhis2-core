@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataapproval;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,78 +27,165 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
 
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Jim Grace
  */
-@Data
-@Accessors(chain = true)
-public class DataApprovalAuditQueryParams {
-  /** Approval levels to include. */
-  private Set<DataApprovalLevel> levels = new HashSet<>();
+public class DataApprovalAuditQueryParams
+{
+    /**
+     * Approval levels to include.
+     */
+    private Set<DataApprovalLevel> levels = new HashSet<>();
 
-  /** Workflows to include. */
-  private Set<DataApprovalWorkflow> workflows = new HashSet<>();
+    /**
+     * Workflows to include.
+     */
+    private Set<DataApprovalWorkflow> workflows = new HashSet<>();
 
-  /** OrganisationUnits to include. */
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+    /**
+     * OrganisationUnits to include.
+     */
+    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-  /** AttributeOptionCombos to include. */
-  private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
+    /**
+     * AttributeOptionCombos to include.
+     */
+    private Set<CategoryOptionCombo> attributeOptionCombos = new HashSet<>();
 
-  /** Starting date. */
-  private Date startDate = null;
+    /**
+     * Starting date.
+     */
+    private Date startDate = null;
 
-  /** Ending date. */
-  private Date endDate = null;
+    /**
+     * Ending date.
+     */
+    private Date endDate = null;
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  public boolean hasWorkflows() {
-    return workflows != null && !workflows.isEmpty();
-  }
+    public DataApprovalAuditQueryParams()
+    {
+    }
 
-  public boolean hasLevels() {
-    return levels != null && !levels.isEmpty();
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
-  }
+    public boolean hasWorkflows()
+    {
+        return workflows != null && !workflows.isEmpty();
+    }
 
-  public boolean hasAttributeOptionCombos() {
-    return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
-  }
+    public boolean hasLevels()
+    {
+        return levels != null && !levels.isEmpty();
+    }
 
-  public boolean hasStartDate() {
-    return startDate != null;
-  }
+    public boolean hasOrganisationUnits()
+    {
+        return organisationUnits != null && !organisationUnits.isEmpty();
+    }
 
-  public boolean hasEndDate() {
-    return endDate != null;
-  }
+    public boolean hasAttributeOptionCombos()
+    {
+        return attributeOptionCombos != null && !attributeOptionCombos.isEmpty();
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("levels", levels)
-        .add("workflows", workflows)
-        .add("organisationUnits", organisationUnits)
-        .add("attributeOptionCombos", attributeOptionCombos)
-        .add("startDate", startDate)
-        .add("endDate", endDate)
-        .toString();
-  }
+    public boolean hasStartDate()
+    {
+        return startDate != null;
+    }
+
+    public boolean hasEndDate()
+    {
+        return endDate != null;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).
+            add( "levels", levels ).
+            add( "workflows", workflows ).
+            add( "organisationUnits", organisationUnits ).
+            add( "attributeOptionCombos", attributeOptionCombos ).
+            add( "startDate", startDate ).
+            add( "endDate", endDate ).toString();
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    public Set<DataApprovalLevel> getLevels()
+    {
+        return levels;
+    }
+
+    public void setLevels( Set<DataApprovalLevel> levels )
+    {
+        this.levels = levels;
+    }
+
+    public Set<DataApprovalWorkflow> getWorkflows()
+    {
+        return workflows;
+    }
+
+    public void setWorkflows( Set<DataApprovalWorkflow> workflows )
+    {
+        this.workflows = workflows;
+    }
+
+    public Set<OrganisationUnit> getOrganisationUnits()
+    {
+        return organisationUnits;
+    }
+
+    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        this.organisationUnits = organisationUnits;
+    }
+
+    public Set<CategoryOptionCombo> getAttributeOptionCombos()
+    {
+        return attributeOptionCombos;
+    }
+
+    public void setAttributeOptionCombos( Set<CategoryOptionCombo> attributeOptionCombos )
+    {
+        this.attributeOptionCombos = attributeOptionCombos;
+    }
+
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
+    }
 }

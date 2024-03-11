@@ -1,5 +1,7 @@
+package org.hisp.dhis.attribute.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +27,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute.hibernate;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository("org.hisp.dhis.attribute.AttributeStore")
-public class HibernateAttributeStore extends HibernateIdentifiableObjectStore<Attribute>
-    implements AttributeStore {
-  @Autowired
-  public HibernateAttributeStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Attribute.class,
-        currentUserService,
-        aclService,
-        true);
-  }
+public class HibernateAttributeStore
+    extends HibernateIdentifiableObjectStore<Attribute>
+    implements AttributeStore
+{
+    @Override
+    public List<Attribute> getAttributes( Class<?> klass )
+    {
+        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) ) );
+    }
+
+    @Override
+    public List<Attribute> getMandatoryAttributes( Class<?> klass )
+    {
+        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
+            .addPredicate( root -> builder.equal( root.get( "mandatory" ), true ) ) );
+    }
+
+    @Override
+    public List<Attribute> getUniqueAttributes( Class<?> klass )
+    {
+        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
+            .addPredicate( root -> builder.equal( root.get( "unique" ), true ) ) );
+    }
 }

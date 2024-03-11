@@ -1,5 +1,7 @@
+package org.hisp.dhis.dashboard;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard;
 
 /**
  * @author Lars Helge Overland
  */
-public enum DashboardItemType {
-  VISUALIZATION,
-  EVENT_VISUALIZATION,
-  EVENT_CHART,
-  MAP,
-  EVENT_REPORT,
-  USERS,
-  REPORTS,
-  RESOURCES,
-  TEXT,
-  MESSAGES,
-  APP
+public enum DashboardItemType
+{
+    CHART, EVENT_CHART, MAP, REPORT_TABLE, 
+    EVENT_REPORT, USERS, REPORTS, 
+    RESOURCES, TEXT, MESSAGES, APP
 }

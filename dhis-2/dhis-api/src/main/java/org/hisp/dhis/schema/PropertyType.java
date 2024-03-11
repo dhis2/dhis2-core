@@ -1,5 +1,7 @@
+package org.hisp.dhis.schema;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -33,41 +34,30 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "propertyType", namespace = DxfNamespaces.DXF_2_0)
-public enum PropertyType {
-  IDENTIFIER,
-  TEXT,
-  NUMBER,
-  INTEGER,
-  BOOLEAN,
-  USERNAME,
-  EMAIL,
-  PASSWORD,
-  URL,
-  DATE,
-  PHONENUMBER,
-  GEOLOCATION,
-  COLOR,
-  CONSTANT,
+@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
+public enum PropertyType
+{
+    IDENTIFIER,
+    TEXT,
+    NUMBER,
+    INTEGER,
+    BOOLEAN,
+    EMAIL,
+    PASSWORD,
+    URL,
+    DATE,
+    PHONENUMBER,
+    GEOLOCATION,
+    COLOR,
+    CONSTANT,
 
-  COMPLEX,
-  COLLECTION,
-  REFERENCE;
+    COMPLEX,
+    COLLECTION,
+    REFERENCE;
 
-  public boolean isSimple() {
-    return IDENTIFIER == this
-        || TEXT == this
-        || NUMBER == this
-        || INTEGER == this
-        || BOOLEAN == this
-        || USERNAME == this
-        || EMAIL == this
-        || PASSWORD == this
-        || URL == this
-        || DATE == this
-        || PHONENUMBER == this
-        || GEOLOCATION == this
-        || COLOR == this
-        || CONSTANT == this;
-  }
+    public boolean isSimple()
+    {
+        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this || PASSWORD == this || URL == this
+            || DATE == this || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+    }
 }

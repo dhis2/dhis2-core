@@ -1,5 +1,7 @@
+package org.hisp.dhis.deletedobject;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +27,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deletedobject;
+
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.deletedobject.DeletedObjectService")
-public class DefaultDeletedObjectService implements DeletedObjectService {
-  private final DeletedObjectStore deletedObjectStore;
+@Transactional
+public class DefaultDeletedObjectService
+    implements DeletedObjectService
+{
+    private final DeletedObjectStore deletedObjectStore;
 
-  @Override
-  @Transactional
-  public void addDeletedObject(DeletedObject deletedObject) {
-    deletedObjectStore.save(deletedObject);
-  }
+    public DefaultDeletedObjectService( DeletedObjectStore deletedObjectStore )
+    {
+        this.deletedObjectStore = deletedObjectStore;
+    }
 
-  @Override
-  @Transactional
-  public void deleteDeletedObject(DeletedObject deletedObject) {
-    deletedObjectStore.delete(deletedObject);
-  }
+    @Override
+    public void addDeletedObject( DeletedObject deletedObject )
+    {
+        deletedObjectStore.save( deletedObject );
+    }
 
-  @Override
-  @Transactional
-  public void deleteDeletedObjects(DeletedObjectQuery query) {
-    deletedObjectStore.delete(query);
-  }
+    @Override
+    public void deleteDeletedObject( DeletedObject deletedObject )
+    {
+        deletedObjectStore.delete( deletedObject );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DeletedObject> getDeletedObjectsByKlass(String klass) {
-    return deletedObjectStore.getByKlass(klass);
-  }
+    @Override
+    public void deleteDeletedObjects( DeletedObjectQuery query )
+    {
+        deletedObjectStore.delete( query );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DeletedObject> getDeletedObjects() {
-    return deletedObjectStore.query(DeletedObjectQuery.EMPTY);
-  }
+    @Override
+    public List<DeletedObject> getDeletedObjectsByKlass( String klass )
+    {
+        return deletedObjectStore.getByKlass( klass );
+    }
 
-  @Override
-  @Transactional
-  public int countDeletedObjects() {
-    return deletedObjectStore.count(DeletedObjectQuery.EMPTY);
-  }
+    @Override
+    public List<DeletedObject> getDeletedObjects()
+    {
+        return deletedObjectStore.query( DeletedObjectQuery.EMPTY );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<DeletedObject> getDeletedObjects(DeletedObjectQuery query) {
-    return deletedObjectStore.query(query);
-  }
+    @Override
+    public int countDeletedObjects()
+    {
+        return deletedObjectStore.count( DeletedObjectQuery.EMPTY );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public int countDeletedObjects(DeletedObjectQuery query) {
-    return deletedObjectStore.count(query);
-  }
+    @Override
+    public List<DeletedObject> getDeletedObjects( DeletedObjectQuery query )
+    {
+        return deletedObjectStore.query( query );
+    }
+
+    @Override
+    public int countDeletedObjects( DeletedObjectQuery query )
+    {
+        return deletedObjectStore.count( query );
+    }
 }

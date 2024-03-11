@@ -1,5 +1,7 @@
+package org.hisp.dhis.notification;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.system.util.DateUtils;
+import org.joda.time.DateTime;
+import org.joda.time.Days;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,283 +51,281 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.util.DateUtils;
-import org.joda.time.DateTime;
-import org.joda.time.Days;
 
 /**
- * Template formats supported: A{uid-of-attribute} V{name-of-variable}
+ * Template formats supported:
+ *  A{uid-of-attribute}
+ *  V{name-of-variable}
  *
- * <p>The implementing superclass defines how these are resolved.
+ * The implementing superclass defines how these are resolved.
  *
  * @param <T> the type of the root object used for resolving expression values.
+ *
  * @author Halvdan Hoem Grelland
  */
-@Slf4j
-public abstract class BaseNotificationMessageRenderer<T> implements NotificationMessageRenderer<T> {
-  /** 4 concatenated SMS. */
-  protected static final int SMS_CHAR_LIMIT = 160 * 4;
+public abstract class BaseNotificationMessageRenderer<T>
+    implements NotificationMessageRenderer<T>
+{
+    private static Log log = LogFactory.getLog( BaseNotificationMessageRenderer.class );
 
-  protected static final int EMAIL_CHAR_LIMIT = 10000;
+    protected static final int SMS_CHAR_LIMIT = 160 * 4;  // Four concatenated SMS messages
+    protected static final int EMAIL_CHAR_LIMIT = 10000;  // Somewhat arbitrarily chosen limits
+    protected static final int SUBJECT_CHAR_LIMIT = 100;
 
-  protected static final int SUBJECT_CHAR_LIMIT = 100;
+    protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
+    protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
+    protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
-  protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]";
+    protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" ); // For Variable
+    protected static final Pattern COMBINED_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" ); // For TrackedEntityAttribute and DataElement
 
-  protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
+    private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
+    private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
+    private static final Pattern DATA_ELEMENT_PATTERN = Pattern.compile( "#\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1 for DataElement
 
-  protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
+    private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS =
+        new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
+            .put( ExpressionType.VARIABLE, (entity, keys) -> resolveVariableValues( keys, entity ) )
+            .put( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, (entity, keys) -> resolveTrackedEntityAttributeValues( keys, entity ) )
+            .put( ExpressionType.DATA_ELEMENT, ( entity, keys ) -> resolveDataElementValues( keys, entity ) )
+            .build();
 
-  /** For Variable. */
-  protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
+    protected enum ExpressionType
+    {
+        VARIABLE ( VARIABLE_PATTERN, VARIABLE_CONTENT_PATTERN ),
+        TRACKED_ENTITY_ATTRIBUTE ( TRACKED_ENTITY_ATTRIBUTE_PATTERN, COMBINED_CONTENT_PATTERN ),
+        DATA_ELEMENT ( DATA_ELEMENT_PATTERN, COMBINED_CONTENT_PATTERN );
 
-  /** ForTrackedEntityAttribute and DataElement. */
-  protected static final Pattern COMBINED_CONTENT_PATTERN =
-      Pattern.compile("[A-Za-z][A-Za-z0-9]{10}");
+        private final Pattern expressionPattern;
+        private final Pattern contentPattern;
 
-  /** Matches the variable in group 1. */
-  private static final Pattern VARIABLE_PATTERN = Pattern.compile("V\\{([a-z_]*)}");
+        ExpressionType( Pattern expressionPattern, Pattern contentPattern )
+        {
+            this.expressionPattern = expressionPattern;
+            this.contentPattern = contentPattern;
+        }
 
-  /** Matches the UID in group 1 for ForTrackedEntityAttribute. */
-  private static final Pattern TRACKED_ENTITY_ATTRIBUTE_PATTERN =
-      Pattern.compile("A\\{([A-Za-z][A-Za-z0-9]{10})}");
+        public Pattern getExpressionPattern()
+        {
+            return expressionPattern;
+        }
 
-  /** Matches the UID in group 1 for DataElement. */
-  private static final Pattern DATA_ELEMENT_PATTERN =
-      Pattern.compile("#\\{([A-Za-z][A-Za-z0-9]{10})}");
-
-  private final Map<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>
-      expressionToValueResolvers =
-          Map.of(
-              ExpressionType.VARIABLE,
-              (entity, keys) -> resolveVariableValues(keys, entity),
-              ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
-              (entity, keys) -> resolveTrackedEntityAttributeValues(keys, entity),
-              ExpressionType.DATA_ELEMENT,
-              (entity, keys) -> resolveDataElementValues(keys, entity));
-
-  protected enum ExpressionType {
-    VARIABLE(VARIABLE_PATTERN, VARIABLE_CONTENT_PATTERN),
-    TRACKED_ENTITY_ATTRIBUTE(TRACKED_ENTITY_ATTRIBUTE_PATTERN, COMBINED_CONTENT_PATTERN),
-    DATA_ELEMENT(DATA_ELEMENT_PATTERN, COMBINED_CONTENT_PATTERN);
-
-    private final Pattern expressionPattern;
-
-    private final Pattern contentPattern;
-
-    ExpressionType(Pattern expressionPattern, Pattern contentPattern) {
-      this.expressionPattern = expressionPattern;
-      this.contentPattern = contentPattern;
+        boolean isValidExpressionContent( String content )
+        {
+            return content != null && contentPattern.matcher( content ).matches();
+        }
     }
 
-    public Pattern getExpressionPattern() {
-      return expressionPattern;
+    // -------------------------------------------------------------------------
+    // Public methods
+    // -------------------------------------------------------------------------
+
+    public NotificationMessage render( T entity, NotificationTemplate template )
+    {
+        final String collatedTemplate = template.getSubjectTemplate() + " " + template.getMessageTemplate();
+
+        Map<String, String> expressionToValueMap =
+            extractExpressionsByType( collatedTemplate ).entrySet().stream()
+                .map( entry -> resolveValuesFromExpressions( entry.getValue(), entry.getKey(), entity ) )
+                .collect( HashMap::new, Map::putAll, Map::putAll );
+
+        return createNotificationMessage( template, expressionToValueMap );
     }
 
-    boolean isValidExpressionContent(String content) {
-      return content != null && contentPattern.matcher(content).matches();
-    }
-  }
+    // -------------------------------------------------------------------------
+    // Overrideable logic
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Public methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  public NotificationMessage render(T entity, NotificationTemplate template) {
-    final String collatedTemplate =
-        template.getSubjectTemplate() + " " + template.getMessageTemplate();
-
-    Map<String, String> expressionToValueMap =
-        extractExpressionsByType(collatedTemplate).entrySet().stream()
-            .map(entry -> resolveValuesFromExpressions(entry.getValue(), entry.getKey(), entity))
-            .collect(HashMap::new, Map::putAll, Map::putAll);
-
-    return createNotificationMessage(template, expressionToValueMap);
-  }
-
-  // -------------------------------------------------------------------------
-  // Override logic
-  // -------------------------------------------------------------------------
-
-  private boolean isValidExpressionContent(String content, ExpressionType type) {
-    return getSupportedExpressionTypes().contains(type) && type.isValidExpressionContent(content);
-  }
-
-  // -------------------------------------------------------------------------
-  // Abstract methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Gets a Map of variable resolver functions, keyed by the Template Variable. The returned Map
-   * should not be mutable.
-   */
-  protected abstract Map<TemplateVariable, Function<T, String>> getVariableResolvers();
-
-  /**
-   * Resolves values for the given attribute UIDs.
-   *
-   * @param attributeKeys the Set of attribute UIDs.
-   * @param entity the entity to resolve the values from/for.
-   * @return a Map of values, keyed by the corresponding attribute UID.
-   */
-  protected abstract Map<String, String> resolveTrackedEntityAttributeValues(
-      Set<String> attributeKeys, T entity);
-
-  /**
-   * Resolves values for the given data element UIDs.
-   *
-   * @param elementKeys the Set of attribute UIDs.
-   * @param entity the entity to resolve the values from/for.
-   * @return a Map of values, keyed by the corresponding data element UID.
-   */
-  protected abstract Map<String, String> resolveDataElementValues(
-      Set<String> elementKeys, T entity);
-
-  /** Converts a string to the TemplateVariable supported by the implementor. */
-  protected abstract TemplateVariable fromVariableName(String name);
-
-  /** Returns the set of ExpressionTypes supported by the implementor. */
-  protected abstract Set<ExpressionType> getSupportedExpressionTypes();
-
-  // -------------------------------------------------------------------------
-  // Internal methods
-  // -------------------------------------------------------------------------
-
-  private Map<String, String> resolveValuesFromExpressions(
-      Set<String> expressions, @Nonnull ExpressionType type, T entity) {
-    return expressionToValueResolvers
-        .getOrDefault(type, (e, s) -> Map.of())
-        .apply(entity, expressions);
-  }
-
-  private Map<String, String> resolveVariableValues(Set<String> variables, T entity) {
-    return variables.stream().collect(Collectors.toMap(v -> v, v -> resolveValue(v, entity)));
-  }
-
-  private String resolveValue(String variableName, T entity) {
-    Function<T, String> resolver = getVariableResolvers().get(fromVariableName(variableName));
-
-    if (resolver == null) {
-      log.warn(
-          String.format("Cannot resolve value for expression '%s': no resolver", variableName));
-
-      return StringUtils.EMPTY;
+    protected boolean isValidExpressionContent( String content, ExpressionType type )
+    {
+        return content != null && getSupportedExpressionTypes().contains( type ) && type.isValidExpressionContent( content );
     }
 
-    if (entity == null) {
-      log.warn(
-          String.format("Cannot resolve value for expression '%s': entity is null", variableName));
+    // -------------------------------------------------------------------------
+    // Abstract methods
+    // -------------------------------------------------------------------------
 
-      return StringUtils.EMPTY;
+    /**
+     * Gets a Map of variable resolver functions, keyed by the Template Variable.
+     * The returned Map should not be mutable.
+     */
+    protected abstract Map<TemplateVariable, Function<T, String>> getVariableResolvers();
+
+    /**
+     * Resolves values for the given attribute UIDs.
+     *
+     * @param attributeKeys the Set of attribute UIDs.
+     * @param entity the entity to resolve the values from/for.
+     * @return a Map of values, keyed by the corresponding attribute UID.
+     */
+    protected abstract Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, T entity );
+
+    /**
+     * Resolves values for the given data element UIDs.
+     *
+     * @param elementKeys the Set of attribute UIDs.
+     * @param entity the entity to resolve the values from/for.
+     * @return a Map of values, keyed by the corresponding data element UID.
+     */
+    protected abstract Map<String, String> resolveDataElementValues( Set<String> elementKeys, T entity );
+
+    /**
+     * Converts a string to the TemplateVariable supported by the implementor.
+     */
+    protected abstract TemplateVariable fromVariableName( String name );
+
+    /**
+     * Returns the set of ExpressionTypes supported by the implementor.
+     */
+    protected abstract Set<ExpressionType> getSupportedExpressionTypes();
+
+    // -------------------------------------------------------------------------
+    // Internal methods
+    // -------------------------------------------------------------------------
+
+    private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, ExpressionType type, T entity )
+    {
+        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, (e, s) -> Maps.newHashMap() ).apply( entity, expressions );
     }
 
-    String value;
-
-    try {
-      value = resolver.apply(entity);
-    } catch (Exception ex) {
-      log.warn("Caught exception when running value resolver for variable: " + variableName, ex);
-      value = VALUE_ON_ERROR;
+    private Map<String, String> resolveVariableValues( Set<String> variables, T entity )
+    {
+        return variables.stream()
+            .collect( Collectors.toMap(
+                v -> v,
+                v -> resolveValue( v, entity )
+            ) );
     }
 
-    return value != null ? value : StringUtils.EMPTY;
-  }
+    private String resolveValue( String variableName, T entity )
+    {
+        Function<T, String> resolver = getVariableResolvers().get( fromVariableName( variableName ) );
 
-  private NotificationMessage createNotificationMessage(
-      NotificationTemplate template, Map<String, String> expressionToValueMap) {
-    String subject = replaceExpressions(template.getSubjectTemplate(), expressionToValueMap);
-    subject = chop(subject, SUBJECT_CHAR_LIMIT);
+        if ( resolver == null )
+        {
+            log.warn( String.format( "Cannot resolve value for expression '%s': no resolver", variableName ) );
 
-    boolean hasSmsRecipients = template.getDeliveryChannels().contains(DeliveryChannel.SMS);
+            return StringUtils.EMPTY;
+        }
 
-    String message = replaceExpressions(template.getMessageTemplate(), expressionToValueMap);
-    message = chop(message, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT);
+        if ( entity == null )
+        {
+            log.warn( String.format( "Cannot resolve value for expression '%s': entity is null", variableName ) );
 
-    return new NotificationMessage(subject, message);
-  }
+            return StringUtils.EMPTY;
+        }
 
-  private static String replaceExpressions(
-      String input, final Map<String, String> expressionToValueMap) {
-    if (StringUtils.isEmpty(input)) {
-      return StringUtils.EMPTY;
+        String value;
+
+        try
+        {
+            value = resolver.apply( entity );
+        }
+        catch ( Exception ex )
+        {
+            log.warn( "Caught exception when running value resolver for variable: " + variableName , ex );
+            value = VALUE_ON_ERROR;
+        }
+
+        return value != null ? value : StringUtils.EMPTY;
     }
 
-    return Stream.of(ExpressionType.values())
-        .map(ExpressionType::getExpressionPattern)
-        .reduce(
-            input,
-            (str, pattern) -> {
-              StringBuilder sb = new StringBuilder(str.length());
-              Matcher matcher = pattern.matcher(str);
+    private NotificationMessage createNotificationMessage( NotificationTemplate template, Map<String, String> expressionToValueMap )
+    {
+        String subject = replaceExpressions( template.getSubjectTemplate(), expressionToValueMap );
+        subject = chop( subject, SUBJECT_CHAR_LIMIT );
 
-              while (matcher.find()) {
-                String key = matcher.group(1);
-                String value = expressionToValueMap.getOrDefault(key, MISSING_VALUE_REPLACEMENT);
-                value = StringUtils.defaultIfBlank(value, StringUtils.EMPTY);
+        boolean hasSmsRecipients = template.getDeliveryChannels().contains( DeliveryChannel.SMS );
 
-                matcher.appendReplacement(sb, value);
-              }
+        String message = replaceExpressions( template.getMessageTemplate(), expressionToValueMap );
+        message = chop( message, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT );
 
-              return matcher.appendTail(sb).toString();
-            },
-            (oldStr, newStr) -> newStr);
-  }
-
-  private Map<ExpressionType, Set<String>> extractExpressionsByType(String template) {
-    return Arrays.stream(ExpressionType.values())
-        .collect(Collectors.toMap(Function.identity(), type -> extractExpressions(template, type)));
-  }
-
-  private Set<String> extractExpressions(String template, ExpressionType type) {
-    Map<Boolean, Set<String>> groupedExpressions =
-        RegexUtils.getMatches(type.getExpressionPattern(), template, 1).stream()
-            .collect(
-                Collectors.groupingBy(
-                    expr -> isValidExpressionContent(expr, type), Collectors.toSet()));
-
-    warnOfUnrecognizedExpressions(groupedExpressions.get(false), type);
-
-    Set<String> expressions = groupedExpressions.get(true);
-
-    if (expressions == null || expressions.isEmpty()) {
-      return Collections.emptySet();
+        return new NotificationMessage( subject, message );
     }
 
-    return expressions;
-  }
+    private static String replaceExpressions( String input, final Map<String, String> expressionToValueMap )
+    {
+        if ( StringUtils.isEmpty( input ) )
+        {
+            return StringUtils.EMPTY;
+        }
 
-  private static void warnOfUnrecognizedExpressions(Set<String> unrecognized, ExpressionType type) {
-    if (unrecognized != null && !unrecognized.isEmpty()) {
-      log.warn(
-          String.format(
-              "%d unrecognized expressions of type %s were ignored: %s",
-              unrecognized.size(), type.name(), Arrays.toString(unrecognized.toArray())));
+        return Stream.of( ExpressionType.values() )
+            .map( ExpressionType::getExpressionPattern )
+            .reduce(
+                input,
+                ( str, pattern ) -> {
+                    StringBuffer sb = new StringBuffer( str.length() );
+                    Matcher matcher = pattern.matcher( str );
+
+                    while ( matcher.find() )
+                    {
+                        String key = matcher.group( 1 );
+                        String value = expressionToValueMap.getOrDefault( key, MISSING_VALUE_REPLACEMENT );
+                        value = StringUtils.defaultIfBlank( value, StringUtils.EMPTY );
+
+                        matcher.appendReplacement( sb, value );
+                    }
+
+                    return matcher.appendTail( sb ).toString();
+                },
+                ( oldStr, newStr ) -> newStr
+            );
     }
-  }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
+    private Map<ExpressionType, Set<String>> extractExpressionsByType( String template )
+    {
+        return Arrays.stream( ExpressionType.values() )
+            .collect( Collectors.toMap( Function.identity(), type -> extractExpressions( template, type ) ) );
+    }
 
-  protected static String chop(String input, int limit) {
-    return input.substring(0, Math.min(input.length(), limit));
-  }
+    private Set<String> extractExpressions( String template, ExpressionType type )
+    {
+        Map<Boolean, Set<String>> groupedExpressions = RegexUtils.getMatches( type.getExpressionPattern(), template, 1 )
+            .stream().collect( Collectors.groupingBy( expr -> isValidExpressionContent( expr, type ), Collectors.toSet() ) );
 
-  protected static String daysUntil(Date date) {
-    return String.valueOf(Days.daysBetween(DateTime.now(), new DateTime(date)).getDays());
-  }
+        warnOfUnrecognizedExpressions( groupedExpressions.get( false ), type );
 
-  protected static String daysSince(Date date) {
-    return String.valueOf(Days.daysBetween(new DateTime(date), DateTime.now()).getDays());
-  }
+        Set<String> expressions = groupedExpressions.get( true );
 
-  protected static String formatDate(Date date) {
-    return DateUtils.getMediumDateString(date);
-  }
+        if ( expressions == null || expressions.isEmpty() )
+        {
+            return Collections.emptySet();
+        }
+
+        return expressions;
+    }
+
+    private static void warnOfUnrecognizedExpressions( Set<String> unrecognized, ExpressionType type )
+    {
+        if ( unrecognized != null && !unrecognized.isEmpty() )
+        {
+            log.warn( String.format( "%d unrecognized expressions of type %s were ignored: %s",
+                unrecognized.size(), type.name(), Arrays.toString( unrecognized.toArray() ) ) );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    protected static String chop( String input, int limit )
+    {
+        return input.substring( 0, Math.min( input.length(), limit ) );
+    }
+
+    protected static String daysUntil( Date date )
+    {
+        return String.valueOf( Days.daysBetween( DateTime.now(), new DateTime( date ) ).getDays() );
+    }
+
+    protected static String daysSince( Date date )
+    {
+        return String.valueOf( Days.daysBetween( new DateTime( date ) , DateTime.now() ).getDays() );
+    }
+
+    protected static String formatDate( Date date )
+    {
+        return DateUtils.getMediumDateString( date );
+    }
 }

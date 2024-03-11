@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+
+import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.common.SortProperty;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -34,166 +38,143 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
-import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.common.DisplayProperty;
 
 /**
  * @author Lars Helge Overland
  */
-@Getter
-public enum UserSettingKey {
-  STYLE("keyStyle", UserSettings::getStyle),
-  MESSAGE_EMAIL_NOTIFICATION(
-      "keyMessageEmailNotification",
-      UserSettings::getMessageEmailNotification,
-      true,
-      Boolean.class),
-  MESSAGE_SMS_NOTIFICATION(
-      "keyMessageSmsNotification", UserSettings::getMessageSmsNotification, true, Boolean.class),
-  UI_LOCALE("keyUiLocale", UserSettings::getUiLocale, Locale.class),
-  DB_LOCALE("keyDbLocale", UserSettings::getDbLocale, Locale.class),
-  ANALYSIS_DISPLAY_PROPERTY(
-      "keyAnalysisDisplayProperty",
-      UserSettings::getAnalysisDisplayProperty,
-      DisplayProperty.class),
-  TRACKER_DASHBOARD_LAYOUT("keyTrackerDashboardLayout", UserSettings::getTrackerDashboardLayout);
+public enum UserSettingKey
+{
+    STYLE( "keyStyle" ),
+    MESSAGE_EMAIL_NOTIFICATION( "keyMessageEmailNotification", true, Boolean.class ),
+    MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", true, Boolean.class ),
+    UI_LOCALE( "keyUiLocale", Locale.class ),
+    DB_LOCALE( "keyDbLocale", Locale.class ),
+    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", String.class ),
+    TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" );
 
-  private final String name;
+    private final String name;
 
-  private Function<UserSettings, ? extends Serializable> getter;
+    private final Serializable defaultValue;
 
-  private final Serializable defaultValue;
+    private final Class<?> clazz;
 
-  private final Class<?> clazz;
+    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() ).filter( k -> k.getDefaultValue() != null )
+        .collect( Collectors.toMap( UserSettingKey::getName, UserSettingKey::getDefaultValue ) );
 
-  private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP =
-      Stream.of(UserSettingKey.values())
-          .filter(k -> k.getDefaultValue() != null)
-          .collect(Collectors.toMap(UserSettingKey::getName, UserSettingKey::getDefaultValue));
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  UserSettingKey(String name, Function<UserSettings, String> getter) {
-    this(name, getter, null, String.class);
-  }
-
-  <T extends Serializable> UserSettingKey(
-      String name, Function<UserSettings, T> getter, Class<T> clazz) {
-    this(name, getter, null, clazz);
-  }
-
-  <T extends Serializable> UserSettingKey(
-      String name, Function<UserSettings, T> getter, T defaultValue, Class<T> clazz) {
-    this.name = name;
-    this.getter = getter;
-    this.defaultValue = defaultValue;
-    this.clazz = clazz;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasDefaultValue() {
-    return defaultValue != null;
-  }
-
-  public static Optional<UserSettingKey> getByName(String name) {
-    for (UserSettingKey setting : UserSettingKey.values()) {
-      if (setting.getName().equals(name)) {
-        return Optional.of(setting);
-      }
+    UserSettingKey( String name )
+    {
+        this.name = name;
+        this.defaultValue = null;
+        this.clazz = String.class;
     }
 
-    return Optional.empty();
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public static Serializable getAsRealClass(UserSettingKey key, String value) {
-
-    Class<?> settingClazz = key.getClazz();
-
-    if (Double.class.isAssignableFrom(settingClazz)) {
-      return Double.valueOf(value);
-    } else if (Integer.class.isAssignableFrom(settingClazz)) {
-      return Integer.valueOf(value);
-    } else if (Boolean.class.isAssignableFrom(settingClazz)) {
-      return Boolean.valueOf(value);
-    } else if (Locale.class.isAssignableFrom(settingClazz)) {
-      return handleLocale(key, LocaleUtils.toLocale(value));
-    } else if (Enum.class.isAssignableFrom(settingClazz)) {
-      return Enum.valueOf((Class<? extends Enum>) settingClazz, value.toUpperCase());
+    UserSettingKey( String name, Class<?> clazz )
+    {
+        this.name = name;
+        this.defaultValue = null;
+        this.clazz = clazz;
     }
 
-    // TODO handle Dates
-
-    return value;
-  }
-
-  /**
-   * Method to determine whether a locale should be transformed or not. We only want to transform UI
-   * locales. We do not want to transform DB locales.
-   *
-   * @param key key to check whether the transformation should apply or not
-   * @param locale locale to transform or return
-   * @return the received locale if it's the DC_LOCALE or the possibly-transformed UI locale
-   */
-  private static Serializable handleLocale(UserSettingKey key, Locale locale) {
-    if (DB_LOCALE == key) return locale;
-
-    return handleObsoleteLocales(locale);
-  }
-
-  /**
-   * By default, for backwards compatibility reasons, Java maps Indonesian locales to the old 'in'
-   * ISO format, even if we pass 'id' into a {@link Locale} constructor. See {@link
-   * Locale#convertOldISOCodes(String)}. This method sets the Indonesian codes to the codes we want
-   * to use (which conform with the newer, universally-accepted ISO language formats for Indonesia
-   * 'id'). <br>
-   * <br>
-   * JDK 17 does not have this issue and allows switching between both codes - see <a
-   * href="https://bugs.openjdk.org/browse/JDK-8267069">JDK bug</a>. This is needed purely for DHIS2
-   * versions running on a JDK below 17.
-   *
-   * @param locale locale
-   * @return adjusted locale for Indonesian codes or as is for anything else
-   */
-  public static String handleObsoleteLocales(Locale locale) {
-
-    switch (locale.toString()) {
-      case "in":
-        return "id";
-      case "in_ID":
-        return "id_ID";
-      default:
-        return locale.toString();
+    UserSettingKey( String name, Serializable defaultValue, Class<?> clazz )
+    {
+        this.name = name;
+        this.defaultValue = defaultValue;
+        this.clazz = clazz;
     }
-  }
 
-  // -------------------------------------------------------------------------
-  // Getters
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public static Map<String, Serializable> getDefaultUserSettingsMap() {
-    return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
-  }
+    public Serializable getDefaultValue()
+    {
+        return defaultValue;
+    }
 
-  public static Set<UserSetting> getDefaultUserSettings(User user) {
-    Set<UserSetting> defaultUserSettings = new HashSet<>();
-    DEFAULT_USER_SETTINGS_MAP.forEach(
-        (key, value) -> {
-          UserSetting userSetting = new UserSetting();
-          userSetting.setName(key);
-          userSetting.setValue(value);
-          userSetting.setUser(user);
-          defaultUserSettings.add(userSetting);
-        });
-    return defaultUserSettings;
-  }
+    public boolean hasDefaultValue()
+    {
+        return defaultValue != null;
+    }
+
+    public static Optional<UserSettingKey> getByName( String name )
+    {
+        for ( UserSettingKey setting : UserSettingKey.values() )
+        {
+            if ( setting.getName().equals( name ) )
+            {
+                return Optional.of( setting );
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Serializable getAsRealClass( String name, String value )
+    {
+        Optional<UserSettingKey> setting = getByName( name );
+
+        if ( setting.isPresent() )
+        {
+            Class<?> settingClazz = setting.get().getClazz();
+
+            if ( Double.class.isAssignableFrom( settingClazz ) )
+            {
+                return Double.valueOf( value );
+            }
+            else if ( Integer.class.isAssignableFrom( settingClazz ) )
+            {
+                return Integer.valueOf( value );
+            }
+            else if ( Boolean.class.isAssignableFrom( settingClazz ) )
+            {
+                return Boolean.valueOf( value );
+            }
+            else if ( Locale.class.isAssignableFrom( settingClazz ) )
+            {
+                return LocaleUtils.toLocale( value );
+            }
+
+            //TODO handle Dates
+        }
+
+        return value;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public Class<?> getClazz()
+    {
+        return clazz;
+    }
+
+    public static Map<String, Serializable> getDefaultUserSettingsMap()
+    {
+        return new HashMap<>( DEFAULT_USER_SETTINGS_MAP );
+    }
+
+    public static Set<UserSetting> getDefaultUserSettings( User user )
+    {
+        Set<UserSetting> defaultUserSettings = new HashSet<>();
+        DEFAULT_USER_SETTINGS_MAP.forEach( ( key, value ) -> {
+            UserSetting userSetting = new UserSetting();
+            userSetting.setName( key );
+            userSetting.setValue( value );
+            userSetting.setUser( user );
+            defaultUserSettings.add( userSetting );
+        } );
+        return defaultUserSettings;
+    }
 }

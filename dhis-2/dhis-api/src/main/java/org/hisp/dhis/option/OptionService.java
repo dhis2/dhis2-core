@@ -1,5 +1,7 @@
+package org.hisp.dhis.option;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,91 +27,79 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option;
 
 import java.util.List;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * @author Lars Helge Overland
  */
-public interface OptionService {
-  String ID = OptionService.class.getName();
+public interface OptionService
+{
+    String ID = OptionService.class.getName();
+   
+    // -------------------------------------------------------------------------
+    // OptionSet
+    // -------------------------------------------------------------------------
+  
+    int saveOptionSet( OptionSet optionSet );
 
-  // -------------------------------------------------------------------------
-  // OptionSet
-  // -------------------------------------------------------------------------
+    void updateOptionSet( OptionSet optionSet );
 
-  long saveOptionSet(OptionSet optionSet) throws ConflictException;
+    OptionSet getOptionSet( int id );
 
-  void updateOptionSet(OptionSet optionSet) throws ConflictException;
+    OptionSet getOptionSet( String uid );
 
-  /**
-   * Validate an {@link OptionSet}.
-   *
-   * @param optionSet the set to validate
-   * @throws ConflictException when the provided {@link OptionSet} has validation errors
-   */
-  void validateOptionSet(OptionSet optionSet) throws ConflictException;
+    OptionSet getOptionSetByName( String name );
 
-  ErrorMessage validateOption(OptionSet optionSet, Option option);
+    OptionSet getOptionSetByCode( String code );
 
-  OptionSet getOptionSet(long id);
+    void deleteOptionSet( OptionSet optionSet );
 
-  OptionSet getOptionSet(String uid);
+    List<OptionSet> getAllOptionSets();
 
-  OptionSet getOptionSetByName(String name);
+    List<Option> getOptions( int optionSetId, String name, Integer max );
+    
+    // -------------------------------------------------------------------------
+    // Option
+    // -------------------------------------------------------------------------
 
-  OptionSet getOptionSetByCode(String code);
+    void updateOption( Option option );
+    
+    Option getOption( int id );
+    
+    Option getOptionByCode( String code );
+        
+    void deleteOption( Option option  );
+    
+    // -------------------------------------------------------------------------
+    // OptionGroup
+    // -------------------------------------------------------------------------
 
-  void deleteOptionSet(OptionSet optionSet);
+    int saveOptionGroup( OptionGroup group );
 
-  List<OptionSet> getAllOptionSets();
+    void updateOptionGroup( OptionGroup group );
 
-  List<Option> getOptions(long optionSetId, String name, Integer max);
+    OptionGroup getOptionGroup( int id );
 
-  // -------------------------------------------------------------------------
-  // Option
-  // -------------------------------------------------------------------------
+    OptionGroup getOptionGroup( String uid );
 
-  void updateOption(Option option);
+    void deleteOptionGroup( OptionGroup group );
 
-  Option getOption(long id);
+    List<OptionGroup> getAllOptionGroups();
 
-  Option getOptionByCode(String code);
+    // -------------------------------------------------------------------------
+    // OptionGroupSet
+    // -------------------------------------------------------------------------
 
-  void deleteOption(Option option);
+    int saveOptionGroupSet( OptionGroupSet group );
 
-  // -------------------------------------------------------------------------
-  // OptionGroup
-  // -------------------------------------------------------------------------
+    void updateOptionGroupSet( OptionGroupSet group );
 
-  long saveOptionGroup(OptionGroup group);
+    OptionGroupSet getOptionGroupSet( int id );
 
-  void updateOptionGroup(OptionGroup group);
+    OptionGroupSet getOptionGroupSet( String uid );
 
-  OptionGroup getOptionGroup(long id);
+    void deleteOptionGroupSet( OptionGroupSet group );
 
-  OptionGroup getOptionGroup(String uid);
-
-  void deleteOptionGroup(OptionGroup group);
-
-  List<OptionGroup> getAllOptionGroups();
-
-  // -------------------------------------------------------------------------
-  // OptionGroupSet
-  // -------------------------------------------------------------------------
-
-  long saveOptionGroupSet(OptionGroupSet group);
-
-  void updateOptionGroupSet(OptionGroupSet group);
-
-  OptionGroupSet getOptionGroupSet(long id);
-
-  OptionGroupSet getOptionGroupSet(String uid);
-
-  void deleteOptionGroupSet(OptionGroupSet group);
-
-  List<OptionGroupSet> getAllOptionGroupSets();
+    List<OptionGroupSet> getAllOptionGroupSets();
 }

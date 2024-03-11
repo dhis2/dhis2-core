@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityattributevalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -44,200 +37,224 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.Collection;
+import java.util.List;
+
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Abyot Asalefew
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService")
 public class DefaultTrackedEntityAttributeValueService
-    implements TrackedEntityAttributeValueService {
-  private final TrackedEntityAttributeValueStore attributeValueStore;
+    implements TrackedEntityAttributeValueService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final FileResourceService fileResourceService;
+    private TrackedEntityAttributeValueStore attributeValueStore;
 
-  private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+    public void setAttributeValueStore( TrackedEntityAttributeValueStore attributeValueStore )
+    {
+        this.attributeValueStore = attributeValueStore;
+    }
 
-  private final ReservedValueService reservedValueService;
+    @Autowired
+    private FileResourceService fileResourceService;
 
-  private final CurrentUserService currentUserService;
+    @Autowired
+    private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
-  private final DhisConfigurationProvider config;
+    @Autowired
+    private ReservedValueService reservedValueService;
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    @Autowired
+    private CurrentUserService currentUserService;
 
-  @Override
-  @Transactional
-  public void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit =
-        new TrackedEntityAttributeValueAudit(
+    @Autowired
+    private DhisConfigurationProvider config;
+
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
+    {
+        TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
             attributeValue,
-            attributeValue.getAuditValue(),
-            currentUserService.getCurrentUsername(),
-            AuditType.DELETE);
+            attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.DELETE );
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
-          trackedEntityAttributeValueAudit);
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
+        {
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+        }
+
+        deleteFileValue( attributeValue );
+        attributeValueStore.delete( attributeValue );
     }
 
-    deleteFileValue(attributeValue);
-    attributeValueStore.delete(attributeValue);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityAttributeValue getTrackedEntityAttributeValue(
-      TrackedEntityInstance instance, TrackedEntityAttribute attribute) {
-    return attributeValueStore.get(instance, attribute);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntityInstance instance) {
-    return attributeValueStore.get(instance);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntityAttribute attribute) {
-    return attributeValueStore.get(attribute);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getCountOfAssignedTrackedEntityAttributeValues(TrackedEntityAttribute attribute) {
-    return attributeValueStore.getCountOfAssignedTEAValues(attribute);
-  }
-
-  @Override
-  @Transactional
-  public void addTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    if (attributeValue == null
-        || attributeValue.getAttribute() == null
-        || attributeValue.getAttribute().getValueType() == null) {
-      throw new IllegalQueryException("Attribute or type is null or empty");
+    @Override
+    @Transactional(readOnly = true)
+    public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
+        TrackedEntityAttribute attribute )
+    {
+        return attributeValueStore.get( instance, attribute );
     }
 
-    if (attributeValue.getAttribute().isConfidentialBool()
-        && !config.getEncryptionStatus().isOk()) {
-      throw new IllegalStateException(
-          "Unable to encrypt data, encryption is not correctly configured");
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance )
+    {
+        return attributeValueStore.get( instance );
     }
 
-    String result =
-        valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
-
-    if (result != null) {
-      throw new IllegalQueryException("Value is not valid:  " + result);
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
+    {
+        return attributeValueStore.get( attribute );
     }
 
-    attributeValue.setAutoFields();
-
-    if (attributeValue.getAttribute().getValueType().isFile()
-        && !StringUtils.isEmpty(attributeValue.getValue())
-        && !addFileValue(attributeValue)) {
-      throw new IllegalQueryException(
-          String.format("FileResource with id '%s' not found", attributeValue.getValue()));
+    @Override
+    @Transactional(readOnly = true)
+    public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
+    {
+        return attributeValueStore.getCountOfAssignedTEAValues( attribute );
     }
 
-    if (attributeValue.getValue() != null) {
-      attributeValueStore.saveVoid(attributeValue);
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
+        Collection<TrackedEntityInstance> instances )
+    {
+        if ( instances != null && instances.size() > 0 )
+        {
+            return attributeValueStore.get( instances );
+        }
 
-      if (attributeValue.getAttribute().isGenerated()
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    updateTrackedEntityAttributeValue(attributeValue, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityAttributeValue(
-      TrackedEntityAttributeValue attributeValue, User user) {
-    if (attributeValue != null && StringUtils.isEmpty(attributeValue.getValue())) {
-      deleteFileValue(attributeValue);
-      attributeValueStore.delete(attributeValue);
-    } else {
-      if (attributeValue == null
-          || attributeValue.getAttribute() == null
-          || attributeValue.getAttribute().getValueType() == null) {
-        throw new IllegalQueryException("Attribute or type is null or empty");
-      }
-
-      attributeValue.setAutoFields();
-
-      String result =
-          valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
-
-      if (result != null) {
-        throw new IllegalQueryException("Value is not valid:  " + result);
-      }
-
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit =
-          new TrackedEntityAttributeValueAudit(
-              attributeValue,
-              attributeValue.getAuditValue(),
-              User.username(user),
-              AuditType.UPDATE);
-
-      if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
-            trackedEntityAttributeValueAudit);
-      }
-
-      attributeValueStore.update(attributeValue);
-
-      if (attributeValue.getAttribute().isGenerated()
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
-    }
-  }
-
-  private void deleteFileValue(TrackedEntityAttributeValue value) {
-    if (!value.getAttribute().getValueType().isFile()
-        || fileResourceService.getFileResource(value.getValue()) == null) {
-      return;
+        return null;
     }
 
-    FileResource fileResource = fileResourceService.getFileResource(value.getValue());
-    fileResourceService.updateFileResource(fileResource);
-  }
+    @Override
+    @Transactional
+    public void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
+    {
+        if ( attributeValue == null || attributeValue.getAttribute() == null ||
+            attributeValue.getAttribute().getValueType() == null )
+        {
+            throw new IllegalQueryException( "Attribute or type is null or empty" );
+        }
 
-  private boolean addFileValue(TrackedEntityAttributeValue value) {
-    FileResource fileResource = fileResourceService.getFileResource(value.getValue());
+        if ( attributeValue.getAttribute().isConfidentialBool() &&
+            !config.getEncryptionStatus().isOk() )
+        {
+            throw new IllegalStateException( "Unable to encrypt data, encryption is not correctly configured" );
+        }
 
-    if (fileResource == null) {
-      return false;
+        String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
+
+        if ( result != null )
+        {
+            throw new IllegalQueryException( "Value is not valid:  " + result );
+        }
+
+        attributeValue.setAutoFields();
+
+        if ( attributeValue.getAttribute().getValueType().isFile() && !addFileValue( attributeValue ) )
+        {
+            throw new IllegalQueryException(
+                String.format( "FileResource with id '%s' not found", attributeValue.getValue() ) );
+        }
+
+        if ( attributeValue.getValue() != null )
+        {
+            attributeValueStore.saveVoid( attributeValue );
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService
+                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+            }
+        }
     }
 
-    fileResource.setAssigned(true);
-    fileResourceService.updateFileResource(fileResource);
-    return true;
-  }
+    @Override
+    @Transactional
+    public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
+    {
+        if ( attributeValue != null && StringUtils.isEmpty( attributeValue.getValue() ) )
+        {
+            deleteFileValue( attributeValue );
+            attributeValueStore.delete( attributeValue );
+        }
+        else
+        {
+            if ( attributeValue == null || attributeValue.getAttribute() == null ||
+                attributeValue.getAttribute().getValueType() == null )
+            {
+                throw new IllegalQueryException( "Attribute or type is null or empty" );
+            }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
-      Map<TrackedEntityAttribute, List<String>> uniqueAttributes) {
-    return uniqueAttributes.entrySet().stream()
-        .flatMap(entry -> this.attributeValueStore.get(entry.getKey(), entry.getValue()).stream())
-        .collect(Collectors.toList());
-  }
+            attributeValue.setAutoFields();
+
+            String result = dataValueIsValid( attributeValue.getValue(), attributeValue.getAttribute().getValueType() );
+
+            if ( result != null )
+            {
+                throw new IllegalQueryException( "Value is not valid:  " + result );
+            }
+
+            TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
+                attributeValue,
+                attributeValue.getAuditValue(), currentUserService.getCurrentUsername(), AuditType.UPDATE );
+
+            if ( config.isEnabled( CHANGELOG_TRACKER ) )
+            {
+                trackedEntityAttributeValueAuditService
+                    .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            }
+
+            attributeValueStore.update( attributeValue );
+
+            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+            {
+                reservedValueService
+                    .useReservedValue( attributeValue.getAttribute().getTextPattern(), attributeValue.getValue() );
+            }
+        }
+    }
+
+    private void deleteFileValue( TrackedEntityAttributeValue value )
+    {
+        if ( !value.getAttribute().getValueType().isFile() ||
+            fileResourceService.getFileResource( value.getValue() ) == null )
+        {
+            return;
+        }
+
+        FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
+        fileResource.setAssigned( false );
+        fileResourceService.updateFileResource( fileResource );
+    }
+
+    private boolean addFileValue( TrackedEntityAttributeValue value )
+    {
+        FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
+
+        if ( fileResource == null )
+        {
+            return false;
+        }
+
+        fileResource.setAssigned( true );
+        fileResourceService.updateFileResource( fileResource );
+        return true;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.incoming;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.incoming;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.hisp.dhis.sms.SmsPublisher;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.sms.SmsPublisher;
-import org.springframework.stereotype.Service;
 
-/** Zubair <rajazubair.asghar@gmail.com> */
-@Slf4j
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.sms.incoming.SmsConsumerService")
-public class DefaultSmsConsumerService implements SmsConsumerService {
-  private final SmsPublisher smsPublisher;
+/**
+ * Zubair <rajazubair.asghar@gmail.com>
+ */
+public class DefaultSmsConsumerService
+    implements SmsConsumerService
+{
+    private static final Log log = LogFactory.getLog( DefaultSmsConsumerService.class );
 
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @PostConstruct
-  public void init() {
-    startSmsConsumer();
-  }
+    @Autowired
+    private SmsPublisher smsPublisher;
 
-  @Override
-  public void startSmsConsumer() {
-    smsPublisher.start();
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-    log.info("SMS consumer started");
-  }
+    @PostConstruct
+    public void init()
+    {
+        startSmsConsumer();
+    }
 
-  @Override
-  public void stopSmsConsumer() {
-    smsPublisher.stop();
+    @Override
+    public void startSmsConsumer()
+    {
+        smsPublisher.start();
 
-    log.info("SMS consumer stopped");
-  }
+        log.info( "SMS consumer started" );
+    }
+
+    @Override
+    public void stopSmsConsumer()
+    {
+        smsPublisher.stop();
+
+        log.info( "SMS consumer stopped" );
+    }
 }

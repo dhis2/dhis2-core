@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentitycomment;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -36,44 +37,65 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityComment extends BaseIdentifiableObject {
-  private String commentText;
+@JacksonXmlRootElement( localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityComment
+    extends BaseIdentifiableObject
+{
+    private int id;
 
-  private String creator;
+    private String commentText;
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    private String creator;
 
-  public TrackedEntityComment() {}
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  public TrackedEntityComment(String commentText, String creator) {
-    this.commentText = commentText;
-    this.creator = creator;
-  }
+    public TrackedEntityComment()
+    {
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters/Setters
-  // -------------------------------------------------------------------------
+    public TrackedEntityComment( String commentText, String creator )
+    {
+        this.commentText = commentText;
+        this.creator = creator;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCommentText() {
-    return commentText;
-  }
+    // -------------------------------------------------------------------------
+    // Getters/Setters
+    // -------------------------------------------------------------------------
 
-  public void setCommentText(String commentText) {
-    this.commentText = commentText;
-  }
+    public int getId()
+    {
+        return id;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCreator() {
-    return creator;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  public void setCreator(String creator) {
-    this.creator = creator;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCommentText()
+    {
+        return commentText;
+    }
+
+    public void setCommentText( String commentText )
+    {
+        this.commentText = commentText;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCreator()
+    {
+        return creator;
+    }
+
+    public void setCreator( String creator )
+    {
+        this.creator = creator;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -38,150 +39,167 @@ import org.hisp.dhis.legend.LegendSet;
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "attributeDimension", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityAttributeDimension {
-  private int id;
+@JacksonXmlRootElement( localName = "attributeDimension", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityAttributeDimension
+{
+    private int id;
 
-  /** Attribute. */
-  private TrackedEntityAttribute attribute;
+    /**
+     * Attribute.
+     */
+    private TrackedEntityAttribute attribute;
 
-  /** Legend set. */
-  private LegendSet legendSet;
+    /**
+     * Legend set.
+     */
+    private LegendSet legendSet;
 
-  /**
-   * Operator and filter on this format: <operator>:<filter>;<operator>:<filter> Operator and filter
-   * pairs can be repeated any number of times.
-   */
-  private String filter;
+    /**
+     * Operator and filter on this format:
+     * <operator>:<filter>;<operator>:<filter>
+     * Operator and filter pairs can be repeated any number of times.
+     */
+    private String filter;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public TrackedEntityAttributeDimension() {}
-
-  public TrackedEntityAttributeDimension(
-      TrackedEntityAttribute attribute, LegendSet legendSet, String filter) {
-    this.attribute = attribute;
-    this.legendSet = legendSet;
-    this.filter = filter;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public String getUid() {
-    return attribute != null ? attribute.getUid() : null;
-  }
-
-  public String getDisplayName() {
-    return attribute != null ? attribute.getDisplayName() : null;
-  }
-
-  @Override
-  public String toString() {
-    return "{"
-        + "\"class\":\""
-        + getClass()
-        + "\", "
-        + "\"id\":\""
-        + id
-        + "\", "
-        + "\"attribute\":"
-        + attribute
-        + ", "
-        + "\"legendSet\":"
-        + legendSet
-        + ", "
-        + "\"filter\":\""
-        + filter
-        + "\" "
-        + "}";
-  }
-
-  @Override
-  public int hashCode() {
-    int result = id;
-    result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-    result = 31 * result + (legendSet != null ? legendSet.hashCode() : 0);
-    result = 31 * result + (filter != null ? filter.hashCode() : 0);
-
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public TrackedEntityAttributeDimension()
+    {
     }
 
-    if (o == null) {
-      return false;
+    public TrackedEntityAttributeDimension( TrackedEntityAttribute attribute, LegendSet legendSet, String filter )
+    {
+        this.attribute = attribute;
+        this.legendSet = legendSet;
+        this.filter = filter;
     }
 
-    if (!getClass().isAssignableFrom(o.getClass())) {
-      return false;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public String getUid()
+    {
+        return attribute != null ? attribute.getUid() : null;
     }
 
-    final TrackedEntityAttributeDimension other = (TrackedEntityAttributeDimension) o;
-
-    if (attribute != null ? !attribute.equals(other.attribute) : other.attribute != null) {
-      return false;
+    public String getDisplayName()
+    {
+        return attribute != null ? attribute.getDisplayName() : null;
     }
 
-    if (legendSet != null ? !legendSet.equals(other.legendSet) : other.legendSet != null) {
-      return false;
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"id\":\"" + id + "\", " +
+            "\"attribute\":" + attribute + ", " +
+            "\"legendSet\":" + legendSet + ", " +
+            "\"filter\":\"" + filter + "\" " +
+            "}";
     }
 
-    if (filter != null ? !filter.equals(other.filter) : other.filter != null) {
-      return false;
+    @Override
+    public int hashCode()
+    {
+        int result = id;
+        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
+        result = 31 * result + (legendSet != null ? legendSet.hashCode() : 0);
+        result = 31 * result + (filter != null ? filter.hashCode() : 0);
+
+        return result;
     }
 
-    return true;
-  }
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+        if ( o == null )
+        {
+            return false;
+        }
 
-  public int getId() {
-    return id;
-  }
+        if ( !getClass().isAssignableFrom( o.getClass() ) )
+        {
+            return false;
+        }
 
-  public void setId(int id) {
-    this.id = id;
-  }
+        final TrackedEntityAttributeDimension other = (TrackedEntityAttributeDimension) o;
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public TrackedEntityAttribute getAttribute() {
-    return attribute;
-  }
+        if ( attribute != null ? !attribute.equals( other.attribute ) : other.attribute != null )
+        {
+            return false;
+        }
 
-  public void setAttribute(TrackedEntityAttribute attribute) {
-    this.attribute = attribute;
-  }
+        if ( legendSet != null ? !legendSet.equals( other.legendSet ) : other.legendSet != null )
+        {
+            return false;
+        }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public LegendSet getLegendSet() {
-    return legendSet;
-  }
+        if ( filter != null ? !filter.equals( other.filter ) : other.filter != null )
+        {
+            return false;
+        }
 
-  public void setLegendSet(LegendSet legendSet) {
-    this.legendSet = legendSet;
-  }
+        return true;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFilter() {
-    return filter;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setFilter(String filter) {
-    this.filter = filter;
-  }
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityAttribute getAttribute()
+    {
+        return attribute;
+    }
+
+    public void setAttribute( TrackedEntityAttribute attribute )
+    {
+        this.attribute = attribute;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet()
+    {
+        return legendSet;
+    }
+
+    public void setLegendSet( LegendSet legendSet )
+    {
+        this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFilter()
+    {
+        return filter;
+    }
+
+    public void setFilter( String filter )
+    {
+        this.filter = filter;
+    }
 }

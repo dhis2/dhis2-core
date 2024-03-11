@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Hours;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,255 +44,209 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
-import org.hisp.dhis.fileresource.events.FileDeletedEvent;
-import org.hisp.dhis.fileresource.events.FileSavedEvent;
-import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Hours;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.fileresource.FileResourceService")
-public class DefaultFileResourceService implements FileResourceService {
-  private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
+public class DefaultFileResourceService
+    implements FileResourceService
+{
+    private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
-  public static final Predicate<FileResource> IS_ORPHAN_PREDICATE = (fr -> !fr.isAssigned());
+    private static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
+        ( fr -> !fr.isAssigned() );
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final FileResourceStore fileResourceStore;
+    private IdentifiableObjectStore<FileResource> fileResourceStore;
 
-  private final SessionFactory sessionFactory;
+    @Autowired
+    private SessionFactory sessionFactory;
 
-  private final FileResourceContentStore fileResourceContentStore;
-
-  private final ImageProcessingService imageProcessingService;
-
-  private final ApplicationEventPublisher fileEventPublisher;
-
-  // -------------------------------------------------------------------------
-  // FileResourceService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional(readOnly = true)
-  public FileResource getFileResource(String uid) {
-    return checkStorageStatus(fileResourceStore.getByUid(uid));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<FileResource> getFileResources(@Nonnull List<String> uids) {
-    return fileResourceStore.getByUid(uids).stream()
-        .map(this::checkStorageStatus)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<FileResource> getOrphanedFileResources() {
-    return fileResourceStore
-        .getAllLeCreated(new DateTime().minus(IS_ORPHAN_TIME_DELTA).toDate())
-        .stream()
-        .filter(IS_ORPHAN_PREDICATE)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional
-  public void saveFileResource(FileResource fileResource, File file) {
-    validateFileResource(fileResource);
-
-    fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
-    fileResourceStore.save(fileResource);
-    sessionFactory.getCurrentSession().flush();
-
-    if (FileResource.isImage(fileResource.getContentType())
-        && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain())) {
-      Map<ImageFileDimension, File> imageFiles =
-          imageProcessingService.createImages(fileResource, file);
-
-      fileEventPublisher.publishEvent(new ImageFileSavedEvent(fileResource.getUid(), imageFiles));
-      return;
+    public void setFileResourceStore( IdentifiableObjectStore<FileResource> fileResourceStore )
+    {
+        this.fileResourceStore = fileResourceStore;
     }
 
-    fileEventPublisher.publishEvent(new FileSavedEvent(fileResource.getUid(), file));
-  }
+    private FileResourceContentStore fileResourceContentStore;
 
-  @Override
-  @Transactional
-  public String saveFileResource(FileResource fileResource, byte[] bytes) {
-    fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
-    fileResourceStore.save(fileResource);
-    sessionFactory.getCurrentSession().flush();
-
-    final String uid = fileResource.getUid();
-
-    fileEventPublisher.publishEvent(new BinaryFileSavedEvent(fileResource.getUid(), bytes));
-
-    return uid;
-  }
-
-  @Override
-  @Transactional
-  public void deleteFileResource(String uid) {
-    if (uid == null) {
-      return;
+    public void setFileResourceContentStore( FileResourceContentStore fileResourceContentStore )
+    {
+        this.fileResourceContentStore = fileResourceContentStore;
     }
 
-    FileResource fileResource = fileResourceStore.getByUid(uid);
+    private SchedulingManager schedulingManager;
 
-    deleteFileResource(fileResource);
-  }
-
-  @Override
-  @Transactional
-  public void deleteFileResource(FileResource fileResource) {
-    if (fileResource == null) {
-      return;
+    public void setSchedulingManager( SchedulingManager schedulingManager )
+    {
+        this.schedulingManager = schedulingManager;
     }
 
-    FileResource existingResource = fileResourceStore.get(fileResource.getId());
+    private FileResourceUploadCallback uploadCallback;
 
-    if (existingResource == null) {
-      return;
+    public void setUploadCallback( FileResourceUploadCallback uploadCallback )
+    {
+        this.uploadCallback = uploadCallback;
     }
 
-    FileDeletedEvent deleteFileEvent =
-        new FileDeletedEvent(
-            existingResource.getStorageKey(),
-            existingResource.getContentType(),
-            existingResource.getDomain());
+    // -------------------------------------------------------------------------
+    // FileResourceService implementation
+    // -------------------------------------------------------------------------
 
-    fileResourceStore.delete(existingResource);
-
-    fileEventPublisher.publishEvent(deleteFileEvent);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public InputStream getFileResourceContent(FileResource fileResource) {
-    return fileResourceContentStore.getFileResourceContent(fileResource.getStorageKey());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public long getFileResourceContentLength(FileResource fileResource) {
-    return fileResourceContentStore.getFileResourceContentLength(fileResource.getStorageKey());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
-      throws IOException, NoSuchElementException {
-    fileResourceContentStore.copyContent(fileResource.getStorageKey(), outputStream);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public byte[] copyFileResourceContent(FileResource fileResource)
-      throws IOException, NoSuchElementException {
-    return fileResourceContentStore.copyContent(fileResource.getStorageKey());
-  }
-
-  @Override
-  @Transactional
-  public boolean fileResourceExists(String uid) {
-    return fileResourceStore.getByUid(uid) != null;
-  }
-
-  @Override
-  @Transactional
-  public void updateFileResource(FileResource fileResource) {
-    fileResourceStore.update(fileResource);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public URI getSignedGetFileResourceContentUri(String uid) {
-    FileResource fileResource = getFileResource(uid);
-
-    if (fileResource == null) {
-      return null;
+    @Override
+    @Transactional
+    public FileResource getFileResource( String uid )
+    {
+        return checkStorageStatus( fileResourceStore.getByUid( uid ) );
     }
 
-    return fileResourceContentStore.getSignedGetContentUri(fileResource.getStorageKey());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public URI getSignedGetFileResourceContentUri(FileResource fileResource) {
-    if (fileResource == null) {
-      return null;
+    @Override
+    @Transactional
+    public List<FileResource> getFileResources( List<String> uids )
+    {
+        return fileResourceStore.getByUid( uids ).stream()
+            .map( this::checkStorageStatus )
+            .collect( Collectors.toList() );
     }
 
-    return fileResourceContentStore.getSignedGetContentUri(fileResource.getStorageKey());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<FileResource> getExpiredFileResources(
-      FileResourceRetentionStrategy retentionStrategy) {
-    DateTime expires = DateTime.now().minus(retentionStrategy.getRetentionTime());
-    return fileResourceStore.getExpiredFileResources(expires);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<FileResource> getAllUnProcessedImagesFiles() {
-    return fileResourceStore.getAllUnProcessedImages();
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Validates the given {@link FileResource}. Throws an exception if not.
-   *
-   * @param fileResource the file resource.
-   * @throws IllegalQueryException if the given file resource is invalid.
-   */
-  private void validateFileResource(FileResource fileResource) throws IllegalQueryException {
-    if (fileResource.getName() == null) {
-      throw new IllegalQueryException(ErrorCode.E6100);
+    @Override
+    @Transactional
+    public List<FileResource> getOrphanedFileResources( )
+    {
+        return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() )
+            .stream().filter( IS_ORPHAN_PREDICATE ).collect( Collectors.toList() );
     }
 
-    if (!FileResourceBlocklist.isValid(fileResource)) {
-      throw new IllegalQueryException(ErrorCode.E6101);
-    }
-  }
-
-  private FileResource checkStorageStatus(FileResource fileResource) {
-    if (fileResource != null) {
-      boolean exists =
-          fileResourceContentStore.fileResourceContentExists(fileResource.getStorageKey());
-
-      if (exists) {
-        fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
-      } else {
-        fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
-      }
+    @Override
+    @Transactional
+    public String saveFileResource( FileResource fileResource, File file )
+    {
+        return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
-    return fileResource;
-  }
+    @Override
+    @Transactional
+    public String saveFileResource( FileResource fileResource, byte[] bytes )
+    {
+        return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
+    }
+
+    @Override
+    @Transactional
+    public void deleteFileResource( String uid )
+    {
+        if ( uid == null )
+        {
+            return;
+        }
+
+        FileResource fileResource = fileResourceStore.getByUid( uid );
+
+        deleteFileResource( fileResource );
+    }
+
+    @Override
+    @Transactional
+    public void deleteFileResource( FileResource fileResource )
+    {
+        if ( fileResource == null )
+        {
+            return;
+        }
+
+        fileResourceContentStore.deleteFileResourceContent( fileResource.getStorageKey() );
+        fileResourceStore.delete( fileResource );
+    }
+
+    @Override
+    public InputStream getFileResourceContent( FileResource fileResource )
+    {
+        return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
+    }
+    
+    @Override
+    @Transactional( readOnly = true )
+    public long getFileResourceContentLength( FileResource fileResource )
+    {
+        return fileResourceContentStore.getFileResourceContentLength( fileResource.getStorageKey() );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+        throws IOException, NoSuchElementException
+    {
+        fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
+    }
+
+    @Override
+    @Transactional
+    public boolean fileResourceExists( String uid )
+    {
+        return fileResourceStore.getByUid( uid ) != null;
+    }
+
+    @Override
+    @Transactional
+    public void updateFileResource( FileResource fileResource )
+    {
+        fileResourceStore.update( fileResource );
+    }
+
+    @Override
+    public URI getSignedGetFileResourceContentUri( String uid )
+    {
+        FileResource fileResource = getFileResource( uid );
+
+        if ( fileResource == null )
+        {
+            return null;
+        }
+
+        return fileResourceContentStore.getSignedGetContentUri( fileResource.getStorageKey() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private String saveFileResourceInternal( FileResource fileResource, Callable<String> saveCallable )
+    {
+        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+        fileResourceStore.save( fileResource );
+        sessionFactory.getCurrentSession().flush();
+
+        final String uid = fileResource.getUid();
+
+        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
+
+        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
+
+        return uid;
+    }
+
+    private FileResource checkStorageStatus( FileResource fileResource )
+    {
+        if ( fileResource != null )
+        {
+            boolean exists = fileResourceContentStore.fileResourceContentExists( fileResource.getStorageKey() );
+
+            if ( exists )
+            {
+                fileResource.setStorageStatus( FileResourceStorageStatus.STORED );
+            }
+            else
+            {
+                fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+            }
+        }
+
+        return fileResource;
+    }
 }

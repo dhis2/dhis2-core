@@ -1,5 +1,7 @@
+package org.hisp.dhis.indicator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
 
 import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
-public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
-  String ID = IndicatorStore.class.getName();
+public interface IndicatorStore
+    extends IdentifiableObjectStore<Indicator>
+{
+    String ID = IndicatorStore.class.getName();
 
-  List<Indicator> getIndicatorsWithGroupSets();
+    List<Indicator> getIndicatorsWithGroupSets();
 
-  List<Indicator> getIndicatorsWithoutGroups();
+    List<Indicator> getIndicatorsWithoutGroups();
 
-  List<Indicator> getIndicatorsWithDataSets();
+    List<Indicator> getIndicatorsWithDataSets();
 }

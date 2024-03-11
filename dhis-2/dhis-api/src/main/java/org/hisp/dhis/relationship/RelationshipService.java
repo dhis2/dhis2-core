@@ -1,5 +1,7 @@
+package org.hisp.dhis.relationship;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,110 +27,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
 
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew
  */
-public interface RelationshipService {
-  String ID = RelationshipService.class.getName();
+public interface RelationshipService
+{
+    String ID = RelationshipService.class.getName();
 
-  boolean relationshipExists(String uid);
+    boolean relationshipExists( String uid );
 
-  /**
-   * Adds an {@link Relationship}
-   *
-   * @param relationship the relationship.
-   * @return id of the added relationship.
-   */
-  long addRelationship(Relationship relationship);
+    /**
+     * Adds an {@link Relationship}
+     *
+     * @param relationship the relationship.
+     * @return id of the added relationship.
+     */
+    int addRelationship( Relationship relationship );
 
-  /**
-   * Returns a {@link Relationship}.
-   *
-   * @param relationship the relationship.
-   */
-  void deleteRelationship(Relationship relationship);
+    /**
+     * Returns a {@link Relationship}.
+     *
+     * @param relationship the relationship.
+     */
+    void deleteRelationship( Relationship relationship );
 
-  /**
-   * Updates a {@link Relationship}.
-   *
-   * @param relationship the relationship.
-   */
-  void updateRelationship(Relationship relationship);
+    /**
+     * Updates a {@link Relationship}.
+     *
+     * @param relationship the relationship.
+     */
+    void updateRelationship( Relationship relationship );
 
-  /**
-   * Returns a {@link Relationship}.
-   *
-   * @param id the id of the relationship to return.
-   * @return the relationship with the given identifier.
-   */
-  Relationship getRelationship(long id);
+    /**
+     * Returns a {@link Relationship}.
+     *
+     * @param id the id of the relationship to return.
+     * @return the relationship with the given identifier.
+     */
+    Relationship getRelationship( int id );
 
-  /**
-   * Checks if relationship for given UID exists (including deleted relationships).
-   *
-   * @param uid Relationship UID to check for.
-   * @return return true if relationship exists, false otherwise.
-   */
-  boolean relationshipExistsIncludingDeleted(String uid);
+    /**
+     * Fetches a {@see Relationship} based on a relationship identifying attributes:
+     *
+     * - relationship type
+     * - from
+     * - to
+     *
+     * @param relationship A valid Relationship
+     * @return an Optional Relationship
+     */
+    Optional<Relationship> getRelationshipByRelationship( Relationship relationship );
 
-  /**
-   * Fetches a {@link Relationship} based on a relationship identifying attributes:
-   *
-   * <p>- relationship type - from - to
-   *
-   * @param relationship A valid Relationship
-   * @return an Optional Relationship
-   */
-  Optional<Relationship> getRelationshipByRelationship(Relationship relationship);
+    Relationship getRelationship( String uid );
 
-  Relationship getRelationship(String uid);
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
 
-  Relationship getRelationshipIncludeDeleted(String uid);
+    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
 
-  List<Relationship> getRelationships(@Nonnull List<String> uids);
-
-  default List<Relationship> getRelationshipsByTrackedEntityInstance(
-      TrackedEntityInstance tei, boolean skipAccessValidation, boolean includeDeleted) {
-    return getRelationshipsByTrackedEntityInstance(tei, null, skipAccessValidation, includeDeleted);
-  }
-
-  List<Relationship> getRelationshipsByTrackedEntityInstance(
-      TrackedEntityInstance tei,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted);
-
-  default List<Relationship> getRelationshipsByProgramInstance(
-      ProgramInstance pi, boolean skipAccessValidation, boolean includeDeleted) {
-    return getRelationshipsByProgramInstance(pi, null, skipAccessValidation, includeDeleted);
-  }
-
-  List<Relationship> getRelationshipsByProgramInstance(
-      ProgramInstance pi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted);
-
-  default List<Relationship> getRelationshipsByProgramStageInstance(
-      ProgramStageInstance psi, boolean skipAccessValidation, boolean includeDeleted) {
-    return getRelationshipsByProgramStageInstance(psi, null, skipAccessValidation, includeDeleted);
-  }
-
-  List<Relationship> getRelationshipsByProgramStageInstance(
-      ProgramStageInstance psi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted);
-
-  List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType);
+    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
 }

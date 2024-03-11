@@ -1,5 +1,7 @@
+package org.hisp.dhis.query.operators;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +27,98 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.operators;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
 import org.hibernate.criterion.MatchMode;
+import org.hisp.dhis.query.Type;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Henning Håkonsen
  */
-public class TokenUtils {
-  private TokenUtils() {
-    throw new UnsupportedOperationException("util");
-  }
-
-  public static List<String> getTokens(String value) {
-    return asList(value.replaceAll("[^\\p{L}0-9]", " ").split("[\\s@&.?$+-]+"));
-  }
-
-  public static StringBuilder createRegex(String value) {
-    StringBuilder regex = new StringBuilder();
-
-    List<String> tokens = getTokens(value);
-
-    if (tokens.isEmpty()) {
-      return regex;
+public class TokenUtils
+{
+    public static List<String> getTokens( String value )
+    {
+        return Arrays.asList( value.replaceAll( "[^a-zA-Z0-9]", " " ).split( "[\\s@&.?$+-]+" ) );
     }
 
-    for (String token : getTokens(value)) {
-      regex.append("(?=.*").append(token).append(")");
+    public static StringBuilder createRegex( String value )
+    {
+        StringBuilder regex = new StringBuilder();
+        
+        List<String> tokens = TokenUtils.getTokens( value );
+        
+        if ( tokens == null || tokens.isEmpty() )
+        {
+            return regex;
+        }
+        
+        TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
+                
+        return regex;
     }
-    return regex;
-  }
 
-  public static <T> boolean test(
-      T value, String searchTerm, boolean caseSensitive, MatchMode mode) {
-    if (value == null) {
-      return false;
-    }
-    String searchString = caseSensitive ? searchTerm : searchTerm.toLowerCase();
-    String valueString = caseSensitive ? value.toString() : value.toString().toLowerCase();
-    List<String> searchTokens = getTokens(searchString);
-    List<String> valueTokens = getTokens(valueString);
-    return searchTokens.stream().allMatch(searchToken -> testToken(searchToken, valueTokens, mode));
-  }
+    public static boolean test( List<Object> args, Object testValue, String targetValue, boolean caseSensitive,
+        MatchMode matchMode )
+    {
+        if ( args.isEmpty() || testValue == null )
+        {
+            return false;
+        }
 
-  private static boolean testToken(String searchToken, List<String> valueTokens, MatchMode mode) {
-    switch (mode) {
-      case EXACT:
-        return valueTokens.stream().anyMatch(token -> token.equals(searchToken));
-      case START:
-        return valueTokens.stream().anyMatch(token -> token.startsWith(searchToken));
-      case END:
-        return valueTokens.stream().anyMatch(token -> token.endsWith(searchToken));
-      default:
-      case ANYWHERE:
-        return valueTokens.stream().anyMatch(token -> token.contains(searchToken));
+        Type type = new Type( testValue );
+
+        if ( type.isString() )
+        {
+            String s2 = caseSensitive ? (String) testValue : ((String) testValue).toLowerCase();
+
+            List<String> s1_tokens = getTokens( targetValue );
+            List<String> s2_tokens = Arrays.asList( s2.replaceAll( "[^a-zA-Z0-9]", " " ).split( "[\\s@&.?$+-]+" ) );
+
+            if ( s1_tokens.size() == 1 )
+            {
+                return s2.contains( targetValue );
+            }
+            else
+            {
+                for ( String s : s1_tokens )
+                {
+                    boolean found = false;
+
+                    for ( String s3 : s2_tokens )
+                    {
+                        switch ( matchMode )
+                        {
+                        case EXACT:
+                            found = s3.equals( s );
+                            break;
+                        case START:
+                            found = s3.startsWith( s );
+                            break;
+                        case END:
+                            found = s3.endsWith( s );
+                            break;
+                        case ANYWHERE:
+                            found = s3.contains( s );
+                            break;
+                        }
+
+                        if ( found )
+                        {
+                            break;
+                        }
+                    }
+
+                    if ( !found )
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
-  }
 }

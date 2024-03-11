@@ -1,5 +1,7 @@
+package org.hisp.dhis.notification;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-/** Created by zubair on 06.04.17. */
-@Getter
-@AllArgsConstructor
-public enum SendStrategy {
-  COLLECTIVE_SUMMARY("Summary"),
-  SINGLE_NOTIFICATION("Single");
+/**
+ * Created by zubair on 06.04.17.
+ */
 
-  private final String description;
+public enum SendStrategy
+{
+    COLLECTIVE_SUMMARY( "Summary" ),
+    SINGLE_NOTIFICATION( "Single" );
+
+    private String description;
+
+    SendStrategy()
+    {
+    }
+
+    SendStrategy( String description )
+    {
+        this.description = description;
+    }
+
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 }

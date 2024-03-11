@@ -1,5 +1,7 @@
+package org.hisp.dhis.validation.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation.comparator;
 
 import java.util.Comparator;
+
 import org.hisp.dhis.validation.ValidationResult;
 
 /**
  * Comparator sorting on the result period.
- *
+ * 
  * @author Lars Helge Overland
  */
-public class ValidationResultComparator implements Comparator<ValidationResult> {
-  @Override
-  public int compare(ValidationResult result1, ValidationResult result2) {
-    if (result1.getPeriod() == null && result2.getPeriod() == null) {
-      return 0;
-    } else if (result1.getPeriod() == null) {
-      return 1;
-    } else if (result2.getPeriod() == null) {
-      return -1;
+public class ValidationResultComparator
+    implements Comparator<ValidationResult>
+{
+    @Override
+    public int compare( ValidationResult result1, ValidationResult result2 )
+    {
+        if ( result1.getPeriod() == null && result2.getPeriod() == null )
+        {
+            return 0;
+        }
+        else if ( result1.getPeriod() == null )
+        {
+            return 1;
+        }
+        else if ( result2.getPeriod() == null )
+        {
+            return -1;
+        }
+        
+        return result1.getPeriod().getStartDate().compareTo( result2.getPeriod().getStartDate() );
     }
-
-    return result1.getPeriod().getStartDate().compareTo(result2.getPeriod().getStartDate());
-  }
 }

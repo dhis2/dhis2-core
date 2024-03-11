@@ -1,5 +1,7 @@
+package org.hisp.dhis.render.type;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.render.type;
 
 /**
- * This class represents the different ways to render a Section (ProgramSection,
- * ProgramStageSection)
+ * This class represents the different ways to render a Section (ProgramSection, ProgramStageSection)
  */
-public enum SectionRenderingType {
-  LISTING,
-  SEQUENTIAL,
-  MATRIX;
+public enum SectionRenderingType
+{
+    LISTING,
+    SEQUENTIAL,
+    MATRIX;
 
-  public static SectionRenderingType fromValue(String value) {
-    for (SectionRenderingType renderingType : SectionRenderingType.values()) {
-      if (renderingType.name().equalsIgnoreCase(value)) {
-        return renderingType;
-      }
+    public static SectionRenderingType fromValue( String value )
+    {
+        for ( SectionRenderingType renderingType : SectionRenderingType.values() )
+        {
+            if ( renderingType.name().equalsIgnoreCase( value ) )
+            {
+                return renderingType;
+            }
+        }
+
+        return null;
     }
-
-    return null;
-  }
 }

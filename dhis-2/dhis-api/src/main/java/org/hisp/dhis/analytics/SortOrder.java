@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 /**
  * @author Lars Helge Overland
  */
-public enum SortOrder {
-  ASC("asc"),
-  DESC("desc");
+public enum SortOrder
+{
+    ASC( "asc" ),
+    DESC( "desc" );
 
-  private String value;
+    private String value;
 
-  SortOrder(String value) {
-    this.value = value;
-  }
+    SortOrder( String value )
+    {
+        this.value = value;
+    }
 
-  public String getValue() {
-    return value;
-  }
+    public String getValue()
+    {
+        return value;
+    }
 }

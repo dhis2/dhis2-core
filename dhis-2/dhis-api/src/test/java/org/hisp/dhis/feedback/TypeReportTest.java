@@ -1,5 +1,7 @@
+package org.hisp.dhis.feedback;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,87 +27,92 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.feedback;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TypeReportTest {
+public class TypeReportTest
+{
+    @Test
+    public void testTypeReport()
+    {
+        ObjectReport objectReport0 = new ObjectReport( DataElement.class, 0 );
+        ObjectReport objectReport1 = new ObjectReport( DataElement.class, 1 );
+        ObjectReport objectReport2 = new ObjectReport( DataElement.class, 2 );
 
-  @Test
-  void testTypeReport() {
-    ObjectReport objectReport0 = new ObjectReport(DataElement.class, 0);
-    ObjectReport objectReport1 = new ObjectReport(DataElement.class, 1);
-    ObjectReport objectReport2 = new ObjectReport(DataElement.class, 2);
-    objectReport0.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport1.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport2.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    TypeReport typeReport0 = new TypeReport(DataElement.class);
-    typeReport0.addObjectReport(objectReport0);
-    typeReport0.addObjectReport(objectReport1);
-    typeReport0.addObjectReport(objectReport2);
-    assertEquals(3, typeReport0.getObjectReportsCount());
-    assertEquals(3, typeReport0.getErrorReportsCount());
-    ObjectReport objectReport3 = new ObjectReport(DataElement.class, 3);
-    ObjectReport objectReport4 = new ObjectReport(DataElement.class, 4);
-    ObjectReport objectReport5 = new ObjectReport(DataElement.class, 5);
-    objectReport3.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport4.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport5.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    TypeReport typeReport1 = new TypeReport(DataElement.class);
-    typeReport1.addObjectReport(objectReport0);
-    typeReport1.addObjectReport(objectReport1);
-    typeReport1.addObjectReport(objectReport2);
-    assertEquals(3, typeReport1.getObjectReportsCount());
-    assertEquals(3, typeReport1.getErrorReportsCount());
-  }
+        objectReport0.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport1.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport2.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
 
-  @Test
-  void testTypeReportMerge() {
-    ObjectReport objectReport0 = new ObjectReport(DataElement.class, 0);
-    ObjectReport objectReport1 = new ObjectReport(DataElement.class, 1);
-    ObjectReport objectReport2 = new ObjectReport(DataElement.class, 2);
-    objectReport0.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport1.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport2.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    TypeReport typeReport0 = new TypeReport(DataElement.class);
-    typeReport0.addObjectReport(objectReport0);
-    typeReport0.addObjectReport(objectReport1);
-    typeReport0.addObjectReport(objectReport2);
-    assertEquals(3, typeReport0.getObjectReportsCount());
-    assertEquals(3, typeReport0.getErrorReportsCount());
-    ObjectReport objectReport3 = new ObjectReport(DataElement.class, 3);
-    ObjectReport objectReport4 = new ObjectReport(DataElement.class, 4);
-    ObjectReport objectReport5 = new ObjectReport(DataElement.class, 5);
-    objectReport3.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport4.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    objectReport5.addErrorReport(
-        new ErrorReport(DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup"));
-    TypeReport typeReport1 = new TypeReport(DataElement.class);
-    typeReport1.addObjectReport(objectReport3);
-    typeReport1.addObjectReport(objectReport4);
-    typeReport1.addObjectReport(objectReport5);
-    assertEquals(3, typeReport1.getObjectReportsCount());
-    assertEquals(3, typeReport1.getErrorReportsCount());
-    typeReport0.merge(typeReport1);
-    assertEquals(6, typeReport0.getErrorReportsCount());
-    assertEquals(6, typeReport0.getObjectReportsCount());
-  }
+        TypeReport typeReport0 = new TypeReport( DataElement.class );
+        typeReport0.addObjectReport( objectReport0 );
+        typeReport0.addObjectReport( objectReport1 );
+        typeReport0.addObjectReport( objectReport2 );
+
+        assertEquals( 3, typeReport0.getObjectReports().size() );
+        assertEquals( 3, typeReport0.getErrorReports().size() );
+
+        ObjectReport objectReport3 = new ObjectReport( DataElement.class, 3 );
+        ObjectReport objectReport4 = new ObjectReport( DataElement.class, 4 );
+        ObjectReport objectReport5 = new ObjectReport( DataElement.class, 5 );
+
+        objectReport3.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport4.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport5.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+
+        TypeReport typeReport1 = new TypeReport( DataElement.class );
+        typeReport1.addObjectReport( objectReport0 );
+        typeReport1.addObjectReport( objectReport1 );
+        typeReport1.addObjectReport( objectReport2 );
+
+        assertEquals( 3, typeReport1.getObjectReports().size() );
+        assertEquals( 3, typeReport1.getErrorReports().size() );
+    }
+
+    @Test
+    public void testTypeReportMerge()
+    {
+        ObjectReport objectReport0 = new ObjectReport( DataElement.class, 0 );
+        ObjectReport objectReport1 = new ObjectReport( DataElement.class, 1 );
+        ObjectReport objectReport2 = new ObjectReport( DataElement.class, 2 );
+
+        objectReport0.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport1.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport2.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+
+        TypeReport typeReport0 = new TypeReport( DataElement.class );
+        typeReport0.addObjectReport( objectReport0 );
+        typeReport0.addObjectReport( objectReport1 );
+        typeReport0.addObjectReport( objectReport2 );
+
+        assertEquals( 3, typeReport0.getObjectReports().size() );
+        assertEquals( 3, typeReport0.getErrorReports().size() );
+
+        ObjectReport objectReport3 = new ObjectReport( DataElement.class, 3 );
+        ObjectReport objectReport4 = new ObjectReport( DataElement.class, 4 );
+        ObjectReport objectReport5 = new ObjectReport( DataElement.class, 5 );
+
+        objectReport3.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport4.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+        objectReport5.addErrorReport( new ErrorReport( DataElementGroup.class, ErrorCode.E3000, "admin", "DataElementGroup" ) );
+
+        TypeReport typeReport1 = new TypeReport( DataElement.class );
+        typeReport1.addObjectReport( objectReport3 );
+        typeReport1.addObjectReport( objectReport4 );
+        typeReport1.addObjectReport( objectReport5 );
+
+        assertEquals( 3, typeReport1.getObjectReports().size() );
+        assertEquals( 3, typeReport1.getErrorReports().size() );
+
+        typeReport0.merge( typeReport1 );
+
+        assertEquals( 6, typeReport0.getErrorReports().size() );
+        assertEquals( 6, typeReport0.getObjectReports().size() );
+    }
 }

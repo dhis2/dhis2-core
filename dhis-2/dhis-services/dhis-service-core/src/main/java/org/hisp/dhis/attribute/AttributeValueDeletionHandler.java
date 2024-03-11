@@ -1,5 +1,7 @@
+package org.hisp.dhis.attribute;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +27,116 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
 
-import static java.util.Collections.singletonList;
-
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-@Component
-@AllArgsConstructor
-public class AttributeValueDeletionHandler extends DeletionHandler {
-  private final IdentifiableObjectManager identifiableObjectManager;
+import java.util.Iterator;
+import java.util.Set;
 
-  @Override
-  protected void register() {
-    whenVetoing(Attribute.class, this::allowDeleteAttribute);
-  }
+/**
+ * @author Lars Helge Overland
+ */
+public class AttributeValueDeletionHandler
+    extends DeletionHandler
+{
+    private AttributeService attributeService;
 
-  private DeletionVeto allowDeleteAttribute(Attribute attribute) {
-    for (Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses()) {
-      if (identifiableObjectManager.countAllValuesByAttributes(
-              supportedClass, singletonList(attribute))
-          > 0) {
-        return new DeletionVeto(supportedClass, Attribute.class);
-      }
+    public void setAttributeService( AttributeService attributeService )
+    {
+        this.attributeService = attributeService;
     }
-    return DeletionVeto.ACCEPT;
-  }
+
+    private JdbcTemplate jdbcTemplate;
+
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return AttributeValue.class.getSimpleName();
+    }
+
+    @Override
+    public String allowDeleteAttribute( Attribute attribute )
+    {
+        String sql = "select count(*) from attributevalue where attributeid=" + attribute.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public void deleteDataElement( DataElement dataElement )
+    {
+        removeAttributeValues( dataElement.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteDataElementGroup( DataElementGroup dataElementGroup )
+    {
+        removeAttributeValues( dataElementGroup.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteIndicator( Indicator indicator )
+    {
+        removeAttributeValues( indicator.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
+    {
+        removeAttributeValues( indicatorGroup.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        removeAttributeValues( organisationUnit.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
+    {
+        removeAttributeValues( organisationUnitGroup.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteUser( User user )
+    {
+        removeAttributeValues( user.getAttributeValues() );
+    }
+
+    @Override
+    public void deleteUserGroup( UserGroup userGroup )
+    {
+        removeAttributeValues( userGroup.getAttributeValues() );
+    }
+
+    private void removeAttributeValues( Set<AttributeValue> attributeValues )
+    {
+        Iterator<AttributeValue> iterator = attributeValues.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            AttributeValue attributeValue = iterator.next();
+            iterator.remove();
+            attributeService.deleteAttributeValue( attributeValue );
+        }
+    }
 }

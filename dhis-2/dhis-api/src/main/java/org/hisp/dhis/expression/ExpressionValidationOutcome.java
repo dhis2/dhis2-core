@@ -1,5 +1,7 @@
+package org.hisp.dhis.expression;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expression;
 
 /**
- * @author Lars Helge Overland
- */
-public enum ExpressionValidationOutcome {
-  VALID("valid"),
-  EXPRESSION_IS_EMPTY("expression_is_empty"),
-  DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST("dimensional_item_object_does_not_exist"),
-  CONSTANT_DOES_NOT_EXIST("constant_does_not_exist"),
-  ORG_UNIT_GROUP_DOES_NOT_EXIST("org_unit_group_does_not_exist"),
-  EXPRESSION_IS_NOT_WELL_FORMED("expression_is_not_well_formed");
-
-  private final String key;
-
-  ExpressionValidationOutcome(String key) {
-    this.key = key;
-  }
-
-  public boolean isValid() {
-    return this == VALID;
-  }
-
-  public String getKey() {
-    return key;
-  }
+* @author Lars Helge Overland
+*/
+public enum ExpressionValidationOutcome
+{
+    VALID( "valid" ), 
+    EXPRESSION_IS_EMPTY( "expression_is_empty"),
+    DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST( "dimensional_item_object_does_not_exist" ),
+    CONSTANT_DOES_NOT_EXIST( "constant_does_not_exist"),
+    ORG_UNIT_GROUP_DOES_NOT_EXIST( "org_unit_group_does_not_exist"),
+    EXPRESSION_IS_NOT_WELL_FORMED( "expression_is_not_well_formed");
+    
+    private final String key;
+    
+    ExpressionValidationOutcome( String key )
+    {
+        this.key = key;
+    }
+    
+    public boolean isValid()
+    {
+        return this == VALID;
+    }
+    
+    public String getKey()
+    {
+        return key;
+    }
 }

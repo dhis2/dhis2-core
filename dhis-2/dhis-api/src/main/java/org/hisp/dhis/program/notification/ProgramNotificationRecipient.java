@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.notification;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
 
 import org.hisp.dhis.notification.NotificationRecipient;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient implements NotificationRecipient {
-  TRACKED_ENTITY_INSTANCE(true),
-  ORGANISATION_UNIT_CONTACT(true),
-  USERS_AT_ORGANISATION_UNIT(false),
-  USER_GROUP(false),
-  PROGRAM_ATTRIBUTE(true),
-  DATA_ELEMENT(true),
-  WEB_HOOK(true);
+public enum ProgramNotificationRecipient
+    implements NotificationRecipient
+{
+    TRACKED_ENTITY_INSTANCE( true ),
+    ORGANISATION_UNIT_CONTACT( true ),
+    USERS_AT_ORGANISATION_UNIT( false ),
+    USER_GROUP( false ),
+    PROGRAM_ATTRIBUTE( true ),
+    DATA_ELEMENT( true );
 
-  private boolean external;
+    private boolean external;
 
-  ProgramNotificationRecipient(boolean external) {
-    this.external = external;
-  }
+    ProgramNotificationRecipient( boolean external )
+    {
+        this.external = external;
+    }
 
-  @Override
-  public boolean isExternalRecipient() {
-    return external;
-  }
+    @Override
+    public boolean isExternalRecipient()
+    {
+        return external;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.calendar;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.calendar;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DateFormat {
-  private final String name;
+public class DateFormat
+{
+    private final String name;
 
-  private final String jdkDateFormat;
+    private final String jdkDateFormat;
 
-  private final String jodaDateFormat;
+    private final String jodaDateFormat;
 
-  private final String jsDateFormat;
+    private final String jsDateFormat;
 
-  public DateFormat(String name, String jdkDateFormat, String jodaDateFormat, String jsDateFormat) {
-    this.name = name;
-    this.jdkDateFormat = jdkDateFormat;
-    this.jodaDateFormat = jodaDateFormat;
-    this.jsDateFormat = jsDateFormat;
-  }
+    public DateFormat( String name, String jdkDateFormat, String jodaDateFormat, String jsDateFormat )
+    {
+        this.name = name;
+        this.jdkDateFormat = jdkDateFormat;
+        this.jodaDateFormat = jodaDateFormat;
+        this.jsDateFormat = jsDateFormat;
+    }
 
-  public String name() {
-    return name;
-  }
+    public String name()
+    {
+        return name;
+    }
 
-  public String getJdk() {
-    return jdkDateFormat;
-  }
+    public String getJdk()
+    {
+        return jdkDateFormat;
+    }
 
-  public String getJoda() {
-    return jodaDateFormat;
-  }
+    public String getJoda()
+    {
+        return jodaDateFormat;
+    }
 
-  public String getJs() {
-    return jsDateFormat;
-  }
+    public String getJs()
+    {
+        return jsDateFormat;
+    }
 }

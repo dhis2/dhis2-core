@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.oauth2;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface OAuth2ClientStore extends IdentifiableObjectStore<OAuth2Client> {
-  String ID = OAuth2ClientStore.class.getName();
+public interface OAuth2ClientStore
+    extends IdentifiableObjectStore<OAuth2Client>
+{
+    String ID = OAuth2ClientStore.class.getName();
 
-  /**
-   * Get OAuth2 client by cid.
-   *
-   * @param cid ClientID
-   * @return Matched OAuth2Client or null if not found
-   */
-  OAuth2Client getByClientId(String cid);
+    /**
+     * Get OAuth2 client by cid.
+     *
+     * @param cid ClientID
+     * @return Matched OAuth2Client or null if not found
+     */
+    OAuth2Client getByClientId( String cid );
 }

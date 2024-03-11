@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import java.util.Set;
+
 import org.hisp.dhis.user.User;
 
-public interface SubscribableObject extends IdentifiableObject {
+public interface SubscribableObject
+    extends IdentifiableObject
+{
   Set<String> getSubscribers();
 
   boolean isSubscribed();
 
-  boolean subscribe(User user);
+  boolean subscribe( User user );
 
-  boolean unsubscribe(User user);
+  boolean unsubscribe( User user );
 }

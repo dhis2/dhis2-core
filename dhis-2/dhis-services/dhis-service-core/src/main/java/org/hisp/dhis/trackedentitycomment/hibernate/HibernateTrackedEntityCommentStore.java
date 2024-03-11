@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2004-2022, University of Oslo
+package org.hisp.dhis.trackedentitycomment.hibernate;/*
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment.hibernate;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David Katuscak
  */
-@Repository("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore")
+
 public class HibernateTrackedEntityCommentStore
     extends HibernateIdentifiableObjectStore<TrackedEntityComment>
-    implements TrackedEntityCommentStore {
-  public HibernateTrackedEntityCommentStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        TrackedEntityComment.class,
-        currentUserService,
-        aclService,
-        false);
-  }
+    implements TrackedEntityCommentStore
+{
+    private static final Logger log = LoggerFactory.getLogger( HibernateTrackedEntityCommentStore.class );
 
-  @Override
-  public boolean exists(String uid) {
-    return (boolean)
-        sessionFactory
-            .getCurrentSession()
-            .createNativeQuery("select exists(select 1 from trackedentitycomment where uid=:uid)")
-            .setParameter("uid", uid)
-            .getSingleResult();
-  }
+    @Override
+    public boolean exists( String uid )
+    {
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentitycomment where uid=?", Integer.class, uid );
+        return result != null && result > 0;
+    }
 }

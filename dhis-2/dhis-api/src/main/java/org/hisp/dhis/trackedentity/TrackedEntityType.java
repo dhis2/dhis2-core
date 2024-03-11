@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,166 +27,184 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.organisationunit.FeatureType;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.organisationunit.FeatureType;
 
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityType extends BaseNameableObject implements MetadataObject {
+@JacksonXmlRootElement( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityType
+    extends BaseNameableObject implements MetadataObject
+{
+    private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
 
-  private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
+    private FeatureType featureType = FeatureType.NONE;
 
-  private FeatureType featureType = FeatureType.NONE;
+    private ObjectStyle style;
 
-  private ObjectStyle style;
+    private String formName;
+    
+    /**
+     * Property indicating minimum number of attributes required to fill
+     * before search is triggered
+     */
+    private int minAttributesRequiredToSearch = 1;
+    
+    /**
+     * Property indicating maximum number of TEI to return after search
+     */
+    private int maxTeiCountToReturn = 0;    
+    
+    /**
+     * Property indicating whether to allow (read) audit log or not
+     */
+    private boolean allowAuditLog;
+    
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+    
+    public TrackedEntityType()
+    {
 
-  private String formName;
-
-  /**
-   * Property indicating minimum number of attributes required to fill before search is triggered
-   */
-  private int minAttributesRequiredToSearch = 1;
-
-  /** Property indicating maximum number of TEI to return after search */
-  private int maxTeiCountToReturn = 0;
-
-  /** Property indicating whether to allow (read) audit log or not */
-  private boolean allowAuditLog;
-
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
-
-  public TrackedEntityType() {}
-
-  public TrackedEntityType(String name, String description) {
-    this.name = name;
-    this.description = description;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic methods
-  // -------------------------------------------------------------------------
-
-  /** Returns TrackedEntityAttributes from TrackedEntityTypeAttributes. */
-  public List<TrackedEntityAttribute> getTrackedEntityAttributes() {
-    return trackedEntityTypeAttributes.stream()
-        .filter(Objects::nonNull)
-        .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
-        .collect(Collectors.toList());
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(
-      localName = "trackedEntityTypeAttributes",
-      namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityTypeAttribute", namespace = DxfNamespaces.DXF_2_0)
-  public List<TrackedEntityTypeAttribute> getTrackedEntityTypeAttributes() {
-    return trackedEntityTypeAttributes;
-  }
-
-  public void setTrackedEntityTypeAttributes(
-      List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes) {
-    this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getMinAttributesRequiredToSearch() {
-    return minAttributesRequiredToSearch;
-  }
-
-  public void setMinAttributesRequiredToSearch(int minAttributesRequiredToSearch) {
-    this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getMaxTeiCountToReturn() {
-    return maxTeiCountToReturn;
-  }
-
-  public void setMaxTeiCountToReturn(int maxTeiCountToReturn) {
-    this.maxTeiCountToReturn = maxTeiCountToReturn;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isAllowAuditLog() {
-    return allowAuditLog;
-  }
-
-  public void setAllowAuditLog(boolean allowAuditLog) {
-    this.allowAuditLog = allowAuditLog;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic methods
-  // -------------------------------------------------------------------------
-
-  /** Returns IDs of searchable TrackedEntityAttributes. */
-  public List<String> getSearchableAttributeIds() {
-    List<String> searchableAttributes = new ArrayList<>();
-
-    for (TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes) {
-      if (trackedEntityTypeAttribute.isSearchable()
-          || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique()) {
-        searchableAttributes.add(trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid());
-      }
     }
 
-    return searchableAttributes;
-  }
+    public TrackedEntityType( String name, String description )
+    {
+        this.name = name;
+        this.description = description;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------
+    
+    /**
+     * Returns TrackedEntityAttributes from TrackedEntityTypeAttributes.
+     */
+    public List<TrackedEntityAttribute> getTrackedEntityAttributes()
+    {
+        return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute ).collect( Collectors.toList() );
+    }
+    
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------    
+    
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityTypeAttribute> getTrackedEntityTypeAttributes()
+    {
+        return trackedEntityTypeAttributes;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ObjectStyle getStyle() {
-    return style;
-  }
+    public void setTrackedEntityTypeAttributes( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes )
+    {
+        this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMinAttributesRequiredToSearch()
+    {
+        return minAttributesRequiredToSearch;
+    }
 
-  public void setStyle(ObjectStyle style) {
-    this.style = style;
-  }
+    public void setMinAttributesRequiredToSearch( int minAttributesRequiredToSearch )
+    {
+        this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getMaxTeiCountToReturn()
+    {
+        return maxTeiCountToReturn;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFormName() {
-    return formName;
-  }
+    public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
+    {
+        this.maxTeiCountToReturn = maxTeiCountToReturn;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAllowAuditLog()
+    {
+        return allowAuditLog;
+    }
 
-  public void setFormName(String formName) {
-    this.formName = formName;
-  }
+    public void setAllowAuditLog( boolean allowAuditLog )
+    {
+        this.allowAuditLog = allowAuditLog;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Logic methods
+    // -------------------------------------------------------------------------    
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public FeatureType getFeatureType() {
-    return featureType;
-  }
+    /**
+     * Returns IDs of searchable TrackedEntityAttributes.
+     */
+    public List<String> getSearchableAttributeIds()
+    {
+        List<String> searchableAttributes = new ArrayList<>();
+        
+        for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
+        {
+            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique()  )
+            {
+                searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
+            }
+        }
 
-  public void setFeatureType(FeatureType featureType) {
-    this.featureType = featureType;
-  }
+        return searchableAttributes;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
+    }
 }

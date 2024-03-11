@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.command.code;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command.code;
 
-import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SMSCodesDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(SMSCode.class);
+public class SMSCodesDeletionHandler
+    extends DeletionHandler
+{
+    private JdbcTemplate jdbcTemplate;
 
-  @Override
-  protected void register() {
-    whenVetoing(DataElement.class, this::allowDeleteDataElement);
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
-    String sql = "select 1 from smscodes where dataelementid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
-  }
+    @Override
+    protected String getClassName()
+    {
+        return SMSCode.class.getSimpleName();
+    }
+
+    @Override
+    public String allowDeleteDataElement( DataElement dataElement )
+    {
+        String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=" + dataElement.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

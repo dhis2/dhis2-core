@@ -1,5 +1,7 @@
+package org.hisp.dhis.sqlview.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,172 +27,183 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
+import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Repository;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Dang Duy Hieu
  */
-@Slf4j
-@Repository("org.hisp.dhis.sqlview.SqlViewStore")
-public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlView>
-    implements SqlViewStore {
-  private final StatementBuilder statementBuilder;
+public class HibernateSqlViewStore
+    extends HibernateIdentifiableObjectStore<SqlView>
+    implements SqlViewStore
+{
+    private static final Log log = LogFactory.getLog( HibernateSqlViewStore.class );
 
-  private final JdbcTemplate readOnlyJdbcTemplate;
+    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = 
+        ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
-  private final SystemSettingManager systemSettingManager;
+    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = 
+        ImmutableMap.of( SqlViewType.VIEW, "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
 
-  public HibernateSqlViewStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService,
-      StatementBuilder statementBuilder,
-      @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
-      SystemSettingManager systemSettingManager) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        SqlView.class,
-        currentUserService,
-        aclService,
-        false);
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    checkNotNull(statementBuilder);
-    checkNotNull(readOnlyJdbcTemplate);
-    checkNotNull(systemSettingManager);
+    private StatementBuilder statementBuilder;
 
-    this.statementBuilder = statementBuilder;
-    this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
-    this.systemSettingManager = systemSettingManager;
-  }
-
-  // -------------------------------------------------------------------------
-  // Implementing methods
-  // -------------------------------------------------------------------------
-
-  private boolean viewTableExists(SqlViewType type, String viewName) {
-    String sql =
-        type == SqlViewType.MATERIALIZED_VIEW
-            ? "select count(*) from pg_matviews where schemaname = 'public' and matviewname = :name"
-            : "select count(*) from pg_views where schemaname = 'public' and viewname = :name";
-
-    Number count =
-        (Number)
-            getSession().createNativeQuery(sql).setParameter("name", viewName).getSingleResult();
-    return count != null && count.intValue() > 0;
-  }
-
-  @Override
-  public String createViewTable(SqlView sqlView) {
-    checkIsDatabaseView(sqlView);
-    try {
-      createViewTable(sqlView.getType(), sqlView.getViewName(), sqlView.getSqlQuery());
-      return null;
-    } catch (BadSqlGrammarException ex) {
-      return ex.getCause().getMessage();
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
     }
-  }
+    
+    private JdbcTemplate readOnlyJdbcTemplate;
 
-  private void createViewTable(SqlViewType type, String viewName, String viewQuery) {
-    dropViewTable(type, viewName);
-
-    String sql =
-        type == SqlViewType.MATERIALIZED_VIEW
-            ? "CREATE MATERIALIZED VIEW %s AS %s"
-            : "CREATE VIEW %s AS %s";
-    sql = format(sql, statementBuilder.columnQuote(viewName), viewQuery);
-
-    log.debug("Create view SQL: " + sql);
-
-    jdbcTemplate.execute(sql);
-  }
-
-  @Override
-  public void populateSqlViewGrid(Grid grid, String sql) {
-    SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet(sql);
-
-    int maxLimit = systemSettingManager.getIntSetting(SettingKey.SQL_VIEW_MAX_LIMIT);
-
-    log.debug("Get view SQL: " + sql + ", max limit: " + maxLimit);
-
-    grid.addHeaders(rs);
-    grid.addRows(rs, maxLimit);
-  }
-
-  @Override
-  public void dropViewTable(SqlView sqlView) {
-    checkIsDatabaseView(sqlView);
-    dropViewTable(sqlView.getType(), sqlView.getViewName());
-  }
-
-  public void dropViewTable(SqlViewType type, String viewName) {
-    if (!viewTableExists(type, viewName)) {
-      return;
+    public void setReadOnlyJdbcTemplate( JdbcTemplate readOnlyJdbcTemplate )
+    {
+        this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
     }
-    String sql =
-        type == SqlViewType.MATERIALIZED_VIEW ? "DROP MATERIALIZED VIEW %s" : "DROP VIEW %s";
-    sql = format(sql, statementBuilder.columnQuote(viewName));
-
-    log.debug("Drop view SQL: " + sql);
-    try {
-      jdbcTemplate.update(sql);
-    } catch (Exception ex) {
-      log.warn("Could not drop view: " + viewName, ex);
+    
+    private SystemSettingManager systemSettingManager;
+    
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
     }
-  }
 
-  @Override
-  public boolean refreshMaterializedView(SqlView sqlView) {
-    SqlViewType type = sqlView.getType();
-    if (type != SqlViewType.MATERIALIZED_VIEW) {
-      throw new IllegalArgumentException("Cannot refresh a view of type: " + type);
+    // -------------------------------------------------------------------------
+    // Implementing methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    public boolean viewTableExists( String viewTableName )
+    {
+        try
+        {
+            jdbcTemplate.queryForRowSet( "select * from " + statementBuilder.columnQuote( viewTableName ) + " limit 1" );
+
+            return true;
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            return false; // View does not exist
+        }
     }
-    if (!viewTableExists(type, sqlView.getViewName())) {
-      return createViewTable(sqlView) == null;
+
+    @Override
+    public String createViewTable( SqlView sqlView )
+    {
+        dropViewTable( sqlView );
+
+        final String sql = TYPE_CREATE_PREFIX_MAP.get( sqlView.getType() ) + statementBuilder.columnQuote( sqlView.getViewName() ) + " AS " + sqlView.getSqlQuery();
+
+        log.debug( "Create view SQL: " + sql );
+
+        try
+        {
+            jdbcTemplate.execute( sql );
+
+            return null;
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            return ex.getCause().getMessage();
+        }
     }
-    final String sql = "REFRESH MATERIALIZED VIEW " + sqlView.getViewName();
 
-    log.debug("Refresh materialized view: " + sql);
+    @Override
+    public void populateSqlViewGrid( Grid grid, String sql )
+    {
+        SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
+        
+        int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
-    try {
-      jdbcTemplate.update(sql);
+        log.debug( "Get view SQL: " + sql + ", max limit: " + maxLimit );
 
-      return true;
-    } catch (Exception ex) {
-      log.warn("Could not refresh materialized view: " + sqlView.getViewName(), ex);
-
-      return false;
+        grid.addHeaders( rs );
+        grid.addRows( rs, maxLimit );
     }
-  }
 
-  private void checkIsDatabaseView(SqlView sqlView) {
-    if (sqlView.isQuery()) {
-      throw new IllegalArgumentException("Cannot create a view for a QUERY type view.");
+    @Override
+    public String testSqlGrammar( String sql )
+    {
+        String viewName = SqlView.PREFIX_VIEWNAME + System.currentTimeMillis();
+
+        sql = "CREATE VIEW " + viewName + " AS " + sql;
+
+        log.debug( "Test view SQL: " + sql );
+
+        try
+        {
+            jdbcTemplate.execute( sql );
+
+            jdbcTemplate.execute( "DROP VIEW IF EXISTS " + viewName );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            return ex.getCause().getMessage();
+        }
+        catch ( UncategorizedSQLException ex )
+        {
+            return ex.getCause().getMessage();
+        }
+
+        return null;
     }
-  }
+
+    @Override
+    public void dropViewTable( SqlView sqlView )
+    {
+        String viewName = sqlView.getViewName();
+        
+        try
+        {
+            final String sql = TYPE_DROP_PREFIX_MAP.get( sqlView.getType() ) + " IF EXISTS " + statementBuilder.columnQuote( viewName );
+            
+            log.debug( "Drop view SQL: " + sql );
+            
+            jdbcTemplate.update( sql );
+        }
+        catch ( Exception ex )
+        {
+            log.warn( "Could not drop view: " + viewName, ex );
+        }
+    }
+
+    @Override
+    public boolean refreshMaterializedView( SqlView sqlView )
+    {
+        final String sql = "REFRESH MATERIALIZED VIEW " + sqlView.getViewName();
+        
+        log.debug( "Refresh materialized view: " + sql );
+        
+        try
+        {
+            jdbcTemplate.update( sql );
+            
+            return true;
+        }
+        catch ( Exception ex )
+        {
+            log.warn( "Could not refresh materialized view: " + sqlView.getViewName(), ex );
+            
+            return false;
+        }
+    }
 }

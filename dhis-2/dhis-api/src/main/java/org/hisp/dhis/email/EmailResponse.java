@@ -1,5 +1,7 @@
+package org.hisp.dhis.email;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.email;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public enum EmailResponse {
-  SENT("Email sent successfully"),
-  FAILED("Failed to send emal"),
-  ABORTED("Sending email aborted"),
-  NOT_CONFIGURED("Configuration not found"),
-  HOST_CONFIG_NOT_FOUND("Host configuration not found");
 
-  private String responseMessage;
+public enum EmailResponse
+{
+    SENT( "success" ),
+    FAILED( "failed" ),
+    ABORTED( "aborted" ),
+    NOT_CONFIGURED( "no configuration found" );
 
-  EmailResponse(String responseMessage) {
-    this.responseMessage = responseMessage;
-  }
+    private String responseMessage;
 
-  public String getResponseMessage() {
-    return responseMessage;
-  }
+    EmailResponse( String responseMessage )
+    {
+        this.responseMessage = responseMessage;
+    }
 
-  public void setResponseMessage(String responseMessage) {
-    this.responseMessage = responseMessage;
-  }
+    public String getResponseMessage()
+    {
+        return responseMessage;
+    }
+
+    public void setResponseMessage( String responseMessage )
+    {
+        this.responseMessage = responseMessage;
+    }
 }

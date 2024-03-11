@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.command.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command.hibernate;
 
 import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
 
-public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
-  List<SMSCommand> getJ2MESMSCommands();
+public interface SMSCommandStore
+    extends IdentifiableObjectStore<SMSCommand>
+{
+    List<SMSCommand> getJ2MESMSCommands();
 
-  SMSCommand getSMSCommand(String commandName, ParserType parserType);
+    SMSCommand getSMSCommand( String commandName, ParserType parserType );
 
-  int countDataSetSmsCommands(DataSet dataSet);
+    int countDataSetSmsCommands( DataSet dataSet );
 }

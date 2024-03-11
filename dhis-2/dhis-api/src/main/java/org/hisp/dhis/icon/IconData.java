@@ -1,5 +1,7 @@
+package org.hisp.dhis.icon;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Kristian Wærstad
  */
-public class IconData {
-  private String key;
+public class IconData
+{
+    private String key;
 
-  private String description;
+    private String description;
 
-  private String[] keywords;
+    private String[] keywords;
 
-  private String reference;
+    private String reference;
 
-  IconData(String key, String description, String[] keywords) {
-    this.key = key;
-    this.description = description;
-    this.keywords = keywords;
-  }
+    IconData( String key, String description, String[] keywords )
+    {
+        this.key = key;
+        this.description = description;
+        this.keywords = keywords;
+    }
 
-  @JsonProperty
-  public String getKey() {
-    return key;
-  }
+    @JsonProperty
+    public String getKey()
+    {
+        return key;
+    }
 
-  @JsonProperty
-  public String getDescription() {
-    return description;
-  }
+    @JsonProperty
+    public String getDescription()
+    {
+        return description;
+    }
 
-  @JsonProperty
-  public String[] getKeywords() {
-    return keywords;
-  }
+    @JsonProperty
+    public String[] getKeywords()
+    {
+        return keywords;
+    }
 
-  @JsonProperty("href")
-  public String getReference() {
-    return reference;
-  }
+    @JsonProperty( "href" )
+    public String getReference()
+    {
+        return reference;
+    }
 
-  public IconData setReference(String ref) {
-    this.reference = ref;
-    return this;
-  }
+    public IconData setReference( String ref )
+    {
+        this.reference = ref;
+        return this;
+    }
 }

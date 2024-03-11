@@ -1,5 +1,6 @@
+package org.hisp.dhis.indicator;
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +26,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
 
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
-@Transactional(readOnly = true)
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.indicator.IndicatorGroupService")
-public class DefaultIndicatorGroupService implements IndicatorGroupService {
-  @Qualifier("org.hisp.dhis.indicator.IndicatorGroupStore")
-  private final HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
+@Transactional
+public class DefaultIndicatorGroupService implements IndicatorGroupService
+{
+    private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
-  @Override
-  public IndicatorGroup getIndicatorGroupByUid(String uid) {
-    return indicatorGroupStore.getByUid(uid);
-  }
+    public void setIndicatorGroupStore(
+        HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
+    {
+        this.indicatorGroupStore = indicatorGroupStore;
+    }
+
+    @Override
+    public IndicatorGroup getIndicatorGroupByUid( String uid )
+    {
+        return indicatorGroupStore.getByUid( uid );
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.startup;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,53 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.startup;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Slf4j
-public class ConfigurationPopulator extends TransactionContextStartupRoutine {
-  private final ConfigurationService configurationService;
+import java.util.UUID;
 
-  private final DhisConfigurationProvider dhisConfigurationProvider;
+public class ConfigurationPopulator
+    extends TransactionContextStartupRoutine
+{
+    @Autowired
+    private ConfigurationService configurationService;
 
-  public ConfigurationPopulator(
-      ConfigurationService configurationService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
-    checkNotNull(configurationService);
-    checkNotNull(dhisConfigurationProvider);
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
-    this.configurationService = configurationService;
-    this.dhisConfigurationProvider = dhisConfigurationProvider;
-  }
+    private static final Log log = LogFactory.getLog( ConfigurationPopulator.class );
 
-  @Override
-  public void executeInTransaction() {
-    checkSecurityConfiguration();
+    @Override
+    public void executeInTransaction()
+    {
+        checkSecurityConfiguration();
 
-    Configuration config = configurationService.getConfiguration();
+        Configuration config = configurationService.getConfiguration();
 
-    if (config != null && config.getSystemId() == null) {
-      config.setSystemId(UUID.randomUUID().toString());
-      configurationService.setConfiguration(config);
+        if ( config != null && config.getSystemId() == null )
+        {
+            config.setSystemId( UUID.randomUUID().toString() );
+            configurationService.setConfiguration( config );
+        }
     }
-  }
 
-  private void checkSecurityConfiguration() {
-    EncryptionStatus status = dhisConfigurationProvider.getEncryptionStatus();
+    private void checkSecurityConfiguration()
+    {
+        EncryptionStatus status = dhisConfigurationProvider.getEncryptionStatus();
 
-    if (!status.isOk()) {
-      log.warn("Encryption not configured: " + status.getKey());
-    } else {
-      log.info("Encryption is available");
+        if ( !status.isOk() )
+        {
+            log.warn( "Encryption not configured: " + status.getKey() );
+        }
+        else
+        {
+            log.info( "Encryption is available" );
+        }
     }
-  }
 }

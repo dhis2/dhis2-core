@@ -1,5 +1,7 @@
+package org.hisp.dhis.validation;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,74 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.scheduling.JobProgress;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Jim Grace
  */
-public interface ValidationService {
-  int MAX_INTERACTIVE_ALERTS = 500;
+public interface ValidationService
+{
+    int MAX_INTERACTIVE_ALERTS = 500;
+    int MAX_SCHEDULED_ALERTS = 100000;
 
-  int MAX_SCHEDULED_ALERTS = 100000;
+    /**
+     * Start a validation analysis, based on the supplied parameters. See ValidationAnalysisParams for more
+     * information
+     *
+     * @param parameters the parameters to base the analysis on.
+     * @return a collection of ValidationResults found.
+     */
+    Collection<ValidationResult> validationAnalysis( ValidationAnalysisParams parameters );
 
-  /**
-   * Start a validation analysis, based on the supplied parameters.
-   *
-   * @see ValidationAnalysisParams for more information
-   * @param parameters the parameters to base the analysis on.
-   * @param progress job progress tracking callback
-   * @return a collection of ValidationResults found.
-   */
-  List<ValidationResult> validationAnalysis(
-      ValidationAnalysisParams parameters, JobProgress progress);
+    /**
+     * Validate that missing data values have a corresponding comment, assuming
+     * that the given data set has the noValueRequiresComment property set to true.
+     *
+     * @param dataSet              the data set.
+     * @param period               the period.
+     * @param orgUnit              the organisation unit.
+     * @param attributeOptionCombo the attribute option combo.
+     * @return a list of operands representing missing comments.
+     */
+    List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit orgUnit,
+        CategoryOptionCombo attributeOptionCombo );
 
-  /**
-   * Get validation rule expression details for a validation run.
-   *
-   * @param parameters the parameters to base the analysis on.
-   * @return the validation rule expression details
-   */
-  ValidationRuleExpressionDetails getValidationRuleExpressionDetails(
-      ValidationAnalysisParams parameters);
+    ValidationAnalysisParams.Builder newParamsBuilder( Collection<ValidationRule> validationRules,
+        OrganisationUnit organisationUnit, Collection<Period> periods );
 
-  /**
-   * Validate that missing data values have a corresponding comment, assuming that the given data
-   * set has the noValueRequiresComment property set to true.
-   *
-   * @param dataSet the data set.
-   * @param period the period.
-   * @param orgUnit the organisation unit.
-   * @param attributeOptionCombo the attribute option combo.
-   * @return a list of operands representing missing comments.
-   */
-  List<DataElementOperand> validateRequiredComments(
-      DataSet dataSet,
-      Period period,
-      OrganisationUnit orgUnit,
-      CategoryOptionCombo attributeOptionCombo);
+    ValidationAnalysisParams.Builder newParamsBuilder( ValidationRuleGroup validationRuleGroup,
+        OrganisationUnit organisationUnit, Date startDate, Date endDate );
 
-  ValidationAnalysisParams.Builder newParamsBuilder(
-      Collection<ValidationRule> validationRules,
-      OrganisationUnit organisationUnit,
-      Collection<Period> periods);
+    ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnits,
+        Period period );
 
-  ValidationAnalysisParams.Builder newParamsBuilder(
-      ValidationRuleGroup validationRuleGroup,
-      OrganisationUnit organisationUnit,
-      Date startDate,
-      Date endDate);
-
-  ValidationAnalysisParams.Builder newParamsBuilder(
-      DataSet dataSet, OrganisationUnit organisationUnits, Period period);
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,194 +27,119 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import lombok.EqualsAndHashCode;
 
 /**
  * Class representing an analytics database table column.
  *
  * @author Lars Helge Overland
  */
-@EqualsAndHashCode
-public class AnalyticsTableColumn {
-  public enum Collate {
-    C
-  }
+public class AnalyticsTableColumn
+{
+    private String name;
 
-  /** The column name. */
-  private final String name;
+    private String dataType;
 
-  /** The column data type. */
-  private final ColumnDataType dataType;
+    private String alias;
 
-  /** Column not null constraint, default is to allow null values. */
-  private ColumnNotNullConstraint notNull = ColumnNotNullConstraint.NULL;
+    private Date created;
 
-  /** The column SQL alias. */
-  private final String alias;
+    private boolean skipIndex = false;
 
-  /** Sets a custom collate for the column if one is defined. */
-  private Collate collate;
+    private String indexType;
 
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  /** Whether to skip building an index for this column. */
-  private boolean skipIndex = false;
+    /**
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     */
+    public AnalyticsTableColumn( String name, String dataType, String alias )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.alias = alias;
+    }
 
-  /** Whether to skip column and just build an index based on column name. */
-  private boolean virtual = false;
+    /**
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     * @param created date when column data was created.
+     */
+    public AnalyticsTableColumn( String name, String dataType, String alias, Date created )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.alias = alias;
+        this.created = created;
+    }
 
-  /** Explicit index type, defaults to database default type {@link IndexType#BTREE}. */
-  private IndexType indexType = IndexType.BTREE;
+    /**
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     * @param skipIndex indicates whether to skip indexing this column.
+     */
+    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.alias = alias;
+        this.skipIndex = skipIndex;
+    }
 
-  /** Explicit index column names, defaults to column name. */
-  private List<String> indexColumns = new ArrayList<>();
+    /**
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
+     * @param skipIndex indicates whether to skip indexing this column.
+     * @param indexType index type.
+     */
+    public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex, String indexType )
+    {
+        this.name = name;
+        this.dataType = dataType;
+        this.alias = alias;
+        this.skipIndex = skipIndex;
+        this.indexType = indexType;
+    }
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
-   */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias) {
-    this.name = name;
-    this.dataType = dataType;
-    this.alias = alias;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param alias source table column alias and name.
-   */
-  public AnalyticsTableColumn(String name, ColumnDataType dataType, String alias, Collate collate) {
-    this.name = name;
-    this.dataType = dataType;
-    this.notNull = ColumnNotNullConstraint.NULL;
-    this.alias = alias;
-    this.collate = collate;
-  }
+    public String getDataType()
+    {
+        return dataType;
+    }
 
-  /**
-   * Constructor.
-   *
-   * @param name analytics table column name.
-   * @param dataType analytics table column data type.
-   * @param notNull analytics table column not null constraint.
-   * @param alias source table column alias and name.
-   */
-  public AnalyticsTableColumn(
-      String name, ColumnDataType dataType, ColumnNotNullConstraint notNull, String alias) {
-    this(name, dataType, alias);
-    this.notNull = notNull;
-  }
+    public String getAlias()
+    {
+        return alias;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    public Date getCreated()
+    {
+        return created;
+    }
 
-  /** Indicates whether explicit index columns have been specified, defaults to this column name. */
-  public boolean hasIndexColumns() {
-    return !indexColumns.isEmpty();
-  }
+    public boolean isSkipIndex()
+    {
+        return skipIndex;
+    }
 
-  // -------------------------------------------------------------------------
-  // Builder methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Sets the created date.
-   *
-   * @param created the created date of the underlying dimension.
-   */
-  public AnalyticsTableColumn withCreated(Date created) {
-    this.created = created;
-    return this;
-  }
-
-  /**
-   * Sets the index columns.
-   *
-   * @param indexColumns columns to index, defaults to this column name.
-   */
-  public AnalyticsTableColumn withIndexColumns(List<String> indexColumns) {
-    this.indexColumns = indexColumns;
-    return this;
-  }
-
-  /**
-   * Sets whether to skip indexes.
-   *
-   * @param skipIndex indicates whether to skip indexing this column.
-   */
-  public AnalyticsTableColumn withSkipIndex(boolean skipIndex) {
-    this.skipIndex = skipIndex;
-    return this;
-  }
-
-  /**
-   * Sets the index type.
-   *
-   * @param indexType the index type.
-   */
-  public AnalyticsTableColumn withIndexType(IndexType indexType) {
-    this.indexType = indexType;
-    return this;
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  public String getName() {
-    return name;
-  }
-
-  public ColumnDataType getDataType() {
-    return dataType;
-  }
-
-  public String getAlias() {
-    return alias;
-  }
-
-  public Collate getCollate() {
-    return collate;
-  }
-
-  public boolean hasCollate() {
-    return collate != null;
-  }
-
-  public ColumnNotNullConstraint getNotNull() {
-    return notNull;
-  }
-
-  public Date getCreated() {
-    return created;
-  }
-
-  public boolean isSkipIndex() {
-    return skipIndex;
-  }
-
-  public IndexType getIndexType() {
-    return indexType;
-  }
-
-  public List<String> getIndexColumns() {
-    return indexColumns;
-  }
+    public String getIndexType()
+    {
+        return indexType;
+    }
 }

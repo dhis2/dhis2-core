@@ -1,5 +1,7 @@
+package org.hisp.dhis.eventchart;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventchart;
 
 import java.util.List;
+
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
- * DEPRECATED: THIS CLASS IS DEPRECATED IN FAVOUR OF THE EventVisualization MODEL. WE SHOULD AVOID
- * CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW FEATURES SHOULD BE ADDED ON TOP OF
- * EventVisualizationService.
- *
- * @author Lars Helge Overland
- */
-public interface EventChartService extends AnalyticalObjectService<EventChart> {
-  long saveEventChart(EventChart eventChart);
-
-  void updateEventChart(EventChart eventChart);
-
-  EventChart getEventChart(long id);
-
-  EventChart getEventChart(String uid);
-
-  void deleteEventChart(EventChart eventChart);
-
-  List<EventChart> getAllEventCharts();
+* @author Lars Helge Overland
+*/
+public interface EventChartService
+    extends AnalyticalObjectService<EventChart>
+{
+    int saveEventChart( EventChart eventChart );
+    
+    void updateEventChart( EventChart eventChart );
+    
+    EventChart getEventChart( int id );
+    
+    EventChart getEventChart( String uid );
+    
+    void deleteEventChart( EventChart eventChart );
+    
+    List<EventChart> getAllEventCharts();
 }

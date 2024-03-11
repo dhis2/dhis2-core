@@ -1,5 +1,7 @@
+package org.hisp.dhis.programrule;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,75 +27,72 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule;
 
-import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_COMPLETE;
-import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_DATA_ENTRY;
-import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.getAll;
+import com.google.common.collect.ImmutableSet;
 
-import com.google.common.collect.Sets;
 import java.util.Set;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.notification.NotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * @author Markus Bekken
  */
-public enum ProgramRuleActionType {
-  DISPLAYTEXT("displaytext"),
-  DISPLAYKEYVALUEPAIR("displaykeyvaluepair"),
-  HIDEFIELD("hidefield"),
-  HIDESECTION("hidesection"),
-  HIDEPROGRAMSTAGE("hideprogramstage"),
-  ASSIGN("assign", ON_DATA_ENTRY, ON_COMPLETE),
-  SHOWWARNING("showwarning"),
-  WARNINGONCOMPLETE("warningoncomplete"),
-  SHOWERROR("showerror"),
-  ERRORONCOMPLETE("erroroncomplete"),
-  CREATEEVENT("createevent"),
-  SETMANDATORYFIELD("setmandatoryfield", ON_DATA_ENTRY),
-  SENDMESSAGE("sendmessage", ON_DATA_ENTRY, ON_COMPLETE),
-  SCHEDULEMESSAGE("schedulemessage", ON_DATA_ENTRY, ON_COMPLETE),
-  HIDEOPTION("hideoption"),
-  SHOWOPTIONGROUP("showoptiongroup"),
-  HIDEOPTIONGROUP("hideoptiongroup");
+public enum ProgramRuleActionType
+{
+    DISPLAYTEXT( "displaytext" ),
+    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
+    HIDEFIELD( "hidefield" ),
+    HIDESECTION( "hidesection" ),
+    HIDEPROGRAMSTAGE( "hideprogramstage"),
+    ASSIGN( "assign" ),
+    SHOWWARNING( "showwarning" ),
+    WARNINGONCOMPLETE( "warningoncomplete" ),
+    SHOWERROR( "showerror" ),
+    ERRORONCOMPLETE( "erroroncomplete" ),
+    CREATEEVENT( "createevent" ),
+    SETMANDATORYFIELD( "setmandatoryfield" ),
+    SENDMESSAGE( "sendmessage" ),
+    SCHEDULEMESSAGE( "schedulemessage" ),
+    HIDEOPTION( "hideoption" ),
+    SHOWOPTIONGROUP( "showoptiongroup" ),
+    HIDEOPTIONGROUP( "hideoptiongroup" );
 
-  final String value;
+    final String value;
 
-  final Set<ProgramRuleActionEvaluationTime> whenToRun;
+    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
 
-  /** Actions which require server-side execution. */
-  public static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-      Set.of(SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN);
+    private static final Set<ProgramRuleActionType> PERMITTED_ACTIONS =
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Existence of these actions will trigger rule engine
 
-  /** Actions associated with {@link DataElement} or {@link TrackedEntityAttribute}. */
-  public static final Set<ProgramRuleActionType> DATA_LINKED_TYPES =
-      Set.of(HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION, HIDEOPTIONGROUP, SHOWOPTIONGROUP);
+    ProgramRuleActionType( String value )
+    {
+        this.value = value;
+    }
 
-  /** Actions associated with {@link NotificationTemplate}. */
-  public static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES =
-      Set.of(SENDMESSAGE, SCHEDULEMESSAGE);
+    public static ProgramRuleActionType fromValue( String value )
+    {
+        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
+        {
+            if ( type.value.equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
 
-  /** Complete set of actions which require server-side execution. */
-  public static final Set<ProgramRuleActionType> SERVER_SUPPORTED_TYPES =
-      Set.of(
-          SENDMESSAGE,
-          SCHEDULEMESSAGE,
-          SHOWERROR,
-          SHOWWARNING,
-          ERRORONCOMPLETE,
-          WARNINGONCOMPLETE,
-          ASSIGN,
-          SETMANDATORYFIELD);
+        return null;
+    }
 
-  ProgramRuleActionType(String value) {
-    this.value = value;
-    this.whenToRun = getAll();
-  }
+    public boolean isImplementable()
+    {
+        return IMPLEMENTED_ACTIONS.contains( this );
+    }
 
-  ProgramRuleActionType(String value, ProgramRuleActionEvaluationTime... whenToRun) {
-    this.value = value;
-    this.whenToRun = Sets.newHashSet(whenToRun);
-  }
+    public static Set<ProgramRuleActionType> getImplementedActions()
+    {
+        return IMPLEMENTED_ACTIONS;
+    }
+
+    public static Set<ProgramRuleActionType> getPermittedActions()
+    {
+        return PERMITTED_ACTIONS;
+    }
 }

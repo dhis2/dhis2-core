@@ -1,5 +1,7 @@
+package org.hisp.dhis.cache;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,101 +27,82 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
 
-import static java.util.Collections.emptySet;
-import static org.springframework.util.Assert.hasText;
-
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
+
+import com.google.common.collect.Sets;
 
 /**
- * A No operation implementation of {@link Cache}. The implementation will not cache anything and
- * can be used during system testing when caching has to be disabled.
- *
+ * A No operation implementation of {@link Cache}. The implementation will not
+ * cache anything and can be used during system testing when caching has to be
+ * disabled.
+ * 
  * @author Ameen Mohamed
  */
-public class NoOpCache<V> implements Cache<V> {
-  private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+public class NoOpCache<V> implements Cache<V>
+{
+    private V defaultValue;
 
-  private final V defaultValue;
-
-  public NoOpCache(CacheBuilder<V> cacheBuilder) {
-    this(cacheBuilder.getDefaultValue());
-  }
-
-  public NoOpCache() {
-    this((V) null);
-  }
-
-  public NoOpCache(V defaultValue) {
-    this.defaultValue = defaultValue;
-  }
-
-  @Override
-  public Optional<V> getIfPresent(String key) {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<V> get(String key) {
-    return Optional.ofNullable(defaultValue);
-  }
-
-  @Override
-  public V get(String key, Function<String, V> mappingFunction) {
-    if (null == mappingFunction) {
-      throw new IllegalArgumentException("MappingFunction cannot be null");
+    public NoOpCache( SimpleCacheBuilder<V> cacheBuilder )
+    {
+        this.defaultValue = cacheBuilder.getDefaultValue();
     }
-    return Optional.ofNullable(mappingFunction.apply(key)).orElse(defaultValue);
-  }
 
-  @Override
-  public Stream<V> getAll() {
-    return Stream.empty();
-  }
-
-  @Override
-  public Iterable<String> keys() {
-    return emptySet();
-  }
-
-  @Override
-  public void put(String key, V value) {
-    if (null == value) {
-      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
+    @Override
+    public Optional<V> getIfPresent( String key )
+    {
+        return Optional.empty();
     }
-    // No operation
-  }
 
-  @Override
-  public void put(String key, V value, long ttlInSeconds) {
-    hasText(key, VALUE_CANNOT_BE_NULL);
-    // No operation
-  }
-
-  @Override
-  public boolean putIfAbsent(String key, V value) {
-    if (null == value) {
-      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
+    @Override
+    public Optional<V> get( String key )
+    {
+        return Optional.ofNullable( defaultValue );
     }
-    // No operation
-    return false;
-  }
 
-  @Override
-  public void invalidate(String key) {
-    // No operation
-  }
+    @Override
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
+    {
+        if ( null == mappingFunction )
+        {
+            throw new IllegalArgumentException( "MappingFunction cannot be null" );
+        }
+        return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
+    }
 
-  @Override
-  public void invalidateAll() {
-    // No operation
-  }
+    @Override
+    public Collection<V> getAll()
+    {
+        return Sets.newHashSet();
+    }
 
-  @Override
-  public CacheType getCacheType() {
-    return CacheType.NONE;
-  }
+    @Override
+    public void put( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( "Value cannot be null" );
+        }
+        // No operation
+    }
+
+    @Override
+    public void invalidate( String key )
+    {
+        // No operation
+    }
+
+    @Override
+    public void invalidateAll()
+    {
+        // No operation
+    }
+    
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.NONE;
+    }
 }

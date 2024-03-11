@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,160 +27,204 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
-import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
-import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
-import static org.hisp.dhis.program.ProgramExpression.REPORT_DATE;
-import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_ID;
-import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.hisp.dhis.program.ProgramExpression.*;
 
 /**
  * @author Chau Thu Tran
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.program.ProgramExpressionService")
-public class DefaultProgramExpressionService implements ProgramExpressionService {
-  private static final String REGEXP =
-      "\\[("
-          + OBJECT_PROGRAM_STAGE_DATAELEMENT
-          + "|"
-          + OBJECT_PROGRAM_STAGE
-          + ")"
-          + SEPARATOR_OBJECT
-          + "([a-zA-Z0-9\\- ]+["
-          + SEPARATOR_ID
-          + "([a-zA-Z0-9\\- ]|"
-          + DUE_DATE
-          + "|"
-          + REPORT_DATE
-          + ")+]*)\\]";
+@Transactional
+public class DefaultProgramExpressionService
+    implements ProgramExpressionService
+{
+    private static final String REGEXP = "\\[(" + OBJECT_PROGRAM_STAGE_DATAELEMENT + "|" + OBJECT_PROGRAM_STAGE + ")"
+        + SEPARATOR_OBJECT + "([a-zA-Z0-9\\- ]+[" + SEPARATOR_ID + "([a-zA-Z0-9\\- ]|" + DUE_DATE + "|" + REPORT_DATE
+        + ")+]*)\\]";
 
-  @Qualifier("org.hisp.dhis.program.ProgramExpressionStore")
-  private final GenericStore<ProgramExpression> programExpressionStore;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final ProgramStageService programStageService;
+    private GenericStore<ProgramExpression> programExpressionStore;
 
-  private final DataElementService dataElementService;
+    public void setProgramExpressionStore( GenericStore<ProgramExpression> programExpressionStore )
+    {
+        this.programExpressionStore = programExpressionStore;
+    }
 
-  // -------------------------------------------------------------------------
-  // ProgramExpression CRUD operations
-  // -------------------------------------------------------------------------
+    private ProgramStageService programStageService;
 
-  @Override
-  @Transactional
-  public long addProgramExpression(ProgramExpression programExpression) {
-    programExpressionStore.save(programExpression);
-    return programExpression.getId();
-  }
+    public void setProgramStageService( ProgramStageService programStageService )
+    {
+        this.programStageService = programStageService;
+    }
 
-  @Override
-  @Transactional
-  public void updateProgramExpression(ProgramExpression programExpression) {
-    programExpressionStore.update(programExpression);
-  }
+    private DataElementService dataElementService;
 
-  @Override
-  @Transactional
-  public void deleteProgramExpression(ProgramExpression programExpression) {
-    programExpressionStore.delete(programExpression);
-  }
+    public void setDataElementService( DataElementService dataElementService )
+    {
+        this.dataElementService = dataElementService;
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramExpression getProgramExpression(long id) {
-    return programExpressionStore.get(id);
-  }
+    // -------------------------------------------------------------------------
+    // ProgramExpression CRUD operations
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public String getExpressionDescription(String programExpression) {
-    StringBuffer description = new StringBuffer();
+    @Override
+    public int addProgramExpression( ProgramExpression programExpression )
+    {
+        programExpressionStore.save( programExpression );
+        return programExpression.getId();
+    }
 
-    Pattern pattern = Pattern.compile(REGEXP);
-    Matcher matcher = pattern.matcher(programExpression);
-    int countFormula = 0;
+    @Override
+    public void updateProgramExpression( ProgramExpression programExpression )
+    {
+        programExpressionStore.update( programExpression );
+    }
 
-    while (matcher.find()) {
-      countFormula++;
+    @Override
+    public void deleteProgramExpression( ProgramExpression programExpression )
+    {
+        programExpressionStore.delete( programExpression );
+    }
 
-      String match = matcher.group();
-      String key = matcher.group(1);
-      match = match.replaceAll("[\\[\\]]", "");
+    @Override
+    public ProgramExpression getProgramExpression( int id )
+    {
+        return programExpressionStore.get( id );
+    }
 
-      String[] info = match.split(SEPARATOR_OBJECT);
-      String[] ids = info[1].split(SEPARATOR_ID);
-
-      ProgramStage programStage = programStageService.getProgramStage(ids[0]);
-      String name = ids[1];
-
-      if (programStage == null) {
-        return INVALID_CONDITION;
-      } else if (!name.equals(DUE_DATE) && !name.equals(REPORT_DATE)) {
-        DataElement dataElement = dataElementService.getDataElement(name);
-
-        if (dataElement == null) {
-          return INVALID_CONDITION;
-        } else {
-          name = dataElement.getDisplayName();
+    @Override
+    public String getProgramExpressionValue( ProgramExpression programExpression,
+        ProgramStageInstance programStageInstance, Map<String, String> dataValueMap )
+    {
+        String value = "";
+        
+        if ( programExpression.getExpression().contains( ProgramExpression.DUE_DATE ) )
+        {
+            value = DateUtils.getMediumDateString( programStageInstance.getDueDate() );
         }
-      }
+        else if ( programExpression.getExpression().contains( ProgramExpression.REPORT_DATE ) )
+        {
+            value = DateUtils.getMediumDateString( programStageInstance.getExecutionDate() );
+        }
+        else
+        {
+            StringBuffer description = new StringBuffer();
+            Pattern pattern = Pattern.compile( REGEXP );
+            Matcher matcher = pattern.matcher( programExpression.getExpression() );
 
-      matcher.appendReplacement(
-          description,
-          "["
-              + key
-              + ProgramExpression.SEPARATOR_OBJECT
-              + programStage.getDisplayName()
-              + SEPARATOR_ID
-              + name
-              + "]");
+            while ( matcher.find() )
+            {
+                String key = matcher.group().replaceAll( "[\\[\\]]", "" ).split( SEPARATOR_OBJECT )[1];
+
+                String dataValue = dataValueMap.get( key );
+                
+                if ( dataValue == null )
+                {
+                    return null;
+                }
+
+                matcher.appendReplacement( description, dataValue );
+            }
+
+            matcher.appendTail( description );
+
+            value = description.toString();
+        }
+
+        return value;
     }
 
-    StringBuffer tail = new StringBuffer();
-    matcher.appendTail(tail);
+    @Override
+    public String getExpressionDescription( String programExpression )
+    {
+        StringBuffer description = new StringBuffer();
 
-    if (countFormula > 1
-        || !tail.toString().isEmpty()
-        || (countFormula == 0 && !tail.toString().isEmpty())) {
-      return INVALID_CONDITION;
+        Pattern pattern = Pattern.compile( REGEXP );
+        Matcher matcher = pattern.matcher( programExpression );
+        int countFormula = 0;
+        
+        while ( matcher.find() )
+        {
+            countFormula++;
+            
+            String match = matcher.group();
+            String key = matcher.group(1);
+            match = match.replaceAll( "[\\[\\]]", "" );
+
+            String[] info = match.split( SEPARATOR_OBJECT );
+            String[] ids = info[1].split( SEPARATOR_ID );
+
+            ProgramStage programStage = programStageService.getProgramStage( ids[0] );
+            String name = ids[1];
+            
+            if ( programStage == null )
+            {
+                return INVALID_CONDITION;
+            }
+            else if ( !name.equals( DUE_DATE ) && !name.equals( REPORT_DATE )  )
+            {
+                DataElement dataElement = dataElementService.getDataElement( name );
+                
+                if ( dataElement == null )
+                {
+                    return INVALID_CONDITION;
+                }
+                else
+                {
+                    name = dataElement.getDisplayName();
+                }
+            }
+
+            matcher.appendReplacement( description,
+                "[" + key + ProgramExpression.SEPARATOR_OBJECT + programStage.getDisplayName() + SEPARATOR_ID + name + "]" );
+        }
+
+        StringBuffer tail = new StringBuffer();
+        matcher.appendTail( tail );
+        
+        if ( countFormula > 1 || !tail.toString().isEmpty() || ( countFormula == 0 && !tail.toString().isEmpty() ) )
+        {
+            return INVALID_CONDITION;
+        }        
+
+        return description.toString();
     }
 
-    return description.toString();
-  }
+    @Override
+    public Collection<DataElement> getDataElements( String programExpression )
+    {
+        Collection<DataElement> dataElements = new HashSet<>();
 
-  @Override
-  @Transactional(readOnly = true)
-  public Collection<DataElement> getDataElements(String programExpression) {
-    Collection<DataElement> dataElements = new HashSet<>();
+        Pattern pattern = Pattern.compile( REGEXP );
+        Matcher matcher = pattern.matcher( programExpression );
+        
+        while ( matcher.find() )
+        {
+            String match = matcher.group();
+            match = match.replaceAll( "[\\[\\]]", "" );
 
-    Pattern pattern = Pattern.compile(REGEXP);
-    Matcher matcher = pattern.matcher(programExpression);
+            String[] info = match.split( SEPARATOR_OBJECT );
+            String[] ids = info[1].split( SEPARATOR_ID );
+            
+            DataElement dataElement = dataElementService.getDataElement( ids[1] );
+            dataElements.add( dataElement );
+        }
 
-    while (matcher.find()) {
-      String match = matcher.group();
-      match = match.replaceAll("[\\[\\]]", "");
-
-      String[] info = match.split(SEPARATOR_OBJECT);
-      String[] ids = info[1].split(SEPARATOR_ID);
-
-      DataElement dataElement = dataElementService.getDataElement(ids[1]);
-      dataElements.add(dataElement);
+        return dataElements;
     }
-
-    return dataElements;
-  }
 }

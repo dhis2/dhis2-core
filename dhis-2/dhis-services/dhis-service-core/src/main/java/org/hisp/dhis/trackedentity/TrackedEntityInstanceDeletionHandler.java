@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
-import java.util.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
 public class TrackedEntityInstanceDeletionHandler
-    extends IdObjectDeletionHandler<TrackedEntityInstance> {
-  @Override
-  protected void registerHandler() {
-    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
-    whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
-  }
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+    
+    private JdbcTemplate jdbcTemplate;
 
-  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
-    String sql = "select 1 from trackedentityinstance where organisationunitid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )    
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
-    String sql = "select 1 from trackedentityinstance where trackedentitytypeid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", trackedEntityType.getId()));
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected String getClassName()
+    {
+        return TrackedEntityInstance.class.getSimpleName();
+    }
+
+    @Override
+    public String allowDeleteOrganisationUnit( OrganisationUnit unit )
+    {
+        String sql = "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;    }
+    
+    @Override
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = " + trackedEntityType.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

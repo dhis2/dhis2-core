@@ -1,5 +1,14 @@
+package org.hisp.dhis.scheduling.parameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +34,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Henning Håkonsen
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class SmsJobParameters implements JobParameters {
-  @JsonProperty private String smsSubject;
+public class SmsJobParameters
+    implements JobParameters
+{
+    private static final long serialVersionUID = -6116489359345047961L;
 
-  @JsonProperty private List<String> recipientsList = new ArrayList<>();
+    @JsonProperty
+    private String smsSubject;
 
-  @JsonProperty private String message;
+    @JsonProperty
+    private List<String> recipientsList = new ArrayList<>();
 
-  public SmsJobParameters(String smsSubject, String message, List<String> recipientsList) {
-    this.smsSubject = smsSubject;
-    this.recipientsList = recipientsList;
-    this.message = message;
-  }
+    @JsonProperty
+    private String message;
+
+    public SmsJobParameters()
+    {
+    }
+
+    public SmsJobParameters( String smsSubject, String message, List<String> recipientsList )
+    {
+        this.smsSubject = smsSubject;
+        this.recipientsList = recipientsList;
+        this.message = message;
+    }
+
+    public String getSmsSubject()
+    {
+        return smsSubject;
+    }
+
+    public void setSmsSubject( String smsSubject )
+    {
+        this.smsSubject = smsSubject;
+    }
+
+    public List<String> getRecipientsList()
+    {
+        return recipientsList;
+    }
+
+    public void setRecipientsList( List<String> recipientsList )
+    {
+        this.recipientsList = recipientsList;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public void setMessage( String message )
+    {
+        this.message = message;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        return null;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.scheduling;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
 
 /**
- * Enum for job status. This is used for current status of a job(RUNNING or SCHEDULED) and for last
- * executed status, for which the status can be COMPLETED, STOPPED or FAILED.
+ * Enum for job status. This is used for current status of a job(RUNNING or SCHEDULED) and for last executed status, for which the
+ * status can be COMPLETED, STOPPED or FAILED.
  *
  * @author Henning Håkonsen
  */
-public enum JobStatus {
-  RUNNING("running"),
-  COMPLETED("done"),
-  STOPPED("stopped"),
-  SCHEDULED("scheduled"),
-  DISABLED("disabled"),
-  FAILED("failed"),
-  NOT_STARTED("not_started");
+public enum JobStatus
+{
+    RUNNING( "running" ),
+    COMPLETED( "done" ),
+    STOPPED( "stopped" ),
+    SCHEDULED( "scheduled" ),
+    DISABLED( "disabled" ),
+    FAILED( "failed" );
 
-  private final String key;
+    private final String key;
 
-  JobStatus(String key) {
-    this.key = key;
-  }
+    JobStatus( String key )
+    {
+        this.key = key;
+    }
 
-  public String getKey() {
-    return key;
-  }
+    public String getKey()
+    {
+        return key;
+    }
 }

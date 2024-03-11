@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +27,79 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
-@RequiredArgsConstructor
-public class ProgramStageDeletionHandler extends IdObjectDeletionHandler<ProgramStage> {
-  private final ProgramStageService programStageService;
+public class ProgramStageDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Program.class, this::deleteProgram);
-    whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
-    whenVetoing(DataElement.class, this::allowDeleteDataElement);
-  }
+    private ProgramStageService programStageService;
 
-  private void deleteProgram(Program program) {
-    Iterator<ProgramStage> iterator = program.getProgramStages().iterator();
-
-    while (iterator.hasNext()) {
-      ProgramStage programStage = iterator.next();
-      iterator.remove();
-      programStageService.deleteProgramStage(programStage);
+    public void setProgramStageService( ProgramStageService programStageService )
+    {
+        this.programStageService = programStageService;
     }
-  }
 
-  private void deleteDataEntryForm(DataEntryForm dataEntryForm) {
-    List<ProgramStage> associatedProgramStages =
-        programStageService.getProgramStagesByDataEntryForm(dataEntryForm);
+    private JdbcTemplate jdbcTemplate;
 
-    for (ProgramStage programStage : associatedProgramStages) {
-      programStage.setDataEntryForm(null);
-      programStageService.updateProgramStage(programStage);
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
     }
-  }
 
-  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
-    String sql = "select 1 from programstagedataelement where dataelementid=:id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected String getClassName()
+    {
+        return ProgramStage.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteProgram( Program program )
+    {
+        Iterator<ProgramStage> iterator = program.getProgramStages().iterator();
+
+        while ( iterator.hasNext() )
+        {
+            ProgramStage programStage = iterator.next();
+            iterator.remove();
+            programStageService.deleteProgramStage( programStage );
+        }
+    }
+
+    @Override
+    public void deleteDataEntryForm( DataEntryForm dataEntryForm )
+    {
+        List<ProgramStage> associatedProgramStages = programStageService.getProgramStagesByDataEntryForm( dataEntryForm );
+
+        for ( ProgramStage programStage : associatedProgramStages )
+        {
+            programStage.setDataEntryForm( null );
+            programStageService.updateProgramStage( programStage );
+        }
+    }
+
+    @Override
+    public String allowDeleteDataElement( DataElement dataElement )
+    {
+        String sql = "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=" + dataElement.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityattributevalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,74 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
+
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService")
 public class DefaultTrackedEntityAttributeValueAuditService
-    implements TrackedEntityAttributeValueAuditService {
-  private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
+    implements TrackedEntityAttributeValueAuditService
+{
+    @Autowired
+    private TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
 
-  private final TrackedEntityAttributeService trackedEntityAttributeService;
+    @Override
+    public void addTrackedEntityAttributeValueAudit( TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit )
+    {
+        trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+    }
 
-  private final CurrentUserService currentUserService;
+    @Override
+    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
+        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
+    {
+        return trackedEntityAttributeValueAuditStore.getTrackedEntityAttributeValueAudits( trackedEntityAttributes, trackedEntityInstances, auditType );
+    }
 
-  @Override
-  public void addTrackedEntityAttributeValueAudit(
-      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit) {
-    trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit(
-        trackedEntityAttributeValueAudit);
-  }
+    @Override
+    public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
+        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType, int first, int max )
+    {
+        return trackedEntityAttributeValueAuditStore.getTrackedEntityAttributeValueAudits( trackedEntityAttributes, trackedEntityInstances,
+            auditType, first, max );
+    }
 
-  @Override
-  public List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params) {
-    return aclFilter(
-        trackedEntityAttributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
-  }
-
-  private List<TrackedEntityAttributeValueAudit> aclFilter(
-      List<TrackedEntityAttributeValueAudit> trackedEntityAttributeValueAudits) {
-    // Fetch all the Tracked Entity Instance Attributes this user has access
-    // to (only store UIDs). Not a very efficient solution, but at the
-    // moment
-    // we do not have ACL API to check TEI attributes.
-
-    Set<String> allUserReadableTrackedEntityAttributes =
-        trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes(currentUserService.getCurrentUser())
-            .stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-
-    return trackedEntityAttributeValueAudits.stream()
-        .filter(
-            audit -> allUserReadableTrackedEntityAttributes.contains(audit.getAttribute().getUid()))
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public int countTrackedEntityAttributeValueAudits(
-      TrackedEntityAttributeValueAuditQueryParams params) {
-    return trackedEntityAttributeValueAuditStore.countTrackedEntityAttributeValueAudits(params);
-  }
-
-  @Override
-  public void deleteTrackedEntityAttributeValueAudits(TrackedEntityInstance trackedEntityInstance) {
-    trackedEntityAttributeValueAuditStore.deleteTrackedEntityAttributeValueAudits(
-        trackedEntityInstance);
-  }
+    @Override
+    public int countTrackedEntityAttributeValueAudits( List<TrackedEntityAttribute> trackedEntityAttributes,
+        List<TrackedEntityInstance> trackedEntityInstances, AuditType auditType )
+    {
+        return trackedEntityAttributeValueAuditStore.countTrackedEntityAttributeValueAudits( trackedEntityAttributes, trackedEntityInstances, auditType );
+    }
+    
+    @Override
+    public void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance )
+    {
+        trackedEntityAttributeValueAuditStore.deleteTrackedEntityAttributeValueAudits( trackedEntityInstance );
+    }
 }

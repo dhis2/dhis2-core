@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataelement;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,122 +27,116 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
  */
-class CategoryComboTest {
+public class CategoryComboTest
+{
+    private CategoryOption categoryOptionA;
+    private CategoryOption categoryOptionB;
+    private CategoryOption categoryOptionC;
+    private CategoryOption categoryOptionD;
+    private CategoryOption categoryOptionE;
+    private CategoryOption categoryOptionF;
+    
+    private Category categoryA;
+    private Category categoryB;
+    private Category categoryC;
+    
+    private CategoryCombo categoryCombo;
+    
+    // -------------------------------------------------------------------------
+    // Fixture
+    // -------------------------------------------------------------------------
 
-  private CategoryOption categoryOptionA;
-
-  private CategoryOption categoryOptionB;
-
-  private CategoryOption categoryOptionC;
-
-  private CategoryOption categoryOptionD;
-
-  private CategoryOption categoryOptionE;
-
-  private CategoryOption categoryOptionF;
-
-  private Category categoryA;
-
-  private Category categoryB;
-
-  private Category categoryC;
-
-  private CategoryCombo categoryCombo;
-
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-  @BeforeEach
-  void before() {
-    categoryOptionA = new CategoryOption("OptionA");
-    categoryOptionB = new CategoryOption("OptionB");
-    categoryOptionC = new CategoryOption("OptionC");
-    categoryOptionD = new CategoryOption("OptionD");
-    categoryOptionE = new CategoryOption("OptionE");
-    categoryOptionF = new CategoryOption("OptionF");
-    categoryA = new Category("CategoryA", DataDimensionType.DISAGGREGATION);
-    categoryB = new Category("CategoryB", DataDimensionType.DISAGGREGATION);
-    categoryC = new Category("CategoryC", DataDimensionType.DISAGGREGATION);
-    categoryA.getCategoryOptions().add(categoryOptionA);
-    categoryA.getCategoryOptions().add(categoryOptionB);
-    categoryB.getCategoryOptions().add(categoryOptionC);
-    categoryB.getCategoryOptions().add(categoryOptionD);
-    categoryC.getCategoryOptions().add(categoryOptionE);
-    categoryC.getCategoryOptions().add(categoryOptionF);
-    categoryOptionA.getCategories().add(categoryA);
-    categoryOptionB.getCategories().add(categoryA);
-    categoryOptionC.getCategories().add(categoryB);
-    categoryOptionD.getCategories().add(categoryB);
-    categoryOptionE.getCategories().add(categoryC);
-    categoryOptionF.getCategories().add(categoryC);
-    categoryCombo = new CategoryCombo("CategoryCombo", DataDimensionType.DISAGGREGATION);
-    categoryCombo.getCategories().add(categoryA);
-    categoryCombo.getCategories().add(categoryB);
-    categoryCombo.getCategories().add(categoryC);
-  }
-
-  @Test
-  void testGenerateOptionCombosList() {
-    List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-    assertNotNull(list);
-    assertEquals(8, list.size());
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionC, categoryOptionE),
-        list.get(0));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionC, categoryOptionF),
-        list.get(1));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionD, categoryOptionE),
-        list.get(2));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionA, categoryOptionD, categoryOptionF),
-        list.get(3));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionC, categoryOptionE),
-        list.get(4));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionC, categoryOptionF),
-        list.get(5));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionD, categoryOptionE),
-        list.get(6));
-    assertEquals(
-        createCategoryOptionCombo(categoryCombo, categoryOptionB, categoryOptionD, categoryOptionF),
-        list.get(7));
-  }
-
-  @Test
-  void test() {
-    List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-    categoryCombo.generateOptionCombos();
-    assertEquals(list, categoryCombo.getSortedOptionCombos());
-  }
-
-  private static CategoryOptionCombo createCategoryOptionCombo(
-      CategoryCombo categoryCombo, CategoryOption... categoryOptions) {
-    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-    categoryOptionCombo.setCategoryCombo(categoryCombo);
-    for (CategoryOption categoryOption : categoryOptions) {
-      categoryOptionCombo.getCategoryOptions().add(categoryOption);
+    @Before
+    public void before()
+    {
+        categoryOptionA = new CategoryOption( "OptionA" );
+        categoryOptionB = new CategoryOption( "OptionB" );
+        categoryOptionC = new CategoryOption( "OptionC" );
+        categoryOptionD = new CategoryOption( "OptionD" );
+        categoryOptionE = new CategoryOption( "OptionE" );
+        categoryOptionF = new CategoryOption( "OptionF" );
+        
+        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
+        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
+        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
+        
+        categoryA.getCategoryOptions().add( categoryOptionA );
+        categoryA.getCategoryOptions().add( categoryOptionB );
+        categoryB.getCategoryOptions().add( categoryOptionC );
+        categoryB.getCategoryOptions().add( categoryOptionD );
+        categoryC.getCategoryOptions().add( categoryOptionE );
+        categoryC.getCategoryOptions().add( categoryOptionF );
+        
+        categoryOptionA.getCategories().add( categoryA );
+        categoryOptionB.getCategories().add( categoryA );
+        categoryOptionC.getCategories().add( categoryB );
+        categoryOptionD.getCategories().add( categoryB );
+        categoryOptionE.getCategories().add( categoryC );
+        categoryOptionF.getCategories().add( categoryC );
+        
+        categoryCombo = new CategoryCombo( "CategoryCombo", DataDimensionType.DISAGGREGATION );
+        
+        categoryCombo.getCategories().add( categoryA );
+        categoryCombo.getCategories().add( categoryB );
+        categoryCombo.getCategories().add( categoryC );        
     }
-    return categoryOptionCombo;
-  }
+    
+    @Test
+    public void testGenerateOptionCombosList()
+    {
+        List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
+        
+        assertNotNull( list );
+        assertEquals( 8, list.size() );
+        
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionA, categoryOptionC, categoryOptionE ), list.get( 0 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionA, categoryOptionC, categoryOptionF ), list.get( 1 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionA, categoryOptionD, categoryOptionE ), list.get( 2 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionA, categoryOptionD, categoryOptionF ), list.get( 3 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionB, categoryOptionC, categoryOptionE ), list.get( 4 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionB, categoryOptionC, categoryOptionF ), list.get( 5 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionB, categoryOptionD, categoryOptionE ), list.get( 6 ) );
+        assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionB, categoryOptionD, categoryOptionF ), list.get( 7 ) );
+    }
+    
+    @Test
+    public void test()
+    {
+        List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
+        
+        categoryCombo.generateOptionCombos();
+        
+        assertEquals( list, categoryCombo.getSortedOptionCombos() );
+    }
+    
+    private static CategoryOptionCombo createCategoryOptionCombo( CategoryCombo categoryCombo, CategoryOption... categoryOptions )
+    {
+        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+        
+        categoryOptionCombo.setCategoryCombo( categoryCombo );
+        
+        for ( CategoryOption categoryOption : categoryOptions )
+        {
+            categoryOptionCombo.getCategoryOptions().add( categoryOption );
+        }
+        
+        return categoryOptionCombo;
+    }
 }

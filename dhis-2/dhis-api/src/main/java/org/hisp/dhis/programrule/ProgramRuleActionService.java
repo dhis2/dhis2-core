@@ -1,5 +1,7 @@
+package org.hisp.dhis.programrule;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +27,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule;
 
 import java.util.List;
 
 /**
  * @author markusbekken
  */
-public interface ProgramRuleActionService {
-  /**
-   * Adds a {@link ProgramRuleAction}.
-   *
-   * @param programRuleAction The to ProgramRuleAction add.
-   * @return A generated unique id of the added {@link ProgramRuleAction}.
-   */
-  long addProgramRuleAction(ProgramRuleAction programRuleAction);
+public interface ProgramRuleActionService
+{
+    /**
+     * Adds a {@link ProgramRuleAction}.
+     *
+     * @param programRuleAction The to ProgramRuleAction add.
+     * @return A generated unique id of the added {@link ProgramRuleAction}.
+     */
+    int addProgramRuleAction( ProgramRuleAction programRuleAction );
 
-  /**
-   * Deletes a {@link ProgramRuleAction}
-   *
-   * @param programRuleAction The ProgramRuleAction to delete.
-   */
-  void deleteProgramRuleAction(ProgramRuleAction programRuleAction);
+    /**
+     * Deletes a {@link ProgramRuleAction}
+     *
+     * @param programRuleAction The ProgramRuleAction to delete.
+     */
+    void deleteProgramRuleAction( ProgramRuleAction programRuleAction );
 
-  /**
-   * Updates an {@link ProgramRuleAction}.
-   *
-   * @param programRuleAction The ProgramRuleAction to update.
-   */
-  void updateProgramRuleAction(ProgramRuleAction programRuleAction);
+    /**
+     * Updates an {@link ProgramRuleAction}.
+     *
+     * @param programRuleAction The ProgramRuleAction to update.
+     */
+    void updateProgramRuleAction( ProgramRuleAction programRuleAction );
 
-  /**
-   * Returns a {@link ProgramRuleAction}.
-   *
-   * @param id the id of the ProgramRuleAction to return.
-   * @return the ProgramRuleAction with the given id
-   */
-  ProgramRuleAction getProgramRuleAction(long id);
+    /**
+     * Returns a {@link ProgramRuleAction}.
+     *
+     * @param id the id of the ProgramRuleAction to return.
+     * @return the ProgramRuleAction with the given id
+     */
+    ProgramRuleAction getProgramRuleAction( int id );
 
-  /**
-   * Returns all {@link ProgramRuleAction}.
-   *
-   * @return a collection of all ProgramRuleAction, or an empty collection if there are no
-   *     ProgramRuleActions.
-   */
-  List<ProgramRuleAction> getAllProgramRuleAction();
+    /**
+     * Returns all {@link ProgramRuleAction}.
+     *
+     * @return a collection of all ProgramRuleAction, or an empty collection if
+     *          there are no ProgramRuleActions.
+     */
+    List<ProgramRuleAction> getAllProgramRuleAction();
 
-  /**
-   * Get validation by {@link ProgramRule}.
-   *
-   * @param programRule the program rule.
-   * @return a list of ProgramRuleActions.
-   */
-  List<ProgramRuleAction> getProgramRuleAction(ProgramRule programRule);
-
-  List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject();
-
-  List<ProgramRuleAction> getProgramActionsWithNoLinkToNotification();
-
-  List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
-
-  List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
+    /**
+     * Get validation by {@link ProgramRule}.
+     *
+     * @param programRule the program rule.
+     * @return a list of ProgramRuleActions.
+     */
+    List<ProgramRuleAction> getProgramRuleAction( ProgramRule programRule );
 }

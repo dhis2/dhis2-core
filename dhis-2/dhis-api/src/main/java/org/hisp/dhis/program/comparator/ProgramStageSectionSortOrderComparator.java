@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+
+import org.hisp.dhis.program.ProgramStageSection;
 
 import java.util.Comparator;
-import org.hisp.dhis.program.ProgramStageSection;
 
 /**
  * @author Chau Thu Tran
+ * @version ProgramStageSectionSortOrderComparator.java 9:32:23 AM Feb 4, 2013 $
  */
-public class ProgramStageSectionSortOrderComparator implements Comparator<ProgramStageSection> {
-  @Override
-  public int compare(ProgramStageSection object0, ProgramStageSection object1) {
-    if (object0.getSortOrder() == null) {
-      return object1.getSortOrder() != null ? -1 : 0;
-    }
+public class ProgramStageSectionSortOrderComparator
+    implements Comparator<ProgramStageSection>
+{
+    @Override
+    public int compare( ProgramStageSection object0, ProgramStageSection object1 )
+    {
+        if ( object0.getSortOrder() == null )
+        {
+            return object1.getSortOrder() != null ? -1 : 0;
+        }
 
-    return object0.getSortOrder().compareTo(object1.getSortOrder());
-  }
+        return object0.getSortOrder().compareTo( object1.getSortOrder() );
+    }
 }

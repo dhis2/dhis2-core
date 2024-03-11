@@ -1,5 +1,7 @@
+package org.hisp.dhis.mapping;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,179 +27,204 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.mapping;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "map", namespace = DxfNamespaces.DXF_2_0)
-public class Map extends BaseNameableObject
-    implements InterpretableObject, SubscribableObject, MetadataObject {
-  private Double longitude;
+@JacksonXmlRootElement( localName = "map", namespace = DxfNamespaces.DXF_2_0 )
+public class Map
+    extends BaseNameableObject implements InterpretableObject, SubscribableObject, MetadataObject
+{
+    private Double longitude;
 
-  private Double latitude;
+    private Double latitude;
 
-  private Integer zoom;
+    private Integer zoom;
 
-  private String basemap;
+    private String basemap;
 
-  private String title;
+    private String title;
 
-  private List<MapView> mapViews = new ArrayList<>();
+    private List<MapView> mapViews = new ArrayList<>();
 
-  private Set<Interpretation> interpretations = new HashSet<>();
+    private Set<Interpretation> interpretations = new HashSet<>();
 
-  protected Set<String> subscribers = new HashSet<>();
+    protected Set<String> subscribers = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public Map() {}
-
-  public Map(String name, User user, Double longitude, Double latitude, Integer zoom) {
-    this.name = name;
-    this.longitude = longitude;
-    this.latitude = latitude;
-    this.zoom = zoom;
-    this.setCreatedBy(user);
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = -180, max = 180)
-  public Double getLongitude() {
-    return longitude;
-  }
-
-  public void setLongitude(Double longitude) {
-    this.longitude = longitude;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = -90, max = 90)
-  public Double getLatitude() {
-    return latitude;
-  }
-
-  public void setLatitude(Double latitude) {
-    this.latitude = latitude;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Integer getZoom() {
-    return zoom;
-  }
-
-  public void setZoom(Integer zoom) {
-    this.zoom = zoom;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getBasemap() {
-    return basemap;
-  }
-
-  public void setBasemap(String basemap) {
-    this.basemap = basemap;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getTitle() {
-    return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "mapViews", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "mapView", namespace = DxfNamespaces.DXF_2_0)
-  public List<MapView> getMapViews() {
-    return mapViews;
-  }
-
-  public void setMapViews(List<MapView> mapViews) {
-    this.mapViews = mapViews;
-  }
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "interpretations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "interpretation", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Interpretation> getInterpretations() {
-    return interpretations;
-  }
-
-  public void setInterpretations(Set<Interpretation> interpretations) {
-    this.interpretations = interpretations;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "subscribers", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "subscriber", namespace = DxfNamespaces.DXF_2_0)
-  public Set<String> getSubscribers() {
-    return subscribers;
-  }
-
-  public void setSubscribers(Set<String> subscribers) {
-    this.subscribers = subscribers;
-  }
-
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isSubscribed() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-    return user != null && subscribers != null && subscribers.contains(user.getUid());
-  }
-
-  @Override
-  public boolean subscribe(User user) {
-    if (this.subscribers == null) {
-      this.subscribers = new HashSet<>();
+    public Map()
+    {
     }
 
-    return this.subscribers.add(user.getUid());
-  }
-
-  @Override
-  public boolean unsubscribe(User user) {
-    if (this.subscribers == null) {
-      this.subscribers = new HashSet<>();
+    public Map( String name, User user, Double longitude, Double latitude, Integer zoom )
+    {
+        this.name = name;
+        this.user = user;
+        this.longitude = longitude;
+        this.latitude = latitude;
+        this.zoom = zoom;
     }
 
-    return this.subscribers.remove(user.getUid());
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = -180, max = 180 )
+    public Double getLongitude()
+    {
+        return longitude;
+    }
+
+    public void setLongitude( Double longitude )
+    {
+        this.longitude = longitude;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = -90, max = 90 )
+    public Double getLatitude()
+    {
+        return latitude;
+    }
+
+    public void setLatitude( Double latitude )
+    {
+        this.latitude = latitude;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getZoom()
+    {
+        return zoom;
+    }
+
+    public void setZoom( Integer zoom )
+    {
+        this.zoom = zoom;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getBasemap()
+    {
+        return basemap;
+    }
+
+    public void setBasemap( String basemap )
+    {
+        this.basemap = basemap;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle( String title )
+    {
+        this.title = title;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "mapViews", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "mapView", namespace = DxfNamespaces.DXF_2_0 )
+    public List<MapView> getMapViews()
+    {
+        return mapViews;
+    }
+
+    public void setMapViews( List<MapView> mapViews )
+    {
+        this.mapViews = mapViews;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Interpretation> getInterpretations()
+    {
+        return interpretations;
+    }
+
+    public void setInterpretations( Set<Interpretation> interpretations )
+    {
+        this.interpretations = interpretations;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "subscribers", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "subscriber", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getSubscribers()
+    {
+        return subscribers;
+    }
+
+    public void setSubscribers( Set<String> subscribers )
+    {
+        this.subscribers = subscribers;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSubscribed()
+    {
+        User user = UserContext.getUser();
+
+        return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    public boolean subscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.add( user.getUid() );
+    }
+
+    @Override
+    public boolean unsubscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.remove( user.getUid() );
+    }
 }

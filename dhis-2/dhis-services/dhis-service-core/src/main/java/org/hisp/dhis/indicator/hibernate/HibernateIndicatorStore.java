@@ -1,5 +1,7 @@
+package org.hisp.dhis.indicator.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator.hibernate;
 
 import java.util.List;
-import org.hibernate.SessionFactory;
+
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
+ * @version $Id: HibernateIndicatorStore.java 3287 2007-05-08 00:26:53Z larshelg $
  */
-@Repository("org.hisp.dhis.indicator.IndicatorStore")
-public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<Indicator>
-    implements IndicatorStore {
-  public HibernateIndicatorStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Indicator.class,
-        currentUserService,
-        aclService,
-        true);
-  }
+public class HibernateIndicatorStore
+    extends HibernateIdentifiableObjectStore<Indicator>
+    implements IndicatorStore
+{
+    // -------------------------------------------------------------------------
+    // Indicator
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Indicator
-  // -------------------------------------------------------------------------
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Indicator> getIndicatorsWithGroupSets()
+    {
+        final String hql = "from Indicator d where size(d.groupSets) > 0";
 
-  @Override
-  public List<Indicator> getIndicatorsWithGroupSets() {
-    final String hql = "from Indicator d where size(d.groupSets) > 0";
+        return getQuery( hql ).setCacheable( true ).list();
+    }
 
-    return getQuery(hql).setCacheable(true).list();
-  }
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Indicator> getIndicatorsWithoutGroups()
+    {
+        final String hql = "from Indicator d where size(d.groups) = 0";
 
-  @Override
-  public List<Indicator> getIndicatorsWithoutGroups() {
-    final String hql = "from Indicator d where size(d.groups) = 0";
+        return getQuery( hql ).setCacheable( true ).list();
+    }
 
-    return getQuery(hql).setCacheable(true).list();
-  }
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Indicator> getIndicatorsWithDataSets()
+    {
+        final String hql = "from Indicator d where size(d.dataSets) > 0";
 
-  @Override
-  public List<Indicator> getIndicatorsWithDataSets() {
-    final String hql = "from Indicator d where size(d.dataSets) > 0";
-
-    return getQuery(hql).setCacheable(true).list();
-  }
+        return getQuery( hql ).setCacheable( true ).list();
+    }
 }

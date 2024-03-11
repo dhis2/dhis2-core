@@ -1,5 +1,7 @@
+package org.hisp.dhis.event;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.event;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -33,36 +34,44 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "eventStatus", namespace = DxfNamespaces.DXF_2_0)
-public enum EventStatus {
-  ACTIVE(0),
-  COMPLETED(1),
-  VISITED(2),
-  SCHEDULE(3),
-  OVERDUE(4),
-  SKIPPED(5);
+@JacksonXmlRootElement( localName = "eventStatus", namespace = DxfNamespaces.DXF_2_0 )
+public enum EventStatus
+{
+    ACTIVE( 0 ),
+    COMPLETED( 1 ),
+    VISITED( 2 ),
+    SCHEDULE( 3 ),
+    OVERDUE( 4 ),
+    SKIPPED( 5 );
 
-  private final int value;
+    private final int value;
 
-  EventStatus(int value) {
-    this.value = value;
-  }
-
-  public int getValue() {
-    return value;
-  }
-
-  public static EventStatus fromInt(int status) {
-    for (EventStatus eventStatus : EventStatus.values()) {
-      if (eventStatus.getValue() == status) {
-        return eventStatus;
-      }
+    EventStatus( int value )
+    {
+        this.value = value;
     }
 
-    throw new IllegalArgumentException();
-  }
+    public int getValue()
+    {
+        return value;
+    }
 
-  public static boolean isExistingEvent(EventStatus status) {
-    return status != null && (COMPLETED.equals(status) || VISITED.equals(status));
-  }
+    public static EventStatus fromInt( int status )
+    {
+        for ( EventStatus eventStatus : EventStatus.values() )
+        {
+            if ( eventStatus.getValue() == status )
+            {
+                return eventStatus;
+            }
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    public static boolean isExistingEvent( EventStatus status )
+    {
+        return status != null && (COMPLETED.equals( status ) || VISITED.equals( status ));
+    }
 }
+

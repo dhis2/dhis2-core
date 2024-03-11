@@ -1,5 +1,7 @@
+package org.hisp.dhis.period;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
 
 /**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to Sunday and endDate set
- * to Saturday the same week, assuming Sunday is the first day and Saturday is the last day of the
- * week.
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to
+ * Sunday and endDate set to Saturday the same week, assuming Sunday is the first
+ * day and Saturday is the last day of the week.
  *
  * @author Torgeir Lorange Ostby
  */
-public class WeeklySundayPeriodType extends WeeklyAbstractPeriodType {
-  public WeeklySundayPeriodType() {
-    super(PeriodTypeEnum.WEEKLY_SUNDAY.getName(), 7, "yyyySunWn", "P7D", 7, "1 week", "SunW");
-  }
+public class WeeklySundayPeriodType
+    extends WeeklyAbstractPeriodType
+{
+    public static final String NAME = "WeeklySunday";
 
-  @Override
-  public PeriodTypeEnum getPeriodTypeEnum() {
-    return PeriodTypeEnum.WEEKLY_SUNDAY;
-  }
+    public WeeklySundayPeriodType()
+    {
+        super( NAME, 7, "yyyySunWn", "P7D", 7, "SunW" );
+    }
 }

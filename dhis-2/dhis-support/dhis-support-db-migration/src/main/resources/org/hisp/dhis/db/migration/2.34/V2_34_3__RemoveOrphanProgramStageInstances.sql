@@ -1,1 +1,0 @@
-update programstageinstance set deleted = true where programinstanceid in (SELECT programinstance.programinstanceid from programinstance where programinstance.deleted = true);

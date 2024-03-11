@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Viet Nguyen
  */
-@Component
-@RequiredArgsConstructor
 public class ProgramIndicatorGroupDeletionHandler
-    extends IdObjectDeletionHandler<ProgramIndicatorGroup> {
-  private final ProgramIndicatorService programIndicatorService;
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
-  }
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
 
-  private void deleteProgramIndicator(ProgramIndicator programIndicator) {
-    for (ProgramIndicatorGroup group : programIndicator.getGroups()) {
-      group.getMembers().remove(programIndicator);
-      programIndicatorService.updateProgramIndicatorGroup(group);
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return ProgramIndicatorGroup.class.getName();
     }
-  }
+
+    @Override
+    public void deleteProgramIndicator( ProgramIndicator programIndicator)
+    {
+        for ( ProgramIndicatorGroup group : programIndicator.getGroups() )
+        {
+            group.getMembers().remove( programIndicator );
+            programIndicatorService.updateProgramIndicatorGroup( group );
+        }
+    }
 }

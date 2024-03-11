@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.hisp.dhis.fileresource;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
-/** This is simple class to represent the list of possible static image resources. */
+import org.apache.commons.collections.map.HashedMap;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * This is simple class to represent the list of possible static image
+ * resources.
+ */
 @XmlRootElement
-public class SimpleImageResource {
-  private Map<String, String> images;
+public class SimpleImageResource
+{
+    private Map<String, String> images;
 
-  @JsonProperty
-  public Map<String, String> getImages() {
-    return images;
-  }
-
-  public void setImages(final Map<String, String> images) {
-    this.images = images;
-  }
-
-  public void addImage(final String type, final String path) {
-    if (images == null) {
-      images = new HashMap<>();
-    }
-    images.put(type, path);
-  }
-
-  @Override
-  public boolean equals(Object other) {
-    if (this == other) {
-      return true;
+    @JsonProperty
+    public Map<String, String> getImages()
+    {
+        return images;
     }
 
-    if (other == null || getClass() != other.getClass()) {
-      return false;
+    public void setImages( final Map<String, String> images )
+    {
+        this.images = images;
     }
 
-    SimpleImageResource that = (SimpleImageResource) other;
+    public void addImage( final String type, final String path )
+    {
+        if ( images == null )
+        {
+            images = new HashedMap();
+        }
+        images.put( type, path );
+    }
 
-    return Objects.equals(this.images, that.images);
-  }
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+        SimpleImageResource that = (SimpleImageResource) o;
+        return images.equals( that.images );
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(images);
-  }
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( images );
+    }
 
-  @Override
-  public String toString() {
-    return "SimpleImageResource{" + "images=" + images + '}';
-  }
+    @Override
+    public String toString()
+    {
+        return "SimpleImageResource{" + "images=" + images + '}';
+    }
 }

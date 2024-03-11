@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +27,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-/** Created by zubair on 06.03.17. */
-public class PasswordValidationResult {
-  public static final PasswordValidationResult VALID = new PasswordValidationResult(null);
+/**
+ * Created by zubair on 06.03.17.
+ */
+public class PasswordValidationResult
+{
+    private String errorMessage;
 
-  private final String message;
+    private String i18ErrorMessage;
 
-  private final PasswordValidationError error;
+    private boolean valid;
 
-  public PasswordValidationResult(PasswordValidationError error, Object... args) {
-    this.message = getMessage(error, args);
-    this.error = error;
-  }
-
-  private String getMessage(PasswordValidationError error, Object[] args) {
-    if (error == null) {
-      return null;
+    public PasswordValidationResult( String errorMessage, String i18ErrorMessage, boolean valid )
+    {
+        this.errorMessage = errorMessage;
+        this.i18ErrorMessage = i18ErrorMessage;
+        this.valid = valid;
     }
-    return args.length == 0 ? error.getMessage() : String.format(error.getMessage(), args);
-  }
 
-  public String getErrorMessage() {
-    return message;
-  }
+    public PasswordValidationResult()
+    {
+    }
 
-  public boolean isValid() {
-    return error == null;
-  }
+    public PasswordValidationResult( boolean valid )
+    {
+        this.valid = valid;
+    }
 
-  public String getI18ErrorMessage() {
-    return error == null ? null : error.getI18nKey();
-  }
+    public String getErrorMessage()
+    {
+        return errorMessage;
+    }
+
+    public void setErrorMessage( String errorMessage )
+    {
+        this.errorMessage = errorMessage;
+    }
+
+    public boolean isValid()
+    {
+        return valid;
+    }
+
+    public void setValid( boolean valid )
+    {
+        this.valid = valid;
+    }
+
+    public String getI18ErrorMessage()
+    {
+        return i18ErrorMessage;
+    }
+
+    public void setI18ErrorMessage( String i18ErrorMessage )
+    {
+        this.i18ErrorMessage = i18ErrorMessage;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,205 +27,258 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Objects;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.TranslationProperty;
 
 /**
  * @author Bob Jolliffe
  */
-@JacksonXmlRootElement(localName = "nameableObject", namespace = DxfNamespaces.DXF_2_0)
-public class BaseNameableObject extends BaseIdentifiableObject implements NameableObject {
-  /** An short name representing this Object. Optional but unique. */
-  protected String shortName;
+@JacksonXmlRootElement( localName = "nameableObject", namespace = DxfNamespaces.DXF_2_0 )
+public class BaseNameableObject
+    extends BaseIdentifiableObject
+    implements NameableObject
+{
+    /**
+     * An short name representing this Object. Optional but unique.
+     */
+    protected String shortName;
 
-  /** Description of this Object. */
-  protected String description;
+    /**
+     * Description of this Object.
+     */
+    protected String description;
 
-  protected String formName;
+    /**
+     * The i18n variant of the short name. Should not be persisted.
+     */
+    protected transient String displayShortName;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    /**
+     * The i18n variant of the description. Should not be persisted.
+     */
+    protected transient String displayDescription;
 
-  public BaseNameableObject() {}
+    protected String formName;
 
-  public BaseNameableObject(String uid, String code, String name) {
-    this.uid = uid;
-    this.code = code;
-    this.name = name;
-  }
+    protected transient String displayFormName;
 
-  public BaseNameableObject(
-      long id, String uid, String name, String shortName, String code, String description) {
-    super(id, uid, name);
-    this.shortName = shortName;
-    this.code = code;
-    this.description = description;
-  }
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public BaseNameableObject(NameableObject object) {
-    super(object.getId(), object.getUid(), object.getName());
-    this.shortName = object.getShortName();
-    this.code = object.getCode();
-    this.description = object.getDescription();
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns the display property indicated by the given display property. Falls back to display
-   * name if display short name is null.
-   *
-   * @param displayProperty the display property.
-   * @return the display property.
-   */
-  @Override
-  @JsonIgnore
-  public String getDisplayProperty(DisplayProperty displayProperty) {
-    if (DisplayProperty.SHORTNAME == displayProperty && getDisplayShortName() != null) {
-      return getDisplayShortName();
-    } else {
-      return getDisplayName();
+    public BaseNameableObject()
+    {
     }
-  }
 
-  // -------------------------------------------------------------------------
-  // hashCode, equals and toString
-  // -------------------------------------------------------------------------
+    public BaseNameableObject( String uid, String code, String name )
+    {
+        this.uid = uid;
+        this.code = code;
+        this.name = name;
+    }
 
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
-    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
-    return result;
-  }
+    public BaseNameableObject( int id, String uid, String name, String shortName, String code, String description )
+    {
+        super( id, uid, name );
+        this.shortName = shortName;
+        this.code = code;
+        this.description = description;
+    }
 
-  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj
-        || obj instanceof BaseNameableObject
-            && getRealClass(this) == getRealClass(obj)
-            && super.equals(obj)
-            && objectEquals((BaseNameableObject) obj);
-  }
+    public BaseNameableObject( NameableObject object )
+    {
+        super( object.getId(), object.getUid(), object.getName() );
+        this.shortName = object.getShortName();
+        this.code = object.getCode();
+        this.description = object.getDescription();
+    }
 
-  private boolean objectEquals(BaseNameableObject other) {
-    return Objects.equals(getShortName(), other.getShortName())
-        && Objects.equals(getDescription(), other.getDescription());
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  @Override
-  public String toString() {
-    return "{"
-        + "\"class\":\""
-        + getClass()
-        + "\", "
-        + "\"hashCode\":\""
-        + hashCode()
-        + "\", "
-        + "\"id\":\""
-        + getId()
-        + "\", "
-        + "\"uid\":\""
-        + getUid()
-        + "\", "
-        + "\"code\":\""
-        + getCode()
-        + "\", "
-        + "\"name\":\""
-        + getName()
-        + "\", "
-        + "\"shortName\":\""
-        + getShortName()
-        + "\", "
-        + "\"description\":\""
-        + getDescription()
-        + "\", "
-        + "\"created\":\""
-        + getCreated()
-        + "\", "
-        + "\"lastUpdated\":\""
-        + getLastUpdated()
-        + "\" "
-        + "}";
-  }
+    /**
+     * Returns the display property indicated by the given display property. Falls
+     * back to display name if display short name is null.
+     *
+     * @param displayProperty the display property.
+     * @return the display property.
+     */
+    @Override
+    @JsonIgnore
+    public String getDisplayProperty( DisplayProperty displayProperty )
+    {
+        if ( DisplayProperty.SHORTNAME.equals( displayProperty ) && getDisplayShortName() != null )
+        {
+            return getDisplayShortName();
+        }
+        else
+        {
+            return getDisplayName();
+        }
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // hashCode, equals and toString
+    // -------------------------------------------------------------------------
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @PropertyRange(min = 1)
-  public String getShortName() {
-    return shortName;
-  }
+    @Override
+    public int hashCode()
+    {
+        int result = super.hashCode();
+        result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+        result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
+        return result;
+    }
 
-  public void setShortName(String shortName) {
-    this.shortName = shortName;
-  }
+    /**
+     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     */
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "shortName", key = "SHORT_NAME")
-  public String getDisplayShortName() {
-    return getTranslation("SHORT_NAME", getShortName());
-  }
+        if ( o == null )
+        {
+            return false;
+        }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 1)
-  public String getDescription() {
-    return description;
-  }
+        if ( !getClass().isAssignableFrom( o.getClass() ) )
+        {
+            return false;
+        }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+        if ( !super.equals( o ) )
+        {
+            return false;
+        }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "description", key = "DESCRIPTION")
-  public String getDisplayDescription() {
-    return getTranslation("DESCRIPTION", getDescription());
-  }
+        final BaseNameableObject other = (BaseNameableObject) o;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "formName", key = "FORM_NAME")
-  public String getDisplayFormName() {
-    return getTranslation("FORM_NAME", getFormNameFallback());
-  }
+        if ( getShortName() != null ? !getShortName().equals( other.getShortName() ) : other.getShortName() != null )
+        {
+            return false;
+        }
 
-  /** Returns the form name, or the name if it does not exist. */
-  public String getFormNameFallback() {
-    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-  }
+        if ( getDescription() != null ? !getDescription().equals( other.getDescription() ) : other.getDescription() != null )
+        {
+            return false;
+        }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFormName() {
-    return formName;
-  }
+        return true;
+    }
 
-  public void setFormName(String formName) {
-    this.formName = formName;
-  }
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"hashCode\":\"" + hashCode() + "\", " +
+            "\"id\":\"" + getId() + "\", " +
+            "\"uid\":\"" + getUid() + "\", " +
+            "\"code\":\"" + getCode() + "\", " +
+            "\"name\":\"" + getName() + "\", " +
+            "\"shortName\":\"" + getShortName() + "\", " +
+            "\"description\":\"" + getDescription() + "\", " +
+            "\"created\":\"" + getCreated() + "\", " +
+            "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
+            "}";
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @PropertyRange( min = 1 )
+    public String getShortName()
+    {
+        return shortName;
+    }
+
+    public void setShortName( String shortName )
+    {
+        this.shortName = shortName;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayShortName()
+    {
+        displayShortName = getTranslation( TranslationProperty.SHORT_NAME, displayShortName );
+        return displayShortName != null ? displayShortName : getShortName();
+    }
+
+    public void setDisplayShortName( String displayShortName )
+    {
+        this.displayShortName = displayShortName;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 1 )
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
+    public void setDisplayDescription( String displayDescription )
+    {
+        this.displayDescription = displayDescription;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
+    {
+        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
+        return displayFormName != null ? displayFormName : getFormNameFallback();
+    }
+
+    /**
+     * Returns the form name, or the name if it does not exist.
+     */
+    public String getFormNameFallback()
+    {
+        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
 }

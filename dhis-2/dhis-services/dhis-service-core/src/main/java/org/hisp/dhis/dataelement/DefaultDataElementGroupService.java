@@ -1,5 +1,6 @@
+package org.hisp.dhis.dataelement;
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +26,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
-@Transactional(readOnly = true)
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.dataelement.DataElementGroupService")
-public class DefaultDataElementGroupService implements DataElementGroupService {
-  private final DataElementGroupStore dataElementGroupStore;
+@Transactional
+public class DefaultDataElementGroupService
+    implements DataElementGroupService
+{
+    @Autowired
+    private DataElementGroupStore dataElementGroupStore;
 
-  @Override
-  public DataElementGroup getDataElementGroupByUid(String uid) {
-    return dataElementGroupStore.getByUid(uid);
-  }
+    @Override
+    public DataElementGroup getDataElementGroupByUid( String uid )
+    {
+        return dataElementGroupStore.getByUid( uid );
+    }
 }

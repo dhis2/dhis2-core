@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,108 +27,114 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Class representing an index on a database table column.
  *
  * @author Lars Helge Overland
  */
-public class AnalyticsIndex {
-  /** Table name. */
-  private String table;
+public class AnalyticsIndex
+{
+    /**
+     * Table name.
+     */
+    private String table;
 
-  /** Table column names. */
-  private List<String> columns = new ArrayList<>();
+    /**
+     * Table column name.
+     */
+    private String column;
 
-  /** Index type. */
-  private IndexType type;
+    /**
+     * Index type.
+     */
+    private String type;
 
-  /** Function to be used by the index, if any */
-  private IndexFunction function;
-
-  /**
-   * @param table table name.
-   * @param columns column name.
-   * @param type index type.
-   */
-  public AnalyticsIndex(String table, List<String> columns, IndexType type) {
-    this.table = table;
-    this.columns = columns;
-    this.type = type;
-  }
-
-  /**
-   * @param table table name.
-   * @param columns column name.
-   * @param type index type.
-   */
-  public AnalyticsIndex(
-      String table, List<String> columns, IndexType type, IndexFunction function) {
-    this(table, columns, type);
-    this.function = function;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean hasType() {
-    return type != null;
-  }
-
-  public boolean hasFunction() {
-    return function != null;
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  public String getTable() {
-    return table;
-  }
-
-  public List<String> getColumns() {
-    return columns;
-  }
-
-  public IndexType getType() {
-    return type;
-  }
-
-  public IndexFunction getFunction() {
-    return function;
-  }
-
-  @Override
-  public int hashCode() {
-    int prime = 31;
-    int result = 1;
-    result = prime * result + columns.hashCode();
-    result = prime * result + table.hashCode();
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
+    /**
+     * @param table table name.
+     * @param column column name.
+     * @param type index type.
+     */
+    public AnalyticsIndex( String table, String column, String type )
+    {
+        this.table = table;
+        this.column = column;
+        this.type = type;
     }
 
-    if (object == null) {
-      return false;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public boolean hasType()
+    {
+        return type != null;
     }
 
-    if (getClass() != object.getClass()) {
-      return false;
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
+
+    public String getTable()
+    {
+        return table;
     }
 
-    AnalyticsIndex other = (AnalyticsIndex) object;
+    public void setTable( String table )
+    {
+        this.table = table;
+    }
 
-    return table.equals(other.table) && columns.equals(other.columns);
-  }
+    public String getColumn()
+    {
+        return column;
+    }
+
+    public void setColumn( String column )
+    {
+        this.column = column;
+    }
+
+    public String getType()
+    {
+        return type;
+    }
+
+    public void setType( String type )
+    {
+        this.type = type;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + column.hashCode();
+        result = prime * result + table.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        AnalyticsIndex other = (AnalyticsIndex) object;
+
+        return column.equals( other.column ) && table.equals( other.table );
+    }
 }

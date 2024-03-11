@@ -1,5 +1,7 @@
+package org.hisp.dhis.constant;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,117 +27,126 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.constant;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Dang Duy Hieu
+ * @version $Id DefaultConstantService.java July 29, 2011$
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.constant.ConstantService")
-public class DefaultConstantService implements ConstantService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+@Transactional
+public class DefaultConstantService
+    implements ConstantService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Qualifier("org.hisp.dhis.constant.ConstantStore")
-  private final IdentifiableObjectStore<Constant> constantStore;
+    private IdentifiableObjectStore<Constant> constantStore;
 
-  // -------------------------------------------------------------------------
-  // Constant
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public long saveConstant(Constant constant) {
-    constantStore.save(constant);
-    return constant.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateConstant(Constant constant) {
-    constantStore.update(constant);
-  }
-
-  @Override
-  @Transactional
-  public void deleteConstant(Constant constant) {
-    constantStore.delete(constant);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Constant getConstant(int constantId) {
-    return constantStore.get(constantId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Constant getConstant(String uid) {
-    return constantStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Constant> getAllConstants() {
-    return constantStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Constant> getConstantMap() {
-    return getAllConstants().stream()
-        .collect(Collectors.toMap(c -> c.getUid(), Function.identity()));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Double> getConstantParameterMap() {
-    Map<String, Double> map = new HashMap<>();
-
-    for (Constant constant : getAllConstants()) {
-      map.put(constant.getName(), constant.getValue());
+    public void setConstantStore( IdentifiableObjectStore<Constant> constantStore )
+    {
+        this.constantStore = constantStore;
     }
 
-    return map;
-  }
+    // -------------------------------------------------------------------------
+    // Constant
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constant expanding
-  // -------------------------------------------------------------------------
+    @Override
+    public int saveConstant( Constant constant )
+    {
+        constantStore.save( constant );
+        return constant.getId();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public int getConstantCount() {
-    return constantStore.getCount();
-  }
+    @Override
+    public void updateConstant( Constant constant )
+    {
+        constantStore.update( constant );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public int getConstantCountByName(String name) {
-    return constantStore.getCountLikeName(name);
-  }
+    @Override
+    public void deleteConstant( Constant constant )
+    {
+        constantStore.delete( constant );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Constant> getConstantsBetween(int first, int max) {
-    return constantStore.getAllOrderedName(first, max);
-  }
+    @Override
+    public Constant getConstant( int constantId )
+    {
+        return constantStore.get( constantId );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Constant> getConstantsBetweenByName(String name, int first, int max) {
-    return constantStore.getAllLikeName(name, first, max);
-  }
+    @Override
+    public Constant getConstant( String uid )
+    {
+        return constantStore.getByUid( uid );
+    }
+    
+    @Override
+    public List<Constant> getAllConstants()
+    {
+        return constantStore.getAll();
+    }
+    
+    @Override
+    public Map<String, Double> getConstantMap()
+    {
+        Map<String, Double> map = new HashMap<>();
+        
+        for ( Constant constant : getAllConstants() )
+        {
+            map.put( constant.getUid(), constant.getValue() );
+        }
+        
+        return map;
+    }
+    
+    @Override
+    public Map<String, Double> getConstantParameterMap()
+    {
+        Map<String, Double> map = new HashMap<>();
+        
+        for ( Constant constant : getAllConstants() )
+        {
+            map.put( constant.getName(), constant.getValue() );
+        }
+        
+        return map;
+    }
+
+    // -------------------------------------------------------------------------
+    // Constant expanding
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public int getConstantCount()
+    {
+        return constantStore.getCount();
+    }
+
+    @Override
+    public int getConstantCountByName( String name )
+    {
+        return constantStore.getCountLikeName( name );
+    }
+
+    @Override
+    public List<Constant> getConstantsBetween( int first, int max )
+    {
+        return constantStore.getAllOrderedName( first, max );
+    }
+
+    @Override
+    public List<Constant> getConstantsBetweenByName( String name, int first, int max )
+    {
+        return constantStore.getAllLikeName( name, first, max );
+    }
 }

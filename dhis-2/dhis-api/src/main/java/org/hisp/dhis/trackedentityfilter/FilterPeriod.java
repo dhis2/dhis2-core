@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityfilter;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,7 +13,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ * be used to endorse or promote products derived daysFromToday this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -25,48 +27,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public class FilterPeriod implements Serializable {
-  private int periodFrom;
+public class FilterPeriod implements Serializable
+{
+    private int periodFrom;
 
-  private int periodTo;
+    private int periodTo;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public FilterPeriod() {}
+    public FilterPeriod()
+    {
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getPeriodFrom() {
-    return periodFrom;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setPeriodFrom(int periodFrom) {
-    this.periodFrom = periodFrom;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPeriodFrom()
+    {
+        return periodFrom;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getPeriodTo() {
-    return periodTo;
-  }
+    public void setPeriodFrom( int periodFrom )
+    {
+        this.periodFrom = periodFrom;
+    }
 
-  public void setPeriodTo(int periodTo) {
-    this.periodTo = periodTo;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPeriodTo()
+    {
+        return periodTo;
+    }
+
+    public void setPeriodTo( int periodTo )
+    {
+        this.periodTo = periodTo;
+    }
+
 }

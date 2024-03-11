@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentitycomment;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
+
 
 /**
  * @author Chau Thu Tran
  */
-public interface TrackedEntityCommentService {
-  String ID = TrackedEntityCommentService.class.getName();
+public interface TrackedEntityCommentService
+{
+    String ID = TrackedEntityCommentService.class.getName();
 
-  /**
-   * Adds an {@link TrackedEntityComment}
-   *
-   * @param comment The to TrackedEntityComment add.
-   * @return A generated unique id of the added {@link TrackedEntityComment}.
-   */
-  long addTrackedEntityComment(TrackedEntityComment comment);
+    /**
+     * Adds an {@link TrackedEntityComment}
+     *
+     * @param comment The to TrackedEntityComment add.
+     * @return A generated unique id of the added {@link TrackedEntityComment}.
+     */
+    int addTrackedEntityComment( TrackedEntityComment comment );
 
-  /**
-   * Deletes a {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to delete.
-   */
-  void deleteTrackedEntityComment(TrackedEntityComment comment);
+    /**
+     * Deletes a {@link TrackedEntityComment}.
+     *
+     * @param comment the TrackedEntityComment to delete.
+     */
+    void deleteTrackedEntityComment( TrackedEntityComment comment );
 
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID.
-   *
-   * @param uid TrackedEntityComment UID to check for
-   * @return true/false depending on result
-   */
-  boolean trackedEntityCommentExists(String uid);
+    /**
+     * Checks for the existence of a TrackedEntityComment by UID.
+     *
+     * @param uid TrackedEntityComment UID to check for
+     * @return true/false depending on result
+     */
+    boolean trackedEntityCommentExists( String uid );
 
-  /**
-   * Updates an {@link TrackedEntityComment}.
-   *
-   * @param comment the TrackedEntityComment to update.
-   */
-  void updateTrackedEntityComment(TrackedEntityComment comment);
+    /**
+     * Updates an {@link TrackedEntityComment}.
+     *
+     * @param comment the TrackedEntityComment to update.
+     */
+    void updateTrackedEntityComment( TrackedEntityComment comment );
 
-  /**
-   * Returns a {@link TrackedEntityComment}.
-   *
-   * @param id the id of the TrackedEntityComment to return.
-   * @return the TrackedEntityComment with the given id
-   */
-  TrackedEntityComment getTrackedEntityComment(long id);
+    /**
+     * Returns a {@link TrackedEntityComment}.
+     *
+     * @param id the id of the TrackedEntityComment to return.
+     * @return the TrackedEntityComment with the given id
+     */
+    TrackedEntityComment getTrackedEntityComment( int id );
+
 }

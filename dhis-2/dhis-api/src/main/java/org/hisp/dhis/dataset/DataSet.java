@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -38,11 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -73,725 +66,858 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.joda.time.DateTime;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * This class is used for defining the standardized DataSets. A DataSet consists of a collection of
- * DataElements.
+ * This class is used for defining the standardized DataSets. A DataSet consists
+ * of a collection of DataElements.
  *
  * @author Kristian Nordal
  */
-@JacksonXmlRootElement(localName = "dataSet", namespace = DxfNamespaces.DXF_2_0)
-public class DataSet extends BaseDimensionalItemObject
-    implements VersionedObject, MetadataObject, InterpretableObject {
-  public static final int NO_EXPIRY = 0;
+@JacksonXmlRootElement( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
+public class DataSet
+    extends BaseDimensionalItemObject
+    implements VersionedObject, MetadataObject, InterpretableObject
+{
+    public static final int NO_EXPIRY = 0;
 
-  private String formName;
+    private String formName;
 
-  /** The PeriodType indicating the frequency that this DataSet should be used */
-  private PeriodType periodType;
+    /**
+     * The PeriodType indicating the frequency that this DataSet should be used
+     */
+    private PeriodType periodType;
 
-  /**
-   * The dataInputPeriods is a set of periods with opening and closing dates, which determines the
-   * period of which data can belong (period) and at which dates (between opening and closing dates)
-   * actually registering this data is allowed. The same period can exist at the same time with
-   * different opening and closing dates to allow for multiple periods for registering data.
-   */
-  private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
+    /**
+     * The dataInputPeriods is a set of periods with opening and closing dates, which determines the period
+     * of which data can belong (period) and at which dates (between opening and closing dates) actually registering
+     * this data is allowed. The same period can exist at the same time with different opening and closing dates to
+     * allow for multiple periods for registering data.
+     */
+    private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
 
-  /** All DataElements associated with this DataSet. */
-  private Set<DataSetElement> dataSetElements = new HashSet<>();
+    /**
+     * All DataElements associated with this DataSet.
+     */
+    private Set<DataSetElement> dataSetElements = new HashSet<>();
 
-  /**
-   * Indicators associated with this data set. Indicators are used for view and output purposes,
-   * such as calculated fields in forms and reports.
-   */
-  private Set<Indicator> indicators = new HashSet<>();
+    /**
+     * Indicators associated with this data set. Indicators are used for view
+     * and output purposes, such as calculated fields in forms and reports.
+     */
+    private Set<Indicator> indicators = new HashSet<>();
 
-  /**
-   * The DataElementOperands for which data must be entered in order for the DataSet to be
-   * considered as complete.
-   */
-  private Set<DataElementOperand> compulsoryDataElementOperands = new HashSet<>();
+    /**
+     * The DataElementOperands for which data must be entered in order for the
+     * DataSet to be considered as complete.
+     */
+    private Set<DataElementOperand> compulsoryDataElementOperands = new HashSet<>();
 
-  /** All Sources that register data with this DataSet. */
-  private Set<OrganisationUnit> sources = new HashSet<>();
+    /**
+     * All Sources that register data with this DataSet.
+     */
+    private Set<OrganisationUnit> sources = new HashSet<>();
 
-  /** The Sections associated with the DataSet. */
-  private Set<Section> sections = new HashSet<>();
+    /**
+     * The Sections associated with the DataSet.
+     */
+    private Set<Section> sections = new HashSet<>();
 
-  /** The CategoryCombo used for data attributes. */
-  private CategoryCombo categoryCombo;
+    /**
+     * The CategoryCombo used for data attributes.
+     */
+    private CategoryCombo categoryCombo;
 
-  /** Property indicating if the dataset could be collected using mobile data entry. */
-  private boolean mobile; // TODO Remove, mobile service is now removed
+    /**
+     * Property indicating if the dataset could be collected using mobile data
+     * entry.
+     */
+    private boolean mobile;
 
-  /** Indicating custom data entry form, can be null. */
-  private DataEntryForm dataEntryForm;
+    /**
+     * Indicating custom data entry form, can be null.
+     */
+    private DataEntryForm dataEntryForm;
 
-  /** Indicating version number. */
-  private int version;
+    /**
+     * Indicating version number.
+     */
+    private int version;
 
-  /** How many days after period is over will this dataSet auto-lock */
-  private int expiryDays;
+    /**
+     * How many days after period is over will this dataSet auto-lock
+     */
+    private int expiryDays;
 
-  /** Days after period end to qualify for timely data submission */
-  private int timelyDays;
+    /**
+     * Days after period end to qualify for timely data submission
+     */
+    private int timelyDays;
 
-  /** User group which will receive notifications when data set is marked complete, can be null. */
-  private UserGroup notificationRecipients;
+    /**
+     * User group which will receive notifications when data set is marked
+     * complete, can be null.
+     */
+    private UserGroup notificationRecipients;
 
-  /** Indicating whether the user completing this data set should be sent a notification. */
-  private boolean notifyCompletingUser;
+    /**
+     * Indicating whether the user completing this data set should be sent a
+     * notification.
+     */
+    private boolean notifyCompletingUser;
 
-  /** The approval workflow for this data set, can be null. */
-  private DataApprovalWorkflow workflow;
+    /**
+     * The approval workflow for this data set, can be null.
+     */
+    private DataApprovalWorkflow workflow;
 
-  /** Interpretations of this data set. */
-  private Set<Interpretation> interpretations = new HashSet<>();
+    /**
+     * Interpretations of this data set.
+     */
+    private Set<Interpretation> interpretations = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Form properties
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Form properties
+    // -------------------------------------------------------------------------
 
-  /**
-   * Number of periods in the future to open for data capture, 0 means capture not allowed for
-   * current period.
-   */
-  private int openFuturePeriods;
+    /**
+     * Number of periods in the future to open for data capture, 0 means capture
+     * not allowed for current period.
+     */
+    private int openFuturePeriods;
 
-  /** Number of periods to open for data capture that are after the category option's end date. */
-  private int openPeriodsAfterCoEndDate;
+    /**
+     * Property indicating that all fields for a data element must be filled.
+     */
+    private boolean fieldCombinationRequired;
 
-  /** Property indicating that all fields for a data element must be filled. */
-  private boolean fieldCombinationRequired;
+    /**
+     * Property indicating that all validation rules must pass before the form
+     * can be completed.
+     */
+    private boolean validCompleteOnly;
 
-  /** Property indicating that all validation rules must pass before the form can be completed. */
-  private boolean validCompleteOnly;
+    /**
+     * Property indicating whether a comment is required for all fields in a form
+     * which are not entered, including false for boolean values.
+     */
+    private boolean noValueRequiresComment;
 
-  /**
-   * Property indicating whether a comment is required for all fields in a form which are not
-   * entered, including false for boolean values.
-   */
-  private boolean noValueRequiresComment;
+    /**
+     * Property indicating whether offline storage is enabled for this dataSet
+     * or not
+     */
+    private boolean skipOffline;
 
-  /** Property indicating whether offline storage is enabled for this dataSet or not */
-  private boolean skipOffline;
+    /**
+     * Property indicating whether it should enable data elements decoration in forms.
+     */
+    private boolean dataElementDecoration;
 
-  /** Property indicating whether it should enable data elements decoration in forms. */
-  private boolean dataElementDecoration;
+    /**
+     * Render default and section forms with tabs instead of multiple sections in one page
+     */
+    private boolean renderAsTabs;
 
-  /** Render default and section forms with tabs instead of multiple sections in one page */
-  private boolean renderAsTabs;
+    /**
+     * Render multi-organisationUnit forms either with OU vertically or horizontally.
+     */
+    private boolean renderHorizontally;
 
-  /** Render multi-organisationUnit forms either with OU vertically or horizontally. */
-  private boolean renderHorizontally;
+    /**
+    * Property indicating whether all compulsory fields should be filled before completing
+    * data set
+    */
+    private boolean compulsoryFieldsCompleteOnly;
 
-  /**
-   * Property indicating whether all compulsory fields should be filled before completing data set
-   */
-  private boolean compulsoryFieldsCompleteOnly;
+    private ObjectStyle style;
 
-  private ObjectStyle style;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public DataSet() {}
-
-  public DataSet(String name) {
-    this.name = name;
-  }
-
-  public DataSet(String name, PeriodType periodType) {
-    this(name);
-    this.periodType = periodType;
-  }
-
-  public DataSet(String name, String shortName, PeriodType periodType) {
-    this(name, periodType);
-    this.shortName = shortName;
-  }
-
-  public DataSet(String name, String shortName, String code, PeriodType periodType) {
-    this(name, shortName, periodType);
-    this.code = code;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public void addOrganisationUnit(OrganisationUnit organisationUnit) {
-    sources.add(organisationUnit);
-    organisationUnit.getDataSets().add(this);
-  }
-
-  public void addOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    organisationUnits.forEach(this::addOrganisationUnit);
-  }
-
-  public boolean removeOrganisationUnit(OrganisationUnit organisationUnit) {
-    sources.remove(organisationUnit);
-    return organisationUnit.getDataSets().remove(this);
-  }
-
-  public void removeOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
-    organisationUnits.forEach(this::removeOrganisationUnit);
-  }
-
-  public void removeAllOrganisationUnits() {
-    for (OrganisationUnit unit : sources) {
-      unit.getDataSets().remove(this);
+    public DataSet()
+    {
     }
 
-    sources.clear();
-  }
-
-  public void updateOrganisationUnits(Set<OrganisationUnit> updates) {
-    Set<OrganisationUnit> toRemove = Sets.difference(sources, updates);
-    Set<OrganisationUnit> toAdd = Sets.difference(updates, sources);
-
-    toRemove.forEach(u -> u.getDataSets().remove(this));
-    toAdd.forEach(u -> u.getDataSets().add(this));
-
-    sources.clear();
-    sources.addAll(updates);
-  }
-
-  public boolean hasOrganisationUnit(OrganisationUnit unit) {
-    return sources.contains(unit);
-  }
-
-  public boolean addDataInputPeriod(DataInputPeriod dataInputPeriod) {
-    return dataInputPeriods.add(dataInputPeriod);
-  }
-
-  public boolean addDataSetElement(DataSetElement element) {
-    element.getDataElement().getDataSetElements().add(element);
-    return dataSetElements.add(element);
-  }
-
-  /**
-   * Adds a data set element using this data set, the given data element and no category combo.
-   *
-   * @param dataElement the data element.
-   */
-  public boolean addDataSetElement(DataElement dataElement) {
-    DataSetElement element = new DataSetElement(this, dataElement, null);
-    dataElement.getDataSetElements().add(element);
-    return dataSetElements.add(element);
-  }
-
-  /**
-   * Adds a data set element using this data set, the given data element and the given category
-   * combo.
-   *
-   * @param dataElement the data element.
-   * @param categoryCombo the category combination.
-   */
-  public boolean addDataSetElement(DataElement dataElement, CategoryCombo categoryCombo) {
-    DataSetElement element = new DataSetElement(this, dataElement, categoryCombo);
-    dataElement.getDataSetElements().add(element);
-    return dataSetElements.add(element);
-  }
-
-  public boolean removeDataSetElement(DataSetElement element) {
-    dataSetElements.remove(element);
-    return element.getDataElement().getDataSetElements().remove(element);
-  }
-
-  public void removeDataSetElement(DataElement dataElement) {
-    Iterator<DataSetElement> elements = dataSetElements.iterator();
-
-    while (elements.hasNext()) {
-      DataSetElement element = elements.next();
-
-      DataSetElement other = new DataSetElement(this, dataElement);
-
-      if (element.objectEquals(other)) {
-        elements.remove();
-        element.getDataElement().getDataSetElements().remove(element);
-      }
-    }
-  }
-
-  public void removeAllDataSetElements() {
-    for (DataSetElement element : dataSetElements) {
-      element.getDataElement().getDataSetElements().remove(element);
+    public DataSet( String name )
+    {
+        this.name = name;
     }
 
-    dataSetElements.clear();
-  }
-
-  public void addIndicator(Indicator indicator) {
-    indicators.add(indicator);
-    indicator.getDataSets().add(this);
-  }
-
-  public boolean removeIndicator(Indicator indicator) {
-    indicators.remove(indicator);
-    return indicator.getDataSets().remove(this);
-  }
-
-  public void addCompulsoryDataElementOperand(DataElementOperand dataElementOperand) {
-    compulsoryDataElementOperands.add(dataElementOperand);
-  }
-
-  public void removeCompulsoryDataElementOperand(DataElementOperand dataElementOperand) {
-    compulsoryDataElementOperands.remove(dataElementOperand);
-  }
-
-  public void assignWorkflow(DataApprovalWorkflow workflow) {
-    workflow.getDataSets().add(this);
-    this.workflow = workflow;
-  }
-
-  public boolean hasDataEntryForm() {
-    return dataEntryForm != null && dataEntryForm.hasForm();
-  }
-
-  public boolean hasSections() {
-    return isNotEmpty(sections);
-  }
-
-  /**
-   * Indicates whether data should be approved for this data set, i.e. whether this data set is part
-   * of a data approval workflow.
-   */
-  public boolean isApproveData() {
-    return workflow != null;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public FormType getFormType() {
-    if (hasDataEntryForm()) {
-      return FormType.CUSTOM;
+    public DataSet( String name, PeriodType periodType )
+    {
+        this( name );
+        this.periodType = periodType;
     }
 
-    if (hasSections()) {
-      return FormType.SECTION;
+    public DataSet( String name, String shortName, PeriodType periodType )
+    {
+        this( name, periodType );
+        this.shortName = shortName;
     }
 
-    return FormType.DEFAULT;
-  }
-
-  /**
-   * Note that this method returns an immutable set and can not be used to modify the model. Returns
-   * an immutable set of data sets associated with this data element.
-   */
-  public Set<DataElement> getDataElements() {
-    return ImmutableSet.copyOf(
-        dataSetElements.stream().map(DataSetElement::getDataElement).collect(Collectors.toSet()));
-  }
-
-  public Set<DataElement> getDataElementsInSections() {
-    Set<DataElement> dataElements = new HashSet<>();
-
-    for (Section section : sections) {
-      dataElements.addAll(section.getDataElements());
+    public DataSet( String name, String shortName, String code, PeriodType periodType )
+    {
+        this( name, shortName, periodType );
+        this.code = code;
     }
 
-    return dataElements;
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public Set<CategoryOptionCombo> getDataElementOptionCombos() {
-    Set<CategoryOptionCombo> optionCombos = new HashSet<>();
-
-    for (DataSetElement element : dataSetElements) {
-      optionCombos.addAll(element.getResolvedCategoryCombo().getOptionCombos());
+    public void addOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        sources.add( organisationUnit );
+        organisationUnit.getDataSets().add( this );
     }
 
-    return optionCombos;
-  }
+    public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        sources.remove( organisationUnit );
+        return organisationUnit.getDataSets().remove( this );
+    }
 
-  @Override
-  public int increaseVersion() {
-    return ++version;
-  }
-
-  /**
-   * Returns a set of category option group sets which are linked to this data set through its
-   * category combination.
-   */
-  public Set<CategoryOptionGroupSet> getCategoryOptionGroupSets() {
-    Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
-
-    if (categoryCombo != null) {
-      for (Category category : categoryCombo.getCategories()) {
-        for (CategoryOption categoryOption : category.getCategoryOptions()) {
-          groupSets.addAll(categoryOption.getGroupSets());
+    public void removeAllOrganisationUnits()
+    {
+        for ( OrganisationUnit unit : sources )
+        {
+            unit.getDataSets().remove( this );
         }
-      }
+
+        sources.clear();
     }
 
-    return groupSets;
-  }
+    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
+    {
+        Set<OrganisationUnit> toRemove = Sets.difference( sources, updates );
+        Set<OrganisationUnit> toAdd = Sets.difference( updates, sources );
 
-  /**
-   * Indicates whether this data set has a category combination which is different from the default
-   * category combination.
-   */
-  public boolean hasCategoryCombo() {
-    return categoryCombo != null
-        && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals(categoryCombo.getName());
-  }
+        toRemove.forEach( u -> u.getDataSets().remove( this ) );
+        toAdd.forEach( u -> u.getDataSets().add( this ) );
 
-  /**
-   * Indicates whether the data set is locked for data entry based on the expiry days.
-   *
-   * @param period the period to compare with.
-   * @param now the date indicating now, uses current date if null.
-   */
-  public boolean isLocked(User user, Period period, Date now) {
-    if (expiryDays == DataSet.NO_EXPIRY
-        || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
-      return false;
+        sources.clear();
+        sources.addAll( updates );
     }
-    Date date = now != null ? now : new Date();
-    return !Period.isDateInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
-  }
 
-  /**
-   * Checks if the given period and date combination conforms to any of the dataInputPeriods.
-   * Returns true if no dataInputPeriods exists, or the combination conforms to at least one
-   * dataInputPeriod.
-   *
-   * @param period
-   * @param date
-   * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
-   */
-  public boolean isDataInputPeriodAndDateAllowed(Period period, Date date) {
-    return dataInputPeriods.isEmpty()
-        || dataInputPeriods.stream()
-            .anyMatch(dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid(period, date));
-  }
+    public boolean addDataInputPeriod( DataInputPeriod dataInputPeriod )
+    {
+        return dataInputPeriods.add( dataInputPeriod );
+    }
 
-  // -------------------------------------------------------------------------
-  // DimensionalItemObject
-  // -------------------------------------------------------------------------
+    public boolean addDataSetElement( DataSetElement element )
+    {
+        element.getDataElement().getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
 
-  @Override
-  public DimensionItemType getDimensionItemType() {
-    return DimensionItemType.REPORTING_RATE;
-  }
+    /**
+     * Adds a data set element using this data set, the given data element and
+     * no category combo.
+     *
+     * @param dataElement the data element.
+     */
+    public boolean addDataSetElement( DataElement dataElement )
+    {
+        DataSetElement element = new DataSetElement( this, dataElement, null );
+        dataElement.getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    /**
+     * Adds a data set element using this data set, the given data element and
+     * the given category combo.
+     *
+     * @param dataElement   the data element.
+     * @param categoryCombo the category combination.
+     */
+    public boolean addDataSetElement( DataElement dataElement, CategoryCombo categoryCombo )
+    {
+        DataSetElement element = new DataSetElement( this, dataElement, categoryCombo );
+        dataElement.getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
 
-  @JsonProperty
-  @JsonSerialize(using = JacksonPeriodTypeSerializer.class)
-  @JsonDeserialize(using = JacksonPeriodTypeDeserializer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(PropertyType.TEXT)
-  public PeriodType getPeriodType() {
-    return periodType;
-  }
+    public boolean removeDataSetElement( DataSetElement element )
+    {
+        dataSetElements.remove( element );
+        return element.getDataElement().getDataSetElements().remove( element );
+    }
 
-  public void setPeriodType(PeriodType periodType) {
-    this.periodType = periodType;
-  }
+    public void removeDataSetElement( DataElement dataElement )
+    {
+        Iterator<DataSetElement> elements = dataSetElements.iterator();
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataInputPeriod> getDataInputPeriods() {
-    return dataInputPeriods;
-  }
+        while ( elements.hasNext() )
+        {
+            DataSetElement element = elements.next();
 
-  public void setDataInputPeriods(Set<DataInputPeriod> dataInputPeriods) {
-    this.dataInputPeriods = dataInputPeriods;
-  }
+            DataSetElement other = new DataSetElement( this, dataElement );
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataEntryForm getDataEntryForm() {
-    return dataEntryForm;
-  }
+            if ( element.objectEquals( other ) )
+            {
+                elements.remove();
+                element.getDataElement().getDataSetElements().remove( element );
+            }
+        }
+    }
 
-  public void setDataEntryForm(DataEntryForm dataEntryForm) {
-    this.dataEntryForm = dataEntryForm;
-  }
+    public void removeAllDataSetElements()
+    {
+        for ( DataSetElement element : dataSetElements )
+        {
+            element.getDataElement().getDataSetElements().remove( element );
+        }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataSetElement> getDataSetElements() {
-    return dataSetElements;
-  }
+        dataSetElements.clear();
+    }
 
-  public void setDataSetElements(Set<DataSetElement> dataSetElements) {
-    this.dataSetElements = dataSetElements;
-  }
+    public void addIndicator( Indicator indicator )
+    {
+        indicators.add( indicator );
+        indicator.getDataSets().add( this );
+    }
 
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "indicators", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "indicator", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Indicator> getIndicators() {
-    return indicators;
-  }
+    public boolean removeIndicator( Indicator indicator )
+    {
+        indicators.remove( indicator );
+        return indicator.getDataSets().remove( this );
+    }
 
-  public void setIndicators(Set<Indicator> indicators) {
-    this.indicators = indicators;
-  }
+    public void addCompulsoryDataElementOperand( DataElementOperand dataElementOperand )
+    {
+        compulsoryDataElementOperands.add( dataElementOperand );
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(
-      localName = "compulsoryDataElementOperands",
-      namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "compulsoryDataElementOperand", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataElementOperand> getCompulsoryDataElementOperands() {
-    return compulsoryDataElementOperands;
-  }
+    public void removeCompulsoryDataElementOperand( DataElementOperand dataElementOperand )
+    {
+        compulsoryDataElementOperands.remove( dataElementOperand );
+    }
 
-  public void setCompulsoryDataElementOperands(
-      Set<DataElementOperand> compulsoryDataElementOperands) {
-    this.compulsoryDataElementOperands = compulsoryDataElementOperands;
-  }
+    public void assignWorkflow( DataApprovalWorkflow workflow )
+    {
+        workflow.getDataSets().add( this );
+        this.workflow = workflow;
+    }
 
-  @JsonProperty(value = "organisationUnits")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
-  public Set<OrganisationUnit> getSources() {
-    return sources;
-  }
+    public boolean hasDataEntryForm()
+    {
+        return dataEntryForm != null && dataEntryForm.hasForm();
+    }
 
-  public void setSources(Set<OrganisationUnit> sources) {
-    this.sources = sources;
-  }
+    public boolean hasSections()
+    {
+        return sections != null && sections.size() > 0;
+    }
 
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "sections", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "section", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Section> getSections() {
-    return sections;
-  }
+    /**
+     * Indicates whether data should be approved for this data set, i.e. whether
+     * this data set is part of a data approval workflow.
+     */
+    public boolean isApproveData()
+    {
+        return workflow != null;
+    }
 
-  public void setSections(Set<Section> sections) {
-    this.sections = sections;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FormType getFormType()
+    {
+        if ( hasDataEntryForm() )
+        {
+            return FormType.CUSTOM;
+        }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public CategoryCombo getCategoryCombo() {
-    return categoryCombo;
-  }
+        if ( hasSections() )
+        {
+            return FormType.SECTION;
+        }
 
-  public void setCategoryCombo(CategoryCombo categoryCombo) {
-    this.categoryCombo = categoryCombo;
-  }
+        return FormType.DEFAULT;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isMobile() {
-    return mobile;
-  }
+    /**
+     * Note that this method returns an immutable set and can not be used to
+     * modify the model. Returns an immutable set of data sets associated with
+     * this data element.
+     */
+    public Set<DataElement> getDataElements()
+    {
+        return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
+    }
 
-  public void setMobile(boolean mobile) {
-    this.mobile = mobile;
-  }
+    public Set<DataElement> getDataElementsInSections()
+    {
+        Set<DataElement> dataElements = new HashSet<>();
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getVersion() {
-    return version;
-  }
+        for ( Section section : sections )
+        {
+            dataElements.addAll( section.getDataElements() );
+        }
 
-  @Override
-  public void setVersion(int version) {
-    this.version = version;
-  }
+        return dataElements;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = Integer.MIN_VALUE)
-  public int getExpiryDays() {
-    return expiryDays;
-  }
+    public Set<CategoryOptionCombo> getDataElementOptionCombos()
+    {
+        Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
-  public void setExpiryDays(int expiryDays) {
-    this.expiryDays = expiryDays;
-  }
+        for ( DataSetElement element : dataSetElements )
+        {
+            optionCombos.addAll( element.getResolvedCategoryCombo().getOptionCombos() );
+        }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getTimelyDays() {
-    return timelyDays;
-  }
+        return optionCombos;
+    }
 
-  public void setTimelyDays(int timelyDays) {
-    this.timelyDays = timelyDays;
-  }
+    @Override
+    public int increaseVersion()
+    {
+        return ++version;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserGroup getNotificationRecipients() {
-    return notificationRecipients;
-  }
+    /**
+     * Returns a set of category option group sets which are linked to this data
+     * set through its category combination.
+     */
+    public Set<CategoryOptionGroupSet> getCategoryOptionGroupSets()
+    {
+        Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
 
-  public void setNotificationRecipients(UserGroup notificationRecipients) {
-    this.notificationRecipients = notificationRecipients;
-  }
+        if ( categoryCombo != null )
+        {
+            for ( Category category : categoryCombo.getCategories() )
+            {
+                for ( CategoryOption categoryOption : category.getCategoryOptions() )
+                {
+                    groupSets.addAll( categoryOption.getGroupSets() );
+                }
+            }
+        }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isNotifyCompletingUser() {
-    return notifyCompletingUser;
-  }
+        return groupSets;
+    }
 
-  public void setNotifyCompletingUser(boolean notifyCompletingUser) {
-    this.notifyCompletingUser = notifyCompletingUser;
-  }
+    /**
+     * Indicates whether this data set has a category combination which is different
+     * from the default category combination.
+     */
+    public boolean hasCategoryCombo()
+    {
+        return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataApprovalWorkflow getWorkflow() {
-    return workflow;
-  }
+    /**
+     * Indicates whether the data set is locked for data entry based on the
+     * expiry days.
+     *
+     * @param period the period to compare with.
+     * @param now    the date indicating now, uses current date if null.
+     */
+    public boolean isLocked( User user, Period period, Date now )
+    {
+        if ( user != null && user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            return false;
+        }
 
-  public void setWorkflow(DataApprovalWorkflow workflow) {
-    this.workflow = workflow;
-  }
+        DateTime date = now != null ? new DateTime( now ) : new DateTime();
 
-  @Override
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "interpretations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "interpretation", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Interpretation> getInterpretations() {
-    return interpretations;
-  }
+        return expiryDays != DataSet.NO_EXPIRY &&
+            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date );
+    }
 
-  public void setInterpretations(Set<Interpretation> interpretations) {
-    this.interpretations = interpretations;
-  }
+    /**
+     * Checks if the given period and date combination conforms to any of the dataInputPeriods.
+     * Returns true if no dataInputPeriods exists, or the combination conforms to at least one dataInputPeriod.
+     *
+     * @param period
+     * @param date
+     * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
+     */
+    public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
+    {
+        return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
+            .map( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) )
+            .reduce( ( a, b ) -> a || b )
+            .orElse( true );
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getOpenFuturePeriods() {
-    return openFuturePeriods;
-  }
+    // -------------------------------------------------------------------------
+    // DimensionalItemObject
+    // -------------------------------------------------------------------------
 
-  public void setOpenFuturePeriods(int openFuturePeriods) {
-    this.openFuturePeriods = openFuturePeriods;
-  }
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.REPORTING_RATE;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getOpenPeriodsAfterCoEndDate() {
-    return openPeriodsAfterCoEndDate;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setOpenPeriodsAfterCoEndDate(int openPeriodsAfterCoEndDate) {
-    this.openPeriodsAfterCoEndDate = openPeriodsAfterCoEndDate;
-  }
+    @JsonProperty
+    @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
+    @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.TEXT )
+    public PeriodType getPeriodType()
+    {
+        return periodType;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isFieldCombinationRequired() {
-    return fieldCombinationRequired;
-  }
+    public void setPeriodType( PeriodType periodType )
+    {
+        this.periodType = periodType;
+    }
 
-  public void setFieldCombinationRequired(boolean fieldCombinationRequired) {
-    this.fieldCombinationRequired = fieldCombinationRequired;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataInputPeriod> getDataInputPeriods()
+    {
+        return dataInputPeriods;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isValidCompleteOnly() {
-    return validCompleteOnly;
-  }
+    public void setDataInputPeriods( Set<DataInputPeriod> dataInputPeriods )
+    {
+        this.dataInputPeriods = dataInputPeriods;
+    }
 
-  public void setValidCompleteOnly(boolean validCompleteOnly) {
-    this.validCompleteOnly = validCompleteOnly;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataEntryForm getDataEntryForm()
+    {
+        return dataEntryForm;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isNoValueRequiresComment() {
-    return noValueRequiresComment;
-  }
+    public void setDataEntryForm( DataEntryForm dataEntryForm )
+    {
+        this.dataEntryForm = dataEntryForm;
+    }
 
-  public void setNoValueRequiresComment(boolean noValueRequiresComment) {
-    this.noValueRequiresComment = noValueRequiresComment;
-  }
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataSetElement> getDataSetElements()
+    {
+        return dataSetElements;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isSkipOffline() {
-    return skipOffline;
-  }
+    public void setDataSetElements( Set<DataSetElement> dataSetElements )
+    {
+        this.dataSetElements = dataSetElements;
+    }
 
-  public void setSkipOffline(boolean skipOffline) {
-    this.skipOffline = skipOffline;
-  }
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "indicators", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "indicator", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Indicator> getIndicators()
+    {
+        return indicators;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isRenderAsTabs() {
-    return renderAsTabs;
-  }
+    public void setIndicators( Set<Indicator> indicators )
+    {
+        this.indicators = indicators;
+    }
 
-  public void setRenderAsTabs(boolean renderAsTabs) {
-    this.renderAsTabs = renderAsTabs;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "compulsoryDataElementOperands", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "compulsoryDataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataElementOperand> getCompulsoryDataElementOperands()
+    {
+        return compulsoryDataElementOperands;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isRenderHorizontally() {
-    return renderHorizontally;
-  }
+    public void setCompulsoryDataElementOperands( Set<DataElementOperand> compulsoryDataElementOperands )
+    {
+        this.compulsoryDataElementOperands = compulsoryDataElementOperands;
+    }
 
-  public void setRenderHorizontally(boolean renderHorizontally) {
-    this.renderHorizontally = renderHorizontally;
-  }
+    @JsonProperty( value = "organisationUnits" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<OrganisationUnit> getSources()
+    {
+        return sources;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isDataElementDecoration() {
-    return dataElementDecoration;
-  }
+    public void setSources( Set<OrganisationUnit> sources )
+    {
+        this.sources = sources;
+    }
 
-  public void setDataElementDecoration(boolean dataElementDecoration) {
-    this.dataElementDecoration = dataElementDecoration;
-  }
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "sections", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "section", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Section> getSections()
+    {
+        return sections;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ObjectStyle getStyle() {
-    return style;
-  }
+    public void setSections( Set<Section> sections )
+    {
+        this.sections = sections;
+    }
 
-  public void setStyle(ObjectStyle style) {
-    this.style = style;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public CategoryCombo getCategoryCombo()
+    {
+        return categoryCombo;
+    }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFormName() {
-    return formName;
-  }
+    public void setCategoryCombo( CategoryCombo categoryCombo )
+    {
+        this.categoryCombo = categoryCombo;
+    }
 
-  @Override
-  public void setFormName(String formName) {
-    this.formName = formName;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMobile()
+    {
+        return mobile;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isCompulsoryFieldsCompleteOnly() {
-    return compulsoryFieldsCompleteOnly;
-  }
+    public void setMobile( boolean mobile )
+    {
+        this.mobile = mobile;
+    }
 
-  public void setCompulsoryFieldsCompleteOnly(boolean compulsoryFieldsCompleteOnly) {
-    this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
-  }
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getVersion()
+    {
+        return version;
+    }
+
+    @Override
+    public void setVersion( int version )
+    {
+        this.version = version;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Integer.MIN_VALUE )
+    public int getExpiryDays()
+    {
+        return expiryDays;
+    }
+
+    public void setExpiryDays( int expiryDays )
+    {
+        this.expiryDays = expiryDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getTimelyDays()
+    {
+        return timelyDays;
+    }
+
+    public void setTimelyDays( int timelyDays )
+    {
+        this.timelyDays = timelyDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserGroup getNotificationRecipients()
+    {
+        return notificationRecipients;
+    }
+
+    public void setNotificationRecipients( UserGroup notificationRecipients )
+    {
+        this.notificationRecipients = notificationRecipients;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isNotifyCompletingUser()
+    {
+        return notifyCompletingUser;
+    }
+
+    public void setNotifyCompletingUser( boolean notifyCompletingUser )
+    {
+        this.notifyCompletingUser = notifyCompletingUser;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataApprovalWorkflow getWorkflow()
+    {
+        return workflow;
+    }
+
+    public void setWorkflow( DataApprovalWorkflow workflow )
+    {
+        this.workflow = workflow;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Interpretation> getInterpretations()
+    {
+        return interpretations;
+    }
+
+    public void setInterpretations( Set<Interpretation> interpretations )
+    {
+        this.interpretations = interpretations;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getOpenFuturePeriods()
+    {
+        return openFuturePeriods;
+    }
+
+    public void setOpenFuturePeriods( int openFuturePeriods )
+    {
+        this.openFuturePeriods = openFuturePeriods;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFieldCombinationRequired()
+    {
+        return fieldCombinationRequired;
+    }
+
+    public void setFieldCombinationRequired( boolean fieldCombinationRequired )
+    {
+        this.fieldCombinationRequired = fieldCombinationRequired;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isValidCompleteOnly()
+    {
+        return validCompleteOnly;
+    }
+
+    public void setValidCompleteOnly( boolean validCompleteOnly )
+    {
+        this.validCompleteOnly = validCompleteOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isNoValueRequiresComment()
+    {
+        return noValueRequiresComment;
+    }
+
+    public void setNoValueRequiresComment( boolean noValueRequiresComment )
+    {
+        this.noValueRequiresComment = noValueRequiresComment;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipOffline()
+    {
+        return skipOffline;
+    }
+
+    public void setSkipOffline( boolean skipOffline )
+    {
+        this.skipOffline = skipOffline;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRenderAsTabs()
+    {
+        return renderAsTabs;
+    }
+
+    public void setRenderAsTabs( boolean renderAsTabs )
+    {
+        this.renderAsTabs = renderAsTabs;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRenderHorizontally()
+    {
+        return renderHorizontally;
+    }
+
+    public void setRenderHorizontally( boolean renderHorizontally )
+    {
+        this.renderHorizontally = renderHorizontally;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataElementDecoration()
+    {
+        return dataElementDecoration;
+    }
+
+    public void setDataElementDecoration( boolean dataElementDecoration )
+    {
+        this.dataElementDecoration = dataElementDecoration;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCompulsoryFieldsCompleteOnly()
+    {
+        return compulsoryFieldsCompleteOnly;
+    }
+
+    public void setCompulsoryFieldsCompleteOnly( boolean compulsoryFieldsCompleteOnly )
+    {
+        this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
+    }
+
 }

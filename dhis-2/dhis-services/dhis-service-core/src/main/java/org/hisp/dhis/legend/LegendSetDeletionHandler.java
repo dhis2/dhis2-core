@@ -1,5 +1,7 @@
+package org.hisp.dhis.legend;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.legend;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
-@RequiredArgsConstructor
-public class LegendSetDeletionHandler extends IdObjectDeletionHandler<LegendSet> {
-  private final LegendSetService legendSetService;
+public class LegendSetDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Legend.class, this::deleteLegend);
-  }
+    @Autowired
+    private LegendSetService legendSetService;
 
-  private void deleteLegend(Legend legend) {
-    for (LegendSet legendSet : legendSetService.getAllLegendSets()) {
-      if (legendSet.getLegends().remove(legend)) {
-        legendSetService.updateLegendSet(legendSet);
-      }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    protected String getClassName()
+    {
+        return LegendSet.class.getSimpleName();
     }
-  }
+
+    @Override
+    public void deleteLegend( Legend legend )
+    {
+        for ( LegendSet legendSet : legendSetService.getAllLegendSets() )
+        {
+            if ( legendSet.getLegends().remove( legend ) )
+            {
+                legendSetService.updateLegendSet( legendSet );
+            }
+        }
+    }
 }

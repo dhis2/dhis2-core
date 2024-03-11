@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +27,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.List;
+
 /**
- * @author Lars Helge Overland
- */
-public interface DimensionalItemObject extends NameableObject {
-  /** Gets the dimension item identifier. */
-  String getDimensionItem();
+* @author Lars Helge Overland
+*/
+public interface DimensionalItemObject
+    extends NameableObject
+{
+    /**
+     * Gets the dimension item identifier.
+     */
+    String getDimensionItem();
+    
+    /**
+     * Gets the dimension item identifier based on the given
+     * identifier scheme.
+     * 
+     * @param idScheme the identifier scheme.
+     */
+    String getDimensionItem( IdScheme idScheme );
+    
+    /**
+     * Gets the dimension type of this dimension item.
+     */
+    DimensionItemType getDimensionItemType();
 
-  /** Gets the dimension item identifier with queryModsId if present. */
-  String getDimensionItemWithQueryModsId();
+    /**
+     * Gets the legend sets.
+     */
+    List<LegendSet> getLegendSets();
 
-  /**
-   * Gets the dimension item identifier based on the given identifier scheme.
-   *
-   * @param idScheme the identifier scheme.
-   */
-  String getDimensionItem(IdScheme idScheme);
+    /**
+     * Gets the first legend set in the legend set list. This
+     * field is derived from {@link DimensionalObject#getLegendSet()} and
+     * is not persisted.
+     * 
+     * Will be removed from serialization in 2.28.
+     */
+    LegendSet getLegendSet();
 
-  /** Gets the dimension type of this dimension item. */
-  DimensionItemType getDimensionItemType();
-
-  /** Gets the legend sets. */
-  List<LegendSet> getLegendSets();
-
-  /**
-   * Gets the first legend set in the legend set list. This field is derived from {@link
-   * DimensionalObject#getLegendSet()} and is not persisted.
-   *
-   * <p>Will be removed from serialization in 2.28.
-   */
-  LegendSet getLegendSet();
-
-  /** Indicates whether this dimension has a legend set. */
-  boolean hasLegendSet();
-
-  /** Gets the aggregation type. */
-  AggregationType getAggregationType();
-
-  /** Indicates whether this dimension has an aggregation type. */
-  boolean hasAggregationType();
-
-  /**
-   * Gets the total aggregation type, meaning how total values should be aggregated across multiple
-   * values.
-   */
-  TotalAggregationType getTotalAggregationType();
-
-  /** Gets the query modifiers for an indicator expression. */
-  QueryModifiers getQueryMods();
-
-  /** Sets the query modifiers for an indicator expression. */
-  void setQueryMods(QueryModifiers queryMods);
-
-  /** Gets the absolute period offset regardless of whether there are query modifiers. */
-  default int getPeriodOffset() {
-    return (getQueryMods() != null) ? getQueryMods().getPeriodOffset() : 0;
-  }
+    /**
+     * Indicates whether this dimension has a legend set.
+     */
+    boolean hasLegendSet();
+    
+    /**
+     * Gets the aggregation type.
+     */
+    AggregationType getAggregationType();
+    
+    /**
+     * Indicates whether this dimension has an aggregation type.
+     */
+    boolean hasAggregationType();
+    
+    /**
+     * Gets the total aggregation type, meaning how total values
+     * should be aggregated across multiple values.
+     */
+    TotalAggregationType getTotalAggregationType();
 }

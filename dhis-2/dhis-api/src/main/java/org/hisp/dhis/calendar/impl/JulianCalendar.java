@@ -1,5 +1,7 @@
+package org.hisp.dhis.calendar.impl;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.calendar.impl;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.ChronologyBasedCalendar;
@@ -37,19 +38,23 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class JulianCalendar extends ChronologyBasedCalendar {
-  private static final Calendar self = new JulianCalendar();
+public class JulianCalendar extends ChronologyBasedCalendar
+{
+    private static final Calendar self = new JulianCalendar();
 
-  public static Calendar getInstance() {
-    return self;
-  }
+    public static Calendar getInstance()
+    {
+        return self;
+    }
 
-  protected JulianCalendar() {
-    super(JulianChronology.getInstance(DateTimeZone.getDefault()));
-  }
+    protected JulianCalendar()
+    {
+        super( JulianChronology.getInstance( DateTimeZone.getDefault() ) );
+    }
 
-  @Override
-  public String name() {
-    return "julian";
-  }
+    @Override
+    public String name()
+    {
+        return "julian";
+    }
 }

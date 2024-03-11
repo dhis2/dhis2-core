@@ -1,5 +1,7 @@
+package org.hisp.dhis.datavalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,53 +27,71 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
 
-import java.util.Map;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
+ * @version $Id$
  */
-@Component
-public class DataValueDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(DataValue.class);
+public class DataValueDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void register() {
-    whenVetoing(DataElement.class, this::allowDeleteDataElement);
-    whenVetoing(Period.class, this::allowDeletePeriod);
-    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
-    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
-  }
+    private JdbcTemplate jdbcTemplate;
 
-  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from datavalue where dataelementid=:id limit 1",
-        Map.of("id", dataElement.getId()));
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  private DeletionVeto allowDeletePeriod(Period period) {
-    return vetoIfExists(
-        VETO, "select 1 from datavalue where periodid=:id limit 1", Map.of("id", period.getId()));
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
-    return vetoIfExists(
-        VETO, "select 1 from datavalue where sourceid=:id limit 1", Map.of("id", unit.getId()));
-  }
-
-  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from datavalue where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1",
-        Map.of("id", optionCombo.getId()));
-  }
+    @Override
+    public String getClassName()
+    {
+        return DataValue.class.getSimpleName();
+    }
+    
+    @Override
+    public String allowDeleteDataElement( DataElement dataElement )
+    {
+        String sql = "SELECT COUNT(*) FROM datavalue where dataelementid=" + dataElement.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+    
+    @Override
+    public String allowDeletePeriod( Period period )
+    {
+        String sql = "SELECT COUNT(*) FROM datavalue where periodid=" + period.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+    
+    @Override
+    public String allowDeleteOrganisationUnit( OrganisationUnit unit )
+    {
+        String sql = "SELECT COUNT(*) FROM datavalue where sourceid=" + unit.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+    
+    @Override
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    {
+        String sql = "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=" + optionCombo.getId() + " or attributeoptioncomboid=" + optionCombo.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

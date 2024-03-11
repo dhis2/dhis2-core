@@ -17,10 +17,6 @@
     <property name="last3Days" />
     <property name="last7Days" />
     <property name="last14Days" />
-    <property name="last30Days" />
-    <property name="last60Days" />
-    <property name="last90Days" />
-    <property name="last180Days" />
     <property name="thisMonth" />
     <property name="lastMonth" />
     <property name="thisBimonth" />
@@ -40,7 +36,6 @@
     <property name="lastYear" />
     
     <property name="last5Years" />
-    <property name="last10Years" />
     <property name="last12Months" />
     <property name="last6Months" />
     <property name="last3Months" />
@@ -50,8 +45,7 @@
     <property name="thisFinancialYear" />
     <property name="lastFinancialYear" />
     <property name="last5FinancialYears" />
-    <property name="last10FinancialYears" />
-
+    
     <property name="thisWeek" />
     <property name="lastWeek" />
     <property name="thisBiWeek" />

@@ -1,5 +1,7 @@
+package org.hisp.dhis.period.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period.comparator;
 
-import java.util.Comparator;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
+import java.util.Comparator;
+
 /**
- * Sorts periods ascending based on the start date, then the end date, i.e. the earliest period
- * comes first. The start date and end date properties cannot be null.
- *
+ * Sorts periods ascending based on the start date, then the end date, i.e. the earliest
+ * period comes first. The start date and end date properties cannot be null.
+ * 
  * @author Lars Helge Overland
  */
-public class AscendingPeriodComparator implements Comparator<Period> {
-  public static final AscendingPeriodComparator INSTANCE = new AscendingPeriodComparator();
+public class AscendingPeriodComparator
+    implements Comparator<Period>
+{
+    public static final AscendingPeriodComparator INSTANCE = new AscendingPeriodComparator();
+    
+    @Override
+    public int compare( Period period1, Period period2 )
+    {
+        PeriodType a = period1.getPeriodType();
+        PeriodType b = period2.getPeriodType();
 
-  @Override
-  public int compare(Period period1, Period period2) {
-    PeriodType a = period1.getPeriodType();
-    PeriodType b = period2.getPeriodType();
+        int freqCompare = Integer.compare( a.getFrequencyOrder(), b.getFrequencyOrder() );
+        int nameCompare = a.getName().compareTo( b.getName() );
 
-    int freqCompare = Integer.compare(a.getFrequencyOrder(), b.getFrequencyOrder());
-    int nameCompare = a.getName().compareTo(b.getName());
-
-    return freqCompare == 0
-        ? (nameCompare == 0
-            ? period1.getStartDate().compareTo(period2.getStartDate())
-            : nameCompare)
-        : freqCompare;
-  }
+        return freqCompare == 0 ? ( nameCompare == 0 ? period1.getStartDate().compareTo(period2.getStartDate() ) : nameCompare ) : freqCompare;
+    }
 }

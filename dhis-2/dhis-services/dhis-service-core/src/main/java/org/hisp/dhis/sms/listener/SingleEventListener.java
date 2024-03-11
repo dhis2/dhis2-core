@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.listener;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,99 +27,69 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.SMSCommandService;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.system.util.SmsUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.sms.command.SMSCommand;
-import org.hisp.dhis.sms.command.SMSCommandService;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-/** Zubair <rajazubair.asghar@gmail.com> */
-@Component("org.hisp.dhis.sms.listener.SingleEventListener")
+/**
+ * Zubair <rajazubair.asghar@gmail.com>
+ */
 @Transactional
-public class SingleEventListener extends CommandSMSListener {
-  private final SMSCommandService smsCommandService;
+public class SingleEventListener
+    extends BaseSMSListener
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final ProgramInstanceService programInstanceService;
+    @Autowired
+    private SMSCommandService smsCommandService;
 
-  public SingleEventListener(
-      ProgramInstanceService programInstanceService,
-      CategoryService dataElementCategoryService,
-      ProgramStageInstanceService programStageInstanceService,
-      UserService userService,
-      CurrentUserService currentUserService,
-      IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
-      SMSCommandService smsCommandService,
-      ProgramInstanceService programInstanceService1) {
-    super(
-        programInstanceService,
-        dataElementCategoryService,
-        programStageInstanceService,
-        userService,
-        currentUserService,
-        incomingSmsService,
-        smsSender);
+    @Autowired
+    private ProgramInstanceService programInstanceService;
 
-    checkNotNull(smsCommandService);
-    checkNotNull(programInstanceService1);
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-    this.smsCommandService = smsCommandService;
-    this.programInstanceService = programInstanceService1;
-  }
+    @Override
+    protected SMSCommand getSMSCommand( IncomingSms sms )
+    {
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
+            ParserType.EVENT_REGISTRATION_PARSER );
+    }
 
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+    @Override
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
+    {
+        Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
-  @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
-    return smsCommandService.getSMSCommand(
-        SmsUtils.getCommandString(sms), ParserType.EVENT_REGISTRATION_PARSER);
-  }
+        registerEvent( parsedMessage, smsCommand, sms, ous );
+    }
 
-  @Override
-  protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
-    Set<OrganisationUnit> ous = getOrganisationUnits(sms);
+    // -------------------------------------------------------------------------
+    // Supportive Methods
+    // -------------------------------------------------------------------------
 
-    registerEvent(parsedMessage, smsCommand, sms, ous);
-  }
+    private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
+    {
+        List<ProgramInstance> programInstances = new ArrayList<>(
+            programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
-  // -------------------------------------------------------------------------
-  // Supportive Methods
-  // -------------------------------------------------------------------------
-
-  private void registerEvent(
-      Map<String, String> commandValuePairs,
-      SMSCommand smsCommand,
-      IncomingSms sms,
-      Set<OrganisationUnit> ous) {
-    List<ProgramInstance> programInstances =
-        new ArrayList<>(
-            programInstanceService.getProgramInstances(
-                smsCommand.getProgram(), ProgramStatus.ACTIVE));
-
-    register(programInstances, commandValuePairs, smsCommand, sms, ous);
-  }
+        register( programInstances, commandValuePairs, smsCommand, sms, ous );
+    }
 }

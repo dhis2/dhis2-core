@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataanalysis;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,85 +27,101 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
-public class DataAnalysisParams {
-  private String startDate;
+public class DataAnalysisParams
+{
+    private String startDate;
 
-  private String endDate;
+    private String endDate;
 
-  private List<String> ds;
+    private List<String> ds;
 
-  private Double standardDeviation;
+    private Double standardDeviation;
 
-  private String ou;
+    private String ou;
 
-  public DataAnalysisParams() {}
+    public DataAnalysisParams()
+    {
+    }
 
-  @JsonProperty
-  public String getStartDate() {
-    return startDate;
-  }
+    public DataAnalysisParams( String startDate, String endDate, List<String> dataSetIds,
+        Double standardDeviation, String organisationUnitId )
+    {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.ds = dataSetIds;
+        this.standardDeviation = standardDeviation;
+        this.ou = organisationUnitId;
+    }
 
-  public void setStartDate(String startDate) {
-    this.startDate = startDate;
-  }
+    @JsonProperty
+    public String getStartDate()
+    {
+        return startDate;
+    }
 
-  @JsonProperty
-  public String getEndDate() {
-    return endDate;
-  }
+    public void setStartDate( String startDate )
+    {
+        this.startDate = startDate;
+    }
 
-  public void setEndDate(String endDate) {
-    this.endDate = endDate;
-  }
+    @JsonProperty
+    public String getEndDate()
+    {
+        return endDate;
+    }
 
-  @JsonProperty
-  public List<String> getDs() {
-    return ds;
-  }
+    public void setEndDate( String endDate )
+    {
+        this.endDate = endDate;
+    }
 
-  public void setDs(List<String> ds) {
-    this.ds = ds;
-  }
+    @JsonProperty
+    public List<String> getDs()
+    {
+        return ds;
+    }
 
-  @JsonProperty
-  public Double getStandardDeviation() {
-    return standardDeviation;
-  }
+    public void setDs( List<String> ds )
+    {
+        this.ds = ds;
+    }
 
-  public void setStandardDeviation(Double standardDeviation) {
-    this.standardDeviation = standardDeviation;
-  }
+    @JsonProperty
+    public Double getStandardDeviation()
+    {
+        return standardDeviation;
+    }
 
-  @JsonProperty
-  public String getOu() {
-    return ou;
-  }
+    public void setStandardDeviation( Double standardDeviation )
+    {
+        this.standardDeviation = standardDeviation;
+    }
 
-  public void setOu(String ou) {
-    this.ou = ou;
-  }
+    @JsonProperty
+    public String getOu()
+    {
+        return ou;
+    }
 
-  @Override
-  public String toString() {
-    return "StdDevOutlierAnalysisParams{"
-        + "startDate='"
-        + startDate
-        + '\''
-        + ", endDate='"
-        + endDate
-        + '\''
-        + ", ds="
-        + ds
-        + ", standardDeviation="
-        + standardDeviation
-        + ", ou='"
-        + ou
-        + '\''
-        + '}';
-  }
+    public void setOu( String ou )
+    {
+        this.ou = ou;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "StdDevOutlierAnalysisParams{" +
+            "startDate='" + startDate + '\'' +
+            ", endDate='" + endDate + '\'' +
+            ", ds=" + ds +
+            ", standardDeviation=" + standardDeviation +
+            ", ou='" + ou + '\'' +
+            '}';
+    }
 }

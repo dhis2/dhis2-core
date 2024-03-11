@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.data;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,112 +27,91 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.data;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import org.hisp.dhis.analytics.AnalyticsManager;
-import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.RawAnalyticsManager;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
-import org.hisp.dhis.analytics.data.handler.DataAggregator;
-import org.hisp.dhis.analytics.data.handler.DataHandler;
-import org.hisp.dhis.analytics.data.handler.HeaderHandler;
-import org.hisp.dhis.analytics.data.handler.MetadataHandler;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
-import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.Before;
+import org.junit.Rule;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings(strictness = Strictness.LENIENT)
-@ExtendWith({MockitoExtension.class})
-abstract class AnalyticsServiceBaseTest {
-  @Mock protected AnalyticsManager analyticsManager;
+public abstract class AnalyticsServiceBaseTest {
 
-  @Mock private RawAnalyticsManager rawAnalyticsManager;
+    @Mock
+    protected AnalyticsManager analyticsManager;
 
-  @Mock private AnalyticsSecurityManager securityManager;
+    @Mock
+    private RawAnalyticsManager rawAnalyticsManager;
 
-  @Mock private QueryPlanner queryPlanner;
+    @Mock
+    private AnalyticsSecurityManager securityManager;
 
-  @Mock private ExpressionService expressionService;
+    @Mock
+    private QueryPlanner queryPlanner;
 
-  @Mock private OrganisationUnitService organisationUnitService;
+    @Mock
+    private ExpressionService expressionService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+    @Mock
+    private ConstantService constantService;
 
-  @Mock protected EventAnalyticsService eventAnalyticsService;
+    @Mock
+    private OrganisationUnitService organisationUnitService;
 
-  @Mock private DataQueryService dataQueryService;
+    @Mock
+    private SystemSettingManager systemSettingManager;
 
-  @Mock private SchemaIdResponseMapper schemaIdResponseMapper;
+    @Mock
+    protected EventAnalyticsService eventAnalyticsService;
 
-  @Mock private DhisConfigurationProvider dhisConfig;
+    @Mock
+    private DataQueryService dataQueryService;
 
-  @Mock private AnalyticsCache analyticsCache;
+    @Mock
+    private DhisConfigurationProvider dhisConfig;
 
-  @Mock private AnalyticsCacheSettings analyticsCacheSettings;
+    @Mock
+    private CacheProvider cacheProvider;
 
-  @Mock private ExpressionResolvers resolvers;
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
-  @Mock private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+    AnalyticsService target;
 
-  @Mock private ExecutionPlanStore executionPlanStore;
+    @Before
+    public void baseSetUp()
+    {
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
 
-  DataAggregator target;
+        target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
+                queryValidator, expressionService, constantService,  organisationUnitService, systemSettingManager,
+                eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider );
 
-  @BeforeEach
-  public void baseSetUp() {
-    HeaderHandler headerHandler = new HeaderHandler();
-    MetadataHandler metadataHandler = new MetadataHandler(dataQueryService, schemaIdResponseMapper);
-    DataHandler dataHandler =
-        new DataHandler(
-            eventAnalyticsService,
-            rawAnalyticsManager,
-            resolvers,
-            expressionService,
-            queryPlanner,
-            systemSettingManager,
-            analyticsManager,
-            organisationUnitService,
-            executionPlanStore);
+        when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
+        when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );
+    }
 
-    target = new DataAggregator(headerHandler, metadataHandler, dataHandler);
-    target.feedHandlers();
-
-    when(analyticsCacheSettings.fixedExpirationTimeOrDefault()).thenReturn(0L);
-  }
-
-  void initMock(DataQueryParams params) {
-    when(securityManager.withDataApprovalConstraints(Mockito.any(DataQueryParams.class)))
-        .thenReturn(params);
-    when(securityManager.withUserConstraints(any(DataQueryParams.class))).thenReturn(params);
-    when(queryPlanner.planQuery(any(DataQueryParams.class), any(QueryPlannerParams.class)))
-        .thenReturn(
-            DataQueryGroups.newBuilder()
-                .withQueries(newArrayList(DataQueryParams.newBuilder().build()))
-                .build());
-  }
+    void initMock(DataQueryParams params)
+    {
+        when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
+                .thenReturn( params );
+        when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
+        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
+                DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
+    }
 }

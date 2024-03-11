@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,161 +27,115 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity.hibernate;
 
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-@Repository("org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore")
 public class HibernateTrackedEntityInstanceAuditStore
     extends HibernateGenericStore<TrackedEntityInstanceAudit>
-    implements TrackedEntityInstanceAuditStore {
+    implements TrackedEntityInstanceAuditStore
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final StatementBuilder statementBuilder;
+    private SessionFactory sessionFactory;
 
-  public HibernateTrackedEntityInstanceAuditStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      StatementBuilder statementBuilder) {
-    super(sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceAudit.class, false);
-    this.statementBuilder = statementBuilder;
-  }
-
-  // -------------------------------------------------------------------------
-  // TrackedEntityInstanceAuditService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addTrackedEntityInstanceAudit(TrackedEntityInstanceAudit trackedEntityInstanceAudit) {
-    getSession().save(trackedEntityInstanceAudit);
-  }
-
-  @Override
-  public void addTrackedEntityInstanceAudit(
-      List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit) {
-    final String sql =
-        "INSERT INTO trackedentityinstanceaudit ("
-            + "trackedentityinstanceauditid, "
-            + "trackedentityinstance, "
-            + "created, "
-            + "accessedby, "
-            + "audittype, "
-            + "comment ) VALUES ";
-
-    Function<TrackedEntityInstanceAudit, String> mapToString =
-        audit -> {
-          StringBuilder sb = new StringBuilder();
-          sb.append("(");
-          sb.append("nextval('trackedentityinstanceaudit_sequence'), ");
-          sb.append(singleQuote(audit.getTrackedEntityInstance())).append(",");
-          sb.append("now()").append(",");
-          sb.append(singleQuote(audit.getAccessedBy())).append(",");
-          sb.append(singleQuote(audit.getAuditType().name())).append(",");
-          sb.append(
-              StringUtils.isNotEmpty(audit.getComment())
-                  ? statementBuilder.encode(audit.getComment())
-                  : "''");
-          sb.append(")");
-          return sb.toString();
-        };
-
-    final String values =
-        trackedEntityInstanceAudit.stream().map(mapToString).collect(Collectors.joining(","));
-
-    getSession().createNativeQuery(sql + values).executeUpdate();
-  }
-
-  @Override
-  public void deleteTrackedEntityInstanceAudit(TrackedEntityInstance trackedEntityInstance) {
-    String hql =
-        "delete TrackedEntityInstanceAudit where trackedEntityInstance = :trackedEntityInstance";
-    getSession()
-        .createQuery(hql)
-        .setParameter("trackedEntityInstance", trackedEntityInstance)
-        .executeUpdate();
-  }
-
-  @Override
-  public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-      TrackedEntityInstanceAuditQueryParams params) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<TrackedEntityInstanceAudit> jpaParameters =
-        newJpaParameters()
-            .addPredicates(getTrackedEntityInstanceAuditPredicates(params, builder))
-            .addOrder(root -> builder.desc(root.get("created")));
-
-    if (params.hasPaging()) {
-      jpaParameters
-          .setFirstResult(params.getPager().getOffset())
-          .setMaxResults(params.getPager().getPageSize());
+    @Override
+    public void setSessionFactory( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
     }
 
-    return getList(builder, jpaParameters);
-  }
+    // -------------------------------------------------------------------------
+    // TrackedEntityInstanceAuditService implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public int getTrackedEntityInstanceAuditsCount(TrackedEntityInstanceAuditQueryParams params) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getCount(
-            builder,
-            newJpaParameters()
-                .addPredicates(getTrackedEntityInstanceAuditPredicates(params, builder))
-                .count(root -> builder.countDistinct(root.get("id"))))
-        .intValue();
-  }
-
-  private List<Function<Root<TrackedEntityInstanceAudit>, Predicate>>
-      getTrackedEntityInstanceAuditPredicates(
-          TrackedEntityInstanceAuditQueryParams params, CriteriaBuilder builder) {
-    List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> predicates = new ArrayList<>();
-
-    if (params.hasTrackedEntityInstances()) {
-      predicates.add(
-          root -> root.get("trackedEntityInstance").in(params.getTrackedEntityInstances()));
+    @Override
+    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    {
+        sessionFactory.getCurrentSession().save( trackedEntityInstanceAudit );
     }
 
-    if (params.hasUsers()) {
-      predicates.add(root -> root.get("accessedBy").in(params.getUsers()));
+    @Override
+    public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
+    {
+        String hql = "delete TrackedEntityInstanceAudit where trackedEntityInstance = :trackedEntityInstance";
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "trackedEntityInstance", trackedEntityInstance ).executeUpdate();
     }
 
-    if (params.hasAuditTypes()) {
-      predicates.add(root -> root.get("auditType").in(params.getAuditTypes()));
+    @Override
+    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<TrackedEntityInstanceAudit> jpaParameters = newJpaParameters()
+            .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        if( !params.isSkipPaging() )
+        {
+            jpaParameters.setFirstResult( params.getFirst() ).setMaxResults( params.getMax() );
+        }
+
+        return getList( builder, jpaParameters );
     }
 
-    if (params.hasStartDate()) {
-      predicates.add(
-          root -> builder.greaterThanOrEqualTo(root.get("created"), params.getStartDate()));
+    @Override
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    if (params.hasEndDate()) {
-      predicates.add(root -> builder.lessThanOrEqualTo(root.get("created"), params.getEndDate()));
-    }
+    private List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> getTrackedEntityInstanceAuditPredicates( TrackedEntityInstanceAuditQueryParams params, CriteriaBuilder builder )
+    {
+        List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> predicates = new ArrayList<>();
 
-    return predicates;
-  }
+        if ( params.hasTrackedEntityInstances() )
+        {
+            predicates.add( root -> root.get( "trackedEntityInstance").in( params.getTrackedEntityInstances() ) );
+        }
+
+        if ( params.hasUsers() )
+        {
+            predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
+        }
+
+        if ( params.hasAuditType() )
+        {
+            predicates.add( root -> builder.equal( root.get( "auditType" ), params.getAuditType() ) );
+        }
+
+        if ( params.hasStartDate() )
+        {
+            predicates.add( root -> builder.greaterThanOrEqualTo( root.get("created" ), params.getStartDate() ) );
+        }
+
+        if ( params.hasEndDate() )
+        {
+            predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), params.getEndDate() ) );
+        }
+
+        return predicates;
+    }
 }

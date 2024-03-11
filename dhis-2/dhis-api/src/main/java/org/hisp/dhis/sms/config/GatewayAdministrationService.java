@@ -1,5 +1,8 @@
+
+package org.hisp.dhis.sms.config;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +28,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
+ *
  */
-public interface GatewayAdministrationService {
-  void setDefaultGateway(SmsGatewayConfig config);
+public interface GatewayAdministrationService
+{
+    String setDefaultGateway( String uid );
 
-  boolean removeGatewayByUid(String uid);
+    boolean removeGatewayByUid( String uid );
 
-  boolean hasGateways();
+    boolean removeGatewayByName( String gatewayName );
+    
+    Map<String, SmsGatewayConfig> getGatewayConfigurationMap();
 
-  SmsGatewayConfig getDefaultGateway();
+    SmsGatewayConfig getDefaultGateway();
 
-  boolean hasDefaultGateway();
+    List<SmsGatewayConfig> listGateways();
 
-  SmsGatewayConfig getByUid(String uid);
+    SmsGatewayConfig getGatewayConfigurationByUid( String uid );
 
-  boolean addGateway(SmsGatewayConfig config);
+    SmsGatewayConfig getGatewayConfigurationByName( String gatewayName );
 
-  void updateGateway(SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig);
+    boolean addOrUpdateGateway( SmsGatewayConfig config, Class<?> klass );
+
+    boolean loadGatewayConfigurationMap( SmsConfiguration smsConfiguration );
 }

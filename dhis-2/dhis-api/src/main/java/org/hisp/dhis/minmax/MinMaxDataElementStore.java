@@ -1,5 +1,7 @@
+package org.hisp.dhis.minmax;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Kristian Nordal
+ * @version $Id: MinMaxDataElementStore.java 5012 2008-04-24 21:14:40Z larshelg $
  */
-public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> {
-  String ID = MinMaxDataElementStore.class.getName();
+public interface MinMaxDataElementStore
+    extends GenericStore<MinMaxDataElement>
+{
+    String ID = MinMaxDataElementStore.class.getName();
 
-  MinMaxDataElement get(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
+    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
+    
+    List<MinMaxDataElement> get( OrganisationUnit source, DataElement dataElement );  
 
-  List<MinMaxDataElement> get(OrganisationUnit source, Collection<DataElement> dataElements);
+    List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
 
-  List<MinMaxDataElement> query(MinMaxDataElementQueryParams query);
+    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
 
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
+    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
 
-  void delete(OrganisationUnit organisationUnit);
-
-  void delete(DataElement dataElement);
-
-  void delete(CategoryOptionCombo optionCombo);
-
-  void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
+    void delete( OrganisationUnit organisationUnit );
+    
+    void delete( DataElement dataElement );
+    
+    void delete( CategoryOptionCombo optionCombo );
+    
+    void delete( Collection<DataElement> dataElements, OrganisationUnit parent );
 }

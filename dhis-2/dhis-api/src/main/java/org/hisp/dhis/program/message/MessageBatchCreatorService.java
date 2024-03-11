@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.message;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
 
 import java.util.List;
+
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-public interface MessageBatchCreatorService {
-  /**
-   * Create batch of messages based on DeliveryChannel. It also populates required fields for that
-   * DeliveryChannel.
-   *
-   * @param programMessages list of ProgramMessages.
-   */
-  OutboundMessageBatch getMessageBatch(List<ProgramMessage> programMessages);
+* @author Zubair <rajazubair.asghar@gmail.com>
+*/
+public interface MessageBatchCreatorService
+{
+    /**
+     * Create batch of messages based on DeliveryChannel. It also populates
+     * required fields for that DeliveryChannel.
+     *
+     * @param programMessages list of ProgramMessages.
+     */
+    OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages );
 }

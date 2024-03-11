@@ -1,5 +1,7 @@
+package org.hisp.dhis.setting;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.setting;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
-public class StyleObject {
-  private String name;
+public class StyleObject
+{
+    private String name;
+    
+    private String key;
+    
+    private String path;
 
-  private String key;
+    public StyleObject()
+    {
+    }
 
-  private String path;
+    public StyleObject( String name, String key, String path )
+    {
+        this.name = name;
+        this.key = key;
+        this.path = path;
+    }
+    
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
 
-  public StyleObject() {}
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 
-  public StyleObject(String name, String key, String path) {
-    this.name = name;
-    this.key = key;
-    this.path = path;
-  }
+    @JsonProperty
+    public String getKey()
+    {
+        return key;
+    }
 
-  @JsonProperty
-  public String getName() {
-    return name;
-  }
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    @JsonProperty
+    public String getPath()
+    {
+        return path;
+    }
 
-  @JsonProperty
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  @JsonProperty
-  public String getPath() {
-    return path;
-  }
-
-  public void setPath(String path) {
-    this.path = path;
-  }
+    public void setPath( String path )
+    {
+        this.path = path;
+    }
 }

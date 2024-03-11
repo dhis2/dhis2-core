@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.oauth2;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
 
 import com.google.common.collect.Sets;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
-import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
-@Service("defaultClientDetailsService")
-public class DefaultClientDetailsService implements ClientDetailsService {
-  private static final Set<String> SCOPES = Sets.newHashSet("ALL");
+public class DefaultClientDetailsService implements ClientDetailsService
+{
+    @Autowired
+    private OAuth2ClientService oAuth2ClientService;
 
-  private final OAuth2ClientService oAuth2ClientService;
+    private static final Set<String> SCOPES = Sets.newHashSet( "ALL" );
 
-  @Override
-  public ClientDetails loadClientByClientId(String clientId) throws ClientRegistrationException {
-    ClientDetails clientDetails =
-        clientDetails(oAuth2ClientService.getOAuth2ClientByClientId(clientId));
+    @Override
+    public ClientDetails loadClientByClientId( String clientId ) throws ClientRegistrationException
+    {
+        ClientDetails clientDetails = clientDetails( oAuth2ClientService.getOAuth2ClientByClientId( clientId ) );
 
-    if (clientDetails == null) {
-      throw new ClientRegistrationException("Invalid client_id");
+        if ( clientDetails == null )
+        {
+            throw new ClientRegistrationException( "Invalid client_id" );
+        }
+
+        return clientDetails;
     }
 
-    return clientDetails;
-  }
+    private ClientDetails clientDetails( OAuth2Client client )
+    {
+        if ( client == null )
+        {
+            return null;
+        }
 
-  private ClientDetails clientDetails(OAuth2Client client) {
-    if (client == null) {
-      return null;
+        BaseClientDetails clientDetails = new BaseClientDetails();
+        clientDetails.setClientId( client.getCid() );
+        clientDetails.setClientSecret( client.getSecret() );
+        clientDetails.setAuthorizedGrantTypes( new HashSet<>( client.getGrantTypes() ) );
+        clientDetails.setScope( SCOPES );
+        clientDetails.setRegisteredRedirectUri( new HashSet<>( client.getRedirectUris() ) );
+
+        return clientDetails;
     }
-
-    BaseClientDetails clientDetails = new BaseClientDetails();
-    clientDetails.setClientId(client.getCid());
-    clientDetails.setClientSecret(client.getSecret());
-    clientDetails.setAuthorizedGrantTypes(new HashSet<>(client.getGrantTypes()));
-    clientDetails.setScope(SCOPES);
-    clientDetails.setRegisteredRedirectUri(new HashSet<>(client.getRedirectUris()));
-
-    return clientDetails;
-  }
 }

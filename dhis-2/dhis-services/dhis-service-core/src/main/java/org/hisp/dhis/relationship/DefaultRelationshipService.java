@@ -1,5 +1,7 @@
+package org.hisp.dhis.relationship;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,137 +27,112 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-import java.util.Optional;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.relationship.RelationshipService")
-public class DefaultRelationshipService implements RelationshipService {
-  private final RelationshipStore relationshipStore;
+public class DefaultRelationshipService
+    implements RelationshipService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    private RelationshipStore relationshipStore;
 
-  @Override
-  @Transactional
-  public void deleteRelationship(Relationship relationship) {
-    relationshipStore.delete(relationship);
-  }
+    public void setRelationshipStore( RelationshipStore relationshipStore )
+    {
+        this.relationshipStore = relationshipStore;
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationship(long id) {
-    return relationshipStore.get(id);
-  }
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean relationshipExists(String uid) {
-    return relationshipStore.getByUid(uid) != null;
-  }
+    @Override
+    @Transactional
+    public void deleteRelationship( Relationship relationship )
+    {
+        relationshipStore.delete( relationship );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean relationshipExistsIncludingDeleted(String uid) {
-    return relationshipStore.existsIncludingDeleted(uid);
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public Relationship getRelationship( int id )
+    {
+        return relationshipStore.get( id );
+    }
 
-  @Override
-  @Transactional
-  public long addRelationship(Relationship relationship) {
-    relationship.getFrom().setRelationship(relationship);
-    relationship.getTo().setRelationship(relationship);
-    relationshipStore.save(relationship);
+    @Override
+    @Transactional(readOnly = true)
+    public boolean relationshipExists( String uid )
+    {
+        return relationshipStore.getByUid( uid ) != null;
+    }
 
-    return relationship.getId();
-  }
+    @Override
+    @Transactional
+    public int addRelationship( Relationship relationship )
+    {
+        relationship.getFrom().setRelationship( relationship );
+        relationship.getTo().setRelationship( relationship );
+        relationshipStore.save( relationship );
 
-  @Override
-  @Transactional
-  public void updateRelationship(Relationship relationship) {
-    relationshipStore.update(relationship);
-  }
+        return relationship.getId();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationship(String uid) {
-    return relationshipStore.getByUid(uid);
-  }
+    @Override
+    @Transactional
+    public void updateRelationship( Relationship relationship )
+    {
+        relationship.getFrom().setRelationship( relationship );
+        relationship.getTo().setRelationship( relationship );
+        relationshipStore.update( relationship );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Relationship getRelationshipIncludeDeleted(String uid) {
-    return relationshipStore.getByUidsIncludeDeleted(List.of(uid)).stream().findAny().orElse(null);
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public Relationship getRelationship( String uid )
+    {
+        return relationshipStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationships(@Nonnull List<String> uids) {
-    return relationshipStore.getByUid(uids);
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        boolean skipAccessValidation )
+    {
+        return relationshipStore.getByTrackedEntityInstance( tei );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByTrackedEntityInstance(
-      TrackedEntityInstance tei,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted) {
-    return relationshipStore.getByTrackedEntityInstance(
-        tei, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    {
+        return relationshipStore.getByProgramInstance( pi );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByProgramInstance(
-      ProgramInstance pi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted) {
-    return relationshipStore.getByProgramInstance(
-        pi, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        boolean skipAccessValidation )
+    {
+        return relationshipStore.getByProgramStageInstance( psi );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByProgramStageInstance(
-      ProgramStageInstance psi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted) {
-    return relationshipStore.getByProgramStageInstance(
-        psi, pagingAndSortingCriteriaAdapter, includeDeleted);
-  }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Relationship> getRelationshipsByRelationshipType(RelationshipType relationshipType) {
-    return relationshipStore.getByRelationshipType(relationshipType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Optional<Relationship> getRelationshipByRelationship(Relationship relationship) {
-    checkNotNull(relationship.getFrom());
-    checkNotNull(relationship.getTo());
-    checkNotNull(relationship.getRelationshipType());
-
-    return Optional.ofNullable(relationshipStore.getByRelationship(relationship));
-  }
+    @Override
+    @Transactional( readOnly = true )
+    public Optional<Relationship> getRelationshipByRelationship( Relationship relationship )
+    {
+        return Optional.ofNullable( relationshipStore.getByRelationship( relationship ) );
+    }
 }

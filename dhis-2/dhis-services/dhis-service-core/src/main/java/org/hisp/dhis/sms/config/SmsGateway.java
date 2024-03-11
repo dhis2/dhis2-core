@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.config;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
 
-import com.google.common.collect.ImmutableMap;
-import java.util.Base64;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -51,111 +50,97 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Slf4j
-public abstract class SmsGateway {
-  protected static final String PROTOCOL_VERSION = "X-Version";
+public abstract class SmsGateway
+{
+    private static final Log log = LogFactory.getLog( SmsGateway.class );
 
-  protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
+    protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+        HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
-  protected static final String BASIC = " Basic ";
+    private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
+        .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
+        .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
+        .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
+        .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
+        .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
+        .put( HttpStatus.PAYMENT_REQUIRED, GatewayResponse.RESULT_CODE_402 )
+        .put( HttpStatus.NOT_FOUND, GatewayResponse.RESULT_CODE_404 )
+        .put( HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405 )
+        .put( HttpStatus.GONE, GatewayResponse.RESULT_CODE_410 )
+        .put( HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503 )
+        .put( HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504 ).build();
 
-  public static final String KEY_TEXT = "text";
+    @Autowired
+    private RestTemplate restTemplate;
 
-  public static final String KEY_RECIPIENT = "recipients";
+    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
-  public static final Set<HttpStatus> OK_CODES =
-      Set.of(HttpStatus.OK, HttpStatus.ACCEPTED, HttpStatus.CREATED);
-
-  private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP =
-      new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
-          .put(HttpStatus.OK, GatewayResponse.RESULT_CODE_200)
-          .put(HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202)
-          .put(HttpStatus.CREATED, GatewayResponse.RESULT_CODE_202)
-          .put(HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207)
-          .put(HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400)
-          .put(HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401)
-          .put(HttpStatus.PAYMENT_REQUIRED, GatewayResponse.RESULT_CODE_402)
-          .put(HttpStatus.NOT_FOUND, GatewayResponse.RESULT_CODE_404)
-          .put(HttpStatus.METHOD_NOT_ALLOWED, GatewayResponse.RESULT_CODE_405)
-          .put(HttpStatus.GONE, GatewayResponse.RESULT_CODE_410)
-          .put(HttpStatus.SERVICE_UNAVAILABLE, GatewayResponse.RESULT_CODE_503)
-          .put(HttpStatus.FORBIDDEN, GatewayResponse.RESULT_CODE_403)
-          .put(HttpStatus.INTERNAL_SERVER_ERROR, GatewayResponse.RESULT_CODE_504)
-          .build();
-
-  @Autowired private RestTemplate restTemplate;
-
-  @Autowired
-  @Qualifier("tripleDesStringEncryptor")
-  private PBEStringEncryptor pbeStringEncryptor;
-
-  protected abstract List<OutboundMessageResponse> sendBatch(
-      OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig);
-
-  protected abstract boolean accept(SmsGatewayConfig gatewayConfig);
-
-  protected abstract OutboundMessageResponse send(
-      String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig);
-
-  public HttpStatus send(
-      String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass) {
-    ResponseEntity<?> response;
-    HttpStatus statusCode;
-
-    try {
-      response = restTemplate.exchange(urlTemplate, httpMethod, request, klass);
-
-      statusCode = response.getStatusCode();
-    } catch (HttpClientErrorException ex) {
-      log.error("Sms request client error", ex);
-
-      statusCode = ex.getStatusCode();
-    } catch (HttpServerErrorException ex) {
-      log.error("Sms request server error", ex);
-
-      statusCode = ex.getStatusCode();
-    } catch (Exception ex) {
-      log.error("Sms request error", ex);
-
-      statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+    public boolean accept( SmsGatewayConfig gatewayConfig )
+    {
+        return gatewayConfig != null && gatewayConfig.getClass().isInstance( getGatewayConfigType() );
     }
 
-    log.info("Sms request status code: " + statusCode);
+    protected abstract SmsGatewayConfig getGatewayConfigType();
 
-    return statusCode;
-  }
+    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 
-  public OutboundMessageResponse wrapHttpStatus(HttpStatus httpStatus) {
-    GatewayResponse gatewayResponse;
+    public HttpStatus send( String urlTemplate, HttpEntity<?> request, Class<?> klass )
+    {
+        ResponseEntity<?> response;
+        HttpStatus statusCode = null;
 
-    OutboundMessageResponse status = new OutboundMessageResponse();
+        try
+        {
+            response = restTemplate.exchange( urlTemplate, HttpMethod.POST, request, klass );
 
-    if (httpStatus != null && OK_CODES.contains(httpStatus)) {
-      gatewayResponse = GATEWAY_RESPONSE_MAP.get(httpStatus);
+            statusCode = response.getStatusCode();
+        }
+        catch ( HttpClientErrorException ex )
+        {
+            log.error( "Client error", ex );
 
-      status.setOk(true);
-    } else {
-      gatewayResponse = GATEWAY_RESPONSE_MAP.getOrDefault(httpStatus, GatewayResponse.FAILED);
+            statusCode = ex.getStatusCode();
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            log.error( "Server error", ex );
 
-      status.setOk(false);
+            statusCode = ex.getStatusCode();
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Error", ex );
+
+            statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        log.info( "Response status code: " + statusCode );
+
+        return statusCode;
     }
 
-    status.setResponseObject(gatewayResponse);
-    status.setDescription(gatewayResponse.getResponseMessage());
+    protected OutboundMessageResponse wrapHttpStatus( HttpStatus httpStatus )
+    {
+        GatewayResponse gatewayResponse;
 
-    return status;
-  }
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
-  protected HttpHeaders getAuthenticationHeaderParameters(SmsGatewayConfig config) {
-    String credentials =
-        config.getUsername().trim() + ":" + pbeStringEncryptor.decrypt(config.getPassword().trim());
-    String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
+        if ( OK_CODES.contains( httpStatus ) )
+        {
+            gatewayResponse = GATEWAY_RESPONSE_MAP.get( httpStatus );
 
-    HttpHeaders headers = new HttpHeaders();
-    headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-    headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
-    headers.set(HttpHeaders.AUTHORIZATION, BASIC + encodedCredentials);
+            status.setOk( true );
+        }
+        else
+        {
+            gatewayResponse = GATEWAY_RESPONSE_MAP.getOrDefault( httpStatus, GatewayResponse.FAILED );
 
-    return headers;
-  }
+            status.setOk( false );
+        }
+
+        status.setResponseObject( gatewayResponse );
+        status.setDescription( gatewayResponse.getResponseMessage() );
+
+        return status;
+    }
 }

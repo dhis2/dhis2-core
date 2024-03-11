@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentitycomment;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,53 +27,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService")
-public class DefaultTrackedEntityCommentService implements TrackedEntityCommentService {
-  private final TrackedEntityCommentStore commentStore;
+public class DefaultTrackedEntityCommentService
+    implements TrackedEntityCommentService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    private TrackedEntityCommentStore commentStore;
 
-  @Override
-  @Transactional
-  public long addTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.save(comment);
+    public void setCommentStore( TrackedEntityCommentStore commentStore )
+    {
+        this.commentStore = commentStore;
+    }
 
-    return comment.getId();
-  }
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void deleteTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.delete(comment);
-  }
+    @Override
+    public int addTrackedEntityComment( TrackedEntityComment comment )
+    {
+        commentStore.save( comment );
 
-  @Override
-  @Transactional(readOnly = true)
-  public boolean trackedEntityCommentExists(String uid) {
-    return commentStore.exists(uid);
-  }
+        return comment.getId();
+    }
 
-  @Override
-  @Transactional
-  public void updateTrackedEntityComment(TrackedEntityComment comment) {
-    commentStore.update(comment);
-  }
+    @Override
+    public void deleteTrackedEntityComment( TrackedEntityComment comment )
+    {
+        commentStore.delete( comment );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityComment getTrackedEntityComment(long id) {
-    return commentStore.get(id);
-  }
+    @Override public boolean trackedEntityCommentExists( String uid )
+    {
+        return commentStore.exists( uid );
+    }
+
+    @Override
+    public void updateTrackedEntityComment( TrackedEntityComment comment )
+    {
+        commentStore.update( comment );
+    }
+
+    @Override
+    public TrackedEntityComment getTrackedEntityComment( int id )
+    {
+        return commentStore.get( id );
+    }
+
 }

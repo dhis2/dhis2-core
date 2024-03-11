@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentitydatavalue.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,169 +27,125 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitydatavalue.hibernate;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
-import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore")
-public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityDataValueAuditStore {
-  private static final String PROP_PSI = "programStageInstance";
+public class HibernateTrackedEntityDataValueAuditStore
+    implements TrackedEntityDataValueAuditStore
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
+    private SessionFactory sessionFactory;
 
-  private static final String PROP_CREATED = "created";
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
-
-  private SessionFactory sessionFactory;
-
-  public HibernateTrackedEntityDataValueAuditStore(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
-  }
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  public void addTrackedEntityDataValueAudit(
-      TrackedEntityDataValueAudit trackedEntityDataValueAudit) {
-    Session session = sessionFactory.getCurrentSession();
-    session.save(trackedEntityDataValueAudit);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits(
-      TrackedEntityDataValueAuditQueryParams params) {
-    CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
-    CriteriaQuery<TrackedEntityDataValueAudit> criteria =
-        builder.createQuery(TrackedEntityDataValueAudit.class);
-    Root<TrackedEntityDataValueAudit> tedva = criteria.from(TrackedEntityDataValueAudit.class);
-    Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join(PROP_PSI);
-    Join<ProgramStageInstance, OrganisationUnit> ou = psi.join(PROP_ORGANISATION_UNIT);
-    criteria.select(tedva);
-
-    List<Predicate> predicates =
-        getTrackedEntityDataValueAuditCriteria(params, builder, tedva, psi, ou);
-    criteria.where(predicates.toArray(Predicate[]::new));
-    criteria.orderBy(builder.desc(tedva.get(PROP_CREATED)));
-
-    Query query = sessionFactory.getCurrentSession().createQuery(criteria);
-
-    if (params.hasPaging()) {
-      query
-          .setFirstResult(params.getPager().getOffset())
-          .setMaxResults(params.getPager().getPageSize());
+    public void setSessionFactory( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
     }
 
-    return query.getResultList();
-  }
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  @Override
-  public int countTrackedEntityDataValueAudits(TrackedEntityDataValueAuditQueryParams params) {
-    CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
-    CriteriaQuery<Long> criteria = builder.createQuery(Long.class);
-    Root<TrackedEntityDataValueAudit> tedva = criteria.from(TrackedEntityDataValueAudit.class);
-    Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join(PROP_PSI);
-    Join<ProgramStageInstance, OrganisationUnit> ou = psi.join(PROP_ORGANISATION_UNIT);
-    criteria.select(builder.countDistinct(tedva.get("id")));
-
-    List<Predicate> predicates =
-        getTrackedEntityDataValueAuditCriteria(params, builder, tedva, psi, ou);
-    criteria.where(predicates.toArray(Predicate[]::new));
-
-    return sessionFactory.getCurrentSession().createQuery(criteria).getSingleResult().intValue();
-  }
-
-  @Override
-  public void deleteTrackedEntityDataValueAudit(DataElement dataElement) {
-    String hql = "delete from TrackedEntityDataValueAudit d where d.dataElement = :de";
-
-    sessionFactory
-        .getCurrentSession()
-        .createQuery(hql)
-        .setParameter("de", dataElement)
-        .executeUpdate();
-  }
-
-  @Override
-  public void deleteTrackedEntityDataValueAudit(ProgramStageInstance psi) {
-    String hql = "delete from TrackedEntityDataValueAudit d where d.programStageInstance = :psi";
-
-    sessionFactory.getCurrentSession().createQuery(hql).setParameter("psi", psi).executeUpdate();
-  }
-
-  private List<Predicate> getTrackedEntityDataValueAuditCriteria(
-      TrackedEntityDataValueAuditQueryParams params,
-      CriteriaBuilder builder,
-      Root<TrackedEntityDataValueAudit> tedva,
-      Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi,
-      Join<ProgramStageInstance, OrganisationUnit> ou) {
-    List<Predicate> predicates = new ArrayList<>();
-
-    if (!params.getDataElements().isEmpty()) {
-      predicates.add(tedva.get("dataElement").in(params.getDataElements()));
+    @Override
+    public void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit )
+    {
+        Session session = sessionFactory.getCurrentSession();
+        session.save( trackedEntityDataValueAudit );
     }
 
-    if (!params.getOrgUnits().isEmpty()) {
-      if (DESCENDANTS == params.getOuMode()) {
-        List<Predicate> orgUnitPredicates = new ArrayList<>();
+    @Override
+    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
+        List<ProgramStageInstance> programStageInstances, AuditType auditType )
+    {
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<TrackedEntityDataValueAudit> query = builder.createQuery( TrackedEntityDataValueAudit.class );
+        Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
+        query.select( root );
+        query = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, query, root );
+        query.orderBy( builder.desc( root.get( "created" ) ) );
 
-        for (OrganisationUnit orgUnit : params.getOrgUnits()) {
-          orgUnitPredicates.add(builder.like(ou.get("path"), (orgUnit.getPath() + "%")));
+        return sessionFactory.getCurrentSession().createQuery( query ).getResultList();
+    }
+
+    @Override
+    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
+        List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
+    {
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<TrackedEntityDataValueAudit> query = builder.createQuery( TrackedEntityDataValueAudit.class );
+        Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
+        query.select( root );
+        query = getTrackedEntityDataValueAuditCriteria( dataElements, programStageInstances, auditType, builder, query, root );
+        query.orderBy( builder.desc( root.get( "created" ) ) );
+
+        return sessionFactory.getCurrentSession().createQuery( query )
+                .setFirstResult( first )
+                .setMaxResults( max )
+                .getResultList();
+    }
+
+    @Override
+    public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType ) {
+
+        CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
+        Root<TrackedEntityDataValueAudit> root = query.from( TrackedEntityDataValueAudit.class );
+        query.select( builder.countDistinct( root.get( "id" ) ) );
+        query = getTrackedEntityDataValueAuditCriteria(dataElements, programStageInstances, auditType, builder, query, root );
+
+        return sessionFactory.getCurrentSession().createQuery( query ).getSingleResult().intValue();
+    }
+
+    @Override
+    public void deleteTrackedEntityDataValueAudits( ProgramStageInstance programStageInstance )
+    {
+        Session session = sessionFactory.getCurrentSession();
+        Query query = session.createQuery( "delete TrackedEntityDataValueAudit where programStageInstance = :programStageInstance" );
+        query.setParameter( "programStageInstance", programStageInstance );
+        query.executeUpdate();
+    }
+
+    private CriteriaQuery getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,
+        AuditType auditType, CriteriaBuilder builder,  CriteriaQuery query, Root<TrackedEntityDataValueAudit> root )
+    {
+        if ( dataElements != null && !dataElements.isEmpty() )
+        {
+            Expression<DataElement> dataElementExpression = root.get( "dataElement" );
+            Predicate dataElementPredicate = dataElementExpression.in( dataElements );
+            query.where( dataElementPredicate );
         }
 
-        predicates.add(builder.or(orgUnitPredicates.toArray(Predicate[]::new)));
-      } else if (SELECTED == params.getOuMode() || !params.hasOuMode()) {
-        predicates.add(psi.get("organisationUnit").in(params.getOrgUnits()));
-      }
-    }
+        if ( programStageInstances != null && !programStageInstances.isEmpty() )
+        {
+            Expression<DataElement> psiExpression = root.get( "programStageInstance" );
+            Predicate psiPredicate = psiExpression.in( programStageInstances );
+            query.where( psiPredicate );
+        }
 
-    if (!params.getProgramStageInstances().isEmpty()) {
-      predicates.add(tedva.get(PROP_PSI).in(params.getProgramStageInstances()));
-    }
+        if ( auditType != null )
+        {
+            query.where( builder.equal( root.get( "auditType" ), auditType ) );
+        }
 
-    if (!params.getProgramStages().isEmpty()) {
-      predicates.add(psi.get("programStage").in(params.getProgramStages()));
+        return query;
     }
-
-    if (params.getStartDate() != null) {
-      predicates.add(builder.greaterThanOrEqualTo(tedva.get(PROP_CREATED), params.getStartDate()));
-    }
-
-    if (params.getEndDate() != null) {
-      predicates.add(builder.lessThanOrEqualTo(tedva.get(PROP_CREATED), params.getEndDate()));
-    }
-
-    if (!params.getAuditTypes().isEmpty()) {
-      predicates.add(tedva.get("auditType").in(params.getAuditTypes()));
-    }
-
-    return predicates;
-  }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.i18n.locale;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.i18n.locale;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Locale;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import java.util.Locale;
 
 /**
  * Wrapper for java.util.Locale for persistence purposes.
- *
+ * 
  * @author larshelg
  */
-public class I18nLocale extends BaseIdentifiableObject {
-  private String locale;
+public class I18nLocale
+    extends BaseIdentifiableObject
+{    
+    private String locale;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public I18nLocale() {
-    this.name = "English (United Kingdom)";
-    this.locale = "en_GB";
-  }
+    public I18nLocale()
+    {        
+        this.name = "English (United Kingdom)";
+        this.locale = "en_GB";
+    }
 
-  public I18nLocale(Locale locale) {
-    this.name = locale.getDisplayName();
-    this.locale = locale.toString();
-  }
+    public I18nLocale( Locale locale )
+    {
+        this.name = locale.getDisplayName();
+        this.locale = locale.toString();
+    }
+    
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  public String getLocale() {
-    return locale;
-  }
-
-  public void setLocale(String locale) {
-    this.locale = locale;
-  }
+    @JsonProperty
+    public String getLocale()
+    {
+        return locale;
+    }
+    
+    public void setLocale( String locale )
+    {
+        this.locale = locale;
+    }
 }

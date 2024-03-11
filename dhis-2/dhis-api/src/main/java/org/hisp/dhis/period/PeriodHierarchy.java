@@ -1,5 +1,7 @@
+package org.hisp.dhis.period;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,52 +37,63 @@ import java.util.Set;
 /**
  * @author Lars Helge Overland
  */
-public class PeriodHierarchy {
-  private Map<Long, Set<Long>> intersectingPeriods = new HashMap<>();
-
-  private Map<Long, Set<Long>> periodsBetween = new HashMap<>();
-
-  public Map<Long, Set<Long>> getIntersectingPeriods() {
-    return intersectingPeriods;
-  }
-
-  public Set<Long> getIntersectingPeriods(Period period) {
-    return new HashSet<>(intersectingPeriods.get(period.getId()));
-  }
-
-  public Set<Long> getIntersectingPeriods(Collection<Period> periods) {
-    periods = new HashSet<>(periods);
-
-    Set<Long> set = new HashSet<>();
-
-    for (Period period : periods) {
-      if (intersectingPeriods.containsKey(period.getId())) {
-        set.addAll(intersectingPeriods.get(period.getId()));
-      }
+public class PeriodHierarchy
+{
+    private Map<Integer, Set<Integer>> intersectingPeriods = new HashMap<>();
+    
+    private Map<Integer, Set<Integer>> periodsBetween = new HashMap<>();
+    
+    public Map<Integer, Set<Integer>> getIntersectingPeriods()
+    {
+        return intersectingPeriods;
     }
 
-    return set;
-  }
-
-  public Map<Long, Set<Long>> getPeriodsBetween() {
-    return periodsBetween;
-  }
-
-  public Set<Long> getPeriodsBetween(Period period) {
-    return new HashSet<>(periodsBetween.get(period.getId()));
-  }
-
-  public Set<Long> getPeriodsBetween(Collection<Period> periods) {
-    periods = new HashSet<>(periods);
-
-    Set<Long> set = new HashSet<>();
-
-    for (Period period : periods) {
-      if (periodsBetween.containsKey(period.getId())) {
-        set.addAll(periodsBetween.get(period.getId()));
-      }
+    public Set<Integer> getIntersectingPeriods( Period period )
+    {
+        return new HashSet<>( intersectingPeriods.get( period.getId() ) );
+    }
+    
+    public Set<Integer> getIntersectingPeriods( Collection<Period> periods )
+    {
+        periods = new HashSet<>( periods );
+        
+        Set<Integer> set = new HashSet<>();
+        
+        for ( Period period : periods )
+        {
+            if ( intersectingPeriods.containsKey( period.getId() ) )
+            {
+                set.addAll( intersectingPeriods.get( period.getId() ) );
+            }
+        }
+        
+        return set;
     }
 
-    return set;
-  }
+    public Map<Integer, Set<Integer>> getPeriodsBetween()
+    {
+        return periodsBetween;
+    }
+
+    public Set<Integer> getPeriodsBetween( Period period )
+    {
+        return new HashSet<>( periodsBetween.get( period.getId() ) );
+    }
+    
+    public Set<Integer> getPeriodsBetween( Collection<Period> periods )
+    {
+        periods = new HashSet<>( periods );
+        
+        Set<Integer> set = new HashSet<>();
+        
+        for ( Period period : periods )
+        {
+            if ( periodsBetween.containsKey( period.getId() ) )
+            {
+                set.addAll( periodsBetween.get( period.getId() ) );
+            }
+        }
+        
+        return set;
+    }
 }

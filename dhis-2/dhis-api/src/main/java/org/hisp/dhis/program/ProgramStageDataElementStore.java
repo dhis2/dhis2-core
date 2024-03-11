@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
@@ -37,25 +35,17 @@ import org.hisp.dhis.dataelement.DataElement;
  * @author Viet Nguyen
  */
 public interface ProgramStageDataElementStore
-    extends IdentifiableObjectStore<ProgramStageDataElement> {
-  String ID = ProgramStageInstanceStore.class.getName();
+    extends IdentifiableObjectStore<ProgramStageDataElement>
+{
+    String ID = ProgramStageInstanceStore.class.getName();
 
-  /**
-   * Retrieve ProgramStageDataElement list on a program stage and a data element
-   *
-   * @param programStage ProgramStage
-   * @param dataElement DataElement
-   * @return ProgramStageDataElement
-   */
-  ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement);
-
-  /**
-   * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements)
-   * that have skipSynchronization flag set to true
-   *
-   * @return Map<String, Set<String>>
-   */
-  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-
-  List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
+    /**
+     * Retrieve ProgramStageDataElement list on a program stage and a data
+     * element
+     *
+     * @param programStage ProgramStage
+     * @param dataElement  DataElement
+     * @return ProgramStageDataElement
+     */
+    ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement );
 }

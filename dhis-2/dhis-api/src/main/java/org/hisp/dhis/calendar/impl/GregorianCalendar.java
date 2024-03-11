@@ -1,5 +1,7 @@
+package org.hisp.dhis.calendar.impl;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.calendar.impl;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.ChronologyBasedCalendar;
@@ -37,24 +38,29 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class GregorianCalendar extends ChronologyBasedCalendar {
-  private static final Calendar SELF = new GregorianCalendar();
+public class GregorianCalendar extends ChronologyBasedCalendar
+{
+    private static final Calendar SELF = new GregorianCalendar();
 
-  public static Calendar getInstance() {
-    return SELF;
-  }
+    public static Calendar getInstance()
+    {
+        return SELF;
+    }
 
-  protected GregorianCalendar() {
-    super(GregorianChronology.getInstance(DateTimeZone.getDefault()));
-  }
+    protected GregorianCalendar()
+    {
+        super( GregorianChronology.getInstance( DateTimeZone.getDefault() ) );
+    }
 
-  @Override
-  public String name() {
-    return "gregorian";
-  }
+    @Override
+    public String name()
+    {
+        return "gregorian";
+    }
 
-  @Override
-  public boolean isIso8601() {
-    return true;
-  }
+    @Override
+    public boolean isIso8601()
+    {
+        return true;
+    }
 }

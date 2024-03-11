@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "numberType", namespace = DxfNamespaces.DXF_2_0)
-public enum NumberType {
-  VALUE,
-  ROW_PERCENTAGE,
-  COLUMN_PERCENTAGE;
+@JacksonXmlRootElement( localName = "numberType", namespace = DxfNamespaces.DXF_2_0 )
+public enum NumberType
+{
+    VALUE, 
+    ROW_PERCENTAGE, 
+    COLUMN_PERCENTAGE;
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.version;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,80 +27,91 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.version;
+
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author mortenoh
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.version.VersionService")
-public class DefaultVersionService implements VersionService {
-  private final VersionStore versionStore;
+@Transactional
+public class DefaultVersionService
+    implements VersionService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // VersionService implementation
-  // -------------------------------------------------------------------------
+    private VersionStore versionStore;
 
-  @Override
-  @Transactional
-  public long addVersion(Version version) {
-    versionStore.save(version);
-    return version.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateVersion(Version version) {
-    versionStore.update(version);
-  }
-
-  @Override
-  @Transactional
-  public void updateVersion(String key) {
-    updateVersion(key, UUID.randomUUID().toString());
-  }
-
-  @Override
-  @Transactional
-  public void updateVersion(String key, String value) {
-    Version version = getVersionByKey(key);
-
-    if (version == null) {
-      version = new Version(key, value);
-      addVersion(version);
-    } else {
-      version.setValue(value);
-      updateVersion(version);
+    public void setVersionStore( VersionStore versionStore )
+    {
+        this.versionStore = versionStore;
     }
-  }
 
-  @Override
-  @Transactional
-  public void deleteVersion(Version version) {
-    versionStore.delete(version);
-  }
+    // -------------------------------------------------------------------------
+    // VersionService implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public Version getVersion(long id) {
-    return versionStore.get(id);
-  }
+    @Override
+    public int addVersion( Version version )
+    {
+        versionStore.save( version );
+        return version.getId();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Version getVersionByKey(String key) {
-    return versionStore.getVersionByKey(key);
-  }
+    @Override
+    public void updateVersion( Version version )
+    {
+        versionStore.update( version );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Version> getAllVersions() {
-    return versionStore.getAll();
-  }
+    @Override
+    public void updateVersion( String key )
+    {
+        updateVersion( key, UUID.randomUUID().toString() );
+    }
+
+    @Override
+    public void updateVersion( String key, String value )
+    {
+        Version version = getVersionByKey( key );
+        
+        if ( version == null )
+        {
+            version = new Version( key, value );
+            addVersion( version );
+        }
+        else
+        {
+            version.setValue( value );
+            updateVersion( version );
+        }
+    }
+
+    @Override
+    public void deleteVersion( Version version )
+    {
+        versionStore.delete( version );
+    }
+
+    @Override
+    public Version getVersion( int id )
+    {
+        return versionStore.get( id );
+    }
+
+    @Override
+    public Version getVersionByKey( String key )
+    {
+        return versionStore.getVersionByKey( key );
+    }
+
+    @Override
+    public List<Version> getAllVersions()
+    {
+        return versionStore.getAll();
+    }
 }

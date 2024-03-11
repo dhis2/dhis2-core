@@ -31,8 +31,6 @@
     <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" />
 
     <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" />
-    
-    <property name="level" column="hierarchylevel" insert="false" update="false" />
 
     <property name="description" type="text" />
 
@@ -42,7 +40,15 @@
 
     <property name="comment" type="text" />
 
-    <property name="geometry" length="131072" />
+    <property name="featureType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="coordinates" type="text" />
 
     <property name="url" />
 
@@ -88,15 +94,16 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <many-to-one name="image" class="org.hisp.dhis.fileresource.FileResource" column="image" foreign-key="fk_organisationUnit_fileresourceid" />
-
     <!-- Access properties -->
-    
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_organisationunit_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_organisationunit_userid" />
 
     <!-- Dynamic attribute values -->
 
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="organisationunitattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="organisationunitid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
   </class>
 

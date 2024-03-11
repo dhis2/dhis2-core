@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
 import java.util.Calendar;
 
@@ -34,64 +35,77 @@ import java.util.Calendar;
  *
  * @author Jim Grace
  */
-public enum RestoreType {
-  RECOVER_PASSWORD(
-      Calendar.DAY_OF_MONTH, 2, "restore_message", "email_restore_subject", "restore.action"),
-  INVITE(Calendar.DAY_OF_YEAR, 7, "invite_message", "email_invite_subject", "invite.action");
 
-  /** Type of Calendar interval before the restore expires. */
-  private final int expiryIntervalType;
+public enum RestoreType
+{
+    RECOVER_PASSWORD( Calendar.DAY_OF_MONTH, 2, "restore_message", "email_restore_subject", "restore.action" ),
+    INVITE( Calendar.DAY_OF_YEAR, 7, "invite_message", "email_invite_subject", "invite.action" );
 
-  /** Count of Calendar intervals before the restore expires. */
-  private final int expiryIntervalCount;
+    /**
+     * Type of Calendar interval before the restore expires.
+     */
+    private final int expiryIntervalType;
 
-  /** Name of the email template for this restore action type. */
-  private final String emailTemplate;
+    /**
+     * Count of Calendar intervals before the restore expires.
+     */
+    private final int expiryIntervalCount;
 
-  /** Subject line of the email for this restore action type. */
-  private final String emailSubject;
+    /**
+     * Name of the email template for this restore action type.
+     */
+    private final String emailTemplate;
 
-  /** Return web action to put in the email message. */
-  private final String action;
+    /**
+     * Subject line of the email for this restore action type.
+     */
+    private final String emailSubject;
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    /**
+     * Return web action to put in the email message.
+     */
+    private final String action;
 
-  private RestoreType(
-      int expiryIntervalType,
-      int expiryIntervalCount,
-      String emailTemplate,
-      String emailSubject,
-      String action) {
-    this.expiryIntervalType = expiryIntervalType;
-    this.expiryIntervalCount = expiryIntervalCount;
-    this.emailTemplate = emailTemplate;
-    this.emailSubject = emailSubject;
-    this.action = action;
-  }
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Getters
-  // -------------------------------------------------------------------------
+    private RestoreType( int expiryIntervalType, int expiryIntervalCount,
+        String emailTemplate, String emailSubject, String action )
+    {
+        this.expiryIntervalType = expiryIntervalType;
+        this.expiryIntervalCount = expiryIntervalCount;
+        this.emailTemplate = emailTemplate;
+        this.emailSubject = emailSubject;
+        this.action = action;
+    }
 
-  public int getExpiryIntervalType() {
-    return expiryIntervalType;
-  }
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
 
-  public int getExpiryIntervalCount() {
-    return expiryIntervalCount;
-  }
+    public int getExpiryIntervalType()
+    {
+        return expiryIntervalType;
+    }
 
-  public String getEmailTemplate() {
-    return emailTemplate;
-  }
+    public int getExpiryIntervalCount()
+    {
+        return expiryIntervalCount;
+    }
 
-  public String getEmailSubject() {
-    return emailSubject;
-  }
+    public String getEmailTemplate()
+    {
+        return emailTemplate;
+    }
 
-  public String getAction() {
-    return action;
-  }
+    public String getEmailSubject()
+    {
+        return emailSubject;
+    }
+
+    public String getAction()
+    {
+        return action;
+    }
 }

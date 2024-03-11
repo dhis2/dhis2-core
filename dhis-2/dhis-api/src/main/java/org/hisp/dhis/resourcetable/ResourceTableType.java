@@ -1,5 +1,7 @@
+package org.hisp.dhis.resourcetable;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable;
 
 /**
- * @author Lars Helge Overland
- */
-public enum ResourceTableType {
-  ORG_UNIT_STRUCTURE("_orgunitstructure"),
-  DATA_SET_ORG_UNIT_CATEGORY("_datasetorganisationunitcategory"),
-  CATEGORY_OPTION_COMBO_NAME("_categoryoptioncomboname"),
-  DATA_ELEMENT_GROUP_SET_STRUCTURE("_dataelementgroupsetstructure"),
-  INDICATOR_GROUP_SET_STRUCTURE("_indicatorgroupsetstructure"),
-  ORG_UNIT_GROUP_SET_STRUCTURE("_organisationunitgroupsetstructure"),
-  CATEGORY_STRUCTURE("_categorystructure"),
-  DATA_ELEMENT_STRUCTURE("_dataelementstructure"),
-  PERIOD_STRUCTURE("_periodstructure"),
-  DATE_PERIOD_STRUCTURE("_dateperiodstructure"),
-  DATA_ELEMENT_CATEGORY_OPTION_COMBO("_dataelementcategoryoptioncombo"),
-  DATA_APPROVAL_REMAP_LEVEL("_dataapprovalremaplevel"),
-  DATA_APPROVAL_MIN_LEVEL("_dataapprovalminlevel");
+* @author Lars Helge Overland
+*/
+public enum ResourceTableType
+{
+    ORG_UNIT_STRUCTURE( "_orgunitstructure" ),
+    DATA_SET_ORG_UNIT_CATEGORY( "_datasetorganisationunitcategory" ),
+    CATEGORY_OPTION_COMBO_NAME( "_categoryoptioncomboname" ),
+    DATA_ELEMENT_GROUP_SET_STRUCTURE( "_dataelementgroupsetstructure" ),
+    INDICATOR_GROUP_SET_STRUCTURE( "_indicatorgroupsetstructure" ),
+    ORG_UNIT_GROUP_SET_STRUCTURE( "_organisationunitgroupsetstructure" ),
+    CATEGORY_STRUCTURE( "_categorystructure" ),
+    DATA_ELEMENT_STRUCTURE( "_dataelementstructure" ),
+    PERIOD_STRUCTURE( "_periodstructure" ),
+    DATE_PERIOD_STRUCTURE( "_dateperiodstructure" ),
+    DATA_ELEMENT_CATEGORY_OPTION_COMBO( "_dataelementcategoryoptioncombo" ),
+    DATA_APPROVAL_REMAP_LEVEL( "_dataapprovalremaplevel" ),
+    DATA_APPROVAL_MIN_LEVEL( "_dataapprovalminlevel" );
 
-  private String tableName;
-
-  ResourceTableType(String tableName) {
-    this.tableName = tableName;
-  }
-
-  public String getTableName() {
-    return tableName;
-  }
+    private String tableName;
+    
+    ResourceTableType( String tableName )
+    {
+        this.tableName = tableName;
+    }
+    
+    public String getTableName()
+    {
+        return tableName;
+    }
 }

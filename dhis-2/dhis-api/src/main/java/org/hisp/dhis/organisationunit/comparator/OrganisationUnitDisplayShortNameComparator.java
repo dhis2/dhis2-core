@@ -1,5 +1,7 @@
+package org.hisp.dhis.organisationunit.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.comparator;
 
 import java.util.Comparator;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public class OrganisationUnitDisplayShortNameComparator implements Comparator<OrganisationUnit> {
-  public static final Comparator<OrganisationUnit> INSTANCE =
-      new OrganisationUnitDisplayShortNameComparator();
+public class OrganisationUnitDisplayShortNameComparator
+    implements Comparator<OrganisationUnit>
+{ 
+    public static final Comparator<OrganisationUnit> INSTANCE = new OrganisationUnitDisplayShortNameComparator();
 
-  @Override
-  public int compare(OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2) {
-    return organisationUnit1
-        .getDisplayShortName()
-        .compareTo(organisationUnit2.getDisplayShortName());
-  }
+    @Override
+    public int compare( OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2 )
+    {
+        return organisationUnit1.getDisplayShortName().compareTo( organisationUnit2.getDisplayShortName() );
+    }
 }

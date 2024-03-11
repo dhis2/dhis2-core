@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 import java.util.List;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public interface ProgramTempOwnershipAuditService {
+public interface ProgramTempOwnershipAuditService
+{
 
-  String ID = ProgramTempOwnershipAuditService.class.getName();
+    String ID = ProgramTempOwnershipAuditService.class.getName();
 
-  /**
-   * Adds program temp ownership audit
-   *
-   * @param programTempOwnershipAudit the audit to add
-   */
-  void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit);
+    /**
+     * Adds program temp ownership audit
+     * 
+     * @param programTempOwnershipAudit the audit to add
+     */
+    void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
 
-  /**
-   * Deletes program temp ownership audit for the given program instance
-   *
-   * @param program the program
-   */
-  void deleteProgramTempOwnershipAudit(Program program);
+    /**
+     * Deletes program temp ownership audit for the given program instance
+     * 
+     * @param program the program
+     */
+    void deleteProgramTempOwnershipAudit( Program program );
 
-  /**
-   * Returns program temp ownership audits matching query params
-   *
-   * @param params program temp ownership audit query params
-   * @return matching ProgramTempOwnershipAuditQueryParams
-   */
-  List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits(
-      ProgramTempOwnershipAuditQueryParams params);
+    /**
+     * Returns program temp ownership audits matching query params
+     * 
+     * @param params program temp ownership audit query params
+     * @return matching ProgramTempOwnershipAuditQueryParams
+     */
+    List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params );
 
-  /**
-   * Returns count of program temp ownership audits matching query params
-   *
-   * @param params program temp ownership audit query params
-   * @return count of ProgramTempOwnershipAuditQueryParams
-   */
-  int getProgramTempOwnershipAuditsCount(ProgramTempOwnershipAuditQueryParams params);
+    /**
+     * Returns count of program temp ownership audits matching query params
+     * 
+     * @param params program temp ownership audit query params
+     * @return count of ProgramTempOwnershipAuditQueryParams
+     */
+    int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params );
+
 }

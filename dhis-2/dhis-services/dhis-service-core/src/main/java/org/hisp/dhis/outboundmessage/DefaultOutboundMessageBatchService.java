@@ -1,5 +1,7 @@
+package org.hisp.dhis.outboundmessage;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,71 +27,92 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outboundmessage;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.message.MessageSender;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.message.MessageSender;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-@Slf4j
-@NoArgsConstructor
-public class DefaultOutboundMessageBatchService implements OutboundMessageBatchService {
-  private Map<DeliveryChannel, MessageSender> messageSenders;
+public class DefaultOutboundMessageBatchService
+    implements OutboundMessageBatchService
+{
+    private static final Log log = LogFactory.getLog( DefaultOutboundMessageBatchService.class );
 
-  public void setMessageSenders(Map<DeliveryChannel, MessageSender> messageSenders) {
-    this.messageSenders = messageSenders;
-  }
+    // ---------------------------------------------------------------------
+    // Dependencies
+    // ---------------------------------------------------------------------
 
-  // ---------------------------------------------------------------------
-  // OutboundMessageService implementation
-  // ---------------------------------------------------------------------
+    private Map<DeliveryChannel, MessageSender> messageSenders;
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<OutboundMessageResponseSummary> sendBatches(List<OutboundMessageBatch> batches) {
-    // Partition by channel (sender) first to avoid sender config checks
-    return batches.stream()
-        .collect(Collectors.groupingBy(OutboundMessageBatch::getDeliveryChannel))
-        .entrySet()
-        .stream()
-        .flatMap(entry -> entry.getValue().stream().map(this::send))
-        .collect(Collectors.toList());
-  }
-
-  // ---------------------------------------------------------------------
-  // Supportive Methods
-  // ---------------------------------------------------------------------
-
-  private OutboundMessageResponseSummary send(OutboundMessageBatch batch) {
-    DeliveryChannel channel = batch.getDeliveryChannel();
-    MessageSender sender = messageSenders.get(channel);
-
-    if (sender == null) {
-      String errorMessage =
-          String.format("No server/gateway found for delivery channel %s", channel);
-      log.error(errorMessage);
-
-      return new OutboundMessageResponseSummary(
-          errorMessage, channel, OutboundMessageBatchStatus.FAILED);
-    } else if (!sender.isConfigured()) {
-      String errorMessage =
-          String.format("Server/gateway for delivery channel %s is not configured", channel);
-      log.error(errorMessage);
-
-      return new OutboundMessageResponseSummary(
-          errorMessage, channel, OutboundMessageBatchStatus.FAILED);
+    public void setMessageSenders( Map<DeliveryChannel, MessageSender> messageSenders )
+    {
+        this.messageSenders = messageSenders;
     }
 
-    log.info("Invoking message sender: " + sender.getClass().getSimpleName());
+    // ---------------------------------------------------------------------
+    // Constructors
+    // ---------------------------------------------------------------------
 
-    return sender.sendMessageBatch(batch);
-  }
+    public DefaultOutboundMessageBatchService()
+    {
+    }
+
+    // ---------------------------------------------------------------------
+    // OutboundMessageService implementation
+    // ---------------------------------------------------------------------
+
+    @Override
+    public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
+    {
+        // Partition by channel (sender) first to avoid sender config checks
+        return batches.stream()
+            .collect( Collectors.groupingBy( OutboundMessageBatch::getDeliveryChannel ) )
+            .entrySet().stream()
+            .flatMap( entry -> entry.getValue().stream().map( this::send ) )
+            .collect( Collectors.toList() );
+    }
+
+    // ---------------------------------------------------------------------
+    // Supportive Methods
+    // ---------------------------------------------------------------------
+
+    private OutboundMessageResponseSummary send( OutboundMessageBatch batch )
+    {
+        DeliveryChannel channel = batch.getDeliveryChannel();
+        MessageSender sender = messageSenders.get( channel );
+
+        if ( sender == null )
+        {
+            String errorMessage = String.format( "No server/gateway found for delivery channel %s", channel );
+            log.error( errorMessage );
+
+            return new OutboundMessageResponseSummary(
+                errorMessage,
+                channel,
+                OutboundMessageBatchStatus.FAILED
+            );
+        }
+        else if ( !sender.isConfigured() )
+        {
+            String errorMessage = String.format( "Server/gateway for delivery channel %s is not configured", channel );
+            log.error( errorMessage );
+
+            return new OutboundMessageResponseSummary(
+                errorMessage,
+                channel,
+                OutboundMessageBatchStatus.FAILED
+            );
+        }
+
+        log.info( "Invoking message sender: " + sender.getClass().getSimpleName() );
+
+        return sender.sendMessageBatch( batch );
+    }
 }

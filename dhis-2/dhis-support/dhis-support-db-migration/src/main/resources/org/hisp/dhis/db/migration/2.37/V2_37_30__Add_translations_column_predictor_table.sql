@@ -1,1 +1,0 @@
-alter table predictor add column if not exists translations jsonb default '[]'::jsonb;

@@ -78,17 +78,36 @@
 
     <property name="orgunitScope" />
 
+    <property name="programScope" />
+
     <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
     <property name="translations" type="jblTranslations"/>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_trackedentityattribute_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User"
+      column="userid" foreign-key="fk_trackedentityattribute_userid" />
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="trackedentityattributeusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="trackedentityattributeuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
     <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
   </class>
 

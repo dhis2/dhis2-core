@@ -1,5 +1,7 @@
+package org.hisp.dhis.indicator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,215 +27,234 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.indicator;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.indicator.IndicatorService")
-public class DefaultIndicatorService implements IndicatorService {
-  private final IndicatorStore indicatorStore;
+@Transactional
+public class DefaultIndicatorService
+    implements IndicatorService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Qualifier("org.hisp.dhis.indicator.IndicatorTypeStore")
-  private final IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
+    private IndicatorStore indicatorStore;
 
-  @Qualifier("org.hisp.dhis.indicator.IndicatorGroupStore")
-  private final IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
+    public void setIndicatorStore( IndicatorStore indicatorStore )
+    {
+        this.indicatorStore = indicatorStore;
+    }
 
-  @Qualifier("org.hisp.dhis.indicator.IndicatorGroupSetStore")
-  private final IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore;
+    private IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
 
-  // -------------------------------------------------------------------------
-  // Indicator
-  // -------------------------------------------------------------------------
+    public void setIndicatorTypeStore( IdentifiableObjectStore<IndicatorType> indicatorTypeStore )
+    {
+        this.indicatorTypeStore = indicatorTypeStore;
+    }
 
-  @Override
-  @Transactional
-  public long addIndicator(Indicator indicator) {
-    indicatorStore.save(indicator);
+    private IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
-    return indicator.getId();
-  }
+    public void setIndicatorGroupStore( IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
+    {
+        this.indicatorGroupStore = indicatorGroupStore;
+    }
 
-  @Override
-  @Transactional
-  public void updateIndicator(Indicator indicator) {
-    indicatorStore.update(indicator);
-  }
+    private IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore;
 
-  @Override
-  @Transactional
-  public void deleteIndicator(Indicator indicator) {
-    indicatorStore.delete(indicator);
-  }
+    public void setIndicatorGroupSetStore( IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore )
+    {
+        this.indicatorGroupSetStore = indicatorGroupSetStore;
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Indicator getIndicator(long id) {
-    return indicatorStore.get(id);
-  }
+    // -------------------------------------------------------------------------
+    // Indicator
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public Indicator getIndicator(String uid) {
-    return indicatorStore.getByUid(uid);
-  }
+    @Override
+    public int addIndicator( Indicator indicator )
+    {
+        indicatorStore.save( indicator );
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Indicator> getAllIndicators() {
-    return indicatorStore.getAll();
-  }
+        return indicator.getId();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Indicator> getIndicatorsWithGroupSets() {
-    return indicatorStore.getIndicatorsWithGroupSets();
-  }
+    @Override
+    public void updateIndicator( Indicator indicator )
+    {
+        indicatorStore.update( indicator );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Indicator> getIndicatorsWithoutGroups() {
-    return indicatorStore.getIndicatorsWithoutGroups();
-  }
+    @Override
+    public void deleteIndicator( Indicator indicator )
+    {
+        indicatorStore.delete( indicator );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<Indicator> getIndicatorsWithDataSets() {
-    return indicatorStore.getIndicatorsWithDataSets();
-  }
+    @Override
+    public Indicator getIndicator( int id )
+    {
+        return indicatorStore.get( id );
+    }
 
-  // -------------------------------------------------------------------------
-  // IndicatorType
-  // -------------------------------------------------------------------------
+    @Override
+    public Indicator getIndicator( String uid )
+    {
+        return indicatorStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional
-  public long addIndicatorType(IndicatorType indicatorType) {
-    indicatorTypeStore.save(indicatorType);
+    @Override
+    public List<Indicator> getAllIndicators()
+    {
+        return indicatorStore.getAll();
+    }
 
-    return indicatorType.getId();
-  }
+    @Override
+    public List<Indicator> getIndicatorsWithGroupSets()
+    {
+        return indicatorStore.getIndicatorsWithGroupSets();
+    }
 
-  @Override
-  @Transactional
-  public void updateIndicatorType(IndicatorType indicatorType) {
-    indicatorTypeStore.update(indicatorType);
-  }
+    @Override
+    public List<Indicator> getIndicatorsWithoutGroups()
+    {
+        return indicatorStore.getIndicatorsWithoutGroups();
+    }
 
-  @Override
-  @Transactional
-  public void deleteIndicatorType(IndicatorType indicatorType) {
-    indicatorTypeStore.delete(indicatorType);
-  }
+    @Override
+    public List<Indicator> getIndicatorsWithDataSets()
+    {
+        return indicatorStore.getIndicatorsWithDataSets();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public IndicatorType getIndicatorType(long id) {
-    return indicatorTypeStore.get(id);
-  }
+    // -------------------------------------------------------------------------
+    // IndicatorType
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public IndicatorType getIndicatorType(String uid) {
-    return indicatorTypeStore.getByUid(uid);
-  }
+    @Override
+    public int addIndicatorType( IndicatorType indicatorType )
+    {
+        indicatorTypeStore.save( indicatorType );
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<IndicatorType> getAllIndicatorTypes() {
-    return indicatorTypeStore.getAll();
-  }
+        return indicatorType.getId();
+    }
 
-  // -------------------------------------------------------------------------
-  // IndicatorGroup
-  // -------------------------------------------------------------------------
+    @Override
+    public void updateIndicatorType( IndicatorType indicatorType )
+    {
+        indicatorTypeStore.update( indicatorType );
+    }
 
-  @Override
-  @Transactional
-  public long addIndicatorGroup(IndicatorGroup indicatorGroup) {
-    indicatorGroupStore.save(indicatorGroup);
+    @Override
+    public void deleteIndicatorType( IndicatorType indicatorType )
+    {
+        indicatorTypeStore.delete( indicatorType );
+    }
 
-    return indicatorGroup.getId();
-  }
+    @Override
+    public IndicatorType getIndicatorType( int id )
+    {
+        return indicatorTypeStore.get( id );
+    }
 
-  @Override
-  @Transactional
-  public void updateIndicatorGroup(IndicatorGroup indicatorGroup) {
-    indicatorGroupStore.update(indicatorGroup);
-  }
+    @Override
+    public IndicatorType getIndicatorType( String uid )
+    {
+        return indicatorTypeStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional
-  public void deleteIndicatorGroup(IndicatorGroup indicatorGroup) {
-    indicatorGroupStore.delete(indicatorGroup);
-  }
+    @Override
+    public List<IndicatorType> getAllIndicatorTypes()
+    {
+        return indicatorTypeStore.getAll();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public IndicatorGroup getIndicatorGroup(long id) {
-    return indicatorGroupStore.get(id);
-  }
+    // -------------------------------------------------------------------------
+    // IndicatorGroup
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public IndicatorGroup getIndicatorGroup(String uid) {
-    return indicatorGroupStore.getByUid(uid);
-  }
+    @Override
+    public int addIndicatorGroup( IndicatorGroup indicatorGroup )
+    {
+        indicatorGroupStore.save( indicatorGroup );
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<IndicatorGroup> getAllIndicatorGroups() {
-    return indicatorGroupStore.getAll();
-  }
+        return indicatorGroup.getId();
+    }
 
-  // -------------------------------------------------------------------------
-  // IndicatorGroupSet
-  // -------------------------------------------------------------------------
+    @Override
+    public void updateIndicatorGroup( IndicatorGroup indicatorGroup )
+    {
+        indicatorGroupStore.update( indicatorGroup );
+    }
 
-  @Override
-  @Transactional
-  public long addIndicatorGroupSet(IndicatorGroupSet groupSet) {
-    indicatorGroupSetStore.save(groupSet);
+    @Override
+    public void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
+    {
+        indicatorGroupStore.delete( indicatorGroup );
+    }
 
-    return groupSet.getId();
-  }
+    @Override
+    public IndicatorGroup getIndicatorGroup( int id )
+    {
+        return indicatorGroupStore.get( id );
+    }
 
-  @Override
-  @Transactional
-  public void updateIndicatorGroupSet(IndicatorGroupSet groupSet) {
-    indicatorGroupSetStore.update(groupSet);
-  }
+    @Override
+    public IndicatorGroup getIndicatorGroup( String uid )
+    {
+        return indicatorGroupStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional
-  public void deleteIndicatorGroupSet(IndicatorGroupSet groupSet) {
-    indicatorGroupSetStore.delete(groupSet);
-  }
+    @Override
+    public List<IndicatorGroup> getAllIndicatorGroups()
+    {
+        return indicatorGroupStore.getAll();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public IndicatorGroupSet getIndicatorGroupSet(long id) {
-    return indicatorGroupSetStore.get(id);
-  }
+    // -------------------------------------------------------------------------
+    // IndicatorGroupSet
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional(readOnly = true)
-  public IndicatorGroupSet getIndicatorGroupSet(String uid) {
-    return indicatorGroupSetStore.getByUid(uid);
-  }
+    @Override
+    public int addIndicatorGroupSet( IndicatorGroupSet groupSet )
+    {
+        indicatorGroupSetStore.save( groupSet );
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<IndicatorGroupSet> getAllIndicatorGroupSets() {
-    return indicatorGroupSetStore.getAll();
-  }
+        return groupSet.getId();
+    }
+
+    @Override
+    public void updateIndicatorGroupSet( IndicatorGroupSet groupSet )
+    {
+        indicatorGroupSetStore.update( groupSet );
+    }
+
+    @Override
+    public void deleteIndicatorGroupSet( IndicatorGroupSet groupSet )
+    {
+        indicatorGroupSetStore.delete( groupSet );
+    }
+
+    @Override
+    public IndicatorGroupSet getIndicatorGroupSet( int id )
+    {
+        return indicatorGroupSetStore.get( id );
+    }
+
+    @Override
+    public IndicatorGroupSet getIndicatorGroupSet( String uid )
+    {
+        return indicatorGroupSetStore.getByUid( uid );
+    }
+
+    @Override
+    public List<IndicatorGroupSet> getAllIndicatorGroupSets()
+    {
+        return indicatorGroupSetStore.getAll();
+    }
 }

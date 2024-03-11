@@ -1,5 +1,7 @@
+package org.hisp.dhis.reservedvalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +27,69 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
 
 /**
  * @author Stian Sandvold
  */
-public class SequentialNumberCounter {
-  private int id;
+public class SequentialNumberCounter
+{
+    private int id;
 
-  private String ownerUid;
+    private String ownerUid;
 
-  private String key;
+    private String key;
 
-  private int counter;
+    private int counter;
 
-  public SequentialNumberCounter() {
-    counter = 0;
-  }
+    public SequentialNumberCounter()
+    {
+        counter = 0;
+    }
 
-  public SequentialNumberCounter(String ownerUid, String key, int counter) {
-    this.ownerUid = ownerUid;
-    this.key = key;
-    this.counter = counter;
-  }
+    public SequentialNumberCounter( String ownerUid, String key, int counter )
+    {
+        this.ownerUid = ownerUid;
+        this.key = key;
+        this.counter = counter;
+    }
 
-  public int getId() {
-    return id;
-  }
+    public int getId()
+    {
+        return id;
+    }
 
-  public void setId(int id) {
-    this.id = id;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  public String getOwnerUid() {
-    return ownerUid;
-  }
+    public String getOwnerUid()
+    {
+        return ownerUid;
+    }
 
-  public void setOwnerUid(String ownerUid) {
-    this.ownerUid = ownerUid;
-  }
+    public void setOwnerUid( String ownerUid )
+    {
+        this.ownerUid = ownerUid;
+    }
 
-  public String getKey() {
-    return key;
-  }
+    public String getKey()
+    {
+        return key;
+    }
 
-  public void setKey(String key) {
-    this.key = key;
-  }
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
 
-  public int getCounter() {
-    return counter;
-  }
+    public int getCounter()
+    {
+        return counter;
+    }
 
-  public void setCounter(int counter) {
-    this.counter = counter;
-  }
+    public void setCounter( int counter )
+    {
+        this.counter = counter;
+    }
 }

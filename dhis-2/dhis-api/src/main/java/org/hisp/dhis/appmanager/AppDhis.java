@@ -1,5 +1,7 @@
+package org.hisp.dhis.appmanager;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Saptarshi
  */
-@JacksonXmlRootElement(localName = "appDhis", namespace = DxfNamespaces.DXF_2_0)
-public class AppDhis implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8854371580010728182L;
+public class AppDhis
+    implements Serializable
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = -8854371580010728182L;
 
-  @JsonProperty("href")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String href;
+    @JsonProperty( "href" )
+    private String href;
 
-  @JsonProperty("namespace")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String namespace;
+    @JsonProperty( "namespace" )
+    private String namespace;
 
-  public String getHref() {
-    return href;
-  }
+    public String getHref()
+    {
+        return href;
+    }
 
-  public void setHref(String href) {
-    this.href = href;
-  }
+    public void setHref( String href )
+    {
+        this.href = href;
+    }
 
-  public String getNamespace() {
-    return namespace;
-  }
+    public String getNamespace()
+    {
+        return namespace;
+    }
 
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
-  }
+    public void setNamespace( String namespace )
+    {
+        this.namespace = namespace;
+    }
 }

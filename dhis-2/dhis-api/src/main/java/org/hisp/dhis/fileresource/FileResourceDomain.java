@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
-
-import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum FileResourceDomain {
-  DATA_VALUE("dataValue"),
-  PUSH_ANALYSIS("pushAnalysis"),
-  DOCUMENT("document"),
-  MESSAGE_ATTACHMENT("messageAttachment"),
-  USER_AVATAR("userAvatar"),
-  ORG_UNIT("organisationUnit");
+public enum FileResourceDomain
+{
+    DATA_VALUE( "dataValue" ),
+    PUSH_ANALYSIS( "pushAnalysis" ),
+    DOCUMENT( "document" ),
+    MESSAGE_ATTACHMENT( "messageAttachment" ),
+    USER_AVATAR( "userAvatar");
 
-  /** Container name to use when storing blobs of this FileResourceDomain */
-  private String containerName;
+    /**
+     * Container name to use when storing blobs of this FileResourceDomain
+     */
+    private String containerName;
 
-  public static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
-      Set.of(DATA_VALUE, USER_AVATAR, ORG_UNIT);
+    FileResourceDomain( String containerName )
+    {
+        this.containerName = containerName;
+    }
 
-  FileResourceDomain(String containerName) {
-    this.containerName = containerName;
-  }
-
-  public String getContainerName() {
-    return containerName;
-  }
-
-  public static boolean isDomainForMultipleImages(FileResourceDomain domain) {
-    return domain != null && DOMAIN_FOR_MULTIPLE_IMAGES.contains(domain);
-  }
+    public String getContainerName()
+    {
+        return containerName;
+    }
 }

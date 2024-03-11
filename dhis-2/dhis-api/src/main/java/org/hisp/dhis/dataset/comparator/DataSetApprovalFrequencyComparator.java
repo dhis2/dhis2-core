@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.comparator;
 
 import java.util.Comparator;
+
 import org.hisp.dhis.dataset.DataSet;
 
-public class DataSetApprovalFrequencyComparator implements Comparator<DataSet> {
-  public static final DataSetApprovalFrequencyComparator INSTANCE =
-      new DataSetApprovalFrequencyComparator();
-
-  @Override
-  public int compare(DataSet d1, DataSet d2) {
-    if (d1 == null) {
-      return -1;
+public class DataSetApprovalFrequencyComparator
+    implements Comparator<DataSet>
+{
+    public static final DataSetApprovalFrequencyComparator INSTANCE = new DataSetApprovalFrequencyComparator();
+    
+    @Override
+    public int compare( DataSet d1, DataSet d2 )
+    {
+        if ( d1 == null )
+        {
+            return -1;
+        }
+        
+        if ( d2 == null )
+        {
+            return 1;
+        }
+        
+        if ( d1.getWorkflow() != null && d2.getWorkflow() == null)
+        {
+            return -1;
+        }
+        
+        if ( d1.getWorkflow() == null && d2.getWorkflow() != null )
+        {
+            return 1;
+        }
+        
+        int frequencyOrder = Integer.valueOf( d1.getPeriodType().getFrequencyOrder() ).compareTo( Integer.valueOf( d2.getPeriodType().getFrequencyOrder() ) );
+        
+        if ( frequencyOrder != 0 )
+        {
+            return frequencyOrder;
+        }
+        
+        return d1.compareTo( d2 );
     }
-
-    if (d2 == null) {
-      return 1;
-    }
-
-    if (d1.getWorkflow() != null && d2.getWorkflow() == null) {
-      return -1;
-    }
-
-    if (d1.getWorkflow() == null && d2.getWorkflow() != null) {
-      return 1;
-    }
-
-    int frequencyOrder =
-        Integer.valueOf(d1.getPeriodType().getFrequencyOrder())
-            .compareTo(Integer.valueOf(d2.getPeriodType().getFrequencyOrder()));
-
-    if (frequencyOrder != 0) {
-      return frequencyOrder;
-    }
-
-    return d1.compareTo(d2);
-  }
 }

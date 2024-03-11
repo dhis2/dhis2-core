@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+
+import org.hisp.dhis.common.Grid;
 
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.common.Grid;
 
 /**
  * @author Lars Helge Overland
  */
-public interface EventAnalyticsManager {
-  Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit);
+public interface EventAnalyticsManager
+{
+    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
 
-  Grid getEvents(EventQueryParams params, Grid grid, int maxLimit);
+    Grid getEvents( EventQueryParams params, Grid grid, int maxLimit );
 
-  Grid getEventClusters(EventQueryParams params, Grid grid, int maxLimit);
+    Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit );
 
-  long getEventCount(EventQueryParams params);
+    long getEventCount( EventQueryParams params );
 
-  Rectangle getRectangle(EventQueryParams params);
+    Rectangle getRectangle( EventQueryParams params );
 }

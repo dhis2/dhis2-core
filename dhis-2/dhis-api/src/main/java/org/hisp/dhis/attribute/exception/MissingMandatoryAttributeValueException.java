@@ -1,5 +1,7 @@
+package org.hisp.dhis.attribute.exception;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute.exception;
+
+import org.hisp.dhis.attribute.Attribute;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.attribute.Attribute;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MissingMandatoryAttributeValueException extends Exception {
-  private final List<Attribute> attributes;
+public class MissingMandatoryAttributeValueException extends Exception
+{
+    private final List<Attribute> attributes;
 
-  public MissingMandatoryAttributeValueException(List<Attribute> attributes) {
-    super(
-        String.valueOf(
-            attributes.stream()
-                .map(att -> "Attribute " + att.getDisplayName() + " (" + att.getUid() + ")")
-                .collect(Collectors.toList())));
+    public MissingMandatoryAttributeValueException( List<Attribute> attributes )
+    {
+        super( String.valueOf( attributes.stream()
+            .map( att -> "Attribute " + att.getDisplayName() + " (" + att.getUid() + ")" )
+            .collect( Collectors.toList() ) ) );
 
-    this.attributes = attributes;
-  }
+        this.attributes = attributes;
+    }
 
-  public List<Attribute> getAttributes() {
-    return attributes;
-  }
+    public List<Attribute> getAttributes()
+    {
+        return attributes;
+    }
 }

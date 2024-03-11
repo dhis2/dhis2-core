@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.oauth2;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,64 +27,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
-@Service("oAuth2ClientService")
-public class DefaultOAuth2ClientService implements OAuth2ClientService {
-  private final OAuth2ClientStore oAuth2ClientStore;
+@Transactional
+public class DefaultOAuth2ClientService implements OAuth2ClientService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // OAuth2ClientService
-  // -------------------------------------------------------------------------
+    @Autowired
+    private OAuth2ClientStore oAuth2ClientStore;
 
-  @Override
-  @Transactional
-  public void saveOAuth2Client(OAuth2Client oAuth2Client) {
-    oAuth2ClientStore.save(oAuth2Client);
-  }
+    // -------------------------------------------------------------------------
+    // OAuth2ClientService
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void updateOAuth2Client(OAuth2Client oAuth2Client) {
-    oAuth2ClientStore.update(oAuth2Client);
-  }
+    @Override
+    public void saveOAuth2Client( OAuth2Client oAuth2Client )
+    {
+        oAuth2ClientStore.save( oAuth2Client );
+    }
 
-  @Override
-  @Transactional
-  public void deleteOAuth2Client(OAuth2Client oAuth2Client) {
-    oAuth2ClientStore.delete(oAuth2Client);
-  }
+    @Override
+    public void updateOAuth2Client( OAuth2Client oAuth2Client )
+    {
+        oAuth2ClientStore.update( oAuth2Client );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OAuth2Client getOAuth2Client(int id) {
-    return oAuth2ClientStore.get(id);
-  }
+    @Override
+    public void deleteOAuth2Client( OAuth2Client oAuth2Client )
+    {
+        oAuth2ClientStore.delete( oAuth2Client );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OAuth2Client getOAuth2Client(String uid) {
-    return oAuth2ClientStore.getByUid(uid);
-  }
+    @Override
+    public OAuth2Client getOAuth2Client( int id )
+    {
+        return oAuth2ClientStore.get( id );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OAuth2Client getOAuth2ClientByClientId(String cid) {
-    return oAuth2ClientStore.getByClientId(cid);
-  }
+    @Override
+    public OAuth2Client getOAuth2Client( String uid )
+    {
+        return oAuth2ClientStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Collection<OAuth2Client> getOAuth2Clients() {
-    return oAuth2ClientStore.getAll();
-  }
+    @Override
+    public OAuth2Client getOAuth2ClientByClientId( String cid )
+    {
+        return oAuth2ClientStore.getByClientId( cid );
+    }
+
+    @Override
+    public Collection<OAuth2Client> getOAuth2Clients()
+    {
+        return oAuth2ClientStore.getAll();
+    }
 }

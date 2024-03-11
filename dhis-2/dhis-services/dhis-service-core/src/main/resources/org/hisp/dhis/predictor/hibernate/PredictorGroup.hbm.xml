@@ -28,10 +28,22 @@
                     foreign-key="fk_predictorgroup_predictorid" />
     </set>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_predictorgroup_userid" />
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_predictorgroup_userid" />
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="predictorgroupusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="predictorgroupuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="predictorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
   </class>
 

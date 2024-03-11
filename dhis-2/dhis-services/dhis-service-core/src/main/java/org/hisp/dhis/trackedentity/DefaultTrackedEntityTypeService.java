@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,67 +27,81 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentity.TrackedEntityTypeService")
-public class DefaultTrackedEntityTypeService implements TrackedEntityTypeService {
-  private final IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
+public class DefaultTrackedEntityTypeService
+    implements TrackedEntityTypeService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // TrackedEntityType
-  // -------------------------------------------------------------------------
+    private IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
 
-  @Override
-  @Transactional
-  public long addTrackedEntityType(TrackedEntityType trackedEntityType) {
-    trackedEntityTypeStore.save(trackedEntityType);
+    public void setTrackedEntityTypeStore( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
+    {
+        this.trackedEntityTypeStore = trackedEntityTypeStore;
+    }
 
-    return trackedEntityType.getId();
-  }
+    // -------------------------------------------------------------------------
+    // TrackedEntityType
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void deleteTrackedEntityType(TrackedEntityType trackedEntityType) {
-    trackedEntityTypeStore.delete(trackedEntityType);
-  }
+    @Override
+    @Transactional
+    public int addTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        trackedEntityTypeStore.save( trackedEntityType );
 
-  @Override
-  @Transactional
-  public void updateTrackedEntityType(TrackedEntityType trackedEntityType) {
-    trackedEntityTypeStore.update(trackedEntityType);
-  }
+        return trackedEntityType.getId();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityType getTrackedEntityType(long id) {
-    return trackedEntityTypeStore.get(id);
-  }
+    @Override
+    @Transactional
+    public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        trackedEntityTypeStore.delete( trackedEntityType );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityType getTrackedEntityType(String uid) {
-    return trackedEntityTypeStore.getByUid(uid);
-  }
+    @Override
+    @Transactional
+    public void updateTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        trackedEntityTypeStore.update( trackedEntityType );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityType getTrackedEntityByName(String name) {
-    return trackedEntityTypeStore.getByName(name);
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public TrackedEntityType getTrackedEntityType( int id )
+    {
+        return trackedEntityTypeStore.get( id );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityType> getAllTrackedEntityType() {
-    return trackedEntityTypeStore.getAll();
-  }
+    @Override
+    @Transactional(readOnly = true)
+    public TrackedEntityType getTrackedEntityType( String uid )
+    {
+        return trackedEntityTypeStore.getByUid( uid );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TrackedEntityType getTrackedEntityByName( String name )
+    {
+        return trackedEntityTypeStore.getByName( name );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrackedEntityType> getAllTrackedEntityType()
+    {
+        return trackedEntityTypeStore.getAll();
+    }
 }

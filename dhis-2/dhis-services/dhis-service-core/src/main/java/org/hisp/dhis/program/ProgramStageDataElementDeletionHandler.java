@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +27,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
-@RequiredArgsConstructor
 public class ProgramStageDataElementDeletionHandler
-    extends IdObjectDeletionHandler<ProgramStageDataElement> {
-  private final ProgramStageDataElementService programStageDataElementService;
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(ProgramStage.class, this::deleteProgramStage);
-    whenDeleting(DataElement.class, this::deleteDataElement);
-  }
+    @Autowired
+    private ProgramStageDataElementService programStageDataElementService;
 
-  private void deleteProgramStage(ProgramStage programStage) {
-    List<ProgramStageDataElement> programStageDataElements =
-        new ArrayList<>(programStage.getProgramStageDataElements());
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-    for (ProgramStageDataElement programStageDataElement : programStageDataElements) {
-      programStage.getProgramStageDataElements().remove(programStageDataElement);
-      programStageDataElementService.deleteProgramStageDataElement(programStageDataElement);
+    @Override
+    public String getClassName()
+    {
+        return ProgramStageDataElement.class.getSimpleName();
     }
-  }
 
-  private void deleteDataElement(DataElement dataElement) {
-    if (DataElementDomain.TRACKER == dataElement.getDomainType()) {
-      for (ProgramStageDataElement element :
-          programStageDataElementService.getProgramStageDataElements(dataElement)) {
-        programStageDataElementService.deleteProgramStageDataElement(element);
-      }
+    @Override
+    public void deleteProgramStage( ProgramStage programStage )
+    {
+        List<ProgramStageDataElement> programStageDataElements = new ArrayList<>( programStage.getProgramStageDataElements() );
+
+        for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
+        {
+            programStage.getProgramStageDataElements().remove( programStageDataElement );
+            programStageDataElementService.deleteProgramStageDataElement( programStageDataElement );
+        }
     }
-  }
+
+    @Override
+    public void deleteDataElement( DataElement dataElement )
+    {
+        if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
+        {
+            Iterator<ProgramStageDataElement> iterator = programStageDataElementService.getAllProgramStageDataElements().iterator();
+
+            while ( iterator.hasNext() )
+            {
+                ProgramStageDataElement element = iterator.next();
+
+                if ( element.getDataElement() != null && element.getDataElement().equals( dataElement ) )
+                {
+                    programStageDataElementService.deleteProgramStageDataElement( element );
+                }
+            }
+        }
+    }
 }

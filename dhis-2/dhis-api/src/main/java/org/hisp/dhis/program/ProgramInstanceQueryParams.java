@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,200 +27,434 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Accessors(chain = true)
-public class ProgramInstanceQueryParams {
-  public static final int DEFAULT_PAGE = 1;
+public class ProgramInstanceQueryParams
+{
+    public static final int DEFAULT_PAGE = 1;
+    public static final int DEFAULT_PAGE_SIZE = 50;
 
-  public static final int DEFAULT_PAGE_SIZE = 50;
+    /**
+     * Last updated for PI.
+     */
+    private Date lastUpdated;
 
-  /** Last updated for PI. */
-  private Date lastUpdated;
+    /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
 
-  /** The last updated duration filter. */
-  private String lastUpdatedDuration;
+    /**
+     * Organisation units for which instances in the response were registered at.
+     * Is related to the specified OrganisationUnitMode.
+     */
+    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-  /**
-   * Organisation units for which instances in the response were registered at. Is related to the
-   * specified OrganisationUnitMode.
-   */
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+    /**
+     * Selection mode for the specified organisation units.
+     */
+    private OrganisationUnitSelectionMode organisationUnitMode;
 
-  /** Selection mode for the specified organisation units. */
-  private OrganisationUnitSelectionMode organisationUnitMode;
+    /**
+     * Program for which instances in the response must be enrolled in.
+     */
+    private Program program;
 
-  /** Program for which instances in the response must be enrolled in. */
-  private Program program;
+    /**
+     * Status of the tracked entity instance in the given program.
+     */
+    private ProgramStatus programStatus;
 
-  /** Status of the tracked entity instance in the given program. */
-  private ProgramStatus programStatus;
+    /**
+     * Indicates whether tracked entity instance is marked for follow up for the
+     * specified program.
+     */
+    private Boolean followUp;
 
-  /**
-   * Indicates whether tracked entity instance is marked for follow up for the specified program.
-   */
-  private Boolean followUp;
+    /**
+     * Start date for enrollment in the given program.
+     */
+    private Date programStartDate;
 
-  /** Start date for enrollment in the given program. */
-  private Date programStartDate;
+    /**
+     * End date for enrollment in the given program.
+     */
+    private Date programEndDate;
 
-  /** End date for enrollment in the given program. */
-  private Date programEndDate;
+    /**
+     * Tracked entity of the instances in the response.
+     */
+    private TrackedEntityType trackedEntityType;
 
-  /** Tracked entity of the instances in the response. */
-  private TrackedEntityType trackedEntityType;
+    /**
+     * Tracked entity instance.
+     */
+    private TrackedEntityInstance trackedEntityInstance;
 
-  /** Tracked entity instance. */
-  private String trackedEntityInstanceUid;
+    /**
+     * Page number.
+     */
+    private Integer page;
 
-  /** Page number. */
-  private Integer page;
+    /**
+     * Page size.
+     */
+    private Integer pageSize;
 
-  /** Page size. */
-  private Integer pageSize;
+    /**
+     * Indicates whether to include the total number of pages in the paging response.
+     */
+    private boolean totalPages;
 
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
+    /**
+     * Indicates whether paging should be skipped.
+     */
+    private boolean skipPaging;
+    
+    /**
+     * Indicates whether to include soft-deleted enrollments
+     */
+    private boolean includeDeleted;    
 
-  /** Indicates whether paging should be skipped. */
-  private boolean skipPaging;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  /** Indicates whether to include soft-deleted enrollments */
-  private boolean includeDeleted;
+    public ProgramInstanceQueryParams()
+    {
+    }
 
-  /** List of order params */
-  private List<OrderParam> order;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
+    /**
+     * Adds an organisation unit to the parameters.
+     */
+    public void addOrganisationUnit( OrganisationUnit unit )
+    {
+        this.organisationUnits.add( unit );
+    }
 
-  /** Current user for query. */
-  private transient User user;
+    /**
+     * Indicates whether this params specifies last updated.
+     */
+    public boolean hasLastUpdated()
+    {
+        return lastUpdated != null;
+    }
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
+    }
 
-  public ProgramInstanceQueryParams() {}
+    /**
+     * Indicates whether this params specifies any organisation units.
+     */
+    public boolean hasOrganisationUnits()
+    {
+        return organisationUnits != null && !organisationUnits.isEmpty();
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    /**
+     * Indicates whether this params specifies a program.
+     */
+    public boolean hasProgram()
+    {
+        return program != null;
+    }
 
-  /** Adds an organisation unit to the parameters. */
-  public void addOrganisationUnit(OrganisationUnit unit) {
-    this.organisationUnits.add(unit);
-  }
+    /**
+     * Indicates whether this params specifies a program status.
+     */
+    public boolean hasProgramStatus()
+    {
+        return programStatus != null;
+    }
 
-  public void addOrganisationUnits(Set<OrganisationUnit> orgUnits) {
-    this.organisationUnits.addAll(orgUnits);
-  }
+    /**
+     * Indicates whether this params specifies follow up for the given program.
+     * Follow up can be specified as true or false.
+     */
+    public boolean hasFollowUp()
+    {
+        return followUp != null;
+    }
 
-  /** Indicates whether this params specifies last updated. */
-  public boolean hasLastUpdated() {
-    return lastUpdated != null;
-  }
+    /**
+     * Indicates whether this params specifies a program start date.
+     */
+    public boolean hasProgramStartDate()
+    {
+        return programStartDate != null;
+    }
 
-  /** Indicates whether this parameters has a lastUpdatedDuration filter. */
-  public boolean hasLastUpdatedDuration() {
-    return lastUpdatedDuration != null;
-  }
+    /**
+     * Indicates whether this params specifies a program end date.
+     */
+    public boolean hasProgramEndDate()
+    {
+        return programEndDate != null;
+    }
 
-  /** Indicates whether this params specifies any organisation units. */
-  public boolean hasOrganisationUnits() {
-    return organisationUnits != null && !organisationUnits.isEmpty();
-  }
+    /**
+     * Indicates whether this params specifies a tracked entity.
+     */
+    public boolean hasTrackedEntityType()
+    {
+        return trackedEntityType != null;
+    }
 
-  /** Indicates whether this params specifies a program. */
-  public boolean hasProgram() {
-    return program != null;
-  }
+    /**
+     * Indicates whether this params specifies a tracked entity instance.
+     */
+    public boolean hasTrackedEntityInstance()
+    {
+        return trackedEntityInstance != null;
+    }
 
-  /** Indicates whether this params specifies a program status. */
-  public boolean hasProgramStatus() {
-    return programStatus != null;
-  }
+    /**
+     * Indicates whether this params is of the given organisation unit mode.
+     */
+    public boolean isOrganisationUnitMode( OrganisationUnitSelectionMode mode )
+    {
+        return organisationUnitMode != null && organisationUnitMode.equals( mode );
+    }
 
-  /**
-   * Indicates whether this params specifies follow up for the given program. Follow up can be
-   * specified as true or false.
-   */
-  public boolean hasFollowUp() {
-    return followUp != null;
-  }
+    /**
+     * Indicates whether paging is enabled.
+     */
+    public boolean isPaging()
+    {
+        return page != null || pageSize != null;
+    }
 
-  /** Indicates whether this params specifies a program start date. */
-  public boolean hasProgramStartDate() {
-    return programStartDate != null;
-  }
+    /**
+     * Returns the page number, falls back to default value of 1 if not specified.
+     */
+    public int getPageWithDefault()
+    {
+        return page != null && page > 0 ? page : DEFAULT_PAGE;
+    }
 
-  /** Indicates whether this params specifies a program end date. */
-  public boolean hasProgramEndDate() {
-    return programEndDate != null;
-  }
+    /**
+     * Returns the page size, falls back to default value of 50 if not specified.
+     */
+    public int getPageSizeWithDefault()
+    {
+        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+    }
 
-  /** Indicates whether this params specifies a tracked entity. */
-  public boolean hasTrackedEntityType() {
-    return trackedEntityType != null;
-  }
+    /**
+     * Returns the offset based on the page number and page size.
+     */
+    public int getOffset()
+    {
+        return (getPageWithDefault() - 1) * getPageSizeWithDefault();
+    }
 
-  /** Indicates whether this params specifies a tracked entity instance. */
-  public boolean hasTrackedEntityInstance() {
-    return StringUtils.isNotEmpty(this.trackedEntityInstanceUid);
-  }
+    /**
+     * Sets paging properties to default values.
+     */
+    public void setDefaultPaging()
+    {
+        this.page = DEFAULT_PAGE;
+        this.pageSize = DEFAULT_PAGE_SIZE;
+        this.skipPaging = false;
+    }
 
-  /** Indicates whether this params is of the given organisation unit mode. */
-  public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return organisationUnitMode != null && organisationUnitMode.equals(mode);
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  /** Indicates whether paging is enabled. */
-  public boolean isPaging() {
-    return page != null || pageSize != null;
-  }
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
 
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
+    public ProgramInstanceQueryParams setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+        return this;
+    }
 
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-  }
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
 
-  /** Returns the offset based on the page number and page size. */
-  public int getOffset() {
-    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-  }
+    public ProgramInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
+        return this;
+    }
 
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
+    public Set<OrganisationUnit> getOrganisationUnits()
+    {
+        return organisationUnits;
+    }
 
-  public boolean isSorting() {
-    return !CollectionUtils.emptyIfNull(order).isEmpty();
-  }
+    public ProgramInstanceQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    {
+        this.organisationUnits = organisationUnits;
+        return this;
+    }
+
+    public OrganisationUnitSelectionMode getOrganisationUnitMode()
+    {
+        return organisationUnitMode;
+    }
+
+    public ProgramInstanceQueryParams setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
+    {
+        this.organisationUnitMode = organisationUnitMode;
+        return this;
+    }
+
+    public Program getProgram()
+    {
+        return program;
+    }
+
+    public ProgramInstanceQueryParams setProgram( Program program )
+    {
+        this.program = program;
+        return this;
+    }
+
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public ProgramInstanceQueryParams setProgramStatus( ProgramStatus programStatus )
+    {
+        this.programStatus = programStatus;
+        return this;
+    }
+
+    public Boolean getFollowUp()
+    {
+        return followUp;
+    }
+
+    public ProgramInstanceQueryParams setFollowUp( Boolean followUp )
+    {
+        this.followUp = followUp;
+        return this;
+    }
+
+    public Date getProgramStartDate()
+    {
+        return programStartDate;
+    }
+
+    public ProgramInstanceQueryParams setProgramStartDate( Date programStartDate )
+    {
+        this.programStartDate = programStartDate;
+        return this;
+    }
+
+    public Date getProgramEndDate()
+    {
+        return programEndDate;
+    }
+
+    public ProgramInstanceQueryParams setProgramEndDate( Date programEndDate )
+    {
+        this.programEndDate = programEndDate;
+        return this;
+    }
+
+    public TrackedEntityType getTrackedEntityType()
+    {
+        return trackedEntityType;
+    }
+
+    public ProgramInstanceQueryParams setTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        this.trackedEntityType = trackedEntityType;
+        return this;
+    }
+
+    public TrackedEntityInstance getTrackedEntityInstance()
+    {
+        return trackedEntityInstance;
+    }
+
+    public ProgramInstanceQueryParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    {
+        this.trackedEntityInstance = trackedEntityInstance;
+        return this;
+    }
+
+    public Integer getPage()
+    {
+        return page;
+    }
+
+    public ProgramInstanceQueryParams setPage( Integer page )
+    {
+        this.page = page;
+        return this;
+    }
+
+    public Integer getPageSize()
+    {
+        return pageSize;
+    }
+
+    public ProgramInstanceQueryParams setPageSize( Integer pageSize )
+    {
+        this.pageSize = pageSize;
+        return this;
+    }
+
+    public boolean isTotalPages()
+    {
+        return totalPages;
+    }
+
+    public ProgramInstanceQueryParams setTotalPages( boolean totalPages )
+    {
+        this.totalPages = totalPages;
+        return this;
+    }
+
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public ProgramInstanceQueryParams setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+        return this;
+    }
+    
+    public boolean isIncludeDeleted()
+    {
+        return includeDeleted;
+    }
+
+    public ProgramInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
+        return this;
+    }
 }

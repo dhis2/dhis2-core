@@ -28,10 +28,6 @@
 
     <property name="assigned" column="isassigned" not-null="true" />
 
-    <property name="hasMultipleStorageFiles" column="hasmultiplestoragefiles" />
-
-    <property name="fileResourceOwner" column="fileresourceowner" length="255" />
-
     <property name="domain" length="40" column="domain">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.fileresource.FileResourceDomain</param>
@@ -40,7 +36,7 @@
       </type>
     </property>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_fileresource_userid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_fileresource_userid" />
 
   </class>
 </hibernate-mapping>

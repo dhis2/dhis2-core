@@ -1,5 +1,7 @@
+package org.hisp.dhis.leader.election;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.leader.election;
 
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * Manages cluster leader node elections, renewals, revocations and to check whether the current
- * instance is the leader in the cluster.
- *
+ * Manages cluster leader node elections , renewals , revocations and to check
+ * whether the current instance is the leader in the cluster.
+ * 
  * @author Ameen Mohamed
  */
-public interface LeaderManager {
-  /** Extend the expiration time of leadership if this node is the current leader. */
-  void renewLeader(JobProgress progress);
+public interface LeaderManager
+{
+    /**
+     * Extend the expiry time of leadership if this node is the current leader
+     */
+    void renewLeader();
 
-  /** Attempt to become the leader. */
-  void electLeader(JobProgress progress);
+    /**
+     * Attempt to become the leader
+     */
+    void electLeader();
 
-  /**
-   * Check if the current instance is the leader.
-   *
-   * @return true if this instance is the leader, false otherwise.
-   */
-  boolean isLeader();
+    /**
+     * Check if the current instance is the leader
+     * 
+     * @return true if this instance is the leader, false otherwise
+     */
+    boolean isLeader();
 
-  /**
-   * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
-   *
-   * @param schedulingManager the instantiated scheduling manager.
-   */
-  void setSchedulingManager(SchedulingManager schedulingManager);
+    /**
+     * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
+     * 
+     * @param schedulingManager The instantiated scheduling manager
+     */
+    void setSchedulingManager( SchedulingManager schedulingManager );
 
-  /**
-   * Get the nodeID that was generated for the current instance.
-   *
-   * @return the nodeID
-   */
-  String getCurrentNodeUuid();
-
-  /**
-   * Get the nodeID for the current leader instance in the cluster.
-   *
-   * @return the nodeID of the leader instance.
-   */
-  String getLeaderNodeUuid();
-
-  /**
-   * Get the nodeID for the current leader instance in the cluster.
-   *
-   * @return the nodeID of the leader instance.
-   */
-  String getLeaderNodeId();
 }

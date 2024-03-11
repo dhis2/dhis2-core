@@ -1,5 +1,7 @@
+package org.hisp.dhis.relationship;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
 
-import static java.util.stream.Collectors.toMap;
+public enum RelationshipEntity
+{
+    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
+    PROGRAM_INSTANCE( "enrollment" ),
+    PROGRAM_STAGE_INSTANCE( "event" );
 
-import java.util.Map;
-import java.util.stream.Stream;
+    private String name;
 
-public enum RelationshipEntity {
-  TRACKED_ENTITY_INSTANCE("tracked_entity"),
-  PROGRAM_INSTANCE("enrollment"),
-  PROGRAM_STAGE_INSTANCE("event");
+    RelationshipEntity( String name )
+    {
+        this.name = name;
+    }
 
-  private String name;
-
-  RelationshipEntity(String name) {
-    this.name = name;
-  }
-
-  private static final Map<String, RelationshipEntity> LOOKUP =
-      Stream.of(values()).collect(toMap(RelationshipEntity::getName, x -> x));
-
-  public String getName() {
-    return name;
-  }
-
-  public static RelationshipEntity get(String name) {
-    return LOOKUP.get(name);
-  }
+    public String getName()
+    {
+        return name;
+    }
 }

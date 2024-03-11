@@ -1,1 +1,0 @@
-alter table section add column if not exists translations jsonb;

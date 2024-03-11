@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,263 +27,220 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.common.QueryOperator.EQ;
-import static org.hisp.dhis.common.QueryOperator.EW;
-import static org.hisp.dhis.common.QueryOperator.GE;
-import static org.hisp.dhis.common.QueryOperator.GT;
-import static org.hisp.dhis.common.QueryOperator.IEQ;
-import static org.hisp.dhis.common.QueryOperator.ILIKE;
-import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.common.QueryOperator.LE;
-import static org.hisp.dhis.common.QueryOperator.LIKE;
-import static org.hisp.dhis.common.QueryOperator.LT;
-import static org.hisp.dhis.common.QueryOperator.NE;
-import static org.hisp.dhis.common.QueryOperator.NEQ;
-import static org.hisp.dhis.common.QueryOperator.NIEQ;
-import static org.hisp.dhis.common.QueryOperator.NILIKE;
-import static org.hisp.dhis.common.QueryOperator.NLIKE;
-import static org.hisp.dhis.common.QueryOperator.SW;
+import java.util.List;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-public class QueryFilter {
-  public static final String OPTION_SEP = ";";
+public class QueryFilter
+{
+    public static final String OPTION_SEP = ";";
+    
+    public static final ImmutableMap<QueryOperator, String> OPERATOR_MAP = ImmutableMap.<QueryOperator, String>builder()
+        .put( QueryOperator.EQ, "=" )
+        .put( QueryOperator.GT, ">" )
+        .put( QueryOperator.GE, ">=" )
+        .put( QueryOperator.LT, "<" )
+        .put( QueryOperator.LE, "<=" )
+        .put( QueryOperator.NE, "!=" )
+        .put( QueryOperator.LIKE, "like" )
+        .put( QueryOperator.IN, "in" ).build();
+    
+    protected QueryOperator operator;
 
-  public static final ImmutableMap<QueryOperator, Function<Boolean, String>> OPERATOR_MAP =
-      ImmutableMap.<QueryOperator, Function<Boolean, String>>builder()
-          .put(EQ, isValueNull -> isValueNull ? "is" : "=")
-          .put(NE, isValueNull -> isValueNull ? "is not" : "!=")
-          .put(NEQ, isValueNull -> isValueNull ? "is not" : "!=")
-          .put(IEQ, isValueNull -> isValueNull ? "is" : "=")
-          .put(NIEQ, isValueNull -> isValueNull ? "is not" : "!=")
-          .put(GT, unused -> ">")
-          .put(GE, unused -> ">=")
-          .put(LT, unused -> "<")
-          .put(LE, unused -> "<=")
-          .put(ILIKE, unused -> "ilike")
-          .put(NILIKE, unused -> "not ilike")
-          .put(LIKE, unused -> "like")
-          .put(SW, unused -> "like")
-          .put(EW, unused -> "like")
-          .put(NLIKE, unused -> "not like")
-          .put(IN, unused -> "in")
-          .build();
+    protected String filter;
 
-  protected QueryOperator operator;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  protected String filter;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public QueryFilter() {}
-
-  public QueryFilter(QueryOperator operator, String filter) {
-    this.operator = operator;
-    this.filter = filter;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public boolean isFilter() {
-    return operator != null && filter != null && !filter.isEmpty();
-  }
-
-  public boolean isOperator(QueryOperator op) {
-    return operator != null && operator.equals(op);
-  }
-
-  public String getSqlOperator() {
-    return getSqlOperator(false);
-  }
-
-  /**
-   * Returns a SQL operator string.
-   *
-   * @param isOperatorSubstitutionAllowed whether the operator should be replaced to support null
-   *     values.
-   * @return a SQL operator string.
-   */
-  public String getSqlOperator(boolean isOperatorSubstitutionAllowed) {
-    if (operator == null) {
-      return null;
+    public QueryFilter()
+    {
+    }
+    
+    public QueryFilter( QueryOperator operator, String filter )
+    {
+        this.operator = operator;
+        this.filter = filter;
     }
 
-    return safelyGetOperator(isOperatorSubstitutionAllowed);
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+    
+    public boolean isFilter()
+    {
+        return operator != null && filter != null && !filter.isEmpty();
+    }
+    
+    public boolean isOperator( QueryOperator op )
+    {
+        return operator != null && operator.equals( op );
+    }
+    
+    public String getSqlOperator()
+    {
+        if ( operator == null )
+        {
+            return null;
+        }
+        
+        return OPERATOR_MAP.get( operator );
+    }
+    
+    public String getJavaOperator()
+    {
+        if ( operator == null || operator == QueryOperator.LIKE || operator == QueryOperator.IN )
+        {
+            return null;
+        }
+        
+        if ( operator == QueryOperator.EQ ) //TODO why special case?
+        {
+            return "==";
+        }
+        
+        return OPERATOR_MAP.get( operator );
+    }
+    
+    public String getSqlFilter( String encodedFilter )
+    {
+        if ( operator == null || encodedFilter == null )
+        {
+            return null;
+        }
 
-  private String safelyGetOperator(boolean isOperatorSubstitutionAllowed) {
-    Function<Boolean, String> operatorFunction = OPERATOR_MAP.get(operator);
-
-    if (operatorFunction != null) {
-      return operatorFunction.apply(
-          StringUtils.trimToEmpty(filter).equalsIgnoreCase(NV) && isOperatorSubstitutionAllowed);
+        if ( QueryOperator.LIKE.equals( operator ) )
+        {
+            return "'%" + encodedFilter + "%'";
+        }
+        else if ( QueryOperator.IN.equals( operator ) )
+        {
+            List<String> filterItems =  getFilterItems( encodedFilter );
+            
+            final StringBuffer buffer = new StringBuffer( "(" );        
+            
+            for ( String filterItem : filterItems )
+            {
+                buffer.append( "'" ).append( filterItem ).append( "'," );
+            }
+            
+            return buffer.deleteCharAt( buffer.length() - 1 ).append( ")" ).toString();
+        }
+        
+        return "'" + encodedFilter + "'";
     }
 
-    return null;
-  }
-
-  public String getSqlFilter(final String encodedFilter) {
-    return getSqlFilter(encodedFilter, false);
-  }
-
-  public String getSqlFilter(final String encodedFilter, boolean isNullValueSubstitutionAllowed) {
-    if (operator == null || encodedFilter == null) {
-      return null;
+    /**
+     * Returns the items of the filter.
+     * 
+     * @param encodedFilter the encoded filter.
+     */
+    public static List<String> getFilterItems( String encodedFilter )
+    {
+        return Lists.newArrayList( encodedFilter.split( OPTION_SEP ) );
+    }
+    
+    /**
+     * Returns a string representation of the query operator and filter.
+     */
+    public String getFilterAsString()
+    {
+        return operator.getValue() + " " + filter;
+    }
+    
+    // -------------------------------------------------------------------------
+    // hashCode, equals and toString
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public String toString()
+    {
+        return "[Operator: " + operator + ", filter: " + filter + "]";
+    }
+    
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ( ( filter == null) ? 0 : filter.hashCode() );
+        result = prime * result + ( ( operator == null) ? 0 : operator.hashCode() );
+        return result;
     }
 
-    if (operator.isLike()) {
-      return "'%" + encodedFilter.replace("_", "\\_").replace("%", "\\%") + "%'";
-    } else if (operator.isEqualTo()) {
-      if (encodedFilter.equals(NV) && isNullValueSubstitutionAllowed) {
-        return "null";
-      }
-    } else if (IN == operator) {
-      return getFilterItems(encodedFilter).stream()
-          .map(this::quote)
-          .collect(Collectors.joining(",", "(", ")"));
-    } else if (SW == operator) {
-      return "'" + encodedFilter + "%'";
-    } else if (EW == operator) {
-      return "'%" + encodedFilter + "'";
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+        
+        if ( object == null )
+        {
+            return false;
+        }
+        
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+        
+        QueryFilter other = (QueryFilter) object;
+        
+        if ( filter == null )
+        {
+            if ( other.filter != null )
+            {
+                return false;
+            }
+        }
+        else if ( !filter.equals( other.filter ) )
+        {
+            return false;
+        }
+        
+        if ( operator == null )
+        {
+            if ( other.operator != null )
+            {
+                return false;
+            }
+        }
+        else if ( !operator.equals( other.operator ) )
+        {
+            return false;
+        }
+        
+        return true;
     }
 
-    return "'" + encodedFilter + "'";
-  }
-
-  public String getSqlBindFilter() {
-    if (operator.isLike()) {
-      return "%" + this.filter + "%";
-    } else if (operator.isEqualTo()) {
-      if (this.filter.equals(NV)) {
-        return "null";
-      }
-    } else if (SW == operator) {
-      return this.filter + "%";
-    } else if (EW == operator) {
-      return "%" + this.filter + "";
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+    
+    public QueryOperator getOperator()
+    {
+        return operator;
     }
 
-    return this.filter;
-  }
-
-  public String getSqlFilter(
-      final String encodedFilter,
-      final ValueType valueType,
-      boolean isNullValueSubstitutionAllowed) {
-    final String sqlFilter = getSqlFilter(encodedFilter, isNullValueSubstitutionAllowed);
-
-    // Force lowercase to compare ignoring case
-
-    if (IEQ == operator || NIEQ == operator) {
-      return valueType.isText() ? sqlFilter.toLowerCase() : sqlFilter;
+    public void setOperator( QueryOperator operator )
+    {
+        this.operator = operator;
     }
 
-    return sqlFilter;
-  }
-
-  public String getSqlFilterColumn(final String column, final ValueType valueType) {
-    // Force lowercase to compare ignoring case
-
-    if (IEQ == operator || NIEQ == operator) {
-      return valueType.isText() ? wrapLower(column) : column;
+    public String getFilter()
+    {
+        return filter;
     }
 
-    return column;
-  }
-
-  /**
-   * Wraps the provided column name in Postgres 'lower' directive
-   *
-   * @param column a column name
-   * @return a String
-   */
-  private String wrapLower(String column) {
-    return "lower(" + column + ")";
-  }
-
-  protected String quote(String filterItem) {
-    return "'" + filterItem + "'";
-  }
-
-  /**
-   * Returns the items of the filter.
-   *
-   * @param encodedFilter the encoded filter.
-   */
-  public static List<String> getFilterItems(String encodedFilter) {
-    return Lists.newArrayList(encodedFilter.split(OPTION_SEP));
-  }
-
-  /** Returns a string representation of the query operator and filter. */
-  public String getFilterAsString() {
-    return operator.getValue() + " " + filter;
-  }
-
-  // -------------------------------------------------------------------------
-  // hashCode, equals and toString
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return "[Operator: " + operator + ", filter: " + filter + "]";
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((filter == null) ? 0 : filter.hashCode());
-    result = prime * result + ((operator == null) ? 0 : operator.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
+    public void setFilter( String filter )
+    {
+        this.filter = filter;
     }
-
-    if (object == null) {
-      return false;
-    }
-
-    if (getClass() != object.getClass()) {
-      return false;
-    }
-
-    QueryFilter other = (QueryFilter) object;
-
-    if (filter == null) {
-      if (other.filter != null) {
-        return false;
-      }
-    } else if (!filter.equals(other.filter)) {
-      return false;
-    }
-
-    if (operator == null) {
-      return other.operator == null;
-    } else {
-      return operator.equals(other.operator);
-    }
-  }
 }

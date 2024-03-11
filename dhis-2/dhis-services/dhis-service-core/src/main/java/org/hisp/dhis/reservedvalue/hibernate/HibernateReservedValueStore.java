@@ -1,5 +1,7 @@
+package org.hisp.dhis.reservedvalue.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
-import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
-
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -43,153 +36,190 @@ import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
 /**
  * @author Stian Sandvold
  */
-@Repository("org.hisp.dhis.reservedvalue.ReservedValueStore")
-@Slf4j
-public class HibernateReservedValueStore extends HibernateGenericStore<ReservedValue>
-    implements ReservedValueStore {
-  private final BatchHandlerFactory batchHandlerFactory;
+public class HibernateReservedValueStore
+    extends HibernateGenericStore<ReservedValue>
+    implements ReservedValueStore
+{
+    @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
 
-  public HibernateReservedValueStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      BatchHandlerFactory batchHandlerFactory) {
-    super(sessionFactory, jdbcTemplate, publisher, ReservedValue.class, false);
+    @Override
+    public List<ReservedValue> reserveValues( ReservedValue reservedValue,
+        List<String> values )
+    {
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
 
-    checkNotNull(batchHandlerFactory);
+        BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
+            .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
-    this.batchHandlerFactory = batchHandlerFactory;
-  }
+        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        batchHandler.flush();
 
-  @Override
-  public List<ReservedValue> getAvailableValues(
-      ReservedValue reservedValue, List<String> values, String ownerObject) {
-    if (isEmpty(values) || !reservedValue.getOwnerObject().equals(ownerObject)) {
-      return List.of();
+        return toAdd;
     }
-    List<String> availableValues = getIfAvailable(reservedValue, values);
 
-    return availableValues.stream()
-        .map(value -> reservedValue.toBuilder().value(value).build())
-        .collect(Collectors.toList());
-  }
+    @Override
+    public List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values )
+    {
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
+        toAdd.forEach( rv -> save( rv ) );
+        return toAdd;
+    }
 
-  @Override
-  public void bulkInsertReservedValues(List<ReservedValue> toAdd) {
-    BatchHandler<ReservedValue> batchHandler =
-        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init();
+    /**
+     * Generates a list of reserved values based on the given input.
+     *
+     * @param reservedValue the reserved value.
+     * @param values the values to reserve.
+     * @return a list of {@link ReservedValue}.
+     */
+    private List<ReservedValue> getGeneratedValues( ReservedValue reservedValue, List<String> values )
+    {
+        List<String> availableValues = getIfAvailable( reservedValue, values );
 
-    toAdd.forEach(batchHandler::addObject);
-    batchHandler.flush();
-  }
+        List<ReservedValue> generatedValues = new ArrayList<>();
 
-  private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
+        availableValues.forEach( ( value ) -> {
 
-    List<?> teavOrReservedValues =
-        getSession()
-            .createNamedQuery("getRandomGeneratedValuesNotAvailableNamedQuery")
-            .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
-            .setParameter("ownerObject", reservedValue.getOwnerObject())
-            .setParameter("ownerUid", reservedValue.getOwnerUid())
-            .setParameter("key", reservedValue.getKey())
-            .setParameter(
-                "values", values.stream().map(String::toLowerCase).collect(Collectors.toList()))
-            .list();
+            ReservedValue rv = new ReservedValue(
+                reservedValue.getOwnerObject(),
+                reservedValue.getOwnerUid(),
+                reservedValue.getKey(),
+                value,
+                reservedValue.getExpiryDate()
+            );
 
-    return values.stream()
-        .filter(rv -> !teavOrReservedValues.contains(rv))
-        .collect(Collectors.toList());
-  }
+            rv.setCreated( reservedValue.getCreated() );
 
-  @Override
-  public void reserveValues(List<ReservedValue> reservedValues) {
-    BatchHandler<ReservedValue> batchHandler =
-        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init();
+            generatedValues.add( rv );
+        } );
 
-    reservedValues.forEach(batchHandler::addObject);
-    batchHandler.flush();
-  }
+        return generatedValues;
+    }
 
-  @Override
-  public int getNumberOfUsedValues(ReservedValue reservedValue) {
-    Query<Long> query =
-        getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
+    @Override
+    public List<ReservedValue> getIfReservedValues( ReservedValue reservedValue,
+        List<String> values )
+    {
+        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
+            "and rv.key =:key and rv.value in :values";
 
-    Long count =
-        query
-            .setParameter("uid", reservedValue.getOwnerUid())
-            .setParameter("key", reservedValue.getKey())
+        return getQuery( hql )
+            .setParameter( "ownerObject", reservedValue.getOwnerObject() )
+            .setParameter( "ownerUid", reservedValue.getOwnerUid() )
+            .setParameter( "key", reservedValue.getKey() )
+            .setParameter( "values", values )
+            .getResultList();
+    }
+
+    @Override
+    public int getNumberOfUsedValues( ReservedValue reservedValue )
+    {
+        Query<Long> query = getTypedQuery( "SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key" );
+
+        Long count = query.setParameter( "uid", reservedValue.getOwnerUid() )
+            .setParameter( "key", reservedValue.getKey() )
             .getSingleResult();
 
-    if (Objects.valueOf(reservedValue.getOwnerObject()).equals(TRACKEDENTITYATTRIBUTE)) {
-      Query<Long> attrQuery =
-          getTypedQuery(
-              "SELECT count(*) "
-                  + "FROM TrackedEntityAttributeValue "
-                  + "WHERE attribute = "
-                  + "( FROM TrackedEntityAttribute "
-                  + "WHERE uid = :uid ) "
-                  + "AND value LIKE :value ");
 
-      count +=
-          attrQuery
-              .setParameter("uid", reservedValue.getOwnerUid())
-              .setParameter("value", reservedValue.getValue())
-              .getSingleResult();
+        if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
+        {
+            Query<Long> attrQuery = getTypedQuery(
+            "SELECT count(*) " +
+                "FROM TrackedEntityAttributeValue " +
+                "WHERE attribute = " +
+                "( FROM TrackedEntityAttribute " +
+                "WHERE uid = :uid ) " +
+                "AND value LIKE :value " );
+
+            count += attrQuery.setParameter( "uid", reservedValue.getOwnerUid() )
+            .setParameter( "value", reservedValue.getValue() )
+            .getSingleResult();
+        }
+
+        return count.intValue();
     }
 
-    return count.intValue();
-  }
+    @Override
+    public void removeExpiredReservations()
+    {
+        getQuery( "DELETE FROM ReservedValue WHERE expiryDate < :now" )
+            .setParameter( "now", new Date() )
+            .executeUpdate();
+    }
 
-  @Override
-  public boolean useReservedValue(String ownerUID, String value) {
-    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value")
-            .setParameter("uid", ownerUID)
-            .setParameter("value", value)
-            .executeUpdate()
-        == 1;
-  }
+    @Override
+    public boolean useReservedValue( String ownerUID, String value )
+    {
+        return getQuery( "DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value" )
+            .setParameter( "uid", ownerUID )
+            .setParameter( "value", value )
+            .executeUpdate() == 1;
+    }
 
-  @Override
-  public void deleteReservedValueByUid(String uid) {
-    getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid")
-        .setParameter("uid", uid)
-        .executeUpdate();
-  }
+    @Override
+    public void deleteReservedValueByUid( String uid )
+    {
+        getQuery( "DELETE FROM ReservedValue WHERE owneruid = :uid" )
+            .setParameter( "uid", uid )
+            .executeUpdate();
+    }
 
-  @Override
-  public boolean isReserved(String ownerObject, String ownerUID, String value) {
-    String hql =
-        "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid "
-            + "and rv.value =:value";
+    @Override
+    public boolean isReserved( String ownerObject, String ownerUID, String value )
+    {
+        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
+            "and rv.value =:value";
 
-    return !getQuery(hql)
-        .setParameter("ownerObject", ownerObject)
-        .setParameter("ownerUid", ownerUID)
-        .setParameter("value", value)
-        .getResultList()
-        .isEmpty();
-  }
+        return !getQuery( hql )
+            .setParameter( "ownerObject", ownerObject )
+            .setParameter( "ownerUid", ownerUID )
+            .setParameter( "value", value )
+            .getResultList()
+            .isEmpty();
+    }
 
-  @Override
-  public void removeUsedOrExpiredReservations() {
-    String deleteQuery =
-        "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value IN ("
-            + "SELECT teav.plainValue FROM TrackedEntityAttributeValue teav JOIN teav.attribute tea "
-            + "WHERE r.ownerUid = tea.uid AND r.value = teav.plainValue"
-            + ")";
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
-    log.info("Starting deleting expired or used reserved values ....");
+    private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
+    {
+        List<String> reservedValues = getIfReservedValues( reservedValue, values ).stream()
+            .map( ReservedValue::getValue )
+            .collect( Collectors.toList() );
 
-    getQuery(deleteQuery).executeUpdate();
+        values.removeAll( reservedValues );
 
-    log.info("... Completed deleting expired or used reserved values");
-  }
+        // All values supplied is unavailable
+
+        if ( values.isEmpty() )
+        {
+            return values;
+        }
+
+        if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
+        {
+            values.removeAll( getUntypedSqlQuery(
+                "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
+                .setParameter( 1, reservedValue.getOwnerUid() )
+                .setParameter( 2, values )
+                .list() );
+        }
+
+        return values;
+
+    }
 }

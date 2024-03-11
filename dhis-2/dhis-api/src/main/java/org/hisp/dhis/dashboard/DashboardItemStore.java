@@ -1,5 +1,7 @@
+package org.hisp.dhis.dashboard;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dashboard;
 
-import java.util.List;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DashboardItemStore extends IdentifiableObjectStore<DashboardItem> {
-  Dashboard getDashboardFromDashboardItem(DashboardItem dashboardItem);
+public interface DashboardItemStore
+    extends IdentifiableObjectStore<DashboardItem>
+{
+    int countMapDashboardItems( Map map );
 
-  List<DashboardItem> getVisualizationDashboardItems(Visualization visualization);
+    int countChartDashboardItems( Chart chart );
 
-  List<DashboardItem> getEventVisualizationDashboardItems(EventVisualization eventVisualization);
+    int countEventChartDashboardItems( EventChart eventChart );
 
-  List<DashboardItem> getEventChartDashboardItems(EventChart eventChart);
+    int countReportTableDashboardItems( ReportTable reportTable );
 
-  List<DashboardItem> getMapDashboardItems(Map map);
+    int countReportDashboardItems( Report report );
 
-  List<DashboardItem> getEventReportDashboardItems(EventReport eventReport);
+    int countDocumentDashboardItems( Document document );
+    
+    int countUserDashboardItems( User user );
 
-  List<DashboardItem> getUserDashboardItems(User user);
-
-  List<DashboardItem> getReportDashboardItems(Report report);
-
-  List<DashboardItem> getDocumentDashboardItems(Document document);
+    Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
 }

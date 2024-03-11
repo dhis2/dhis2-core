@@ -1,5 +1,7 @@
+package org.hisp.dhis.organisationunit;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,51 +38,69 @@ import java.util.Set;
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitDataSetAssociationSet {
-  /** List of data set association sets. */
-  private List<Set<String>> dataSetAssociationSets = new ArrayList<>();
+public class OrganisationUnitDataSetAssociationSet
+{
+    /**
+     * List of data set association sets.
+     */
+    private List<Set<String>> dataSetAssociationSets = new ArrayList<>();
 
-  /** Mapping between organisation unit identifier and index of association set in list. */
-  private Map<String, Integer> organisationUnitAssociationSetMap = new HashMap<>();
+    /**
+     * Mapping between organisation unit identifier and index of association set in list.
+     */
+    private Map<String, Integer> organisationUnitAssociationSetMap = new HashMap<>();
 
-  /** Set of distinct data sets in all association sets. */
-  private Set<String> distinctDataSets = new HashSet<>();
+    /**
+     * Set of distinct data sets in all association sets.
+     */
+    private Set<String> distinctDataSets = new HashSet<>();
 
-  /** Map contains authorities for each DataSet for current user */
-  private Map<String, String> dataSetAuthMap = new HashMap<>();
+    /**
+     * Map contains authorities for each DataSet for current user
+     */
+    private Map<String, String> dataSetAuthMap = new HashMap<>();
 
-  public OrganisationUnitDataSetAssociationSet() {}
+    public OrganisationUnitDataSetAssociationSet()
+    {
+    }
 
-  public List<Set<String>> getDataSetAssociationSets() {
-    return dataSetAssociationSets;
-  }
+    public List<Set<String>> getDataSetAssociationSets()
+    {
+        return dataSetAssociationSets;
+    }
 
-  public void setDataSetAssociationSets(List<Set<String>> dataSetAssociationSets) {
-    this.dataSetAssociationSets = dataSetAssociationSets;
-  }
+    public void setDataSetAssociationSets( List<Set<String>> dataSetAssociationSets )
+    {
+        this.dataSetAssociationSets = dataSetAssociationSets;
+    }
 
-  public Map<String, Integer> getOrganisationUnitAssociationSetMap() {
-    return organisationUnitAssociationSetMap;
-  }
+    public Map<String, Integer> getOrganisationUnitAssociationSetMap()
+    {
+        return organisationUnitAssociationSetMap;
+    }
 
-  public void setOrganisationUnitAssociationSetMap(
-      Map<String, Integer> organisationUnitAssociationSetMap) {
-    this.organisationUnitAssociationSetMap = organisationUnitAssociationSetMap;
-  }
+    public void setOrganisationUnitAssociationSetMap( Map<String, Integer> organisationUnitAssociationSetMap )
+    {
+        this.organisationUnitAssociationSetMap = organisationUnitAssociationSetMap;
+    }
 
-  public Set<String> getDistinctDataSets() {
-    return distinctDataSets;
-  }
+    public Set<String> getDistinctDataSets()
+    {
+        return distinctDataSets;
+    }
 
-  public void setDistinctDataSets(Set<String> distinctDataSets) {
-    this.distinctDataSets = distinctDataSets;
-  }
+    public void setDistinctDataSets( Set<String> distinctDataSets )
+    {
+        this.distinctDataSets = distinctDataSets;
+    }
 
-  public Map<String, String> getDataSetAuthMap() {
-    return this.dataSetAuthMap;
-  }
+    public Map<String, String> getDataSetAuthMap()
+    {
+        return this.dataSetAuthMap;
+    }
 
-  public void setDataSetAuthMap(Map<String, String> dataSetAuthMap) {
-    this.dataSetAuthMap = dataSetAuthMap;
-  }
+    public void setDataSetAuthMap( Map<String, String> dataSetAuthMap )
+    {
+        this.dataSetAuthMap = dataSetAuthMap;
+    }
 }

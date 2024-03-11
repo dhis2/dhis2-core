@@ -1,5 +1,7 @@
+package org.hisp.dhis.i18n.ui.locale;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,117 +27,102 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.i18n.ui.locale;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import org.apache.commons.lang3.LocaleUtils;
+
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-@Component("org.hisp.dhis.i18n.locale.LocaleManager")
-public class UserSettingLocaleManager implements LocaleManager {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+public class UserSettingLocaleManager
+    implements LocaleManager
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final UserSettingService userSettingService;
+    private UserSettingService userSettingService;
 
-  private final ResourceBundleManager resourceBundleManager;
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
+    }
+    
+    private ResourceBundleManager resourceBundleManager;
 
-  public UserSettingLocaleManager(
-      UserSettingService userSettingService, ResourceBundleManager resourceBundleManager) {
-    checkNotNull(userSettingService);
-    checkNotNull(resourceBundleManager);
-
-    this.userSettingService = userSettingService;
-    this.resourceBundleManager = resourceBundleManager;
-  }
-
-  // -------------------------------------------------------------------------
-  // LocaleManager implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public Locale getCurrentLocale() {
-    Locale locale = getUserSelectedLocale();
-
-    if (locale != null) {
-      return locale;
+    public void setResourceBundleManager( ResourceBundleManager resourceBundleManager )
+    {
+        this.resourceBundleManager = resourceBundleManager;
     }
 
-    return DEFAULT_LOCALE;
-  }
+    // -------------------------------------------------------------------------
+    // LocaleManager implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public void setCurrentLocale(Locale locale) {
-    userSettingService.saveUserSetting(UserSettingKey.UI_LOCALE, locale);
-  }
+    @Override
+    public Locale getCurrentLocale()
+    {
+        Locale locale = getUserSelectedLocale();
 
-  @Override
-  public List<Locale> getLocalesOrderedByPriority() {
-    List<Locale> locales = new ArrayList<>();
+        if ( locale != null )
+        {
+            return locale;
+        }
 
-    Locale userLocale = getUserSelectedLocale();
-
-    if (userLocale != null) {
-      locales.add(userLocale);
+        return DEFAULT_LOCALE;
     }
 
-    locales.add(DEFAULT_LOCALE);
-
-    return locales;
-  }
-
-  /**
-   * This method tries to handle the 2 following scenarios: <br>
-   *
-   * <ol>
-   *   <li>when a user Locale is stored as a Locale, the locale will be returned
-   *   <li>when a user Locale is stored as a String, the string will be used as an argument to
-   *       create a new Locale which is then returned <br>
-   * </ol>
-   *
-   * <br>
-   * This ensures that a valid Locale is used in the system. This is necessary because of the
-   * requirement to be able to store newer JDK Locales e.g. 'id' and 'id_ID' (they are stored as
-   * strings). In the scenario where 'id' is the user ui locale, then Java will transform this to
-   * the older locale 'in'. This is only required for anything lower than Java 17 and is not needed
-   * for v41 or higher.
-   *
-   * @return locale
-   */
-  private Locale getUserSelectedLocale() {
-    Serializable userSetting = userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
-
-    if (userSetting instanceof Locale) {
-      return (Locale) userSetting;
+    @Override
+    public void setCurrentLocale( Locale locale )
+    {
+        userSettingService.saveUserSetting( UserSettingKey.UI_LOCALE, locale );
     }
-    return LocaleUtils.toLocale((String) userSetting);
-  }
 
-  @Override
-  public Locale getFallbackLocale() {
-    return DEFAULT_LOCALE;
-  }
+    @Override
+    public List<Locale> getLocalesOrderedByPriority()
+    {
+        List<Locale> locales = new ArrayList<>();
 
-  @Override
-  public List<Locale> getAvailableLocales() {
-    try {
-      return resourceBundleManager.getAvailableLocales();
-    } catch (ResourceBundleManagerException ex) {
-      throw new RuntimeException(ex);
+        Locale userLocale = getUserSelectedLocale();
+
+        if ( userLocale != null )
+        {
+            locales.add( userLocale );
+        }
+
+        locales.add( DEFAULT_LOCALE );
+
+        return locales;
     }
-  }
+
+    private Locale getUserSelectedLocale()
+    {
+        return (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE );
+    }
+
+    @Override
+    public Locale getFallbackLocale()
+    {
+        return DEFAULT_LOCALE;
+    }
+    
+    @Override
+    public List<Locale> getAvailableLocales()
+    {
+        try
+        {
+            return resourceBundleManager.getAvailableLocales();
+        }
+        catch ( ResourceBundleManagerException ex )
+        {
+            throw new RuntimeException( ex );
+        }
+    }
 }

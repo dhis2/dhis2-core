@@ -1,5 +1,7 @@
+package org.hisp.dhis.period;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,149 +27,175 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
 
 import com.google.common.collect.Lists;
-import java.util.Date;
-import java.util.List;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
+import java.util.Date;
+import java.util.List;
+
 /**
- * PeriodType for yearly Periods. A valid yearly Period has startDate set to January 1st and endDate
- * set to the last day of the same year.
+ * PeriodType for yearly Periods. A valid yearly Period has startDate set to
+ * January 1st and endDate set to the last day of the same year.
  *
  * @author Torgeir Lorange Ostby
+ * @version $Id: YearlyPeriodType.java 2971 2007-03-03 18:54:56Z torgeilo $
  */
-public class YearlyPeriodType extends CalendarPeriodType {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 3893035414025085437L;
+public class YearlyPeriodType
+    extends CalendarPeriodType
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 3893035414025085437L;
 
-  private static final String ISO_FORMAT = "yyyy";
+    private static final String ISO_FORMAT = "yyyy";
 
-  private static final String ISO8601_DURATION = "P1Y";
+    private static final String ISO8601_DURATION = "P1Y";
 
-  public static final int FREQUENCY_ORDER = 365;
+    /**
+     * The name of the YearlyPeriodType, which is "Yearly".
+     */
+    public static final String NAME = "Yearly";
 
-  public static final String SQL_INTERVAL = "1 year";
+    public static final int FREQUENCY_ORDER = 365;
 
-  // -------------------------------------------------------------------------
-  // PeriodType functionality
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // PeriodType functionality
+    // -------------------------------------------------------------------------
 
-  @Override
-  public PeriodTypeEnum getPeriodTypeEnum() {
-    return PeriodTypeEnum.YEARLY;
-  }
-
-  @Override
-  public Period createPeriod(DateTimeUnit dateTimeUnit, Calendar calendar) {
-    DateTimeUnit start = new DateTimeUnit(dateTimeUnit);
-    DateTimeUnit end = new DateTimeUnit(dateTimeUnit);
-
-    start.setDay(1);
-    start.setMonth(1);
-
-    end.setMonth(calendar.monthsInYear());
-    end.setDay(calendar.daysInMonth(end.getYear(), end.getMonth()));
-
-    return toIsoPeriod(start, end, calendar);
-  }
-
-  @Override
-  public int getFrequencyOrder() {
-    return FREQUENCY_ORDER;
-  }
-
-  @Override
-  public String getSqlInterval() {
-    return SQL_INTERVAL;
-  }
-
-  // -------------------------------------------------------------------------
-  // CalendarPeriodType functionality
-  // -------------------------------------------------------------------------
-
-  @Override
-  public DateTimeUnit getDateWithOffset(DateTimeUnit dateTimeUnit, int offset, Calendar calendar) {
-    return calendar.plusYears(dateTimeUnit, offset);
-  }
-
-  /** Generates yearly periods for the last 5, current and next 5 years. */
-  @Override
-  public List<Period> generatePeriods(DateTimeUnit dateTimeUnit) {
-    Calendar calendar = getCalendar();
-
-    dateTimeUnit = calendar.minusYears(dateTimeUnit, 5);
-    dateTimeUnit.setDay(1);
-    dateTimeUnit.setMonth(1);
-
-    List<Period> periods = Lists.newArrayList();
-
-    for (int i = 0; i < 11; ++i) {
-      periods.add(createPeriod(dateTimeUnit, calendar));
-      dateTimeUnit = calendar.plusYears(dateTimeUnit, 1);
+    @Override
+    public String getName()
+    {
+        return NAME;
     }
 
-    return periods;
-  }
+    @Override
+    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
+    {
+        DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
+        DateTimeUnit end = new DateTimeUnit( dateTimeUnit );
 
-  /** Generates the last 5 years where the last one is the year which the given date is inside. */
-  @Override
-  public List<Period> generateRollingPeriods(Date date) {
-    return generateLast5Years(date);
-  }
+        start.setDay( 1 );
+        start.setMonth( 1 );
 
-  @Override
-  public List<Period> generateRollingPeriods(DateTimeUnit dateTimeUnit, Calendar calendar) {
-    return generateLast5Years(calendar.toIso(dateTimeUnit).toJdkDate());
-  }
+        end.setMonth( calendar.monthsInYear() );
+        end.setDay( calendar.daysInMonth( end.getYear(), end.getMonth() ) );
 
-  /** Generates the last 5 years where the last one is the year which the given date is inside. */
-  @Override
-  public List<Period> generateLast5Years(Date date) {
-    Calendar calendar = getCalendar();
-
-    DateTimeUnit dateTimeUnit = createLocalDateUnitInstance(date);
-    dateTimeUnit = calendar.minusYears(dateTimeUnit, 4);
-    dateTimeUnit.setDay(1);
-    dateTimeUnit.setMonth(1);
-
-    List<Period> periods = Lists.newArrayList();
-
-    for (int i = 0; i < 5; ++i) {
-      periods.add(createPeriod(dateTimeUnit, calendar));
-      dateTimeUnit = calendar.plusYears(dateTimeUnit, 1);
+        return toIsoPeriod( start, end, calendar );
     }
 
-    return periods;
-  }
+    @Override
+    public int getFrequencyOrder()
+    {
+        return FREQUENCY_ORDER;
+    }
 
-  @Override
-  public String getIsoDate(DateTimeUnit dateTimeUnit, Calendar calendar) {
-    return String.valueOf(dateTimeUnit.getYear());
-  }
+    // -------------------------------------------------------------------------
+    // CalendarPeriodType functionality
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    {
+        return calendar.plusYears( dateTimeUnit, offset );
+    }
 
-  @Override
-  public String getIsoFormat() {
-    return ISO_FORMAT;
-  }
+    /**
+     * Generates yearly periods for the last 5, current and next 5 years.
+     */
+    @Override
+    public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
+    {
+        Calendar calendar = getCalendar();
 
-  @Override
-  public String getIso8601Duration() {
-    return ISO8601_DURATION;
-  }
+        dateTimeUnit = calendar.minusYears( dateTimeUnit, 5 );
+        dateTimeUnit.setDay( 1 );
+        dateTimeUnit.setMonth( 1 );
 
-  @Override
-  public Date getRewindedDate(Date date, Integer rewindedPeriods) {
-    Calendar calendar = getCalendar();
+        List<Period> periods = Lists.newArrayList();
 
-    date = date != null ? date : new Date();
-    rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
+        for ( int i = 0; i < 11; ++i )
+        {
+            periods.add( createPeriod( dateTimeUnit, calendar ) );
+            dateTimeUnit = calendar.plusYears( dateTimeUnit, 1 );
+        }
 
-    DateTimeUnit dateTimeUnit = createLocalDateUnitInstance(date);
-    dateTimeUnit = calendar.minusYears(dateTimeUnit, rewindedPeriods);
+        return periods;
+    }
 
-    return calendar.toIso(dateTimeUnit).toJdkDate();
-  }
+    /**
+     * Generates the last 5 years where the last one is the year which the given
+     * date is inside.
+     */
+    @Override
+    public List<Period> generateRollingPeriods( Date date )
+    {
+        return generateLast5Years( date );
+    }
+
+    @Override
+    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
+    {
+        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
+    }
+
+    /**
+     * Generates the last 5 years where the last one is the year which the given
+     * date is inside.
+     */
+    @Override
+    public List<Period> generateLast5Years( Date date )
+    {
+        Calendar calendar = getCalendar();
+
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
+        dateTimeUnit = calendar.minusYears( dateTimeUnit, 4 );
+        dateTimeUnit.setDay( 1 );
+        dateTimeUnit.setMonth( 1 );
+
+        List<Period> periods = Lists.newArrayList();
+
+        for ( int i = 0; i < 5; ++i )
+        {
+            periods.add( createPeriod( dateTimeUnit, calendar ) );
+            dateTimeUnit = calendar.plusYears( dateTimeUnit, 1 );
+        }
+
+        return periods;
+    }
+
+    @Override
+    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
+    {
+        return String.valueOf( dateTimeUnit.getYear() );
+    }
+
+    @Override
+    public String getIsoFormat()
+    {
+        return ISO_FORMAT;
+    }
+
+    @Override
+    public String getIso8601Duration()
+    {
+        return ISO8601_DURATION;
+    }
+
+    @Override
+    public Date getRewindedDate( Date date, Integer rewindedPeriods )
+    {
+        Calendar calendar = getCalendar();
+
+        date = date != null ? date : new Date();
+        rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
+
+        DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
+        dateTimeUnit = calendar.minusYears( dateTimeUnit, rewindedPeriods );
+
+        return calendar.toIso( dateTimeUnit ).toJdkDate();
+    }
 }

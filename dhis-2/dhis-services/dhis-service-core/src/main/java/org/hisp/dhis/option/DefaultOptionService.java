@@ -1,5 +1,7 @@
+package org.hisp.dhis.option;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,259 +27,235 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.option.OptionService")
-public class DefaultOptionService implements OptionService {
-  @Qualifier("org.hisp.dhis.option.OptionSetStore")
-  private final IdentifiableObjectStore<OptionSet> optionSetStore;
+@Transactional
+public class DefaultOptionService
+    implements OptionService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final OptionStore optionStore;
+    private IdentifiableObjectStore<OptionSet> optionSetStore;
 
-  private final OptionGroupStore optionGroupStore;
-
-  private final OptionGroupSetStore optionGroupSetStore;
-
-  // -------------------------------------------------------------------------
-  // OptionService implementation
-  // -------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------
-  // Option Set
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public long saveOptionSet(OptionSet optionSet) throws ConflictException {
-    validateOptionSet(optionSet);
-    optionSetStore.save(optionSet);
-    return optionSet.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateOptionSet(OptionSet optionSet) throws ConflictException {
-    validateOptionSet(optionSet);
-    optionSetStore.update(optionSet);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void validateOptionSet(OptionSet optionSet) throws ConflictException {
-    if (optionSet.getValueType() != ValueType.MULTI_TEXT) {
-      return;
+    public void setOptionSetStore( IdentifiableObjectStore<OptionSet> optionSetStore )
+    {
+        this.optionSetStore = optionSetStore;
     }
-    for (Option option : optionSet.getOptions()) {
-      if (option.getCode() == null) {
-        String uid = option.getUid();
-        if (uid != null) {
-          option = optionStore.getByUid(uid);
-          if (option == null) {
-            throw new ConflictException(ErrorCode.E1113, Option.class.getSimpleName(), uid);
-          }
+
+    private OptionStore optionStore;
+
+    public void setOptionStore( OptionStore optionStore )
+    {
+        this.optionStore = optionStore;
+    }
+
+    @Autowired
+    private OptionGroupStore optionGroupStore;
+
+    @Autowired
+    private OptionGroupSetStore optionGroupSetStore;
+
+    // -------------------------------------------------------------------------
+    // OptionService implementation
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // Option Set
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int saveOptionSet( OptionSet optionSet )
+    {
+        optionSetStore.save( optionSet );
+
+        return optionSet.getId();
+    }
+
+    @Override
+    public void updateOptionSet( OptionSet optionSet )
+    {
+        optionSetStore.update( optionSet );
+    }
+
+    @Override
+    public OptionSet getOptionSet( int id )
+    {
+        return optionSetStore.get( id );
+    }
+
+    @Override
+    public OptionSet getOptionSet( String uid )
+    {
+        return optionSetStore.getByUid( uid );
+    }
+
+    @Override
+    public OptionSet getOptionSetByName( String name )
+    {
+        return optionSetStore.getByName( name );
+    }
+
+    @Override
+    public OptionSet getOptionSetByCode( String code )
+    {
+        return optionSetStore.getByCode( code );
+    }
+
+    @Override
+    public void deleteOptionSet( OptionSet optionSet )
+    {
+        optionSetStore.delete( optionSet );
+    }
+
+    @Override
+    public List<OptionSet> getAllOptionSets()
+    {
+        return optionSetStore.getAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // Option
+    // -------------------------------------------------------------------------
+
+    @Override
+    public List<Option> getOptions( int optionSetId, String key, Integer max )
+    {
+        List<Option> options = null;
+
+        if ( key != null || max != null )
+        {
+            // Use query as option set size might be very high
+
+            options = optionStore.getOptions( optionSetId, key, max );
         }
-      }
-      if (option.getCode() == null) {
-        throw new ConflictException(ErrorCode.E4000, "code");
-      }
-      ErrorMessage error = validateOption(optionSet, option);
-      if (error != null) {
-        throw new ConflictException(error);
-      }
-    }
-  }
+        else
+        {
+            // Return all from object association to preserve custom order
 
-  @Override
-  public ErrorMessage validateOption(OptionSet optionSet, Option option) {
-    if (optionSet != null
-        && optionSet.getValueType() == ValueType.MULTI_TEXT
-        && option.getCode().contains(ValueType.MULTI_TEXT_SEPARATOR)) {
-      return new ErrorMessage(ErrorCode.E1118, optionSet.getUid(), option.getCode());
-    }
-    return null;
-  }
+            OptionSet optionSet = getOptionSet( optionSetId );
 
-  @Override
-  @Transactional(readOnly = true)
-  public OptionSet getOptionSet(long id) {
-    return optionSetStore.get(id);
-  }
+            options = new ArrayList<>( optionSet.getOptions() );
+        }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OptionSet getOptionSet(String uid) {
-    return optionSetStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionSet getOptionSetByName(String name) {
-    return optionSetStore.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionSet getOptionSetByCode(String code) {
-    return optionSetStore.getByCode(code);
-  }
-
-  @Override
-  @Transactional
-  public void deleteOptionSet(OptionSet optionSet) {
-    optionSetStore.delete(optionSet);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<OptionSet> getAllOptionSets() {
-    return optionSetStore.getAll();
-  }
-
-  // -------------------------------------------------------------------------
-  // Option
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
-    List<Option> options;
-
-    if (key != null || max != null) {
-      // Use query as option set size might be very high
-
-      options = optionStore.getOptions(optionSetId, key, max);
-    } else {
-      // Return all from object association to preserve custom order
-
-      OptionSet optionSet = getOptionSet(optionSetId);
-
-      options = new ArrayList<>(optionSet.getOptions());
+        return options;
     }
 
-    return options;
-  }
+    @Override
+    public void updateOption( Option option )
+    {
+        optionStore.update( option );
+    }
 
-  @Override
-  @Transactional
-  public void updateOption(Option option) {
-    optionStore.update(option);
-  }
+    @Override
+    public Option getOption( int id )
+    {
+        return optionStore.get( id );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Option getOption(long id) {
-    return optionStore.get(id);
-  }
+    @Override
+    public Option getOptionByCode( String code )
+    {
+        return optionStore.getByCode( code );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Option getOptionByCode(String code) {
-    return optionStore.getByCode(code);
-  }
+    @Override
+    public void deleteOption( Option option )
+    {
+        optionStore.delete( option );
+    }
 
-  @Override
-  @Transactional
-  public void deleteOption(Option option) {
-    optionStore.delete(option);
-  }
+    // -------------------------------------------------------------------------
+    // OptionGroup
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // OptionGroup
-  // -------------------------------------------------------------------------
+    @Override
+    public int saveOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.save( group );
 
-  @Override
-  @Transactional
-  public long saveOptionGroup(OptionGroup group) {
-    optionGroupStore.save(group);
+        return group.getId();
+    }
 
-    return group.getId();
-  }
+    @Override
+    public void updateOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.update( group );
+    }
 
-  @Override
-  @Transactional
-  public void updateOptionGroup(OptionGroup group) {
-    optionGroupStore.update(group);
-  }
+    @Override
+    public OptionGroup getOptionGroup( int id )
+    {
+        return optionGroupStore.get( id );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroup getOptionGroup(long id) {
-    return optionGroupStore.get(id);
-  }
+    @Override
+    public OptionGroup getOptionGroup( String uid )
+    {
+        return optionGroupStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroup getOptionGroup(String uid) {
-    return optionGroupStore.getByUid(uid);
-  }
+    @Override
+    public void deleteOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.delete( group );
+    }
 
-  @Override
-  @Transactional
-  public void deleteOptionGroup(OptionGroup group) {
-    optionGroupStore.delete(group);
-  }
+    @Override
+    public List<OptionGroup> getAllOptionGroups()
+    {
+        return optionGroupStore.getAll();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<OptionGroup> getAllOptionGroups() {
-    return optionGroupStore.getAll();
-  }
+    // -------------------------------------------------------------------------
+    // OptionGroupSet
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // OptionGroupSet
-  // -------------------------------------------------------------------------
+    @Override
+    public int saveOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.save( group );
 
-  @Override
-  @Transactional
-  public long saveOptionGroupSet(OptionGroupSet group) {
-    optionGroupSetStore.save(group);
+        return group.getId();
+    }
 
-    return group.getId();
-  }
+    @Override
+    public void updateOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.update( group );
+    }
 
-  @Override
-  @Transactional
-  public void updateOptionGroupSet(OptionGroupSet group) {
-    optionGroupSetStore.update(group);
-  }
+    @Override
+    public OptionGroupSet getOptionGroupSet( int id )
+    {
+        return optionGroupSetStore.get( id );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroupSet getOptionGroupSet(long id) {
-    return optionGroupSetStore.get(id);
-  }
+    @Override
+    public OptionGroupSet getOptionGroupSet( String uid )
+    {
+        return optionGroupSetStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroupSet getOptionGroupSet(String uid) {
-    return optionGroupSetStore.getByUid(uid);
-  }
+    @Override
+    public void deleteOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.delete( group );
+    }
 
-  @Override
-  @Transactional
-  public void deleteOptionGroupSet(OptionGroupSet group) {
-    optionGroupSetStore.delete(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<OptionGroupSet> getAllOptionGroupSets() {
-    return optionGroupSetStore.getAll();
-  }
+    @Override
+    public List<OptionGroupSet> getAllOptionGroupSets()
+    {
+        return optionGroupSetStore.getAll();
+    }
 }

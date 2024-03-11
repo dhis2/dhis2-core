@@ -1,5 +1,7 @@
+package org.hisp.dhis.notification.logging;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,58 +27,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification.logging;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-/** Created by zubair@dhis2.org on 10.01.18. */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.notification.logging.NotificationLoggingService")
-public class DefaultNotificationLoggingService implements NotificationLoggingService {
-  private final NotificationLoggingStore notificationLoggingStore;
+/**
+ * Created by zubair@dhis2.org on 10.01.18.
+ */
+public class DefaultNotificationLoggingService
+    implements NotificationLoggingService
+{
+    @Autowired
+    private NotificationLoggingStore notificationLoggingStore;
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalNotificationLogEntry get(String uid) {
-    return notificationLoggingStore.getByUid(uid);
-  }
+    @Override
+    public ExternalNotificationLogEntry get(String uid )
+    {
+        return notificationLoggingStore.getByUid( uid );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalNotificationLogEntry get(int id) {
-    return notificationLoggingStore.get(id);
-  }
+    @Override
+    public ExternalNotificationLogEntry get( int id )
+    {
+        return notificationLoggingStore.get( id );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalNotificationLogEntry getByKey(String key) {
-    return notificationLoggingStore.getByKey(key);
-  }
+    @Override
+    public ExternalNotificationLogEntry getByKey( String key )
+    {
+        return notificationLoggingStore.getByKey( key );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<ExternalNotificationLogEntry> getAllLogEntries() {
-    return notificationLoggingStore.getAll();
-  }
+    @Override
+    public List<ExternalNotificationLogEntry> getAllLogEntries()
+    {
+        return notificationLoggingStore.getAll();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public ExternalNotificationLogEntry getByTemplateUid(String templateUid) {
-    return notificationLoggingStore.getByTemplateUid(templateUid);
-  }
+    @Override
+    public boolean isValidForSending( String key )
+    {
+        ExternalNotificationLogEntry logEntry = getByKey( key );
 
-  @Override
-  @Transactional
-  public void save(ExternalNotificationLogEntry entry) {
-    notificationLoggingStore.save(entry);
-  }
+        return logEntry == null || logEntry.isAllowMultiple();
+    }
 
-  @Override
-  @Transactional
-  public void update(ExternalNotificationLogEntry entry) {
-    notificationLoggingStore.update(entry);
-  }
+    @Override
+    public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
+    {
+        return notificationLoggingStore.getByTemplateUid( templateUid );
+    }
+
+    @Override
+    public void save( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.save( entry );
+    }
+
+    @Override
+    public void update( ExternalNotificationLogEntry entry )
+    {
+        notificationLoggingStore.update( entry );
+    }
 }

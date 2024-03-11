@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.acl;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +27,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.acl;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.junit.Test;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AccessStringHelperTest {
+public class AccessStringHelperTest
+{
+    @Test
+    public void testCanRead()
+    {
+        String access = "r-------";
+        String access_will_fail = "--------";
 
-  @Test
-  void testCanRead() {
-    String access = "r-------";
-    String access_will_fail = "--------";
-    assertTrue(AccessStringHelper.canRead(access));
-    assertFalse(AccessStringHelper.canRead(access_will_fail));
-  }
+        assertTrue( AccessStringHelper.canRead( access ) );
+        assertFalse( AccessStringHelper.canRead( access_will_fail ) );
+    }
 
-  @Test
-  void testCanWrite() {
-    String access1 = "rw------";
-    String access2 = "-w------";
-    String access_will_fail = "--------";
-    assertTrue(AccessStringHelper.canWrite(access1));
-    assertTrue(AccessStringHelper.canWrite(access2));
-    assertFalse(AccessStringHelper.canWrite(access_will_fail));
-  }
+    @Test
+    public void testCanWrite()
+    {
+        String access1 = "rw------";
+        String access2 = "-w------";
+        String access_will_fail = "--------";
 
-  @Test
-  void staticRead() {
-    assertTrue(AccessStringHelper.canRead(AccessStringHelper.READ));
-    assertFalse(AccessStringHelper.canWrite(AccessStringHelper.READ));
-  }
+        assertTrue( AccessStringHelper.canWrite( access1 ) );
+        assertTrue( AccessStringHelper.canWrite( access2 ) );
+        assertFalse( AccessStringHelper.canWrite( access_will_fail ) );
+    }
 
-  @Test
-  void staticWrite() {
-    assertFalse(AccessStringHelper.canRead(AccessStringHelper.WRITE));
-    assertTrue(AccessStringHelper.canWrite(AccessStringHelper.WRITE));
-  }
+    @Test
+    public void staticRead()
+    {
+        assertTrue( AccessStringHelper.canRead( AccessStringHelper.READ ) );
+        assertFalse( AccessStringHelper.canWrite( AccessStringHelper.READ ) );
+    }
 
-  @Test
-  void staticReadWrite() {
-    assertTrue(AccessStringHelper.canRead(AccessStringHelper.READ_WRITE));
-    assertTrue(AccessStringHelper.canWrite(AccessStringHelper.READ_WRITE));
-  }
+    @Test
+    public void staticWrite()
+    {
+        assertFalse( AccessStringHelper.canRead( AccessStringHelper.WRITE ) );
+        assertTrue( AccessStringHelper.canWrite( AccessStringHelper.WRITE ) );
+    }
+
+    @Test
+    public void staticReadWrite()
+    {
+        assertTrue( AccessStringHelper.canRead( AccessStringHelper.READ_WRITE ) );
+        assertTrue( AccessStringHelper.canWrite( AccessStringHelper.READ_WRITE ) );
+    }
 }

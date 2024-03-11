@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,18 +34,22 @@ import java.util.Set;
 /**
  * @author Lars Helge Overland
  */
-public class ServiceProvider<T> {
-  protected Map<String, T> services;
+public class ServiceProvider<T>
+{
+    protected Map<String, T> services;
 
-  public void setServices(Map<String, T> services) {
-    this.services = services;
-  }
-
-  public T provide(String key) {
-    return services.get(key);
-  }
-
-  public Set<String> getServiceKeySet() {
-    return services.keySet();
-  }
+    public void setServices( Map<String, T> services )
+    {
+        this.services = services;
+    }
+    
+    public T provide( String key )
+    {
+        return services.get( key );
+    }
+    
+    public Set<String> getServiceKeySet()
+    {
+        return services.keySet();
+    }
 }

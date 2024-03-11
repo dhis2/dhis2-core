@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,108 +27,133 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.UserRole;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
+import java.util.List;
+
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
-@RequiredArgsConstructor
-public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
-  private final ProgramService programService;
+public class ProgramDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final CategoryService categoryService;
+    @Autowired
+    private ProgramService programService;
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
-    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
-    whenDeleting(UserRole.class, this::deleteUserRole);
-    whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
-    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
-    whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
-  }
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
-  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
-    CategoryCombo defaultCategoryCombo =
-        categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
+    @Autowired
+    private CategoryService categoryService;
 
-    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-    for (Program program : programs) {
-      if (program != null && categoryCombo.equals(program.getCategoryCombo())) {
-        program.setCategoryCombo(defaultCategoryCombo);
-        idObjectManager.updateNoAcl(program);
-      }
+    @Override
+    public String getClassName()
+    {
+        return Program.class.getSimpleName();
     }
-  }
 
-  private void deleteOrganisationUnit(OrganisationUnit unit) {
-    for (Program program : unit.getPrograms()) {
-      program.getOrganisationUnits().remove(unit);
-      idObjectManager.updateNoAcl(program);
+    @Override
+    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        CategoryCombo defaultCategoryCombo = categoryService
+            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+
+        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+
+        for ( Program program : programs )
+        {            
+            if ( program != null && categoryCombo.equals( program.getCategoryCombo() ) )
+            {
+                program.setCategoryCombo( defaultCategoryCombo );
+                idObjectManager.updateNoAcl( program );
+            }
+        }        
     }
-  }
 
-  private void deleteUserRole(UserRole group) {
-    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
+    @Override
+    public void deleteOrganisationUnit( OrganisationUnit unit )
+    {
+        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
-    for (Program program : programs) {
-      if (program.getUserRoles().remove(group)) {
-        idObjectManager.updateNoAcl(program);
-      }
-    }
-  }
-
-  private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
-    Collection<Program> programs = programService.getProgramsByTrackedEntityType(trackedEntityType);
-
-    return (programs != null && !programs.isEmpty()) ? VETO : ACCEPT;
-  }
-
-  private void deleteTrackedEntityAttribute(TrackedEntityAttribute trackedEntityAttribute) {
-    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
-
-    for (Program program : programs) {
-      List<ProgramTrackedEntityAttribute> removeList = new ArrayList<>();
-
-      for (ProgramTrackedEntityAttribute programAttribute : program.getProgramAttributes()) {
-        if (programAttribute.getAttribute().equals(trackedEntityAttribute)) {
-          removeList.add(programAttribute);
+        for ( Program program : programs )
+        {
+            if ( program.getOrganisationUnits().remove( unit ) )
+            {
+                idObjectManager.updateNoAcl( program );
+            }
         }
-      }
-
-      if (!removeList.isEmpty()) {
-        program.getProgramAttributes().removeAll(removeList);
-        idObjectManager.updateNoAcl(program);
-      }
     }
-  }
 
-  private void deleteDataEntryForm(DataEntryForm dataEntryForm) {
-    List<Program> associatedPrograms = programService.getProgramsByDataEntryForm(dataEntryForm);
+    @Override
+    public void deleteUserAuthorityGroup( UserAuthorityGroup group )
+    {
+        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
-    for (Program program : associatedPrograms) {
-      program.setDataEntryForm(null);
-      idObjectManager.updateNoAcl(program);
+        for ( Program program : programs )
+        {
+            if ( program.getUserRoles().remove( group ) )
+            {
+                idObjectManager.updateNoAcl( program );
+            }
+        }
     }
-  }
+
+    @Override
+    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        Collection<Program> programs = programService.getProgramsByTrackedEntityType( trackedEntityType );
+
+        return (programs != null && programs.size() > 0) ? ERROR : null;
+    }
+
+    @Override
+    public void deleteTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )
+    {
+        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+
+        for ( Program program : programs )
+        {
+            for ( ProgramTrackedEntityAttribute programAttribute : program.getProgramAttributes() )
+            {
+                if ( programAttribute.getAttribute().equals( trackedEntityAttribute ) )
+                {
+                    program.getProgramAttributes().remove( programAttribute );
+                    idObjectManager.updateNoAcl( program );
+                }
+            }
+        }
+    }
+
+    @Override
+    public void deleteDataEntryForm( DataEntryForm dataEntryForm )
+    {
+        List<Program> associatedPrograms = programService.getProgramsByDataEntryForm( dataEntryForm );
+
+        for ( Program program : associatedPrograms )
+        {
+            program.setDataEntryForm( null );
+            idObjectManager.updateNoAcl( program );
+        }
+    }
 }

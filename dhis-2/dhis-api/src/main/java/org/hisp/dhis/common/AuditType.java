@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 /**
- * This class is deprecated in favor of new async auditing solution, do not use.
- *
  * @author Halvdan Hoem Grelland
  */
-public enum AuditType {
-  CREATE,
-  UPDATE,
-  DELETE,
-  READ,
-  SEARCH
+public enum AuditType
+{
+    CREATE( "create" ), UPDATE( "update" ), DELETE( "delete" ), READ( "read" ), SEARCH( "search" );
+
+    private final String value;
+
+    AuditType( String value )
+    {
+        this.value = value;
+    }
+
+    public String getValue()
+    {
+        return value;
+    }
 }

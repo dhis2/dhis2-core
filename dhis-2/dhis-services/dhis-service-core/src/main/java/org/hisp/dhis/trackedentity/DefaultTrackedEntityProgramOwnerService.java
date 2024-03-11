@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,286 +27,290 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
-import java.util.Collections;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 /**
  * @author Ameen Mohamed
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService")
-public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+@Transactional
+public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final TrackedEntityInstanceService trackedEntityInstanceService;
+    @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
 
-  private final ProgramService programService;
+    @Autowired
+    private ProgramService programService;
 
-  private final OrganisationUnitService orgUnitService;
+    @Autowired
+    private OrganisationUnitService orgUnitService;
 
-  private final CurrentUserService currentUserService;
+    @Autowired
+    private CurrentUserService currentUserService;
 
-  private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
+    @Autowired
+    private TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
 
-  @Override
-  @Transactional
-  public void createTrackedEntityProgramOwner(String teiUid, String programUid, String orgUnitUid) {
-    TrackedEntityInstance entityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(teiUid);
-    if (entityInstance == null) {
-      return;
-    }
-    Program program = programService.getProgram(programUid);
-    if (program == null) {
-      return;
-    }
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitUid);
-    if (ou == null) {
-      return;
-    }
-    trackedEntityProgramOwnerStore.save(
-        buildTrackedEntityProgramOwner(entityInstance, program, ou));
-  }
-
-  @Override
-  @Transactional
-  public void createTrackedEntityProgramOwner(
-      TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou) {
-    if (entityInstance == null || program == null || ou == null) {
-      return;
-    }
-    trackedEntityProgramOwnerStore.save(
-        buildTrackedEntityProgramOwner(entityInstance, program, ou));
-  }
-
-  private TrackedEntityProgramOwner buildTrackedEntityProgramOwner(
-      TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou) {
-    TrackedEntityProgramOwner teiProgramOwner =
-        new TrackedEntityProgramOwner(entityInstance, program, ou);
-    teiProgramOwner.updateDates();
-    User user = currentUserService.getCurrentUser();
-    if (user != null) {
-      teiProgramOwner.setCreatedBy(user.getUsername());
-    }
-    return teiProgramOwner;
-  }
-
-  @Override
-  @Transactional
-  public void createOrUpdateTrackedEntityProgramOwner(
-      String teiUid, String programUid, String orgUnitUid) {
-    TrackedEntityInstance entityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(teiUid);
-    Program program = programService.getProgram(programUid);
-    if (entityInstance == null) {
-      return;
-    }
-    TrackedEntityProgramOwner teiProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-            entityInstance.getId(), program.getId());
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitUid);
-    if (ou == null) {
-      return;
+    @Override
+    public void createTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        if ( entityInstance == null )
+        {
+            return;
+        }
+        Program program = programService.getProgram( programUid );
+        if ( program == null )
+        {
+            return;
+        }
+        OrganisationUnit ou = orgUnitService.getOrganisationUnit( orgUnitUid );
+        if ( ou == null )
+        {
+            return;
+        }
+        trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
     }
 
-    if (teiProgramOwner == null) {
-      trackedEntityProgramOwnerStore.save(
-          buildTrackedEntityProgramOwner(entityInstance, program, ou));
-    } else {
-      teiProgramOwner = updateTrackedEntityProgramOwner(teiProgramOwner, ou);
-      trackedEntityProgramOwnerStore.update(teiProgramOwner);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void createOrUpdateTrackedEntityProgramOwner(
-      long teiUid, long programUid, long orgUnitUid) {
-    TrackedEntityInstance entityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(teiUid);
-    Program program = programService.getProgram(programUid);
-    if (entityInstance == null) {
-      return;
-    }
-    TrackedEntityProgramOwner teiProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-            entityInstance.getId(), program.getId());
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitUid);
-    if (ou == null) {
-      return;
+    @Override
+    public void createTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+        OrganisationUnit ou )
+    {
+        if ( entityInstance == null || program == null || ou == null )
+        {
+            return;
+        }
+        trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
     }
 
-    if (teiProgramOwner == null) {
-      trackedEntityProgramOwnerStore.save(
-          buildTrackedEntityProgramOwner(entityInstance, program, ou));
-    } else {
-      teiProgramOwner = updateTrackedEntityProgramOwner(teiProgramOwner, ou);
-      trackedEntityProgramOwnerStore.update(teiProgramOwner);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void createOrUpdateTrackedEntityProgramOwner(
-      TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou) {
-    if (entityInstance == null || program == null || ou == null) {
-      return;
-    }
-    TrackedEntityProgramOwner teiProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-            entityInstance.getId(), program.getId());
-    if (teiProgramOwner == null) {
-      trackedEntityProgramOwnerStore.save(
-          buildTrackedEntityProgramOwner(entityInstance, program, ou));
-    } else {
-      teiProgramOwner = updateTrackedEntityProgramOwner(teiProgramOwner, ou);
-      trackedEntityProgramOwnerStore.update(teiProgramOwner);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityProgramOwner(
-      TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou) {
-    if (entityInstance == null || program == null || ou == null) {
-      return;
-    }
-    TrackedEntityProgramOwner teiProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-            entityInstance.getId(), program.getId());
-    if (teiProgramOwner == null) {
-      return;
-    }
-    teiProgramOwner = updateTrackedEntityProgramOwner(teiProgramOwner, ou);
-    trackedEntityProgramOwnerStore.update(teiProgramOwner);
-  }
-
-  private TrackedEntityProgramOwner updateTrackedEntityProgramOwner(
-      TrackedEntityProgramOwner teiProgramOwner, OrganisationUnit ou) {
-    teiProgramOwner.setOrganisationUnit(ou);
-    teiProgramOwner.updateDates();
-    User user = currentUserService.getCurrentUser();
-    if (user != null) {
-      teiProgramOwner.setCreatedBy(user.getUsername());
-    }
-    return teiProgramOwner;
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityProgramOwner(String teiUid, String programUid, String orgUnitUid) {
-    TrackedEntityInstance entityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(teiUid);
-    if (entityInstance == null) {
-      return;
-    }
-    Program program = programService.getProgram(programUid);
-    if (program == null) {
-      return;
+    private TrackedEntityProgramOwner buildTrackedEntityProgramOwner( TrackedEntityInstance entityInstance,
+        Program program, OrganisationUnit ou )
+    {
+        TrackedEntityProgramOwner teiProgramOwner = new TrackedEntityProgramOwner( entityInstance, program, ou );
+        teiProgramOwner.updateDates();
+        User user = currentUserService.getCurrentUser();
+        if ( user != null )
+        {
+            teiProgramOwner.setCreatedBy( user.getUsername() );
+        }
+        return teiProgramOwner;
     }
 
-    TrackedEntityProgramOwner teProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-            entityInstance.getId(), program.getId());
-    if (teProgramOwner == null) {
-      return;
-    }
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitUid);
-    if (ou == null) {
-      return;
-    }
-    teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, ou);
-    trackedEntityProgramOwnerStore.update(teProgramOwner);
-  }
+    @Override
+    public void createOrUpdateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        Program program = programService.getProgram( programUid );
+        if ( entityInstance == null )
+        {
+            return;
+        }
+        TrackedEntityProgramOwner teiProgramOwner = trackedEntityProgramOwnerStore
+            .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+        OrganisationUnit ou = orgUnitService.getOrganisationUnit( orgUnitUid );
+        if ( ou == null )
+        {
+            return;
+        }
 
-  @Override
-  @Transactional
-  public void createTrackedEntityProgramOwner(long teiId, long programId, long orgUnitId) {
-    TrackedEntityInstance entityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(teiId);
-    if (entityInstance == null) {
-      return;
+        if ( teiProgramOwner == null )
+        {
+            trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
+        }
+        else
+        {
+            teiProgramOwner = updateTrackedEntityProgramOwner( teiProgramOwner, ou );
+            trackedEntityProgramOwnerStore.update( teiProgramOwner );
+        }
     }
-    Program program = programService.getProgram(programId);
-    if (program == null) {
-      return;
-    }
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitId);
-    if (ou == null) {
-      return;
-    }
-    trackedEntityProgramOwnerStore.save(
-        buildTrackedEntityProgramOwner(entityInstance, program, ou));
-  }
 
-  @Override
-  @Transactional
-  public void updateTrackedEntityProgramOwner(long teiId, long programId, long orgUnitId) {
-    TrackedEntityProgramOwner teProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(teiId, programId);
-    if (teProgramOwner == null) {
-      return;
+    @Override
+    public void createOrUpdateTrackedEntityProgramOwner( int teiUid, int programUid, int orgUnitUid )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        Program program = programService.getProgram( programUid );
+        if ( entityInstance == null )
+        {
+            return;
+        }
+        TrackedEntityProgramOwner teiProgramOwner = trackedEntityProgramOwnerStore
+            .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+        OrganisationUnit ou = orgUnitService.getOrganisationUnit( orgUnitUid );
+        if ( ou == null )
+        {
+            return;
+        }
+
+        if ( teiProgramOwner == null )
+        {
+            trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
+        }
+        else
+        {
+            teiProgramOwner = updateTrackedEntityProgramOwner( teiProgramOwner, ou );
+            trackedEntityProgramOwnerStore.update( teiProgramOwner );
+        }
     }
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitId);
-    if (ou == null) {
-      return;
+
+    @Override
+    public void createOrUpdateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+        OrganisationUnit ou )
+    {
+        if ( entityInstance == null || program == null || ou == null )
+        {
+            return;
+        }
+        TrackedEntityProgramOwner teiProgramOwner = trackedEntityProgramOwnerStore
+            .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+        if ( teiProgramOwner == null )
+        {
+            trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
+        }
+        else
+        {
+            teiProgramOwner = updateTrackedEntityProgramOwner( teiProgramOwner, ou );
+            trackedEntityProgramOwnerStore.update( teiProgramOwner );
+        }
     }
-    trackedEntityProgramOwnerStore.update(updateTrackedEntityProgramOwner(teProgramOwner, ou));
-  }
 
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teiId, long programId) {
-    return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(teiId, programId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public TrackedEntityProgramOwner getTrackedEntityProgramOwner(String teiUid, String programUid) {
-    TrackedEntityInstance entityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(teiUid);
-    Program program = programService.getProgram(programUid);
-    if (entityInstance == null || program == null) {
-      return null;
+    @Override
+    public void updateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+        OrganisationUnit ou )
+    {
+        if ( entityInstance == null || program == null || ou == null )
+        {
+            return;
+        }
+        TrackedEntityProgramOwner teiProgramOwner = trackedEntityProgramOwnerStore
+            .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+        if ( teiProgramOwner == null )
+        {
+            return;
+        }
+        teiProgramOwner = updateTrackedEntityProgramOwner( teiProgramOwner, ou );
+        trackedEntityProgramOwnerStore.update( teiProgramOwner );
     }
-    return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-        entityInstance.getId(), program.getId());
-  }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId(List<Long> teiIds) {
-    return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners(teiIds);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId(
-      List<Long> teiIds, Program program) {
-    return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners(teiIds, program.getId());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId(
-      List<Long> teiIds, Program program) {
-    if (teiIds.isEmpty()) {
-      return Collections.emptyList();
+    private TrackedEntityProgramOwner updateTrackedEntityProgramOwner( TrackedEntityProgramOwner teiProgramOwner,
+        OrganisationUnit ou )
+    {
+        teiProgramOwner.setOrganisationUnit( ou );
+        teiProgramOwner.updateDates();
+        User user = currentUserService.getCurrentUser();
+        if ( user != null )
+        {
+            teiProgramOwner.setCreatedBy( user.getUsername() );
+        }
+        return teiProgramOwner;
     }
-    return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnersUids(
-        teiIds, program.getId());
-  }
+
+    @Override
+    public void updateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        if ( entityInstance == null )
+        {
+            return;
+        }
+        Program program = programService.getProgram( programUid );
+        if ( program == null )
+        {
+            return;
+        }
+
+        TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerStore
+            .getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+        if ( teProgramOwner == null )
+        {
+            return;
+        }
+        OrganisationUnit ou = orgUnitService.getOrganisationUnit( orgUnitUid );
+        if ( ou == null )
+        {
+            return;
+        }
+        teProgramOwner = updateTrackedEntityProgramOwner( teProgramOwner, ou );
+        trackedEntityProgramOwnerStore.update( teProgramOwner );
+    }
+
+    @Override
+    public void createTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
+        if ( entityInstance == null )
+        {
+            return;
+        }
+        Program program = programService.getProgram( programId );
+        if ( program == null )
+        {
+            return;
+        }
+        OrganisationUnit ou = orgUnitService.getOrganisationUnit( orgUnitId );
+        if ( ou == null )
+        {
+            return;
+        }
+        trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
+    }
+
+    @Override
+    public void updateTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId )
+    {
+        TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( teiId,
+            programId );
+        if ( teProgramOwner == null )
+        {
+            return;
+        }
+        OrganisationUnit ou = orgUnitService.getOrganisationUnit( orgUnitId );
+        if ( ou == null )
+        {
+            return;
+        }
+        trackedEntityProgramOwnerStore.update( updateTrackedEntityProgramOwner( teProgramOwner, ou ) );
+    }
+
+    @Override
+    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId )
+    {
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( teiId, programId );
+    }
+
+    @Override
+    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( String teiUid, String programUid )
+    {
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        Program program = programService.getProgram( programUid );
+        if ( entityInstance == null || program == null )
+        {
+            return null;
+        }
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+    }
+
+    @Override
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds )
+    {
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds );
+    }
+
+    @Override
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds, Program program )
+    {
+        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds, program.getId() );
+    }
+
 }

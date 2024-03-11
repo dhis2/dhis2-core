@@ -1,5 +1,7 @@
+package org.hisp.dhis.report;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,161 +27,182 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.report;
-
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.schema.annotation.Gist;
-import org.hisp.dhis.schema.annotation.Gist.Include;
-import org.hisp.dhis.visualization.ReportingParams;
-import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.reporttable.ReportParams;
+import org.hisp.dhis.reporttable.ReportTable;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "report", namespace = DXF_2_0)
-public class Report extends BaseIdentifiableObject implements Cacheable, MetadataObject {
-  private ReportType type;
+@JacksonXmlRootElement( localName = "report", namespace = DxfNamespaces.DXF_2_0 )
+public class Report
+    extends BaseIdentifiableObject
+    implements Cacheable, MetadataObject
+{
+    public static final String TEMPLATE_DIR = "templates";
 
-  private String designContent;
+    private ReportType type;
 
-  private Visualization visualization;
+    private String designContent;
 
-  private RelativePeriods relatives;
+    private ReportTable reportTable;
 
-  private ReportingParams reportingParams;
+    private RelativePeriods relatives;
 
-  private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
+    private ReportParams reportParams;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
 
-  public Report() {}
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public Report(String name, ReportType type, String designContent, Visualization visualization) {
-    this.name = name;
-    this.type = type;
-    this.designContent = designContent;
-    this.visualization = visualization;
-  }
+    public Report()
+    {
+    }
 
-  public Report(
-      String name,
-      ReportType type,
-      String designContent,
-      RelativePeriods relatives,
-      ReportingParams reportingParams) {
-    this.name = name;
-    this.type = type;
-    this.designContent = designContent;
-    this.relatives = relatives;
-    this.reportingParams = reportingParams;
-  }
+    public Report( String name, ReportType type, String designContent, ReportTable reportTable )
+    {
+        this.name = name;
+        this.type = type;
+        this.designContent = designContent;
+        this.reportTable = reportTable;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    public Report( String name, ReportType type, String designContent, RelativePeriods relatives, ReportParams reportParams )
+    {
+        this.name = name;
+        this.type = type;
+        this.designContent = designContent;
+        this.relatives = relatives;
+        this.reportParams = reportParams;
+    }
 
-  public boolean isTypeReportTable() {
-    return type != null && ReportType.JASPER_REPORT_TABLE.equals(type);
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public boolean isTypeJdbc() {
-    return type != null && ReportType.JASPER_JDBC.equals(type);
-  }
+    public boolean isTypeReportTable()
+    {
+        return type != null && ReportType.JASPER_REPORT_TABLE.equals( type );
+    }
 
-  public boolean isTypeHtml() {
-    return type != null && ReportType.HTML.equals(type);
-  }
+    public boolean isTypeJdbc()
+    {
+        return type != null && ReportType.JASPER_JDBC.equals( type );
+    }
 
-  public boolean hasVisualization() {
-    return visualization != null;
-  }
+    public boolean isTypeHtml()
+    {
+        return type != null && ReportType.HTML.equals( type );
+    }
 
-  /** Indicates whether this report has relative periods. */
-  public boolean hasRelativePeriods() {
-    return relatives != null && !relatives.isEmpty();
-  }
+    public boolean hasReportTable()
+    {
+        return reportTable != null;
+    }
 
-  /** Indicates whether this report has specific report parameters set. */
-  public boolean hasReportParams() {
-    return reportingParams != null && reportingParams.isSet();
-  }
+    /**
+     * Indicates whether this report has relative periods.
+     */
+    public boolean hasRelativePeriods()
+    {
+        return relatives != null && !relatives.isEmpty();
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    /**
+     * Indicates whether this report has report parameters set.
+     */
+    public boolean hasReportParams()
+    {
+        return reportParams != null && reportParams.isSet();
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public ReportType getType() {
-    return type;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setType(ReportType type) {
-    this.type = type;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ReportType getType()
+    {
+        return type;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public String getDesignContent() {
-    return designContent;
-  }
+    public void setType( ReportType type )
+    {
+        this.type = type;
+    }
 
-  public void setDesignContent(String designContent) {
-    this.designContent = designContent;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDesignContent()
+    {
+        return designContent;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public Visualization getVisualization() {
-    return visualization;
-  }
+    public void setDesignContent( String designContent )
+    {
+        this.designContent = designContent;
+    }
 
-  public void setVisualization(Visualization visualization) {
-    this.visualization = visualization;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ReportTable getReportTable()
+    {
+        return reportTable;
+    }
 
-  @Gist(included = Include.FALSE)
-  @JsonProperty("relativePeriods")
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public RelativePeriods getRelatives() {
-    return relatives;
-  }
+    public void setReportTable( ReportTable reportTable )
+    {
+        this.reportTable = reportTable;
+    }
 
-  public void setRelatives(RelativePeriods relatives) {
-    this.relatives = relatives;
-  }
+    @JsonProperty( "relativePeriods" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RelativePeriods getRelatives()
+    {
+        return relatives;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public ReportingParams getReportParams() {
-    return reportingParams;
-  }
+    public void setRelatives( RelativePeriods relatives )
+    {
+        this.relatives = relatives;
+    }
 
-  public void setReportParams(ReportingParams reportingParams) {
-    this.reportingParams = reportingParams;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ReportParams getReportParams()
+    {
+        return reportParams;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  @Override
-  public CacheStrategy getCacheStrategy() {
-    return cacheStrategy;
-  }
+    public void setReportParams( ReportParams reportParams )
+    {
+        this.reportParams = reportParams;
+    }
 
-  public void setCacheStrategy(CacheStrategy cacheStrategy) {
-    this.cacheStrategy = cacheStrategy;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Override
+    public CacheStrategy getCacheStrategy()
+    {
+        return cacheStrategy;
+    }
+
+    public void setCacheStrategy( CacheStrategy cacheStrategy )
+    {
+        this.cacheStrategy = cacheStrategy;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentitycomment;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
 
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@RequiredArgsConstructor
 public class TrackedEntityCommentDeletionHandler
-    extends IdObjectDeletionHandler<TrackedEntityComment> {
-  private final TrackedEntityCommentService commentService;
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------    
+ 
+    @Autowired
+    TrackedEntityCommentService commentService;
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
-    whenDeleting(ProgramStageInstance.class, this::deleteProgramStageInstance);
-  }
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  private void deleteProgramInstance(ProgramInstance programInstance) {
-    for (TrackedEntityComment comment : programInstance.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
+    @Override
+    public String getClassName()
+    {
+        return ProgramInstance.class.getSimpleName();
     }
-  }
 
-  private void deleteProgramStageInstance(ProgramStageInstance programStageInstance) {
-    for (TrackedEntityComment comment : programStageInstance.getComments()) {
-      commentService.deleteTrackedEntityComment(comment);
+    @Override
+    public void deleteProgramInstance( ProgramInstance programInstance )
+    {
+        for( TrackedEntityComment comment : programInstance.getComments())
+        {
+            commentService.deleteTrackedEntityComment( comment );
+        }
     }
-  }
+    
+    @Override
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        for( TrackedEntityComment comment : programStageInstance.getComments())
+        {
+            commentService.deleteTrackedEntityComment( comment );
+        }
+    }
 }

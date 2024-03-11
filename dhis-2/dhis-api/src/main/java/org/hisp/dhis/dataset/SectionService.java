@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,63 +27,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
 import java.util.List;
 
-public interface SectionService {
-  String ID = SectionService.class.getName();
+public interface SectionService
+{
+    String ID = SectionService.class.getName();
+    
+    /**
+     * Adds a Section.
+     * 
+     * @param section the Section to add.
+     * @return the generated identifier.
+     */
+    int addSection( Section section );
 
-  /**
-   * Adds a Section.
-   *
-   * @param section the Section to add.
-   * @return the generated identifier.
-   */
-  long addSection(Section section);
+    /**
+     * Updates a Section.
+     * 
+     * @param section the Section to update.
+     */
+    void updateSection( Section section );
 
-  /**
-   * Updates a Section.
-   *
-   * @param section the Section to update.
-   */
-  void updateSection(Section section);
+    /**
+     * Deletes a Section.
+     * 
+     * @param section the Section to delete.
+     */
+    void deleteSection( Section section );
+   
+    /**
+     * Retrieves the Section with the given identifier.
+     * 
+     * @param id the identifier of the Section to retrieve.
+     * @return the Section.
+     */
+    Section getSection( int id );
 
-  /**
-   * Deletes a Section.
-   *
-   * @param section the Section to delete.
-   */
-  void deleteSection(Section section);
+    /**
+     * Retrieves the Section with the given identifier (uid).
+     *
+     * @param uid the identifier of the Section to retrieve.
+     * @return the Section.
+     */
+    Section getSection( String uid );
 
-  /**
-   * Retrieves the Section with the given identifier.
-   *
-   * @param id the identifier of the Section to retrieve.
-   * @return the Section.
-   */
-  Section getSection(long id);
-
-  /**
-   * Retrieves the Section with the given identifier (uid).
-   *
-   * @param uid the identifier of the Section to retrieve.
-   * @return the Section.
-   */
-  Section getSection(String uid);
-
-  /**
-   * Retrieves the Section with the given name.
-   *
-   * @param name the name of the Section to retrieve.
-   * @return the Section.
-   */
-  Section getSectionByName(String name, Integer dataSetId);
-
-  /**
-   * Retrieves all Sections.
-   *
-   * @return a Collection of Sections.
-   */
-  List<Section> getAllSections();
+    /**
+     * Retrieves the Section with the given name.
+     * 
+     * @param name the name of the Section to retrieve.
+     * @return the Section.
+     */
+    Section getSectionByName( String name, Integer dataSetId );
+    
+    /**
+     * Retrieves all Sections.
+     * 
+     * @return a Collection of Sections.
+     */
+    List<Section> getAllSections();  
+    
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -34,49 +35,66 @@ import org.hisp.dhis.option.Option;
 /**
  * @author Henning Håkonsen
  */
-public class EventAnalyticsDimensionalItem {
-  private String parentUid;
+public class EventAnalyticsDimensionalItem
+{
+    private String parentUid;
 
-  private Option option;
+    private Option option;
 
-  private DimensionalItemObject dimensionalItemObject;
+    private DimensionalItemObject dimensionalItemObject;
 
-  public EventAnalyticsDimensionalItem(Option option, String parentUid) {
-    this.option = option;
-    this.parentUid = parentUid;
-  }
-
-  EventAnalyticsDimensionalItem(DimensionalItemObject dimensionalItemObject, String parentUid) {
-    this.dimensionalItemObject = dimensionalItemObject;
-    this.parentUid = parentUid;
-  }
-
-  public String getParentUid() {
-    return parentUid;
-  }
-
-  public Option getOption() {
-    return option;
-  }
-
-  public String getDisplayProperty(DisplayProperty displayProperty) {
-    if (option != null) {
-      return option.getDisplayName();
-    } else {
-      if (displayProperty == DisplayProperty.NAME) {
-        return dimensionalItemObject.getName();
-      } else {
-        return dimensionalItemObject.getShortName();
-      }
+    public EventAnalyticsDimensionalItem( Option option, String parentUid )
+    {
+        this.option = option;
+        this.parentUid = parentUid;
     }
-  }
 
-  @Override
-  public String toString() {
-    if (option != null) {
-      return option.getCode();
-    } else {
-      return dimensionalItemObject.getDimensionItem();
+    EventAnalyticsDimensionalItem( DimensionalItemObject dimensionalItemObject, String parentUid )
+    {
+        this.dimensionalItemObject = dimensionalItemObject;
+        this.parentUid = parentUid;
     }
-  }
+
+    public String getParentUid()
+    {
+        return parentUid;
+    }
+
+    public Option getOption()
+    {
+        return option;
+    }
+
+    public String getDisplayProperty( DisplayProperty displayProperty )
+    {
+        if ( option != null )
+        {
+            return option.getDisplayName();
+        }
+        else
+        {
+            if ( displayProperty == DisplayProperty.NAME )
+            {
+                return dimensionalItemObject.getName();
+            }
+            else
+            {
+                return dimensionalItemObject.getShortName();
+            }
+        }
+
+    }
+
+    @Override
+    public String toString()
+    {
+        if ( option != null )
+        {
+            return option.getCode();
+        }
+        else
+        {
+            return dimensionalItemObject.getDimensionItem();
+        }
+    }
 }

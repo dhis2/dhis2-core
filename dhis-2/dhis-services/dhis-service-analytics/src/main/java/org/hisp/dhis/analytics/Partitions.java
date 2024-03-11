@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,102 +36,134 @@ import java.util.Set;
  *
  * @author Lars Helge Overland
  */
-public class Partitions {
-  /** Yearly partitions containing four-digit years. */
-  private Set<Integer> partitions = new HashSet<>();
+public class Partitions
+{
+    /**
+     * Yearly partitions containing four-digit years.
+     */
+    private Set<Integer> partitions = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public Partitions() {}
-
-  public Partitions(Set<Integer> partitions) {
-    this.partitions = partitions;
-  }
-
-  public Partitions(Partitions partitions) {
-    this.partitions =
-        partitions != null ? new HashSet<>(partitions.getPartitions()) : new HashSet<Integer>();
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /** Adds a partition. */
-  public Partitions add(Integer partition) {
-    partitions.add(partition);
-    return this;
-  }
-
-  /** Indicates whether this instance contains multiple partitions. */
-  public boolean isMultiple() {
-    return partitions != null && partitions.size() > 1;
-  }
-
-  /** Indicates whether this instance has any partitions. */
-  public boolean hasAny() {
-    return partitions != null && !partitions.isEmpty();
-  }
-
-  /** Indicates whether this instance has exactly one partition. */
-  public boolean hasOne() {
-    return partitions != null && partitions.size() == 1;
-  }
-
-  /** Indicates whether this instance has more than one partition. */
-  public boolean hasMultiple() {
-    return partitions != null && partitions.size() > 1;
-  }
-
-  /** Returns a partition. */
-  public Integer getAny() {
-    return hasAny() ? partitions.iterator().next() : null;
-  }
-
-  // -------------------------------------------------------------------------
-  // toString, hashCode, equals
-  // -------------------------------------------------------------------------
-
-  @Override
-  public String toString() {
-    return partitions.toString();
-  }
-
-  @Override
-  public int hashCode() {
-    return partitions.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
+    public Partitions()
+    {
     }
 
-    if (object == null) {
-      return false;
+    public Partitions( Set<Integer> partitions )
+    {
+        this.partitions = partitions;
     }
 
-    if (getClass() != object.getClass()) {
-      return false;
+    public Partitions( Partitions partitions )
+    {
+        this.partitions = partitions != null ? new HashSet<>( partitions.getPartitions() ) : new HashSet<Integer>();
     }
 
-    Partitions other = (Partitions) object;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-    return partitions.equals(other.partitions);
-  }
+    /**
+     * Adds a partition.
+     */
+    public Partitions add( Integer partition )
+    {
+        partitions.add( partition );
+        return this;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    /**
+     * Indicates whether this instance contains multiple partitions.
+     */
+    public boolean isMultiple()
+    {
+        return partitions != null && partitions.size() > 1;
+    }
 
-  public Set<Integer> getPartitions() {
-    return partitions;
-  }
+    /**
+     * Indicates whether this instance has any partitions.
+     */
+    public boolean hasAny()
+    {
+        return partitions != null && !partitions.isEmpty();
+    }
 
-  public void setPartitions(Set<Integer> partitions) {
-    this.partitions = partitions;
-  }
+    /**
+     * Indicates whether this instance has exactly one partition.
+     */
+    public boolean hasOne()
+    {
+        return partitions != null && partitions.size() == 1;
+    }
+
+    /**
+     * Indicates whether this instance has more than one partition.
+     */
+    public boolean hasMultiple()
+    {
+        return partitions != null && partitions.size() > 1;
+    }
+
+    /**
+     * Returns a partition.
+     */
+    public Integer getAny()
+    {
+        return hasAny() ? partitions.iterator().next() : null;
+    }
+
+    // -------------------------------------------------------------------------
+    // toString, hashCode, equals
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String toString()
+    {
+        return partitions.toString();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return partitions.hashCode();
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        Partitions other = (Partitions) object;
+
+        return partitions.equals( other.partitions );
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    public Set<Integer> getPartitions()
+    {
+        return partitions;
+    }
+
+    public void setPartitions( Set<Integer> partitions )
+    {
+        this.partitions = partitions;
+    }
 }

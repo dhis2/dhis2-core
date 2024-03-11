@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.message;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,84 +27,79 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.DeliveryChannel;
+
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public interface ProgramMessageService {
-  ProgramMessageQueryParams getFromUrl(
-      Set<String> ou,
-      String programInstance,
-      String programStageInstance,
-      ProgramMessageStatus messageStatus,
-      Integer page,
-      Integer pageSize,
-      Date afterDate,
-      Date beforeDate);
 
-  /**
-   * To check if {@link ProgramMessage message} exists against the given uid.
-   *
-   * @param uid the uid of ProgramMessage.
-   */
-  boolean exists(String uid);
+public interface ProgramMessageService
+{
+    ProgramMessageQueryParams getFromUrl( Set<String> ou, String programInstance, String programStageInstance,
+        ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate );
 
-  void currentUserHasAccess(ProgramMessageQueryParams params);
+    /**
+     * To check if {@link ProgramMessage message} exists against the given uid.
+     *
+     * @param uid the uid of ProgramMessage.
+     */
+    boolean exists( String uid );
 
-  void validateQueryParameters(ProgramMessageQueryParams params);
+    void hasAccess( ProgramMessageQueryParams params, User user );
 
-  /**
-   * To validate {@link ProgramMessage message} payload in order to make sure prerequisite values
-   * exist before message can be processed.
-   *
-   * @param message the ProgramMessage.
-   */
-  void validatePayload(ProgramMessage message);
+    void validateQueryParameters( ProgramMessageQueryParams params );
 
-  // -------------------------------------------------------------------------
-  // Transport Service methods
-  // -------------------------------------------------------------------------
+    /**
+     * To validate {@link ProgramMessage message} payload in order to make sure
+     * prerequisite values exist before message can be processed.
+     *
+     * @param message the ProgramMessage.
+     */
+    void validatePayload( ProgramMessage message );
 
-  /**
-   * Send message batch based on their {@link DeliveryChannel channel}. If the DeliveryChannel is
-   * not configured with suitable value, batch will be invalidated.
-   *
-   * @param programMessages the ProgramMessage.
-   */
-  BatchResponseStatus sendMessages(List<ProgramMessage> programMessages);
+    // -------------------------------------------------------------------------
+    // Transport Service methods
+    // -------------------------------------------------------------------------
 
-  void sendMessagesAsync(List<ProgramMessage> programMessages);
+    /**
+     * Send message batch based on their {@link DeliveryChannel channel}.
+     * If the DeliveryChannel is not configured with suitable value, batch will be
+     * invalidated.
+     *
+     * @param programMessages the ProgramMessage.
+     */
+    BatchResponseStatus sendMessages( List<ProgramMessage> programMessages );
 
-  // -------------------------------------------------------------------------
-  // GET
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // GET
+    // -------------------------------------------------------------------------
 
-  ProgramMessage getProgramMessage(long id);
+    ProgramMessage getProgramMessage( int id );
 
-  ProgramMessage getProgramMessage(String uid);
+    ProgramMessage getProgramMessage( String uid );
 
-  List<ProgramMessage> getAllProgramMessages();
+    List<ProgramMessage> getAllProgramMessages();
 
-  List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params);
+    List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params );
 
-  // -------------------------------------------------------------------------
-  // Save OR Update
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Save OR Update
+    // -------------------------------------------------------------------------
 
-  long saveProgramMessage(ProgramMessage programMessage);
+    int saveProgramMessage( ProgramMessage programMessage );
+    
+    void updateProgramMessage( ProgramMessage programMessage );
 
-  void updateProgramMessage(ProgramMessage programMessage);
+    // -------------------------------------------------------------------------
+    // Delete
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Delete
-  // -------------------------------------------------------------------------
-
-  void deleteProgramMessage(ProgramMessage programMessage);
+    void deleteProgramMessage( ProgramMessage programMessage );
 }

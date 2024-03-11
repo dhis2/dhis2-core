@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.outbound;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.outbound;
 
 import java.util.List;
 
-public interface OutboundSmsService {
-  String ID = OutboundSmsService.class.getName();
+public interface OutboundSmsService
+{
+    String ID = OutboundSmsService.class.getName();
 
-  long save(OutboundSms sms);
+    List<OutboundSms> getAllOutboundSms();
 
-  List<OutboundSms> get(OutboundSmsStatus status);
+    List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
 
-  List<OutboundSms> get(OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination);
+    int saveOutboundSms( OutboundSms sms );
 
-  OutboundSms get(long id);
+    void updateOutboundSms( OutboundSms sms );
 
-  OutboundSms get(String uid);
+    void deleteById( Integer outboundSmsId );
 
-  List<OutboundSms> getAll();
+    List<OutboundSms> getOutboundSms( OutboundSmsStatus status );
 
-  List<OutboundSms> getAll(Integer min, Integer max, boolean hasPagination);
+    List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max );
 
-  void delete(long id);
-
-  void delete(String uid);
+    OutboundSms getOutboundSms( int id );
 }

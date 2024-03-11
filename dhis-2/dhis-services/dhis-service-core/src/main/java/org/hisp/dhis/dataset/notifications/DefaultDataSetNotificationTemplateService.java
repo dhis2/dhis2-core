@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset.notifications;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +27,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.notifications;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataset.DataSet;
-import org.springframework.stereotype.Service;
 
-/** Created by zubair@dhis2.org on 20.07.17. */
-@Service
-@RequiredArgsConstructor
+/**
+ * Created by zubair@dhis2.org on 20.07.17.
+ */
 public class DefaultDataSetNotificationTemplateService
-    implements DataSetNotificationTemplateService {
-  private final DataSetNotificationTemplateStore store;
+    implements DataSetNotificationTemplateService
+{
+    @Autowired
+    private DataSetNotificationTemplateStore store;
 
-  @Override
-  public DataSetNotificationTemplate get(long id) {
-    return store.get(id);
-  }
+    @Override
+    public DataSetNotificationTemplate get( int id )
+    {
+        return store.get( id );
+    }
 
-  @Override
-  public DataSetNotificationTemplate get(String uid) {
-    return store.getByUid(uid);
-  }
+    @Override
+    public DataSetNotificationTemplate get( String uid )
+    {
+        return store.getByUid( uid );
+    }
 
-  @Override
-  public List<DataSetNotificationTemplate> getCompleteNotifications(DataSet dataSet) {
-    return store.getNotificationsByTriggerType(
-        dataSet, DataSetNotificationTrigger.DATA_SET_COMPLETION);
-  }
+    @Override
+    public List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet )
+    {
+       return store.getNotificationsByTriggerType( dataSet, DataSetNotificationTrigger.DATA_SET_COMPLETION );
+    }
 
-  @Override
-  public List<DataSetNotificationTemplate> getScheduledNotifications(
-      DataSetNotificationTrigger trigger) {
-    return store.getScheduledNotifications(trigger);
-  }
+    @Override
+    public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
+    {
+        return store.getScheduledNotifications( trigger );
+    }
 
-  @Override
-  public List<DataSetNotificationTemplate> getAll() {
-    return store.getAll();
-  }
+    @Override
+    public List<DataSetNotificationTemplate> getAll()
+    {
+        return store.getAll();
+    }
 
-  @Override
-  public void delete(DataSetNotificationTemplate template) {
-    store.delete(template);
-  }
+    @Override
+    public void delete( DataSetNotificationTemplate template )
+    {
+        store.delete( template );
+    }
 
-  @Override
-  public void save(DataSetNotificationTemplate template) {
-    store.save(template);
-  }
+    @Override
+    public void save( DataSetNotificationTemplate template )
+    {
+        store.save( template );
+    }
 }

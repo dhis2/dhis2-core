@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.event;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MaintenanceModeException;
 
 import java.util.List;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * @author Lars Helge Overland
  */
-public interface EventQueryValidator {
-  /**
-   * Validates the given query. Throws an IllegalQueryException if the query is not valid with a
-   * descriptive message. Returns normally if the query is valid.
-   *
-   * @param params the event query parameters.
-   * @throws IllegalQueryException if the query is invalid.
-   */
-  void validate(EventQueryParams params) throws IllegalQueryException;
+public interface EventQueryValidator
+{
+    /**
+     * Validates the given query. Throws an IllegalQueryException if the query
+     * is not valid with a descriptive message. Returns normally if the query is
+     * valid.
+     *
+     * @param params the event query parameters.
+     * @throws IllegalQueryException if the query is invalid.
+     */
+    void validate( EventQueryParams params )
+        throws IllegalQueryException, MaintenanceModeException;
 
-  /**
-   * Validates the given query. Returns null if the query is valid, or an {@link ErrorMessage}
-   * describing the validation violation if the query is invalid.
-   *
-   * @param params the event query parameters.
-   * @return null if valid or {@link ErrorMessage} if invalid.
-   */
-  ErrorMessage validateForErrorMessage(EventQueryParams params);
+    /**
+     * Validates whether the given table layout is valid for the given query.
+     * Throws an IllegalQueryException if the query is not valid with a
+     * descriptive message. Returns normally if the query is valid.
+     *
+     * @param params the event query parameters.
+     * @param columns the column dimension identifiers.
+     * @param rows the row dimension identifiers.
+     * @throws IllegalQueryException if the query is invalid.
+     */
+    void validateTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+        throws IllegalQueryException;
 
-  /**
-   * Validates whether the given table layout is valid for the given query. Throws an
-   * IllegalQueryException if the query is not valid with a descriptive message. Returns normally if
-   * the query is valid.
-   *
-   * @param params the event query parameters.
-   * @param columns the column dimension identifiers.
-   * @param rows the row dimension identifiers.
-   * @throws IllegalQueryException if the query is invalid.
-   */
-  void validateTableLayout(EventQueryParams params, List<String> columns, List<String> rows)
-      throws IllegalQueryException;
-
-  /**
-   * Returns the max number of records to return. A value of 0 indicates unlimited records.
-   *
-   * @return the max number of records to return.
-   */
-  int getMaxLimit();
+    /**
+     * Returns the max number of records to return. A value of 0 indicates no limit.
+     *
+     * @return the max number of recrods to return.
+     */
+    int getMaxLimit();
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import java.util.Date;
-import java.util.List;
+
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventvisualization.EventRepetition;
-import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -40,28 +39,30 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 /**
  * @author Lars Helge Overland
  */
-public interface EventAnalyticalObject extends AnalyticalObject {
-  Program getProgram();
-
-  ProgramStage getProgramStage();
-
-  Date getStartDate();
-
-  Date getEndDate();
-
-  List<SimpleDimension> getSimpleDimensions();
-
-  List<EventRepetition> getEventRepetitions();
-
-  EventOutputType getOutputType();
-
-  DimensionalItemObject getValue();
-
-  // -------------------------------------------------------------------------
-  // Base class emulation methods with default implementations
-  // -------------------------------------------------------------------------
-
-  default void setDataElementValueDimension(DataElement dataElementValueDimension) {}
-
-  default void setAttributeValueDimension(TrackedEntityAttribute attributeValueDimension) {}
+public interface EventAnalyticalObject
+    extends AnalyticalObject
+{
+    Program getProgram();
+    
+    ProgramStage getProgramStage();
+    
+    Date getStartDate();
+    
+    Date getEndDate();
+    
+    EventOutputType getOutputType();
+    
+    DimensionalItemObject getValue();
+    
+    // -------------------------------------------------------------------------
+    // Base class emulation methods with default implementations
+    // -------------------------------------------------------------------------
+    
+    default void setDataElementValueDimension( DataElement dataElementValueDimension )
+    {
+    }
+    
+    default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
+    {
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,292 +27,230 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.program.ProgramStageInstanceService")
-public class DefaultProgramStageInstanceService implements ProgramStageInstanceService {
-  private final ProgramStageInstanceStore programStageInstanceStore;
+@Transactional
+public class DefaultProgramStageInstanceService
+    implements ProgramStageInstanceService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final TrackedEntityDataValueAuditService dataValueAuditService;
+    private ProgramStageInstanceStore programStageInstanceStore;
 
-  private final FileResourceService fileResourceService;
-
-  private final DhisConfigurationProvider config;
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public long addProgramStageInstance(ProgramStageInstance programStageInstance) {
-    programStageInstance.setAutoFields();
-    programStageInstanceStore.save(programStageInstance);
-    return programStageInstance.getId();
-  }
-
-  @Override
-  @Transactional
-  public long addProgramStageInstance(ProgramStageInstance programStageInstance, User user) {
-    programStageInstance.setAutoFields();
-    programStageInstanceStore.save(programStageInstance, user);
-    return programStageInstance.getId();
-  }
-
-  @Override
-  @Transactional
-  public void deleteProgramStageInstance(ProgramStageInstance programStageInstance) {
-    programStageInstanceStore.delete(programStageInstance);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramStageInstance getProgramStageInstance(long id) {
-    return programStageInstanceStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramStageInstance getProgramStageInstance(String uid) {
-    return programStageInstanceStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional
-  public void updateProgramStageInstance(ProgramStageInstance programStageInstance) {
-    programStageInstance.setAutoFields();
-    programStageInstanceStore.update(programStageInstance);
-  }
-
-  @Override
-  @Transactional
-  public void updateProgramStageInstance(ProgramStageInstance programStageInstance, User user) {
-    programStageInstance.setAutoFields();
-    programStageInstanceStore.update(programStageInstance, user);
-  }
-
-  @Override
-  @Transactional
-  public void updateProgramStageInstancesSyncTimestamp(
-      List<String> programStageInstanceUIDs, Date lastSynchronized) {
-    programStageInstanceStore.updateProgramStageInstancesSyncTimestamp(
-        programStageInstanceUIDs, lastSynchronized);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean programStageInstanceExists(String uid) {
-    return programStageInstanceStore.exists(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean programStageInstanceExistsIncludingDeleted(String uid) {
-    return programStageInstanceStore.existsIncludingDeleted(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<String> getProgramStageInstanceUidsIncludingDeleted(List<String> uids) {
-    return programStageInstanceStore.getUidsIncludingDeleted(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public long getProgramStageInstanceCount(int days) {
-    Calendar cal = PeriodType.createCalendarInstance();
-    cal.add(Calendar.DAY_OF_YEAR, (days * -1));
-
-    return programStageInstanceStore.getProgramStageInstanceCountLastUpdatedAfter(cal.getTime());
-  }
-
-  @Override
-  @Transactional
-  public ProgramStageInstance createProgramStageInstance(
-      ProgramInstance programInstance,
-      ProgramStage programStage,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit organisationUnit) {
-    ProgramStageInstance programStageInstance = null;
-    Date currentDate = new Date();
-    Date dateCreatedEvent;
-
-    if (programStage.getGeneratedByEnrollmentDate()) {
-      dateCreatedEvent = enrollmentDate;
-    } else {
-      dateCreatedEvent = incidentDate;
+    public void setProgramStageInstanceStore( ProgramStageInstanceStore programStageInstanceStore )
+    {
+        this.programStageInstanceStore = programStageInstanceStore;
     }
 
-    Date dueDate = DateUtils.addDays(dateCreatedEvent, programStage.getMinDaysFromStart());
+    private ProgramInstanceService programInstanceService;
 
-    if (!programInstance.getProgram().getIgnoreOverdueEvents() || dueDate.before(currentDate)) {
-      programStageInstance = new ProgramStageInstance();
-      programStageInstance.setProgramInstance(programInstance);
-      programStageInstance.setProgramStage(programStage);
-      programStageInstance.setOrganisationUnit(organisationUnit);
-      programStageInstance.setDueDate(dueDate);
-      programStageInstance.setStatus(EventStatus.SCHEDULE);
-
-      if (programStage.getOpenAfterEnrollment()
-          || programInstance.getProgram().isWithoutRegistration()
-          || programStage.getPeriodType() != null) {
-        programStageInstance.setExecutionDate(dueDate);
-        programStageInstance.setStatus(EventStatus.ACTIVE);
-      }
-
-      addProgramStageInstance(programStageInstance);
+    public void setProgramInstanceService( ProgramInstanceService programInstanceService )
+    {
+        this.programInstanceService = programInstanceService;
     }
 
-    return programStageInstance;
-  }
+    private CurrentUserService currentUserService;
 
-  @Override
-  @Transactional
-  public void saveEventDataValuesAndSaveProgramStageInstance(
-      ProgramStageInstance programStageInstance,
-      Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
-    validateEventDataValues(dataElementEventDataValueMap);
-    Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
-    programStageInstance.setEventDataValues(eventDataValues);
-    addProgramStageInstance(programStageInstance);
-
-    for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
-      entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), programStageInstance, AuditType.CREATE);
-      handleFileDataValueSave(entry.getValue(), entry.getKey());
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
-  // -------------------------------------------------------------------------
-  // Validation
-  // -------------------------------------------------------------------------
-
-  private String validateEventDataValue(DataElement dataElement, EventDataValue eventDataValue) {
-
-    if (StringUtils.isEmpty(eventDataValue.getStoredBy())) {
-      return "Stored by is null or empty";
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
-    if (StringUtils.isEmpty(eventDataValue.getDataElement())) {
-      return "Data element is null or empty";
+    @Autowired
+    private TrackedEntityDataValueAuditService dataValueAuditService;
+
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int addProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        programStageInstance.setAutoFields();
+        programStageInstanceStore.save( programStageInstance );
+
+        return programStageInstance.getId();
     }
 
-    if (!dataElement.getUid().equals(eventDataValue.getDataElement())) {
-      throw new IllegalQueryException(
-          "DataElement "
-              + dataElement.getUid()
-              + " assigned to EventDataValues does not match with one EventDataValue: "
-              + eventDataValue.getDataElement());
+    @Override
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        deleteProgramStageInstance( programStageInstance, false );
     }
 
-    String result =
-        ValidationUtils.valueIsValid(eventDataValue.getValue(), dataElement.getValueType());
+    @Override
+    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete )
+    {
+        dataValueAuditService.deleteTrackedEntityDataValueAudits( programStageInstance );
 
-    return result == null ? null : "Value is not valid:  " + result;
-  }
+        if ( forceDelete )
+        {
+            programStageInstanceStore.delete( programStageInstance );
+        }
+        else
+        {
+            // Soft delete
+            programStageInstance.setDeleted( !forceDelete );
+            programStageInstanceStore.save( programStageInstance );
+        }
 
-  private void validateEventDataValues(
-      Map<DataElement, EventDataValue> dataElementEventDataValueMap) {
-    String result;
-    for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
-      result = validateEventDataValue(entry.getKey(), entry.getValue());
-      if (result != null) {
-        throw new IllegalQueryException(result);
-      }
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  // Audit
-  // -------------------------------------------------------------------------
-
-  private void createAndAddAudit(
-      EventDataValue dataValue,
-      DataElement dataElement,
-      ProgramStageInstance programStageInstance,
-      AuditType auditType) {
-    if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
-      return;
     }
 
-    TrackedEntityDataValueAudit dataValueAudit =
-        new TrackedEntityDataValueAudit(
-            dataElement,
-            programStageInstance,
-            dataValue.getValue(),
-            dataValue.getStoredBy(),
-            dataValue.getProvidedElsewhere(),
-            auditType);
-
-    dataValueAuditService.addTrackedEntityDataValueAudit(dataValueAudit);
-  }
-
-  // -------------------------------------------------------------------------
-  // File data values
-  // -------------------------------------------------------------------------
-
-  /** Update FileResource with 'assigned' status. */
-  private void handleFileDataValueSave(EventDataValue dataValue, DataElement dataElement) {
-    if (dataElement == null) {
-      return;
+    @Override
+    public ProgramStageInstance getProgramStageInstance( int id )
+    {
+        return programStageInstanceStore.get( id );
     }
 
-    FileResource fileResource = fetchFileResource(dataValue, dataElement);
-
-    if (fileResource == null) {
-      return;
+    @Override
+    public ProgramStageInstance getProgramStageInstance( String uid )
+    {
+        return programStageInstanceStore.getByUid( uid );
     }
 
-    setAssigned(fileResource);
-  }
-
-  private FileResource fetchFileResource(EventDataValue dataValue, DataElement dataElement) {
-    if (!dataElement.isFileType()) {
-      return null;
+    @Override
+    public ProgramStageInstance getProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
+    {
+        return programStageInstanceStore.get( programInstance, programStage );
     }
 
-    return fileResourceService.getFileResource(dataValue.getValue());
-  }
+    @Override
+    public void updateProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+        programStageInstance.setAutoFields();
+        programStageInstanceStore.update( programStageInstance );
+    }
 
-  private void setAssigned(FileResource fileResource) {
-    fileResource.setAssigned(true);
-    fileResourceService.updateFileResource(fileResource);
-  }
+    @Override
+    public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
+    {
+        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs, lastSynchronized );
+    }
+
+    @Override
+    public boolean programStageInstanceExists( String uid )
+    {
+        return programStageInstanceStore.exists( uid );
+    }
+
+    @Override
+    public boolean programStageInstanceExistsIncludingDeleted( String uid )
+    {
+        return programStageInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
+    public long getProgramStageInstanceCount( int days )
+    {
+        Calendar cal = PeriodType.createCalendarInstance();
+        cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
+
+        return programStageInstanceStore.getProgramStageInstanceCountLastUpdatedAfter( cal.getTime() );
+    }
+
+    @Override
+    public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications,
+        I18nFormat format, Date completedDate )
+    {
+        Calendar today = Calendar.getInstance();
+        PeriodType.clearTimeOfDay( today );
+        Date todayDate = today.getTime();
+
+        programStageInstance.setStatus( EventStatus.COMPLETED );
+
+        if ( completedDate == null )
+        {
+            programStageInstance.setCompletedDate( todayDate );
+        }
+        else
+        {
+            programStageInstance.setCompletedDate( completedDate );
+        }
+        if ( StringUtils.isEmpty( programStageInstance.getCompletedBy() ) )
+        {
+            programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
+        }
+
+        // ---------------------------------------------------------------------
+        // Update the event
+        // ---------------------------------------------------------------------
+
+        updateProgramStageInstance( programStageInstance );
+
+        // ---------------------------------------------------------------------
+        // Check Completed status for all of ProgramStageInstance of
+        // ProgramInstance
+        // ---------------------------------------------------------------------
+
+        if ( programStageInstance.getProgramInstance().getProgram().isRegistration() )
+        {
+            boolean canComplete = programInstanceService
+                .canAutoCompleteProgramInstanceStatus( programStageInstance.getProgramInstance() );
+
+            if ( canComplete )
+            {
+                programInstanceService.completeProgramInstanceStatus( programStageInstance.getProgramInstance() );
+            }
+        }
+    }
+
+    @Override
+    public ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
+    {
+        ProgramStageInstance programStageInstance = null;
+        Date currentDate = new Date();
+        Date dateCreatedEvent = null;
+
+        if ( programStage.getGeneratedByEnrollmentDate() )
+        {
+            dateCreatedEvent = enrollmentDate;
+        }
+        else
+        {
+            dateCreatedEvent = incidentDate;
+        }
+
+        Date dueDate = DateUtils.getDateAfterAddition( dateCreatedEvent, programStage.getMinDaysFromStart() );
+
+        if ( !programInstance.getProgram().getIgnoreOverdueEvents() || dueDate.before( currentDate ) )
+        {
+            programStageInstance = new ProgramStageInstance();
+            programStageInstance.setProgramInstance( programInstance );
+            programStageInstance.setProgramStage( programStage );
+            programStageInstance.setOrganisationUnit( organisationUnit );
+            programStageInstance.setDueDate( dueDate );
+            programStageInstance.setStatus( EventStatus.SCHEDULE );
+
+            if ( programStage.getOpenAfterEnrollment() || programInstance.getProgram().isWithoutRegistration()
+                || programStage.getPeriodType() != null )
+            {
+                programStageInstance.setExecutionDate( dueDate );
+                programStageInstance.setStatus( EventStatus.ACTIVE );
+            }
+
+            addProgramStageInstance( programStageInstance );
+        }
+
+        return programStageInstance;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface SectionStore extends IdentifiableObjectStore<Section> {
-  String ID = SectionStore.class.getName();
+public interface SectionStore
+    extends IdentifiableObjectStore<Section>
+{
+    String ID = SectionStore.class.getName();
 
-  /**
-   * Retrieves the Section with the given name and the given DataSet.
-   *
-   * @param name the name of the Section to retrieve.
-   * @return the Section.
-   */
-  Section getSectionByName(String name, DataSet dataSet);
-
-  List<Section> getSectionsByDataElement(String dataElementUid);
+    /**
+     * Retrieves the Section with the given name and the given DataSet.
+     *
+     * @param name the name of the Section to retrieve.
+     * @return the Section.
+     */
+    Section getSectionByName( String name, DataSet dataSet );
 }

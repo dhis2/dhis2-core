@@ -19,8 +19,6 @@ nbactions.xml
 *.ipr
 *.ids
 *.iws
-*.interp
-*.tokens
 overlays/
 ./dhis-2/atlassian-ide-plugin.xml
 ./atlassian-ide-plugin.xml
@@ -28,13 +26,8 @@ overlays/
 ./.gitattributes
 ./.gitignore
 ./.travis.yml
-.attach_pid*
 .DS_Store
 dhis-2/projectFilesBackup
 coverage
 node_modules
 **/rebel.xml
-# ignore generated artifact directory
-docker/artifacts
-# ignore local docker override files
-docker-compose.override.yml

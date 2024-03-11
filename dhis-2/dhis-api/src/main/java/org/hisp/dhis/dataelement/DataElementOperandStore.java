@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataelement;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DataElementOperandStore extends IdentifiableObjectStore<DataElementOperand> {
-  String ID = DataElementOperand.class.getName();
+public interface DataElementOperandStore
+    extends IdentifiableObjectStore<DataElementOperand>
+{
+    String ID = DataElementOperand.class.getName();
 }

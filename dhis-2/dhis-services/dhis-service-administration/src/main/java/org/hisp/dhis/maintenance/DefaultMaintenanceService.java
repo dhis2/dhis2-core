@@ -1,5 +1,27 @@
+package org.hisp.dhis.maintenance;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.commons.util.PageRange;
+import org.hisp.dhis.dataapproval.DataApprovalAuditService;
+import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,206 +47,212 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.maintenance;
-
-import java.util.Collections;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.commons.util.PageRange;
-import org.hisp.dhis.dataapproval.DataApprovalAuditService;
-import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInvitationStatus;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.maintenance.MaintenanceService")
-public class DefaultMaintenanceService implements MaintenanceService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+public class DefaultMaintenanceService
+    implements MaintenanceService
+{
+    private static final Log log = LogFactory.getLog( DefaultMaintenanceService.class );
 
-  private final MaintenanceStore maintenanceStore;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final PeriodService periodService;
+    private MaintenanceStore maintenanceStore;
 
-  private final UserService userService;
+    public void setMaintenanceStore( MaintenanceStore maintenanceStore )
+    {
+        this.maintenanceStore = maintenanceStore;
+    }
+    
+    private PeriodService periodService;
 
-  private final CurrentUserService currentUserService;
-
-  private final DataValueService dataValueService;
-
-  private final DataValueAuditService dataValueAuditService;
-
-  private final CompleteDataSetRegistrationService completeRegistrationService;
-
-  private final DataApprovalService dataApprovalService;
-
-  private final DataApprovalAuditService dataApprovalAuditService;
-
-  private final ApplicationEventPublisher eventPublisher;
-
-  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
-
-  // -------------------------------------------------------------------------
-  // MaintenanceService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public int deleteZeroDataValues() {
-    int result = maintenanceStore.deleteZeroDataValues();
-
-    log.info("Deleted zero data values: " + result);
-
-    return result;
-  }
-
-  @Override
-  public int deleteSoftDeletedDataValues() {
-    int result = maintenanceStore.deleteSoftDeletedDataValues();
-
-    log.info("Permanently deleted soft deleted data values: " + result);
-
-    return result;
-  }
-
-  @Override
-  public int deleteSoftDeletedProgramStageInstances() {
-    int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
-
-    log.info("Permanently deleted soft deleted events: " + result);
-
-    return result;
-  }
-
-  @Override
-  public int deleteSoftDeletedRelationships() {
-    int result = maintenanceStore.deleteSoftDeletedRelationships();
-
-    log.info("Permanently deleted soft deleted relationships: " + result);
-
-    return result;
-  }
-
-  @Override
-  public int deleteSoftDeletedProgramInstances() {
-    int result = maintenanceStore.deleteSoftDeletedProgramInstances();
-
-    log.info("Permanently deleted soft deleted enrollments: " + result);
-
-    return result;
-  }
-
-  @Override
-  public int deleteSoftDeletedTrackedEntityInstances() {
-    int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
-
-    log.info("Permanently deleted soft deleted tracked entity instances: " + result);
-
-    return result;
-  }
-
-  @Override
-  @Transactional
-  public void prunePeriods() {
-    maintenanceStore.prunePeriods();
-  }
-
-  @Override
-  @Transactional
-  public boolean pruneData(OrganisationUnit organisationUnit) {
-    User user = currentUserService.getCurrentUser();
-
-    if (user == null || !user.isSuper()) {
-      return false;
+    public void setPeriodService( PeriodService periodService )
+    {
+        this.periodService = periodService;
     }
 
-    dataApprovalService.deleteDataApprovals(organisationUnit);
-    dataApprovalAuditService.deleteDataApprovalAudits(organisationUnit);
-    completeRegistrationService.deleteCompleteDataSetRegistrations(organisationUnit);
-    dataValueAuditService.deleteDataValueAudits(organisationUnit);
-    dataValueService.deleteDataValues(organisationUnit);
+    private UserService userService;
 
-    log.info("Pruned data for organisation unit: " + organisationUnit);
+    public void setUserService( UserService userService )
+    {
+        this.userService = userService;
+    }
+    
+    @Autowired
+    private CurrentUserService currentUserService;
+    
+    @Autowired
+    private DataValueService dataValueService;
+    
+    @Autowired
+    private DataValueAuditService dataValueAuditService;
+    
+    @Autowired
+    private CompleteDataSetRegistrationService completeRegistrationService;
 
-    return true;
-  }
+    @Autowired
+    private DataApprovalService dataApprovalService;
 
-  @Override
-  @Transactional
-  public boolean pruneData(DataElement dataElement) {
-    User user = currentUserService.getCurrentUser();
+    @Autowired
+    private DataApprovalAuditService dataApprovalAuditService;
 
-    if (user == null || !user.isSuper()) {
-      return false;
+    // -------------------------------------------------------------------------
+    // MaintenanceService implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int deleteZeroDataValues()
+    {
+        int result = maintenanceStore.deleteZeroDataValues();
+        
+        log.info( "Deleted zero data values: " + result );
+        
+        return result;
+    }
+    
+    @Override
+    public int deleteSoftDeletedDataValues()
+    {
+        int result = maintenanceStore.deleteSoftDeletedDataValues();
+        
+        log.info( "Permanently deleted soft deleted data values: " + result );
+        
+        return result;
     }
 
-    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
-    dataValueAuditService.deleteDataValueAudits(dataElement);
-    dataValueService.deleteDataValues(dataElement);
+    @Override
+    public int deleteSoftDeletedProgramStageInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
 
-    log.info("Pruned data for data element: " + dataElement);
+        log.info( "Permanently deleted soft deleted events: " + result );
 
-    return true;
-  }
+        return result;
+    }
 
-  @Override
-  @Transactional
-  public int removeExpiredInvitations() {
-    UserQueryParams params = new UserQueryParams();
-    params.setInvitationStatus(UserInvitationStatus.EXPIRED);
+    @Override
+    public int deleteSoftDeletedProgramInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
 
-    int userCount = userService.getUserCount(params);
-    int removeCount = 0;
+        log.info( "Permanently deleted soft deleted enrollments: " + result );
 
-    PageRange range = new PageRange(userCount).setPageSize(200);
-    List<int[]> pages = range.getPages();
-    Collections.reverse(pages); // Iterate from end since users are
-    // deleted
+        return result;
+    }
 
-    log.debug("Pages: " + pages);
+    @Override
+    public int deleteSoftDeletedTrackedEntityInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
 
-    for (int[] page : pages) {
-      params.setFirst(page[0]);
-      params.setMax(range.getPageSize());
-      List<User> users = userService.getUsers(params);
+        log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
 
-      for (User user : users) {
-        try {
-          userService.deleteUser(user);
-          removeCount++;
-        } catch (DeleteNotAllowedException ex) {
-          log.warn("Could not delete user " + user.getUsername());
+        return result;
+    }
+
+    @Override
+    public void prunePeriods()
+    {
+        for ( Period period : periodService.getAllPeriods() )
+        {
+            int periodId = period.getId();
+            
+            try
+            {
+                periodService.deletePeriod( period );
+                
+                log.info( "Deleted period with id: " + periodId );
+            }
+            catch ( DeleteNotAllowedException ex )
+            {
+                log.debug( "Period has associated objects and could not be deleted: " + periodId );
+            }
         }
-      }
     }
 
-    log.info("Removed expired invitations: " + removeCount);
+    @Override
+    @Transactional
+    public boolean pruneData( OrganisationUnit organisationUnit )
+    {
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null || !user.isSuper() )
+        {
+            return false;
+        }
 
-    return removeCount;
-  }
+        dataApprovalService.deleteDataApprovals( organisationUnit );
+        dataApprovalAuditService.deleteDataApprovalAudits( organisationUnit );
+        completeRegistrationService.deleteCompleteDataSetRegistrations( organisationUnit );
+        dataValueAuditService.deleteDataValueAudits( organisationUnit );
+        dataValueService.deleteDataValues( organisationUnit );
+        
+        log.info( "Pruned data for organisation unit: " + organisationUnit );
+        
+        return true;
+    }
 
-  @Override
-  public void clearApplicationCaches() {
-    eventPublisher.publishEvent(new ApplicationCacheClearedEvent());
-  }
+    @Override
+    @Transactional
+    public boolean pruneData( DataElement dataElement )
+    {
+        User user = currentUserService.getCurrentUser();
+
+
+        if ( user == null  || !user.isSuper() )
+        {
+            return false;
+        }
+
+        dataValueAuditService.deleteDataValueAudits( dataElement );
+        dataValueService.deleteDataValues( dataElement );
+
+        log.info( "Pruned data for data element: " + dataElement );
+
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public int removeExpiredInvitations()
+    {
+        UserQueryParams params = new UserQueryParams();
+        params.setInvitationStatus( UserInvitationStatus.EXPIRED );
+        
+        int userCount = userService.getUserCount( params );
+        int removeCount = 0;
+        
+        PageRange range = new PageRange( userCount ).setPageSize( 200 );
+        List<int[]> pages = range.getPages();
+        Collections.reverse( pages ); // Iterate from end since users are deleted
+        
+        log.debug( "Pages: " + pages );
+        
+        for ( int[] page : pages )
+        {
+            params.setFirst( page[0] );
+            params.setMax( range.getPageSize() );
+            List<User> users = userService.getUsers( params );
+            
+            for ( User user : users )
+            {
+                try
+                {
+                    userService.deleteUser( user );                    
+                    removeCount++;
+                }
+                catch ( DeleteNotAllowedException ex )
+                {
+                    log.warn( "Could not delete user " + user.getUsername() );
+                }
+            }
+        }
+        
+        log.info( "Removed expired invitations: " + removeCount );
+        
+        return removeCount;
+    }
 }

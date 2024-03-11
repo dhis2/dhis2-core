@@ -1,5 +1,7 @@
+package org.hisp.dhis.datastatistics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastatistics;
+
+import org.hisp.dhis.analytics.SortOrder;
+
+import org.hisp.dhis.common.GenericStore;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public interface DataStatisticsEventStore extends GenericStore<DataStatisticsEvent> {
-  /**
-   * Method for retrieving aggregated event count data.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return a map between DataStatisticsEventTypes and counts.
-   */
-  Map<DataStatisticsEventType, Double> getDataStatisticsEventCount(Date startDate, Date endDate);
+public interface DataStatisticsEventStore
+    extends GenericStore<DataStatisticsEvent>
+{
+    /**
+     * Method for retrieving aggregated event count data.
+     *
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return a map between DataStatisticsEventTypes and counts.
+     */
+    Map<DataStatisticsEventType, Double> getDataStatisticsEventCount( Date startDate, Date endDate );
 
-  /**
-   * Returns top favorites by views
-   *
-   * @param eventType that should be counted
-   * @param pageSize number of favorites
-   * @param sortOrder sort order of the favorites
-   * @param username of user
-   * @return list of FavoriteStatistics
-   */
-  List<FavoriteStatistics> getFavoritesData(
-      DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username);
+    /**
+     * Returns top favorites by views
+     *
+     * @param eventType that should be counted
+     * @param pageSize number of favorites
+     * @param sortOrder sort order of the favorites
+     * @param username of user
+     * @return list of FavoriteStatistics
+     */
+    List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username );
 
-  /**
-   * Returns data statistics for the favorite with the given identifier.
-   *
-   * @param uid the favorite identifier.
-   * @return data statistics for the favorite with the given identifier.
-   */
-  FavoriteStatistics getFavoriteStatistics(String uid);
+    /**
+     * Returns data statistics for the favorite with the given identifier.
+     * 
+     * @param uid the favorite identifier.
+     * @return data statistics for the favorite with the given identifier.
+     */
+    FavoriteStatistics getFavoriteStatistics( String uid );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -35,180 +36,171 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "dataElementDimension", namespace = DxfNamespaces.DXF_2_0)
-public class TrackedEntityDataElementDimension {
-  private int id;
+@JacksonXmlRootElement( localName = "dataElementDimension", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityDataElementDimension
+{
+    private int id;
 
-  /** Data element. */
-  private DataElement dataElement;
+    /**
+     * Data element.
+     */
+    private DataElement dataElement;
 
-  /** Legend set. */
-  private LegendSet legendSet;
+    /**
+     * Legend set.
+     */
+    private LegendSet legendSet;
 
-  /** Program stage. */
-  private ProgramStage programStage;
+    /**
+     * Operator and filter on this format:
+     * <operator>:<filter>;<operator>:<filter>
+     * Operator and filter pairs can be repeated any number of times.
+     */
+    private String filter;
 
-  /**
-   * Operator and filter on this format: <operator>:<filter>;<operator>:<filter> Operator and filter
-   * pairs can be repeated any number of times.
-   */
-  private String filter;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public TrackedEntityDataElementDimension() {}
-
-  public TrackedEntityDataElementDimension(
-      DataElement dataElement, LegendSet legendSet, ProgramStage programStage, String filter) {
-    this.dataElement = dataElement;
-    this.legendSet = legendSet;
-    this.programStage = programStage;
-    this.filter = filter;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public String getUid() {
-    return dataElement != null ? dataElement.getUid() : null;
-  }
-
-  public String getDisplayName() {
-    return dataElement != null ? dataElement.getDisplayName() : null;
-  }
-
-  @Override
-  public String toString() {
-    return "{"
-        + "\"class\":\""
-        + getClass()
-        + "\", "
-        + "\"id\":\""
-        + id
-        + "\", "
-        + "\"dataElement\":"
-        + dataElement
-        + ", "
-        + "\"legendSet\":"
-        + legendSet
-        + ", "
-        + "\"programStage\":"
-        + programStage
-        + ", "
-        + "\"filter\":\""
-        + filter
-        + "\" "
-        + "}";
-  }
-
-  @Override
-  public int hashCode() {
-    int result = id;
-    result = 31 * result + (dataElement != null ? dataElement.hashCode() : 0);
-    result = 31 * result + (legendSet != null ? legendSet.hashCode() : 0);
-    result = 31 * result + (programStage != null ? programStage.hashCode() : 0);
-    result = 31 * result + (filter != null ? filter.hashCode() : 0);
-
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public TrackedEntityDataElementDimension()
+    {
     }
 
-    if (o == null) {
-      return false;
+    public TrackedEntityDataElementDimension( DataElement dataElement, LegendSet legendSet, String filter )
+    {
+        this.dataElement = dataElement;
+        this.legendSet = legendSet;
+        this.filter = filter;
     }
 
-    if (!getClass().isAssignableFrom(o.getClass())) {
-      return false;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public String getUid()
+    {
+        return dataElement != null ? dataElement.getUid() : null;
     }
 
-    final TrackedEntityDataElementDimension other = (TrackedEntityDataElementDimension) o;
-
-    if (dataElement != null ? !dataElement.equals(other.dataElement) : other.dataElement != null) {
-      return false;
+    public String getDisplayName()
+    {
+        return dataElement != null ? dataElement.getDisplayName() : null;
     }
 
-    if (legendSet != null ? !legendSet.equals(other.legendSet) : other.legendSet != null) {
-      return false;
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"id\":\"" + id + "\", " +
+            "\"dataElement\":" + dataElement + ", " +
+            "\"legendSet\":" + legendSet + ", " +
+            "\"filter\":\"" + filter + "\" " +
+            "}";
     }
 
-    if (programStage != null
-        ? !programStage.equals(other.programStage)
-        : other.programStage != null) {
-      return false;
+    @Override
+    public int hashCode()
+    {
+        int result = id;
+        result = 31 * result + (dataElement != null ? dataElement.hashCode() : 0);
+        result = 31 * result + (legendSet != null ? legendSet.hashCode() : 0);
+        result = 31 * result + (filter != null ? filter.hashCode() : 0);
+
+        return result;
     }
 
-    if (filter != null ? !filter.equals(other.filter) : other.filter != null) {
-      return false;
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null )
+        {
+            return false;
+        }
+
+        if ( !getClass().isAssignableFrom( o.getClass() ) )
+        {
+            return false;
+        }
+
+        final TrackedEntityDataElementDimension other = (TrackedEntityDataElementDimension) o;
+
+        if ( dataElement != null ? !dataElement.equals( other.dataElement ) : other.dataElement != null )
+        {
+            return false;
+        }
+
+        if ( legendSet != null ? !legendSet.equals( other.legendSet ) : other.legendSet != null )
+        {
+            return false;
+        }
+
+        if ( filter != null ? !filter.equals( other.filter ) : other.filter != null )
+        {
+            return false;
+        }
+
+        return true;
     }
 
-    return true;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public int getId()
+    {
+        return id;
+    }
 
-  public int getId() {
-    return id;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  public void setId(int id) {
-    this.id = id;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElement getDataElement()
+    {
+        return dataElement;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataElement getDataElement() {
-    return dataElement;
-  }
+    public void setDataElement( DataElement dataElement )
+    {
+        this.dataElement = dataElement;
+    }
 
-  public void setDataElement(DataElement dataElement) {
-    this.dataElement = dataElement;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet()
+    {
+        return legendSet;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public LegendSet getLegendSet() {
-    return legendSet;
-  }
+    public void setLegendSet( LegendSet legendSet )
+    {
+        this.legendSet = legendSet;
+    }
 
-  public void setLegendSet(LegendSet legendSet) {
-    this.legendSet = legendSet;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFilter()
+    {
+        return filter;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStage getProgramStage() {
-    return programStage;
-  }
-
-  public void setProgramStage(ProgramStage programStage) {
-    this.programStage = programStage;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFilter() {
-    return filter;
-  }
-
-  public void setFilter(String filter) {
-    this.filter = filter;
-  }
+    public void setFilter( String filter )
+    {
+        this.filter = filter;
+    }
 }

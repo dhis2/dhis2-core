@@ -1,5 +1,7 @@
+package org.hisp.dhis.notification.logging;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,96 +27,114 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification.logging;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Date;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 
-/** Created by zubair@dhis2.org on 10.01.18. */
-@JacksonXmlRootElement(
-    localName = "externalNotificationLogEntry",
-    namespace = DxfNamespaces.DXF_2_0)
-public class ExternalNotificationLogEntry extends BaseIdentifiableObject {
-  private Date lastSentAt;
+import java.util.Date;
 
-  private int retries;
+/**
+ * Created by zubair@dhis2.org on 10.01.18.
+ */
 
-  private String key;
+@JacksonXmlRootElement( localName = "externalNotificationLogEntry", namespace = DxfNamespaces.DXF_2_0 )
+public class ExternalNotificationLogEntry
+    extends BaseIdentifiableObject
+{
+    private Date lastSentAt;
 
-  private String notificationTemplateUid;
+    private int retries;
 
-  private boolean allowMultiple;
+    private String key;
 
-  private NotificationTriggerEvent notificationTriggeredBy;
+    private String notificationTemplateUid;
 
-  public ExternalNotificationLogEntry() {}
+    private boolean allowMultiple;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getKey() {
-    return key;
-  }
+    private NotificationTriggerEvent notificationTriggeredBy;
 
-  public void setKey(String key) {
-    this.key = key;
-  }
+    public ExternalNotificationLogEntry()
+    {
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getLastSentAt() {
-    return lastSentAt;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getKey()
+    {
+        return key;
+    }
 
-  public void setLastSentAt(Date lastSentAt) {
-    this.lastSentAt = lastSentAt;
-  }
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getRetries() {
-    return retries;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastSentAt()
+    {
+        return lastSentAt;
+    }
 
-  public void setRetries(int retries) {
-    this.retries = retries;
-  }
+    public void setLastSentAt( Date lastSentAt )
+    {
+        this.lastSentAt = lastSentAt;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public NotificationTriggerEvent getNotificationTriggeredBy() {
-    return notificationTriggeredBy;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getRetries()
+    {
+        return retries;
+    }
 
-  public void setNotificationTriggeredBy(NotificationTriggerEvent notificationTriggeredBy) {
-    this.notificationTriggeredBy = notificationTriggeredBy;
-  }
+    public void setRetries( int retries )
+    {
+        this.retries = retries;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isAllowMultiple() {
-    return allowMultiple;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public NotificationTriggerEvent getNotificationTriggeredBy()
+    {
+        return notificationTriggeredBy;
+    }
 
-  public void setAllowMultiple(boolean allowMultiple) {
-    this.allowMultiple = allowMultiple;
-  }
+    public void setNotificationTriggeredBy( NotificationTriggerEvent notificationTriggeredBy )
+    {
+        this.notificationTriggeredBy = notificationTriggeredBy;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getNotificationTemplateUid() {
-    return notificationTemplateUid;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAllowMultiple()
+    {
+        return allowMultiple;
+    }
 
-  public void setNotificationTemplateUid(String notificationTemplateUid) {
-    this.notificationTemplateUid = notificationTemplateUid;
-  }
+    public void setAllowMultiple( boolean allowMultiple )
+    {
+        this.allowMultiple = allowMultiple;
+    }
 
-  @Override
-  public void setAutoFields() {
-    super.setAutoFields();
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getNotificationTemplateUid()
+    {
+        return notificationTemplateUid;
+    }
+
+    public void setNotificationTemplateUid( String notificationTemplateUid )
+    {
+        this.notificationTemplateUid = notificationTemplateUid;
+    }
+
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.message;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,121 +27,133 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JacksonXmlRootElement(localName = "programMessageRecipients", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramMessageRecipients implements Serializable {
-  private static final long serialVersionUID = 1141462154959329242L;
 
-  private TrackedEntityInstance trackedEntityInstance;
+@JacksonXmlRootElement( localName = "programMessageRecipients", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramMessageRecipients
+    implements Serializable
+{
+    private static final long serialVersionUID = 1141462154959329242L;
 
-  private OrganisationUnit organisationUnit;
+    private TrackedEntityInstance trackedEntityInstance;
 
-  private Set<String> phoneNumbers = new HashSet<>();
+    private OrganisationUnit organisationUnit;
 
-  private Set<String> emailAddresses = new HashSet<>();
+    private Set<String> phoneNumbers = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    private Set<String> emailAddresses = new HashSet<>();
 
-  public ProgramMessageRecipients() {}
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public ProgramMessageRecipients(Set<String> phoneNumbers, Set<String> emailAddresses) {
-    this.phoneNumbers = phoneNumbers;
-    this.emailAddresses = emailAddresses;
-  }
+    public ProgramMessageRecipients()
+    {
+    }
 
-  public ProgramMessageRecipients(
-      TrackedEntityInstance trackedEntityInstance,
-      OrganisationUnit organisationUnit,
-      Set<String> phoneNumbers,
-      Set<String> emailAddresses) {
-    this.trackedEntityInstance = trackedEntityInstance;
-    this.organisationUnit = organisationUnit;
-    this.phoneNumbers = phoneNumbers;
-    this.emailAddresses = emailAddresses;
-  }
+    public ProgramMessageRecipients( Set<String> phoneNumbers, Set<String> emailAddresses )
+    {
+        this.phoneNumbers = phoneNumbers;
+        this.emailAddresses = emailAddresses;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    public ProgramMessageRecipients( TrackedEntityInstance trackedEntityInstance,
+        OrganisationUnit organisationUnit, Set<String> phoneNumbers, Set<String> emailAddresses )
+    {
+        this.trackedEntityInstance = trackedEntityInstance;
+        this.organisationUnit = organisationUnit;
+        this.phoneNumbers = phoneNumbers;
+        this.emailAddresses = emailAddresses;
+    }
 
-  public boolean hasTrackedEntityInstance() {
-    return trackedEntityInstance != null;
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public boolean hasOrganisationUnit() {
-    return organisationUnit != null;
-  }
+    public boolean hasTrackedEntityInstance()
+    {
+        return trackedEntityInstance != null;
+    }
 
-  // -------------------------------------------------------------------------
-  // Setters and getters
-  // -------------------------------------------------------------------------
+    public boolean hasOrganisationUnit()
+    {
+        return organisationUnit != null;
+    }
 
-  @JsonProperty(value = "trackedEntityInstance")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(localName = "trackedEntityInstance")
-  public TrackedEntityInstance getTrackedEntityInstance() {
-    return trackedEntityInstance;
-  }
+    // -------------------------------------------------------------------------
+    // Setters and getters
+    // -------------------------------------------------------------------------
 
-  public void setTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
-    this.trackedEntityInstance = trackedEntityInstance;
-  }
+    @JsonProperty( value = "trackedEntityInstance" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "trackedEntityInstance" )
+    public TrackedEntityInstance getTrackedEntityInstance()
+    {
+        return trackedEntityInstance;
+    }
 
-  @JsonProperty(value = "organisationUnit")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(localName = "organisationUnit")
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
+    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    {
+        this.trackedEntityInstance = trackedEntityInstance;
+    }
 
-  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-  }
+    @JsonProperty( value = "organisationUnit" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "organisationUnit" )
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
 
-  @JsonProperty(value = "phoneNumbers")
-  @JacksonXmlProperty(localName = "phoneNumbers")
-  public Set<String> getPhoneNumbers() {
-    return phoneNumbers;
-  }
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
+    }
 
-  public void setPhoneNumbers(Set<String> phoneNumbers) {
-    this.phoneNumbers = phoneNumbers;
-  }
+    @JsonProperty( value = "phoneNumbers" )
+    @JacksonXmlProperty( localName = "phoneNumbers" )
+    public Set<String> getPhoneNumbers()
+    {
+        return phoneNumbers;
+    }
 
-  @JsonProperty(value = "emailAddresses")
-  @JacksonXmlProperty(localName = "emailAddresses")
-  public Set<String> getEmailAddresses() {
-    return emailAddresses;
-  }
+    public void setPhoneNumbers( Set<String> phoneNumbers )
+    {
+        this.phoneNumbers = phoneNumbers;
+    }
 
-  public void setEmailAddresses(Set<String> emailAddress) {
-    this.emailAddresses = emailAddress;
-  }
+    @JsonProperty( value = "emailAddresses" )
+    @JacksonXmlProperty( localName = "emailAddresses" )
+    public Set<String> getEmailAddresses()
+    {
+        return emailAddresses;
+    }
 
-  @Override
-  public String toString() {
-    return "ProgramMessageRecipients[ "
-        + (phoneNumbers != null
-            ? " " + phoneNumbers + " "
-            : " " + (emailAddresses != null ? " " + emailAddresses + " " : ""))
-        + " ]";
-  }
+    public void setEmailAddresses( Set<String> emailAddress )
+    {
+        this.emailAddresses = emailAddress;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ProgramMessageRecipients[ " + (phoneNumbers != null ? " " + phoneNumbers + " "
+            : " " + (emailAddresses != null ? " " + emailAddresses + " " : "")) + " ]";
+    }
 }

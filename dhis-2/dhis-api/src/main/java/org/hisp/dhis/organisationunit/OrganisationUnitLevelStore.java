@@ -1,5 +1,7 @@
+package org.hisp.dhis.organisationunit;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -34,17 +35,21 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface OrganisationUnitLevelStore extends IdentifiableObjectStore<OrganisationUnitLevel> {
-  String ID = OrganisationUnitLevelStore.class.getName();
+public interface OrganisationUnitLevelStore
+    extends IdentifiableObjectStore<OrganisationUnitLevel>
+{
+    String ID = OrganisationUnitLevelStore.class.getName();
 
-  /** Deletes all OrganisationUnitLevels. */
-  void deleteAll();
+    /**
+     * Deletes all OrganisationUnitLevels.
+     */
+    void deleteAll();
 
-  /**
-   * Gets the OrganisationUnitLevel at the given level.
-   *
-   * @param level the level.
-   * @return the OrganisationUnitLevel at the given level.
-   */
-  OrganisationUnitLevel getByLevel(int level);
+    /**
+     * Gets the OrganisationUnitLevel at the given level.
+     *
+     * @param level the level.
+     * @return the OrganisationUnitLevel at the given level.
+     */
+    OrganisationUnitLevel getByLevel( int level );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.option.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option.hibernate;
 
-import java.util.List;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
  */
-@Repository("org.hisp.dhis.option.OptionStore")
-public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Option>
-    implements OptionStore {
-  public HibernateOptionStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Option.class,
-        currentUserService,
-        aclService,
-        true);
-  }
+public class HibernateOptionStore
+    extends HibernateIdentifiableObjectStore<Option>
+    implements OptionStore
+{
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    @Override
+    public List<Option> getOptions( int optionSetId, String key, Integer max )
+    {
+        String hql = 
+            "select option from OptionSet as optionset " +
+            "join optionset.options as option where optionset.id = :optionSetId ";
+        
+        if ( key != null )
+        {
+            hql += "and lower(option.name) like lower('%" + key + "%') ";
+        }
 
-  @Override
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
-    String hql =
-        "select option from OptionSet as optionset "
-            + "join optionset.options as option where optionset.id = :optionSetId ";
+        hql += "order by index(option)";
+        
+        Query<Option> query = getQuery( hql );
+        query.setParameter( "optionSetId", optionSetId );
+        
+        if ( max != null )
+        {
+            query.setMaxResults( max );
+        }
 
-    if (key != null) {
-      hql += "and lower(option.name) like lower('%" + key + "%') ";
+        return query.list();
     }
-
-    hql += "order by index(option)";
-
-    Query<Option> query = getQuery(hql);
-    query.setParameter("optionSetId", optionSetId);
-
-    if (max != null) {
-      query.setMaxResults(max);
-    }
-
-    return query.list();
-  }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,10 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 import java.util.Map;
 import java.util.concurrent.Future;
+
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
@@ -38,33 +40,31 @@ import org.hisp.dhis.common.ListMap;
  *
  * @author Lars Helge Overland
  */
-public interface AnalyticsManager {
-  /**
-   * Retrieves aggregated data values for the given query. The data is returned as a mapping where
-   * the key is concatenated from the dimension options for all dimensions separated by "-", and the
-   * value is the data value. This method is invoked asynchronously. The value class can be Double
-   * or String.
-   *
-   * @param params the {@link DataQueryParams} to retrieve aggregated data for.
-   * @param tableType the {@link AnalyticsTableType}.
-   * @param maxLimit the max number of records to retrieve.
-   * @return a map.
-   * @throws IllegalQueryException if query result set exceeds the max limit.
-   */
-  Future<Map<String, Object>> getAggregatedDataValues(
-      DataQueryParams params, AnalyticsTableType tableType, int maxLimit);
+public interface AnalyticsManager
+{
+    /**
+     * Retrieves aggregated data values for the given query. The data is returned
+     * as a mapping where the key is concatenated from the dimension options for
+     * all dimensions separated by "-", and the value is the data value. This
+     * method is invoked asynchronously. The value class can be Double or String.
+     *
+     * @param params the query to retrieve aggregated data for.
+     * @param tableType the {@link AnalyticsTableType}.
+     * @param maxLimit the max number of records to retrieve.
+     * @return a map.
+     * @throws IllegalQueryException if query result set exceeds the max limit.
+     */
+    Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, AnalyticsTableType tableType, int maxLimit );
 
-  /**
-   * Inserts entries for the aggregation periods mapped to each data period in the given data value
-   * map. Removes the original entry for the data period.
-   *
-   * @param dataValueMap map with entries for data values produced for the query.
-   * @param params the {@link DataQueryParams}.
-   * @param dataPeriodAggregationPeriodMap the mapping between data periods and aggregation periods
-   *     for the query.
-   */
-  void replaceDataPeriodsWithAggregationPeriods(
-      Map<String, Object> dataValueMap,
-      DataQueryParams params,
-      ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap);
+    /**
+     * Inserts entries for the aggregation periods mapped to each data period
+     * in the given data value map. Removes the original entry for the data period.
+     *
+     * @param dataValueMap map with entries for all data values produced for the query.
+     * @param params the query.
+     * @param dataPeriodAggregationPeriodMap the mapping between data periods and
+     *        aggregation periods for this query.
+     */
+    void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap,
+        DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap );
 }

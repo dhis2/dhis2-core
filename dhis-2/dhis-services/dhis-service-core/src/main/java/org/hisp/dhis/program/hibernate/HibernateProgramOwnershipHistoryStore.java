@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryStore;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-@Repository("org.hisp.dhis.program.ProgramOwnershipHistoryStore")
-public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore {
-  private SessionFactory sessionFactory;
+public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore
+{
 
-  public HibernateProgramOwnershipHistoryStore(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
-  }
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // ProgramOwnershipHistoryStore implementation
-  // -------------------------------------------------------------------------
+    private SessionFactory sessionFactory;
 
-  @Override
-  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
-    sessionFactory.getCurrentSession().save(programOwnershipHistory);
-  }
+    public void setSessionFactory( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
+    }
+
+    // -------------------------------------------------------------------------
+    // ProgramOwnershipHistoryStore implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory )
+    {
+        sessionFactory.getCurrentSession().save( programOwnershipHistory );
+    }
 }

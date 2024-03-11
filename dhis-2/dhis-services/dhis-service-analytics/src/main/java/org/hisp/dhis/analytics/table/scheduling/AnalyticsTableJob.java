@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.table.scheduling;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.scheduling;
 
-import java.util.Date;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
-@RequiredArgsConstructor
-public class AnalyticsTableJob implements Job {
-  private final AnalyticsTableGenerator analyticsTableGenerator;
+public class AnalyticsTableJob
+    extends AbstractJob
+{
+    @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.ANALYTICS_TABLE;
-  }
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    AnalyticsJobParameters parameters =
-        (AnalyticsJobParameters) jobConfiguration.getJobParameters();
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.ANALYTICS_TABLE;
+    }
 
-    AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(parameters.getLastYears())
-            .withSkipResourceTables(parameters.isSkipResourceTables())
-            .withSkipTableTypes(parameters.getSkipTableTypes())
-            .withSkipPrograms(parameters.getSkipPrograms())
-            .withJobId(jobConfiguration)
-            .withStartTime(new Date())
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        AnalyticsJobParameters parameters = (AnalyticsJobParameters) jobConfiguration.getJobParameters();
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears( parameters.getLastYears() )
+            .withJobId( jobConfiguration )
+            .withSkipTableTypes( parameters.getSkipTableTypes() )
+            .withSkipResourceTables( parameters.isSkipResourceTables() )
             .build();
 
-    analyticsTableGenerator.generateTables(params, progress);
-  }
+        analyticsTableGenerator.generateTables( params );
+    }
 }

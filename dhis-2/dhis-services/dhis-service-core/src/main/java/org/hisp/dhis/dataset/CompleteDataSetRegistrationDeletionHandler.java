@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +27,73 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
-import java.util.Map;
-import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
+ * @version $Id$
  */
-@Component
-@AllArgsConstructor
-public class CompleteDataSetRegistrationDeletionHandler extends JdbcDeletionHandler {
-  private static final DeletionVeto VETO = new DeletionVeto(CompleteDataSetRegistration.class);
+public class CompleteDataSetRegistrationDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+    private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-  @Override
-  protected void register() {
-    whenDeleting(DataSet.class, this::deleteDataSet);
-    whenVetoing(Period.class, this::allowDeletePeriod);
-    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
-    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
-  }
+    public void setCompleteDataSetRegistrationService( CompleteDataSetRegistrationService completeDataSetRegistrationService )
+    {
+        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
+    }
 
-  private void deleteDataSet(DataSet dataSet) {
-    completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(dataSet);
-  }
+    private JdbcTemplate jdbcTemplate;
 
-  private DeletionVeto allowDeletePeriod(Period period) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from completedatasetregistration where periodid= :id limit 1",
-        Map.of("id", period.getId()));
-  }
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  private void deleteOrganisationUnit(OrganisationUnit unit) {
-    completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(unit);
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from completedatasetregistration where attributeoptioncomboid= :id limit 1",
-        Map.of("id", optionCombo.getId()));
-  }
+    @Override
+    public String getClassName()
+    {
+        return CompleteDataSetRegistration.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteDataSet( DataSet dataSet )
+    {
+        completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( dataSet );
+    }
+
+    @Override
+    public String allowDeletePeriod( Period period )
+    {
+        String sql = "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+
+    @Override
+    public void deleteOrganisationUnit( OrganisationUnit unit )
+    {
+        completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( unit );
+    }
+
+    @Override
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    {
+        String sql = "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid=" + optionCombo.getId();
+        
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

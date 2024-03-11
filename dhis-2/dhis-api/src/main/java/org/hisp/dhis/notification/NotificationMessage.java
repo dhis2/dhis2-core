@@ -1,5 +1,7 @@
+package org.hisp.dhis.notification;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.notification;
 
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -33,41 +34,46 @@ import org.hisp.dhis.message.MessageConversationStatus;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class NotificationMessage {
-  private String subject = "";
+public class NotificationMessage
+{
+    private String subject = "";
+    private String message = "";
+    private MessageConversationPriority priority = MessageConversationPriority.NONE;
+    private MessageConversationStatus status = MessageConversationStatus.NONE;
 
-  private String message = "";
+    public NotificationMessage( String subject, String message )
+    {
+        this.subject = subject;
+        this.message = message;
+    }
 
-  private MessageConversationPriority priority = MessageConversationPriority.NONE;
+    public String getSubject()
+    {
+        return subject;
+    }
 
-  private MessageConversationStatus status = MessageConversationStatus.NONE;
+    public String getMessage()
+    {
+        return message;
+    }
 
-  public NotificationMessage(String subject, String message) {
-    this.subject = subject;
-    this.message = message;
-  }
+    public MessageConversationPriority getPriority()
+    {
+        return priority;
+    }
 
-  public String getSubject() {
-    return subject;
-  }
+    public void setPriority( MessageConversationPriority priority )
+    {
+        this.priority = priority;
+    }
 
-  public String getMessage() {
-    return message;
-  }
+    public MessageConversationStatus getStatus()
+    {
+        return status;
+    }
 
-  public MessageConversationPriority getPriority() {
-    return priority;
-  }
-
-  public void setPriority(MessageConversationPriority priority) {
-    this.priority = priority;
-  }
-
-  public MessageConversationStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(MessageConversationStatus status) {
-    this.status = status;
-  }
+    public void setStatus( MessageConversationStatus status )
+    {
+        this.status = status;
+    }
 }

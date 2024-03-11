@@ -1,5 +1,7 @@
+package org.hisp.dhis.common.cache;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.cache;
 
 /**
- * Implementers of this interface gain the cacheStrategy property which allows specifically setting
- * and persisting the CacheStrategy for the object. The chosen CacheStrategy should be honored on a
- * per-object-basis for any Cacheable and will ultimately decide the cache parameters of any web
- * request returning the object.
+ * Implementers of this interface gain the cacheStrategy property which allows
+ * specifically setting and persisting the CacheStrategy for the object.
+ * The chosen CacheStrategy should be honored on a per-object-basis for any Cacheable
+ * and will ultimately decide the cache parameters of any web request returning the object.
  *
  * @author Halvdan Hoem Grelland
  */
-public interface Cacheable {
-  CacheStrategy DEFAULT_CACHE_STRATEGY = CacheStrategy.RESPECT_SYSTEM_SETTING;
+public interface Cacheable
+{
+    CacheStrategy DEFAULT_CACHE_STRATEGY = CacheStrategy.RESPECT_SYSTEM_SETTING;
 
-  /**
-   * Returns the CacheStrategy for this Cacheable. Should never return null.
-   *
-   * @return the CacheStrategy of this object.
-   */
-  CacheStrategy getCacheStrategy();
+    /**
+     * Returns the CacheStrategy for this Cacheable. Should never return null.
+     *
+     * @return the CacheStrategy of this object.
+     */
+    CacheStrategy getCacheStrategy();
 }

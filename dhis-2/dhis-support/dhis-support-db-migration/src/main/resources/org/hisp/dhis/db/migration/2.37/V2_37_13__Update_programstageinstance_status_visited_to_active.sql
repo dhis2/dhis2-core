@@ -1,1 +1,0 @@
-update programstageinstance set status='ACTIVE' where status='VISITED';

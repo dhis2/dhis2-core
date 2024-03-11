@@ -1,5 +1,7 @@
+package org.hisp.dhis.i18n;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,60 +27,68 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.i18n;
 
 import java.util.MissingResourceException;
-import java.util.Objects;
 import java.util.ResourceBundle;
-import lombok.AllArgsConstructor;
 
 /**
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
  * @author Anders Gjendem
  */
-@AllArgsConstructor
-public class I18n {
-  private final ResourceBundle globalResourceBundle;
+public class I18n
+{    
+    private ResourceBundle globalResourceBundle;
 
-  private final ResourceBundle specificResourceBundle;
+    private ResourceBundle specificResourceBundle;
 
-  /**
-   * Get a translated String for a given key for the currently selected locale
-   *
-   * @param key the key for a given translation
-   * @return a translated String for a given key, or the key if no translation is found.
-   */
-  public String getString(String key) {
-    return getString(key, key);
-  }
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  /**
-   * Get a translated String for a given key for the currently selected locale
-   *
-   * @param key the key for a given translation
-   * @return a translated String for a given key, or the provided default value if no translation is
-   *     found.
-   */
-  public String getString(String key, String defaultValue) {
-    String translation = defaultValue;
-
-    if (specificResourceBundle != null) {
-      translation = getBundleString(specificResourceBundle, key, translation);
+    public I18n( ResourceBundle globalResourceBundle, ResourceBundle specificResourceBundle )
+    {
+        this.globalResourceBundle = globalResourceBundle;
+        this.specificResourceBundle = specificResourceBundle;
     }
 
-    if (Objects.equals(defaultValue, translation) && globalResourceBundle != null) {
-      translation = getBundleString(globalResourceBundle, key, translation);
-    }
+    // -------------------------------------------------------------------------
+    // Methods
+    // -------------------------------------------------------------------------
 
-    return translation;
-  }
+    /**
+     * Get a translated String for a given key for the currently selected locale
+     *
+     * @param key the key for a given translation
+     * @return a translated String for a given key, or the key if no translation
+     *          is found.
+     */
+    public String getString( String key )
+    {
+        String translation = key;
 
-  private String getBundleString(ResourceBundle bundle, String key, String defaultValue) {
-    try {
-      return bundle.getString(key);
-    } catch (MissingResourceException ignored) {
-      return defaultValue;
+        if ( specificResourceBundle != null )
+        {
+            try
+            {
+                translation = specificResourceBundle.getString( key );
+            }
+            catch ( MissingResourceException ignored )
+            {
+            }
+        }
+
+        if ( translation.equals( key ) && globalResourceBundle != null )
+        {
+            try
+            {
+                translation = globalResourceBundle.getString( key );
+            }
+            catch ( MissingResourceException ignored )
+            {
+            }
+        }
+
+        return translation;
     }
-  }
 }

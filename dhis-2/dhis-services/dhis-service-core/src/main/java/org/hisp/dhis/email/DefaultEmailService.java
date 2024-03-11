@@ -1,5 +1,7 @@
+package org.hisp.dhis.email;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.email;
 
-import com.google.common.collect.Sets;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -38,86 +36,105 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.user.UserCredentials;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
+
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Transactional // TODO do we need transactions at all here?
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.email.EmailService")
-public class DefaultEmailService implements EmailService {
-  private static final String TEST_EMAIL_SUBJECT = "Test email from DHIS 2";
+@Transactional
+public class DefaultEmailService
+    implements EmailService
+{
+    private static final String TEST_EMAIL_SUBJECT = "Test email from DHIS 2";
+    private static final String TEST_EMAIL_TEXT = "This is an automatically generated email from ";
 
-  private static final String TEST_EMAIL_TEXT = "This is an automatically generated email from ";
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+    private MessageSender emailMessageSender;
 
-  private final MessageSender emailMessageSender;
-
-  private final CurrentUserService currentUserService;
-
-  private final SystemSettingManager systemSettingManager;
-
-  // -------------------------------------------------------------------------
-  // EmailService implementation
-  // -------------------------------------------------------------------------
-
-  @Override
-  public boolean emailConfigured() {
-    return systemSettingManager.emailConfigured();
-  }
-
-  @Override
-  public OutboundMessageResponse sendEmail(Email email) {
-    return emailMessageSender.sendMessage(
-        email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true);
-  }
-
-  @Override
-  public OutboundMessageResponse sendEmail(String subject, String message, Set<String> recipients) {
-    return emailMessageSender.sendMessage(subject, message, recipients);
-  }
-
-  @Override
-  public OutboundMessageResponse sendTestEmail() {
-    String instanceName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
-
-    Email email =
-        new Email(
-            TEST_EMAIL_SUBJECT,
-            TEST_EMAIL_TEXT + instanceName,
-            null,
-            Sets.newHashSet(currentUserService.getCurrentUser()));
-
-    return sendEmail(email);
-  }
-
-  @Override
-  public OutboundMessageResponse sendSystemEmail(Email email) {
-    OutboundMessageResponse response = new OutboundMessageResponse();
-
-    String recipient = systemSettingManager.getStringSetting(SettingKey.SYSTEM_NOTIFICATIONS_EMAIL);
-    String appTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
-
-    if (recipient == null || !ValidationUtils.emailIsValid(recipient)) {
-      response.setOk(false);
-      response.setDescription("No recipient found");
-
-      return response;
+    public void setEmailMessageSender(MessageSender emailMessageSender)
+    {
+        this.emailMessageSender = emailMessageSender;
     }
 
-    User user = new User();
-    user.setEmail(recipient);
+    private CurrentUserService currentUserService;
 
-    User sender = new User();
-    sender.setFirstName(StringUtils.trimToEmpty(appTitle));
-    sender.setSurname(recipient);
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
-    return emailMessageSender.sendMessage(
-        email.getSubject(), email.getText(), null, sender, Sets.newHashSet(user), true);
-  }
+    private SystemSettingManager systemSettingManager;
+
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
+    }
+
+    // -------------------------------------------------------------------------
+    // EmailService implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public boolean emailConfigured()
+    {
+        return systemSettingManager.emailConfigured();
+    }
+
+    @Override
+    public OutboundMessageResponse sendEmail( Email email )
+    {
+        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true );
+    }
+
+    @Override
+    public OutboundMessageResponse sendEmail( String subject, String message, Set<String> recipients )
+    {
+        return emailMessageSender.sendMessage( subject, message, recipients );
+    }
+
+    @Override
+    public OutboundMessageResponse sendTestEmail()
+    {
+        String instanceName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        
+        Email email = new Email( TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null, Sets.newHashSet( currentUserService.getCurrentUser() ) );
+        
+        return sendEmail( email );
+    }
+
+    @Override
+    public OutboundMessageResponse sendSystemEmail( Email email )
+    {
+        OutboundMessageResponse response = new OutboundMessageResponse();
+
+        String recipient = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
+        String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+
+        if ( recipient == null || !ValidationUtils.emailIsValid( recipient ) )
+        {
+            response.setOk( false );
+            response.setDescription( "No recipient found" );
+
+            return response;
+        }        
+        
+        User user = new User();
+        UserCredentials credentials = new UserCredentials();
+        credentials.setUsername( recipient );
+        user.setEmail( recipient );
+        
+        User sender = new User();
+        sender.setFirstName( StringUtils.trimToEmpty( appTitle ) );
+        sender.setSurname( recipient );
+        
+        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, sender, Sets.newHashSet( user ), true );
+    }
 }

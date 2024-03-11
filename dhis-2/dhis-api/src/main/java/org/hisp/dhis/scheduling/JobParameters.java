@@ -1,5 +1,7 @@
+package org.hisp.dhis.scheduling;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
 
-import java.io.Serializable;
-import java.util.Optional;
-import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.feedback.ErrorReport;
 
+import java.io.Serializable;
+
 /**
- * Interface for job specific parameters. Serializable so that we can store the object in the
- * database.
+ * Interface for job specific parameters. Serializable so that we can store the object in the database.
  *
  * @author Henning Håkonsen
  */
-public interface JobParameters extends Serializable, EmbeddedObject {
-  default Optional<ErrorReport> validate() {
-    return Optional.empty();
-  }
+public interface JobParameters
+    extends Serializable
+{
+    ErrorReport validate();
 }

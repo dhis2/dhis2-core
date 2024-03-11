@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataapproval;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
 
-import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.List;
 
 /**
  * Defines the functionality for persisting DataApproval objects.
  *
  * @author Jim Grace
  */
-public interface DataApprovalAuditStore extends GenericStore<DataApprovalAudit> {
-  String ID = DataApprovalAuditStore.class.getName();
+public interface DataApprovalAuditStore
+    extends GenericStore<DataApprovalAudit>
+{
+    String ID = DataApprovalAuditStore.class.getName();
 
-  /**
-   * Deletes DataApprovalAudits for the given organisation unit.
-   *
-   * @param organisationUnit the organisation unit.
-   */
-  void deleteDataApprovalAudits(OrganisationUnit organisationUnit);
+    /**
+     * Deletes DataApprovalAudits for the given organisation unit.
+     *
+     * @param organisationUnit the organisation unit.
+     */
+    void deleteDataApprovalAudits( OrganisationUnit organisationUnit );
 
-  /**
-   * Returns DataApprovalAudit objects for query parameters.
-   *
-   * @param params Data approval audit query parameters.
-   * @return matching DataApproval object, if any
-   */
-  List<DataApprovalAudit> getDataApprovalAudits(DataApprovalAuditQueryParams params);
+    /**
+     * Returns DataApprovalAudit objects for query parameters.
+     *
+     * @param params Data approval audit query parameters.
+     * @return matching DataApproval object, if any
+     */
+    List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
 }
+

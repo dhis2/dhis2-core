@@ -1,5 +1,7 @@
+package org.hisp.dhis.query;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,157 +27,171 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-import org.springframework.stereotype.Component;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
-@RequiredArgsConstructor
-@Component
-public class DefaultQueryService implements QueryService {
-  private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
+public class DefaultQueryService
+    implements QueryService
+{
+    private static final Log log = LogFactory.getLog( DefaultQueryService.class );
 
-  private final QueryParser queryParser;
+    private final QueryParser queryParser;
 
-  private final QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-  private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
+    private final CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
 
-  private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
+    private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
-  @Override
-  public List<? extends IdentifiableObject> query(Query query) {
-    return queryObjects(query);
-  }
+    private final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
-  @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public List<? extends IdentifiableObject> query(Query query, ResultTransformer transformer) {
-    List<? extends IdentifiableObject> objects = queryObjects(query);
-
-    if (transformer != null) {
-      return transformer.transform(objects);
+    public DefaultQueryService( QueryParser queryParser, QueryPlanner queryPlanner,
+        CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
+        InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
+    {
+        this.queryParser = queryParser;
+        this.queryPlanner = queryPlanner;
+        this.criteriaQueryEngine = criteriaQueryEngine;
+        this.inMemoryQueryEngine = inMemoryQueryEngine;
     }
 
-    return objects;
-  }
-
-  @Override
-  public long count(Query query) {
-    Query cloned = Query.from(query);
-
-    cloned.clearOrders();
-    cloned.setFirstResult(0);
-    cloned.setMaxResults(Integer.MAX_VALUE);
-
-    return countObjects(cloned);
-  }
-
-  @Override
-  public Query getQueryFromUrl(
-      Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination)
-      throws QueryParserException {
-    return getQueryFromUrl(klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE);
-  }
-
-  @Override
-  public Query getQueryFromUrl(
-      Class<?> klass,
-      List<String> filters,
-      List<Order> orders,
-      Pagination pagination,
-      Junction.Type rootJunction)
-      throws QueryParserException {
-    Query query = queryParser.parse(klass, filters, rootJunction);
-    query.addOrders(orders);
-
-    if (pagination.hasPagination()) {
-      query.setFirstResult(pagination.getFirstResult());
-      query.setMaxResults(pagination.getSize());
+    @Override
+    public List<? extends IdentifiableObject> query( Query query )
+    {
+        return queryObjects( query );
     }
 
-    return query;
-  }
+    @Override
+    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    public List<? extends IdentifiableObject> query( Query query, ResultTransformer transformer )
+    {
+        List<? extends IdentifiableObject> objects = queryObjects( query );
 
-  @Override
-  public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders)
-      throws QueryParserException {
-    return getQueryFromUrl(klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE);
-  }
+        if ( transformer != null )
+        {
+            return transformer.transform( objects );
+        }
 
-  // ---------------------------------------------------------------------------------------------
-  // Helper methods
-  // ---------------------------------------------------------------------------------------------
-
-  private long countObjects(Query query) {
-    List<? extends IdentifiableObject> objects;
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
-    Query pQuery = queryPlan.getPersistedQuery();
-    Query npQuery = queryPlan.getNonPersistedQuery();
-    if (!npQuery.isEmpty()) {
-      npQuery.setObjects(criteriaQueryEngine.query(pQuery));
-      objects = inMemoryQueryEngine.query(npQuery);
-      return objects.size();
-    }
-    return criteriaQueryEngine.count(pQuery);
-  }
-
-  private List<? extends IdentifiableObject> queryObjects(Query query) {
-    List<? extends IdentifiableObject> objects = query.getObjects();
-
-    if (objects != null) {
-      objects = inMemoryQueryEngine.query(query.setObjects(objects));
-      clearDefaults(query.getSchema().getKlass(), objects, query.getDefaults());
-
-      return objects;
+        return objects;
     }
 
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
+    @Override
+    public int count( Query query )
+    {
+        Query cloned = Query.from( query );
 
-    Query pQuery = queryPlan.getPersistedQuery();
-    Query npQuery = queryPlan.getNonPersistedQuery();
+        cloned.clearOrders();
+        cloned.setFirstResult( 0 );
+        cloned.setMaxResults( Integer.MAX_VALUE );
 
-    objects = criteriaQueryEngine.query(pQuery);
-
-    if (!npQuery.isEmpty()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            "Doing in-memory for "
-                + npQuery.getCriterions().size()
-                + " criterions and "
-                + npQuery.getOrders().size()
-                + " orders.");
-      }
-
-      npQuery.setObjects(objects);
-
-      objects = inMemoryQueryEngine.query(npQuery);
+        return countObjects( cloned );
     }
 
-    clearDefaults(query.getSchema().getKlass(), objects, query.getDefaults());
-
-    return objects;
-  }
-
-  private void clearDefaults(
-      Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults) {
-    if (Defaults.INCLUDE == defaults || !Preheat.isDefaultClass(klass)) {
-      return;
+    @Override
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination) throws QueryParserException
+    {
+        return getQueryFromUrl( klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE );
     }
 
-    objects.removeIf(object -> "default".equals(object.getName()));
-  }
+    @Override
+    public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction ) throws QueryParserException
+    {
+        Query query = queryParser.parse( klass, filters, rootJunction );
+        query.addOrders( orders );
+        if ( pagination.hasPagination() )
+        {
+            query.setFirstResult( pagination.getFirstResult() );
+            query.setMaxResults( pagination.getSize() );
+        }
+        
+        return query;
+    }
+
+    @Override
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    {
+        return getQueryFromUrl( klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE );
+    }
+
+    //---------------------------------------------------------------------------------------------
+    // Helper methods
+    //---------------------------------------------------------------------------------------------
+
+    private int countObjects( Query query )
+    {
+        List<? extends IdentifiableObject> objects;
+        QueryPlan queryPlan = queryPlanner.planQuery( query );
+        Query pQuery = queryPlan.getPersistedQuery();
+        Query npQuery = queryPlan.getNonPersistedQuery();
+        if ( !npQuery.isEmpty() )
+        {
+            npQuery.setObjects( criteriaQueryEngine.query( pQuery ) );
+            objects = inMemoryQueryEngine.query( npQuery );
+            return objects.size();
+        }
+        else
+        {
+            return criteriaQueryEngine.count( pQuery );
+        }
+    }
+
+    private List<? extends IdentifiableObject> queryObjects( Query query )
+    {
+        List<? extends IdentifiableObject> objects = query.getObjects();
+
+        if ( objects != null )
+        {
+            objects = inMemoryQueryEngine.query( query.setObjects( objects ) );
+            clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );
+
+            return objects;
+        }
+
+        QueryPlan queryPlan = queryPlanner.planQuery( query );
+
+        Query pQuery = queryPlan.getPersistedQuery();
+        Query npQuery = queryPlan.getNonPersistedQuery();
+
+        objects = criteriaQueryEngine.query( pQuery );
+
+        if ( !npQuery.isEmpty() )
+        {
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( "Doing in-memory for " + npQuery.getCriterions().size() + " criterions and "
+                    + npQuery.getOrders().size() + " orders." );
+            }
+
+            npQuery.setObjects( objects );
+
+            objects = inMemoryQueryEngine.query( npQuery );
+        }
+
+        clearDefaults( query.getSchema().getKlass(), objects, query.getDefaults() );
+
+        return objects;
+    }
+
+    private void clearDefaults( Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults )
+    {
+        if ( Defaults.INCLUDE == defaults || !Preheat.isDefaultClass( klass ) )
+        {
+            return;
+        }
+
+        objects.removeIf( object -> "default".equals( object.getName() ) );
+    }
 }

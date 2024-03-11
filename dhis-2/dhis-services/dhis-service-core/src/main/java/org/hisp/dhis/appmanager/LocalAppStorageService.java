@@ -1,5 +1,7 @@
+package org.hisp.dhis.appmanager;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,173 +49,211 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
 
 /**
- * Note! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
- * installed before 2.28. post 2.28, all installations using DHIS2 will use
- * JCloudsAppStorageService.
- *
  * @author Stian Sandvold
+ *
+ * NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
+ * installed before 2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
  */
-@Slf4j
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.appmanager.LocalAppStorageService")
-public class LocalAppStorageService implements AppStorageService {
-  private final ResourceLoader resourceLoader = new DefaultResourceLoader();
+public class LocalAppStorageService
+    implements AppStorageService
+{
+    private static final Log log = LogFactory.getLog( LocalAppStorageService.class );
 
-  private final Map<String, App> apps = new ConcurrentHashMap<>();
+    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
-  private final LocationManager locationManager;
+    private Map<String, App> apps = new HashMap<>();
 
-  @Override
-  public Map<String, App> discoverInstalledApps() {
-    Map<String, App> appMap = new HashMap<>();
-    List<App> appList = new ArrayList<>();
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    String path = getAppFolderPath();
+    private Map<String, App> reservedNamespaces = new HashMap<>();
 
-    apps.clear();
+    @Autowired
+    private LocationManager locationManager;
 
-    // Make sure external directory is set
-    if (path == null) {
-      log.error(
-          "Failed to discover installed apps: Could not get app folder path, external directory not set");
-      return appMap;
-    }
+    @Override
+    public Map<String, App> discoverInstalledApps()
+    {
+        Map<String, App> appMap = new HashMap<>();
+        List<App> appList = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        String path = getAppFolderPath();
 
-    File appFolderPath = new File(path);
+        apps.clear();
 
-    // If no apps folder exists, there is nothing to discover
-    if (!appFolderPath.exists()) {
-      log.info("Old apps folder does not exist, stopping discovery");
-      return appMap;
-    }
+        // Make sure external directory is set
+        if ( path == null )
+        {
+            log.error( "Failed to discover installed apps: Could not get app folder path, external directory not set" );
+            return appMap;
+        }
 
-    if (!appFolderPath.isDirectory()) {
-      log.error("Failed to discover installed apps: Path is not a directory '" + path + "'");
-    } else {
-      File[] listFiles = appFolderPath.listFiles();
+        File appFolderPath = new File( path );
 
-      // Should only happen is IO error occurs
-      if (listFiles == null) {
-        log.error(
-            "Failed to discover installed apps: Could not list contents of directory '"
-                + path
-                + "'");
-      } else {
-        for (File folder : listFiles) {
+        // If no apps folder exists, there is nothing to discover
+        if ( !appFolderPath.exists() )
+        {
+            log.info( "Old apps folder does not exist, stopping discovery" );
+            return appMap;
+        }
 
-          // Found a file that is not an app in the app directory.
-          if (!folder.isDirectory()) {
-            log.warn(
-                "Failed to discover app '"
-                    + folder.getName()
-                    + "': Path is not a directory '"
-                    + folder.getPath()
-                    + "'");
-          } else {
-            File appManifest = new File(folder, "manifest.webapp");
+        if ( !appFolderPath.isDirectory() )
+        {
+            log.error( "Failed to discover installed apps: Path is not a directory '" + path + "'" );
+        }
+        else
+        {
+            File[] listFiles = appFolderPath.listFiles();
 
-            if (!appManifest.exists()) {
-              log.warn(
-                  "Failed to discover app '"
-                      + folder.getName()
-                      + "': Missing 'manifest.webapp' in app directory");
-            } else {
-              try {
-                App app = mapper.readValue(appManifest, App.class);
-                app.setFolderName(folder.getName());
-                app.setAppStorageSource(AppStorageSource.LOCAL);
-                appList.add(app);
-              } catch (IOException ex) {
-                log.error(ex.getLocalizedMessage(), ex);
-              }
+            // Should only happen is IO error occurs
+            if ( listFiles == null )
+            {
+                log.error( "Failed to discover installed apps: Could not list contents of directory '" + path + "'" );
             }
-          }
+            else
+            {
+                for ( File folder : listFiles )
+                {
+
+                    // Found a file that is not an app in the app directory.
+                    if ( !folder.isDirectory() )
+                    {
+                        log.warn( "Failed to discover app '" + folder.getName() + "': Path is not a directory '" +
+                            folder.getPath() + "'" );
+                    }
+                    else
+                    {
+                        File appManifest = new File( folder, "manifest.webapp" );
+
+                        if ( !appManifest.exists() )
+                        {
+                            log.warn( "Failed to discover app '" + folder.getName() +
+                                "': Missing 'manifest.webapp' in app directory" );
+                        }
+                        else
+                        {
+                            try
+                            {
+                                App app = mapper.readValue( appManifest, App.class );
+                                app.setFolderName( folder.getName() );
+                                app.setAppStorageSource( AppStorageSource.LOCAL );
+                                appList.add( app );
+                            }
+                            catch ( IOException ex )
+                            {
+                                log.error( ex.getLocalizedMessage(), ex );
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
-    }
 
-    appList.forEach(
-        app -> {
-          appMap.put(app.getUrlFriendlyName(), app);
-          apps.put(app.getUrlFriendlyName(), app);
+        appList.forEach(
+            app -> {
+                String namespace = app.getActivities().getDhis().getNamespace();
 
-          log.info("Discovered app '" + app.getName() + "' from local storage ");
-        });
+                if ( namespace != null && !namespace.isEmpty() )
+                {
+                    reservedNamespaces.put( namespace, app );
+                }
 
-    if (appList.isEmpty()) {
-      log.info("No apps found during local discovery.");
-    }
+                appMap.put( app.getUrlFriendlyName(), app );
+                apps.put( app.getUrlFriendlyName(), app );
 
-    return appMap;
-  }
+                log.info( "Discovered app '" + app.getName() + "' from local storage " );
+            }
+        );
 
-  @Override
-  public App installApp(File file, String fileName, Cache<App> appCache) {
-    throw new UnsupportedOperationException(
-        "LocalAppStorageService.installApp is deprecated and should no longer be used.");
-  }
-
-  @Override
-  public void deleteApp(App app) {
-    if (!apps.containsKey(app.getUrlFriendlyName())) {
-      log.warn(String.format("Failed to delete app '%s': App not found", app.getName()));
-    }
-
-    try {
-      String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
-      FileUtils.forceDelete(new File(folderPath));
-    } catch (FileNotFoundException ex) {
-      log.error(String.format("Failed to delete app '%s': Files not found", app.getName()), ex);
-    } catch (IOException ex) {
-      log.error(String.format("Failed to delete app '%s'", app.getName()), ex);
-    } finally {
-      discoverInstalledApps();
-    }
-  }
-
-  private String getAppFolderPath() {
-    try {
-      return locationManager.getExternalDirectoryPath() + "/" + APPS_DIR;
-    } catch (LocationManagerException ex) {
-      return null;
-    }
-  }
-
-  @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
-    List<Resource> locations =
-        Lists.newArrayList(
-            resourceLoader.getResource(
-                "file:" + getAppFolderPath() + "/" + app.getFolderName() + "/"),
-            resourceLoader.getResource("classpath*:/apps/" + app.getFolderName() + "/"));
-
-    for (Resource location : locations) {
-      Resource resource = location.createRelative(pageName);
-
-      if (resource.exists() && resource.isReadable()) {
-        File file = resource.getFile();
-
-        // Make sure that file resolves into path app folder
-        if (file != null && file.toPath().startsWith(getAppFolderPath())) {
-          return resource;
+        if ( appList.isEmpty() )
+        {
+            log.info(" No apps found during local discovery.");
         }
-      }
+
+        return appMap;
     }
 
-    return null;
-  }
+    @Override
+    public Map<String, App> getReservedNamespaces()
+    {
+        return reservedNamespaces;
+    }
+
+    @Override
+    public App installApp( File file, String fileName, Cache<App> appCache )
+    {
+        throw new UnsupportedOperationException( "LocalAppStorageService.installApp is deprecated and should no longer be used." );
+    }
+
+    @Override
+    public boolean deleteApp( App app )
+    {
+        boolean deleted = false;
+
+        if ( !apps.containsKey( app.getUrlFriendlyName() ) )
+        {
+            log.warn( String.format( "Failed to delete app '%s': App not found", app.getName() ) );
+        }
+
+        try
+        {
+            String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
+            FileUtils.forceDelete( new File( folderPath ) );
+
+            deleted = true;
+        }
+        catch ( FileNotFoundException ex )
+        {
+            log.error( String.format( "Failed to delete app '%s': Files not found", app.getName() ), ex );
+        }
+        catch ( IOException ex )
+        {
+            log.error( String.format( "Failed to delete app '%s'", app.getName() ), ex );
+        }
+        finally
+        {
+            discoverInstalledApps();
+        }
+
+        return deleted;
+    }
+
+    private String getAppFolderPath()
+    {
+        try
+        {
+            return locationManager.getExternalDirectoryPath() + "/" + APPS_DIR;
+        }
+        catch ( LocationManagerException ex )
+        {
+            return null;
+        }
+    }
+
+    public Resource getAppResource( App app, String pageName )
+        throws IOException
+    {
+        List<Resource> locations = Lists.newArrayList(
+            resourceLoader.getResource( "file:" + getAppFolderPath() + "/" + app.getFolderName() + "/" ),
+            resourceLoader.getResource( "classpath*:/apps/" + app.getFolderName() + "/" )
+        );
+
+        for ( Resource location : locations )
+        {
+            Resource resource = location.createRelative( pageName );
+
+            if ( resource.exists() && resource.isReadable() )
+            {
+                File file = resource.getFile();
+
+                // Make sure that file resolves into path app folder
+                if ( file != null && file.toPath().startsWith( getAppFolderPath() ) )
+                {
+                    return resource;
+                }
+            }
+        }
+
+        return null;
+    }
 }

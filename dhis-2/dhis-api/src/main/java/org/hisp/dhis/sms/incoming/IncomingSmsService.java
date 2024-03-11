@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.incoming;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.incoming;
 
-import java.util.Date;
 import java.util.List;
+import java.util.Date;
+
+import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 
-/** Service providing support for retrieving incoming SMSes. */
-public interface IncomingSmsService {
-  String ID = IncomingSmsService.class.getName();
+/**
+ * Service providing support for retrieving incoming SMSes.
+ */
 
-  void update(IncomingSms sms);
+public interface IncomingSmsService
+{
+    String ID = IncomingSmsService.class.getName();
 
-  IncomingSms get(long id);
+    IncomingSms getNextUnprocessed();
 
-  IncomingSms get(String uid);
+    void update( IncomingSms sms );
 
-  List<IncomingSms> getAll();
+    IncomingSms findBy( Integer id );
 
-  List<IncomingSms> getAll(Integer min, Integer max, boolean hasPagination);
+    List<IncomingSms> listAllMessage();
 
-  void delete(long id);
+    void deleteById( Integer id );
 
-  void delete(String uid);
+    int save( IncomingSms sms );
 
-  long save(IncomingSms sms);
+    int save( String message, String originator, String gateway, Date receivedTime, User user );
 
-  long save(String message, String originator, String gateway, Date receivedTime, User user);
+    void setIncomingSmsQueue( MessageQueue incomingSmsQueue );
 
-  List<IncomingSms> getSmsByStatus(SmsMessageStatus status, String originator);
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
 
-  List<IncomingSms> getSmsByStatus(
-      SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination);
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
+    
+    List<IncomingSms> getAllUnparsedMessages( );
 
-  List<IncomingSms> getAllUnparsedMessages();
 }

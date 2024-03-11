@@ -1,5 +1,7 @@
+package org.hisp.dhis.i18n.ui.resourcebundle;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.i18n.ui.resourcebundle;
 
 /**
  * @author Nguyen Dang Quang
+ * @version $Id: ResourceBundleManagerException.java 2869 2007-02-20 14:26:09Z andegje $
  */
-public class ResourceBundleManagerException extends Exception {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 3993400755227581346L;
+public class ResourceBundleManagerException
+    extends Exception
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 3993400755227581346L;
 
-  public ResourceBundleManagerException(String message) {
-    super(message);
-  }
+    public ResourceBundleManagerException( String message )
+    {
+        super( message );
+    }
 
-  public ResourceBundleManagerException(String message, Throwable throwable) {
-    super(message, throwable);
-  }
+    public ResourceBundleManagerException( String message, Throwable throwable )
+    {
+        super( message, throwable );
+    }
 }

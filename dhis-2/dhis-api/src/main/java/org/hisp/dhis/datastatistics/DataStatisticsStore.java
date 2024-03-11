@@ -1,5 +1,7 @@
+package org.hisp.dhis.datastatistics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastatistics;
+
+import org.hisp.dhis.common.GenericStore;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public interface DataStatisticsStore extends GenericStore<DataStatistics> {
-  /**
-   * Retrieves data from database and maps aggregated data to AggregatedStatistic object.
-   *
-   * @param eventInterval interval of DAY, MONTH, WEEK, YEAR.
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return a list of AggregatedStatistics instances.
-   */
-  List<AggregatedStatistics> getSnapshotsInInterval(
-      EventInterval eventInterval, Date startDate, Date endDate);
+public interface DataStatisticsStore 
+    extends GenericStore<DataStatistics>
+{
+    /**
+     * Retrieves data from database and maps aggregated data to 
+     * AggregatedStatistic object.
+     *
+     * @param eventInterval interval of DAY, MONTH, WEEK, YEAR.
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * 
+     * @return a list of AggregatedStatistics instances.
+     */
+    List<AggregatedStatistics> getSnapshotsInInterval( EventInterval eventInterval, Date startDate, Date endDate );
 }

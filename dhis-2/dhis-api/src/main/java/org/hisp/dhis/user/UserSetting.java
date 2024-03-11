@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
 import java.io.Serializable;
 
@@ -34,104 +35,122 @@ import java.io.Serializable;
  *
  * @author Nguyen Hong Duc
  */
-public class UserSetting implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -5436090314407097851L;
+public class UserSetting
+    implements Serializable
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = -5436090314407097851L;
 
-  /** Required. Unique together with name. */
-  private User user;
+    /**
+     * Required. Unique together with name.
+     */
+    private User user;
 
-  /** Required. Unique together with user. */
-  private String name;
+    /**
+     * Required. Unique together with user.
+     */
+    private String name;
 
-  private Serializable value;
+    private Serializable value;
 
-  public UserSetting() {}
-
-  public UserSetting(User user, String name, Serializable value) {
-    this.user = user;
-    this.name = name;
-    this.value = value;
-  }
-
-  // -------------------------------------------------------------------------
-  // hashCode and equals
-  // -------------------------------------------------------------------------
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public UserSetting()
+    {
     }
 
-    if (o == null) {
-      return false;
+    public UserSetting( User user, String name, Serializable value )
+    {
+        this.user = user;
+        this.name = name;
+        this.value = value;
     }
 
-    if (!(o instanceof UserSetting)) {
-      return false;
+    // -------------------------------------------------------------------------
+    // hashCode and equals
+    // -------------------------------------------------------------------------
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null )
+        {
+            return false;
+        }
+
+        if ( !(o instanceof UserSetting) )
+        {
+            return false;
+        }
+
+        final UserSetting other = (UserSetting) o;
+
+        return user.equals( other.getUser() ) && name.equals( other.getName() );
     }
 
-    final UserSetting other = (UserSetting) o;
+    @Override
+    public int hashCode()
+    {
+        int prime = 31;
+        int result = 1;
 
-    return user.equals(other.getUser()) && name.equals(other.getName());
-  }
+        result = result * prime + user.hashCode();
+        result = result * prime + name.hashCode();
 
-  @Override
-  public int hashCode() {
-    int prime = 31;
-    int result = 1;
+        return result;
+    }
 
-    result = result * prime + user.hashCode();
-    result = result * prime + name.hashCode();
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"user\":\"" + user.getUsername() + "\", " +
+            "\"name:\":\"" + name + "\", " +
+            "\"value\":\"" + value + "\" " +
+            "}";
+    }
 
-    return result;
-  }
+    public boolean hasValue()
+    {
+        return value != null;
+    }
 
-  @Override
-  public String toString() {
-    return "{"
-        + "\"user\":\""
-        + user.getUsername()
-        + "\", "
-        + "\"name:\":\""
-        + name
-        + "\", "
-        + "\"value\":\""
-        + value
-        + "\" "
-        + "}";
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public boolean hasValue() {
-    return value != null;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public User getUser()
+    {
+        return user;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setUser( User user )
+    {
+        this.user = user;
+    }
 
-  public User getUser() {
-    return user;
-  }
+    public Serializable getValue()
+    {
+        return value;
+    }
 
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public Serializable getValue() {
-    return value;
-  }
-
-  public void setValue(Serializable value) {
-    this.value = value;
-  }
+    public void setValue( Serializable value )
+    {
+        this.value = value;
+    }
 }

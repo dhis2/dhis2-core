@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+
+  <!-- Table managers -->
+
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcAnalyticsTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTableManager" class="org.hisp.dhis.analytics.table.JdbcCompletenessTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTargetTableManager" class="org.hisp.dhis.analytics.table.JdbcCompletenessTargetTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.OrgUnitTargetTableManager" class="org.hisp.dhis.analytics.table.JdbcOrgUnitTargetTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.EventAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEnrollmentAnalyticsTableManager" />
+
+  <bean id="org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcValidationResultTableManager" />
+  
+  <!-- Table services -->
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.AnalyticsTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.CompletenessTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTargetTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.CompletenessTargetTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.OrgUnitTargetTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.OrgUnitTargetTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.EventAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.EventAnalyticsTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.ValidationResultTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" />
+  </bean>
+  
+  <!-- Table generator -->
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableGenerator" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableGenerator" />
+  
+  <!-- Dimension -->
+
+  <bean id="org.hisp.dhis.analytics.dimension.AnalyticsDimensionService" class="org.hisp.dhis.analytics.dimension.DefaultAnalyticsDimensionService" />
+  
+  <!-- Partition manager -->
+  
+  <bean id="org.hisp.dhis.analytics.partition.PartitionManager" class="org.hisp.dhis.analytics.partition.JdbcPartitionManager" />
+  
+  <!-- Routine analytics -->
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsManager" class="org.hisp.dhis.analytics.data.JdbcAnalyticsManager" />
+  
+  <bean id="org.hisp.dhis.analytics.RawAnalyticsManager" class="org.hisp.dhis.analytics.data.JdbcRawAnalyticsManager" />
+  
+  <bean id="org.hisp.dhis.analytics.DataQueryService" class="org.hisp.dhis.analytics.data.DefaultDataQueryService" />
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsService" class="org.hisp.dhis.analytics.data.DefaultAnalyticsService" />
+  
+  <bean id="org.hisp.dhis.analytics.QueryPlanner" class="org.hisp.dhis.analytics.data.DefaultQueryPlanner" />
+  
+  <bean id="org.hisp.dhis.analytics.QueryValidator" class="org.hisp.dhis.analytics.data.DefaultQueryValidator" />
+
+  <bean id="org.hisp.dhis.analytics.AnalyticsSecurityManager" class="org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager" />
+
+  <!-- Event analytics -->
+
+  <bean id="org.hisp.dhis.analytics.event.EventAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager" />
+
+  <bean id="org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager" />
+
+  <bean id="org.hisp.dhis.analytics.event.EventDataQueryService" class="org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService" />
+
+  <bean id="org.hisp.dhis.analytics.event.EventAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService" />
+
+  <bean id="org.hisp.dhis.analytics.event.EventQueryPlanner" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryPlanner" />
+  
+  <bean id="org.hisp.dhis.analytics.event.EventQueryValidator" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryValidator" />
+
+  <!-- Scheduled jobs -->
+  
+  <bean id="resourceTableJob" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" scope="prototype" />
+
+  <bean id="analyticsTableJob" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" />
+  
+</beans>

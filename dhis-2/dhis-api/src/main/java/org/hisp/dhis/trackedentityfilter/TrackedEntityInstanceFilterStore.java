@@ -1,5 +1,9 @@
+package org.hisp.dhis.trackedentityfilter;
+
+import java.util.List;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +29,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter;
 
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
 public interface TrackedEntityInstanceFilterStore
-    extends IdentifiableObjectStore<TrackedEntityInstanceFilter> {
-  /**
-   * Gets trackedEntityInstanceFilters
-   *
-   * @param program program of trackedEntityInstanceFilter to be fetched
-   * @return list of trackedEntityInstanceFilters
-   */
-  List<TrackedEntityInstanceFilter> get(Program program);
+    extends IdentifiableObjectStore<TrackedEntityInstanceFilter>
+{
+    /**
+     * Gets trackedEntityInstanceFilters
+     * @param program program of trackedEntityInstanceFilter to be fetched
+     * @return list of trackedEntityInstanceFilters
+     */
+    List<TrackedEntityInstanceFilter> get( Program program );
 }

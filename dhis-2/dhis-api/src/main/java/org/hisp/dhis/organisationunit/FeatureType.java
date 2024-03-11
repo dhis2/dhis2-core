@@ -1,5 +1,7 @@
+package org.hisp.dhis.organisationunit;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -33,38 +34,44 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "featureType", namespace = DxfNamespaces.DXF_2_0)
-public enum FeatureType {
-  NONE("None"),
-  MULTI_POLYGON("MultiPolygon"),
-  POLYGON("Polygon"),
-  POINT("Point"),
-  SYMBOL("Symbol");
+@JacksonXmlRootElement( localName = "featureType", namespace = DxfNamespaces.DXF_2_0 )
+public enum FeatureType
+{
+    NONE( "None" ),
+    MULTI_POLYGON( "MultiPolygon" ),
+    POLYGON( "Polygon" ),
+    POINT( "Point" ),
+    SYMBOL( "Symbol" );
 
-  String value;
+    String value;
 
-  FeatureType(String value) {
-    this.value = value;
-  }
-
-  public String value() {
-    return value;
-  }
-
-  public boolean isPolygon() {
-    return this == POLYGON || this == MULTI_POLYGON;
-  }
-
-  public static FeatureType getTypeFromName(String type) {
-    switch (type) {
-      case "Point":
-        return POINT;
-      case "Polygon":
-        return POLYGON;
-      case "MultiPolygon":
-        return MULTI_POLYGON;
-      default:
-        return NONE;
+    FeatureType( String value )
+    {
+        this.value = value;
     }
-  }
+
+    public String value()
+    {
+        return value;
+    }
+
+    public boolean isPolygon()
+    {
+        return this == POLYGON || this == MULTI_POLYGON;
+    }
+
+    public static FeatureType getTypeFromName( String type )
+    {
+        switch ( type )
+        {
+        case "Point":
+            return POINT;
+        case "Polygon":
+            return POLYGON;
+        case "MultiPolygon":
+            return MULTI_POLYGON;
+        default:
+            return NONE;
+        }
+    }
 }

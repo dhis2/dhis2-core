@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.message;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,82 +27,91 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.message;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.DeliveryChannel;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Slf4j
-@Component("org.hisp.dhis.program.message.SmsDeliveryChannelStrategy")
-public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+public class SmsDeliveryChannelStrategy
+    extends DeliveryChannelStrategy
+{
+    private static final Log log = LogFactory.getLog( SmsDeliveryChannelStrategy.class );
 
-  @Override
-  public DeliveryChannel getDeliveryChannel() {
-    return DeliveryChannel.SMS;
-  }
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public ProgramMessage setAttributes(ProgramMessage message) {
-    validate(message);
-
-    OrganisationUnit orgUnit = getOrganisationUnit(message);
-
-    TrackedEntityInstance tei = getTrackedEntityInstance(message);
-
-    if (orgUnit != null) {
-      message.getRecipients().getPhoneNumbers().add(getOrganisationUnitRecipient(orgUnit));
+    @Override
+    public DeliveryChannel getDeliveryChannel()
+    {
+        return DeliveryChannel.SMS;
     }
 
-    if (tei != null) {
-      message
-          .getRecipients()
-          .getPhoneNumbers()
-          .add(getTrackedEntityInstanceRecipient(tei, ValueType.PHONE_NUMBER));
+    @Override
+    public ProgramMessage setAttributes( ProgramMessage message )
+    {
+        validate( message );
+
+        OrganisationUnit orgUnit = getOrganisationUnit( message );
+
+        TrackedEntityInstance tei = getTrackedEntityInstance( message );
+
+        if ( orgUnit != null )
+        {
+            message.getRecipients().getPhoneNumbers().add( getOrganisationUnitRecipient( orgUnit ) );
+        }
+
+        if ( tei != null )
+        {
+            message.getRecipients().getPhoneNumbers()
+                .add( getTrackedEntityInstanceRecipient( tei, ValueType.PHONE_NUMBER ) );
+        }
+
+        return message;
     }
 
-    return message;
-  }
+    @Override
+    public void validate( ProgramMessage message )
+    {
+        String violation = null;
 
-  @Override
-  public void validate(ProgramMessage message) {
-    String violation = null;
+        ProgramMessageRecipients recipient = message.getRecipients();
 
-    ProgramMessageRecipients recipient = message.getRecipients();
+        if ( message.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+        {
+            if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntityInstance()
+                && recipient.getPhoneNumbers().isEmpty() )
+            {
+                violation = "No destination found for SMS";
+            }
+        }
 
-    if (message.getDeliveryChannels().contains(DeliveryChannel.SMS)) {
-      if (!recipient.hasOrganisationUnit()
-          && !recipient.hasTrackedEntityInstance()
-          && recipient.getPhoneNumbers().isEmpty()) {
-        violation = "No destination found for SMS";
-      }
+        if ( violation != null )
+        {
+            log.info( "Message validation failed: " + violation );
+
+            throw new IllegalQueryException( violation );
+        }
     }
 
-    if (violation != null) {
-      log.info("Message validation failed: " + violation);
+    @Override
+    public String getOrganisationUnitRecipient( OrganisationUnit orgUnit )
+    {
+        if ( orgUnit.getPhoneNumber() == null )
+        {
+            log.error( "Organisation unit does not have phone number" );
 
-      throw new IllegalQueryException(violation);
+            throw new IllegalQueryException( "Organisation unit does not have phone number" );
+        }
+
+        return orgUnit.getPhoneNumber();
     }
-  }
-
-  @Override
-  public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
-    if (orgUnit.getPhoneNumber() == null) {
-      log.error("Organisation unit does not have phone number");
-
-      throw new IllegalQueryException("Organisation unit does not have phone number");
-    }
-
-    return orgUnit.getPhoneNumber();
-  }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 /**
  * @author Lars Helge Overland
  */
-public interface VersionedObject {
-  /** Returns the current version. */
-  int getVersion();
-
-  /** Sets the version. */
-  void setVersion(int version);
-
-  /** Increases the version and returns its new version. */
-  int increaseVersion();
+public interface VersionedObject
+{
+    /**
+     * Returns the current version.
+     */
+    int getVersion();
+    
+    /**
+     * Sets the version.
+     */
+    void setVersion( int version );
+    
+    /**
+     * Increases the version and returns its new version.
+     */
+    int increaseVersion();
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.program.ProgramStageSectionService")
-public class DefaultProgramStageSectionService implements ProgramStageSectionService {
-  private final ProgramStageSectionStore programStageSectionStore;
+@Transactional
+public class DefaultProgramStageSectionService
+    implements ProgramStageSectionService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // ProgramStageSection implementation
-  // -------------------------------------------------------------------------
+    private ProgramStageSectionStore programStageSectionStore;
 
-  @Override
-  @Transactional
-  public long saveProgramStageSection(ProgramStageSection programStageSection) {
-    programStageSectionStore.save(programStageSection);
-    return programStageSection.getId();
-  }
+    public void setProgramStageSectionStore( ProgramStageSectionStore programStageSectionStore )
+    {
+        this.programStageSectionStore = programStageSectionStore;
+    }
 
-  @Override
-  @Transactional
-  public void deleteProgramStageSection(ProgramStageSection programStageSection) {
-    programStageSectionStore.delete(programStageSection);
-  }
+    // -------------------------------------------------------------------------
+    // ProgramStageSection implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void updateProgramStageSection(ProgramStageSection programStageSection) {
-    programStageSectionStore.update(programStageSection);
-  }
+    @Override
+    public int saveProgramStageSection( ProgramStageSection programStageSection )
+    {
+        programStageSectionStore.save( programStageSection );
+        return programStageSection.getId();
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramStageSection getProgramStageSection(long id) {
-    return programStageSectionStore.get(id);
-  }
+    @Override
+    public void deleteProgramStageSection( ProgramStageSection programStageSection )
+    {
+        programStageSectionStore.delete( programStageSection );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public ProgramStageSection getProgramStageSection(String uid) {
-    return programStageSectionStore.getByUid(uid);
-  }
+    @Override
+    public void updateProgramStageSection( ProgramStageSection programStageSection )
+    {
+        programStageSectionStore.update( programStageSection );
+    }
+
+    @Override
+    public ProgramStageSection getProgramStageSection( int id )
+    {
+        return programStageSectionStore.get( id );
+    }
 }

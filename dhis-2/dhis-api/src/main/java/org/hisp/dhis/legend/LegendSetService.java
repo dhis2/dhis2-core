@@ -1,5 +1,9 @@
+package org.hisp.dhis.legend;
+
+import java.util.List;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +29,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.legend;
-
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-public interface LegendSetService {
-  long addLegendSet(LegendSet legend);
+public interface LegendSetService
+{
+    int addLegendSet( LegendSet legend );
 
-  void updateLegendSet(LegendSet legend);
+    void updateLegendSet( LegendSet legend );
 
-  LegendSet getLegendSet(long id);
+    LegendSet getLegendSet( int id );
 
-  LegendSet getLegendSet(String uid);
+    LegendSet getLegendSet( String uid );
 
-  void deleteLegendSet(LegendSet legendSet);
+    void deleteLegendSet( LegendSet legendSet );
 
-  List<LegendSet> getAllLegendSets();
+    List<LegendSet> getAllLegendSets();
 }

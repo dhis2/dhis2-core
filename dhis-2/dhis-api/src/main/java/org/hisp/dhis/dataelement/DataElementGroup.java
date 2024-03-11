@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataelement;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.HashSet;
-import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -43,128 +42,157 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Kristian Nordal
  */
-@JacksonXmlRootElement(localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0)
-public class DataElementGroup extends BaseDimensionalItemObject implements MetadataObject {
-  private Set<DataElement> members = new HashSet<>();
+@JacksonXmlRootElement( localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0 )
+public class DataElementGroup
+    extends BaseDimensionalItemObject implements MetadataObject
+{
+    private Set<DataElement> members = new HashSet<>();
 
-  private Set<DataElementGroupSet> groupSets = new HashSet<>();
+    private Set<DataElementGroupSet> groupSets = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public DataElementGroup() {}
-
-  public DataElementGroup(String name) {
-    this.name = name;
-    this.shortName = name;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public void addDataElement(DataElement dataElement) {
-    members.add(dataElement);
-    dataElement.getGroups().add(this);
-  }
-
-  public void removeDataElement(DataElement dataElement) {
-    members.remove(dataElement);
-    dataElement.getGroups().remove(this);
-  }
-
-  public void removeAllDataElements() {
-    for (DataElement dataElement : members) {
-      dataElement.getGroups().remove(this);
+    public DataElementGroup()
+    {
     }
 
-    members.clear();
-  }
-
-  public void updateDataElements(Set<DataElement> updates) {
-    for (DataElement dataElement : new HashSet<>(members)) {
-      if (!updates.contains(dataElement)) {
-        removeDataElement(dataElement);
-      }
+    public DataElementGroup( String name )
+    {
+        this.name = name;
     }
 
-    for (DataElement dataElement : updates) {
-      addDataElement(dataElement);
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void addDataElement( DataElement dataElement )
+    {
+        members.add( dataElement );
+        dataElement.getGroups().add( this );
     }
-  }
 
-  /**
-   * Returns the value type of the data elements in this group. Uses an arbitrary member to
-   * determine the value type.
-   */
-  public ValueType getValueType() {
-    return hasMembers() ? members.iterator().next().getValueType() : null;
-  }
+    public void removeDataElement( DataElement dataElement )
+    {
+        members.remove( dataElement );
+        dataElement.getGroups().remove( this );
+    }
 
-  /**
-   * Returns the aggregation type of the data elements in this group. Uses an arbitrary member to
-   * determine the aggregation operator.
-   */
-  public AggregationType getAggregationType() {
-    return hasMembers() ? members.iterator().next().getAggregationType() : null;
-  }
+    public void removeAllDataElements()
+    {
+        for ( DataElement dataElement : members )
+        {
+            dataElement.getGroups().remove( this );
+        }
 
-  /**
-   * Returns the period type of the data elements in this group. Uses an arbitrary member to
-   * determine the period type.
-   */
-  public PeriodType getPeriodType() {
-    return hasMembers() ? members.iterator().next().getPeriodType() : null;
-  }
+        members.clear();
+    }
 
-  /** Indicates whether this group has a period type. */
-  public boolean hasPeriodType() {
-    return getPeriodType() != null;
-  }
+    public void updateDataElements( Set<DataElement> updates )
+    {
+        for ( DataElement dataElement : new HashSet<>( members ) )
+        {
+            if ( !updates.contains( dataElement ) )
+            {
+                removeDataElement( dataElement );
+            }
+        }
 
-  /** Indicates whether this group has any members. */
-  public boolean hasMembers() {
-    return members != null && !members.isEmpty();
-  }
+        for ( DataElement dataElement : updates )
+        {
+            addDataElement( dataElement );
+        }
+    }
 
-  // -------------------------------------------------------------------------
-  // DimensionalItemObject
-  // -------------------------------------------------------------------------
+    /**
+     * Returns the value type of the data elements in this group. Uses an arbitrary
+     * member to determine the value type.
+     */
+    public ValueType getValueType()
+    {
+        return hasMembers() ? members.iterator().next().getValueType() : null;
+    }
 
-  @Override
-  public DimensionItemType getDimensionItemType() {
-    return DimensionItemType.DATA_ELEMENT_GROUP;
-  }
+    /**
+     * Returns the aggregation type of the data elements in this group. Uses
+     * an arbitrary member to determine the aggregation operator.
+     */
+    public AggregationType getAggregationType()
+    {
+        return hasMembers() ? members.iterator().next().getAggregationType() : null;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    /**
+     * Returns the period type of the data elements in this group. Uses an
+     * arbitrary member to determine the period type.
+     */
+    public PeriodType getPeriodType()
+    {
+        return hasMembers() ? members.iterator().next().getPeriodType() : null;
+    }
+    
+    /**
+     * Indicates whether this group has a period type.
+     */
+    public boolean hasPeriodType()
+    {
+        return getPeriodType() != null;
+    }
 
-  @JsonProperty("dataElements")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "dataElements", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataElement> getMembers() {
-    return members;
-  }
+    /**
+     * Indicates whether this group has any members.
+     */
+    public boolean hasMembers()
+    {
+        return members != null && !members.isEmpty();
+    }
+    
+    // -------------------------------------------------------------------------
+    // DimensionalItemObject
+    // -------------------------------------------------------------------------
 
-  public void setMembers(Set<DataElement> members) {
-    this.members = members;
-  }
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.DATA_ELEMENT_GROUP;
+    }
 
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataElementGroupSet> getGroupSets() {
-    return groupSets;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setGroupSets(Set<DataElementGroupSet> groupSets) {
-    this.groupSets = groupSets;
-  }
+    @JsonProperty( "dataElements" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "dataElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataElement> getMembers()
+    {
+        return members;
+    }
+
+    public void setMembers( Set<DataElement> members )
+    {
+        this.members = members;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataElementGroupSet> getGroupSets()
+    {
+        return groupSets;
+    }
+
+    public void setGroupSets( Set<DataElementGroupSet> groupSets )
+    {
+        this.groupSets = groupSets;
+    }
 }

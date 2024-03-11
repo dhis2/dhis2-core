@@ -1,1 +1,0 @@
-ALTER TABLE fileresource ADD COLUMN IF NOT EXISTS fileresourceowner character varying(40);

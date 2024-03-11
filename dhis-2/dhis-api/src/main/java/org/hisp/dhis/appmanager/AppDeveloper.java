@@ -1,5 +1,7 @@
+package org.hisp.dhis.appmanager;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,73 +27,81 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import java.io.Serializable;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Saptarshi
  */
-@JacksonXmlRootElement(localName = "appDeveloper", namespace = DxfNamespaces.DXF_2_0)
-public class AppDeveloper implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8865601558938806456L;
+public class AppDeveloper
+    implements Serializable
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = -8865601558938806456L;
 
-  /** Required. */
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String url;
+    /**
+     * Required.
+     */
+    @JsonProperty
+    private String url;
 
-  /** Optional. */
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String name;
+    /**
+     * Optional.
+     */
+    @JsonProperty
+    private String name;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String company;
+    @JsonProperty
+    private String company;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String email;
+    @JsonProperty
+    private String email;
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public String getUrl() {
-    return url;
-  }
+    public String getUrl()
+    {
+        return url;
+    }
 
-  public void setUrl(String url) {
-    this.url = url;
-  }
+    public void setUrl( String url )
+    {
+        this.url = url;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 
-  public String getCompany() {
-    return company;
-  }
+    public String getCompany()
+    {
+        return company;
+    }
 
-  public void setCompany(String company) {
-    this.company = company;
-  }
+    public void setCompany( String company )
+    {
+        this.company = company;
+    }
 
-  public String getEmail() {
-    return email;
-  }
+    public String getEmail()
+    {
+        return email;
+    }
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
+    public void setEmail( String email )
+    {
+        this.email = email;
+    }
 }

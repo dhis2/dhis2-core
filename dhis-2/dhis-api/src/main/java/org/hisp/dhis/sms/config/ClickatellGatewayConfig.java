@@ -1,5 +1,9 @@
+package org.hisp.dhis.sms.config;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +29,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JsonTypeName("clickatell")
-public class ClickatellGatewayConfig extends SmsGatewayConfig {
-  private static final long serialVersionUID = -4286107769356591957L;
+public class ClickatellGatewayConfig
+    extends SmsGatewayConfig
+{
+    private static final long serialVersionUID = -4286107769356591957L;
 
-  @JsonProperty private String authToken;
+    private String authToken;
 
-  public String getAuthToken() {
-    return authToken;
-  }
+    @JsonProperty( value = "authtoken" )
+    public String getAuthToken()
+    {
+        return authToken;
+    }
 
-  public void setAuthToken(String authToken) {
-    this.authToken = authToken;
-  }
+    public void setAuthToken( String authToken )
+    {
+        this.authToken = authToken;
+    }
+
+    @Override
+    public boolean isInbound()
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isOutbound()
+    {
+        return true;
+    }
 }

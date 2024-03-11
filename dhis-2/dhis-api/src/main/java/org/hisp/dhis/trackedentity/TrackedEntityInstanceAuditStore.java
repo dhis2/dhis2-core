@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-public interface TrackedEntityInstanceAuditStore {
-  String ID = TrackedEntityInstanceAuditStore.class.getName();
-
-  /**
-   * Adds the given tracked entity instance audit.
-   *
-   * @param trackedEntityInstanceAudit the {@link TrackedEntityInstanceAudit} to add.
-   */
-  void addTrackedEntityInstanceAudit(TrackedEntityInstanceAudit trackedEntityInstanceAudit);
-
-  /**
-   * Adds the given {@link TrackedEntityInstanceAudit} instances.
-   *
-   * @param trackedEntityInstanceAudit the list of {@link TrackedEntityInstanceAudit}.
-   */
-  void addTrackedEntityInstanceAudit(List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit);
-
-  /**
-   * Deletes tracked entity instance audit for the given tracked entity instance.
-   *
-   * @param trackedEntityInstance the {@link TrackedEntityInstance}.
-   */
-  void deleteTrackedEntityInstanceAudit(TrackedEntityInstance trackedEntityInstance);
-
-  /**
-   * Returns tracked entity instance audits matching query params
-   *
-   * @param params tracked entity instance audit query params
-   * @return a list of {@link TrackedEntityInstanceAudit}.
-   */
-  List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-      TrackedEntityInstanceAuditQueryParams params);
-
-  /**
-   * Returns count of tracked entity instance audits matching query params
-   *
-   * @param params tracked entity instance audit query params
-   * @return count of audits.
-   */
-  int getTrackedEntityInstanceAuditsCount(TrackedEntityInstanceAuditQueryParams params);
+public interface TrackedEntityInstanceAuditStore
+{    
+    String ID = TrackedEntityInstanceAuditStore.class.getName();
+    
+    
+    /**
+     * Adds tracked entity instance audit
+     * 
+     * @param trackedEntityInstanceAudit the audit to add
+     */
+    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    
+    /**
+     * Deletes tracked entity instance audit for the given tracked entity instance
+     * 
+     * @param trackedEntityInstance the tracked entity instance
+     */
+    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );
+    
+    /**
+     * Returns tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params 
+     * @return matching TrackedEntityInstanceAudits
+     */
+    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityInstanceAuditQueryParams params );
+    
+    /**
+     * Returns count of tracked entity instance audits matching query params
+     * 
+     * @param params tracked entity instance audit query params
+     * @return count of TrackedEntityInstanceAudits
+     */
+    int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params );
 }

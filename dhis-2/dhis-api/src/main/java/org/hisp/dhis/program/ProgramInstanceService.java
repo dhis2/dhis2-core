@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,255 +27,260 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
+ * @version $Id$
  */
-public interface ProgramInstanceService {
-  /**
-   * Adds an {@link ProgramInstance}
-   *
-   * @param programInstance The to ProgramInstance add.
-   * @return A generated unique id of the added {@link ProgramInstance}.
-   */
-  long addProgramInstance(ProgramInstance programInstance);
+public interface ProgramInstanceService
+{
+    String ID = ProgramInstanceService.class.getName();
 
-  /**
-   * Adds an {@link ProgramInstance}
-   *
-   * @param programInstance The to ProgramInstance add.
-   * @param user the current user.
-   * @return A generated unique id of the added {@link ProgramInstance}.
-   */
-  long addProgramInstance(ProgramInstance programInstance, User user);
+    /**
+     * Adds an {@link ProgramInstance}
+     *
+     * @param programInstance The to ProgramInstance add.
+     * @return A generated unique id of the added {@link ProgramInstance}.
+     */
+    int addProgramInstance( ProgramInstance programInstance );
 
-  /**
-   * Soft deletes a {@link ProgramInstance}.
-   *
-   * @param programInstance the ProgramInstance to delete.
-   */
-  void deleteProgramInstance(ProgramInstance programInstance);
+    /**
+     * Soft deletes a {@link ProgramInstance}.
+     *
+     * @param programInstance the ProgramInstance to delete.
+     */
+    void deleteProgramInstance( ProgramInstance programInstance );
 
-  /**
-   * Hard deletes a {@link ProgramInstance}.
-   *
-   * @param programInstance the ProgramInstance to delete.
-   */
-  void hardDeleteProgramInstance(ProgramInstance programInstance);
+    /**
+     * Deletes a program instance. Based on the forceDelete parameter, the program instance is
+     * either soft deleted (false) or hard deleted (true)
+     *
+     * @param programInstance to delete
+     * @param forceDelete     soft delete or hard delete
+     */
+    void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
 
-  /**
-   * Updates an {@link ProgramInstance}.
-   *
-   * @param programInstance the ProgramInstance to update.
-   */
-  void updateProgramInstance(ProgramInstance programInstance);
+    /**
+     * Updates an {@link ProgramInstance}.
+     *
+     * @param programInstance the ProgramInstance to update.
+     */
+    void updateProgramInstance( ProgramInstance programInstance );
 
-  /**
-   * Updates an {@link ProgramInstance}.
-   *
-   * @param programInstance the ProgramInstance to update.
-   * @param user the current user.
-   */
-  void updateProgramInstance(ProgramInstance programInstance, User user);
+    /**
+     * Returns a {@link ProgramInstance}.
+     *
+     * @param id the id of the ProgramInstance to return.
+     * @return the ProgramInstance with the given id
+     */
+    ProgramInstance getProgramInstance( int id );
+    
+    /**
+     * Returns the {@link ProgramInstance} with the given UID.
+     *
+     * @param uid the UID.
+     * @return the ProgramInstance with the given UID, or null if no match.
+     */
+    ProgramInstance getProgramInstance( String uid );
 
-  /**
-   * Returns a {@link ProgramInstance}.
-   *
-   * @param id the id of the ProgramInstance to return.
-   * @return the ProgramInstance with the given id
-   */
-  ProgramInstance getProgramInstance(long id);
+    /**
+     * Checks for the existence of a PI by UID. Deleted values are not taken into account.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean programInstanceExists( String uid );
 
-  /**
-   * Returns the {@link ProgramInstance} with the given UID.
-   *
-   * @param uid the UID.
-   * @return the ProgramInstance with the given UID, or null if no match.
-   */
-  ProgramInstance getProgramInstance(String uid);
+    /**
+     * Checks for the existence of a PI by UID. Takes into account also the deleted values.
+     *
+     * @param uid PSI UID to check for
+     * @return true/false depending on result
+     */
+    boolean programInstanceExistsIncludingDeleted( String uid );
 
-  /**
-   * Returns a list of existing ProgramInstances from the provided UIDs
-   *
-   * @param uids PSI UIDs to check
-   * @return ProgramInstance list
-   */
-  List<ProgramInstance> getProgramInstances(@Nonnull List<String> uids);
+    /**
+     * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
+    List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids );
 
-  /**
-   * Checks for the existence of a PI by UID. Deleted values are not taken into account.
-   *
-   * @param uid PSI UID to check for
-   * @return true/false depending on result
-   */
-  boolean programInstanceExists(String uid);
+    /**
+     * Returns a ProgramInstanceQueryParams based on the given input.
+     *
+     * @param ou                    the set of organisation unit identifiers.
+     * @param ouMode                the OrganisationUnitSelectionMode.
+     * @param lastUpdated           the last updated for PI.
+     * @param lastUpdatedDuration   the last updated duration filter.
+     * @param program               the Program identifier.
+     * @param programStatus         the ProgramStatus in the given program.
+     * @param programStartDate      the start date for enrollment in the given
+     *                              Program.
+     * @param programEndDate        the end date for enrollment in the given Program.
+     * @param trackedEntityType     the TrackedEntityType uid.
+     * @param trackedEntityInstance the TrackedEntityInstance uid.
+     * @param followUp              indicates follow up status in the given Program.
+     * @param page                  the page number.
+     * @param pageSize              the page size.
+     * @param totalPages            indicates whether to include the total number of pages.
+     * @param skipPaging            whether to skip paging.
+     * @param includeDeleted        whether to include soft deleted ones
+     * @return a ProgramInstanceQueryParams.
+     */
+    ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated,
+        String lastUpdatedDuration, String program, ProgramStatus programStatus, Date programStartDate,
+        Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page,
+        Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
-  /**
-   * Checks for the existence of a PI by UID. Takes into account also the deleted values.
-   *
-   * @param uid PSI UID to check for
-   * @return true/false depending on result
-   */
-  boolean programInstanceExistsIncludingDeleted(String uid);
+    /**
+     * Returns a list with program instance values based on the given
+     * ProgramInstanceQueryParams.
+     *
+     * @param params the ProgramInstanceQueryParams.
+     * @return List of PIs matching the params
+     */
+    List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params );
 
-  /**
-   * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
-   *
-   * @param uids PSI UIDs to check
-   * @return Set containing UIDs of existing PSIs (including deleted)
-   */
-  List<String> getProgramInstancesUidsIncludingDeleted(List<String> uids);
+    /**
+     * Returns the number of program instance matches based on the given
+     * ProgramInstanceQueryParams.
+     *
+     * @param params the ProgramInstanceQueryParams.
+     * @return Number of PIs matching the params
+     */
+    int countProgramInstances( ProgramInstanceQueryParams params );
 
-  /**
-   * Returns a list with program instance values based on the given ProgramInstanceQueryParams.
-   *
-   * @param params the ProgramInstanceQueryParams.
-   * @return List of PIs matching the params
-   */
-  List<ProgramInstance> getProgramInstances(ProgramInstanceQueryParams params);
+    /**
+     * Decides whether current user is authorized to perform the given query.
+     * IllegalQueryException is thrown if not.
+     *
+     * @param params the ProgramInstanceQueryParams.
+     */
+    void decideAccess( ProgramInstanceQueryParams params );
 
-  /**
-   * Returns the number of program instance matches based on the given ProgramInstanceQueryParams.
-   *
-   * @param params the ProgramInstanceQueryParams.
-   * @return Number of PIs matching the params
-   */
-  int countProgramInstances(ProgramInstanceQueryParams params);
+    /**
+     * Validates the given ProgramInstanceQueryParams. The params is
+     * considered valid if no exception are thrown and the method returns
+     * normally.
+     *
+     * @param params the ProgramInstanceQueryParams.
+     * @throws IllegalQueryException if the given params is invalid.
+     */
+    void validate( ProgramInstanceQueryParams params )
+        throws IllegalQueryException;
 
-  /**
-   * Decides whether current user is authorized to perform the given query. IllegalQueryException is
-   * thrown if not.
-   *
-   * @param params the ProgramInstanceQueryParams.
-   */
-  void decideAccess(ProgramInstanceQueryParams params);
+    /**
+     * Retrieve program instances on a program
+     *
+     * @param program Program
+     * @return ProgramInstance list
+     */
+    List<ProgramInstance> getProgramInstances( Program program );
 
-  /**
-   * Validates the given ProgramInstanceQueryParams. The params is considered valid if no exception
-   * are thrown and the method returns normally.
-   *
-   * @param params the ProgramInstanceQueryParams.
-   * @throws IllegalQueryException if the given params is invalid.
-   */
-  void validate(ProgramInstanceQueryParams params) throws IllegalQueryException;
+    /**
+     * Retrieve program instances on a program by status
+     *
+     * @param program Program
+     * @param status  Status of program-instance, include STATUS_ACTIVE,
+     *                STATUS_COMPLETED and STATUS_CANCELLED
+     * @return ProgramInstance list
+     */
+    List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status );
 
-  /**
-   * Retrieve program instances on a program
-   *
-   * @param program Program
-   * @return ProgramInstance list
-   */
-  List<ProgramInstance> getProgramInstances(Program program);
+    /**
+     * Retrieve program instances on a TrackedEntityInstance with a status by a program
+     *
+     * @param entityInstance TrackedEntityInstance
+     * @param program        Program
+     * @param status         Status of program-instance, include STATUS_ACTIVE,
+     *                       STATUS_COMPLETED and STATUS_CANCELLED
+     * @return ProgramInstance list
+     */
+    List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
-  /**
-   * Retrieve program instances on a program by status
-   *
-   * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
-   * @return ProgramInstance list
-   */
-  List<ProgramInstance> getProgramInstances(Program program, ProgramStatus status);
+    /**
+     * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
+     *
+     * @param trackedEntityInstance TrackedEntityInstance
+     * @param program               Program
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgunit               Organisation Unit
+     * @param uid                   UID to use for new instance
+     * @return ProgramInstance
+     */
+    ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
-  /**
-   * Retrieve program instances on a TrackedEntityInstance with a status by a program
-   *
-   * @param entityInstance TrackedEntityInstance
-   * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
-   * @return ProgramInstance list
-   */
-  List<ProgramInstance> getProgramInstances(
-      TrackedEntityInstance entityInstance, Program program, ProgramStatus status);
+    /**
+     * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
+     *
+     * @param trackedEntityInstance TrackedEntityInstance
+     * @param program               Program
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgunit               Organisation Unit
+     * @return ProgramInstance
+     */
+    ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program, Date enrollmentDate, Date incidentDate,
+        OrganisationUnit orgunit );
 
-  /**
-   * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
-   *
-   * @param trackedEntityInstance TrackedEntityInstance
-   * @param program Program
-   * @param enrollmentDate The date of enrollment
-   * @param incidentDate The date of incident
-   * @param orgunit Organisation Unit
-   * @param uid UID to use for new instance
-   * @return ProgramInstance
-   */
-  ProgramInstance enrollTrackedEntityInstance(
-      TrackedEntityInstance trackedEntityInstance,
-      Program program,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit orgunit,
-      String uid);
+    /**
+     * Check a program instance if it can be completed automatically. If there
+     * is some event of this program-isntance uncompleted or this program has
+     * any repeatable stage, then this program cannot be completed automatically
+     *
+     * @param programInstance ProgramInstance
+     * @return True/False value
+     */
+    boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance );
 
-  /**
-   * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
-   *
-   * @param trackedEntityInstance TrackedEntityInstance
-   * @param program Program
-   * @param enrollmentDate The date of enrollment
-   * @param incidentDate The date of incident
-   * @param orgunit Organisation Unit
-   * @return ProgramInstance
-   */
-  ProgramInstance enrollTrackedEntityInstance(
-      TrackedEntityInstance trackedEntityInstance,
-      Program program,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit orgunit);
+    /**
+     * Complete a program instance. Besides, program template messages will be
+     * send if it was defined to send when to complete this program
+     *
+     * @param programInstance ProgramInstance
+     */
+    void completeProgramInstanceStatus( ProgramInstance programInstance );
 
-  /**
-   * Complete a program instance. Besides, program template messages will be send if it was defined
-   * to send when to complete this program
-   *
-   * @param programInstance ProgramInstance
-   */
-  void completeProgramInstanceStatus(ProgramInstance programInstance);
+    /**
+     * Set status as skipped for overdue events; Remove scheduled events
+     *
+     * @param programInstance ProgramInstance
+     */
+    void cancelProgramInstanceStatus( ProgramInstance programInstance );
 
-  /**
-   * Set status as skipped for overdue events; Remove scheduled events
-   *
-   * @param programInstance ProgramInstance
-   */
-  void cancelProgramInstanceStatus(ProgramInstance programInstance);
+    /**
+     * Incomplete a program instance. This is is possible only if there is
+     * no other program instance with active status.
+     *
+     * @param programInstance ProgramInstance
+     */
+    void incompleteProgramInstanceStatus( ProgramInstance programInstance );
 
-  /**
-   * Incomplete a program instance. This is is possible only if there is no other program instance
-   * with active status.
-   *
-   * @param programInstance ProgramInstance
-   */
-  void incompleteProgramInstanceStatus(ProgramInstance programInstance);
-
-  /**
-   * Prepare a ProgramInstance for storing
-   *
-   * @param trackedEntityInstance TrackedEntityInstance
-   * @param program Program
-   * @param programStatus ProgramStatus
-   * @param enrollmentDate The date of enrollment
-   * @param incidentDate The date of incident
-   * @param orgUnit Organisation Unit
-   * @param uid UID to use for new instance
-   * @return ProgramInstance
-   */
-  @Nonnull
-  ProgramInstance prepareProgramInstance(
-      TrackedEntityInstance trackedEntityInstance,
-      Program program,
-      ProgramStatus programStatus,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit orgUnit,
-      String uid);
+    /**
+     * Prepare a ProgramInstance for storing
+     *
+     * @param trackedEntityInstance TrackedEntityInstance
+     * @param program               Program
+     * @param programStatus         ProgramStatus
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgUnit               Organisation Unit
+     * @param uid                   UID to use for new instance
+     * @return ProgramInstance
+     */
+    ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataanalysis;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,15 +40,12 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Dag Haavi Finstad
  */
-public interface DataAnalysisService {
-  String ID = DataAnalysisService.class.getName();
+public interface DataAnalysisService
+{
+    String ID = DataAnalysisService.class.getName();
 
-  int MAX_OUTLIERS = 500;
-
-  List<DeflatedDataValue> analyse(
-      OrganisationUnit orgUnit,
-      Collection<DataElement> dataElements,
-      Collection<Period> periods,
-      Double stdDevFactor,
-      Date from);
+    int MAX_OUTLIERS = 500;
+    
+    List<DeflatedDataValue> analyse( Collection<OrganisationUnit> organisationUnits, Collection<DataElement> dataElements,
+        Collection<Period> periods, Double stdDevFactor, Date from );
 }

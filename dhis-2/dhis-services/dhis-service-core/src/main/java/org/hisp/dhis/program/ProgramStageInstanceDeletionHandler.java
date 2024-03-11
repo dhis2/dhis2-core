@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +27,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
-@RequiredArgsConstructor
 public class ProgramStageInstanceDeletionHandler
-    extends IdObjectDeletionHandler<ProgramStageInstance> {
-  private final ProgramStageInstanceService programStageInstanceService;
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
-    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
-    whenVetoing(Program.class, this::allowDeleteProgram);
-    whenVetoing(DataElement.class, this::allowDeleteDataElement);
-  }
+    private JdbcTemplate jdbcTemplate;
 
-  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from programstageinstance where programstageid = :id limit 1",
-        Map.of("id", programStage.getId()));
-  }
-
-  private void deleteProgramInstance(ProgramInstance programInstance) {
-    for (ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances()) {
-      programStageInstanceService.deleteProgramStageInstance(programStageInstance);
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    {
+        this.jdbcTemplate = jdbcTemplate;
     }
-  }
+    
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+    
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-  private DeletionVeto allowDeleteProgram(Program program) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id limit 1",
-        Map.of("id", program.getId()));
-  }
+    @Override
+    public String getClassName()
+    {
+        return ProgramStageInstance.class.getSimpleName();
+    }
 
-  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
-    return vetoIfExists(
-        VETO,
-        "select 1 from programstageinstance where eventdatavalues ?? :uid limit 1",
-        Map.of("uid", dataElement.getUid()));
-  }
+    @Override
+    public String allowDeleteProgramStage( ProgramStage programStage )
+    {
+        String sql = "SELECT COUNT(*) FROM programstageinstance WHERE programstageid=" + programStage.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
+    
+    @Override
+    public void deleteProgramInstance( ProgramInstance programInstance )
+    {
+        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        {
+            programStageInstanceService.deleteProgramStageInstance( programStageInstance, false );
+        }
+    }
+    
+    @Override
+    public String allowDeleteProgram( Program program )
+    {
+        String sql = "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = " + program.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    }
 }

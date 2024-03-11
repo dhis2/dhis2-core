@@ -15,9 +15,9 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="false" length="230" />
+    <property name="name" column="name" not-null="true" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
+    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
 
     <property name="description" type="text" />
 
@@ -61,9 +61,7 @@
     <property name="expiryDays" />
 
     <property name="completeEventsExpiryDays" />
-
-    <property name="openDaysAfterCoEndDate" />
-
+    
     <property name="minAttributesRequiredToSearch" />
     
     <property name="maxTeiCountToReturn" />
@@ -101,7 +99,7 @@
 
     <set name="userRoles" table="program_userroles" inverse="true">
       <key column="programid" />
-      <many-to-many class="org.hisp.dhis.user.UserRole"
+      <many-to-many class="org.hisp.dhis.user.UserAuthorityGroup"
         column="userroleid" foreign-key="fk_program_userroles" />
     </set>
 
@@ -115,7 +113,7 @@
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
     </set>
 
-    <set name="notificationTemplates" cascade="all-delete-orphan">
+    <set name="notificationTemplates">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
@@ -136,14 +134,34 @@
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
       column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />
 
+    <many-to-one name="workflow" lazy="false" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
+      foreign-key="fk_program_workflowid" />
+
     <!-- Dynamic attribute values -->
 
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="programattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_program_userid" />
+    <!-- Access properties -->
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_program_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="programusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="programuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
   </class>
 

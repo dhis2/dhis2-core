@@ -1,5 +1,7 @@
+package org.hisp.dhis.predictor.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +27,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import javax.annotation.Nonnull;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Ken Haase
  */
-@Repository("org.hisp.dhis.predictor.PredictorStore")
-public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Predictor>
-    implements PredictorStore {
-  private final PeriodService periodService;
+public class HibernatePredictorStore
+    extends HibernateIdentifiableObjectStore<Predictor>
+    implements PredictorStore
+{
+    // -------------------------------------------------------------------------
+    // Dependency
+    // -------------------------------------------------------------------------
 
-  public HibernatePredictorStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService,
-      PeriodService periodService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        Predictor.class,
-        currentUserService,
-        aclService,
-        false);
+    private PeriodService periodService;
 
-    checkNotNull(periodService);
+    public void setPeriodService( PeriodService periodService )
+    {
+        this.periodService = periodService;
+    }
 
-    this.periodService = periodService;
-  }
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+    @Override
+    public void save( Predictor predictor )
+    {
+        predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
 
-  @Override
-  public void save(@Nonnull Predictor predictor) {
-    predictor.setPeriodType(periodService.reloadPeriodType(predictor.getPeriodType()));
+        super.save( predictor );
+    }
 
-    super.save(predictor);
-  }
+    @Override
+    public void update( Predictor predictor )
+    {
+        predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
 
-  @Override
-  public void update(@Nonnull Predictor predictor) {
-    predictor.setPeriodType(periodService.reloadPeriodType(predictor.getPeriodType()));
-
-    super.update(predictor);
-  }
+        super.save( predictor );
+    }
 }

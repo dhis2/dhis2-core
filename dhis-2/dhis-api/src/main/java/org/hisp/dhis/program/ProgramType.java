@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 /**
  * @author Chau Thu Tran
+ * @version $ ProgramType.java Jul 1, 2015 3:09:12 PM $
  */
-public enum ProgramType {
-  WITH_REGISTRATION("with_registration"),
-  WITHOUT_REGISTRATION("without_registration");
+public enum ProgramType
+{
+    WITH_REGISTRATION( "with_registration" ),
+    WITHOUT_REGISTRATION( "without_registration" );
 
-  private final String value;
+    private final String value;
 
-  ProgramType(String value) {
-    this.value = value;
-  }
-
-  public static ProgramType fromValue(String value) {
-    for (ProgramType programType : ProgramType.values()) {
-      if (programType.value.equalsIgnoreCase(value)) {
-        return programType;
-      }
+    ProgramType( String value )
+    {
+        this.value = value;
     }
 
-    return null;
-  }
+    public static ProgramType fromValue( String value )
+    {
+        for ( ProgramType programType : ProgramType.values() )
+        {
+            if ( programType.value.equalsIgnoreCase( value ) )
+            {
+                return programType;
+            }
+        }
 
-  public String getValue() {
-    return value;
-  }
+        return null;
+    }
+
+    public String getValue()
+    {
+        return value;
+    }
+
 }

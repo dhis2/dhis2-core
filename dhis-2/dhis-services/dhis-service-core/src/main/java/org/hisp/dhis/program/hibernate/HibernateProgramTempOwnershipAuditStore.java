@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -40,94 +35,103 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-@Repository("org.hisp.dhis.program.ProgramTempOwnershipAuditStore")
 public class HibernateProgramTempOwnershipAuditStore
     extends HibernateGenericStore<ProgramTempOwnershipAudit>
-    implements ProgramTempOwnershipAuditStore {
-  public HibernateProgramTempOwnershipAuditStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
-    super(sessionFactory, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false);
-  }
+    implements ProgramTempOwnershipAuditStore
+{
 
-  // -------------------------------------------------------------------------
-  // ProgramTempOwnershipAuditStore implementation
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
-    sessionFactory.getCurrentSession().save(programTempOwnershipAudit);
-  }
+    private SessionFactory sessionFactory;
 
-  @Override
-  public void deleteProgramTempOwnershipAudit(Program program) {
-    String hql = "delete ProgramTempOwnershipAudit where program = :program";
-    sessionFactory
-        .getCurrentSession()
-        .createQuery(hql)
-        .setParameter("program", program)
-        .executeUpdate();
-  }
-
-  @Override
-  public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits(
-      ProgramTempOwnershipAuditQueryParams params) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<ProgramTempOwnershipAudit> jpaParameters =
-        newJpaParameters()
-            .addPredicates(getProgramTempOwnershipAuditPredicates(params, builder))
-            .addOrder(root -> builder.desc(root.get("created")));
-
-    if (!params.isSkipPaging()) {
-      jpaParameters.setFirstResult(params.getFirst()).setMaxResults(params.getMax());
+    public void setSessionFactory( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
     }
 
-    return getList(builder, jpaParameters);
-  }
+    // -------------------------------------------------------------------------
+    // ProgramTempOwnershipAuditStore implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public int getProgramTempOwnershipAuditsCount(ProgramTempOwnershipAuditQueryParams params) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getCount(
-            builder,
-            newJpaParameters()
-                .addPredicates(getProgramTempOwnershipAuditPredicates(params, builder))
-                .count(root -> builder.countDistinct(root.get("id"))))
-        .intValue();
-  }
-
-  private List<Function<Root<ProgramTempOwnershipAudit>, Predicate>>
-      getProgramTempOwnershipAuditPredicates(
-          ProgramTempOwnershipAuditQueryParams params, CriteriaBuilder builder) {
-    List<Function<Root<ProgramTempOwnershipAudit>, Predicate>> predicates = new ArrayList<>();
-
-    if (params.hasUsers()) {
-      predicates.add(root -> root.get("accessedBy").in(params.getUsers()));
+    @Override
+    public void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit )
+    {
+        sessionFactory.getCurrentSession().save( programTempOwnershipAudit );
     }
 
-    if (params.hasStartDate()) {
-      predicates.add(
-          root -> builder.greaterThanOrEqualTo(root.get("created"), params.getStartDate()));
+    @Override
+    public void deleteProgramTempOwnershipAudit( Program program )
+    {
+        String hql = "delete ProgramTempOwnershipAudit where program = :program";
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "program", program ).executeUpdate();
     }
 
-    if (params.hasEndDate()) {
-      predicates.add(root -> builder.lessThanOrEqualTo(root.get("created"), params.getEndDate()));
+    @Override
+    public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<ProgramTempOwnershipAudit> jpaParameters = newJpaParameters()
+            .addPredicates( getProgramTempOwnershipAuditPredicates( params, builder ) )
+            .addOrder( root -> builder.desc( root.get( "created" ) ) );
+
+        if( !params.isSkipPaging() )
+        {
+            jpaParameters.setFirstResult( params.getFirst() ).setMaxResults( params.getMax() );
+        }
+
+        return getList( builder, jpaParameters );
     }
 
-    if (params.hasPrograms()) {
-      predicates.add(root -> root.get("program").in(params.getPrograms()));
+    @Override
+    public int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getCount( builder, newJpaParameters()
+            .addPredicates( getProgramTempOwnershipAuditPredicates( params, builder ) )
+            .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    return predicates;
-  }
+    private List<Function<Root<ProgramTempOwnershipAudit>, Predicate>> getProgramTempOwnershipAuditPredicates( ProgramTempOwnershipAuditQueryParams params, CriteriaBuilder builder )
+    {
+        List<Function<Root<ProgramTempOwnershipAudit>, Predicate>> predicates = new ArrayList<>();
+
+        if ( params.hasUsers() )
+        {
+            predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
+        }
+
+        if ( params.hasStartDate() )
+        {
+            predicates.add( root -> builder.greaterThanOrEqualTo( root.get("created" ), params.getStartDate() ) );
+        }
+
+        if ( params.hasEndDate() )
+        {
+            predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), params.getEndDate() ) );
+        }
+
+        if ( params.hasPrograms() )
+        {
+            predicates.add( root -> root.get( "program" ).in( params.getPrograms() ) );
+        }
+
+        return predicates;
+    }
 }

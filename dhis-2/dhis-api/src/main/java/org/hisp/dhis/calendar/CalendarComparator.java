@@ -1,5 +1,7 @@
+package org.hisp.dhis.calendar;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.calendar;
 
 import java.util.Comparator;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CalendarComparator implements Comparator<Calendar> {
-  public static final CalendarComparator INSTANCE = new CalendarComparator();
+public class CalendarComparator implements Comparator<Calendar>
+{
+    public static final CalendarComparator INSTANCE = new CalendarComparator();
 
-  @Override
-  public int compare(Calendar o1, Calendar o2) {
-    return o1.name().compareTo(o2.name());
-  }
+    @Override
+    public int compare( Calendar o1, Calendar o2 )
+    {
+        return o1.name().compareTo( o2.name() );
+    }
 }

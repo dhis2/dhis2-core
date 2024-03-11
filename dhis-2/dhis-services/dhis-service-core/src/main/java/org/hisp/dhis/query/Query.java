@@ -1,5 +1,7 @@
+package org.hisp.dhis.query;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,178 +27,286 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
 
 import com.google.common.base.MoreObjects;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-public class Query extends Criteria {
-  private User user;
+public class Query extends Criteria
+{
+    private User user;
 
-  private String locale;
+    private String locale;
 
-  private final List<Order> orders = new ArrayList<>();
+    private List<Order> orders = new ArrayList<>();
 
-  private boolean skipPaging;
+    private boolean skipPaging;
 
-  private Integer firstResult = 0;
+    private Integer firstResult = 0;
 
-  private Integer maxResults = Integer.MAX_VALUE;
+    private Integer maxResults = Integer.MAX_VALUE;
 
-  private final Junction.Type rootJunctionType;
+    private Junction.Type rootJunctionType = Junction.Type.AND;
 
-  private boolean plannedQuery;
+    private boolean plannedQuery;
 
-  private Defaults defaults = Defaults.EXCLUDE;
+    private Defaults defaults = Defaults.EXCLUDE;
 
-  private boolean cacheable = true;
+    private List<? extends IdentifiableObject> objects;
 
-  private List<? extends IdentifiableObject> objects;
-
-  public static Query from(Schema schema) {
-    return new Query(schema);
-  }
-
-  public static Query from(Schema schema, Junction.Type rootJunction) {
-    return new Query(schema, rootJunction);
-  }
-
-  public static Query from(Query query) {
-    Query clone = Query.from(query.getSchema(), query.getRootJunctionType());
-    clone.setUser(query.getUser());
-    clone.setLocale(query.getLocale());
-    clone.addOrders(query.getOrders());
-    clone.setFirstResult(query.getFirstResult());
-    clone.setMaxResults(query.getMaxResults());
-    clone.add(query.getCriterions());
-    clone.setObjects(query.getObjects());
-
-    return clone;
-  }
-
-  private Query(Schema schema) {
-    this(schema, Junction.Type.AND);
-  }
-
-  private Query(Schema schema, Junction.Type rootJunctionType) {
-    super(schema);
-    this.rootJunctionType = rootJunctionType;
-  }
-
-  public Schema getSchema() {
-    return schema;
-  }
-
-  public boolean isEmpty() {
-    return criterions.isEmpty() && orders.isEmpty();
-  }
-
-  public boolean ordersPersisted() {
-    return orders.stream().noneMatch(Order::isNonPersisted);
-  }
-
-  public void clearOrders() {
-    orders.clear();
-  }
-
-  public Integer getFirstResult() {
-    return skipPaging ? 0 : firstResult;
-  }
-
-  public Integer getMaxResults() {
-    return skipPaging ? Integer.MAX_VALUE : maxResults;
-  }
-
-  public Query addOrder(Order... orders) {
-    Stream.of(orders).filter(Objects::nonNull).forEach(this.orders::add);
-    return this;
-  }
-
-  public Query addOrders(Collection<Order> orders) {
-    this.orders.addAll(orders);
-    return this;
-  }
-
-  @Override
-  public Query add(Criterion criterion) {
-    super.add(criterion);
-    return this;
-  }
-
-  @Override
-  public Query add(Criterion... criterions) {
-    super.add(criterions);
-    return this;
-  }
-
-  @Override
-  public Query add(Collection<Criterion> criterions) {
-    super.add(criterions);
-    return this;
-  }
-
-  public Disjunction addDisjunction() {
-    Disjunction disjunction = new Disjunction(schema);
-    add(disjunction);
-
-    return disjunction;
-  }
-
-  public Disjunction disjunction() {
-    return new Disjunction(schema);
-  }
-
-  public Conjunction addConjunction() {
-    Conjunction conjunction = new Conjunction(schema);
-    add(conjunction);
-
-    return conjunction;
-  }
-
-  public Conjunction conjunction() {
-    return new Conjunction(schema);
-  }
-
-  public Query setDefaultOrder() {
-    if (!orders.isEmpty()) {
-      return this;
+    public static Query from( Schema schema )
+    {
+        return new Query( schema );
     }
 
-    if (schema.hasPersistedProperty("name")) {
-      addOrder(Order.iasc(schema.getPersistedProperty("name")));
+    public static Query from( Schema schema, Junction.Type rootJunction )
+    {
+        return new Query( schema, rootJunction );
     }
 
-    if (schema.hasPersistedProperty("id")) {
-      addOrder(Order.asc(schema.getPersistedProperty("id")));
+    public static Query from( Query query )
+    {
+        Query clone = Query.from( query.getSchema(), query.getRootJunctionType() );
+        clone.setUser( query.getUser() );
+        clone.setLocale( query.getLocale() );
+        clone.addOrders( query.getOrders() );
+        clone.setFirstResult( query.getFirstResult() );
+        clone.setMaxResults( query.getMaxResults() );
+        clone.add( query.getCriterions() );
+        clone.setObjects( query.getObjects() );
+
+        return clone;
     }
 
-    return this;
-  }
+    private Query( Schema schema )
+    {
+        super( schema );
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("firstResult", firstResult)
-        .add("maxResults", maxResults)
-        .add("orders", orders)
-        .add("criterions", criterions)
-        .toString();
-  }
+    private Query( Schema schema, Junction.Type rootJunctionType )
+    {
+        super( schema );
+        this.rootJunctionType = rootJunctionType;
+    }
+
+    public Schema getSchema()
+    {
+        return schema;
+    }
+
+    public boolean isEmpty()
+    {
+        return criterions.isEmpty() && orders.isEmpty();
+    }
+
+    public List<Order> getOrders()
+    {
+        return orders;
+    }
+
+    public boolean ordersPersisted()
+    {
+        for ( Order order : orders )
+        {
+            if ( order.isNonPersisted() )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public void clearOrders()
+    {
+        orders.clear();
+    }
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public Query setUser( User user )
+    {
+        this.user = user;
+        return this;
+    }
+
+    public String getLocale()
+    {
+        return locale;
+    }
+
+    public boolean hasLocale()
+    {
+        return !StringUtils.isEmpty( locale );
+    }
+
+    public void setLocale( String locale )
+    {
+        this.locale = locale;
+    }
+
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public Query setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+        return this;
+    }
+
+    public Integer getFirstResult()
+    {
+        return skipPaging ? 0 : firstResult;
+    }
+
+    public Query setFirstResult( Integer firstResult )
+    {
+        this.firstResult = firstResult;
+        return this;
+    }
+
+    public Integer getMaxResults()
+    {
+        return skipPaging ? Integer.MAX_VALUE : maxResults;
+    }
+
+    public Query setMaxResults( Integer maxResults )
+    {
+        this.maxResults = maxResults;
+        return this;
+    }
+
+    public Junction.Type getRootJunctionType()
+    {
+        return rootJunctionType;
+    }
+
+    public boolean isPlannedQuery()
+    {
+        return plannedQuery;
+    }
+
+    public Query setPlannedQuery( boolean plannedQuery )
+    {
+        this.plannedQuery = plannedQuery;
+        return this;
+    }
+
+    public Defaults getDefaults()
+    {
+        return defaults;
+    }
+
+    public Query setDefaults( Defaults defaults )
+    {
+        this.defaults = defaults;
+        return this;
+    }
+
+    public List<? extends IdentifiableObject> getObjects()
+    {
+        return objects;
+    }
+
+    public Query setObjects( List<? extends IdentifiableObject> objects )
+    {
+        this.objects = objects;
+        return this;
+    }
+
+    public Query addOrder( Order... orders )
+    {
+        for ( Order order : orders )
+        {
+            if ( order != null )
+            {
+                this.orders.add( order );
+            }
+        }
+
+        return this;
+    }
+
+    public Query addOrders( Collection<Order> orders )
+    {
+        this.orders.addAll( orders );
+        return this;
+    }
+
+    public Disjunction addDisjunction()
+    {
+        Disjunction disjunction = new Disjunction( schema );
+        add( disjunction );
+
+        return disjunction;
+    }
+
+    public Disjunction disjunction()
+    {
+        return new Disjunction( schema );
+    }
+
+    public Conjunction addConjunction()
+    {
+        Conjunction conjunction = new Conjunction( schema );
+        add( conjunction );
+
+        return conjunction;
+    }
+
+    public Conjunction conjunction()
+    {
+        return new Conjunction( schema );
+    }
+
+    public Query forceDefaultOrder()
+    {
+        orders.clear();
+        return setDefaultOrder();
+    }
+
+    public Query setDefaultOrder()
+    {
+        if ( !orders.isEmpty() )
+        {
+            return this;
+        }
+
+        if ( schema.havePersistedProperty( "name" ) )
+        {
+            addOrder( Order.iasc( schema.getPersistedProperty( "name" ) ) );
+        }
+        if ( schema.havePersistedProperty( "created" ) )
+        {
+            addOrder( Order.idesc( schema.getPersistedProperty( "created" ) ) );
+        }
+
+        return this;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "firstResult", firstResult )
+            .add( "maxResults", maxResults )
+            .add( "orders", orders )
+            .add( "criterions", criterions )
+            .toString();
+    }
 }

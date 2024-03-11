@@ -1,5 +1,7 @@
+package org.hisp.dhis.sqlview;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -43,241 +40,255 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 /**
  * @author Dang Duy Hieu
  */
-@JacksonXmlRootElement(localName = "sqlView", namespace = DxfNamespaces.DXF_2_0)
-public class SqlView extends BaseIdentifiableObject implements Cacheable, MetadataObject {
-  public static final String PREFIX_VIEWNAME = "_view";
+@JacksonXmlRootElement( localName = "sqlView", namespace = DxfNamespaces.DXF_2_0 )
+public class SqlView
+    extends BaseIdentifiableObject
+    implements Cacheable, MetadataObject
+{
+    public static final String PREFIX_VIEWNAME = "_view";
 
-  public static final Set<String> PROTECTED_TABLES =
-      Set.of(
-          "users", "userinfo", "trackedentityattributevalue", "oauth_access_token", "oauth2client");
+    public static final Set<String> PROTECTED_TABLES = ImmutableSet.<String>builder().add(
+        "users", "userinfo", "trackedentityattribute", "trackedentityattributevalue", "oauth_access_token", "oauth2client" ).build();
 
-  public static final Set<String> ILLEGAL_KEYWORDS =
-      Set.of(
-          "delete",
-          "alter",
-          "update",
-          "create",
-          "drop",
-          "commit",
-          "createdb",
-          "createuser",
-          "insert",
-          "rename",
-          "restore",
-          "write");
+    public static final Set<String> ILLEGAL_KEYWORDS = ImmutableSet.<String>builder().add(
+        "delete", "alter", "update", "create", "drop", "commit", "createdb",
+        "createuser", "insert", "rename", "restore", "write" ).build();
 
-  public static final String CURRENT_USER_ID_VARIABLE = "_current_user_id";
+    private static final String CRITERIA_SEP = ":";
+    private static final String REGEX_SEP = "|";
 
-  public static final String CURRENT_USERNAME_VARIABLE = "_current_username";
+    private static final String QUERY_VALUE_REGEX = "^[\\w\\s\\-]*$";
 
-  public static final Set<String> STANDARD_VARIABLES =
-      Set.of(CURRENT_USER_ID_VARIABLE, CURRENT_USERNAME_VARIABLE);
+    // -------------------------------------------------------------------------
+    // Properties
+    // -------------------------------------------------------------------------
 
-  private static final String CRITERIA_SEP = ":";
+    private String description;
 
-  private static final String REGEX_SEP = "|";
+    private String sqlQuery;
 
-  private static final String QUERY_VALUE_REGEX = "^[\\p{L}\\w\\s\\-]*$";
+    private SqlViewType type;
 
-  private static final String QUERY_NAME_REGEX = "^[-a-zA-Z0-9_]+$";
+    private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
 
-  // -------------------------------------------------------------------------
-  // Properties
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  private String description;
-
-  private String sqlQuery;
-
-  private SqlViewType type = SqlViewType.VIEW;
-
-  private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
-
-  /**
-   * Optional UID of the {@link org.hisp.dhis.scheduling.Job} that is responsible for updating a
-   * {@link SqlViewType#MATERIALIZED_VIEW}.
-   *
-   * <p>This field is only used in the API.
-   */
-  private transient String updateJobId;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public SqlView() {}
-
-  public SqlView(String name, String sqlQuery, SqlViewType type) {
-    this.name = name;
-    this.sqlQuery = sqlQuery;
-    this.type = type;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public String getViewName() {
-    final Pattern p = Pattern.compile("\\W");
-
-    String[] items = p.split(name.trim().replace("_", ""));
-
-    StringBuilder input = new StringBuilder();
-
-    for (String s : items) {
-      input.append(s.isEmpty() ? "" : ("_" + s));
+    public SqlView()
+    {
     }
 
-    return PREFIX_VIEWNAME + input.toString().toLowerCase();
-  }
+    public SqlView( String name, String sqlQuery, SqlViewType type )
+    {
+        this.name = name;
+        this.sqlQuery = sqlQuery;
+        this.type = type;
+    }
 
-  public static Map<String, String> getCriteria(Set<String> params) {
-    Map<String, String> map = new HashMap<>();
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-    if (params != null) {
-      for (String param : params) {
-        if (param != null && param.split(CRITERIA_SEP).length == 2) {
-          String[] criteria = param.split(CRITERIA_SEP);
-          String filter = criteria[0];
-          String value = criteria[1];
+    public String getViewName()
+    {
+        final Pattern p = Pattern.compile( "\\W" );
 
-          map.put(filter, value);
+        String input = name;
+
+        String[] items = p.split( input.trim().replaceAll( "_", "" ) );
+
+        input = "";
+
+        for ( String s : items )
+        {
+            input += s.isEmpty() ? "" : ("_" + s);
         }
-      }
+
+        return PREFIX_VIEWNAME + input.toLowerCase();
     }
 
-    return map;
-  }
+    public static Map<String, String> getCriteria( Set<String> params )
+    {
+        Map<String, String> map = new HashMap<>();
 
-  public static Set<String> getInvalidQueryParams(Set<String> params) {
-    Set<String> invalid = new HashSet<>();
+        if ( params != null )
+        {
+            for ( String param : params )
+            {
+                if ( param != null && param.split( CRITERIA_SEP ).length == 2 )
+                {
+                    String[] criteria = param.split( CRITERIA_SEP );
+                    String filter = criteria[0];
+                    String value = criteria[1];
 
-    for (String param : params) {
-      if (!isValidQueryParam(param)) {
-        invalid.add(param);
-      }
+                    map.put( filter, value );
+                }
+            }
+        }
+
+        return map;
     }
 
-    return invalid;
-  }
+    public static Set<String> getInvalidQueryParams( Set<String> params )
+    {
+        Set<String> invalid = new HashSet<>();
 
-  /** Indicates whether the given query parameter is valid. */
-  public static boolean isValidQueryParam(String param) {
-    return param.matches(QUERY_NAME_REGEX);
-  }
+        for ( String param : params )
+        {
+            if ( !isValidQueryParam( param ) )
+            {
+                invalid.add( param );
+            }
+        }
 
-  public static Set<String> getInvalidQueryValues(Collection<String> values) {
-    Set<String> invalid = new HashSet<>();
-
-    for (String value : values) {
-      if (!isValidQueryValue(value)) {
-        invalid.add(value);
-      }
+        return invalid;
     }
 
-    return invalid;
-  }
-
-  /** Indicates whether the given query value is valid. */
-  public static boolean isValidQueryValue(String value) {
-    return value != null && value.matches(QUERY_VALUE_REGEX);
-  }
-
-  public static String getProtectedTablesRegex() {
-    StringBuilder regex = new StringBuilder("^(.*\\W)?(");
-
-    for (String table : PROTECTED_TABLES) {
-      regex.append(table).append(REGEX_SEP);
+    /**
+     * Indicates whether the given query parameter is valid.
+     */
+    public static boolean isValidQueryParam( String param )
+    {
+        return StringUtils.isAlphanumeric( param );
     }
 
-    regex.delete(regex.length() - 1, regex.length());
+    public static Set<String> getInvalidQueryValues( Collection<String> values )
+    {
+        Set<String> invalid = new HashSet<>();
 
-    return regex.append(")(\\W.*)?$").toString();
-  }
+        for ( String value : values )
+        {
+            if ( !isValidQueryValue( value ) )
+            {
+                invalid.add( value );
+            }
+        }
 
-  public static String getIllegalKeywordsRegex() {
-    StringBuilder regex = new StringBuilder("^(.*\\W)?(");
-
-    for (String word : ILLEGAL_KEYWORDS) {
-      regex.append(word).append(REGEX_SEP);
+        return invalid;
     }
 
-    regex.delete(regex.length() - 1, regex.length());
+    /**
+     * Indicates whether the given query value is valid.
+     */
+    public static boolean isValidQueryValue( String value )
+    {
+        return value != null && value.matches( QUERY_VALUE_REGEX );
+    }
 
-    return regex.append(")(\\W.*)?$").toString();
-  }
+    public static String getProtectedTablesRegex()
+    {
+        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
 
-  /** Indicates whether this SQL view is a query. */
-  public boolean isQuery() {
-    return SqlViewType.QUERY.equals(type);
-  }
+        for ( String table : PROTECTED_TABLES )
+        {
+            regex.append( table ).append( REGEX_SEP );
+        }
 
-  /** Indicates whether this SQl view is a view / materialized view. */
-  public boolean isView() {
-    return SqlViewType.QUERY.equals(type) || isMaterializedView();
-  }
+        regex.delete( regex.length() - 1, regex.length() );
 
-  /** Indicates whether this SQL view is a materalized view. */
-  public boolean isMaterializedView() {
-    return SqlViewType.MATERIALIZED_VIEW.equals(type);
-  }
+        return regex.append( ")(\\W.*)?$" ).toString();
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public static String getIllegalKeywordsRegex()
+    {
+        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
-  public String getDescription() {
-    return description;
-  }
+        for ( String word : ILLEGAL_KEYWORDS )
+        {
+            regex.append( word ).append( REGEX_SEP );
+        }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+        regex.delete( regex.length() - 1, regex.length() );
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getSqlQuery() {
-    return sqlQuery;
-  }
+        return regex.append( ")(\\W.*)?$" ).toString();
+    }
 
-  public void setSqlQuery(String sqlQuery) {
-    this.sqlQuery = sqlQuery;
-  }
+    /**
+     * Indicates whether this SQL view is a query.
+     */
+    public boolean isQuery()
+    {
+        return SqlViewType.QUERY.equals( type );
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public SqlViewType getType() {
-    return type;
-  }
+    /**
+     * Indicates whether this SQl view is a view / materialized view.
+     */
+    public boolean isView()
+    {
+        return SqlViewType.QUERY.equals( type ) || isMaterializedView();
+    }
 
-  public void setType(SqlViewType type) {
-    this.type = type;
-  }
+    /**
+     * Indicates whether this SQL view is a materalized view.
+     */
+    public boolean isMaterializedView()
+    {
+        return SqlViewType.MATERIALIZED_VIEW.equals( type );
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Override
-  public CacheStrategy getCacheStrategy() {
-    return cacheStrategy;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setCacheStrategy(CacheStrategy cacheStrategy) {
-    this.cacheStrategy = cacheStrategy;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 2 )
+    public String getDescription()
+    {
+        return description;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getUpdateJobId() {
-    return updateJobId;
-  }
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 
-  public void setUpdateJobId(String updateJobId) {
-    this.updateJobId = updateJobId;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSqlQuery()
+    {
+        return sqlQuery;
+    }
+
+    public void setSqlQuery( String sqlQuery )
+    {
+        this.sqlQuery = sqlQuery;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SqlViewType getType()
+    {
+        return type;
+    }
+
+    public void setType( SqlViewType type )
+    {
+        this.type = type;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Override
+    public CacheStrategy getCacheStrategy()
+    {
+        return cacheStrategy;
+    }
+
+    public void setCacheStrategy( CacheStrategy cacheStrategy )
+    {
+        this.cacheStrategy = cacheStrategy;
+    }
 }

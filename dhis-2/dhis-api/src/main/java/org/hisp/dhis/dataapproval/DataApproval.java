@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataapproval;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,341 +27,379 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.User;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Value;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-import org.hisp.dhis.user.User;
 
 /**
- * Records the approval of DataSet values for a given OrganisationUnit and Period.
+ * Records the approval of DataSet values for a given OrganisationUnit and
+ * Period.
  *
  * @author Jim Grace
  */
-public class DataApproval implements Serializable {
-  public static final String AUTH_APPROVE = "F_APPROVE_DATA";
+public class DataApproval
+    implements Serializable
+{
+    public static final String AUTH_APPROVE = "F_APPROVE_DATA";
+    public static final String AUTH_APPROVE_LOWER_LEVELS = "F_APPROVE_DATA_LOWER_LEVELS";
+    public static final String AUTH_ACCEPT_LOWER_LEVELS = "F_ACCEPT_DATA_LOWER_LEVELS";
+    public static final String AUTH_VIEW_UNAPPROVED_DATA = "F_VIEW_UNAPPROVED_DATA";
 
-  public static final String AUTH_APPROVE_LOWER_LEVELS = "F_APPROVE_DATA_LOWER_LEVELS";
+    private static final long serialVersionUID = -4034531921928532366L;
 
-  public static final String AUTH_ACCEPT_LOWER_LEVELS = "F_ACCEPT_DATA_LOWER_LEVELS";
+    /**
+     * Identifies the data approval instance (required).
+     */
+    private int id;
 
-  public static final String AUTH_VIEW_UNAPPROVED_DATA = "F_VIEW_UNAPPROVED_DATA";
+    /**
+     * The approval level for which this approval is defined.
+     */
+    private DataApprovalLevel dataApprovalLevel;
 
-  private static final long serialVersionUID = -4034531921928532366L;
+    /**
+     * The workflow for the values being approved (required).
+     */
+    private DataApprovalWorkflow workflow;
 
-  /** Identifies the data approval instance (required). */
-  private long id;
+    /**
+     * The Period of the approval (required).
+     */
+    private Period period;
 
-  /** The approval level for which this approval is defined (required). */
-  private DataApprovalLevel dataApprovalLevel;
+    /**
+     * The OrganisationUnit of the approval (required).
+     */
+    private OrganisationUnit organisationUnit;
 
-  /** The workflow for the values being approved (required). */
-  private DataApprovalWorkflow workflow;
+    /**
+     * The attribute category option combo being approved (optional).
+     */
+    private CategoryOptionCombo attributeOptionCombo;
 
-  /** The Period of the approval (required). */
-  private Period period;
+    /**
+     * Whether the approval has been accepted (optional, usually by another
+     * user.)
+     */
+    private boolean accepted;
 
-  /** The OrganisationUnit of the approval (required). */
-  private OrganisationUnit organisationUnit;
+    /**
+     * The Date (including time) when this approval was made (required).
+     */
+    private Date created;
 
-  /** The attribute category option combo being approved (required). */
-  private CategoryOptionCombo attributeOptionCombo;
+    /**
+     * The User who made this approval (required).
+     */
+    private User creator;
 
-  /** Whether the approval has been accepted (optional, usually by another user.) */
-  private boolean accepted;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  /** The Date (including time) when this approval was made (required). */
-  private Date created;
+    public DataApproval()
+    {
+    }
 
-  /** The User who made this approval (required). */
-  private User creator;
+    public DataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
+        Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataApprovalLevel = dataApprovalLevel;
+        this.workflow = workflow;
+        this.period = period;
+        this.organisationUnit = organisationUnit;
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
 
-  /** The Date (including time) when {@link #accepted} status of this approval was last changed */
-  private Date lastUpdated;
+    public DataApproval( DataApprovalLevel dataApprovalLevel, DataApprovalWorkflow workflow,
+        Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo,
+        boolean accepted, Date created, User creator )
+    {
+        this.dataApprovalLevel = dataApprovalLevel;
+        this.workflow = workflow;
+        this.period = period;
+        this.organisationUnit = organisationUnit;
+        this.attributeOptionCombo = attributeOptionCombo;
+        this.accepted = accepted;
+        this.created = created;
+        this.creator = creator;
+    }
 
-  /** The User who made the last change to the {@link #accepted} status of this approval */
-  private User lastUpdatedBy;
+    public DataApproval( DataApproval da )
+    {
+        this.dataApprovalLevel = da.dataApprovalLevel;
+        this.workflow = da.workflow;
+        this.period = da.period;
+        this.organisationUnit = da.organisationUnit;
+        this.attributeOptionCombo = da.attributeOptionCombo;
+        this.accepted = da.accepted;
+        this.created = da.created;
+        this.creator = da.creator;
+    }
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public DataApproval() {}
+    /**
+     * Finds the lowest level (if any) at which data would be approved.
+     */
+    public static DataApproval getLowestApproval( DataApproval dataApproval )
+    {
+        OrganisationUnit orgUnit = dataApproval.getOrganisationUnit();
 
-  public DataApproval(
-      DataApprovalLevel dataApprovalLevel,
-      DataApprovalWorkflow workflow,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo) {
-    this.dataApprovalLevel = dataApprovalLevel;
-    this.workflow = workflow;
-    this.period = period;
-    this.organisationUnit = organisationUnit;
-    this.attributeOptionCombo = attributeOptionCombo;
-  }
+        List<DataApprovalLevel> approvalLevels = dataApproval.getWorkflow().getSortedLevels();
 
-  public DataApproval(
-      DataApprovalLevel dataApprovalLevel,
-      DataApprovalWorkflow workflow,
-      Period period,
-      OrganisationUnit organisationUnit,
-      CategoryOptionCombo attributeOptionCombo,
-      boolean accepted,
-      Date created,
-      User creator) {
-    this.dataApprovalLevel = dataApprovalLevel;
-    this.workflow = workflow;
-    this.period = period;
-    this.organisationUnit = organisationUnit;
-    this.attributeOptionCombo = attributeOptionCombo;
-    this.accepted = accepted;
-    this.created = created;
-    this.creator = creator;
-    this.lastUpdated = created;
-    this.lastUpdatedBy = creator;
-  }
+        Collections.reverse( approvalLevels );
 
-  public DataApproval(DataApproval da) {
-    this.dataApprovalLevel = da.dataApprovalLevel;
-    this.workflow = da.workflow;
-    this.period = da.period;
-    this.organisationUnit = da.organisationUnit;
-    this.attributeOptionCombo = da.attributeOptionCombo;
-    this.accepted = da.accepted;
-    this.created = da.created;
-    this.creator = da.creator;
-    this.lastUpdated = da.lastUpdated;
-    this.lastUpdatedBy = da.lastUpdatedBy;
-  }
+        DataApproval da = null;
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+        for ( DataApprovalLevel approvalLevel : approvalLevels )
+        {
+            int orgUnitLevel = orgUnit.getLevel();
+            
+            if ( approvalLevel.getOrgUnitLevel() <= orgUnitLevel )
+            {
+                if ( approvalLevel.getOrgUnitLevel() < orgUnitLevel )
+                {
+                    orgUnit = orgUnit.getAncestors().get( approvalLevel.getOrgUnitLevel() - 1 );
+                }
+                
+                da = new DataApproval( approvalLevel, dataApproval.getWorkflow(),
+                    dataApproval.getPeriod(), orgUnit, dataApproval.getAttributeOptionCombo() );
 
-  /** Finds the lowest level (if any) at which data would be approved. */
-  public static DataApproval getLowestApproval(DataApproval dataApproval) {
-    OrganisationUnit orgUnit = dataApproval.getOrganisationUnit();
-
-    List<DataApprovalLevel> approvalLevels = dataApproval.getWorkflow().getSortedLevels();
-
-    Collections.reverse(approvalLevels);
-
-    DataApproval da = null;
-
-    for (DataApprovalLevel approvalLevel : approvalLevels) {
-      int orgUnitLevel = orgUnit.getLevel();
-
-      if (approvalLevel.getOrgUnitLevel() <= orgUnitLevel) {
-        if (approvalLevel.getOrgUnitLevel() < orgUnitLevel) {
-          orgUnit = orgUnit.getAncestors().get(approvalLevel.getOrgUnitLevel() - 1);
+                break;
+            }
         }
 
-        da =
-            new DataApproval(
-                approvalLevel,
-                dataApproval.getWorkflow(),
-                dataApproval.getPeriod(),
-                orgUnit,
-                dataApproval.getAttributeOptionCombo());
+        return da;
+    }
+    
+    public String getCacheKey()
+    {
+        return dataApprovalLevel.getUid() + "-" + workflow.getUid() + "-" + period.getUid() + 
+            "-" + organisationUnit.getUid() + "-" + attributeOptionCombo.getUid();
+    }
+    
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-        break;
-      }
+    public int getId()
+    {
+        return id;
     }
 
-    return da;
-  }
-
-  public String getCacheKey() {
-    return dataApprovalLevel.getUid()
-        + "-"
-        + workflow.getUid()
-        + "-"
-        + period.getUid()
-        + "-"
-        + organisationUnit.getUid()
-        + "-"
-        + attributeOptionCombo.getUid();
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataApprovalLevel getDataApprovalLevel() {
-    return dataApprovalLevel;
-  }
-
-  public void setDataApprovalLevel(DataApprovalLevel dataApprovalLevel) {
-    this.dataApprovalLevel = dataApprovalLevel;
-  }
-
-  public DataApprovalWorkflow getWorkflow() {
-    return workflow;
-  }
-
-  public void setWorkflow(DataApprovalWorkflow workflow) {
-    this.workflow = workflow;
-  }
-
-  public Period getPeriod() {
-    return period;
-  }
-
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
-
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
-
-  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-  }
-
-  public CategoryOptionCombo getAttributeOptionCombo() {
-    return attributeOptionCombo;
-  }
-
-  public void setAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
-    this.attributeOptionCombo = attributeOptionCombo;
-  }
-
-  public boolean isAccepted() {
-    return accepted;
-  }
-
-  public void setAccepted(boolean accepted) {
-    this.accepted = accepted;
-  }
-
-  public void setAccepted(boolean accepted, User by) {
-    setAccepted(accepted);
-    setLastUpdatedBy(by);
-    setLastUpdated(new Date());
-  }
-
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  public User getCreator() {
-    return creator;
-  }
-
-  public void setCreator(User creator) {
-    this.creator = creator;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(isAttribute = true)
-  @Description("The date this object was last updated.")
-  @Property(value = PropertyType.DATE, required = Value.FALSE)
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
-
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getLastUpdatedBy() {
-    return lastUpdatedBy;
-  }
-
-  public void setLastUpdatedBy(User lastUpdatedBy) {
-    this.lastUpdatedBy = lastUpdatedBy;
-  }
-
-  // ----------------------------------------------------------------------
-  // hashCode, equals, toString
-  // ----------------------------------------------------------------------
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(
-        dataApprovalLevel, workflow, period, organisationUnit, attributeOptionCombo);
-  }
-
-  @Override
-  public String toString() {
-    return "DataApproval{"
-        + "id="
-        + id
-        + ", dataApprovalLevel="
-        + (dataApprovalLevel == null ? "(null)" : dataApprovalLevel.getLevel())
-        + ", workflow='"
-        + (workflow == null ? "(null)" : workflow.getName())
-        + "'"
-        + ", period="
-        + (period == null ? "(null)" : period.getName())
-        + ", organisationUnit='"
-        + (organisationUnit == null ? "(null)" : organisationUnit.getName())
-        + "'"
-        + ", attributeOptionCombo='"
-        + (attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName())
-        + "'"
-        + ", accepted="
-        + accepted
-        + ", created="
-        + created
-        + ", creator="
-        + (creator == null ? "(null)" : creator.getName())
-        + '}';
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-    if (!(object instanceof DataApproval)) {
-      return false;
+    public void setId( int id )
+    {
+        this.id = id;
     }
 
-    DataApproval other = (DataApproval) object;
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataApprovalLevel getDataApprovalLevel()
+    {
+        return dataApprovalLevel;
+    }
 
-    return Objects.equals(dataApprovalLevel, other.dataApprovalLevel)
-        && Objects.equals(workflow, other.workflow)
-        && Objects.equals(period, other.period)
-        && Objects.equals(organisationUnit, other.organisationUnit)
-        && Objects.equals(attributeOptionCombo, other.attributeOptionCombo);
-  }
+    public void setDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
+    {
+        this.dataApprovalLevel = dataApprovalLevel;
+    }
+
+    public DataApprovalWorkflow getWorkflow()
+    {
+        return workflow;
+    }
+
+    public void setWorkflow( DataApprovalWorkflow workflow )
+    {
+        this.workflow = workflow;
+    }
+
+    public Period getPeriod()
+    {
+        return period;
+    }
+
+    public void setPeriod( Period period )
+    {
+        this.period = period;
+    }
+
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
+
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
+    }
+
+    public CategoryOptionCombo getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    public boolean isAccepted()
+    {
+        return accepted;
+    }
+
+    public void setAccepted( boolean accepted )
+    {
+        this.accepted = accepted;
+    }
+
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    public User getCreator()
+    {
+        return creator;
+    }
+
+    public void setCreator( User creator )
+    {
+        this.creator = creator;
+    }
+
+    // ----------------------------------------------------------------------
+    // hashCode, equals, toString
+    // ----------------------------------------------------------------------
+
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+
+        int result = 1;
+
+        result = prime * result + ((dataApprovalLevel == null) ? 0 : dataApprovalLevel.hashCode());
+        result = prime * result + ((workflow == null) ? 0 : workflow.hashCode());
+        result = prime * result + ((period == null) ? 0 : period.hashCode());
+        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
+        result = prime * result + ((attributeOptionCombo == null) ? 0 : attributeOptionCombo.hashCode());
+
+        return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "DataApproval{" +
+            "id=" + id +
+            ", dataApprovalLevel=" + (dataApprovalLevel == null ? "(null)" : dataApprovalLevel.getLevel()) +
+            ", workflow='" + (workflow == null ? "(null)" : workflow.getName()) + "'" +
+            ", period=" + (period == null ? "(null)" : period.getName()) +
+            ", organisationUnit='" + (organisationUnit == null ? "(null)" : organisationUnit.getName()) + "'" +
+            ", attributeOptionCombo='" + (attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName()) + "'" +
+            ", accepted=" + accepted +
+            ", created=" + created +
+            ", creator=" + (creator == null ? "(null)" : creator.getName()) +
+            '}';
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null || !(object instanceof DataApproval) )
+        {
+            return false;
+        }
+
+        DataApproval that = (DataApproval) object;
+
+        if ( dataApprovalLevel != null )
+        {
+            if ( !dataApprovalLevel.equals( that.getDataApprovalLevel() ) )
+            {
+                return false;
+            }
+        }
+        else if ( that.getDataApprovalLevel() != null )
+        {
+            return false;
+        }
+
+        if ( workflow != null )
+        {
+            if ( !workflow.equals( that.getWorkflow() ) )
+            {
+                return false;
+            }
+        }
+        else if ( that.getWorkflow() != null )
+        {
+            return false;
+        }
+
+        if ( period != null )
+        {
+            if ( !period.equals( that.getPeriod() ) )
+            {
+                return false;
+            }
+        }
+        else if ( that.getPeriod() != null )
+        {
+            return false;
+        }
+
+        if ( organisationUnit != null )
+        {
+            if ( !organisationUnit.equals( that.getOrganisationUnit() ) )
+            {
+                return false;
+            }
+        }
+        else if ( that.getOrganisationUnit() != null )
+        {
+            return false;
+        }
+
+        if ( attributeOptionCombo != null )
+        {
+            if ( !attributeOptionCombo.equals( that.getAttributeOptionCombo() ) )
+            {
+                return false;
+            }
+        }
+        else if ( that.getAttributeOptionCombo() != null )
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

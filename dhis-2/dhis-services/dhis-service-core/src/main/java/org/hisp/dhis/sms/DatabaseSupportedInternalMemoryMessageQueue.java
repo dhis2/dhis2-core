@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +27,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.sms.incoming.IncomingSmsStore;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@RequiredArgsConstructor
-@Component("org.hisp.dhis.sms.MessageQueue")
-public class DatabaseSupportedInternalMemoryMessageQueue implements MessageQueue {
-  private List<IncomingSms> queue = new ArrayList<>();
+public class DatabaseSupportedInternalMemoryMessageQueue
+    implements MessageQueue
+{
+    private List<IncomingSms> queue = new ArrayList<>();
 
-  private final IncomingSmsService incomingSmsService;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+    
+    @Autowired
+    private IncomingSmsStore incomingSmsStore;
 
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public void put(IncomingSms message) {
-    queue.add(message);
-  }
-
-  @Override
-  public IncomingSms get() {
-    if (queue != null && queue.size() > 0) {
-      return queue.get(0);
+    @Override
+    public void put( IncomingSms message )
+    {
+        queue.add( message );
     }
 
-    return null;
-  }
+    @Override
+    public IncomingSms get()
+    {
+        if ( queue != null && queue.size() > 0 )
+        {
+            return queue.get( 0 );
+        }
 
-  @Override
-  public void remove(IncomingSms message) {
-    queue.remove(message);
-  }
-
-  @Override
-  public void initialize() {
-    Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
-
-    if (messages != null) {
-      queue.addAll(messages);
+        return null;
     }
-  }
+
+    @Override
+    public void remove( IncomingSms message )
+    {
+        queue.remove( message );
+    }
+
+    @Override
+    public void initialize()
+    {
+        Collection<IncomingSms> messages = incomingSmsStore.getAllUnparsedSmses();
+
+        if ( messages != null )
+        {
+            queue.addAll( messages );
+        }
+    }
 }

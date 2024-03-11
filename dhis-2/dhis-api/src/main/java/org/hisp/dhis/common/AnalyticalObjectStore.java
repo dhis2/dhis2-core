@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import java.util.List;
+
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -45,44 +44,39 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AnalyticalObjectStore<T extends AnalyticalObject>
-    extends IdentifiableObjectStore<T> {
-  List<T> getAnalyticalObjects(ExpressionDimensionItem expressionDimensionItem);
+    extends IdentifiableObjectStore<T>
+{
+    List<T> getAnalyticalObjects( Indicator indicator );
+    
+    List<T> getAnalyticalObjects( DataElement dataElement );
+    
+    List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement );
+    
+    List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute );
+    
+    List<T> getAnalyticalObjects( DataSet dataSet );
 
-  List<T> getAnalyticalObjects(Indicator indicator);
+    List<T> getAnalyticalObjects( ProgramIndicator programIndicator );
 
-  List<T> getAnalyticalObjects(DataElement dataElement);
+    List<T> getAnalyticalObjects( Period period );
 
-  List<T> getAnalyticalObjectsByDataDimension(DataElement dataElement);
+    List<T> getAnalyticalObjects( OrganisationUnit organisationUnit );
 
-  List<T> getAnalyticalObjectsByDataDimension(TrackedEntityAttribute attribute);
+    List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
+    
+    List<T> getAnalyticalObjects( LegendSet legendSet );
+    
+    int countAnalyticalObjects( Indicator indicator );
 
-  List<T> getAnalyticalObjects(DataSet dataSet);
+    int countAnalyticalObjects( DataElement dataElement );
 
-  List<T> getAnalyticalObjects(ProgramIndicator programIndicator);
+    int countAnalyticalObjects( DataSet dataSet );
 
-  List<T> getAnalyticalObjects(Period period);
-
-  List<T> getAnalyticalObjects(OrganisationUnit organisationUnit);
-
-  List<T> getAnalyticalObjects(OrganisationUnitGroup organisationUnitGroup);
-
-  List<T> getAnalyticalObjects(OrganisationUnitGroupSet organisationUnitGroupSet);
-
-  List<T> getAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
-
-  List<T> getAnalyticalObjects(LegendSet legendSet);
-
-  long countAnalyticalObjects(Indicator indicator);
-
-  long countAnalyticalObjects(DataElement dataElement);
-
-  long countAnalyticalObjects(DataSet dataSet);
-
-  long countAnalyticalObjects(ProgramIndicator programIndicator);
-
-  long countAnalyticalObjects(Period period);
-
-  long countAnalyticalObjects(OrganisationUnit organisationUnit);
-
-  long countAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
+    int countAnalyticalObjects( ProgramIndicator programIndicator );
+    
+    int countAnalyticalObjects( Period period );
+    
+    int countAnalyticalObjects( OrganisationUnit organisationUnit );
+    
+    int countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import java.util.Set;
+import org.junit.Test;
+import com.google.common.collect.Sets;
 
 /**
- * @author Lars Helge Overland
- */
-class ProgramIndicatorTest {
-
-  @Test
-  void testHasFilter() {
-    ProgramIndicator pi = new ProgramIndicator();
-    assertFalse(pi.hasFilter());
-    pi.setFilter("true");
-    assertTrue(pi.hasFilter());
-  }
-  // TODO: write more tests
+* @author Lars Helge Overland
+*/
+public class ProgramIndicatorTest
+{
+    @Test
+    public void testGetIdentifiersEvent()
+    {
+        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
+        
+        Set<String> expected = Sets.newHashSet( "yD5mUKAm3aK", "UaGD9u0kaur", "y1Bhi6xHtVk" );
+        
+        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, AnalyticsType.EVENT ) );
+    }
+    
+    @Test
+    public void testGetIdentifiersEnrollment()
+    {
+        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
+        
+        Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "y1Bhi6xHtVk" );
+        
+        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, AnalyticsType.ENROLLMENT ) );
+    }
 }

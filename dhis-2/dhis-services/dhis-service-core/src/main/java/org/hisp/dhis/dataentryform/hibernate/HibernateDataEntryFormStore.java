@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataentryform.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataentryform.hibernate;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Bharath Kumar
  */
-@Repository("org.hisp.dhis.dataentryform.DataEntryFormStore")
-public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStore<DataEntryForm>
-    implements DataEntryFormStore {
-  public HibernateDataEntryFormStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        DataEntryForm.class,
-        currentUserService,
-        aclService,
-        false);
-  }
+public class HibernateDataEntryFormStore
+    extends HibernateIdentifiableObjectStore<DataEntryForm>
+    implements DataEntryFormStore
+{
+    // -------------------------------------------------------------------------
+    // DataEntryFormStore implementation
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // DataEntryFormStore implementation
-  // -------------------------------------------------------------------------
+    @Override
+    public DataEntryForm getDataEntryFormByName( String name )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public DataEntryForm getDataEntryFormByName(String name) {
-    CriteriaBuilder builder = getCriteriaBuilder();
+        JpaQueryParameters<DataEntryForm> parameters = new JpaQueryParameters<DataEntryForm>()
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
 
-    JpaQueryParameters<DataEntryForm> parameters =
-        new JpaQueryParameters<DataEntryForm>()
-            .addPredicate(root -> builder.equal(root.get("name"), name));
-
-    return getSingleResult(builder, parameters);
-  }
+        return getSingleResult( builder, parameters );
+    }
 }

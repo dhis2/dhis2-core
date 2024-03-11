@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,70 +27,69 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.hibernate;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.program.EventSyncStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@Repository("org.hisp.dhis.program.EventSyncStore")
-public class HibernateEventSyncStore implements EventSyncStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+public class HibernateEventSyncStore implements EventSyncStore
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+    
+    private SessionFactory sessionFactory;
 
-  private final SessionFactory sessionFactory;
-
-  public HibernateEventSyncStore(SessionFactory sessionFactory) {
-    checkNotNull(sessionFactory);
-
-    this.sessionFactory = sessionFactory;
-  }
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public List<ProgramStageInstance> getEvents(List<String> uids) {
-    if (uids.isEmpty()) {
-      return new ArrayList<>();
+    public void setSessionFactory( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+    
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<ProgramStageInstance> getEvents( List<String> uids )
+    {
+        if ( uids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+        
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramStageInstance.class );
+        
+        criteria.add( Restrictions.in( "uid", uids ) );
+        
+        return criteria.list();
     }
 
-    Criteria criteria =
-        sessionFactory.getCurrentSession().createCriteria(ProgramStageInstance.class);
+    @Override
+    public ProgramStageInstance getEvent( String uid )
+    {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramStageInstance.class );
+        criteria.add( Restrictions.eq( "uid", uid ) );
 
-    criteria.add(Restrictions.in("uid", uids));
+        return (ProgramStageInstance) criteria.uniqueResult();
+    }
 
-    return criteria.list();
-  }
+    @Override
+    public ProgramInstance getEnrollment( String uid )
+    {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramInstance.class );
+        criteria.add( Restrictions.eq( "uid", uid ) );
 
-  @Override
-  public ProgramStageInstance getEvent(String uid) {
-    Criteria criteria =
-        sessionFactory.getCurrentSession().createCriteria(ProgramStageInstance.class);
-    criteria.add(Restrictions.eq("uid", uid));
-
-    return (ProgramStageInstance) criteria.uniqueResult();
-  }
-
-  @Override
-  public ProgramInstance getEnrollment(String uid) {
-    Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ProgramInstance.class);
-    criteria.add(Restrictions.eq("uid", uid));
-
-    return (ProgramInstance) criteria.uniqueResult();
-  }
+        return (ProgramInstance) criteria.uniqueResult();
+    }
 }

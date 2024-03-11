@@ -1,5 +1,7 @@
+package org.hisp.dhis.predictor;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
 
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
-@Component
-public class PredictorGroupDeletionHandler extends IdObjectDeletionHandler<PredictorGroup> {
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Predictor.class, this::deletePredictor);
-  }
+public class PredictorGroupDeletionHandler
+    extends DeletionHandler
+{
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
-  private void deletePredictor(Predictor predictor) {
-    for (PredictorGroup group : predictor.getGroups()) {
-      group.getMembers().remove(predictor);
-      idObjectManager.updateNoAcl(group);
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return PredictorGroup.class.getSimpleName();
     }
-  }
+
+    @Override
+    public void deletePredictor( Predictor predictor )
+    {
+        for ( PredictorGroup group : predictor.getGroups() )
+        {
+            group.getMembers().remove( predictor );
+            idObjectManager.updateNoAcl( group );
+        }
+    }
 }

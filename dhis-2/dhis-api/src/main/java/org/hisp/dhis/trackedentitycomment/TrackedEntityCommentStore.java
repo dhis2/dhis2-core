@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2004-2022, University of Oslo
+package org.hisp.dhis.trackedentitycomment;/*
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentitycomment;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author David Katuscak
  */
-public interface TrackedEntityCommentStore extends IdentifiableObjectStore<TrackedEntityComment> {
-  /**
-   * Checks for the existence of a TrackedEntityComment by UID
-   *
-   * @param uid TrackedEntityComment UID to check for.
-   * @return true/false depending on result.
-   */
-  boolean exists(String uid);
+
+public interface TrackedEntityCommentStore
+    extends IdentifiableObjectStore<TrackedEntityComment>
+{
+    /**
+     * Checks for the existence of a TrackedEntityComment by UID
+     *
+     * @param uid TrackedEntityComment UID to check for.
+     * @return true/false depending on result.
+     */
+    boolean exists( String uid );
+
 }

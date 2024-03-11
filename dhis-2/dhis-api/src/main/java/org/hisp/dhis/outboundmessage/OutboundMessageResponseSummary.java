@@ -1,5 +1,7 @@
+package org.hisp.dhis.outboundmessage;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,136 +27,155 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outboundmessage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.DeliveryChannel;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JacksonXmlRootElement(localName = "messageResponseSummary", namespace = DxfNamespaces.DXF_2_0)
-public class OutboundMessageResponseSummary {
-  private int total;
 
-  private int failed;
+@JacksonXmlRootElement( localName = "messageResponseSummary", namespace = DxfNamespaces.DXF_2_0 )
+public class OutboundMessageResponseSummary
+{
+    private int total;
+    
+    private int failed;
+    
+    private int pending;
+    
+    private int sent;
+    
+    private OutboundMessageBatchStatus batchStatus;
+    
+    private String responseMessage;
+    
+    private String errorMessage;
+    
+    private DeliveryChannel channel;
+    
+    public OutboundMessageResponseSummary()
+    {
+    }
+    
+    public OutboundMessageResponseSummary( String errorMessage, DeliveryChannel channel, OutboundMessageBatchStatus status )
+    {
+        this.errorMessage = errorMessage;
+        this.channel = channel;
+        this.batchStatus = status;
+    }
 
-  private int pending;
+    @JsonProperty( value = "total" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getTotal()
+    {
+        return total;
+    }
 
-  private int sent;
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
 
-  private OutboundMessageBatchStatus batchStatus;
+    @JsonProperty( value = "failed" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getFailed()
+    {
+        return failed;
+    }
 
-  private String responseMessage;
+    public void setFailed( int failed )
+    {
+        this.failed = failed;
+    }
 
-  private String errorMessage;
+    @JsonProperty( value = "pending" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPending()
+    {
+        return pending;
+    }
 
-  private DeliveryChannel channel;
+    public void setPending( int pending )
+    {
+        this.pending = pending;
+    }
 
-  public OutboundMessageResponseSummary() {}
+    @JsonProperty( value = "sent" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getSent()
+    {
+        return sent;
+    }
 
-  public OutboundMessageResponseSummary(
-      String errorMessage, DeliveryChannel channel, OutboundMessageBatchStatus status) {
-    this.errorMessage = errorMessage;
-    this.channel = channel;
-    this.batchStatus = status;
-  }
+    public void setSent( int sent )
+    {
+        this.sent = sent;
+    }
 
-  @JsonProperty(value = "total")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getTotal() {
-    return total;
-  }
+    @JsonProperty( value = "status" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OutboundMessageBatchStatus getBatchStatus()
+    {
+        return batchStatus;
+    }
 
-  public void setTotal(int total) {
-    this.total = total;
-  }
+    public void setBatchStatus( OutboundMessageBatchStatus batchStatus )
+    {
+        this.batchStatus = batchStatus;
+    }
 
-  @JsonProperty(value = "failed")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getFailed() {
-    return failed;
-  }
+    @JsonProperty( value = "responseMessage" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getResponseMessage()
+    {
+        return responseMessage;
+    }
 
-  public void setFailed(int failed) {
-    this.failed = failed;
-  }
+    public void setResponseMessage( String responseMessage )
+    {
+        this.responseMessage = responseMessage;
+    }
 
-  @JsonProperty(value = "pending")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getPending() {
-    return pending;
-  }
+    @JsonProperty( value = "errorMessage" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getErrorMessage()
+    {
+        return errorMessage;
+    }
 
-  public void setPending(int pending) {
-    this.pending = pending;
-  }
+    public void setErrorMessage( String errorMessage )
+    {
+        this.errorMessage = errorMessage;
+    }
 
-  @JsonProperty(value = "sent")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getSent() {
-    return sent;
-  }
+    @JsonProperty( value = "batchType" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DeliveryChannel getChannel()
+    {
+        return channel;
+    }
 
-  public void setSent(int sent) {
-    this.sent = sent;
-  }
+    public void setChannel( DeliveryChannel channel )
+    {
+        this.channel = channel;
+    }
 
-  @JsonProperty(value = "status")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OutboundMessageBatchStatus getBatchStatus() {
-    return batchStatus;
-  }
-
-  public void setBatchStatus(OutboundMessageBatchStatus batchStatus) {
-    this.batchStatus = batchStatus;
-  }
-
-  @JsonProperty(value = "responseMessage")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getResponseMessage() {
-    return responseMessage;
-  }
-
-  public void setResponseMessage(String responseMessage) {
-    this.responseMessage = responseMessage;
-  }
-
-  @JsonProperty(value = "errorMessage")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getErrorMessage() {
-    return errorMessage;
-  }
-
-  public void setErrorMessage(String errorMessage) {
-    this.errorMessage = errorMessage;
-  }
-
-  @JsonProperty(value = "batchType")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DeliveryChannel getChannel() {
-    return channel;
-  }
-
-  public void setChannel(DeliveryChannel channel) {
-    this.channel = channel;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("total", total)
-        .add("failed", failed)
-        .add("pending", pending)
-        .add("sent", sent)
-        .add("batchStatus", batchStatus)
-        .add("responseMessage", responseMessage)
-        .add("errorMessage", errorMessage)
-        .add("channel", channel)
-        .toString();
-  }
+    @Override public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "total", total )
+            .add( "failed", failed )
+            .add( "pending", pending )
+            .add( "sent", sent )
+            .add( "batchStatus", batchStatus )
+            .add( "responseMessage", responseMessage )
+            .add( "errorMessage", errorMessage )
+            .add( "channel", channel )
+            .toString();
+    }
 }

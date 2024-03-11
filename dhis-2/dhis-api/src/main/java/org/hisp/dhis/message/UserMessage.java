@@ -1,5 +1,7 @@
+package org.hisp.dhis.message;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,151 +27,172 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.UUID;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
+
+import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "userMessage", namespace = DxfNamespaces.DXF_2_0)
-public class UserMessage {
-  private int id;
+@JacksonXmlRootElement( localName = "userMessage", namespace = DxfNamespaces.DXF_2_0 )
+public class UserMessage
+{
+    private int id;
 
-  private String key;
+    private String key;
 
-  private User user;
+    private User user;
 
-  private boolean read;
+    private boolean read;
 
-  private boolean followUp;
+    private boolean followUp;
 
-  private transient String lastRecipientSurname;
+    private transient String lastRecipientSurname;
 
-  private transient String lastRecipientFirstname;
+    private transient String lastRecipientFirstname;
 
-  public String getLastRecipientSurname() {
-    return lastRecipientSurname;
-  }
-
-  public void setLastRecipientSurname(String lastRecipientSurname) {
-    this.lastRecipientSurname = lastRecipientSurname;
-  }
-
-  public String getLastRecipientFirstname() {
-    return lastRecipientFirstname;
-  }
-
-  public void setLastRecipientFirstname(String lastRecipientFirstname) {
-    this.lastRecipientFirstname = lastRecipientFirstname;
-  }
-
-  public String getLastRecipientName() {
-    return lastRecipientFirstname + " " + lastRecipientSurname;
-  }
-
-  public UserMessage() {
-    this.key = UUID.randomUUID().toString();
-  }
-
-  public UserMessage(User user) {
-    this.key = UUID.randomUUID().toString();
-    this.user = user;
-    this.read = false;
-  }
-
-  public UserMessage(User user, boolean read) {
-    this.key = UUID.randomUUID().toString();
-    this.user = user;
-    this.read = read;
-  }
-
-  public int getId() {
-    return id;
-  }
-
-  public void setId(int id) {
-    this.id = id;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  @JsonProperty
-  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
-  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
-  @PropertyTransformer(UserPropertyTransformer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isRead() {
-    return read;
-  }
-
-  public void setRead(boolean read) {
-    this.read = read;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isFollowUp() {
-    return followUp;
-  }
-
-  public void setFollowUp(boolean followUp) {
-    this.followUp = followUp;
-  }
-
-  @Override
-  public int hashCode() {
-    return key.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
+    public String getLastRecipientSurname()
+    {
+        return lastRecipientSurname;
     }
 
-    if (object == null) {
-      return false;
+    public void setLastRecipientSurname( String lastRecipientSurname )
+    {
+        this.lastRecipientSurname = lastRecipientSurname;
     }
 
-    if (getClass() != object.getClass()) {
-      return false;
+    public String getLastRecipientFirstname()
+    {
+        return lastRecipientFirstname;
     }
 
-    final UserMessage other = (UserMessage) object;
+    public void setLastRecipientFirstname( String lastRecipientFirstname )
+    {
+        this.lastRecipientFirstname = lastRecipientFirstname;
+    }
 
-    return key.equals(other.key);
-  }
+    public String getLastRecipientName()
+    {
+        return lastRecipientFirstname + " " + lastRecipientSurname;
+    }
 
-  @Override
-  public String toString() {
-    return "[User: " + user + ", read: " + read + "]";
-  }
+    public UserMessage()
+    {
+        this.key = UUID.randomUUID().toString();
+    }
+
+    public UserMessage( User user )
+    {
+        this.key = UUID.randomUUID().toString();
+        this.user = user;
+        this.read = false;
+    }
+
+    public UserMessage( User user, boolean read )
+    {
+        this.key = UUID.randomUUID().toString();
+        this.user = user;
+        this.read = read;
+    }
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getKey()
+    {
+        return key;
+    }
+
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getUser()
+    {
+        return user;
+    }
+
+    public void setUser( User user )
+    {
+        this.user = user;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isRead()
+    {
+        return read;
+    }
+
+    public void setRead( boolean read )
+    {
+        this.read = read;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFollowUp()
+    {
+        return followUp;
+    }
+
+    public void setFollowUp( boolean followUp )
+    {
+        this.followUp = followUp;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return key.hashCode();
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+
+        if ( object == null )
+        {
+            return false;
+        }
+
+        if ( getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        final UserMessage other = (UserMessage) object;
+
+        return key.equals( other.key );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[User: " + user + ", read: " + read + "]";
+    }
 }

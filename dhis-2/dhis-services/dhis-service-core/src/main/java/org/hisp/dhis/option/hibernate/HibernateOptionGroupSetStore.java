@@ -1,5 +1,7 @@
+package org.hisp.dhis.option.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.option.hibernate;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupSetStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Repository("org.hisp.dhis.option.OptionGroupSetStore")
-public class HibernateOptionGroupSetStore extends HibernateIdentifiableObjectStore<OptionGroupSet>
-    implements OptionGroupSetStore {
-  public HibernateOptionGroupSetStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        OptionGroupSet.class,
-        currentUserService,
-        aclService,
-        true);
-  }
+public class HibernateOptionGroupSetStore
+    extends HibernateIdentifiableObjectStore<OptionGroupSet>
+    implements OptionGroupSetStore
+{
 }

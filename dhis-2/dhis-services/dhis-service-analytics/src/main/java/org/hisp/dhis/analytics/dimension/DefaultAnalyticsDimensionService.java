@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.dimension;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.category.Category;
@@ -43,62 +44,67 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-@Service("org.hisp.dhis.analytics.dimension.AnalyticsDimensionService")
-@RequiredArgsConstructor
-public class DefaultAnalyticsDimensionService implements AnalyticsDimensionService {
-  private final DataQueryService dataQueryService;
+public class DefaultAnalyticsDimensionService
+    implements AnalyticsDimensionService
+{
+    @Autowired
+    private DataQueryService dataQueryService;
 
-  private final AclService aclService;
+    @Autowired
+    private AclService aclService;
 
-  private final CurrentUserService currentUserService;
+    @Autowired
+    private CurrentUserService currentUserService;
 
-  private final IdentifiableObjectManager idObjectManager;
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
-  @Override
-  public List<DimensionalObject> getRecommendedDimensions(DataQueryRequest request) {
-    DataQueryParams params = dataQueryService.getFromRequest(request);
+    @Override
+    public List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request )
+    {
+        DataQueryParams params = dataQueryService.getFromRequest( request );
 
-    return getRecommendedDimensions(params);
-  }
-
-  @Override
-  public List<DimensionalObject> getRecommendedDimensions(DataQueryParams params) {
-    User user = currentUserService.getCurrentUser();
-
-    Set<DimensionalObject> dimensions = new HashSet<>();
-
-    if (!params.getDataElements().isEmpty()) {
-      dimensions.addAll(
-          params.getDataElements().stream()
-              .map(de -> ((DataElement) de).getCategoryCombos())
-              .flatMap(cc -> cc.stream())
-              .map(cc -> cc.getCategories())
-              .flatMap(c -> c.stream())
-              .filter(Category::isDataDimension)
-              .collect(Collectors.toSet()));
-
-      dimensions.addAll(
-          params.getDataElements().stream()
-              .map(de -> ((DataElement) de).getDataSets())
-              .flatMap(ds -> ds.stream())
-              .map(ds -> ds.getCategoryCombo().getCategories())
-              .flatMap(c -> c.stream())
-              .filter(Category::isDataDimension)
-              .collect(Collectors.toSet()));
+        return getRecommendedDimensions( params );
     }
 
-    dimensions.addAll(idObjectManager.getDataDimensions(OrganisationUnitGroupSet.class));
+    @Override
+    public List<DimensionalObject> getRecommendedDimensions( DataQueryParams params )
+    {
+        User user = currentUserService.getCurrentUser();
 
-    // TODO Filter org unit group sets
+        Set<DimensionalObject> dimensions = new HashSet<>();
 
-    return dimensions.stream()
-        .filter(d -> aclService.canDataOrMetadataRead(user, d))
-        .sorted()
-        .collect(Collectors.toList());
-  }
+        if ( !params.getDataElements().isEmpty() )
+        {
+            dimensions.addAll( params.getDataElements().stream()
+                .map( de -> ((DataElement) de).getCategoryCombos() )
+                .flatMap( cc -> cc.stream() )
+                .map( cc -> cc.getCategories() )
+                .flatMap( c -> c.stream() )
+                .filter( Category::isDataDimension )
+                .collect( Collectors.toSet() ) );
+
+            dimensions.addAll( params.getDataElements().stream()
+                .map( de -> ((DataElement) de).getDataSets() )
+                .flatMap( ds -> ds.stream() )
+                .map( ds -> ds.getCategoryCombo().getCategories() )
+                .flatMap( c -> c.stream() )
+                .filter( Category::isDataDimension )
+                .collect( Collectors.toSet() ) );
+        }
+
+        dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
+
+        //TODO Filter org unit group sets
+
+        return dimensions.stream()
+            .filter( d -> aclService.canDataOrMetadataRead( user, d ) )
+            .sorted()
+            .collect( Collectors.toList() );
+    }
 }

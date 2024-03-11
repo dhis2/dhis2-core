@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataapproval.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,61 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval.hibernate;
 
-import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author Jim Grace
  */
-@Repository("org.hisp.dhis.dataapproval.DataApprovalLevelStore")
 public class HibernateDataApprovalLevelStore
-    extends HibernateIdentifiableObjectStore<DataApprovalLevel> implements DataApprovalLevelStore {
-  public HibernateDataApprovalLevelStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        DataApprovalLevel.class,
-        currentUserService,
-        aclService,
-        true);
-  }
+    extends HibernateIdentifiableObjectStore<DataApprovalLevel>
+    implements DataApprovalLevelStore
+{
+    // -------------------------------------------------------------------------
+    // DataApprovalLevelStore implementation
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // DataApprovalLevelStore implementation
-  // -------------------------------------------------------------------------
+    @Override
+    public List<DataApprovalLevel> getAllDataApprovalLevels()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public List<DataApprovalLevel> getAllDataApprovalLevels() {
-    CriteriaBuilder builder = getCriteriaBuilder();
+        return getList( builder, newJpaParameters()
+            .addOrder( root -> builder.asc( root.get( "level" ) ) ) );
+    }
 
-    return getList(builder, newJpaParameters().addOrder(root -> builder.asc(root.get("level"))));
-  }
+    @Override
+    public List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel( int orgUnitLevel )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel(int orgUnitLevel) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("orgUnitLevel"), orgUnitLevel))
-            .addOrder(root -> builder.asc(root.get("level"))));
-  }
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "orgUnitLevel" ), orgUnitLevel ) )
+            .addOrder( root -> builder.asc( root.get( "level" ) ) ) );
+    }
 }

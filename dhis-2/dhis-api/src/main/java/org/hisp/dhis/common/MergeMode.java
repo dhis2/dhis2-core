@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MergeMode {
-  MERGE_ALWAYS,
-  MERGE_IF_NOT_NULL,
-  MERGE,
-  REPLACE,
-  NONE;
+public enum MergeMode
+{
+    MERGE_ALWAYS, MERGE_IF_NOT_NULL,
+    MERGE, REPLACE, NONE;
 
-  public boolean isMerge() {
-    return this == MERGE_IF_NOT_NULL || this == MERGE;
-  }
+    public boolean isMerge()
+    {
+        return this == MERGE_IF_NOT_NULL || this == MERGE;
+    }
 
-  public boolean isReplace() {
-    return this == MERGE_ALWAYS || this == REPLACE;
-  }
+    public boolean isReplace()
+    {
+        return this == MERGE_ALWAYS || this == REPLACE;
+    }
 
-  public boolean isNone() {
-    return this == NONE;
-  }
+    public boolean isNone()
+    {
+        return this == NONE;
+    }
 }

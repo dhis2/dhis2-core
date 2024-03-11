@@ -1,5 +1,7 @@
+package org.hisp.dhis.document;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,68 +27,81 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.document;
+
+import org.hisp.dhis.user.User;
 
 import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
+ * @version $Id$
  */
-public interface DocumentService {
-  String DIR = "documents";
+public interface DocumentService
+{
+    String ID = DocumentService.class.getName();
+    String DIR = "documents";
 
-  /**
-   * Saves a Document.
-   *
-   * @param document the Document to save.
-   * @return the generated identifier.
-   */
-  long saveDocument(Document document);
+    /**
+     * Saves a Document.
+     *
+     * @param document the Document to save.
+     * @return the generated identifier.
+     */
+    int saveDocument( Document document );
 
-  /**
-   * Retrieves the Document with the given identifier.
-   *
-   * @param id the identifier of the Document.
-   * @return the Document.
-   */
-  Document getDocument(long id);
+    /**
+     * Retrieves the Document with the given identifier.
+     *
+     * @param id the identifier of the Document.
+     * @return the Document.
+     */
+    Document getDocument( int id );
 
-  /**
-   * Retrieves the Document with the given identifier.
-   *
-   * @param uid the identifier of the Document.
-   * @return the Document.
-   */
-  Document getDocument(String uid);
+    /**
+     * Retrieves the Document with the given identifier.
+     *
+     * @param uid the identifier of the Document.
+     * @return the Document.
+     */
+    Document getDocument( String uid );
 
-  /**
-   * Used when removing a file reference from a Document.
-   *
-   * @param document
-   */
-  void deleteFileFromDocument(Document document);
+    /**
+     * Deletes a Document.
+     *
+     * @param document the Document to delete.
+     */
+    void deleteDocument( Document document );
 
-  /**
-   * Deletes a Document.
-   *
-   * @param document the Document to delete.
-   */
-  void deleteDocument(Document document);
+    /**
+     * Used when removing a file reference from a Document.
+     * @param document
+     */
+    void deleteFileFromDocument( Document document );
 
-  /**
-   * Retrieves all Documents.
-   *
-   * @return a Collection of Documents.
-   */
-  List<Document> getAllDocuments();
+    /**
+     * Retrieves all Documents.
+     *
+     * @return a Collection of Documents.
+     */
+    List<Document> getAllDocuments();
 
-  int getDocumentCount();
+    /**
+     * Retrieves the Document with the given name.
+     *
+     * @param name the name of the Document.
+     * @return the Document.
+     */
+    List<Document> getDocumentByName( String name );
 
-  int getDocumentCountByName(String name);
+    List<Document> getDocumentsBetween( int first, int max );
 
-  List<Document> getDocumentsByUid(@Nonnull List<String> uids);
+    List<Document> getDocumentsBetweenByName( String name, int first, int max );
 
-  long getCountDocumentByUser(User user);
+    int getDocumentCount();
+
+    int getDocumentCountByName( String name );
+    
+    List<Document> getDocumentsByUid( List<String> uids );
+
+    long getCountDocumentByUser( User user );
 }

@@ -1,5 +1,8 @@
+package org.hisp.dhis.sms;
+
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +28,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms;
 
 import org.hisp.dhis.sms.incoming.IncomingSms;
 
-public interface MessageQueue {
-  void put(IncomingSms message);
+public interface MessageQueue
+{
+    void put( IncomingSms message );
 
-  IncomingSms get();
+    IncomingSms get();
 
-  void remove(IncomingSms message);
+    void remove( IncomingSms message );
 
-  void initialize();
+    void initialize();
 }

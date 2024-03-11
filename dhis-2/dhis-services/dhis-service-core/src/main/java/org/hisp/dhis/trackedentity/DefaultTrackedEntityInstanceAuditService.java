@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,74 +27,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService")
-public class DefaultTrackedEntityInstanceAuditService implements TrackedEntityInstanceAuditService {
-  private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+public class DefaultTrackedEntityInstanceAuditService
+    implements TrackedEntityInstanceAuditService
+{
 
-  private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+    @Autowired 
+    private TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+    
+    
+    // -------------------------------------------------------------------------
+    // TrackedEntityInstanceAuditService implementation
+    // -------------------------------------------------------------------------
 
-  private final TrackerAccessManager trackerAccessManager;
+    @Override
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
+    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    {
+        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );        
+    }
 
-  private final CurrentUserService currentUserService;
+    @Override
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
+    public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
+    {
+        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntityInstance );
+    }
 
-  // -------------------------------------------------------------------------
-  // TrackedEntityInstanceAuditService implementation
-  // -------------------------------------------------------------------------
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
+        TrackedEntityInstanceAuditQueryParams params )
+    {
+        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params );
+    }
 
-  @Override
-  @Async
-  @Transactional
-  public void addTrackedEntityInstanceAudit(TrackedEntityInstanceAudit trackedEntityInstanceAudit) {
-    trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit(trackedEntityInstanceAudit);
-  }
-
-  @Override
-  @Async
-  @Transactional
-  public void addTrackedEntityInstanceAudit(
-      List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits) {
-    trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit(trackedEntityInstanceAudits);
-  }
-
-  @Override
-  @Transactional
-  public void deleteTrackedEntityInstanceAudit(TrackedEntityInstance trackedEntityInstance) {
-    trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit(trackedEntityInstance);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-      TrackedEntityInstanceAuditQueryParams params) {
-    return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits(params).stream()
-        .filter(
-            a ->
-                trackerAccessManager
-                    .canRead(
-                        currentUserService.getCurrentUser(),
-                        trackedEntityInstanceStore.getByUid(a.getTrackedEntityInstance()))
-                    .isEmpty())
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getTrackedEntityInstanceAuditsCount(TrackedEntityInstanceAuditQueryParams params) {
-    return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount(params);
-  }
+    @Override
+    @Transactional( readOnly = true )
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    {
+        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );
+    }
 }

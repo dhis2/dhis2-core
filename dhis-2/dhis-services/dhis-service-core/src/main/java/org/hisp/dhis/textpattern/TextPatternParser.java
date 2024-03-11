@@ -1,5 +1,7 @@
+package org.hisp.dhis.textpattern;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.textpattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,133 +36,145 @@ import java.util.regex.Pattern;
 /**
  * @author Stian Sandvold
  */
-public class TextPatternParser {
-  private static final String METHOD_REGEX = "(?<MethodName>[A-Z_]+?)\\(.*?\\)";
+public class TextPatternParser
+{
+    private static final String METHOD_REGEX = "(?<MethodName>[A-Z_]+?)\\(.*?\\)";
+    private static final String JOIN_REGEX = "(?<Join>[\\s]*(?<JoinValue>\\+)[\\s]*)";
+    private static final String TEXT_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
-  private static final String JOIN_REGEX = "(?<Join>[\\s]*(?<JoinValue>\\+)[\\s]*)";
+    private static final Pattern EXPRESSION_REGEX = Pattern.compile(
+        String.format( "[\\s]*(?<Segment>(?<Method>%s|%s)|%s)+?[\\s]*", TEXT_REGEX, METHOD_REGEX, JOIN_REGEX )
+    );
 
-  private static final String TEXT_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
-
-  private static final Pattern EXPRESSION_REGEX =
-      Pattern.compile(
-          String.format(
-              "[\\s]*(?<Segment>(?<Method>%s|%s)|%s)+?[\\s]*",
-              TEXT_REGEX, METHOD_REGEX, JOIN_REGEX));
-
-  /**
-   * Parses an expression, identifying segments and builds an IDExpression. throws exception if
-   * syntax is invalid
-   *
-   * @param pattern the expression to parse
-   * @return IDExpression representing the expression
-   */
-  public static TextPattern parse(String pattern) throws TextPatternParsingException {
-    List<TextPatternSegment> segments = new ArrayList<>();
-
-    // True if we just parsed a Segment, False if we parsed a join or
-    // haven't parsed anything.
-    boolean segment = false;
-
-    boolean invalidExpression = true;
-
-    Matcher m;
-
-    if (pattern != null && !pattern.isEmpty()) {
-      m = EXPRESSION_REGEX.matcher(pattern);
-    } else {
-      throw new TextPatternParsingException("Supplied expression was null or empty.", -1);
-    }
-
-    /*
-     * We go trough all matches. Matches can be one of the following:
+    /**
+     * Parses an expression, identifying segments and builds an IDExpression.
+     * throws exception if syntax is invalid
      *
-     * <ul> <li>a TEXT method ("..")</li> <li>any TextPatternMethod
-     * (Excluding TEXT) (method(param))</li> <li>a join ( + )</li> </ul>
-     *
-     * Matches that are invalid includes methods with unknown method names
+     * @param pattern the expression to parse
+     * @return IDExpression representing the expression
      */
-    while (m.find()) {
-      invalidExpression = false;
+    public static TextPattern parse( String pattern )
+        throws TextPatternParsingException
+    {
+        List<TextPatternSegment> segments = new ArrayList<>();
 
-      // This returns the entire method syntax, including params
-      String method = m.group("Method");
+        // True if we just parsed a Segment, False if we parsed a join or haven't parsed anything.
+        boolean segment = false;
 
-      // This means we found a match for method syntax
-      if (method != null) {
+        boolean invalidExpression = true;
 
-        // This returns only the name of the method (see
-        // TextPatternMethod for valid names)
-        String methodName = m.group("MethodName");
+        Matcher m;
 
-        // This means we encountered the syntax for TEXT method
-        if (methodName == null) // Text
+        if ( pattern != null && !pattern.isEmpty() )
         {
-
-          // Only add if valid syntax, else it will throw exception
-          // after if-else.
-          if (TextPatternMethod.TEXT.getType().validatePattern(method)) {
-            segment = true;
-            segments.add(new TextPatternSegment(TextPatternMethod.TEXT, method));
-            continue;
-          }
-
+            m = EXPRESSION_REGEX.matcher( pattern );
+        }
+        else
+        {
+            throw new TextPatternParsingException( "Supplied expression was null or empty.", -1 );
         }
 
-        // Catch all other methods
-        else {
-          // Attempt to find a matching method name in
-          // TextPatternMethod
-          try {
-            TextPatternMethod textPatternMethod = TextPatternMethod.valueOf(methodName);
+        /*
+         * We go trough all matches. Matches can be one of the following:
+         * 
+         * <ul>
+         *   <li>a TEXT method ("..")</li>
+         *   <li>any TextPatternMethod (Excluding TEXT) (method(param))</li>
+         *   <li>a join ( + )</li>
+         * </ul>
+         *
+         * Matches that are invalid includes methods with unknown method names
+         */
+        while ( m.find() )
+        {
+            invalidExpression = false;
 
-            // Only add if valid syntax, else it will throw
-            // exception after if-else.
-            if (textPatternMethod.getType().validatePattern(method)) {
-              segment = true;
-              segments.add(new TextPatternSegment(textPatternMethod, method));
-              continue;
+            // This returns the entire method syntax, including params
+            String method = m.group( "Method" );
+
+            // This means we found a match for method syntax
+            if ( method != null )
+            {
+
+                // This returns only the name of the method (see TextPatternMethod for valid names)
+                String methodName = m.group( "MethodName" );
+
+                // This means we encountered the syntax for TEXT method
+                if ( methodName == null ) // Text
+                {
+
+                    // Only add if valid syntax, else it will throw exception after if-else.
+                    if ( TextPatternMethod.TEXT.getType().validatePattern( method ) )
+                    {
+                        segment = true;
+                        segments.add( new TextPatternSegment( TextPatternMethod.TEXT, method ) );
+                        continue;
+                    }
+
+                }
+
+                // Catch all other methods
+                else
+                {
+                    // Attempt to find a matching method name in TextPatternMethod
+                    try
+                    {
+                        TextPatternMethod textPatternMethod = TextPatternMethod.valueOf( methodName );
+
+                        // Only add if valid syntax, else it will throw exception after if-else.
+                        if ( textPatternMethod.getType().validatePattern( method ) )
+                        {
+                            segment = true;
+                            segments.add( new TextPatternSegment( textPatternMethod, method ) );
+                            continue;
+                        }
+                    }
+                    catch ( Exception e )
+                    {
+                        // Ignore, throw exception after if-else if we get here.
+                    }
+                }
+
+                // If we are here, that means we found no matching methods, so throw an exception
+                throw new TextPatternParsingException( "Failed to parse the following method: '" + method + "'", m.start( "Method" ) );
             }
-          } catch (Exception e) {
-            // Ignore, throw exception after if-else if we get here.
-          }
+
+            // Handle Join
+            else if ( m.group( "Join" ) != null )
+            {
+                // Join should only be after a Segment
+                if ( !segment )
+                {
+                    throw new TextPatternParsingException( "Unexpected '+'", m.start( "JoinValue" ) );
+                }
+                else
+                {
+                    segment = false;
+                }
+            }
         }
 
-        // If we are here, that means we found no matching methods, so
-        // throw an exception
-        throw new TextPatternParsingException(
-            "Failed to parse the following method: '" + method + "'", m.start("Method"));
-      }
-
-      // Handle Join
-      else if (m.group("Join") != null) {
-        // Join should only be after a Segment
-        if (!segment) {
-          throw new TextPatternParsingException("Unexpected '+'", m.start("JoinValue"));
-        } else {
-          segment = false;
+        // If the matcher had no matches
+        if ( invalidExpression )
+        {
+            throw new TextPatternParsingException( "The expression is invalid", -1 );
         }
-      }
+
+        // An expression should not end on a Join
+        if ( !segment )
+        {
+            throw new TextPatternParsingException( "Unexpected '+' at the end of the expression", -1 );
+        }
+
+        return new TextPattern( segments );
     }
 
-    // If the matcher had no matches
-    if (invalidExpression) {
-      throw new TextPatternParsingException("The expression is invalid", -1);
+    public static class TextPatternParsingException
+        extends Exception
+    {
+        TextPatternParsingException( String message, int position )
+        {
+            super( "Could not parse expression: " + message + (position != -1 ? " at position " + (position + 1) : "") );
+        }
     }
-
-    // An expression should not end on a Join
-    if (!segment) {
-      throw new TextPatternParsingException("Unexpected '+' at the end of the expression", -1);
-    }
-
-    return new TextPattern(segments);
-  }
-
-  public static class TextPatternParsingException extends Exception {
-    TextPatternParsingException(String message, int position) {
-      super(
-          "Could not parse expression: "
-              + message
-              + (position != -1 ? " at position " + (position + 1) : ""));
-    }
-  }
 }

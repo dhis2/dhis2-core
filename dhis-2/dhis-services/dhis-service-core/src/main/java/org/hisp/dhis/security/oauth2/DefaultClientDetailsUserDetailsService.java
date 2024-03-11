@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.oauth2;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,56 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.provider.ClientDetails;
-import org.springframework.security.oauth2.provider.NoSuchClientException;
-import org.springframework.stereotype.Service;
+import org.springframework.security.oauth2.provider.ClientDetailsService;
+import org.springframework.security.oauth2.provider.ClientRegistrationException;
+import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service("defaultClientDetailsUserDetailsService")
-@RequiredArgsConstructor
-public class DefaultClientDetailsUserDetailsService implements UserDetailsService {
-  private final DefaultClientDetailsService clientDetailsService;
-
-  private final PasswordEncoder passwordEncoder;
-
-  private final UserService userService;
-
-  @Override
-  public UserDetails loadUserByUsername(String username) {
-    ClientDetails clientDetails = getClientDetails(username);
-
-    String clientSecret = clientDetails.getClientSecret();
-    if (clientSecret == null || clientSecret.trim().length() == 0) {
-      clientSecret = passwordEncoder.encode("");
+public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
+{
+    public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
+    {
+        super( clientDetailsService );
     }
 
-    User user = new User();
-    user.setUsername(username);
-    user.setPassword(clientSecret);
-    user.setDisabled(false);
-    user.setAccountNonLocked(true);
-    user.setCredentialsNonExpired(true);
-    user.setAccountExpiry(null);
-
-    return userService.createUserDetails(user);
-  }
-
-  private ClientDetails getClientDetails(String username) {
-    try {
-      return clientDetailsService.loadClientByClientId(username);
-    } catch (NoSuchClientException e) {
-      throw new UsernameNotFoundException(e.getMessage(), e);
+    @Override
+    public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
+    {
+        try
+        {
+            return super.loadUserByUsername( username );
+        }
+        catch ( ClientRegistrationException ex )
+        {
+            throw new UsernameNotFoundException( ex.getMessage(), ex );
+        }
     }
-  }
 }

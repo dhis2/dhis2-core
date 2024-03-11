@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityfilter;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,67 +27,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter;
 
 import java.util.List;
+
 import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-public interface TrackedEntityInstanceFilterService {
-  String ID = TrackedEntityInstanceFilter.class.getName();
+public interface TrackedEntityInstanceFilterService
+{
+    String ID = TrackedEntityInstanceFilter.class.getName();
+    
+    /** 
+     * Adds trackedEntityInstanceFilter
+     * 
+     * @param trackedEntityInstanceFilter
+     * @return id of added trackedEntityInstanceFilter
+     */
+    int add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    
+    /**
+     * Deletes trackedEntityInstanceFilter
+     * 
+     * @param trackedEntityInstanceFilter
+     */
+    void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    
+    /**
+     * Updates trackedEntityInstanceFilter
+     * 
+     * @param trackedEntityInstanceFilter
+     */
+    void update( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    
+    /**
+     * Gets trackedEntityInstanceFilter 
+     * @param id id of trackedEntityInstanceFilter to be fetched
+     * @return trackedEntityInstanceFilter
+     */
+    TrackedEntityInstanceFilter get( int id );
+    
+    /**
+     * Gets trackedEntityInstanceFilter
+     * @param program program of trackedEntityInstanceFilter to be fetched
+     * @return trackedEntityInstanceFilter
+     */
+    List<TrackedEntityInstanceFilter> get( Program program );
+    
+    /**
+     * Gets all trackedEntityInstanceFilters 
+     * @return list of trackedEntityInstanceFilters
+     */
+    List<TrackedEntityInstanceFilter> getAll();
 
-  /**
-   * Adds trackedEntityInstanceFilter
-   *
-   * @param trackedEntityInstanceFilter
-   * @return id of added trackedEntityInstanceFilter
-   */
-  long add(TrackedEntityInstanceFilter trackedEntityInstanceFilter);
-
-  /**
-   * Deletes trackedEntityInstanceFilter
-   *
-   * @param trackedEntityInstanceFilter
-   */
-  void delete(TrackedEntityInstanceFilter trackedEntityInstanceFilter);
-
-  /**
-   * Updates trackedEntityInstanceFilter
-   *
-   * @param trackedEntityInstanceFilter
-   */
-  void update(TrackedEntityInstanceFilter trackedEntityInstanceFilter);
-
-  /**
-   * Gets trackedEntityInstanceFilter
-   *
-   * @param id id of trackedEntityInstanceFilter to be fetched
-   * @return trackedEntityInstanceFilter
-   */
-  TrackedEntityInstanceFilter get(long id);
-
-  /**
-   * Gets trackedEntityInstanceFilter
-   *
-   * @param program program of trackedEntityInstanceFilter to be fetched
-   * @return trackedEntityInstanceFilter
-   */
-  List<TrackedEntityInstanceFilter> get(Program program);
-
-  /**
-   * Gets all trackedEntityInstanceFilters
-   *
-   * @return list of trackedEntityInstanceFilters
-   */
-  List<TrackedEntityInstanceFilter> getAll();
-
-  /**
-   * Validate the trackedEntityInstanceFilter
-   *
-   * @param teiFilter
-   * @return list of errors for each validation failures
-   */
-  List<String> validate(TrackedEntityInstanceFilter teiFilter);
 }

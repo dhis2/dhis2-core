@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Optional;
-import org.junit.jupiter.api.Test;
+
+import org.junit.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-class FileResourceKeyUtilTest {
+public class FileResourceKeyUtilTest
+{
 
-  @Test
-  void verifyBuildKey() {
-    String key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, Optional.empty());
-    assertThat(key, startsWith("document/"));
-    assertEquals(36, key.substring("document/".length()).length());
-    key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, Optional.of("myKey"));
-    assertThat(key, is("document/myKey"));
-  }
+    @Test
+    public void verifyBuildKey()
+    {
+        String key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.empty() );
+        assertThat( key, startsWith( "document/" ) );
+        assertEquals( 36, key.substring( "document/".length() ).length() );
+
+        key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.of( "myKey" ) );
+        assertThat( key, is( "document/myKey" ) );
+
+    }
+
 }

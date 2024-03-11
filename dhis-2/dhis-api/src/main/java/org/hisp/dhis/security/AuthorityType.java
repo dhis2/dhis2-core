@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuthorityType {
-  CREATE,
-  DATA_CREATE,
-  CREATE_PUBLIC,
-  CREATE_PRIVATE,
-  EXTERNALIZE,
-  READ,
-  DATA_READ,
-  UPDATE,
-  DELETE
+public enum AuthorityType
+{
+    CREATE,
+    DATA_CREATE,
+    CREATE_PUBLIC,
+    CREATE_PRIVATE,
+    EXTERNALIZE,
+    READ,
+    DATA_READ,
+    UPDATE,
+    DELETE
 }

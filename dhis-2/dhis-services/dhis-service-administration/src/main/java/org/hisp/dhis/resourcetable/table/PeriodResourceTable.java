@@ -1,5 +1,7 @@
+package org.hisp.dhis.resourcetable.table;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,136 +27,115 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.joda.time.DateTime;
+
+import com.google.common.collect.Lists;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
-public class PeriodResourceTable extends ResourceTable<Period> {
-  private final String tableType;
-
-  public PeriodResourceTable(List<Period> objects, String tableType) {
-    super(objects);
-    this.tableType = tableType;
-  }
-
-  @Override
-  public ResourceTableType getTableType() {
-    return ResourceTableType.PERIOD_STRUCTURE;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    String sql =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " (periodid bigint not null primary key, iso varchar(15) not null, "
-            + "daysno integer not null, startdate date not null, enddate date not null, year integer not null";
-
-    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
-      sql += ", " + quote(periodType.getName().toLowerCase()) + " varchar(15)";
+public class PeriodResourceTable
+    extends ResourceTable<Period>
+{
+    public PeriodResourceTable( List<Period> objects )
+    {
+        super( objects );
     }
 
-    sql += ")";
+    @Override
+    public ResourceTableType getTableType()
+    {
+        return ResourceTableType.PERIOD_STRUCTURE;
+    }
 
-    return sql;
-  }
+    @Override
+    public String getCreateTempTableStatement()
+    {
+        String sql = 
+            "create table " + getTempTableName() + 
+            " (periodid integer not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
+        
+        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+        {
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
+        }
+        
+        sql += ")";
+        
+        return sql;
+    }
 
-  @Override
-  public Optional<String> getPopulateTempTableStatement() {
-    return Optional.empty();
-  }
+    @Override
+    public Optional<String> getPopulateTempTableStatement()
+    {
+        return Optional.empty();
+    }
 
-  @Override
-  public Optional<List<Object[]>> getPopulateTempTableContent() {
-    Calendar calendar = PeriodType.getCalendar();
+    @Override
+    public Optional<List<Object[]>> getPopulateTempTableContent()
+    {
+        Calendar calendar = PeriodType.getCalendar();
 
-    List<Object[]> batchArgs = new ArrayList<>();
+        List<Object[]> batchArgs = new ArrayList<>();
+        
+        Set<String> uniqueIsoDates = new HashSet<>();
+        
+        for ( Period period : objects )
+        {
+            if ( period != null && period.isValid() )
+            {
+                final String isoDate = period.getIsoDate();
+                final int year = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
 
-    Set<String> uniqueIsoDates = new HashSet<>();
+                if ( !uniqueIsoDates.add( isoDate ) )
+                {
+                    // Protect against duplicates produced by calendar implementations
+                    log.warn( "Duplicate ISO date for period, ignoring: " + period + ", ISO date: " + isoDate );
+                    continue;
+                }
+                
+                List<Object> values = new ArrayList<>();
 
-    for (Period period : objects) {
-      if (period != null && period.isValid()) {
-        final String isoDate = period.getIsoDate();
+                values.add( period.getId() );
+                values.add( isoDate );
+                values.add( period.getDaysInPeriod() );
+                values.add( period.getStartDate() );
+                values.add( period.getEndDate() );
+                values.add( year );
+                
+                for ( Period pe : PeriodType.getPeriodTypePeriods( period, calendar ) )
+                {
+                    values.add( pe != null ? IdentifiableObjectUtils.getLocalPeriodIdentifier( pe, calendar ) : null );
+                }
 
-        final int year = resolveYearFromPeriod(period);
-
-        if (!uniqueIsoDates.add(isoDate)) {
-          // Protect against duplicates produced by calendars
-
-          log.warn("Duplicate ISO date for period, ignoring: " + period + ", ISO date: " + isoDate);
-          continue;
+                batchArgs.add( values.toArray() );
+            }
         }
 
-        List<Object> values = new ArrayList<>();
-
-        values.add(period.getId());
-        values.add(isoDate);
-        values.add(period.getDaysInPeriod());
-        values.add(period.getStartDate());
-        values.add(period.getEndDate());
-        values.add(year);
-
-        for (Period pe : PeriodType.getPeriodTypePeriods(period, calendar)) {
-          values.add(
-              pe != null ? IdentifiableObjectUtils.getLocalPeriodIdentifier(pe, calendar) : null);
-        }
-
-        batchArgs.add(values.toArray());
-      }
+        return Optional.of( batchArgs );
     }
 
-    return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    String name = "in_periodstructure_iso_" + getRandomSuffix();
-
-    String sql = "create unique index " + name + " on " + getTempTableName() + "(iso)";
-
-    return Lists.newArrayList(sql);
-  }
-
-  /**
-   * Resolves the year from the given period.
-   *
-   * <p>Weekly period types are treated differently from other period types. A week is considered to
-   * belong to the year for which 4 days or more fall inside. In this logic, 3 days are added to the
-   * week start day and the year of the modified start date is used as reference year for the
-   * period.
-   *
-   * @param period the {@link Period}.
-   * @return the year.
-   */
-  private int resolveYearFromPeriod(Period period) {
-    DateTime dateTime = new DateTime(period.getStartDate().getTime());
-
-    if (WeeklyAbstractPeriodType.class.isAssignableFrom(period.getPeriodType().getClass())) {
-      return dateTime.plusDays(3).getYear();
-    } else {
-      return dateTime.getYear();
+    @Override
+    public List<String> getCreateIndexStatements()
+    {
+        String name = "in_periodstructure_iso_" + getRandomSuffix();
+        
+        String sql = "create unique index " + name + " on " + getTempTableName() + "(iso)";
+        
+        return Lists.newArrayList( sql );
     }
-  }
 }

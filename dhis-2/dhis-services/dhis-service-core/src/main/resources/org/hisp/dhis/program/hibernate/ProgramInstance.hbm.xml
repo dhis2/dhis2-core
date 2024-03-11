@@ -9,34 +9,28 @@
     <cache usage="read-write" />
 
     <id name="id" column="programinstanceid">
-      <generator class="sequence">
-        <param name="sequence_name">programinstance_sequence</param>
-      </generator>
+      <generator class="native" />
     </id>
 
-    <property name="uid" column="uid" unique="true" length="11"/>
+    <property name="uid" column="uid" unique="true" length="11" />
 
-    <property name="created" type="timestamp" not-null="true"/>
+    <property name="created" type="timestamp" not-null="true" />
 
-    <property name="lastUpdated" type="timestamp" not-null="true"/>
+    <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="createdAtClient" type="timestamp"/>
+    <property name="createdAtClient" type="timestamp" />
 
-    <property name="lastUpdatedAtClient" type="timestamp"/>
+    <property name="lastUpdatedAtClient" type="timestamp" />
 
-    <property name="createdByUserInfo" type="jbUserInfoSnapshot" column="createdbyuserinfo"/>
+    <property name="incidentDate" column="incidentDate" />
 
-    <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo"/>
+    <property name="enrollmentDate" column="enrollmentdate" not-null="true" />
 
-    <property name="incidentDate" column="incidentDate"/>
+    <property name="endDate" column="enddate" />
 
-    <property name="enrollmentDate" column="enrollmentdate" not-null="true"/>
+    <property name="followup" column="followup" />
 
-    <property name="endDate" column="enddate"/>
-
-    <property name="followup" column="followup"/>
-
-    <property name="completedBy"/>
+    <property name="completedBy" />
 
     <property name="geometry" />
 
@@ -59,9 +53,9 @@
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
 
-    <set name="programStageInstances" order-by="executionDate,duedate" inverse="true">
-      <key column="programinstanceid"/>
-      <one-to-many class="org.hisp.dhis.program.ProgramStageInstance"/>
+    <set name="programStageInstances" order-by="executionDate,duedate">
+      <key column="programinstanceid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStageInstance" />
     </set>
 
     <set name="relationshipItems" inverse="true">

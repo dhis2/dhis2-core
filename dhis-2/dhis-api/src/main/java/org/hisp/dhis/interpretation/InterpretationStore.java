@@ -1,5 +1,7 @@
+package org.hisp.dhis.interpretation;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.interpretation;
 
-import java.util.List;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.visualization.Visualization;
+import org.hisp.dhis.reporttable.ReportTable;
 
 /**
  * @author Lars Helge Overland
  */
-public interface InterpretationStore extends IdentifiableObjectStore<Interpretation> {
-  List<Interpretation> getInterpretations(Map map);
+public interface InterpretationStore
+    extends IdentifiableObjectStore<Interpretation>
+{
+    int countMapInterpretations( Map map );
 
-  List<Interpretation> getInterpretations(Visualization visualization);
+    int countChartInterpretations( Chart chart );
 
-  List<Interpretation> getInterpretations(EventVisualization eventVisualization);
+    int countReportTableInterpretations( ReportTable reportTable );
+
+    Interpretation getByChartId( int id );
+
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.query.planner;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,58 +27,76 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.planner;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
-import java.util.Arrays;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.hisp.dhis.schema.Property;
+
+import java.util.Arrays;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Getter
-@AllArgsConstructor
-public class QueryPath {
-  private final Property property;
+public class QueryPath
+{
+    private final Property property;
 
-  private final boolean persisted;
+    private final boolean persisted;
 
-  private final String[] alias;
+    private String[] alias = new String[]{};
 
-  private static final Joiner PATH_JOINER = Joiner.on(".");
+    private static final Joiner PATH_JOINER = Joiner.on( "." );
 
-  public QueryPath(Property property, boolean persisted) {
-    this(property, persisted, new String[0]);
-  }
-
-  public String getPath() {
-    String fieldName = property.getFieldName();
-
-    if (fieldName == null) {
-      fieldName = property.getName();
+    public QueryPath( Property property, boolean persisted )
+    {
+        this.property = property;
+        this.persisted = persisted;
     }
 
-    return haveAlias() ? PATH_JOINER.join(alias) + "." + fieldName : fieldName;
-  }
+    public QueryPath( Property property, boolean persisted, String[] alias )
+    {
+        this( property, persisted );
+        this.alias = alias;
+    }
 
-  public boolean haveAlias() {
-    return haveAlias(0);
-  }
+    public Property getProperty()
+    {
+        return property;
+    }
 
-  public boolean haveAlias(int n) {
-    return alias != null && alias.length > n;
-  }
+    public String getPath()
+    {
+        return haveAlias() ? PATH_JOINER.join( alias ) + "." + property.getFieldName() : property.getFieldName();
+    }
 
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", property.getName())
-        .add("path", getPath())
-        .add("persisted", persisted)
-        .add("alias", Arrays.toString(alias))
-        .toString();
-  }
+    public boolean isPersisted()
+    {
+        return persisted;
+    }
+
+    public String[] getAlias()
+    {
+        return alias;
+    }
+
+    public boolean haveAlias()
+    {
+        return alias != null && alias.length > 0;
+    }
+
+    public boolean haveAlias( int n )
+    {
+        return alias != null && alias.length > n;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "name", property.getName() )
+            .add( "path", getPath() )
+            .add( "persisted", persisted )
+            .add( "alias", Arrays.toString( alias ) )
+            .toString();
+    }
 }

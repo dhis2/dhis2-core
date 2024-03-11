@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +27,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Quang Nguyen
  */
-@Component
-@RequiredArgsConstructor
-public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramInstance> {
-  private final ProgramInstanceService programInstanceService;
+public class ProgramInstanceDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(TrackedEntityInstance.class, this::deleteTrackedEntityInstance);
-    whenVetoing(Program.class, this::allowDeleteProgram);
-    whenDeleting(Program.class, this::deleteProgram);
-  }
+    private ProgramInstanceService programInstanceService;
 
-  private void deleteTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
-    for (ProgramInstance programInstance : trackedEntityInstance.getProgramInstances()) {
-      programInstanceService.deleteProgramInstance(programInstance);
+    public void setProgramInstanceService( ProgramInstanceService programInstanceService )
+    {
+        this.programInstanceService = programInstanceService;
     }
-  }
 
-  private DeletionVeto allowDeleteProgram(Program program) {
-    if (program.isWithoutRegistration()) {
-      return ACCEPT;
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return ProgramInstance.class.getSimpleName();
     }
-    String sql = "select 1 from programinstance where programid = :id limit 1";
-    return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
-  }
 
-  private void deleteProgram(Program program) {
-    Collection<ProgramInstance> programInstances =
-        programInstanceService.getProgramInstances(program);
+    @Override
+    public void deleteTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    {
+        for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
+        {
+            programInstanceService.deleteProgramInstance( programInstance, false );
+        }
+    }   
 
-    if (programInstances != null) {
-      Iterator<ProgramInstance> iterator = programInstances.iterator();
-      while (iterator.hasNext()) {
-        ProgramInstance programInstance = iterator.next();
-        iterator.remove();
-        programInstanceService.hardDeleteProgramInstance(programInstance);
-      }
+    @Override
+    public void deleteProgram( Program program )
+    {
+        Collection<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program );
+
+        if ( programInstances != null )
+        {
+            Iterator<ProgramInstance> iterator = programInstances.iterator();
+            while ( iterator.hasNext() )
+            {
+                ProgramInstance programInstance = iterator.next();
+                iterator.remove();
+                programInstanceService.deleteProgramInstance( programInstance, true );
+            }
+        }
     }
-  }
 }

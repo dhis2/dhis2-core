@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * @author Lars Helge Overland
  */
-public class DeleteNotAllowedException extends ErrorCodeException {
-  public DeleteNotAllowedException(ErrorMessage errorMessage) {
-    super(errorMessage);
-  }
+public class DeleteNotAllowedException
+    extends RuntimeException
+{
+    public static final String ERROR_ASSOCIATED_BY_OTHER_OBJECTS = "Object associated by other objects";
+
+    private String errorCode;
+
+    public DeleteNotAllowedException( String errorCode, String message )
+    {
+        super( message );
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorCode()
+    {
+        return errorCode;
+    }
 }

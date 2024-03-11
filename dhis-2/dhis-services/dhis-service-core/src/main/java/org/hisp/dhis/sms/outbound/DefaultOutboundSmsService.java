@@ -1,5 +1,8 @@
+package org.hisp.dhis.sms.outbound;
+
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,79 +28,83 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.outbound;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
- * Simple {@link OutboundSmsService sms service} storing the sms in a store and forwards the request
- * to a {@link org.hisp.dhis.sms.config.SmsMessageSender sms transport service} for sending.
+ * Simple {@link OutboundSmsService sms service} storing the sms in a store and
+ * forwards the request to a {@link org.hisp.dhis.sms.config.SmsMessageSender sms transport
+ * service} for sending.
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.sms.outbound.OutboundSmsService")
+
 @Transactional
-public class DefaultOutboundSmsService implements OutboundSmsService {
-  private final OutboundSmsStore outboundSmsStore;
+public class DefaultOutboundSmsService
+    implements OutboundSmsService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
+    private OutboundSmsStore outboundSmsStore;
 
-  @Override
-  public List<OutboundSms> getAll() {
-    return outboundSmsStore.getAll();
-  }
-
-  @Override
-  public List<OutboundSms> get(OutboundSmsStatus status) {
-    return outboundSmsStore.get(status);
-  }
-
-  @Override
-  public long save(OutboundSms sms) {
-    outboundSmsStore.saveOutboundSms(sms);
-    return sms.getId();
-  }
-
-  @Override
-  public void delete(long outboundSmsId) {
-    OutboundSms sms = get(outboundSmsId);
-
-    if (sms != null) {
-      outboundSmsStore.delete(sms);
+    public void setOutboundSmsStore( OutboundSmsStore outboundSmsStore )
+    {
+        this.outboundSmsStore = outboundSmsStore;
     }
-  }
 
-  @Override
-  public void delete(String uid) {
-    OutboundSms sms = outboundSmsStore.getByUid(uid);
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
 
-    if (sms != null) {
-      outboundSmsStore.delete(sms);
+    @Override
+    public List<OutboundSms> getAllOutboundSms()
+    {
+        return outboundSmsStore.getAllOutboundSms();
     }
-  }
 
-  @Override
-  public OutboundSms get(long id) {
-    return outboundSmsStore.get(id);
-  }
+    @Override
+    public List<OutboundSms> getOutboundSms( OutboundSmsStatus status )
+    {
+        return outboundSmsStore.get( status );
+    }
 
-  @Override
-  public OutboundSms get(String uid) {
-    return outboundSmsStore.getByUid(uid);
-  }
+    @Override
+    public void updateOutboundSms( OutboundSms sms )
+    {
+        outboundSmsStore.updateOutboundSms( sms );
+    }
 
-  @Override
-  public List<OutboundSms> get(
-      OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination) {
-    return outboundSmsStore.get(status, min, max, hasPagination);
-  }
+    @Override
+    public int saveOutboundSms( OutboundSms sms )
+    {
+        outboundSmsStore.saveOutboundSms( sms );
+        return sms.getId();
+    }
 
-  @Override
-  public List<OutboundSms> getAll(Integer min, Integer max, boolean hasPagination) {
-    return outboundSmsStore.getAllOutboundSms(min, max, hasPagination);
-  }
+    @Override
+    public void deleteById( Integer outboundSmsId )
+    {
+        OutboundSms sms = outboundSmsStore.getOutboundSmsbyId( outboundSmsId );
+        outboundSmsStore.deleteOutboundSms( sms );
+    }
+
+    @Override
+    public OutboundSms getOutboundSms( int id )
+    {
+        return outboundSmsStore.getOutboundSmsbyId( id );
+    }
+
+    @Override
+    public List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max )
+    {
+        return outboundSmsStore.get( status, min, max );
+    }
+
+    @Override
+    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max )
+    {
+        return outboundSmsStore.getAllOutboundSms( min, max );
+    }
 }

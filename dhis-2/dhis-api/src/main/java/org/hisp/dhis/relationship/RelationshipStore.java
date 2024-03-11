@@ -1,5 +1,7 @@
+package org.hisp.dhis.relationship;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
 
 import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Abyot Asalefew
+ * @version $Id$
  */
-public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
-  String ID = RelationshipStore.class.getName();
+public interface RelationshipStore
+    extends IdentifiableObjectStore<Relationship>
+{
+    String ID = RelationshipStore.class.getName();
 
-  List<Relationship> getByTrackedEntityInstance(
-      TrackedEntityInstance tei,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted);
+    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei );
 
-  List<Relationship> getByProgramInstance(
-      ProgramInstance pi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted);
+    List<Relationship> getByProgramInstance( ProgramInstance pi );
 
-  List<Relationship> getByProgramStageInstance(
-      ProgramStageInstance psi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean includeDeleted);
+    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi );
 
-  List<Relationship> getByRelationshipType(RelationshipType relationshipType);
-
-  /**
-   * Fetches a {@link Relationship} based on a relationship identifying attributes: - relationship
-   * type - from - to
-   *
-   * @param relationship A valid Relationship
-   * @return a {@link Relationship} or null if no Relationship is found matching the identifying
-   *     criterias
-   */
-  Relationship getByRelationship(Relationship relationship);
-
-  /**
-   * Checks if relationship for given UID exists (including deleted relationships).
-   *
-   * @param uid Relationship UID to check for.
-   * @return return true if relationship exists, false otherwise.
-   */
-  boolean existsIncludingDeleted(String uid);
-
-  List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList);
-
-  List<Relationship> getByUidsIncludeDeleted(List<String> uids);
+    /**
+     * Fetches a {@see Relationship} based on a relationship identifying attributes:
+     * - relationship type
+     * - from
+     * - to
+     *
+     * @param relationship A valid Relationship
+     *
+     * @return a {@see Relationship} or null if no Relationship is found matching the identifying criterias
+     */
+    Relationship getByRelationship( Relationship relationship );
 }

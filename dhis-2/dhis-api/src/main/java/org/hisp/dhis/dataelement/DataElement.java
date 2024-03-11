@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataelement;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
-
-import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionalObject.TEXTVALUE_COLUMN_NAME;
-import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
-import static org.hisp.dhis.util.DateUtils.addDays;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -43,16 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -62,7 +44,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -75,575 +56,706 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
+import org.joda.time.DateTime;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
 
 /**
+ * A DataElement is a definition (meta-information about) of the entities that
+ * are captured in the system. An example from public health care is a
+ * DataElement representing the number BCG doses; A DataElement with "BCG dose"
+ * as name, with type DataElement.TYPE_INT.
+ * <p>
+ * DataElement acts as a DimensionSet in the dynamic dimensional model, and as a
+ * DimensionOption in the static DataElement dimension.
+ *
  * @author Kristian Nordal
  */
-@JacksonXmlRootElement(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
-public class DataElement extends BaseDimensionalItemObject
-    implements MetadataObject, ValueTypedDimensionalItemObject {
-  /** Data element value type (int, boolean, etc) */
-  private ValueType valueType;
+@JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
+public class DataElement
+    extends BaseDimensionalItemObject
+    implements MetadataObject, ValueTypedDimensionalItemObject
+{
+    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
+        TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
 
-  /** Abstract class representing options for value types. */
-  private ValueTypeOptions valueTypeOptions;
+    /**
+     * Data element value type (int, boolean, etc)
+     */
+    private ValueType valueType;
 
-  /**
-   * The domain of this DataElement; e.g. DataElementDomainType.AGGREGATE or
-   * DataElementDomainType.TRACKER.
-   */
-  private DataElementDomain domainType;
+    /**
+     * The name to appear in forms.
+     */
+    private String formName;
 
-  /**
-   * A combination of categories to capture data for this data element. Note that this category
-   * combination could be overridden by data set elements which this data element is part of, see
-   * {@link DataSetElement}.
-   */
-  private CategoryCombo categoryCombo;
+    /**
+     * The i18n variant of the display name. Should not be persisted.
+     */
+    protected transient String displayFormName;
 
-  /** URL for lookup of additional information on the web. */
-  private String url;
+    /**
+     * The domain of this DataElement; e.g. DataElementDomainType.AGGREGATE or
+     * DataElementDomainType.TRACKER.
+     */
+    private DataElementDomain domainType;
 
-  /** The data element groups which this data element is a member of. */
-  private Set<DataElementGroup> groups = new HashSet<>();
+    /**
+     * A combination of categories to capture data for this data element. Note
+     * that this category combination could be overridden by data set elements
+     * which this data element is part of, see {@link DataSetElement}.
+     */
+    private CategoryCombo dataElementCategoryCombo;
 
-  /** The data sets which this data element is a member of. */
-  private Set<DataSetElement> dataSetElements = new HashSet<>();
+    /**
+     * URL for lookup of additional information on the web.
+     */
+    private String url;
 
-  /** The lower organisation unit levels for aggregation. */
-  private List<Integer> aggregationLevels = new ArrayList<>();
+    /**
+     * The data element groups which this
+     */
+    private Set<DataElementGroup> groups = new HashSet<>();
 
-  /** Indicates whether to store zero data values. */
-  private boolean zeroIsSignificant;
+    /**
+     * The data sets which this data element is a member of.
+     */
+    private Set<DataSetElement> dataSetElements = new HashSet<>();
 
-  /** The option set for data values linked to this data element, can be null. */
-  @AuditAttribute private OptionSet optionSet;
+    /**
+     * The lower organisation unit levels for aggregation.
+     */
+    private List<Integer> aggregationLevels = new ArrayList<>();
 
-  /** The option set for comments linked to this data element, can be null. */
-  private OptionSet commentOptionSet;
+    /**
+     * Indicates whether to store zero data values.
+     */
+    private boolean zeroIsSignificant;
 
-  /** The style defines how the DataElement should be represented on clients */
-  private ObjectStyle style;
+    /**
+     * The option set for data values linked to this data element, can be null.
+     */
+    private OptionSet optionSet;
 
-  /**
-   * Field mask represent how the value should be formatted during input. This string will be
-   * validated as a TextPatternSegment of type TEXT.
-   */
-  private String fieldMask;
+    /**
+     * The option set for comments linked to this data element, can be null.
+     */
+    private OptionSet commentOptionSet;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    /**
+     * The style defines how the DataElement should be represented on clients
+     */
+    private ObjectStyle style;
 
-  public DataElement() {}
+    /**
+     * Field mask represent how the value should be formatted during input. This string will
+     * be validated as a TextPatternSegment of type TEXT.
+     */
+    private String fieldMask;
 
-  public DataElement(String name) {
-    this();
-    this.name = name;
-  }
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public void addDataElementGroup(DataElementGroup group) {
-    groups.add(group);
-    group.getMembers().add(this);
-  }
-
-  public void removeDataElementGroup(DataElementGroup group) {
-    groups.remove(group);
-    group.getMembers().remove(this);
-  }
-
-  public void updateDataElementGroups(Set<DataElementGroup> updates) {
-    for (DataElementGroup group : new HashSet<>(groups)) {
-      if (!updates.contains(group)) {
-        removeDataElementGroup(group);
-      }
+    public DataElement()
+    {
     }
 
-    updates.forEach(this::addDataElementGroup);
-  }
-
-  public boolean removeDataSetElement(DataSetElement element) {
-    dataSetElements.remove(element);
-    return element.getDataSet().getDataSetElements().remove(element);
-  }
-
-  /**
-   * Returns the resolved category combinations by joining the category combinations of the data set
-   * elements of which this data element is part of and the category combination linked directly
-   * with this data element. The returned set is immutable, will never be null and will contain at
-   * least one item.
-   */
-  public Set<CategoryCombo> getCategoryCombos() {
-    return ImmutableSet.<CategoryCombo>builder()
-        .addAll(
-            dataSetElements.stream()
-                .filter(DataSetElement::hasCategoryCombo)
-                .map(DataSetElement::getCategoryCombo)
-                .collect(Collectors.toSet()))
-        .add(categoryCombo)
-        .build();
-  }
-
-  /**
-   * Returns the category combination of the data set element matching the given data set for this
-   * data element. If not present, returns the category combination for this data element.
-   */
-  public CategoryCombo getDataElementCategoryCombo(DataSet dataSet) {
-    for (DataSetElement element : dataSetElements) {
-      if (dataSet.typedEquals(element.getDataSet()) && element.hasCategoryCombo()) {
-        return element.getCategoryCombo();
-      }
+    public DataElement( String name )
+    {
+        this();
+        this.name = name;
     }
 
-    return categoryCombo;
-  }
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  /**
-   * Returns the category option combinations of the resolved category combinations of this data
-   * element. The returned set is immutable, will never be null and will contain at least one item.
-   */
-  public Set<CategoryOptionCombo> getCategoryOptionCombos() {
-    return getCategoryCombos().stream()
-        .map(CategoryCombo::getOptionCombos)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toSet());
-  }
-
-  /**
-   * Returns the sorted category option combinations of the resolved category combinations of this
-   * data element. The returned list is immutable, will never be null and will contain at least one
-   * item.
-   */
-  public List<CategoryOptionCombo> getSortedCategoryOptionCombos() {
-    List<CategoryOptionCombo> optionCombos = Lists.newArrayList();
-    getCategoryCombos().forEach(cc -> optionCombos.addAll(cc.getSortedOptionCombos()));
-    return optionCombos;
-  }
-
-  /** Indicates whether the value type of this data element is numeric. */
-  public boolean isNumericType() {
-    return getValueType().isNumeric();
-  }
-
-  /**
-   * Indicates whether the value type of this data element is a file (externally stored resource)
-   */
-  public boolean isFileType() {
-    return getValueType().isFile();
-  }
-
-  /**
-   * Data type for use in analytics. Both text and date types are recognized as TEXT. Everything
-   * else is recognized as NUMERIC. Note that this needs to be based on the QueryModifiers.valueType
-   * if present.
-   */
-  public DataType getAnalyticsDataType() {
-    ValueType vType = getValueType();
-
-    return (vType.isText() || vType.isDate()) ? DataType.TEXT : DataType.NUMERIC;
-  }
-
-  /** The analytics value column to use for this data element. */
-  public String getValueColumn() {
-    return (getAnalyticsDataType() == DataType.TEXT) ? TEXTVALUE_COLUMN_NAME : VALUE_COLUMN_NAME;
-  }
-
-  /**
-   * Returns the data set of this data element. If this data element has multiple data sets, the
-   * data set with the highest collection frequency is returned.
-   */
-  public DataSet getDataSet() {
-    List<DataSet> list = new ArrayList<>(getDataSets());
-    list.sort(DataSetFrequencyComparator.INSTANCE);
-    return !list.isEmpty() ? list.get(0) : null;
-  }
-
-  /**
-   * Returns the data set of this data element. If this data element has multiple data sets, the
-   * data set with approval enabled, then the highest collection frequency, is returned.
-   */
-  public DataSet getApprovalDataSet() {
-    List<DataSet> list = new ArrayList<>(getDataSets());
-    list.sort(DataSetApprovalFrequencyComparator.INSTANCE);
-    return !list.isEmpty() ? list.get(0) : null;
-  }
-
-  /**
-   * Note that this method returns an immutable set and can not be used to modify the model. Returns
-   * an immutable set of data sets associated with this data element.
-   */
-  public Set<DataSet> getDataSets() {
-    return dataSetElements.stream()
-        .map(DataSetElement::getDataSet)
-        .filter(Objects::nonNull)
-        .collect(toUnmodifiableSet());
-  }
-
-  /**
-   * Returns the attribute category options combinations associated with the data sets of this data
-   * element.
-   */
-  public Set<CategoryOptionCombo> getDataSetCategoryOptionCombos() {
-    Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
-
-    for (DataSet dataSet : getDataSets()) {
-      categoryOptionCombos.addAll(dataSet.getCategoryCombo().getOptionCombos());
+    public void addDataElementGroup( DataElementGroup group )
+    {
+        groups.add( group );
+        group.getMembers().add( this );
     }
 
-    return categoryOptionCombos;
-  }
-
-  /**
-   * Returns the PeriodType of the DataElement, based on the PeriodType of the DataSet which the
-   * DataElement is associated with. If this data element has multiple data sets, the data set with
-   * the highest collection frequency is returned.
-   */
-  public PeriodType getPeriodType() {
-    DataSet dataSet = getDataSet();
-
-    return dataSet != null ? dataSet.getPeriodType() : null;
-  }
-
-  /**
-   * Returns the PeriodTypes of the DataElement, based on the PeriodType of the DataSets which the
-   * DataElement is associated with.
-   */
-  public Set<PeriodType> getPeriodTypes() {
-    return getDataSets().stream().map(DataSet::getPeriodType).collect(Collectors.toSet());
-  }
-
-  /**
-   * Indicates whether this data element requires approval of data. Returns true if only one of the
-   * data sets associated with this data element requires approval.
-   */
-  public boolean isApproveData() {
-    for (DataSet dataSet : getDataSets()) {
-      if (dataSet != null && dataSet.getWorkflow() != null) {
-        return true;
-      }
+    public void removeDataElementGroup( DataElementGroup group )
+    {
+        groups.remove( group );
+        group.getMembers().remove( this );
     }
 
-    return false;
-  }
+    public void updateDataElementGroups( Set<DataElementGroup> updates )
+    {
+        for ( DataElementGroup group : new HashSet<>( groups ) )
+        {
+            if ( !updates.contains( group ) )
+            {
+                removeDataElementGroup( group );
+            }
+        }
 
-  /**
-   * Number of periods in the future to open for data capture, 0 means capture not allowed for
-   * current period. Based on the data sets of which this data element is a member.
-   */
-  public int getOpenFuturePeriods() {
-    int maxOpenPeriods = 0;
-
-    for (DataSet dataSet : getDataSets()) {
-      maxOpenPeriods = Math.max(maxOpenPeriods, dataSet.getOpenFuturePeriods());
+        updates.forEach( this::addDataElementGroup );
     }
 
-    return maxOpenPeriods;
-  }
+    public boolean removeDataSetElement( DataSetElement element )
+    {
+        dataSetElements.remove( element );
+        return element.getDataSet().getDataSetElements().remove( element );
+    }
 
-  /**
-   * Returns the latest period which is open for data input. Returns null if data element is not
-   * associated with any data sets.
-   *
-   * @return the latest period which is open for data input.
-   */
-  public Period getLatestOpenFuturePeriod() {
-    PeriodType periodType = getPeriodType();
-    return periodType == null ? null : periodType.getFuturePeriod(getOpenFuturePeriods());
-  }
+    /**
+     * Returns the resolved category combinations by joining the category
+     * combinations of the data set elements of which this data element is part
+     * of and the category combination linked directly with this data element.
+     * The returned set is immutable, will never be null and will contain at
+     * least one item.
+     */
+    public Set<CategoryCombo> getCategoryCombos()
+    {
+        return ImmutableSet.<CategoryCombo>builder()
+            .addAll( dataSetElements.stream()
+                .filter( DataSetElement::hasCategoryCombo )
+                .map( dse -> dse.getCategoryCombo() )
+                .collect( Collectors.toSet() ) )
+            .add( dataElementCategoryCombo ).build();
+    }
 
-  /**
-   * Returns the frequency order for the PeriodType of this DataElement. If no PeriodType exists, 0
-   * is returned.
-   */
-  public int getFrequencyOrder() {
-    PeriodType periodType = getPeriodType();
+    /**
+     * Returns the category combination of the data set element matching the
+     * given data set for this data element. If not present, returns the
+     * category combination for this data element.
+     */
+    public CategoryCombo getDataElementCategoryCombo(DataSet dataSet )
+    {
+        for ( DataSetElement element : dataSetElements )
+        {
+            if ( dataSet.typedEquals( element.getDataSet() ) && element.hasCategoryCombo() )
+            {
+                return element.getCategoryCombo();
+            }
+        }
 
-    return periodType != null ? periodType.getFrequencyOrder() : YearlyPeriodType.FREQUENCY_ORDER;
-  }
+        return dataElementCategoryCombo;
+    }
 
-  /**
-   * Tests whether a PeriodType can be defined for the DataElement, which requires that the
-   * DataElement is registered for DataSets with the same PeriodType.
-   */
-  public boolean periodTypeIsValid() {
-    PeriodType periodType = null;
+    /**
+     * Returns the category option combinations of the resolved category
+     * combinations of this data element. The returned set is immutable, will
+     * never be null and will contain at least one item.
+     */
+    public Set<CategoryOptionCombo> getCategoryOptionCombos()
+    {
+        return getCategoryCombos().stream()
+            .map( c -> c.getOptionCombos() )
+            .flatMap( c -> c.stream() )
+            .collect( Collectors.toSet() );
+    }
 
-    for (DataSet dataSet : getDataSets()) {
-      if (periodType != null && !periodType.equals(dataSet.getPeriodType())) {
+    /**
+     * Returns the sorted category option combinations of the resolved category
+     * combinations of this data element. The returned list is immutable, will
+     * never be null and will contain at least one item.
+     */
+    public List<CategoryOptionCombo> getSortedCategoryOptionCombos()
+    {
+        List<CategoryOptionCombo> optionCombos = Lists.newArrayList();
+        getCategoryCombos().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
+        return optionCombos;
+    }
+
+    /**
+     * Indicates whether the value type of this data element is numeric.
+     */
+    public boolean isNumericType()
+    {
+        return getValueType().isNumeric();
+    }
+
+    /**
+     * Indicates whether the value type of this data element is a file (externally stored resource)
+     */
+    public boolean isFileType()
+    {
+        return getValueType().isFile();
+    }
+
+    /**
+     * Returns the data set of this data element. If this data element has
+     * multiple data sets, the data set with the highest collection frequency is
+     * returned.
+     */
+    public DataSet getDataSet()
+    {
+        List<DataSet> list = new ArrayList<>( getDataSets() );
+        Collections.sort( list, DataSetFrequencyComparator.INSTANCE );
+        return !list.isEmpty() ? list.get( 0 ) : null;
+    }
+
+    /**
+     * Returns the data set of this data element. If this data element has
+     * multiple data sets, the data set with approval enabled, then the highest
+     * collection frequency, is returned.
+     */
+    public DataSet getApprovalDataSet()
+    {
+        List<DataSet> list = new ArrayList<>( getDataSets() );
+        Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
+        return !list.isEmpty() ? list.get( 0 ) : null;
+    }
+
+    /**
+     * Note that this method returns an immutable set and can not be used to
+     * modify the model. Returns an immutable set of data sets associated with
+     * this data element.
+     */
+    public Set<DataSet> getDataSets()
+    {
+        return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
+            dataSet -> dataSet != null ).collect( Collectors.toSet() ) );
+    }
+
+    /**
+     * Returns the attribute category options combinations associated with the
+     * data sets of this data element.
+     */
+    public Set<CategoryOptionCombo> getDataSetCategoryOptionCombos()
+    {
+        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+
+        for ( DataSet dataSet : getDataSets() )
+        {
+            categoryOptionCombos.addAll( dataSet.getCategoryCombo().getOptionCombos() );
+        }
+
+        return categoryOptionCombos;
+    }
+
+    /**
+     * Returns the PeriodType of the DataElement, based on the PeriodType of the
+     * DataSet which the DataElement is associated with. If this data element has
+     * multiple data sets, the data set with the highest collection frequency is
+     * returned.
+     */
+    public PeriodType getPeriodType()
+    {
+        DataSet dataSet = getDataSet();
+
+        return dataSet != null ? dataSet.getPeriodType() : null;
+    }
+
+    /**
+     * Returns the PeriodTypes of the DataElement, based on the PeriodType of the
+     * DataSets which the DataElement is associated with.
+     */
+    public Set<PeriodType> getPeriodTypes()
+    {
+        return getDataSets().stream().map( DataSet::getPeriodType ).collect( Collectors.toSet() );
+    }
+
+    /**
+     * Indicates whether this data element requires approval of data. Returns true
+     * if only one of the data sets associated with this data element requires
+     * approval.
+     */
+    public boolean isApproveData()
+    {
+        for ( DataSet dataSet : getDataSets() )
+        {
+            if ( dataSet != null && dataSet.getWorkflow() != null )
+            {
+                return true;
+            }
+        }
+
         return false;
-      }
-
-      periodType = dataSet.getPeriodType();
     }
 
-    return true;
-  }
+    /**
+     * Number of periods in the future to open for data capture, 0 means capture
+     * not allowed for current period. Based on the data sets of which this data
+     * element is a member.
+     */
+    public int getOpenFuturePeriods()
+    {
+        int maxOpenPeriods = 0;
 
-  /** Tests whether more than one aggregation level exists for the DataElement. */
-  public boolean hasAggregationLevels() {
-    return isNotEmpty(aggregationLevels);
-  }
+        for ( DataSet dataSet : getDataSets() )
+        {
+            maxOpenPeriods = Math.max( maxOpenPeriods, dataSet.getOpenFuturePeriods() );
+        }
 
-  /**
-   * Returns the maximum number of expiry days from the data sets of this data element. Returns
-   * {@link DataSet#NO_EXPIRY} if any data set has no expiry.
-   */
-  public int getExpiryDays() {
-    int expiryDays = Integer.MIN_VALUE;
-
-    for (DataSet dataSet : getDataSets()) {
-      if (dataSet.getExpiryDays() == NO_EXPIRY) {
-        return NO_EXPIRY;
-      }
-
-      if (dataSet.getExpiryDays() > expiryDays) {
-        expiryDays = dataSet.getExpiryDays();
-      }
+        return maxOpenPeriods;
     }
 
-    return expiryDays == Integer.MIN_VALUE ? NO_EXPIRY : expiryDays;
-  }
+    /**
+     * Returns the latest period which is open for data input. Returns null if
+     * data element is not associated with any data sets.
+     *
+     * @return the latest period which is open for data input.
+     */
+    public Period getLatestOpenFuturePeriod()
+    {
+        int periods = getOpenFuturePeriods();
 
-  /**
-   * Indicates whether the given period is considered expired for the end date of the given date
-   * based on the expiry days of the data sets associated with this data element.
-   *
-   * @param period the period.
-   * @param now the date used as basis.
-   * @return true or false.
-   */
-  public boolean isExpired(Period period, Date now) {
-    int expiryDays = getExpiryDays();
-    if (expiryDays == DataSet.NO_EXPIRY) {
-      return false;
+        PeriodType periodType = getPeriodType();
+
+        if ( periodType != null )
+        {
+            Period period = periodType.createPeriod();
+
+            // Rewind one as 0 open periods implies current period is locked
+
+            period = periodType.getPreviousPeriod( period );
+
+            return periodType.getNextPeriod( period, periods );
+        }
+
+        return null;
     }
-    return !Period.isDateInTimeFrame(null, addDays(period.getEndDate(), expiryDays), now);
-  }
 
-  /**
-   * Indicates whether this data element has a description.
-   *
-   * @return true if this data element has a description.
-   */
-  public boolean hasDescription() {
+    /**
+     * Returns the frequency order for the PeriodType of this DataElement. If no
+     * PeriodType exists, 0 is returned.
+     */
+    public int getFrequencyOrder()
+    {
+        PeriodType periodType = getPeriodType();
 
-    return isNotEmpty(description);
-  }
+        return periodType != null ? periodType.getFrequencyOrder() : YearlyPeriodType.FREQUENCY_ORDER;
+    }
 
-  /**
-   * Indicates whether this data element has a URL.
-   *
-   * @return true if this data element has a URL.
-   */
-  public boolean hasUrl() {
-    return isNotEmpty(url);
-  }
+    /**
+     * Tests whether a PeriodType can be defined for the DataElement, which
+     * requires that the DataElement is registered for DataSets with the same
+     * PeriodType.
+     */
+    public boolean periodTypeIsValid()
+    {
+        PeriodType periodType = null;
 
-  /**
-   * Indicates whether this data element has an option set.
-   *
-   * @return true if this data element has an option set.
-   */
-  @Override
-  public boolean hasOptionSet() {
-    return optionSet != null;
-  }
+        for ( DataSet dataSet : getDataSets() )
+        {
+            if ( periodType != null && !periodType.equals( dataSet.getPeriodType() ) )
+            {
+                return false;
+            }
 
-  // -------------------------------------------------------------------------
-  // DimensionalItemObject
-  // -------------------------------------------------------------------------
+            periodType = dataSet.getPeriodType();
+        }
 
-  // TODO can also be dimension
+        return true;
+    }
 
-  @Override
-  public DimensionItemType getDimensionItemType() {
-    return DimensionItemType.DATA_ELEMENT;
-  }
+    /**
+     * Tests whether more than one aggregation level exists for the DataElement.
+     */
+    public boolean hasAggregationLevels()
+    {
+        return aggregationLevels != null && aggregationLevels.size() > 0;
+    }
 
-  // -------------------------------------------------------------------------
-  // Helper getters
-  // -------------------------------------------------------------------------
+    /**
+     * Returns the form name, or the name if it does not exist.
+     */
+    public String getFormNameFallback()
+    {
+        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isOptionSetValue() {
-    return optionSet != null;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
+    {
+        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
+        return displayFormName != null ? displayFormName : getFormNameFallback();
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public void setDisplayFormName( String displayFormName )
+    {
+        this.displayFormName = displayFormName;
+    }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ValueType getValueType() {
-    // TODO return optionSet != null ? optionSet.getValueType() : valueType;
-    return (queryMods != null && queryMods.getValueType() != null)
-        ? queryMods.getValueType()
-        : valueType;
-  }
+    /**
+     * Returns the maximum number of expiry days from the data sets of this data
+     * element. Returns {@link DataSet#NO_EXPIRY} if any data set has no expiry.
+     */
+    public int getExpiryDays()
+    {
+        int expiryDays = Integer.MIN_VALUE;
 
-  public void setValueType(ValueType valueType) {
-    this.valueType = valueType;
-  }
+        for ( DataSet dataSet : getDataSets() )
+        {
+            if ( dataSet.getExpiryDays() == NO_EXPIRY )
+            {
+                return NO_EXPIRY;
+            }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ValueTypeOptions getValueTypeOptions() {
-    return valueTypeOptions;
-  }
+            if ( dataSet.getExpiryDays() > expiryDays )
+            {
+                expiryDays = dataSet.getExpiryDays();
+            }
+        }
 
-  public void setValueTypeOptions(ValueTypeOptions valueTypeOptions) {
-    this.valueTypeOptions = valueTypeOptions;
-  }
+        return expiryDays == Integer.MIN_VALUE ? NO_EXPIRY : expiryDays;
+    }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
-  public String getFormName() {
-    return formName;
-  }
+    /**
+     * Indicates whether the given period is considered expired for the end date
+     * of the given date based on the expiry days of the data sets associated
+     * with this data element.
+     *
+     * @param period the period.
+     * @param now    the date used as basis.
+     * @return true or false.
+     */
+    public boolean isExpired( Period period, Date now )
+    {
+        int expiryDays = getExpiryDays();
 
-  @Override
-  public void setFormName(String formName) {
-    this.formName = formName;
-  }
+        return expiryDays != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataElementDomain getDomainType() {
-    return domainType;
-  }
+    /**
+     * Indicates whether this data element has a description.
+     *
+     * @return true if this data element has a description.
+     */
+    public boolean hasDescription()
+    {
+        return description != null && !description.trim().isEmpty();
+    }
 
-  public void setDomainType(DataElementDomain domainType) {
-    this.domainType = domainType;
-  }
+    /**
+     * Indicates whether this data element has a URL.
+     *
+     * @return true if this data element has a URL.
+     */
+    public boolean hasUrl()
+    {
+        return url != null && !url.trim().isEmpty();
+    }
 
-  @JsonProperty(value = "categoryCombo")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-  public CategoryCombo getCategoryCombo() {
-    return categoryCombo;
-  }
+    /**
+     * Indicates whether this data element has an option set.
+     *
+     * @return true if this data element has an option set.
+     */
+    @Override
+    public boolean hasOptionSet()
+    {
+        return optionSet != null;
+    }
 
-  public void setCategoryCombo(CategoryCombo categoryCombo) {
-    this.categoryCombo = categoryCombo;
-  }
+    // -------------------------------------------------------------------------
+    // DimensionalItemObject
+    // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(PropertyType.URL)
-  public String getUrl() {
-    return url;
-  }
+    //TODO can also be dimension
 
-  public void setUrl(String url) {
-    this.url = url;
-  }
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.DATA_ELEMENT;
+    }
 
-  @JsonProperty("dataElementGroups")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "dataElementGroups", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataElementGroup> getGroups() {
-    return groups;
-  }
+    // -------------------------------------------------------------------------
+    // Helper getters
+    // -------------------------------------------------------------------------
 
-  public void setGroups(Set<DataElementGroup> groups) {
-    this.groups = groups;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isOptionSetValue()
+    {
+        return optionSet != null;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0)
-  public Set<DataSetElement> getDataSetElements() {
-    return dataSetElements;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  public void setDataSetElements(Set<DataSetElement> dataSetElements) {
-    this.dataSetElements = dataSetElements;
-  }
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ValueType getValueType()
+    {
+        //TODO return optionSet != null ? optionSet.getValueType() : valueType;
+        return valueType;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public List<Integer> getAggregationLevels() {
-    return aggregationLevels;
-  }
+    public void setValueType( ValueType valueType )
+    {
+        this.valueType = valueType;
+    }
 
-  public void setAggregationLevels(List<Integer> aggregationLevels) {
-    this.aggregationLevels = aggregationLevels;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 2 )
+    public String getFormName()
+    {
+        return formName;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isZeroIsSignificant() {
-    return zeroIsSignificant;
-  }
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
 
-  public void setZeroIsSignificant(boolean zeroIsSignificant) {
-    this.zeroIsSignificant = zeroIsSignificant;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementDomain getDomainType()
+    {
+        return domainType;
+    }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OptionSet getOptionSet() {
-    return optionSet;
-  }
+    public void setDomainType( DataElementDomain domainType )
+    {
+        this.domainType = domainType;
+    }
 
-  public void setOptionSet(OptionSet optionSet) {
-    this.optionSet = optionSet;
-  }
+    @JsonProperty( value = "categoryCombo" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
+    public CategoryCombo getDataElementCategoryCombo()
+    {
+        return dataElementCategoryCombo;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OptionSet getCommentOptionSet() {
-    return commentOptionSet;
-  }
+    public void setDataElementCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    {
+        this.dataElementCategoryCombo = dataElementCategoryCombo;
+    }
 
-  public void setCommentOptionSet(OptionSet commentOptionSet) {
-    this.commentOptionSet = commentOptionSet;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.URL )
+    public String getUrl()
+    {
+        return url;
+    }
 
-  /**
-   * Checks if the combination of period and date is allowed for any of the dataSets associated with
-   * the dataElement
-   *
-   * @param period period to check
-   * @param date date to check
-   * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the
-   *     period and date.
-   */
-  public boolean isDataInputAllowedForPeriodAndDate(Period period, Date date) {
+    public void setUrl( String url )
+    {
+        this.url = url;
+    }
 
-    return isEmpty(dataSetElements)
-        || getDataSets().stream()
-            .anyMatch(dataSet -> dataSet.isDataInputPeriodAndDateAllowed(period, date));
-  }
+    @JsonProperty( "dataElementGroups" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "dataElementGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataElementGroup", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataElementGroup> getGroups()
+    {
+        return groups;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ObjectStyle getStyle() {
-    return style;
-  }
+    public void setGroups( Set<DataElementGroup> groups )
+    {
+        this.groups = groups;
+    }
 
-  public void setStyle(ObjectStyle style) {
-    this.style = style;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataSetElement> getDataSetElements()
+    {
+        return dataSetElements;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getFieldMask() {
-    return fieldMask;
-  }
+    public void setDataSetElements( Set<DataSetElement> dataSetElements )
+    {
+        this.dataSetElements = dataSetElements;
+    }
 
-  public void setFieldMask(String fieldMask) {
-    this.fieldMask = fieldMask;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<Integer> getAggregationLevels()
+    {
+        return aggregationLevels;
+    }
+
+    public void setAggregationLevels( List<Integer> aggregationLevels )
+    {
+        this.aggregationLevels = aggregationLevels;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isZeroIsSignificant()
+    {
+        return zeroIsSignificant;
+    }
+
+    public void setZeroIsSignificant( boolean zeroIsSignificant )
+    {
+        this.zeroIsSignificant = zeroIsSignificant;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getOptionSet()
+    {
+        return optionSet;
+    }
+
+    public void setOptionSet( OptionSet optionSet )
+    {
+        this.optionSet = optionSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getCommentOptionSet()
+    {
+        return commentOptionSet;
+    }
+
+    public void setCommentOptionSet( OptionSet commentOptionSet )
+    {
+        this.commentOptionSet = commentOptionSet;
+    }
+
+    /**
+     * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
+     *
+     * @param period period to check
+     * @param date   date to check
+     * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
+     */
+    public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )
+    {
+        return getDataSets().isEmpty() || getDataSets().stream()
+            .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ObjectStyle getStyle()
+    {
+        return style;
+    }
+
+    public void setStyle( ObjectStyle style )
+    {
+        this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFieldMask()
+    {
+        return fieldMask;
+    }
+
+    public void setFieldMask( String fieldMask )
+    {
+        this.fieldMask = fieldMask;
+    }
 }

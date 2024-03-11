@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import java.util.function.Function;
 
 /**
  * @author Lars Helge Overland
  */
-public enum IdentifiableProperty {
-  ID,
-  UID,
-  UUID,
-  NAME,
-  CODE,
-  ATTRIBUTE;
-
-  public static IdentifiableProperty in(IdSchemes schemes, Function<IdSchemes, IdScheme> primary) {
-    IdScheme scheme = primary.apply(schemes);
-    if (scheme != null && scheme.isNotNull()) {
-      return scheme.getIdentifiableProperty();
-    }
-    scheme = schemes.getIdScheme();
-    if (scheme != null && scheme.isNotNull()) {
-      return scheme.getIdentifiableProperty();
-    }
-    return UID;
-  }
+public enum IdentifiableProperty
+{
+    ID, UID, UUID, NAME, CODE, ATTRIBUTE
 }

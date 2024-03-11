@@ -1,5 +1,7 @@
+package org.hisp.dhis.attribute;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,107 +27,201 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import java.util.Objects;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.common.MergeableObject;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement(localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0)
-public class AttributeValue implements Serializable, EmbeddedObject {
-  private Attribute attribute;
+@JacksonXmlRootElement( localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0 )
+public class AttributeValue
+    implements MergeableObject, Serializable
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = -6625127769248931066L;
 
-  private String value;
+    private int id;
 
-  public AttributeValue() {}
+    /**
+     * The date this object was created.
+     */
+    private Date created;
 
-  public AttributeValue(String value) {
-    this();
-    this.value = value;
-  }
+    /**
+     * The date this object was last updated.
+     */
+    private Date lastUpdated;
 
-  public AttributeValue(String value, Attribute attribute) {
-    this.value = value;
-    this.attribute = attribute;
-  }
+    private Attribute attribute;
 
-  public AttributeValue(Attribute attribute, String value) {
-    this.value = value;
-    this.attribute = attribute;
-  }
+    private String value;
 
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
+    public AttributeValue()
+    {
+        setAutoFields();
     }
 
-    if (object == null || getClass() != object.getClass()) {
-      return false;
+    public AttributeValue( String value )
+    {
+        this();
+        this.value = value;
     }
 
-    AttributeValue that = (AttributeValue) object;
-
-    if (!Objects.equals(attribute, that.attribute)) {
-      return false;
+    public AttributeValue( String value, Attribute attribute )
+    {
+        this( value );
+        this.attribute = attribute;
     }
 
-    if (!Objects.equals(value, that.value)) {
-      return false;
+    public void setAutoFields()
+    {
+        if ( created == null )
+        {
+            created = new Date();
+        }
+
+        lastUpdated = new Date();
     }
 
-    return true;
-  }
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o ) return true;
+        if ( o == null || getClass() != o.getClass() ) return false;
 
-  @Override
-  public int hashCode() {
-    int result = 7;
-    result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-    result = 31 * result + (value != null ? value.hashCode() : 0);
-    return result;
-  }
+        AttributeValue that = (AttributeValue) o;
 
-  @Override
-  public String toString() {
-    return "AttributeValue{"
-        + "class="
-        + getClass()
-        + ", value='"
-        + value
-        + '\''
-        + ", attribute='"
-        + attribute
-        + '\''
-        + '}';
-  }
+        if ( id != that.id ) return false;
+        if ( attribute != null ? !attribute.equals( that.attribute ) : that.attribute != null ) return false;
+        if ( value != null ? !value.equals( that.value ) : that.value != null ) return false;
 
-  @JsonProperty
-  @JacksonXmlProperty
-  @Property(required = Property.Value.TRUE)
-  public String getValue() {
-    return value;
-  }
+        return true;
+    }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
+    @Override
+    public int hashCode()
+    {
+        int result = id;
+        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
+    }
 
-  @JsonProperty
-  @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
-  public Attribute getAttribute() {
-    return attribute;
-  }
+    @Override public String toString()
+    {
+        return "AttributeValue{" +
+            "class=" + getClass() +
+            ", id=" + id +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", attribute=" + attribute +
+            ", value='" + value + '\'' +
+            '}';
+    }
 
-  public void setAttribute(Attribute attribute) {
-    this.attribute = attribute;
-  }
+
+    @JsonIgnore
+    public int getId()
+    {
+        return id;
+    }
+
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Attribute getAttribute()
+    {
+        return attribute;
+    }
+
+    public void setAttribute( Attribute attribute )
+    {
+        this.attribute = attribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getValue()
+    {
+        return value;
+    }
+
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
+
+    public boolean isUnique()
+    {
+        return attribute != null && attribute.isUnique();
+    }
+
+    public boolean isMandatory()
+    {
+        return attribute != null && attribute.isMandatory();
+    }
+
+    @Override
+    public boolean mergeableEquals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        AttributeValue that = (AttributeValue) o;
+
+        if ( !Objects.equals( attribute, that.attribute ) )
+        {
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.config;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,62 +27,82 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.config;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-@JsonTypeName("http")
-public class GenericHttpGatewayConfig extends SmsGatewayConfig {
-  private static final long serialVersionUID = 6340853488475760213L;
+public class GenericHttpGatewayConfig
+    extends SmsGatewayConfig
+{
+    private static final long serialVersionUID = 6340853488475760213L;
 
-  @JsonProperty private String configurationTemplate;
+    private String messageParameter;
 
-  @JsonProperty private boolean useGet;
+    private String recipientParameter;
 
-  @JsonProperty private ContentType contentType = ContentType.FORM_URL_ENCODED;
+    private boolean useGet;
+    
+    private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
-  @JsonProperty private List<GenericGatewayParameter> parameters = Lists.newArrayList();
+    public GenericHttpGatewayConfig()
+    {
+    }
 
-  public List<GenericGatewayParameter> getParameters() {
-    return parameters;
-  }
+    @JsonProperty( value = "parameters" )
+    public List<GenericGatewayParameter> getParameters()
+    {
+        return parameters;
+    }
 
-  public Map<String, String> getParametersMap() {
-    return parameters.stream()
-        .collect(
-            Collectors.toMap(GenericGatewayParameter::getKey, GenericGatewayParameter::getValue));
-  }
+    public void setParameters( List<GenericGatewayParameter> parameters )
+    {
+        this.parameters = parameters;
+    }
 
-  public void setParameters(List<GenericGatewayParameter> parameters) {
-    this.parameters = parameters;
-  }
+    @JsonProperty( value = "messageParameter" )
+    public String getMessageParameter()
+    {
+        return messageParameter;
+    }
 
-  public boolean isUseGet() {
-    return useGet;
-  }
+    public void setMessageParameter( String messageParameter )
+    {
+        this.messageParameter = messageParameter;
+    }
 
-  public void setUseGet(boolean useGet) {
-    this.useGet = useGet;
-  }
+    @JsonProperty( value = "recipientParameter" )
+    public String getRecipientParameter()
+    {
+        return recipientParameter;
+    }
 
-  public String getConfigurationTemplate() {
-    return configurationTemplate;
-  }
+    public void setRecipientParameter( String recipientParameter )
+    {
+        this.recipientParameter = recipientParameter;
+    }
 
-  public void setConfigurationTemplate(String configurationTemplate) {
-    this.configurationTemplate = configurationTemplate;
-  }
+    @Override
+    public boolean isInbound()
+    {
+        return false;
+    }
 
-  public ContentType getContentType() {
-    return contentType;
-  }
+    @Override
+    public boolean isOutbound()
+    {
+        return true;
+    }
 
-  public void setContentType(ContentType contentType) {
-    this.contentType = contentType;
-  }
+    @JsonProperty( value = "useGet" )
+    public boolean isUseGet()
+    {
+        return useGet;
+    }
+
+    public void setUseGet( boolean useGet )
+    {
+        this.useGet = useGet;
+    }
 }

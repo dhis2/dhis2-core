@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,83 +27,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.hibernate;
 
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
-@Repository("org.hisp.dhis.analytics.AnalyticsTableHookStore")
 public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
-    implements AnalyticsTableHookStore {
-  public HibernateAnalyticsTableHookStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      CurrentUserService currentUserService,
-      AclService aclService) {
-    super(
-        sessionFactory,
-        jdbcTemplate,
-        publisher,
-        AnalyticsTableHook.class,
-        currentUserService,
-        aclService,
-        false);
-  }
+    implements AnalyticsTableHookStore
+{
+    private static final Log log = LogFactory.getLog( HibernateAnalyticsTableHookStore.class );
+    
+    @Override
+    public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
+    {
 
-  @Override
-  public List<AnalyticsTableHook> getByPhase(AnalyticsTablePhase phase) {
-
-    return getQuery("from AnalyticsTableHook h where h.phase = :phase")
-        .setParameter("phase", phase)
-        .getResultList();
-  }
-
-  @Override
-  public List<AnalyticsTableHook> getByPhaseAndResourceTableType(
-      AnalyticsTablePhase phase, ResourceTableType resourceTableType) {
-    return getQuery(
-            "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType")
-        .setParameter("phase", phase)
-        .setParameter("resourceTableType", resourceTableType)
-        .getResultList();
-  }
-
-  @Override
-  public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType(
-      AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType) {
-    return getQuery(
-            "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType")
-        .setParameter("phase", phase)
-        .setParameter("analyticsTableType", analyticsTableType)
-        .getResultList();
-  }
-
-  @Override
-  public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
-    for (AnalyticsTableHook hook : hooks) {
-      log.info(
-          String.format(
-              "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName()));
-
-      jdbcTemplate.execute(hook.getSql());
+        return getQuery( "from AnalyticsTableHook h where h.phase = :phase" )
+            .setParameter( "phase", phase )
+            .getResultList();
     }
-  }
+
+    @Override
+    public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
+    {
+        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
+            .setParameter( "phase", phase )
+            .setParameter( "resourceTableType", resourceTableType )
+            .getResultList();
+    }
+
+    @Override
+    public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
+    {
+        return getQuery( "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
+            .setParameter( "phase", phase )
+            .setParameter( "analyticsTableType", analyticsTableType )
+            .getResultList();
+    }
+
+    @Override
+    public void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks )
+    {
+        for ( AnalyticsTableHook hook : hooks )
+        {
+            log.info( String.format( "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName() ) );
+            
+            jdbcTemplate.execute( hook.getSql() );
+        }
+    }
 }

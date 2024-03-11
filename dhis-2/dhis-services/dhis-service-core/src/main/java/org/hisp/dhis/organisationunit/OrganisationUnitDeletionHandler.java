@@ -1,5 +1,7 @@
+package org.hisp.dhis.organisationunit;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,89 +27,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
 
-import static java.util.stream.Collectors.joining;
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-@Component
-public class OrganisationUnitDeletionHandler extends IdObjectDeletionHandler<OrganisationUnit> {
-  @Override
-  protected void registerHandler() {
-    whenDeleting(DataSet.class, this::deleteDataSet);
-    whenDeleting(User.class, this::deleteUser);
-    whenDeleting(Program.class, this::deleteProgram);
-    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
-    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
-    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
-  }
+public class OrganisationUnitDeletionHandler
+    extends DeletionHandler
+{
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+    
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-  private void deleteDataSet(DataSet dataSet) {
-    dataSet
-        .getSources()
-        .iterator()
-        .forEachRemaining(
-            unit -> {
-              unit.getDataSets().remove(dataSet);
-              idObjectManager.updateNoAcl(unit);
-            });
-  }
-
-  private void deleteUser(User user) {
-    user.getOrganisationUnits()
-        .iterator()
-        .forEachRemaining(
-            unit -> {
-              unit.getUsers().remove(user);
-              idObjectManager.updateNoAcl(unit);
-            });
-  }
-
-  private void deleteProgram(Program program) {
-    program
-        .getOrganisationUnits()
-        .iterator()
-        .forEachRemaining(
-            unit -> {
-              unit.getPrograms().remove(program);
-              idObjectManager.updateNoAcl(unit);
-            });
-  }
-
-  private void deleteOrganisationUnitGroup(OrganisationUnitGroup group) {
-    group
-        .getMembers()
-        .iterator()
-        .forEachRemaining(
-            unit -> {
-              unit.getGroups().remove(group);
-              idObjectManager.updateNoAcl(unit);
-            });
-  }
-
-  private void deleteOrganisationUnit(OrganisationUnit unit) {
-    if (unit.getParent() != null) {
-      unit.getParent().getChildren().remove(unit);
-      idObjectManager.updateNoAcl(unit.getParent());
+    @Override
+    public String getClassName()
+    {
+        return OrganisationUnit.class.getSimpleName();
     }
-  }
 
-  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
-    return unit.getChildren().isEmpty()
-        ? ACCEPT
-        : new DeletionVeto(
-            OrganisationUnit.class,
-            unit.getChildren().stream().map(BaseIdentifiableObject::getName).collect(joining(",")));
-  }
+    @Override
+    public void deleteDataSet( DataSet dataSet )
+    {
+        for ( OrganisationUnit unit : dataSet.getSources() )
+        {
+            unit.getDataSets().remove( dataSet );
+            idObjectManager.updateNoAcl( unit );
+        }
+    }
+
+    @Override
+    public void deleteUser( User user )
+    {
+        for ( OrganisationUnit unit : user.getOrganisationUnits() )
+        {
+            unit.getUsers().remove( user );
+            idObjectManager.updateNoAcl( unit );
+        }
+    }
+
+    @Override
+    public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
+    {
+        for ( OrganisationUnit unit : group.getMembers() )
+        {
+            unit.getGroups().remove( group );
+            idObjectManager.updateNoAcl( unit );
+        }
+    }
+
+    @Override
+    public String allowDeleteOrganisationUnit( OrganisationUnit unit )
+    {
+        return unit.getChildren().isEmpty() ? null : ERROR;
+    }
 }

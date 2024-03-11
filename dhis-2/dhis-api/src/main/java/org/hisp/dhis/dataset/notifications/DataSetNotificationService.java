@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset.notifications;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.notifications;
+
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 
 import java.util.Date;
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.scheduling.JobProgress;
 
-/** Created by zubair on 04.07.17. */
-public interface DataSetNotificationService {
-  /**
-   * Send all scheduled dataset notifications for the given day. These notifications could be
-   * reminders for upcoming datasets submissions or it could be reminders for datasets where
-   * submissions are overdue.
-   *
-   * @param day the Date representing the day relative to the scheduled notifications for which to
-   *     send messages.
-   * @param progress job progress tracking callback
-   */
-  void sendScheduledDataSetNotificationsForDay(Date day, JobProgress progress);
+/**
+ * Created by zubair on 04.07.17.
+ */
+public interface DataSetNotificationService
+{
+    /**
+     * Send all scheduled dataset notifications for the given day.
+     * These notifications could be reminders for upcoming datasets submissions
+     * or it could be reminders for datasets where submissions are overdue.
+     * @param day the Date representing the day relative to the
+     *             scheduled notifications for which to send messages.
+     */
+    void sendScheduledDataSetNotificationsForDay( Date day );
 
-  /**
-   * Send completion notifications when a DataSet is completed. If the DataSet is not configured
-   * with suitable {@link DataSetNotificationTemplate templates}, nothing will happen.
-   *
-   * @param completeDataSetRegistration the CompleteDataSetRegistration.
-   */
-  void sendCompleteDataSetNotifications(CompleteDataSetRegistration completeDataSetRegistration);
+    /**
+     * Send completion notifications when a DataSet is completed.
+     * If the DataSet is not configured with suitable
+     * {@link DataSetNotificationTemplate templates}, nothing will happen.
+     *
+     * @param completeDataSetRegistration the CompleteDataSetRegistration.
+     */
+    void sendCompleteDataSetNotifications( CompleteDataSetRegistration completeDataSetRegistration );
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hisp.dhis.hibernate.EnumUserType;
+import org.hisp.dhis.translation.TranslationProperty;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
-public class TranslationPropertyUserType extends JsonSetBinaryType {
-  public TranslationPropertyUserType() {
-    super();
-  }
+public class TranslationPropertyUserType
+    extends EnumUserType<TranslationProperty>
+{
+    public TranslationPropertyUserType()
+    {
+        super( TranslationProperty.class );
+    }
+
+    @Override
+    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl, Object owner )
+        throws HibernateException, SQLException
+    {
+        String name = resultSet.getString( names[0] );
+        TranslationProperty result = null;
+        if ( !resultSet.wasNull() )
+        {
+            result = TranslationProperty.fromValue( name );
+        }
+        return result;
+    }
 }

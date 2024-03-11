@@ -1,5 +1,7 @@
+package org.hisp.dhis.scheduling.parameters;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.JobParameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * @author Henning Håkonsen
+ * This class is retained only for deserialization support for old db entries serialized with this class. 
+ * For PushAnalysis job parameters from patch 2.31.7 onwards {@link PushAnalysisMultiJobParameters} is used.
+ * 
+ * @author Ameen Mohamed
  */
-@Getter
-@Setter
-@NoArgsConstructor
-public class PushAnalysisJobParameters implements JobParameters {
-  @JsonProperty(required = true)
-  @OpenApi.Property({UID[].class, PushAnalysis.class})
-  private List<String> pushAnalysis = new ArrayList<>();
+@Deprecated
+public class PushAnalysisJobParameters
+    implements JobParameters
+{
+    private static final long serialVersionUID = -1848833906375595488L;
 
-  public PushAnalysisJobParameters(String pushAnalysis) {
-    this.pushAnalysis.add(pushAnalysis);
-  }
+    @JsonProperty( required = true )
+    private String pushAnalysis;
 
-  public PushAnalysisJobParameters(List<String> pushAnalysis) {
-    this.pushAnalysis = pushAnalysis;
-  }
-
-  @Override
-  public Optional<ErrorReport> validate() {
-    if (pushAnalysis == null || pushAnalysis.isEmpty()) {
-      return Optional.of(
-          new ErrorReport(this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis"));
+    public PushAnalysisJobParameters()
+    {
     }
 
-    return Optional.empty();
-  }
+    public PushAnalysisJobParameters( String pushAnalysis )
+    {
+        this.pushAnalysis = pushAnalysis;
+    }
+
+    public String getPushAnalysis()
+    {
+        return pushAnalysis;
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        if ( pushAnalysis == null )
+        {
+            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
+        }
+
+        return null;
+    }
 }

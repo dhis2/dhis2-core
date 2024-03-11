@@ -1,5 +1,7 @@
+package org.hisp.dhis.calendar;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,95 +27,110 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.calendar;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.calendar.CalendarService")
-public class DefaultCalendarService implements CalendarService {
-  private final SystemSettingManager settingManager;
+public class DefaultCalendarService 
+    implements CalendarService
+{
+    @Autowired
+    private SystemSettingManager settingManager;
 
-  private final Set<Calendar> calendars;
+    @Autowired
+    private Set<Calendar> calendars = Sets.newHashSet();
 
-  private final Map<String, Calendar> calendarMap = Maps.newHashMap();
+    private Map<String, Calendar> calendarMap = Maps.newHashMap();
 
-  private static final List<DateFormat> DATE_FORMATS =
-      Lists.newArrayList(
-          new DateFormat("yyyy-MM-dd", "yyyy-MM-dd", "yyyy-MM-dd", "yyyy-mm-dd"),
-          new DateFormat("dd-MM-yyyy", "dd-MM-yyyy", "dd-MM-yyyy", "dd-mm-yyyy"));
+    private static final List<DateFormat> DATE_FORMATS = Lists.newArrayList(
+        new DateFormat( "yyyy-MM-dd", "yyyy-MM-dd", "yyyy-MM-dd", "yyyy-mm-dd" ),
+        new DateFormat( "dd-MM-yyyy", "dd-MM-yyyy", "dd-MM-yyyy", "dd-mm-yyyy" )
+    );
 
-  // -------------------------------------------------------------------------
-  // CalendarService implementation
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // CalendarService implementation
+    // -------------------------------------------------------------------------
 
-  @PostConstruct
-  public void init() {
-    for (Calendar calendar : calendars) {
-      calendarMap.put(calendar.name(), calendar);
+    @PostConstruct
+    public void init()
+    {
+        for ( Calendar calendar : calendars )
+        {
+            calendarMap.put( calendar.name(), calendar );
+        }
+
+        PeriodType.setCalendarService( this );
+        Cal.setCalendarService( this );
+        DateUnitPeriodTypeParser.setCalendarService( this );
     }
 
-    PeriodType.setCalendarService(this);
-    Cal.setCalendarService(this);
-    DateUnitPeriodTypeParser.setCalendarService(this);
-  }
-
-  @Override
-  public List<Calendar> getAllCalendars() {
-    List<Calendar> sortedCalendars = Lists.newArrayList(calendarMap.values());
-    Collections.sort(sortedCalendars, CalendarComparator.INSTANCE);
-    return sortedCalendars;
-  }
-
-  @Override
-  public List<DateFormat> getAllDateFormats() {
-    return DATE_FORMATS;
-  }
-
-  @Override
-  public Calendar getSystemCalendar() {
-    String calendarKey = settingManager.getStringSetting(SettingKey.CALENDAR);
-    String dateFormat = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
-
-    Calendar calendar = null;
-
-    if (calendarMap.containsKey(calendarKey)) {
-      calendar = calendarMap.get(calendarKey);
-    } else {
-      calendar = Iso8601Calendar.getInstance();
+    @Override
+    public List<Calendar> getAllCalendars()
+    {
+        List<Calendar> sortedCalendars = Lists.newArrayList( calendarMap.values() );
+        Collections.sort( sortedCalendars, CalendarComparator.INSTANCE );
+        return sortedCalendars;
     }
 
-    calendar.setDateFormat(dateFormat);
-
-    return calendar;
-  }
-
-  @Override
-  public DateFormat getSystemDateFormat() {
-    String dateFormatKey = settingManager.getStringSetting(SettingKey.DATE_FORMAT);
-
-    for (DateFormat dateFormat : DATE_FORMATS) {
-      if (dateFormat.name().equals(dateFormatKey)) {
-        return dateFormat;
-      }
+    @Override
+    public List<DateFormat> getAllDateFormats()
+    {
+        return DATE_FORMATS;
     }
 
-    return DATE_FORMATS.get(0);
-  }
+    @Override
+    public Calendar getSystemCalendar()
+    {
+        String calendarKey = (String) settingManager.getSystemSetting( SettingKey.CALENDAR );
+        String dateFormat = (String) settingManager.getSystemSetting( SettingKey.DATE_FORMAT );
+
+        Calendar calendar = null;
+
+        if ( calendarMap.containsKey( calendarKey ) )
+        {
+            calendar = calendarMap.get( calendarKey );
+        }
+        else
+        {
+            calendar = Iso8601Calendar.getInstance();
+        }
+
+        calendar.setDateFormat( dateFormat );
+
+        return calendar;
+    }
+    
+    @Override
+    public DateFormat getSystemDateFormat()
+    {
+        String dateFormatKey = (String) settingManager.getSystemSetting( SettingKey.DATE_FORMAT );
+
+        for ( DateFormat dateFormat : DATE_FORMATS )
+        {
+            if ( dateFormat.name().equals( dateFormatKey ) )
+            {
+                return dateFormat;
+            }
+        }
+
+        return DATE_FORMATS.get( 0 );
+    }
 }

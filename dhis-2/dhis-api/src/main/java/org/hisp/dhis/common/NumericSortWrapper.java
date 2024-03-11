@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +27,74 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class which wraps an object to make it easy to sort. This class provides a numeric for sorting
- * and implements the Comparable interface.
- *
+ * Class which wraps an object to make it easy to sort. This class provides a
+ * numeric for sorting and implements the Comparable interface.
+ * 
  * @author Lars Helge Overland
  */
-public class NumericSortWrapper<T> implements Comparable<NumericSortWrapper<T>> {
-  private T object;
+public class NumericSortWrapper<T>
+    implements Comparable<NumericSortWrapper<T>>
+{
+    private T object;
 
-  private Double number;
-
-  private int sortOrder;
-
-  /**
-   * @param object the object to wrap.
-   * @param number the number to use as basis for sorting.
-   * @param sortOrder the sort order, negative
-   */
-  public NumericSortWrapper(T object, Double number, int sortOrder) {
-    this.object = object;
-    this.number = number;
-    this.sortOrder = sortOrder;
-  }
-
-  @Override
-  public int compareTo(NumericSortWrapper<T> other) {
-    if (sortOrder < 0) {
-      return number != null ? other != null ? number.compareTo(other.getNumber()) : 1 : -1;
-    } else {
-      return other != null && other.getNumber() != null
-          ? number != null ? other.getNumber().compareTo(number) : 1
-          : -1;
+    private Double number;
+    
+    private int sortOrder;
+    
+    /**
+     * @param object the object to wrap.
+     * @param number the number to use as basis for sorting.
+     * @param sortOrder the sort order, negative
+     */
+    public NumericSortWrapper( T object, Double number, int sortOrder )
+    {
+        this.object = object;
+        this.number = number;
+        this.sortOrder = sortOrder;
     }
-  }
-
-  public T getObject() {
-    return object;
-  }
-
-  public Double getNumber() {
-    return number;
-  }
-
-  public static <T> List<T> getObjectList(List<NumericSortWrapper<T>> wrapperList) {
-    List<T> list = new ArrayList<>();
-
-    for (NumericSortWrapper<T> wrapper : wrapperList) {
-      list.add(wrapper.getObject());
+    
+    @Override
+    public int compareTo( NumericSortWrapper<T> other )
+    {
+        if ( sortOrder < 0 )
+        {
+            return number != null ? other != null ? number.compareTo( other.getNumber() ) : 1 : -1;
+        }
+        else
+        {
+            return other != null && other.getNumber() != null ? number != null ? other.getNumber().compareTo( number ) : 1 : -1;
+        }
     }
-
-    return list;
-  }
-
-  public String toString() {
-    return "[Number: " + number + ", object: " + object + "]";
-  }
+    
+    public T getObject()
+    {
+        return object;
+    }
+    
+    public Double getNumber()
+    {
+        return number;
+    }
+    
+    public static <T> List<T> getObjectList( List<NumericSortWrapper<T>> wrapperList )
+    {
+        List<T> list = new ArrayList<>();
+        
+        for ( NumericSortWrapper<T> wrapper : wrapperList )
+        {
+            list.add( wrapper.getObject() );
+        }
+        
+        return list;
+    }
+    
+    public String toString()
+    {
+        return "[Number: " + number + ", object: " + object + "]"; 
+    }
 }

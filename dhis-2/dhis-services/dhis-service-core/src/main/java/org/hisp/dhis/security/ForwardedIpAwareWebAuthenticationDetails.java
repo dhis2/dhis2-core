@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
 import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.util.ObjectUtils;
@@ -34,22 +35,26 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationDetails {
-  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+public class ForwardedIpAwareWebAuthenticationDetails
+    extends WebAuthenticationDetails
+{
+    private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
 
-  private String ip;
+    private String ip;
 
-  public ForwardedIpAwareWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    this.ip =
-        ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
-  }
+    public ForwardedIpAwareWebAuthenticationDetails( HttpServletRequest request )
+    {
+        super( request );
+        this.ip = ObjectUtils.firstNonNull( request.getHeader( HEADER_FORWARDED_FOR ), request.getRemoteAddr() );
+    }
 
-  public String getIp() {
-    return ip;
-  }
+    public String getIp()
+    {
+        return ip;
+    }
 
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
+    public void setIp( String ip )
+    {
+        this.ip = ip;
+    }
 }

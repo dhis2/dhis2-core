@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,1262 +27,1055 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
-
-import com.google.common.base.Defaults;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSet.Builder;
-import com.google.gson.internal.Primitives;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.ToLongFunction;
-import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.proxy.HibernateProxy;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.util.SharingUtils;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
 /**
- * Note that it is required for nameable object stores to have concrete implementation classes, not
- * rely on the HibernateIdentifiableObjectStore class, in order to be injected as nameable object
- * stores.
+ * Note that it is required for nameable object stores to have concrete implementation
+ * classes, not rely on the HibernateIdentifiableObjectStore class, in order to
+ * be injected as nameable object stores.
  *
  * @author Lars Helge Overland
  */
-@Slf4j
-@Component("org.hisp.dhis.common.IdentifiableObjectManager")
-public class DefaultIdentifiableObjectManager implements IdentifiableObjectManager {
-  public static final String DEFAULT = "default";
+@Transactional
+public class DefaultIdentifiableObjectManager
+    implements IdentifiableObjectManager
+{
+    private static final Log log = LogFactory.getLog( DefaultIdentifiableObjectManager.class );
 
-  /** Cache for default category objects. Disabled during test phase. */
-  private final Cache<Long> defaultObjectCache;
+    /**
+     * Cache for default category objects. Disabled during test phase.
+     */
+    private static Cache<IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
-  private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
+    @Autowired
+    private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
-  private final Set<GenericDimensionalObjectStore<? extends DimensionalObject>>
-      dimensionalObjectStores;
+    @Autowired
+    private Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
 
-  private final SessionFactory sessionFactory;
+    @Autowired
+    private SessionFactory sessionFactory;
 
-  private final CurrentUserService currentUserService;
+    @Autowired
+    private CurrentUserService currentUserService;
 
-  protected final SchemaService schemaService;
+    @Autowired
+    protected SchemaService schemaService;
 
-  private final Map<
-          Class<? extends IdentifiableObject>,
-          IdentifiableObjectStore<? extends IdentifiableObject>>
-      identifiableObjectStoreCache = new ConcurrentHashMap<>();
+    @Autowired
+    private CacheProvider cacheProvider;
 
-  private final Map<
-          Class<? extends DimensionalObject>,
-          GenericDimensionalObjectStore<? extends DimensionalObject>>
-      dimensionalObjectStoreCache = new ConcurrentHashMap<>();
+    private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
-  public DefaultIdentifiableObjectManager(
-      Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
-      Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
-      SessionFactory sessionFactory,
-      CurrentUserService currentUserService,
-      SchemaService schemaService,
-      CacheProvider cacheProvider) {
-    checkNotNull(identifiableObjectStores);
-    checkNotNull(dimensionalObjectStores);
-    checkNotNull(sessionFactory);
-    checkNotNull(currentUserService);
-    checkNotNull(schemaService);
-    checkNotNull(cacheProvider);
+    private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
-    this.identifiableObjectStores = identifiableObjectStores;
-    this.dimensionalObjectStores = dimensionalObjectStores;
-    this.sessionFactory = sessionFactory;
-    this.currentUserService = currentUserService;
-    this.schemaService = schemaService;
-    this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
-  }
-
-  // --------------------------------------------------------------------------
-  // IdentifiableObjectManager implementation
-  // --------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public void save(@Nonnull IdentifiableObject object) {
-    save(object, true);
-  }
-
-  @Override
-  @Transactional
-  public void save(@Nonnull IdentifiableObject object, boolean clearSharing) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-
-    if (store != null) {
-      store.save(object, clearSharing);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void save(@Nonnull List<IdentifiableObject> objects) {
-    objects.forEach(o -> save(o, true));
-  }
-
-  @Override
-  @Transactional
-  public void update(@Nonnull IdentifiableObject object) {
-    update(object, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
-  public void update(@Nonnull IdentifiableObject object, @CheckForNull User user) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-
-    if (store != null) {
-      store.update(object, user);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void update(@Nonnull List<IdentifiableObject> objects) {
-    update(objects, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
-  public void update(@Nonnull List<IdentifiableObject> objects, @CheckForNull User user) {
-    if (objects.isEmpty()) {
-      return;
+    @PostConstruct
+    public void init()
+    {
+        DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
+            .forRegion( "defaultObjectCache" )
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .withInitialCapacity( 4 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 10 )
+            .build();
     }
 
-    for (IdentifiableObject object : objects) {
-      update(object, user);
-    }
-  }
+    //--------------------------------------------------------------------------
+    // IdentifiableObjectManager implementation
+    //--------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void updateTranslations(
-      @Nonnull IdentifiableObject persistedObject, @Nonnull Set<Translation> translations) {
-    Session session = sessionFactory.getCurrentSession();
-
-    BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
-
-    translatedObject.setTranslations(
-        translations.stream()
-            .filter(t -> !StringUtils.isEmpty(t.getValue()))
-            .collect(Collectors.toSet()));
-
-    translatedObject.setLastUpdated(new Date());
-    translatedObject.setLastUpdatedBy(currentUserService.getCurrentUser());
-
-    session.update(translatedObject);
-  }
-
-  @Override
-  @Transactional
-  public void delete(@Nonnull IdentifiableObject object) {
-    delete(object, currentUserService.getCurrentUser());
-  }
-
-  @Override
-  @Transactional
-  public void delete(@Nonnull IdentifiableObject object, @CheckForNull User user) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-
-    if (store != null) {
-      store.delete(object, user);
-    }
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public Optional<? extends IdentifiableObject> find(@Nonnull String uid) {
-    return identifiableObjectStores.stream()
-        .map(store -> store.getByUid(uid))
-        .filter(Objects::nonNull)
-        .findFirst();
-  }
-
-  @Override
-  public <T extends IdentifiableObject> List<T> findByUser(Class<T> type, @Nonnull User user) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+    @Override
+    public void save( IdentifiableObject object )
+    {
+        save( object, true );
     }
 
-    return findByUser(store, user);
-  }
+    @Override
+    public void save( IdentifiableObject object, boolean clearSharing )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
-  @Override
-  public <T extends IdentifiableObject> boolean existsByUser(Class<T> type, @Nonnull User user) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return false;
+        if ( store != null )
+        {
+            store.save( object, clearSharing );
+        }
     }
 
-    return existsByUser(store, user);
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, long id) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
+    @Override
+    public void update( IdentifiableObject object )
+    {
+        update( object, currentUserService.getCurrentUser() );
     }
 
-    return store.get(id);
-  }
+    @Override
+    public void update( IdentifiableObject object, User user )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull String uid) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
+        if ( store != null )
+        {
+            store.update( object, user );
+        }
     }
 
-    return store.getByUid(uid);
-  }
-
-  @Nonnull
-  @Override
-  public <T extends IdentifiableObject> T load(@Nonnull Class<T> type, @Nonnull String uid)
-      throws IllegalQueryException {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      throw new IllegalQueryException("No store registered for objects of type: " + type);
+    @Override
+    public void update( List<IdentifiableObject> objects )
+    {
+        update( objects, currentUserService.getCurrentUser() );
     }
 
-    return store.loadByUid(uid);
-  }
+    @Override
+    public void update( List<IdentifiableObject> objects, User user )
+    {
+        if ( objects == null || objects.isEmpty() )
+        {
+            return;
+        }
 
-  @Nonnull
-  @Override
-  public <T extends IdentifiableObject> T load(
-      @Nonnull Class<T> type, @Nonnull ErrorCode errorCode, @Nonnull String uid)
-      throws IllegalQueryException {
-    T object = get(type, uid);
-
-    if (object == null) {
-      throw new IllegalQueryException(new ErrorMessage(errorCode, uid));
+        for ( IdentifiableObject object : objects )
+        {
+            update( object, user );
+        }
     }
 
-    return object;
-  }
+    @Override
+    public void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations )
+    {
+        Session session = sessionFactory.getCurrentSession();
+        persistedObject.getTranslations().clear();
+        session.flush();
 
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> boolean exists(
-      @Nonnull Class<T> type, @Nonnull String uid) {
-    return get(type, uid) != null;
-  }
+        translations.forEach( translation ->
+        {
+            if ( StringUtils.isNotEmpty( translation.getValue() ) )
+            {
+                persistedObject.getTranslations().add( translation );
+            }
+        } );
 
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T get(
-      @Nonnull Collection<Class<? extends T>> types, @Nonnull String uid) {
-    return types.stream()
-        .map(type -> get(type, uid))
-        .filter(Objects::nonNull)
-        .findFirst()
-        .orElse(null);
-  }
+        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        translatedObject.setLastUpdated( new Date() );
+        translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T get(
-      @Nonnull Collection<Class<? extends T>> types,
-      @Nonnull IdScheme idScheme,
-      @Nonnull String identifier) {
-    return types.stream()
-        .map(type -> getObject(type, idScheme, identifier))
-        .filter(Objects::nonNull)
-        .findFirst()
-        .orElse(null);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getNoAcl(
-      @Nonnull Class<T> type, @Nonnull Collection<String> uids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+        session.update( translatedObject );
     }
 
-    return store.getByUidNoAcl(uids);
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getByCode(@Nonnull Class<T> type, @Nonnull String code) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
+    @Override
+    public void delete( IdentifiableObject object )
+    {
+        delete( object, currentUserService.getCurrentUser() );
     }
 
-    return store.getByCode(code);
-  }
+    @Override
+    public void delete( IdentifiableObject object, User user )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T loadByCode(@Nonnull Class<T> type, @Nonnull String code)
-      throws IllegalQueryException {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      throw new IllegalQueryException(ErrorCode.E1113, type.getSimpleName(), code);
+        if ( store != null )
+        {
+            store.delete( object, user );
+        }
     }
 
-    return store.loadByCode(code);
-  }
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T get( String uid )
+    {
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
+        {
+            T object = (T) store.getByUid( uid );
+
+            if ( object != null )
+            {
+                return object;
+            }
+        }
 
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getByName(@Nonnull Class<T> type, @Nonnull String name) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value) {
-    return getByUniqueAttributeValue(type, attribute, value, currentUserService.getCurrentUser());
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getByUniqueAttributeValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value, User user) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByUniqueAttributeValue(attribute, value, user);
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query) {
-    T object = get(type, query);
-
-    if (object == null) {
-      object = getByCode(type, query);
-    }
-
-    if (object == null) {
-      object = getByName(type, query);
-    }
-
-    return object;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> filter(
-      @Nonnull Class<T> type, @Nonnull String query) {
-    Set<T> uniqueObjects = new HashSet<>();
-
-    T uidObject = get(type, query);
-
-    if (uidObject != null) {
-      uniqueObjects.add(uidObject);
-    }
-
-    T codeObject = getByCode(type, query);
-
-    if (codeObject != null) {
-      uniqueObjects.add(codeObject);
-    }
-
-    uniqueObjects.addAll(getLikeName(type, query, false));
-
-    List<T> objects = new ArrayList<>(uniqueObjects);
-
-    Collections.sort(objects);
-
-    return objects;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getAll(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAll();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getDataWriteAll(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getDataWriteAll();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getDataReadAll(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getDataReadAll();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getAllSorted(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllOrderedName();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getAllByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes) {
-    if (!hasAttributeValues(type) || attributes.isEmpty()) {
-      return List.of();
-    }
-
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllByAttributes(attributes);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes) {
-    if (!hasAttributeValues(type) || attributes.isEmpty()) {
-      return List.of();
-    }
-
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllValuesByAttributes(attributes);
-  }
-
-  @Override
-  public <T extends IdentifiableObject> long countAllValuesByAttributes(
-      @Nonnull Class<T> type, @Nonnull List<Attribute> attributes) {
-    if (!hasAttributeValues(type) || attributes.isEmpty()) {
-      return 0;
-    }
-
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return 0;
-    }
-
-    return store.countAllValuesByAttributes(attributes);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getByUid(
-      @Nonnull Class<T> type, @Nonnull Collection<String> uids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByUid(uids);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getByUid(
-      Collection<Class<? extends T>> types, @Nonnull Collection<String> uids) {
-    List<T> list = new ArrayList<>();
-
-    for (Class<? extends T> type : types) {
-      list.addAll(getByUid(type, uids));
-    }
-    return list;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> loadByUid(
-      @Nonnull Class<T> type, @CheckForNull Collection<String> uids) throws IllegalQueryException {
-    if (uids == null || uids.isEmpty()) {
-      return List.of();
-    }
-
-    List<T> objects = getByUid(type, uids);
-
-    List<String> identifiers = IdentifiableObjectUtils.getUids(objects);
-    List<String> difference = CollectionUtils.difference(uids, identifiers);
-
-    if (!difference.isEmpty()) {
-      throw new IllegalQueryException(
-          new ErrorMessage(ErrorCode.E1112, type.getSimpleName(), difference));
-    }
-
-    return objects;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getById(
-      @Nonnull Class<T> type, @Nonnull Collection<Long> ids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getById(ids);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getByCode(
-      @Nonnull Class<T> type, @Nonnull Collection<String> codes) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByCode(codes);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getOrdered(
-      @Nonnull Class<T> type, @Nonnull IdScheme idScheme, @Nonnull Collection<String> values) {
-    if (values.isEmpty()) {
-      return List.of();
-    }
-    return values.stream()
-        .map(value -> getObject(type, idScheme, value))
-        .filter(Objects::nonNull)
-        .collect(toList());
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getByUidOrdered(
-      @Nonnull Class<T> type, @Nonnull List<String> uids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null || uids.isEmpty()) {
-      return List.of();
-    }
-    return uids.stream().map(store::getByUid).filter(Objects::nonNull).collect(toList());
-  }
-
-  @Override
-  @Transactional
-  public <T extends IdentifiableObject> int getCount(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store != null) {
-      return store.getCount();
-    }
-
-    return 0;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> int getCountByCreated(
-      @Nonnull Class<T> type, @Nonnull Date created) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store != null) {
-      return store.getCountGeCreated(created);
-    }
-
-    return 0;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> int getCountByLastUpdated(
-      @Nonnull Class<T> type, @Nonnull Date lastUpdated) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store != null) {
-      return store.getCountGeLastUpdated(lastUpdated);
-    }
-
-    return 0;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getLikeName(
-      @Nonnull Class<T> type, @Nonnull String name) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllLikeName(name);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getLikeName(
-      @Nonnull Class<T> type, @Nonnull String name, boolean caseSensitive) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllLikeName(name, caseSensitive);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getBetweenSorted(
-      @Nonnull Class<T> type, int first, int max) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllOrderedName(first, max);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getBetweenLikeName(
-      @Nonnull Class<T> type, @Nonnull Set<String> words, int first, int max) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllLikeName(words, first, max);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Date getLastUpdated(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getLastUpdated();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMap(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property) {
-    return getIdMap(type, IdScheme.from(property));
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMap(
-      @Nonnull Class<T> type, @Nonnull IdScheme idScheme) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return Map.of();
-    }
-
-    List<T> objects = store.getAll();
-
-    return IdentifiableObjectUtils.getIdMap(objects, idScheme);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property) {
-    return getIdMapNoAcl(type, IdScheme.from(property));
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl(
-      @Nonnull Class<T> type, @Nonnull IdScheme idScheme) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return Map.of();
-    }
-
-    List<T> objects = store.getAllNoAcl();
-
-    return IdentifiableObjectUtils.getIdMap(objects, idScheme);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getObjects(
-      @Nonnull Class<T> type,
-      @Nonnull IdentifiableProperty property,
-      @Nonnull Collection<String> identifiers) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null || identifiers.isEmpty()) {
-      return List.of();
-    }
-
-    switch (property) {
-      case UID:
-        return store.getByUid(identifiers);
-      case CODE:
-        return store.getByCode(identifiers);
-      case NAME:
-        return store.getByName(identifiers);
-      default:
-        throw new InvalidIdentifierReferenceException(
-            "Invalid identifiable property / class combination: " + property);
-    }
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getObjects(
-      @Nonnull Class<T> type, @Nonnull Collection<Long> identifiers) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getById(identifiers);
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getObject(
-      @Nonnull Class<T> type, @Nonnull IdentifiableProperty property, @Nonnull String value) {
-    return getObject(type, IdScheme.from(property), value);
-  }
-
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getObject(
-      @Nonnull Class<T> type, @Nonnull IdScheme idScheme, @Nonnull String value) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null || StringUtils.isEmpty(value)) {
-      return null;
-    }
-
-    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
-      return store.getByUid(value);
-    }
-    if (idScheme.is(IdentifiableProperty.CODE)) {
-      return store.getByCode(value);
-    }
-    if (idScheme.is(IdentifiableProperty.NAME)) {
-      return store.getByName(value);
-    }
-    if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
-      if (!hasAttributeValues(type)) {
         return null;
-      }
-
-      Attribute attribute = get(Attribute.class, idScheme.getAttribute());
-
-      if (attribute == null) {
-        throw new InvalidIdentifierReferenceException(
-            "Attribute does not exist: " + idScheme.getAttribute());
-      }
-
-      return store.getByUniqueAttributeValue(attribute, value);
-    }
-    if (idScheme.is(IdentifiableProperty.ID) && Integer.parseInt(value) > 0) {
-      return store.get(Integer.parseInt(value));
     }
 
-    throw new InvalidIdentifierReferenceException(
-        "Invalid identifiable property / class combination: " + idScheme);
-  }
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T get( Class<T> clazz, int id )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public IdentifiableObject getObject(@Nonnull String uid, @Nonnull String simpleClassName) {
-    for (IdentifiableObjectStore<? extends IdentifiableObject> objectStore :
-        identifiableObjectStores) {
-      if (simpleClassName.equals(objectStore.getClazz().getSimpleName())) {
-        return objectStore.getByUid(uid);
-      }
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.get( id );
     }
 
-    return null;
-  }
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T get( Class<T> clazz, String uid )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
-  @CheckForNull
-  @Override
-  @Transactional(readOnly = true)
-  public IdentifiableObject getObject(long id, @Nonnull String simpleClassName) {
-    for (IdentifiableObjectStore<? extends IdentifiableObject> objectStore :
-        identifiableObjectStores) {
-      if (simpleClassName.equals(objectStore.getClazz().getSimpleName())) {
-        return objectStore.get(id);
-      }
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.getByUid( uid );
     }
 
-    return null;
-  }
+    @Override
+    public <T extends IdentifiableObject> boolean exists( Class<T> clazz, String uid )
+    {
+        return get( clazz, uid ) != null;
+    }
 
-  @Override
-  @Transactional
-  public void refresh(@Nonnull Object object) {
-    sessionFactory.getCurrentSession().refresh(object);
-  }
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, String uid )
+    {
+        for ( Class<? extends IdentifiableObject> clazz : classes )
+        {
+            T object = (T) get( clazz, uid );
 
-  @Override
-  public void resetNonOwnerProperties(@Nonnull Object object) {
-    Schema schema = schemaService.getDynamicSchema(getRealClass(object));
+            if ( object != null )
+            {
+                return object;
+            }
+        }
 
-    schema.getProperties().stream()
-        .filter(
-            p ->
-                !p.isOwner()
-                    && p.getSetterMethod() != null
-                    && !SharingUtils.isLegacySharingProperty(p))
-        .forEach(
-            p -> {
-              Class<?> parameterType = p.getSetterMethod().getParameterTypes()[0];
+        return null;
+    }
 
-              if (p.isCollection()) {
-                Collection<?> targetObject = ReflectionUtils.newCollectionInstance(parameterType);
-                ReflectionUtils.invokeMethod(object, p.getSetterMethod(), targetObject);
-              } else {
-                if (Primitives.isPrimitive(parameterType)) {
-                  ReflectionUtils.invokeMethod(
-                      object, p.getSetterMethod(), Defaults.defaultValue(parameterType));
-                } else {
-                  ReflectionUtils.invokeMethod(object, p.getSetterMethod(), (Object) null);
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes,
+        IdScheme idScheme, String identifier )
+    {
+        for ( Class<? extends IdentifiableObject> clazz : classes )
+        {
+            T object = (T) getObject( clazz, idScheme, identifier );
+
+            if ( object != null )
+            {
+                return object;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T getByCode( Class<T> clazz, String code )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.getByCode( code );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T getByName( Class<T> clazz, String name )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.getByName( name );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (T) store.getByUniqueAttributeValue( attribute, value );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> T search( Class<T> clazz, String query )
+    {
+        T object = get( clazz, query );
+
+        if ( object == null )
+        {
+            object = getByCode( clazz, query );
+        }
+
+        if ( object == null )
+        {
+            object = getByName( clazz, query );
+        }
+
+        return object;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<T> filter( Class<T> clazz, String query )
+    {
+        Set<T> uniqueObjects = new HashSet<>();
+
+        T uidObject = get( clazz, query );
+
+        if ( uidObject != null )
+        {
+            uniqueObjects.add( uidObject );
+        }
+
+        T codeObject = getByCode( clazz, query );
+
+        if ( codeObject != null )
+        {
+            uniqueObjects.add( codeObject );
+        }
+
+        uniqueObjects.addAll( getLikeName( clazz, query, false ) );
+
+        List<T> objects = new ArrayList<>( uniqueObjects );
+
+        Collections.sort( objects );
+
+        return objects;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getAll( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAll();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getDataWriteAll();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getDataReadAll();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllOrderedName();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes )
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllByAttributes( attributes );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getById( ids );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByCode( Class<T> clazz, Collection<String> codes )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getByCode( codes );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values )
+    {
+        if ( values == null )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> list = new ArrayList<>();
+
+        for ( String value : values )
+        {
+            T object = getObject( clazz, idScheme, value );
+
+            if ( object != null )
+            {
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        if ( store == null || uids == null )
+        {
+            return new ArrayList<>();
+        }
+
+        List<T> list = new ArrayList<>();
+
+        for ( String uid : uids )
+        {
+            T object = store.getByUid( uid );
+
+            if ( object != null )
+            {
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> int getCount( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store != null )
+        {
+            return store.getCount();
+        }
+
+        return 0;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> int getCountByCreated( Class<T> clazz, Date created )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store != null )
+        {
+            return store.getCountGeCreated( created );
+        }
+
+        return 0;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> int getCountByLastUpdated( Class<T> clazz, Date lastUpdated )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store != null )
+        {
+            return store.getCountGeLastUpdated( lastUpdated );
+        }
+
+        return 0;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name )
+    {
+        return getLikeName( clazz, name, true );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name, boolean caseSensitive )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllLikeName( name );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllOrderedName( first, max );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first, int max )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getAllLikeName( words, first, max );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> Date getLastUpdated( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return store.getLastUpdated();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> clazz, IdentifiableProperty property )
+    {
+        return getIdMap( clazz, IdScheme.from( property ) );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> clazz, IdScheme idScheme )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        Map<String, T> map = new HashMap<>();
+
+        if ( store == null )
+        {
+            return map;
+        }
+
+        List<T> objects = store.getAll();
+
+        return IdentifiableObjectUtils.getIdMap( objects, idScheme );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdentifiableProperty property )
+    {
+        return getIdMapNoAcl( clazz, IdScheme.from( property ) );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdScheme idScheme )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        Map<String, T> map = new HashMap<>();
+
+        if ( store == null )
+        {
+            return map;
+        }
+
+        List<T> objects = store.getAllNoAcl();
+
+        return IdentifiableObjectUtils.getIdMap( objects, idScheme );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property, Collection<String> identifiers )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        if ( identifiers != null && !identifiers.isEmpty() )
+        {
+            if ( property == null || IdentifiableProperty.UID.equals( property ) )
+            {
+                return store.getByUid( identifiers );
+            }
+            else if ( IdentifiableProperty.CODE.equals( property ) )
+            {
+                return store.getByCode( identifiers );
+            }
+            else if ( IdentifiableProperty.NAME.equals( property ) )
+            {
+                return store.getByName( identifiers );
+            }
+
+            throw new InvalidIdentifierReferenceException( "Invalid identifiable property / class combination: " + property );
+        }
+
+        return new ArrayList<>();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Integer> identifiers )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return store.getById( identifiers );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> T getObject( Class<T> clazz, IdentifiableProperty property, String value )
+    {
+        return getObject( clazz, IdScheme.from( property ), value );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T getObject( Class<T> clazz, IdScheme idScheme, String value )
+    {
+        IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        if ( !StringUtils.isEmpty( value ) )
+        {
+            if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )
+            {
+                return store.getByUid( value );
+            }
+            else if ( idScheme.is( IdentifiableProperty.CODE ) )
+            {
+                return store.getByCode( value );
+            }
+            else if ( idScheme.is( IdentifiableProperty.NAME ) )
+            {
+                return store.getByName( value );
+            }
+            else if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
+            {
+                Attribute attribute = get( Attribute.class, idScheme.getAttribute() );
+                return store.getByUniqueAttributeValue( attribute, value );
+            }
+            else if ( idScheme.is( IdentifiableProperty.ID ) )
+            {
+                if ( Integer.valueOf( value ) > 0 )
+                {
+                    return store.get( Integer.valueOf( value ) );
                 }
-              }
-            });
-  }
+            }
 
-  @Override
-  @Transactional
-  public void flush() {
-    sessionFactory.getCurrentSession().flush();
-  }
+            throw new InvalidIdentifierReferenceException( "Invalid identifiable property / class combination: " + idScheme );
+        }
 
-  @Override
-  @Transactional
-  public void clear() {
-    sessionFactory.getCurrentSession().clear();
-  }
-
-  @Override
-  @Transactional
-  public void evict(@Nonnull Object object) {
-    sessionFactory.getCurrentSession().evict(object);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> T getNoAcl(@Nonnull Class<T> type, @Nonnull String uid) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
+        return null;
     }
 
-    return store.getByUidNoAcl(uid);
-  }
+    @Override
+    public IdentifiableObject getObject( String uid, String simpleClassName )
+    {
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
+        {
+            if ( simpleClassName.equals( objectStore.getClazz().getSimpleName() ) )
+            {
+                return objectStore.getByUid( uid );
+            }
+        }
 
-  @Override
-  @Transactional
-  public <T extends IdentifiableObject> void updateNoAcl(@Nonnull T object) {
-    IdentifiableObjectStore<? super T> store = getIdentifiableObjectStore(object);
-
-    if (store != null) {
-      store.updateNoAcl(object);
-    }
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getAllNoAcl(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+        return null;
     }
 
-    return store.getAllNoAcl();
-  }
+    @Override
+    public IdentifiableObject getObject( int id, String simpleClassName )
+    {
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
+        {
+            if ( simpleClassName.equals( objectStore.getClazz().getSimpleName() ) )
+            {
+                return objectStore.get( id );
+            }
+        }
 
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends DimensionalObject> List<T> getDataDimensions(@Nonnull Class<T> type) {
-    GenericDimensionalObjectStore<T> store = getDimensionalObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+        return null;
     }
 
-    return store.getByDataDimension(true);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends DimensionalObject> List<T> getDataDimensionsNoAcl(@Nonnull Class<T> type) {
-    GenericDimensionalObjectStore<T> store = getDimensionalObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+    @Override
+    public void refresh( Object object )
+    {
+        sessionFactory.getCurrentSession().refresh( object );
     }
 
-    return store.getByDataDimensionNoAcl(true);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getByAttributeAndValue(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull String value) {
-    Schema schema = schemaService.getDynamicSchema(type);
-
-    if (schema == null || !schema.hasPersistedProperty("attributeValues")) {
-      return List.of();
+    @Override
+    public void flush()
+    {
+        sessionFactory.getCurrentSession().flush();
     }
 
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+    @Override
+    public void evict( Object object )
+    {
+        sessionFactory.getCurrentSession().evict( object );
     }
 
-    return store.getByAttributeAndValue(attribute, value);
-  }
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T getNoAcl( Class<T> clazz, String uid )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      @Nonnull Class<T> type, @Nonnull T object, @Nonnull AttributeValue attributeValue) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null && store.isAttributeValueUnique(object, attributeValue);
-  }
+        if ( store == null )
+        {
+            return null;
+        }
 
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> boolean isAttributeValueUnique(
-      @Nonnull Class<T> type,
-      @Nonnull T object,
-      @Nonnull Attribute attribute,
-      @Nonnull String value) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null && store.isAttributeValueUnique(object, attribute, value);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> getAllByAttributeAndValues(
-      @Nonnull Class<T> type, @Nonnull Attribute attribute, @Nonnull List<String> values) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null ? store.getAllByAttributeAndValues(attribute, values) : List.of();
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults() {
-    ToLongFunction<Class<? extends IdentifiableObject>> getIdCachedByName =
-        type ->
-            defaultObjectCache.get(
-                type.getName(),
-                t -> {
-                  IdentifiableObject obj = getByName(type, "default");
-                  return obj == null ? -1 : obj.getId();
-                });
-
-    return Map.of(
-        Category.class,
-        requireNonNull(get(Category.class, getIdCachedByName.applyAsLong(Category.class))),
-        CategoryCombo.class,
-        requireNonNull(
-            get(CategoryCombo.class, getIdCachedByName.applyAsLong(CategoryCombo.class))),
-        CategoryOption.class,
-        requireNonNull(
-            get(CategoryOption.class, getIdCachedByName.applyAsLong(CategoryOption.class))),
-        CategoryOptionCombo.class,
-        requireNonNull(
-            get(
-                CategoryOptionCombo.class,
-                getIdCachedByName.applyAsLong(CategoryOptionCombo.class))));
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public List<String> getUidsCreatedBefore(
-      @Nonnull Class<? extends IdentifiableObject> type, @Nonnull Date date) {
-    IdentifiableObjectStore<?> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
+        return (T) store.getByUidNoAcl( uid );
     }
 
-    return store.getUidsCreatedBefore(date);
-  }
+    @Override
+    public <T extends IdentifiableObject> void updateNoAcl( T object )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( object.getClass() );
 
-  // --------------------------------------------------------------------------
-  // Supportive methods
-  // --------------------------------------------------------------------------
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isDefault(@Nonnull IdentifiableObject object) {
-    Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
-
-    Class<?> realClass = getRealClass(object);
-
-    if (!defaults.containsKey(realClass)) {
-      return false;
+        if ( store != null )
+        {
+            store.updateNoAcl( object );
+        }
     }
 
-    IdentifiableObject defaultObject = defaults.get(realClass);
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> clazz )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
-    return defaultObject != null && defaultObject.getUid().equals(object.getUid());
-  }
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
 
-  @Override
-  @Transactional
-  public void removeUserGroupFromSharing(@Nonnull String userGroupUid) {
-    List<Schema> schemas =
-        schemaService.getSchemas().stream().filter(Schema::isShareable).collect(toList());
-
-    IdentifiableObjectStore<?> store = getIdentifiableObjectStore(UserGroup.class);
-    schemas.forEach(
-        schema -> store.removeUserGroupFromSharing(userGroupUid, schema.getTableName()));
-  }
-
-  /**
-   * Indicates whether the given class type is attribute enabled, i.e. has an attribute value
-   * collection as part of the data model.
-   *
-   * @param <T>
-   * @param type the class type.
-   * @return true if type is attribute enabled.
-   */
-  private <T extends IdentifiableObject> boolean hasAttributeValues(@Nonnull Class<T> type) {
-    Schema schema = schemaService.getDynamicSchema(type);
-
-    return schema != null && schema.hasAttributeValues();
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> IdentifiableObjectStore<T> getIdentifiableObjectStore(
-      @Nonnull T object) {
-    return getIdentifiableObjectStore((Class<T>) getRealClass(object));
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> IdentifiableObjectStore<T> getIdentifiableObjectStore(
-      @Nonnull Class<T> type) {
-    return (IdentifiableObjectStore<T>)
-        getObjectStore(type, identifiableObjectStoreCache, identifiableObjectStores);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T extends DimensionalObject> GenericDimensionalObjectStore<T> getDimensionalObjectStore(
-      @Nonnull Class<T> type) {
-    return (GenericDimensionalObjectStore<T>)
-        getObjectStore(type, dimensionalObjectStoreCache, dimensionalObjectStores);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <
-          T extends E, E extends IdentifiableObject, S extends IdentifiableObjectStore<? extends E>>
-      S getObjectStore(Class<T> type, Map<Class<? extends E>, S> cache, Set<S> stores) {
-    Class<T> realType =
-        HibernateProxy.class.isAssignableFrom(type) ? (Class<T>) type.getSuperclass() : type;
-    return cache.computeIfAbsent(
-        realType,
-        key -> {
-          S store = stores.stream().filter(s -> s.getClazz() == key).findFirst().orElse(null);
-          if (store == null) {
-            log.debug("No IdentifiableObjectStore found for class: '{}'", realType);
-          }
-          return store;
-        });
-  }
-
-  /**
-   * Look up list objects by property createdBy or lastUpdatedBy. Among those properties, only
-   * persisted ones will be used for looking up.
-   *
-   * @param store the store to be used for looking up objects.
-   * @param user the {@link User} that is linked to createdBy or lastUpdateBy property.
-   * @return list of {@link IdentifiableObject} found.
-   */
-  private <T extends IdentifiableObject> List<T> findByUser(
-      IdentifiableObjectStore<T> store, User user) {
-    Schema schema = schemaService.getDynamicSchema(store.getClazz());
-    boolean hasCreatedBy = schema.getPersistedProperty(BaseIdentifiableObject_.CREATED_BY) != null;
-    boolean hasLastUpdatedBy =
-        schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null;
-
-    if (hasCreatedBy && hasLastUpdatedBy) {
-      return store.findByUser(user);
-    } else if (hasLastUpdatedBy) {
-      return store.findByLastUpdatedBy(user);
-    } else if (hasCreatedBy) {
-      return store.findByCreatedBy(user);
+        return (List<T>) store.getAllNoAcl();
     }
 
-    return List.of();
-  }
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends DimensionalObject> List<T> getDataDimensions( Class<T> clazz )
+    {
+        GenericDimensionalObjectStore<DimensionalObject> store = getDimensionalObjectStore( clazz );
 
-  /**
-   * Look up objects by property createdBy or lastUpdatedBy. Among those properties, only persisted
-   * ones will be used for looking up.
-   *
-   * @param store the store to be used for looking up objects.
-   * @param user the {@link User} that is linked to createdBy or lastUpdateBy property.
-   * @return TRUE if {@link IdentifiableObject} found. FALSE otherwise.
-   */
-  private <T extends IdentifiableObject> boolean existsByUser(
-      IdentifiableObjectStore<T> store, User user) {
-    Schema schema = schemaService.getDynamicSchema(store.getClazz());
-    Builder<String> checkProperties = ImmutableSet.builder();
-    if (schema.getPersistedProperty(BaseIdentifiableObject_.CREATED_BY) != null) {
-      checkProperties.add(BaseIdentifiableObject_.CREATED_BY);
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getByDataDimension( true );
     }
-    if (schema.getPersistedProperty(BaseIdentifiableObject_.LAST_UPDATED_BY) != null) {
-      checkProperties.add(BaseIdentifiableObject_.LAST_UPDATED_BY);
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends DimensionalObject> List<T> getDataDimensionsNoAcl( Class<T> clazz )
+    {
+        GenericDimensionalObjectStore<DimensionalObject> store = getDimensionalObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return (List<T>) store.getByDataDimensionNoAcl( true );
     }
-    return store.existsByUser(user, checkProperties.build());
-  }
+
+    @Override
+    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        {
+            return new ArrayList<>();
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return store.getAttributeValueByAttribute( attribute );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
+        {
+            return null;
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return store.getAttributeValueByAttributeAndValue( attribute, value );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        return store != null && store.isAttributeValueUnique( object, attributeValue );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        return store != null && store.isAttributeValueUnique( object, attribute, value );
+    }
+
+    @Override
+    public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
+    {
+        return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
+            .build();
+    }
+
+    //--------------------------------------------------------------------------
+    // Supportive methods
+    //--------------------------------------------------------------------------
+
+    @Override
+    public boolean isDefault( IdentifiableObject object )
+    {
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
+        if ( object == null )
+        {
+            return false;
+        }
+        Class<?> realClass = getRealClass( object.getClass() );
+        if ( !defaults.containsKey( realClass ) )
+        {
+            return false;
+        }
+        IdentifiableObject defaultObject = defaults.get( realClass );
+        return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
+    {
+        initMaps();
+
+        IdentifiableObjectStore<? extends IdentifiableObject> store = identifiableObjectStoreMap.get( clazz );
+
+        if ( store == null )
+        {
+            store = identifiableObjectStoreMap.get( clazz.getSuperclass() );
+
+            if ( store == null && !UserCredentials.class.isAssignableFrom( clazz ) )
+            {
+                log.debug( "No IdentifiableObjectStore found for class: " + clazz );
+            }
+        }
+
+        return (IdentifiableObjectStore<IdentifiableObject>) store;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private <T extends DimensionalObject> GenericDimensionalObjectStore<DimensionalObject> getDimensionalObjectStore( Class<T> clazz )
+    {
+        initMaps();
+
+        GenericDimensionalObjectStore<? extends DimensionalObject> store = dimensionalObjectStoreMap.get( clazz );
+
+        if ( store == null )
+        {
+            store = dimensionalObjectStoreMap.get( clazz.getSuperclass() );
+
+            if ( store == null )
+            {
+                log.debug( "No DimensionalObjectStore found for class: " + clazz );
+            }
+        }
+
+        return (GenericDimensionalObjectStore<DimensionalObject>) store;
+    }
+
+    private void initMaps()
+    {
+        if ( identifiableObjectStoreMap != null )
+        {
+            return; // Already initialized
+        }
+
+        identifiableObjectStoreMap = new HashMap<>();
+
+        for ( IdentifiableObjectStore<? extends IdentifiableObject> store : identifiableObjectStores )
+        {
+            identifiableObjectStoreMap.put( store.getClazz(), store );
+        }
+
+        dimensionalObjectStoreMap = new HashMap<>();
+
+        for ( GenericDimensionalObjectStore<? extends DimensionalObject> store : dimensionalObjectStores )
+        {
+            dimensionalObjectStoreMap.put( store.getClazz(), store );
+        }
+    }
 }

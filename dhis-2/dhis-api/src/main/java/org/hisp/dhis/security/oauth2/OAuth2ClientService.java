@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.oauth2;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
 
 import java.util.Collection;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface OAuth2ClientService {
-  void saveOAuth2Client(OAuth2Client oAuth2Client);
+public interface OAuth2ClientService
+{
+    void saveOAuth2Client( OAuth2Client oAuth2Client );
 
-  void updateOAuth2Client(OAuth2Client oAuth2Client);
+    void updateOAuth2Client( OAuth2Client oAuth2Client );
 
-  void deleteOAuth2Client(OAuth2Client oAuth2Client);
+    void deleteOAuth2Client( OAuth2Client oAuth2Client );
 
-  OAuth2Client getOAuth2Client(int id);
+    OAuth2Client getOAuth2Client( int id );
 
-  OAuth2Client getOAuth2Client(String uid);
+    OAuth2Client getOAuth2Client( String uid );
 
-  OAuth2Client getOAuth2ClientByClientId(String cid);
+    OAuth2Client getOAuth2ClientByClientId( String cid );
 
-  Collection<OAuth2Client> getOAuth2Clients();
+    Collection<OAuth2Client> getOAuth2Clients();
 }

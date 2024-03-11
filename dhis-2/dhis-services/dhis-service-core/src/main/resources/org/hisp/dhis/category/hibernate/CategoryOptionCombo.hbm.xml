@@ -15,7 +15,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" access="property" not-null="false" type="text" index="in_categoryoptioncombo_name" />
+    <property name="name" column="name" access="property" unique="false" not-null="false" type="text" index="in_categoryoptioncombo_name" />
 
     <property name="translations" type="jblTranslations"/>
 
@@ -26,7 +26,11 @@
         foreign-key="fk_categoryoptioncombo_categoryoptionid" />
     </set>
 
-    <property name="attributeValues" type="jsbAttributeValues"/>
+    <set name="attributeValues" table="categoryoptioncomboattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryoptioncomboid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
     <property name="ignoreApproval" column="ignoreapproval" />
 

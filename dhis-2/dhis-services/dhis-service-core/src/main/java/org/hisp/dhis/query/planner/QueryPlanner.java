@@ -1,5 +1,7 @@
+package org.hisp.dhis.query.planner;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.planner;
+
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.schema.Schema;
 
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface QueryPlanner {
-  QueryPlan planQuery(Query query);
+public interface QueryPlanner
+{
+    QueryPlan planQuery( Query query );
 
-  QueryPlan planQuery(Query query, boolean persistedOnly);
+    QueryPlan planQuery( Query query, boolean persistedOnly );
 
-  QueryPath getQueryPath(Schema schema, String path);
+    QueryPath getQueryPath( Schema schema, String path );
 
-  Path<?> getQueryPath(Root<?> root, Schema schema, String path);
+    Path getQueryPath( Root root, Schema schema, String path );
 }

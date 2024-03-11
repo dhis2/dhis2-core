@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.program.message.MessageBatchCreatorService;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Service("org.hisp.dhis.sms.SmsMessageBatchCreatorService")
-public class SmsMessageBatchCreatorService implements MessageBatchCreatorService {
-  @Override
-  public OutboundMessageBatch getMessageBatch(List<ProgramMessage> programMessages) {
-    List<OutboundMessage> messages =
-        programMessages.parallelStream()
-            .filter(pm -> pm.getDeliveryChannels().contains(DeliveryChannel.SMS))
-            .map(this::createSmsMessage)
-            .collect(Collectors.toList());
+public class SmsMessageBatchCreatorService
+    implements MessageBatchCreatorService
+{
+    @Override
+    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
+    {
+        List<OutboundMessage> messages = programMessages.parallelStream()
+            .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
+            .map( pm -> createSmsMessage( pm ) )
+            .collect( Collectors.toList() );
 
-    return new OutboundMessageBatch(messages, DeliveryChannel.SMS);
-  }
+        return new OutboundMessageBatch( messages, DeliveryChannel.SMS );
+    }
 
-  private OutboundMessage createSmsMessage(ProgramMessage programMessage) {
-    return new OutboundMessage(
-        programMessage.getSubject(),
-        programMessage.getText(),
-        programMessage.getRecipients().getPhoneNumbers());
-  }
+    private OutboundMessage createSmsMessage( ProgramMessage programMessage )
+    {
+        return new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+                programMessage.getRecipients().getPhoneNumbers() );
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentityattributevalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +27,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityattributevalue;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import java.util.Collection;
-import lombok.AllArgsConstructor;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
-@AllArgsConstructor
-public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler {
-  private static final DeletionVeto VETO =
-      new DeletionVeto(
-          TrackedEntityAttributeValue.class, "Some values are still assigned to this attribute");
+public class TrackedEntityAttributeValueDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final TrackedEntityAttributeValueService attributeValueService;
+    private TrackedEntityAttributeValueService attributeValueService;
 
-  @Override
-  protected void register() {
-    whenDeleting(TrackedEntityInstance.class, this::deleteTrackedEntityInstance);
-    whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
-  }
-
-  private void deleteTrackedEntityInstance(TrackedEntityInstance instance) {
-    Collection<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(instance);
-
-    for (TrackedEntityAttributeValue attributeValue : attributeValues) {
-      attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
+    public void setAttributeValueService( TrackedEntityAttributeValueService attributeValueService )
+    {
+        this.attributeValueService = attributeValueService;
     }
-  }
 
-  private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
-    return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues(attribute) == 0
-        ? ACCEPT
-        : VETO;
-  }
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getClassName()
+    {
+        return TrackedEntityAttributeValue.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
+    {
+        Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
+            .getTrackedEntityAttributeValues( instance );
+
+        Iterator<TrackedEntityAttributeValue> iterator = attributeValues.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            TrackedEntityAttributeValue attributeValue = iterator.next();
+
+            attributeValueService.deleteTrackedEntityAttributeValue( attributeValue );
+        }
+    }
+
+    @Override
+    public String allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    {
+        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? null : "Some values are still assigned to this attribute";
+    }
 }

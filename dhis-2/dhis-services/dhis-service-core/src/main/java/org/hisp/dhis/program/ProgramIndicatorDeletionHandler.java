@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.HashSet;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import java.util.Iterator;
+
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
-@RequiredArgsConstructor
-public class ProgramIndicatorDeletionHandler extends IdObjectDeletionHandler<ProgramIndicator> {
-  private final ProgramIndicatorService programIndicatorService;
+public class ProgramIndicatorDeletionHandler
+    extends DeletionHandler
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    whenDeleting(Program.class, this::deleteProgram);
-  }
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
 
-  private void deleteProgram(Program program) {
-    Collection<ProgramIndicator> indicators = new HashSet<>(program.getProgramIndicators());
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
 
-    for (ProgramIndicator indicator : indicators) {
-      programIndicatorService.deleteProgramIndicator(indicator);
+    @Override
+    public String getClassName()
+    {
+        return ProgramIndicator.class.getSimpleName();
     }
-  }
+
+    @Override
+    public void deleteProgram( Program program )
+    {
+        Collection<ProgramIndicator> indicators = new HashSet<ProgramIndicator>( program.getProgramIndicators() );
+
+        Iterator<ProgramIndicator> iter = indicators.iterator();
+
+        while ( iter.hasNext() )
+        {
+            ProgramIndicator indicator = iter.next();
+            programIndicatorService.deleteProgramIndicator( indicator );
+        }
+    }
 }

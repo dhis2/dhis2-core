@@ -1,5 +1,7 @@
+package org.hisp.dhis.programrule.engine;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -33,28 +34,13 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 
 /**
- * Service is responsible for implementing actions which are generated as a result of Rule-Engine
- * evaluations. Each action type has a corresponding RuleActionImplementer class responsible for
- * carrying out the action.
- *
- * <p>Created by zubair@dhis2.org on 04.01.18.
+ * Created by zubair@dhis2.org on 04.01.18.
  */
-public interface RuleActionImplementer {
-  boolean accept(RuleAction ruleAction);
+public interface RuleActionImplementer
+{
+    boolean accept( RuleAction ruleAction );
 
-  /**
-   * This method is directly called by SideEffectHandlerService to implement actions
-   *
-   * @param ruleEffect received tracker importer
-   * @param programInstance enrollment to implement the action against
-   */
-  void implement(RuleEffect ruleEffect, ProgramInstance programInstance);
+    void implement( RuleEffect ruleEffect, ProgramInstance programInstance );
 
-  /**
-   * This method is directly called by SideEffectHandlerService to implement actions
-   *
-   * @param ruleEffect received tracker importer
-   * @param programStageInstance event to implement the action against
-   */
-  void implement(RuleEffect ruleEffect, ProgramStageInstance programStageInstance);
+    void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
 }

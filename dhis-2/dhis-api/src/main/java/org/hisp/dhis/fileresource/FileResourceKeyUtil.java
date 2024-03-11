@@ -1,5 +1,7 @@
+package org.hisp.dhis.fileresource;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -33,16 +34,21 @@ import java.util.UUID;
 /**
  * @author Luciano Fiandesio
  */
-public class FileResourceKeyUtil {
+public class FileResourceKeyUtil
+{
 
-  public static String makeKey(FileResourceDomain domain, Optional<String> key) {
-    if (key.isPresent()) {
-      return domain.getContainerName() + "/" + key.get();
+    public static String makeKey( FileResourceDomain domain, Optional<String> key )
+    {
+        if ( key.isPresent() )
+        {
+            return domain.getContainerName() + "/" + key.get();
+        }
+        return generateStorageKey( domain );
+
     }
-    return generateStorageKey(domain);
-  }
 
-  private static String generateStorageKey(FileResourceDomain domain) {
-    return domain.getContainerName() + "/" + UUID.randomUUID().toString();
-  }
+    private static String generateStorageKey( FileResourceDomain domain )
+    {
+        return domain.getContainerName() + "/" + UUID.randomUUID().toString();
+    }
 }

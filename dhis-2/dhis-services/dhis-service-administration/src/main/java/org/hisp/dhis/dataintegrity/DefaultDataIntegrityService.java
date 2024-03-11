@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataintegrity;
+
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,1078 +27,650 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
 
-import static java.lang.String.format;
-import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.unmodifiableCollection;
-import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
-import static java.util.stream.StreamSupport.stream;
-import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
-import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
-import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
-import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.CLASS_PATH;
-import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.ResourceLocation.FILE_SYSTEM;
-import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
-import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.antlr.ParserException;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
-import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
-@Service
 @Transactional
-@RequiredArgsConstructor
-public class DefaultDataIntegrityService implements DataIntegrityService {
-  private static final String FORMULA_SEPARATOR = "#";
+public class DefaultDataIntegrityService
+    implements DataIntegrityService
+{
+    private static final Log log = LogFactory.getLog( DefaultDataIntegrityService.class );
 
-  private final I18nManager i18nManager;
+    private static final String FORMULA_SEPARATOR = "#";
 
-  private final LocationManager locationManager;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private final ProgramRuleService programRuleService;
+    @Autowired
+    private I18nManager i18nManager;
 
-  private final ProgramRuleActionService programRuleActionService;
+    private DataElementService dataElementService;
 
-  private final ProgramRuleVariableService programRuleVariableService;
-
-  private final DataElementService dataElementService;
-
-  private final IndicatorService indicatorService;
-
-  private final DataSetService dataSetService;
-
-  private final OrganisationUnitService organisationUnitService;
-
-  private final OrganisationUnitGroupService organisationUnitGroupService;
-
-  private final ValidationRuleService validationRuleService;
-
-  private final ExpressionService expressionService;
-
-  private final DataEntryFormService dataEntryFormService;
-
-  private final CategoryService categoryService;
-
-  private final PeriodService periodService;
-
-  private final ProgramIndicatorService programIndicatorService;
-
-  private final CacheProvider cacheProvider;
-
-  private final DataIntegrityStore dataIntegrityStore;
-
-  private final SchemaService schemaService;
-
-  private Cache<DataIntegritySummary> summaryCache;
-
-  private Cache<DataIntegrityDetails> detailsCache;
-
-  private final Set<String> runningSummaryChecks = ConcurrentHashMap.newKeySet();
-
-  private final Set<String> runningDetailsChecks = ConcurrentHashMap.newKeySet();
-
-  @PostConstruct
-  public void init() {
-    summaryCache = cacheProvider.createDataIntegritySummaryCache();
-    detailsCache = cacheProvider.createDataIntegrityDetailsCache();
-  }
-
-  private static int alphabeticalOrder(DataIntegrityIssue a, DataIntegrityIssue b) {
-    return a.getName().compareTo(b.getName());
-  }
-
-  private static List<DataIntegrityIssue> toSimpleIssueList(
-      Stream<? extends IdentifiableObject> items) {
-    return items
-        .map(DataIntegrityIssue::toIssue)
-        .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .collect(toList());
-  }
-
-  private static <T extends IdentifiableObject> List<DataIntegrityIssue> toIssueList(
-      Stream<T> items, Function<T, ? extends Collection<? extends IdentifiableObject>> toRefs) {
-    return items
-        .map(e -> DataIntegrityIssue.toIssue(e, toRefs.apply(e)))
-        .sorted(DefaultDataIntegrityService::alphabeticalOrder)
-        .collect(toList());
-  }
-
-  @Nonnull
-  @Override
-  public Set<String> getRunningSummaryChecks() {
-    return Set.copyOf(runningSummaryChecks);
-  }
-
-  @Nonnull
-  @Override
-  public Set<String> getRunningDetailsChecks() {
-    return Set.copyOf(runningDetailsChecks);
-  }
-
-  @Nonnull
-  @Override
-  public Set<String> getCompletedSummaryChecks() {
-    return stream(summaryCache.keys().spliterator(), false).collect(toUnmodifiableSet());
-  }
-
-  @Nonnull
-  @Override
-  public Set<String> getCompletedDetailsChecks() {
-    return stream(detailsCache.keys().spliterator(), false).collect(toUnmodifiableSet());
-  }
-
-  // -------------------------------------------------------------------------
-  // DataElement
-  // -------------------------------------------------------------------------
-
-  /** Gets all data elements which are not assigned to any data set. */
-  List<DataIntegrityIssue> getDataElementsWithoutDataSet() {
-    return toSimpleIssueList(dataElementService.getDataElementsWithoutDataSets().stream());
-  }
-
-  /** Gets all data elements which are not members of any groups. */
-  List<DataIntegrityIssue> getDataElementsWithoutGroups() {
-    return toSimpleIssueList(dataElementService.getDataElementsWithoutGroups().stream());
-  }
-
-  /** Returns all data elements which are members of data sets with different period types. */
-  List<DataIntegrityIssue> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() {
-    Collection<DataElement> dataElements = dataElementService.getAllDataElements();
-
-    Collection<DataSet> dataSets = dataSetService.getAllDataSets();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (DataElement element : dataElements) {
-      final Set<PeriodType> targetPeriodTypes = new HashSet<>();
-      final List<DataSet> targetDataSets = new ArrayList<>();
-
-      for (DataSet dataSet : dataSets) {
-        if (dataSet.getDataElements().contains(element)) {
-          targetPeriodTypes.add(dataSet.getPeriodType());
-          targetDataSets.add(dataSet);
-        }
-      }
-
-      if (targetPeriodTypes.size() > 1) {
-        issues.add(DataIntegrityIssue.toIssue(element, targetDataSets));
-      }
+    public void setDataElementService( DataElementService dataElementService )
+    {
+        this.dataElementService = dataElementService;
     }
 
-    return issues;
-  }
+    private IndicatorService indicatorService;
 
-  /**
-   * Gets all data elements units which are members of more than one group which enter into an
-   * exclusive group set.
-   */
-  List<DataIntegrityIssue> getDataElementsViolatingExclusiveGroupSets() {
-    Collection<DataElementGroupSet> groupSets = dataElementService.getAllDataElementGroupSets();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (DataElementGroupSet groupSet : groupSets) {
-      Set<DataElement> duplicates = getDuplicates(groupSet.getDataElements());
-
-      for (DataElement duplicate : duplicates) {
-        issues.add(DataIntegrityIssue.toIssue(duplicate, duplicate.getGroups()));
-      }
+    public void setIndicatorService( IndicatorService indicatorService )
+    {
+        this.indicatorService = indicatorService;
     }
 
-    return issues;
-  }
+    private DataSetService dataSetService;
 
-  /**
-   * Returns all data elements which are member of a data set but not part of either the custom form
-   * or sections of the data set.
-   */
-  List<DataIntegrityIssue> getDataElementsInDataSetNotInForm() {
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    Collection<DataSet> dataSets = dataSetService.getAllDataSets();
-
-    for (DataSet dataSet : dataSets) {
-      if (!dataSet.getFormType().isDefault()) {
-        Set<DataElement> formElements = new HashSet<>();
-
-        if (dataSet.hasDataEntryForm()) {
-          formElements.addAll(dataEntryFormService.getDataElementsInDataEntryForm(dataSet));
-        } else if (dataSet.hasSections()) {
-          formElements.addAll(dataSet.getDataElementsInSections());
-        }
-
-        Set<DataElement> dataSetElements = new HashSet<>(dataSet.getDataElements());
-
-        dataSetElements.removeAll(formElements);
-
-        if (!dataSetElements.isEmpty()) {
-          issues.add(DataIntegrityIssue.toIssue(dataSet, dataSetElements));
-        }
-      }
+    public void setDataSetService( DataSetService dataSetService )
+    {
+        this.dataSetService = dataSetService;
     }
 
-    return issues;
-  }
+    private OrganisationUnitService organisationUnitService;
 
-  /** Returns all invalid category combinations. */
-  List<DataIntegrityIssue> getInvalidCategoryCombos() {
-    return toSimpleIssueList(
-        categoryService.getAllCategoryCombos().stream().filter(c -> !c.isValid()));
-  }
-
-  // -------------------------------------------------------------------------
-  // DataSet
-  // -------------------------------------------------------------------------
-
-  List<DataIntegrityIssue> getDataSetsNotAssignedToOrganisationUnits() {
-    return toSimpleIssueList(dataSetService.getDataSetsNotAssignedToOrganisationUnits().stream());
-  }
-
-  // -------------------------------------------------------------------------
-  // Indicator
-  // -------------------------------------------------------------------------
-
-  /** Gets all indicators with identical numerator and denominator. */
-  List<DataIntegrityIssue> getIndicatorsWithIdenticalFormulas() {
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    Map<String, List<Indicator>> byFormula =
-        indicatorService.getAllIndicators().stream()
-            .collect(
-                groupingBy(
-                    indicator ->
-                        indicator.getNumerator() + FORMULA_SEPARATOR + indicator.getDenominator()));
-
-    for (Entry<String, List<Indicator>> e : byFormula.entrySet()) {
-      if (e.getValue().size() > 1) {
-        issues.add(
-            new DataIntegrityIssue(null, e.getKey(), null, toRefsList(e.getValue().stream())));
-      }
-    }
-    return issues;
-  }
-
-  /** Gets all indicators which are not assigned to any groups. */
-  List<DataIntegrityIssue> getIndicatorsWithoutGroups() {
-    return toSimpleIssueList(indicatorService.getIndicatorsWithoutGroups().stream());
-  }
-
-  /** Gets all indicators with invalid indicator numerators. */
-  List<DataIntegrityIssue> getInvalidIndicatorNumerators() {
-    return getInvalidIndicators(Indicator::getNumerator);
-  }
-
-  /** Gets all indicators with invalid indicator denominators. */
-  List<DataIntegrityIssue> getInvalidIndicatorDenominators() {
-    return getInvalidIndicators(Indicator::getDenominator);
-  }
-
-  private List<DataIntegrityIssue> getInvalidIndicators(Function<Indicator, String> getter) {
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-    I18n i18n = i18nManager.getI18n();
-
-    for (Indicator indicator : indicatorService.getAllIndicators()) {
-      ExpressionValidationOutcome result =
-          expressionService.expressionIsValid(getter.apply(indicator), INDICATOR_EXPRESSION);
-
-      if (!result.isValid()) {
-        issues.add(toIssue(indicator, i18n.getString(result.getKey())));
-      }
+    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
+    {
+        this.organisationUnitService = organisationUnitService;
     }
 
-    return issues;
-  }
+    private OrganisationUnitGroupService organisationUnitGroupService;
 
-  /**
-   * Gets all indicators units which are members of more than one group which enter into an
-   * exclusive group set.
-   */
-  List<DataIntegrityIssue> getIndicatorsViolatingExclusiveGroupSets() {
-    Collection<IndicatorGroupSet> groupSets = indicatorService.getAllIndicatorGroupSets();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (IndicatorGroupSet groupSet : groupSets) {
-      Collection<Indicator> duplicates = getDuplicates(new ArrayList<>(groupSet.getIndicators()));
-
-      for (Indicator duplicate : duplicates) {
-        issues.add(DataIntegrityIssue.toIssue(duplicate, duplicate.getGroups()));
-      }
+    public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
+    {
+        this.organisationUnitGroupService = organisationUnitGroupService;
     }
 
-    return issues;
-  }
+    private ValidationRuleService validationRuleService;
 
-  // -------------------------------------------------------------------------
-  // Period
-  // -------------------------------------------------------------------------
-
-  /** Lists all Periods which are duplicates, based on the period type and start date. */
-  List<DataIntegrityIssue> getDuplicatePeriods() {
-    List<Period> periods = periodService.getAllPeriods();
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-
-    for (Entry<String, List<Period>> group :
-        periods.stream()
-            .collect(groupingBy(p -> p.getPeriodType().getName() + p.getStartDate().toString()))
-            .entrySet()) {
-      if (group.getValue().size() > 1) {
-        issues.add(
-            new DataIntegrityIssue(
-                null,
-                group.getKey(),
-                null,
-                group.getValue().stream()
-                    .map(p -> p.toString() + ":" + p.getUid())
-                    .collect(toList())));
-      }
-    }
-    return issues;
-  }
-
-  // -------------------------------------------------------------------------
-  // OrganisationUnit
-  // -------------------------------------------------------------------------
-
-  List<DataIntegrityIssue> getOrganisationUnitsWithCyclicReferences() {
-    return toSimpleIssueList(
-        organisationUnitService.getOrganisationUnitsWithCyclicReferences().stream());
-  }
-
-  List<DataIntegrityIssue> getOrphanedOrganisationUnits() {
-    return toSimpleIssueList(organisationUnitService.getOrphanedOrganisationUnits().stream());
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitsWithoutGroups() {
-    return toSimpleIssueList(organisationUnitService.getOrganisationUnitsWithoutGroups().stream());
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitsViolatingExclusiveGroupSets() {
-    return toIssueList(
-        organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets().stream(),
-        OrganisationUnit::getGroups);
-  }
-
-  List<DataIntegrityIssue> getOrganisationUnitGroupsWithoutGroupSets() {
-    return toSimpleIssueList(
-        organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets().stream());
-  }
-
-  // -------------------------------------------------------------------------
-  // ValidationRule
-  // -------------------------------------------------------------------------
-
-  List<DataIntegrityIssue> getValidationRulesWithoutGroups() {
-    return toSimpleIssueList(validationRuleService.getValidationRulesWithoutGroups().stream());
-  }
-
-  /** Gets all ValidationRules with invalid left side expressions. */
-  List<DataIntegrityIssue> getInvalidValidationRuleLeftSideExpressions() {
-    return getInvalidValidationRuleExpressions(ValidationRule::getLeftSide);
-  }
-
-  /** Gets all ValidationRules with invalid right side expressions. */
-  List<DataIntegrityIssue> getInvalidValidationRuleRightSideExpressions() {
-    return getInvalidValidationRuleExpressions(ValidationRule::getRightSide);
-  }
-
-  private List<DataIntegrityIssue> getInvalidValidationRuleExpressions(
-      Function<ValidationRule, Expression> getter) {
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-    I18n i18n = i18nManager.getI18n();
-
-    for (ValidationRule rule : validationRuleService.getAllValidationRules()) {
-      ExpressionValidationOutcome result =
-          expressionService.expressionIsValid(
-              getter.apply(rule).getExpression(), VALIDATION_RULE_EXPRESSION);
-
-      if (!result.isValid()) {
-        issues.add(toIssue(rule, i18n.getString(result.getKey())));
-      }
-    }
-    return issues;
-  }
-
-  private void registerNonDatabaseIntegrityCheck(
-      DataIntegrityCheckType type,
-      Class<? extends IdentifiableObject> issueIdType,
-      Supplier<List<DataIntegrityIssue>> check) {
-    String name = type.getName();
-    I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
-    BinaryOperator<String> info =
-        (property, defaultValue) ->
-            i18n.getString(format("data_integrity.%s.%s", name, property), defaultValue);
-
-    try {
-      Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema(issueIdType);
-      String issueIdTypeName = issueSchema == null ? null : issueSchema.getPlural();
-      checksByName.putIfAbsent(
-          name,
-          DataIntegrityCheck.builder()
-              .name(name)
-              .displayName(info.apply("name", name.replace('_', ' ')))
-              .isSlow(true)
-              .isProgrammatic(true)
-              .severity(
-                  DataIntegritySeverity.valueOf(
-                      info.apply("severity", DataIntegritySeverity.WARNING.name()).toUpperCase()))
-              .section(info.apply("section", "Other"))
-              .description(info.apply("description", null))
-              .introduction(info.apply("introduction", null))
-              .recommendation(info.apply("recommendation", null))
-              .issuesIdType(issueIdTypeName)
-              .runDetailsCheck(
-                  c -> {
-                    Date startTime = new Date();
-                    List<DataIntegrityIssue> issues = check.get();
-                    return new DataIntegrityDetails(c, startTime, new Date(), null, issues);
-                  })
-              .runSummaryCheck(
-                  c -> {
-                    Date startTime = new Date();
-                    List<DataIntegrityIssue> issues = check.get();
-                    return new DataIntegritySummary(
-                        c, startTime, new Date(), null, issues.size(), null);
-                  })
-              .build());
-    } catch (Exception ex) {
-      log.error("Failed to register data integrity check " + type, ex);
-    }
-  }
-
-  /**
-   * Maps all "hard coded" checks to their implementation method and registers a {@link
-   * DataIntegrityCheck} to perform the method as {@link DataIntegrityDetails}.
-   */
-  public void initIntegrityChecks() {
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
-        DataElement.class,
-        this::getDataElementsWithoutDataSet);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS,
-        DataElement.class,
-        this::getDataElementsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
-        DataElement.class,
-        this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        DataElement.class,
-        this::getDataElementsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
-        DataSet.class,
-        this::getDataElementsInDataSetNotInForm);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID,
-        CategoryCombo.class,
-        this::getInvalidCategoryCombos);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
-        DataSet.class,
-        this::getDataSetsNotAssignedToOrganisationUnits);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_WITH_IDENTICAL_FORMULAS,
-        null,
-        this::getIndicatorsWithIdenticalFormulas);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS,
-        Indicator.class,
-        this::getIndicatorsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR,
-        Indicator.class,
-        this::getInvalidIndicatorNumerators);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_WITH_INVALID_DENOMINATOR,
-        Indicator.class,
-        this::getInvalidIndicatorDenominators);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        Indicator.class,
-        this::getIndicatorsViolatingExclusiveGroupSets);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PERIODS_DUPLICATES, null, this::getDuplicatePeriods);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
-        OrganisationUnit.class,
-        this::getOrganisationUnitsWithCyclicReferences);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED,
-        OrganisationUnit.class,
-        this::getOrphanedOrganisationUnits);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS,
-        OrganisationUnit.class,
-        this::getOrganisationUnitsWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
-        OrganisationUnit.class,
-        this::getOrganisationUnitsViolatingExclusiveGroupSets);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
-        OrganisationUnitGroup.class,
-        this::getOrganisationUnitGroupsWithoutGroupSets);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
-        ValidationRule.class,
-        this::getValidationRulesWithoutGroups);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
-        ValidationRule.class,
-        this::getInvalidValidationRuleLeftSideExpressions);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
-        ValidationRule.class,
-        this::getInvalidValidationRuleRightSideExpressions);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
-        ProgramIndicator.class,
-        this::getInvalidProgramIndicatorExpressions);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
-        ProgramIndicator.class,
-        this::getInvalidProgramIndicatorFilters);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
-        ProgramIndicator.class,
-        this::getProgramIndicatorsWithNoExpression);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION,
-        Program.class,
-        this::getProgramRulesWithNoCondition);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
-        Program.class,
-        this::getProgramRulesWithNoPriority);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION,
-        Program.class,
-        this::getProgramRulesWithNoAction);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
-        Program.class,
-        this::getProgramRuleVariablesWithNoDataElement);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
-        Program.class,
-        this::getProgramRuleVariablesWithNoAttribute);
-
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
-        ProgramRule.class,
-        this::getProgramRuleActionsWithNoDataObject);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_NOTIFICATION,
-        ProgramRule.class,
-        this::getProgramRuleActionsWithNoNotificationTemplate);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
-        ProgramRule.class,
-        this::getProgramRuleActionsWithNoSectionId);
-    registerNonDatabaseIntegrityCheck(
-        DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID,
-        ProgramRule.class,
-        this::getProgramRuleActionsWithNoProgramStageId);
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public FlattenedDataIntegrityReport getReport(Set<String> checks, JobProgress progress) {
-    if (checks == null || checks.isEmpty()) {
-      // report only needs these
-      checks =
-          Arrays.stream(DataIntegrityCheckType.values())
-              .map(DataIntegrityCheckType::getName)
-              .collect(toUnmodifiableSet());
-    }
-    runDetailsChecks(checks, progress);
-    return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
-  }
-
-  /** Get all ProgramIndicators with no expression. */
-  List<DataIntegrityIssue> getProgramIndicatorsWithNoExpression() {
-    return toSimpleIssueList(
-        programIndicatorService.getProgramIndicatorsWithNoExpression().stream());
-  }
-
-  /** Get all ProgramIndicators with invalid expressions. */
-  List<DataIntegrityIssue> getInvalidProgramIndicatorExpressions() {
-    return getInvalidProgramIndicators(
-        ProgramIndicator::getExpression,
-        pi -> !programIndicatorService.expressionIsValid(pi.getExpression()));
-  }
-
-  /** Get all ProgramIndicators with invalid filters. */
-  List<DataIntegrityIssue> getInvalidProgramIndicatorFilters() {
-    return getInvalidProgramIndicators(
-        ProgramIndicator::getFilter, pi -> !programIndicatorService.filterIsValid(pi.getFilter()));
-  }
-
-  private List<DataIntegrityIssue> getInvalidProgramIndicators(
-      Function<ProgramIndicator, String> property, Predicate<ProgramIndicator> filter) {
-    List<ProgramIndicator> programIndicators =
-        programIndicatorService.getAllProgramIndicators().stream().filter(filter).collect(toList());
-
-    List<DataIntegrityIssue> issues = new ArrayList<>();
-    for (ProgramIndicator programIndicator : programIndicators) {
-      String description = getInvalidExpressionDescription(property.apply(programIndicator));
-      if (description != null) {
-        issues.add(toIssue(programIndicator, description));
-      }
-    }
-    return issues;
-  }
-
-  /** Get all ProgramRules with no priority and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoPriority() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoPriority());
-  }
-
-  /** Get all ProgramRules with no action and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoAction() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoAction());
-  }
-
-  /** Get all ProgramRules with no condition expression and grouped them by {@link Program} */
-  List<DataIntegrityIssue> getProgramRulesWithNoCondition() {
-    return groupRulesByProgram(programRuleService.getProgramRulesWithNoCondition());
-  }
-
-  /**
-   * @return all {@link ProgramRuleAction} which are not linked to any
-   *     DataElement/TrackedEntityAttribute
-   */
-  List<DataIntegrityIssue> getProgramRuleActionsWithNoDataObject() {
-    return groupActionsByProgramRule(
-        programRuleActionService.getProgramActionsWithNoLinkToDataObject());
-  }
-
-  /**
-   * @return all {@link ProgramRuleAction} which are not linked to any {@link
-   *     org.hisp.dhis.notification.NotificationTemplate}
-   */
-  List<DataIntegrityIssue> getProgramRuleActionsWithNoNotificationTemplate() {
-    return groupActionsByProgramRule(
-        programRuleActionService.getProgramActionsWithNoLinkToNotification());
-  }
-
-  /**
-   * @return all {@link ProgramRuleAction} which are not linked to any {@link
-   *     org.hisp.dhis.program.ProgramStageSection}
-   */
-  List<DataIntegrityIssue> getProgramRuleActionsWithNoSectionId() {
-    return groupActionsByProgramRule(
-        programRuleActionService.getProgramRuleActionsWithNoSectionId());
-  }
-
-  /**
-   * @return all {@link ProgramRuleAction} which are not linked to any {@link
-   *     org.hisp.dhis.program.ProgramStage}
-   */
-  List<DataIntegrityIssue> getProgramRuleActionsWithNoProgramStageId() {
-    return groupActionsByProgramRule(programRuleActionService.getProgramRuleActionsWithNoStageId());
-  }
-
-  /**
-   * @return all {@link ProgramRuleVariable} which are not linked to any DataElement and grouped
-   *     them by {@link Program}
-   */
-  List<DataIntegrityIssue> getProgramRuleVariablesWithNoDataElement() {
-    return groupVariablesByProgram(programRuleVariableService.getVariablesWithNoDataElement());
-  }
-
-  /**
-   * @return all {@link ProgramRuleVariable} which are not linked to any TrackedEntityAttribute and
-   *     grouped them by {@link Program}
-   */
-  List<DataIntegrityIssue> getProgramRuleVariablesWithNoAttribute() {
-    return groupVariablesByProgram(programRuleVariableService.getVariablesWithNoAttribute());
-  }
-
-  private String getInvalidExpressionDescription(String expression) {
-    try {
-      expressionService.getExpressionDescription(expression, INDICATOR_EXPRESSION);
-    } catch (ParserException e) {
-      return e.getMessage();
+    public void setValidationRuleService( ValidationRuleService validationRuleService )
+    {
+        this.validationRuleService = validationRuleService;
     }
 
-    return null;
-  }
+    private ExpressionService expressionService;
 
-  private static List<DataIntegrityIssue> groupRulesByProgram(List<ProgramRule> rules) {
-    return groupBy(ProgramRule::getProgram, rules);
-  }
+    public void setExpressionService( ExpressionService expressionService )
+    {
+        this.expressionService = expressionService;
+    }
 
-  private static List<DataIntegrityIssue> groupVariablesByProgram(
-      List<ProgramRuleVariable> variables) {
-    return groupBy(ProgramRuleVariable::getProgram, variables);
-  }
+    private DataEntryFormService dataEntryFormService;
 
-  private static List<DataIntegrityIssue> groupActionsByProgramRule(
-      List<ProgramRuleAction> actions) {
-    return groupBy(ProgramRuleAction::getProgramRule, actions);
-  }
+    public void setDataEntryFormService( DataEntryFormService dataEntryFormService )
+    {
+        this.dataEntryFormService = dataEntryFormService;
+    }
 
-  private static <K extends IdentifiableObject, V extends IdentifiableObject>
-      List<DataIntegrityIssue> groupBy(Function<V, K> property, Collection<V> values) {
-    return values.stream().collect(groupingBy(property)).entrySet().stream()
-        .map(e -> DataIntegrityIssue.toIssue(e.getKey(), e.getValue()))
-        .collect(toList());
-  }
+    private CategoryService categoryService;
 
-  /*
-   * Configuration based data integrity checks
-   */
+    public void setCategoryService( CategoryService categoryService )
+    {
+        this.categoryService = categoryService;
+    }
 
-  private final Map<String, DataIntegrityCheck> checksByName = new ConcurrentHashMap<>();
+    private PeriodService periodService;
 
-  private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean(false);
+    public void setPeriodService( PeriodService periodService )
+    {
+        this.periodService = periodService;
+    }
 
-  @Nonnull
-  @Override
-  public Collection<DataIntegrityCheck> getDataIntegrityChecks(Set<String> checks) {
-    ensureConfigurationsAreLoaded();
-    return checks.isEmpty()
-        ? unmodifiableCollection(checksByName.values())
-        : expandChecks(checks, false).stream().map(checksByName::get).collect(toList());
-  }
+    private ProgramIndicatorService programIndicatorService;
 
-  @Nonnull
-  @Override
-  public Map<String, DataIntegritySummary> getSummaries(@Nonnull Set<String> checks, long timeout) {
-    return getCached(checks, timeout, summaryCache);
-  }
+    public void setProgramIndicatorService( ProgramIndicatorService programIndicatorService )
+    {
+        this.programIndicatorService = programIndicatorService;
+    }
+    // -------------------------------------------------------------------------
+    // DataIntegrityService implementation
+    // -------------------------------------------------------------------------
 
-  // OBS! We intentionally do not open the transaction here to have each check
-  // be independent
-  @Override
-  public void runSummaryChecks(@Nonnull Set<String> checks, JobProgress progress) {
-    runDataIntegrityChecks(
-        "Data Integrity summary checks",
-        expandChecks(checks, true),
-        progress,
-        summaryCache,
-        runningSummaryChecks,
-        check -> check.getRunSummaryCheck().apply(check),
-        (check, startTime, ex) ->
-            new DataIntegritySummary(
-                check, startTime, new Date(), errorMessage(check, ex), -1, null));
-  }
+    // -------------------------------------------------------------------------
+    // DataElement
+    // -------------------------------------------------------------------------
 
-  @Nonnull
-  @Override
-  public Map<String, DataIntegrityDetails> getDetails(@Nonnull Set<String> checks, long timeout) {
-    return getCached(checks, timeout, detailsCache);
-  }
+    @Override
+    public List<DataElement> getDataElementsWithoutDataSet()
+    {
+        return dataElementService.getDataElementsWithoutDataSets();
+    }
 
-  // OBS! We intentionally do not open the transaction here to have each check
-  // be independent
-  @Override
-  public void runDetailsChecks(@Nonnull Set<String> checks, JobProgress progress) {
-    runDataIntegrityChecks(
-        "Data Integrity details checks",
-        expandChecks(checks, true),
-        progress,
-        detailsCache,
-        runningDetailsChecks,
-        check -> check.getRunDetailsCheck().apply(check),
-        (check, startTime, ex) ->
-            new DataIntegrityDetails(
-                check, startTime, new Date(), errorMessage(check, ex), List.of()));
-  }
+    @Override
+    public List<DataElement> getDataElementsWithoutGroups()
+    {
+        return dataElementService.getDataElementsWithoutGroups();
+    }
 
-  private static String errorMessage(DataIntegrityCheck check, RuntimeException ex) {
-    String message = "Check failed because an exception was thrown: " + ex.getMessage();
-    log.error("Check " + check.getName() + " failed because an exception was thrown", ex);
-    return message;
-  }
+    @Override
+    public SortedMap<DataElement, Collection<DataSet>> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
+    {
+        Collection<DataElement> dataElements = dataElementService.getAllDataElements();
 
-  private <T> Map<String, T> getCached(Set<String> checks, long timeout, Cache<T> cache) {
-    Set<String> names = expandChecks(checks, false);
-    long giveUpTime = currentTimeMillis() + timeout;
-    Map<String, T> resByName = new LinkedHashMap<>();
-    boolean retry = false;
-    do {
-      if (retry) {
-        try {
-          Thread.sleep(Math.max(10, Math.min(50, (giveUpTime - currentTimeMillis()) / 2)));
-        } catch (InterruptedException ex) {
-          Thread.currentThread().interrupt();
-          return resByName;
-        }
-      }
-      for (String name : names) {
-        if (!resByName.containsKey(name)) {
-          cache.get(name).ifPresent(res -> resByName.put(name, res));
-        }
-      }
-      retry = resByName.size() < names.size() && (timeout < 0 || currentTimeMillis() < giveUpTime);
-    } while (retry);
-    return resByName;
-  }
+        Collection<DataSet> dataSets = dataSetService.getAllDataSets();
 
-  @FunctionalInterface
-  private interface DataIntegrityCheckErrorHandler<T> {
-    T createErrorReport(DataIntegrityCheck check, Date startTime, RuntimeException ex);
-  }
+        SortedMap<DataElement, Collection<DataSet>> targets = new TreeMap<>();
 
-  private <T> void runDataIntegrityChecks(
-      String stageDesc,
-      Set<String> checks,
-      JobProgress progress,
-      Cache<T> cache,
-      Set<String> running,
-      Function<DataIntegrityCheck, T> runCheck,
-      DataIntegrityCheckErrorHandler<T> createErrorReport) {
-    try {
-      running.addAll(checks);
-      progress.startingProcess("Data Integrity check");
-      progress.startingStage(stageDesc, checks.size(), SKIP_ITEM);
-      progress.runStage(
-          checks.stream()
-              .map(checksByName::get)
-              .filter(Objects::nonNull)
-              .sorted(DataIntegrityCheck.FAST_TO_SLOW),
-          DataIntegrityCheck::getDescription,
-          check -> {
-            Date startTime = new Date();
-            T res;
-            try {
-              res = runCheck.apply(check);
-            } catch (RuntimeException ex) {
-              cache.put(check.getName(), createErrorReport.createErrorReport(check, startTime, ex));
-              throw ex;
-            } finally {
-              running.remove(check.getName());
+        for ( DataElement element : dataElements )
+        {
+            final Set<PeriodType> targetPeriodTypes = new HashSet<>();
+            final Collection<DataSet> targetDataSets = new HashSet<>();
+
+            for ( DataSet dataSet : dataSets )
+            {
+                if ( dataSet.getDataElements().contains( element ) )
+                {
+                    targetPeriodTypes.add( dataSet.getPeriodType() );
+                    targetDataSets.add( dataSet );
+                }
             }
-            if (res != null) {
-              check.addExecution(currentTimeMillis() - startTime.getTime());
-              cache.put(check.getName(), res);
+
+            if ( targetPeriodTypes.size() > 1 )
+            {
+                targets.put( element, targetDataSets );
             }
-          });
-      progress.completedProcess(null);
-    } finally {
-      running.removeAll(checks);
-    }
-  }
-
-  private Set<String> expandChecks(Set<String> names, boolean restricted) {
-    ensureConfigurationsAreLoaded();
-
-    if (CollectionUtils.isEmpty(names)) {
-      return getDefaultChecks(restricted);
-    }
-    Set<String> expanded = new LinkedHashSet<>();
-
-    for (String name : names) {
-      if (name.toUpperCase().equals(name) && name.indexOf('_') < 0) {
-        // assume it is a code
-        checksByName.values().stream()
-            .filter(check -> check.getCode().equals(name))
-            .map(DataIntegrityCheck::getName)
-            .forEach(expanded::add);
-      } else if (name.contains("*")) {
-        String pattern =
-            name.toLowerCase()
-                .replace('-', '_') // make uniform
-                .replaceAll("[^*_a-z0-9]+", "") // sanitise against regex attacks
-                .replace("*", ".*"); // expand regex wildcard match
-        for (DataIntegrityCheck check : checksByName.values()) {
-          if (check.getName().matches(pattern)) {
-            expanded.add(check.getName());
-          }
         }
-      } else {
-        expanded.add(name.toLowerCase().replace('-', '_'));
-      }
+
+        return targets;
     }
-    return expanded;
-  }
 
-  private Set<String> getDefaultChecks(boolean restricted) {
-    ensureConfigurationsAreLoaded();
+    @Override
+    public SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets()
+    {
+        Collection<DataElementGroupSet> groupSets = dataElementService.getAllDataElementGroupSets();
 
-    Predicate<DataIntegrityCheck> filter =
-        restricted ? not(DataIntegrityCheck::isSlow) : check -> true;
-    return checksByName.values().stream()
-        .filter(filter)
-        .map(DataIntegrityCheck::getName)
-        .collect(toUnmodifiableSet());
-  }
+        SortedMap<DataElement, Collection<DataElementGroup>> targets = new TreeMap<>();
 
-  private void ensureConfigurationsAreLoaded() {
-    if (configurationsAreLoaded.compareAndSet(false, true)) {
-      // load system-packaged data integrity checks
-      loadChecks(CLASS_PATH, "data-integrity-checks.yaml", "data-integrity-checks");
+        for ( DataElementGroupSet groupSet : groupSets )
+        {
+            Collection<DataElement> duplicates = getDuplicates(
+                new ArrayList<>( groupSet.getDataElements() ) );
 
-      // programmatic checks
-      initIntegrityChecks();
+            for ( DataElement duplicate : duplicates )
+            {
+                targets.put( duplicate, duplicate.getGroups() );
+            }
+        }
 
-      // load user-packaged custom data integrity checks
-      try {
-        String dhis2Home = locationManager.getExternalDirectoryPath();
-        loadChecks(
-            FILE_SYSTEM,
-            dhis2Home + "/custom-data-integrity-checks.yaml",
-            dhis2Home + "/custom-data-integrity-checks");
-      } catch (LocationManagerException ex) {
-        log.warn(
-            "Could not get DHIS2_HOME external directory. No custom data integrity checks loaded.");
-      }
+        return targets;
     }
-  }
 
-  private void loadChecks(
-      DataIntegrityYamlReader.ResourceLocation resourceLocation,
-      String yamlFileChecks,
-      String checksDir) {
-    I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
-    readDataIntegrityYaml(
-        new DataIntegrityRecord(
-            resourceLocation,
-            yamlFileChecks,
-            checksDir,
-            addToChecks,
-            (property, defaultValue) ->
-                i18n.getString(format("data_integrity.%s", property), defaultValue),
-            sql -> check -> dataIntegrityStore.querySummary(check, sql),
-            sql -> check -> dataIntegrityStore.queryDetails(check, sql)));
-  }
+    @Override
+    public SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm()
+    {
+        SortedMap<DataSet, Collection<DataElement>> map = new TreeMap<>();
 
-  /**
-   * Consumer that adds a {@link DataIntegrityCheck} to a map. It only adds the {@link
-   * DataIntegrityCheck} to the map if:
-   *
-   * <ol>
-   *   <li>the {@link DataIntegrityCheck} code is unique
-   *   <li>the map does not already have a key with the same {@link DataIntegrityCheck} name
-   * </ol>
-   */
-  private final Consumer<DataIntegrityCheck> addToChecks =
-      check -> {
-        String checkCode = DataIntegrityCheck.getCodeFromName(check.getName());
-        Set<String> checkCodes =
-            checksByName.keySet().stream()
-                .map(DataIntegrityCheck::getCodeFromName)
-                .collect(Collectors.toSet());
-        if (!checkCodes.contains(checkCode)) {
-          DataIntegrityCheck dataIntegrityCheck = checksByName.putIfAbsent(check.getName(), check);
-          if (dataIntegrityCheck != null) {
-            log.warn(
-                "Data Integrity Check `{}` not added as a check with that name already exists",
-                check.getName());
-          }
-        } else
-          log.warn(
-              "Data Integrity Check `{}` not added as a check with the code `{}` already exists",
-              check.getName(),
-              check.getCode());
-      };
+        Collection<DataSet> dataSets = dataSetService.getAllDataSets();
 
-  @Value
-  @Accessors(fluent = true)
-  static class DataIntegrityRecord {
-    DataIntegrityYamlReader.ResourceLocation resourceLocation;
-    String yamlFileChecks;
-    String checksDir;
-    Consumer<DataIntegrityCheck> adder;
-    BinaryOperator<String> info;
-    Function<String, Function<DataIntegrityCheck, DataIntegritySummary>> sqlToSummary;
-    Function<String, Function<DataIntegrityCheck, DataIntegrityDetails>> sqlToDetails;
-  }
+        for ( DataSet dataSet : dataSets )
+        {
+            if ( !dataSet.getFormType().isDefault() )
+            {
+                Set<DataElement> formElements = new HashSet<>();
+
+                if ( dataSet.hasDataEntryForm() )
+                {
+                    formElements.addAll( dataEntryFormService.getDataElementsInDataEntryForm( dataSet ) );
+                }
+                else if ( dataSet.hasSections() )
+                {
+                    formElements.addAll( dataSet.getDataElementsInSections() );
+                }
+
+                Set<DataElement> dataSetElements = new HashSet<>( dataSet.getDataElements() );
+
+                dataSetElements.removeAll( formElements );
+
+                if ( dataSetElements.size() > 0 )
+                {
+                    map.put( dataSet, dataSetElements );
+                }
+            }
+        }
+
+        return map;
+    }
+    
+    @Override
+    public List<CategoryCombo> getInvalidCategoryCombos()
+    {
+        List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
+        
+        return categoryCombos.stream().filter( c -> !c.isValid() ).collect( Collectors.toList() );
+    }
+
+    // -------------------------------------------------------------------------
+    // DataSet
+    // -------------------------------------------------------------------------
+
+    @Override
+    public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
+    {
+        Collection<DataSet> dataSets = dataSetService.getAllDataSets();
+
+        return dataSets.stream().filter( ds -> ds.getSources() == null || ds.getSources().isEmpty() ).collect( Collectors.toList() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Indicator
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Set<Set<Indicator>> getIndicatorsWithIdenticalFormulas()
+    {
+        Map<String, Indicator> formulas = new HashMap<>();
+
+        Map<String, Set<Indicator>> targets = new HashMap<>();
+
+        List<Indicator> indicators = indicatorService.getAllIndicators();
+
+        for ( Indicator indicator : indicators )
+        {
+            final String formula = indicator.getNumerator() + FORMULA_SEPARATOR + indicator.getDenominator();
+
+            if ( formulas.containsKey( formula ) )
+            {
+                if ( targets.containsKey( formula ) )
+                {
+                    targets.get( formula ).add( indicator );
+                }
+                else
+                {
+                    Set<Indicator> elements = new HashSet<>();
+
+                    elements.add( indicator );
+                    elements.add( formulas.get( formula ) );
+
+                    targets.put( formula, elements );
+                    targets.get( formula ).add( indicator );
+                }
+            }
+            else
+            {
+                formulas.put( formula, indicator );
+            }
+        }
+
+        return Sets.newHashSet( targets.values() );
+    }
+
+    @Override
+    public List<Indicator> getIndicatorsWithoutGroups()
+    {
+        return indicatorService.getIndicatorsWithoutGroups();
+    }
+
+    @Override
+    public SortedMap<Indicator, String> getInvalidIndicatorNumerators()
+    {
+        SortedMap<Indicator, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
+
+        for ( Indicator indicator : indicatorService.getAllIndicators() )
+        {
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator() );
+
+            if ( !result.isValid() )
+            {
+                invalids.put( indicator, i18n.getString(result.getKey()) );
+            }
+        }
+
+        return invalids;
+    }
+
+    @Override
+    public SortedMap<Indicator, String> getInvalidIndicatorDenominators()
+    {
+        SortedMap<Indicator, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
+
+        for ( Indicator indicator : indicatorService.getAllIndicators() )
+        {
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator() );
+
+            if ( !result.isValid() )
+            {
+                invalids.put( indicator, i18n.getString(result.getKey()) );
+            }
+        }
+
+        return invalids;
+    }
+
+    @Override
+    public SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets()
+    {
+        Collection<IndicatorGroupSet> groupSets = indicatorService.getAllIndicatorGroupSets();
+
+        SortedMap<Indicator, Collection<IndicatorGroup>> targets = new TreeMap<>();
+
+        for ( IndicatorGroupSet groupSet : groupSets )
+        {
+            Collection<Indicator> duplicates = getDuplicates(
+                new ArrayList<>( groupSet.getIndicators() ) );
+
+            for ( Indicator duplicate : duplicates )
+            {
+                targets.put( duplicate, duplicate.getGroups() );
+            }
+        }
+
+        return targets;
+    }
+
+    // -------------------------------------------------------------------------
+    // Period
+    // -------------------------------------------------------------------------
+
+    @Override
+    public List<Period> getDuplicatePeriods()
+    {
+        Collection<Period> periods = periodService.getAllPeriods();
+
+        List<Period> duplicates = new ArrayList<>();
+
+        ListMap<String, Period> map = new ListMap<>();
+
+        for ( Period period : periods )
+        {
+            String key = period.getPeriodType().getName() + period.getStartDate().toString();
+
+            period.setName( period.toString() );
+
+            map.putValue( key, period );
+        }
+
+        for ( String key : map.keySet() )
+        {
+            List<Period> values = map.get( key );
+
+            if ( values != null && values.size() > 1 )
+            {
+                duplicates.addAll( values );
+            }
+        }
+
+        return duplicates;
+    }
+
+    // -------------------------------------------------------------------------
+    // OrganisationUnit
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
+    {
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
+
+        Set<OrganisationUnit> cyclic = new HashSet<>();
+
+        Set<OrganisationUnit> visited = new HashSet<>();
+
+        OrganisationUnit parent = null;
+
+        for ( OrganisationUnit unit : organisationUnits )
+        {
+            parent = unit;
+
+            while ( (parent = parent.getParent()) != null )
+            {
+                if ( parent.equals( unit ) ) // Cyclic reference
+                {
+                    cyclic.add( unit );
+
+                    break;
+                }
+                else if ( visited.contains( parent ) ) // Ends in cyclic ref
+                {
+                    break;
+                }
+                else
+                {
+                    visited.add( parent ); // Remember visited
+                }
+            }
+
+            visited.clear();
+        }
+
+        return cyclic;
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrphanedOrganisationUnits()
+    {
+        List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
+        
+        return units.stream().filter( ou -> ou.getParent() == null && ( ou.getChildren() == null || ou.getChildren().size() == 0 ) ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
+    {
+        return organisationUnitService.getOrganisationUnitsWithoutGroups();
+    }
+
+    @Override
+    public SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        Collection<OrganisationUnitGroupSet> groupSets = organisationUnitGroupService.getAllOrganisationUnitGroupSets();
+
+        TreeMap<OrganisationUnit, Collection<OrganisationUnitGroup>> targets =
+            new TreeMap<>();
+
+        for ( OrganisationUnitGroupSet groupSet : groupSets )
+        {
+            Collection<OrganisationUnit> duplicates = getDuplicates(
+                new ArrayList<>( groupSet.getOrganisationUnits() ) );
+
+            for ( OrganisationUnit duplicate : duplicates )
+            {
+                targets.put( duplicate, new HashSet<>( duplicate.getGroups() ) );
+            }
+        }
+
+        return targets;
+    }
+
+    @Override
+    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
+    {
+        Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
+        
+        return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
+    }
+
+    // -------------------------------------------------------------------------
+    // ValidationRule
+    // -------------------------------------------------------------------------
+
+    @Override
+    public List<ValidationRule> getValidationRulesWithoutGroups()
+    {
+        Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
+        
+        return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() ).collect( Collectors.toList() );
+    }
+
+    @Override
+    public SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
+    {
+        SortedMap<ValidationRule, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
+
+        for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
+        {
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression() );
+
+            if ( !result.isValid() )
+            {
+                invalids.put( rule, i18n.getString(result.getKey()) );
+            }
+        }
+
+        return invalids;
+    }
+
+    @Override
+    public SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
+    {
+        SortedMap<ValidationRule, String> invalids = new TreeMap<>();
+        I18n i18n = i18nManager.getI18n();
+
+        for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
+        {
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression() );
+
+            if ( !result.isValid() )
+            {
+                invalids.put( rule, i18n.getString(result.getKey()) );
+            }
+        }
+
+        return invalids;
+    }
+
+    @Override
+    public DataIntegrityReport getDataIntegrityReport()
+    {
+        DataIntegrityReport report = new DataIntegrityReport();
+        
+        report.setDataElementsWithoutDataSet( new ArrayList<>( getDataElementsWithoutDataSet() ) );
+        report.setDataElementsWithoutGroups( new ArrayList<>( getDataElementsWithoutGroups() ) );
+        report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes( getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
+        report.setDataElementsViolatingExclusiveGroupSets( getDataElementsViolatingExclusiveGroupSets() );
+        report.setDataElementsInDataSetNotInForm( getDataElementsInDataSetNotInForm() );
+        report.setInvalidCategoryCombos( getInvalidCategoryCombos() );
+
+        log.info( "Checked data elements" );
+
+        report.setDataSetsNotAssignedToOrganisationUnits( new ArrayList<>( getDataSetsNotAssignedToOrganisationUnits() ) );
+
+        log.info( "Checked data sets" );
+
+        report.setIndicatorsWithIdenticalFormulas( getIndicatorsWithIdenticalFormulas() );
+        report.setIndicatorsWithoutGroups( new ArrayList<>( getIndicatorsWithoutGroups() ) );
+        report.setInvalidIndicatorNumerators( getInvalidIndicatorNumerators() );
+        report.setInvalidIndicatorDenominators( getInvalidIndicatorDenominators() );
+        report.setIndicatorsViolatingExclusiveGroupSets( getIndicatorsViolatingExclusiveGroupSets() );
+
+        log.info( "Checked indicators" );
+
+        report.setDuplicatePeriods( getDuplicatePeriods() );
+
+        log.info( "Checked periods" );
+
+        report.setOrganisationUnitsWithCyclicReferences( new ArrayList<>( getOrganisationUnitsWithCyclicReferences() ) );
+        report.setOrphanedOrganisationUnits( new ArrayList<>( getOrphanedOrganisationUnits() ) );
+        report.setOrganisationUnitsWithoutGroups( new ArrayList<>( getOrganisationUnitsWithoutGroups() ) );
+        report.setOrganisationUnitsViolatingExclusiveGroupSets( getOrganisationUnitsViolatingExclusiveGroupSets() );
+        report.setOrganisationUnitGroupsWithoutGroupSets( new ArrayList<>( getOrganisationUnitGroupsWithoutGroupSets() ) );
+        report.setValidationRulesWithoutGroups( new ArrayList<>( getValidationRulesWithoutGroups() ) );
+
+        log.info( "Checked organisation units" );
+
+        report.setInvalidValidationRuleLeftSideExpressions( getInvalidValidationRuleLeftSideExpressions() );
+        report.setInvalidValidationRuleRightSideExpressions( getInvalidValidationRuleRightSideExpressions() );
+
+        log.info( "Checked validation rules" );
+
+        report.setInvalidProgramIndicatorExpressions( getInvalidProgramIndicatorExpressions() );
+        report.setInvalidProgramIndicatorFilters( getInvalidProgramIndicatorFilters() );
+
+        log.info( "Checked ProgramIndicators" );
+
+        Collections.sort( report.getDataElementsWithoutDataSet() );
+        Collections.sort( report.getDataElementsWithoutGroups() );
+        Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
+        Collections.sort( report.getIndicatorsWithoutGroups() );
+        Collections.sort( report.getOrganisationUnitsWithCyclicReferences() );
+        Collections.sort( report.getOrphanedOrganisationUnits() );
+        Collections.sort( report.getOrganisationUnitsWithoutGroups() );
+        Collections.sort( report.getOrganisationUnitGroupsWithoutGroupSets() );
+        Collections.sort( report.getValidationRulesWithoutGroups() );
+
+        return report;
+    }
+
+    @Override
+    public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport()
+    {
+        return new FlattenedDataIntegrityReport( getDataIntegrityReport() );
+    }
+
+    @Override
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
+    {
+        Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
+
+        invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
+            .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
+            .collect( Collectors.toMap( pi -> pi, pi -> pi.getExpression() ) );
+
+        return invalidExpressions;
+    }
+
+    @Override
+    public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
+    {
+        Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
+
+        invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
+            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .collect( Collectors.toMap( pi -> pi, pi -> pi.getFilter() ) );
+
+        return invalidFilters;
+    }
 }

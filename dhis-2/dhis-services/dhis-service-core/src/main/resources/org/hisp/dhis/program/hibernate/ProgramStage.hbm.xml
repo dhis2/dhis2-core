@@ -15,7 +15,7 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" length="230" />
+    <property name="name" column="name" length="230" />
 
     <property name="description" type="text" />
 
@@ -47,7 +47,7 @@
 
     <property name="dueDateLabel" column="duedatelabel"/>
 
-    <set name="notificationTemplates" cascade="all-delete-orphan">
+    <set name="notificationTemplates">
       <key column="programstageid"/>
       <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"/>
     </set>
@@ -94,23 +94,34 @@
       </type>
     </property>
 
-    <property name="enableUserAssignment" column="enableuserassignment" />
-
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_programstage_periodtypeid" />
 
     <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstage_userid" />
+    <set name="attributeValues" table="programstageattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstageid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+    <!-- Access properties -->
 
-    <many-to-one name="nextScheduleDate" class="org.hisp.dhis.dataelement.DataElement" column="nextscheduledateid"
-      foreign-key="fk_programstage_nextscheduledateid" />
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstage_userid" />
 
-    <property name="referral" column="referral" not-null="true" />
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="programstageusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="programstageuseraccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstageid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
   </class>
 

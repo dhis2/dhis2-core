@@ -1,5 +1,7 @@
+package org.hisp.dhis.datacompletion;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,126 +27,133 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datacompletion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Date;
 import org.hisp.dhis.common.DxfNamespaces;
 
-/** Represents a dataset completion registration request */
-@JacksonXmlRootElement(
-    localName = "completeDataSetRegistrationRequest",
-    namespace = DxfNamespaces.DXF_2_0)
-public class CompleteDataSetRegistrationRequest {
-  private String ds;
+import java.util.Date;
 
-  private String pe;
+/**
+ * Represents a dataset completion registration request
+ */
+@JacksonXmlRootElement( localName = "completeDataSetRegistrationRequest", namespace = DxfNamespaces.DXF_2_0 )
+public class CompleteDataSetRegistrationRequest
+{
+    private String ds;
 
-  private String ou;
+    private String pe;
 
-  private String sb;
+    private String ou;
 
-  private Date cd;
+    private String sb;
 
-  private String cc;
+    private Date cd;
 
-  private String cp;
+    private String cc;
 
-  private boolean multiOu;
+    private String cp;
 
-  private boolean completed;
+    private boolean multiOu;
 
-  public CompleteDataSetRegistrationRequest() {}
+    public CompleteDataSetRegistrationRequest()
+    {
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getDs() {
-    return ds;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDs()
+    {
+        return ds;
+    }
 
-  public void setDs(String ds) {
-    this.ds = ds;
-  }
+    public void setDs( String ds )
+    {
+        this.ds = ds;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getPe() {
-    return pe;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getPe()
+    {
+        return pe;
+    }
 
-  public void setPe(String pe) {
-    this.pe = pe;
-  }
+    public void setPe( String pe )
+    {
+        this.pe = pe;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getOu() {
-    return ou;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOu()
+    {
+        return ou;
+    }
 
-  public void setOu(String ou) {
-    this.ou = ou;
-  }
+    public void setOu( String ou )
+    {
+        this.ou = ou;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getSb() {
-    return sb;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSb()
+    {
+        return sb;
+    }
 
-  public void setSb(String sb) {
-    this.sb = sb;
-  }
+    public void setSb( String sb )
+    {
+        this.sb = sb;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCd() {
-    return cd;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCd()
+    {
+        return cd;
+    }
 
-  public void setCd(Date cd) {
-    this.cd = cd;
-  }
+    public void setCd( Date cd )
+    {
+        this.cd = cd;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCc() {
-    return cc;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCc()
+    {
+        return cc;
+    }
 
-  public void setCc(String cc) {
-    this.cc = cc;
-  }
+    public void setCc( String cc )
+    {
+        this.cc = cc;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCp() {
-    return cp;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCp()
+    {
+        return cp;
+    }
 
-  public void setCp(String cp) {
-    this.cp = cp;
-  }
+    public void setCp( String cp )
+    {
+        this.cp = cp;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isMultiOu() {
-    return multiOu;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMultiOu()
+    {
+        return multiOu;
+    }
 
-  public void setMultiOu(boolean multiOu) {
-    this.multiOu = multiOu;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isCompleted() {
-    return completed;
-  }
-
-  public void setCompleted(boolean completed) {
-    this.completed = completed;
-  }
+    public void setMultiOu( boolean multiOu )
+    {
+        this.multiOu = multiOu;
+    }
 }

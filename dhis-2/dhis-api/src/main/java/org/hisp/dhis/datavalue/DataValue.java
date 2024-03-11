@@ -1,5 +1,7 @@
+package org.hisp.dhis.datavalue;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,425 +27,397 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.regex.Pattern;
-import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.regex.Pattern;
+
 /**
  * @author Kristian Nordal
+ * @version $Id: DataValue.java 4638 2008-02-25 10:06:47Z larshelg $
  */
-@Auditable(scope = AuditScope.AGGREGATE)
-public class DataValue implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 6269303850789110610L;
+public class DataValue
+    implements Serializable
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 6269303850789110610L;
 
-  private static final Pattern ZERO_PATTERN = Pattern.compile("^0(\\.0*)?$");
+    private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
 
-  public static final String TRUE = "true";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
 
-  public static final String FALSE = "false";
+    // -------------------------------------------------------------------------
+    // Persistent properties
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Persistent properties
-  // -------------------------------------------------------------------------
+    private DataElement dataElement;
 
-  @AuditAttribute private DataElement dataElement;
+    private Period period;
 
-  @AuditAttribute private Period period;
+    private OrganisationUnit source;
 
-  @AuditAttribute private OrganisationUnit source;
+    private CategoryOptionCombo categoryOptionCombo;
 
-  @AuditAttribute private CategoryOptionCombo categoryOptionCombo;
+    private CategoryOptionCombo attributeOptionCombo;
 
-  @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
+    private String value;
 
-  @AuditAttribute private String value;
+    private String storedBy;
 
-  private String storedBy;
+    private Date created;
 
-  private Date created;
+    private Date lastUpdated;
 
-  private Date lastUpdated;
+    private String comment;
 
-  private String comment;
+    private Boolean followup;
+    
+    private boolean deleted;
 
-  private Boolean followup;
+    // -------------------------------------------------------------------------
+    // Transient properties
+    // -------------------------------------------------------------------------
 
-  private boolean deleted;
+    private transient boolean auditValueIsSet = false;
 
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
+    private transient boolean valueIsSet = false;
 
-  private transient boolean auditValueIsSet = false;
+    private transient String auditValue;
 
-  private transient boolean valueIsSet = false;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  private transient String auditValue;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public DataValue() {
-    this.created = new Date();
-    this.lastUpdated = new Date();
-  }
-
-  /**
-   * @param dataElement the data element.
-   * @param period the period.
-   * @param source the organisation unit.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   */
-  public DataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo) {
-    this.dataElement = dataElement;
-    this.period = period;
-    this.source = source;
-    this.categoryOptionCombo = categoryOptionCombo;
-    this.attributeOptionCombo = attributeOptionCombo;
-    this.created = new Date();
-    this.lastUpdated = new Date();
-  }
-
-  /**
-   * @param dataElement the data element.
-   * @param period the period.
-   * @param source the organisation unit.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param value the value.
-   */
-  public DataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      String value) {
-    this.dataElement = dataElement;
-    this.period = period;
-    this.source = source;
-    this.categoryOptionCombo = categoryOptionCombo;
-    this.attributeOptionCombo = attributeOptionCombo;
-    this.value = value;
-    this.created = new Date();
-    this.lastUpdated = new Date();
-  }
-
-  /**
-   * @param dataElement the data element.
-   * @param period the period.
-   * @param source the organisation unit.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param value the value.
-   * @param storedBy the user that stored this data value.
-   * @param lastUpdated the time of the last update to this data value.
-   * @param comment the comment.
-   */
-  public DataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      String value,
-      String storedBy,
-      Date lastUpdated,
-      String comment) {
-    this.dataElement = dataElement;
-    this.period = period;
-    this.source = source;
-    this.categoryOptionCombo = categoryOptionCombo;
-    this.attributeOptionCombo = attributeOptionCombo;
-    this.value = value;
-    this.storedBy = storedBy;
-    this.created = new Date();
-    this.lastUpdated = lastUpdated;
-    this.comment = comment;
-  }
-
-  /**
-   * @param dataElement the data element.
-   * @param period the period.
-   * @param source the organisation unit.
-   * @param categoryOptionCombo the category option combo.
-   * @param attributeOptionCombo the attribute option combo.
-   * @param value the value.
-   * @param storedBy the user that stored this data value.
-   * @param lastUpdated the time of the last update to this data value.
-   * @param comment the comment.
-   * @param followup whether followup is set.
-   * @param deleted whether the value is deleted.
-   */
-  @Builder(toBuilder = true)
-  public DataValue(
-      DataElement dataElement,
-      Period period,
-      OrganisationUnit source,
-      CategoryOptionCombo categoryOptionCombo,
-      CategoryOptionCombo attributeOptionCombo,
-      String value,
-      String storedBy,
-      Date lastUpdated,
-      String comment,
-      Boolean followup,
-      boolean deleted) {
-    this.dataElement = dataElement;
-    this.period = period;
-    this.source = source;
-    this.categoryOptionCombo = categoryOptionCombo;
-    this.attributeOptionCombo = attributeOptionCombo;
-    this.value = value;
-    this.storedBy = storedBy;
-    this.created = new Date();
-    this.lastUpdated = lastUpdated;
-    this.comment = comment;
-    this.followup = followup;
-    this.deleted = deleted;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  /** Alias for getCategoryOptionCombo(). TODO remove. */
-  public CategoryOptionCombo getOptionCombo() {
-    return getCategoryOptionCombo();
-  }
-
-  /** Indicates whether the value is a zero. */
-  public boolean isZero() {
-    return dataElement != null
-        && dataElement.getValueType().isNumeric()
-        && value != null
-        && ZERO_PATTERN.matcher(value).find();
-  }
-
-  /** Indicates whether the value is null. */
-  public boolean isNullValue() {
-    return StringUtils.trimToNull(value) == null && StringUtils.trimToNull(comment) == null;
-  }
-
-  public boolean isFollowup() {
-    return followup != null && followup;
-  }
-
-  public boolean hasComment() {
-    return comment != null && !comment.isEmpty();
-  }
-
-  public void toggleFollowUp() {
-    if (this.followup == null) {
-      this.followup = true;
-    } else {
-      this.followup = !this.followup;
-    }
-  }
-
-  public void mergeWith(DataValue other) {
-    this.value = other.getValue();
-    this.storedBy = other.getStoredBy();
-    this.created = other.getCreated();
-    this.lastUpdated = other.getLastUpdated();
-    this.comment = other.getComment();
-    this.followup = other.isFollowup();
-    this.deleted = other.isDeleted();
-  }
-
-  // -------------------------------------------------------------------------
-  // hashCode and equals
-  // -------------------------------------------------------------------------
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public DataValue()
+    {
+        this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
-    if (o == null) {
-      return false;
+    /**
+     * @param dataElement          the data element.
+     * @param period               the period.
+     * @param source               the organisation unit.
+     * @param categoryOptionCombo  the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     */
+    public DataValue(DataElement dataElement, Period period, OrganisationUnit source,
+                     CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataElement = dataElement;
+        this.period = period;
+        this.source = source;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
+        this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
-    if (!getClass().isAssignableFrom(o.getClass())) {
-      return false;
+    /**
+     * @param dataElement          the data element.
+     * @param period               the period.
+     * @param source               the organisation unit.
+     * @param categoryOptionCombo  the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param value                the value.
+     */
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
+    {
+        this.dataElement = dataElement;
+        this.period = period;
+        this.source = source;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
+        this.value = value;
+        this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
-    final DataValue other = (DataValue) o;
-
-    return dataElement.equals(other.getDataElement())
-        && period.equals(other.getPeriod())
-        && source.equals(other.getSource())
-        && categoryOptionCombo.equals(other.getCategoryOptionCombo())
-        && attributeOptionCombo.equals(other.getAttributeOptionCombo());
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-
-    result = result * prime + dataElement.hashCode();
-    result = result * prime + period.hashCode();
-    result = result * prime + source.hashCode();
-    result = result * prime + categoryOptionCombo.hashCode();
-    result = result * prime + attributeOptionCombo.hashCode();
-
-    return result;
-  }
-
-  @Override
-  public String toString() {
-    return "[Data element: "
-        + dataElement.getUid()
-        + ", period: "
-        + period.getUid()
-        + ", source: "
-        + source.getUid()
-        + ", category option combo: "
-        + categoryOptionCombo.getUid()
-        + ", attribute option combo: "
-        + attributeOptionCombo.getUid()
-        + ", value: "
-        + value
-        + ", deleted: "
-        + deleted
-        + "]";
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  public DataElement getDataElement() {
-    return dataElement;
-  }
-
-  public void setDataElement(DataElement dataElement) {
-    this.dataElement = dataElement;
-  }
-
-  @JsonProperty
-  public Period getPeriod() {
-    return period;
-  }
-
-  public void setPeriod(Period period) {
-    this.period = period;
-  }
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  public OrganisationUnit getSource() {
-    return source;
-  }
-
-  public void setSource(OrganisationUnit source) {
-    this.source = source;
-  }
-
-  @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  public CategoryOptionCombo getCategoryOptionCombo() {
-    return categoryOptionCombo;
-  }
-
-  public void setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
-    this.categoryOptionCombo = categoryOptionCombo;
-  }
-
-  @JsonProperty
-  public String getValue() {
-    return value;
-  }
-
-  public CategoryOptionCombo getAttributeOptionCombo() {
-    return attributeOptionCombo;
-  }
-
-  public void setAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
-    this.attributeOptionCombo = attributeOptionCombo;
-  }
-
-  public void setValue(String value) {
-    if (!auditValueIsSet) {
-      this.auditValue = valueIsSet ? this.value : value;
-      auditValueIsSet = true;
+    /**
+     * @param dataElement          the data element.
+     * @param period               the period.
+     * @param source               the organisation unit.
+     * @param categoryOptionCombo  the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param value                the value.
+     * @param storedBy             the user that stored this data value.
+     * @param lastUpdated          the time of the last update to this data value.
+     * @param comment              the comment.
+     */
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, String value, String storedBy, Date lastUpdated, String comment )
+    {
+        this.dataElement = dataElement;
+        this.period = period;
+        this.source = source;
+        this.categoryOptionCombo = categoryOptionCombo;
+        this.attributeOptionCombo = attributeOptionCombo;
+        this.value = value;
+        this.storedBy = storedBy;
+        this.created = new Date();
+        this.lastUpdated = lastUpdated;
+        this.comment = comment;
     }
 
-    valueIsSet = true;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-    this.value = value;
-  }
+    /**
+     * Alias for getCategoryOptionCombo(). TODO remove.
+     */
+    public CategoryOptionCombo getOptionCombo()
+    {
+        return getCategoryOptionCombo();
+    }
 
-  public String getStoredBy() {
-    return storedBy;
-  }
+    /**
+     * Indicates whether the value is a zero.
+     */
+    public boolean isZero()
+    {
+        return dataElement != null && dataElement.getValueType().isNumeric() && value != null && ZERO_PATTERN.matcher( value ).find();
+    }
 
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
+    /**
+     * Indicates whether the value is null.
+     */
+    public boolean isNullValue()
+    {
+        return StringUtils.trimToNull( value ) == null && StringUtils.trimToNull( comment ) == null;
+    }
 
-  public Date getCreated() {
-    return created;
-  }
+    public boolean isFollowup()
+    {
+        return followup != null && followup;
+    }
+    
+    public boolean hasComment()
+    {
+        return comment != null && !comment.isEmpty();
+    }
 
-  public void setCreated(Date created) {
-    this.created = created;
-  }
+    public void toggleFollowUp()
+    {
+        if ( this.followup == null )
+        {
+            this.followup = true;
+        }
+        else
+        {
+            this.followup = !this.followup;
+        }
+    }
 
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
+    public void mergeWith( DataValue other )
+    {
+        this.value = other.getValue();
+        this.storedBy = other.getStoredBy();
+        this.created = other.getCreated();
+        this.lastUpdated = other.getLastUpdated();
+        this.comment = other.getComment();
+        this.followup = other.isFollowup();
+        this.deleted = other.isDeleted();
+    }
+    
+    // -------------------------------------------------------------------------
+    // hashCode and equals
+    // -------------------------------------------------------------------------
 
-  public void setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-  }
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
 
-  public String getComment() {
-    return comment;
-  }
+        if ( o == null )
+        {
+            return false;
+        }
 
-  public void setComment(String comment) {
-    this.comment = comment;
-  }
+        if ( !getClass().isAssignableFrom( o.getClass() ) )
+        {
+            return false;
+        }
 
-  public void setFollowup(Boolean followup) {
-    this.followup = followup;
-  }
+        final DataValue other = (DataValue) o;
 
-  public boolean isDeleted() {
-    return deleted;
-  }
+        return
+            dataElement.equals( other.getDataElement() ) &&
+                period.equals( other.getPeriod() ) &&
+                source.equals( other.getSource() ) &&
+                categoryOptionCombo.equals( other.getCategoryOptionCombo() ) &&
+                attributeOptionCombo.equals( other.getAttributeOptionCombo() );
+    }
 
-  public void setDeleted(boolean deleted) {
-    this.deleted = deleted;
-  }
+    @Override
+    public int hashCode()
+    {
+        final int prime = 31;
+        int result = 1;
 
-  public String getAuditValue() {
-    return auditValue;
-  }
+        result = result * prime + dataElement.hashCode();
+        result = result * prime + period.hashCode();
+        result = result * prime + source.hashCode();
+        result = result * prime + categoryOptionCombo.hashCode();
+        result = result * prime + attributeOptionCombo.hashCode();
+
+        return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "[Data element: " + dataElement.getUid() +
+            ", period: " + period.getUid() +
+            ", source: " + source.getUid() +
+            ", category option combo: " + categoryOptionCombo.getUid() +
+            ", attribute option combo: " + attributeOptionCombo.getUid() + 
+            ", value: " + value +
+            ", deleted: " + deleted + "]";
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    public DataElement getDataElement()
+    {
+        return dataElement;
+    }
+
+    public void setDataElement( DataElement dataElement )
+    {
+        this.dataElement = dataElement;
+    }
+
+    public Period getPeriod()
+    {
+        return period;
+    }
+
+    public void setPeriod( Period period )
+    {
+        this.period = period;
+    }
+
+    public OrganisationUnit getSource()
+    {
+        return source;
+    }
+
+    public void setSource( OrganisationUnit source )
+    {
+        this.source = source;
+    }
+
+    public CategoryOptionCombo getCategoryOptionCombo()
+    {
+        return categoryOptionCombo;
+    }
+
+    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    {
+        this.categoryOptionCombo = categoryOptionCombo;
+    }
+
+    public String getValue()
+    {
+        return value;
+    }
+
+    public CategoryOptionCombo getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    public void setValue( String value )
+    {
+        if ( !auditValueIsSet )
+        {
+            this.auditValue = valueIsSet ? this.value : value;
+            auditValueIsSet = true;
+        }
+
+        valueIsSet = true;
+
+        this.value = value;
+    }
+
+    public String getStoredBy()
+    {
+        return storedBy;
+    }
+
+    public void setStoredBy( String storedBy )
+    {
+        this.storedBy = storedBy;
+    }
+
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
+
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    public String getComment()
+    {
+        return comment;
+    }
+
+    public void setComment( String comment )
+    {
+        this.comment = comment;
+    }
+
+    public void setFollowup( Boolean followup )
+    {
+        this.followup = followup;
+    }
+
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
+    }
+
+    public String getAuditValue()
+    {
+        return auditValue;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 /**
  * @author Markus Bekken
  */
-public enum AnalyticsType {
-  EVENT("event"),
-  ENROLLMENT("enrollment");
 
-  private final String value;
+public enum AnalyticsType
+{
+    EVENT( "event" ), 
+    ENROLLMENT( "enrollment" );
+    
+    private final String value;
 
-  private AnalyticsType(String value) {
-    this.value = value;
-  }
-
-  public static AnalyticsType fromValue(String value) {
-    for (AnalyticsType analyticsType : AnalyticsType.values()) {
-      if (analyticsType.getValue().equalsIgnoreCase(value)) {
-        return analyticsType;
-      }
+    private AnalyticsType( String value )
+    {
+        this.value = value;
     }
 
-    return null;
-  }
+    public static AnalyticsType fromValue( String value )
+    {
+        for ( AnalyticsType analyticsType : AnalyticsType.values() )
+        {
+            if ( analyticsType.getValue().equalsIgnoreCase( value ) )
+            {
+                return analyticsType;
+            }
+        }
 
-  public String getValue() {
-    return value;
-  }
+        return null;
+    }
+    
+    public String getValue()
+    {
+        return value;
+    }
 }

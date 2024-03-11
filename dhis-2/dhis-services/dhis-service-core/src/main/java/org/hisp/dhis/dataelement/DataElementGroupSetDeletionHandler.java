@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataelement;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelement;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Dang Duy Hieu
  */
-@Component
-@AllArgsConstructor
 public class DataElementGroupSetDeletionHandler
-    extends IdObjectDeletionHandler<DataElementGroupSet> {
-  @Override
-  protected void registerHandler() {
-    whenDeleting(DataElementGroup.class, this::deleteDataElementGroup);
-  }
+    extends DeletionHandler
+{
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+    
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-  private void deleteDataElementGroup(DataElementGroup dataElementGroup) {
-    for (DataElementGroupSet groupSet : dataElementGroup.getGroupSets()) {
-      groupSet.getMembers().remove(dataElementGroup);
-      idObjectManager.updateNoAcl(groupSet);
+    @Override
+    public String getClassName()
+    {
+        return DataElementGroupSet.class.getSimpleName();
     }
-  }
+
+    @Override
+    public void deleteDataElementGroup( DataElementGroup dataElementGroup )
+    {
+        for ( DataElementGroupSet groupSet : dataElementGroup.getGroupSets() )
+        {
+            groupSet.getMembers().remove( dataElementGroup );
+            idObjectManager.updateNoAcl( groupSet );
+        }
+    }
 }

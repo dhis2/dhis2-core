@@ -1,5 +1,7 @@
+package org.hisp.dhis.organisationunit.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.comparator;
 
-import java.util.Comparator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.Comparator;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OrganisationUnitParentCountComparator implements Comparator<IdentifiableObject> {
-  @Override
-  public int compare(IdentifiableObject organisationUnit1, IdentifiableObject organisationUnit2) {
-    int parents1 = ((OrganisationUnit) organisationUnit1).getAncestors().size();
-    int parents2 = ((OrganisationUnit) organisationUnit2).getAncestors().size();
+public class OrganisationUnitParentCountComparator
+    implements Comparator<IdentifiableObject>
+{
+    @Override
+    public int compare( IdentifiableObject organisationUnit1, IdentifiableObject organisationUnit2 )
+    {
+        Integer parents1 = ((OrganisationUnit) organisationUnit1).getAncestors().size();
+        Integer parents2 = ((OrganisationUnit) organisationUnit2).getAncestors().size();
 
-    return Integer.compare(parents1, parents2);
-  }
+        return parents1.compareTo( parents2 );
+    }
 }

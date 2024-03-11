@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public enum Authorities {
-  F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS(
-      "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS"),
-  F_TEI_CASCADE_DELETE("F_TEI_CASCADE_DELETE"),
-  F_ENROLLMENT_CASCADE_DELETE("F_ENROLLMENT_CASCADE_DELETE"),
-  F_EDIT_EXPIRED("F_EDIT_EXPIRED"),
-  F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION("F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION"),
-  F_SKIP_DATA_IMPORT_AUDIT("F_SKIP_DATA_IMPORT_AUDIT"),
-  F_METADATA_EXPORT("F_METADATA_EXPORT"),
-  F_USER_VIEW("F_USER_VIEW");
+public enum Authorities
+{
+    F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ),
+    F_TEI_CASCADE_DELETE( "F_TEI_CASCADE_DELETE" ),
+    F_ENROLLMENT_CASCADE_DELETE( "F_ENROLLMENT_CASCADE_DELETE" ),
+    F_EDIT_EXPIRED( "F_EDIT_EXPIRED" ),
+    F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION( "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION" ),
+    F_SKIP_DATA_IMPORT_AUDIT( "F_SKIP_DATA_IMPORT_AUDIT" );
 
-  private String authority;
+    private String authority;
 
-  Authorities(String authority) {
-    this.authority = authority;
-  }
+    Authorities( String authority )
+    {
+        this.authority = authority;
+    }
 
-  public String getAuthority() {
-    return authority;
-  }
+    public String getAuthority()
+    {
+        return authority;
+    }
 }

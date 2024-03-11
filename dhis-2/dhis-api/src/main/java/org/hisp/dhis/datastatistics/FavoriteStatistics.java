@@ -1,5 +1,7 @@
+package org.hisp.dhis.datastatistics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,85 +27,94 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastatistics;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 
-/** Created by yrjanaff on 20.05.2016. */
-public class FavoriteStatistics {
-  private Integer position;
+/**
+ * Created by yrjanaff on 20.05.2016.
+ */
+public class FavoriteStatistics
+{
+    private Integer position;
+    
+    private String name;
+    
+    private Integer views;
+    
+    private String id;
+    
+    private Date created;
 
-  private String name;
+    public FavoriteStatistics()
+    {
+    }
 
-  private Integer views;
+    @JsonProperty
+    public Integer getPosition()
+    {
+        return position;
+    }
 
-  private String id;
+    public void setPosition( Integer position )
+    {
+        this.position = position;
+    }
 
-  private Date created;
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
 
-  public FavoriteStatistics() {}
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 
-  @JsonProperty
-  public Integer getPosition() {
-    return position;
-  }
+    @JsonProperty
+    public Integer getViews()
+    {
+        return views;
+    }
 
-  public void setPosition(Integer position) {
-    this.position = position;
-  }
+    public void setViews( Integer views )
+    {
+        this.views = views;
+    }
 
-  @JsonProperty
-  public String getName() {
-    return name;
-  }
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setId( String id )
+    {
+        this.id = id;
+    }
 
-  @JsonProperty
-  public Integer getViews() {
-    return views;
-  }
+    @JsonProperty
+    public Date getCreated()
+    {
+        return created;
+    }
 
-  public void setViews(Integer views) {
-    this.views = views;
-  }
+    public void setCreated( Date created )
+    {
+        this.created = created;
+    }
 
-  @JsonProperty
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  @JsonProperty
-  public Date getCreated() {
-    return created;
-  }
-
-  public void setCreated(Date created) {
-    this.created = created;
-  }
-
-  @Override
-  public String toString() {
-    return "FavoriteStatistics{"
-        + "position="
-        + position
-        + ", name='"
-        + name
-        + '\''
-        + ", views="
-        + views
-        + ", id='"
-        + id
-        + '\''
-        + ", created="
-        + created
-        + '}';
-  }
+    @Override
+    public String toString()
+    {
+        return "FavoriteStatistics{" +
+            "position=" + position +
+            ", name='" + name + '\'' +
+            ", views=" + views +
+            ", id='" + id + '\'' +
+            ", created=" + created +
+            '}';
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.command;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -34,47 +35,59 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Nguyen Kim Lai
+ *
+ * @version SMSSpecialCharacter.java 1:57:35 PM Nov 18, 2013 $
  */
-@JacksonXmlRootElement(localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0)
-public class SMSSpecialCharacter {
-  private int id;
+@JacksonXmlRootElement( localName = "smsspecialcharacter", namespace = DxfNamespaces.DXF_2_0 )
+public class SMSSpecialCharacter
+{
+    private int id;
 
-  private String name;
+    private String name;
 
-  private String value;
+    private String value;
 
-  public SMSSpecialCharacter() {}
+    public SMSSpecialCharacter()
+    {
+    }
 
-  public SMSSpecialCharacter(String name, String value) {
-    this.name = name;
-    this.value = value;
-  }
+    public SMSSpecialCharacter( String name, String value )
+    {
+        this.name = name;
+        this.value = value;
+    }
 
-  public int getId() {
-    return id;
-  }
+    public int getId()
+    {
+        return id;
+    }
 
-  public void setId(int id) {
-    this.id = id;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty
-  public String getName() {
-    return name;
-  }
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getName()
+    {
+        return name;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty
-  public String getValue() {
-    return value;
-  }
+    @JsonProperty
+    @JacksonXmlProperty
+    public String getValue()
+    {
+        return value;
+    }
 
-  public void setValue(String value) {
-    this.value = value;
-  }
+    public void setValue( String value )
+    {
+        this.value = value;
+    }
 }

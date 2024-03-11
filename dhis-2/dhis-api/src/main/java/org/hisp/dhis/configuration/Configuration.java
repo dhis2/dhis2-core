@@ -1,5 +1,7 @@
+package org.hisp.dhis.configuration;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,230 +27,217 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserRole;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "configuration", namespace = DxfNamespaces.DXF_2_0)
-public class Configuration implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 936186436040704261L;
+@JacksonXmlRootElement( localName = "configuration", namespace = DxfNamespaces.DXF_2_0 )
+public class Configuration
+    implements Serializable
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 936186436040704261L;
+    
+    private static final PeriodType DEFAULT_INFRASTRUCTURAL_PERIODTYPE = new YearlyPeriodType();
+    
+    private int id;
 
-  private static final PeriodType DEFAULT_INFRASTRUCTURAL_PERIODTYPE = new YearlyPeriodType();
+    // -------------------------------------------------------------------------
+    // Various
+    // -------------------------------------------------------------------------
 
-  private int id;
+    private String systemId;
+    
+    private UserGroup feedbackRecipients;
+    
+    private OrganisationUnitLevel offlineOrganisationUnitLevel;
 
-  // -------------------------------------------------------------------------
-  // Various
-  // -------------------------------------------------------------------------
+    private IndicatorGroup infrastructuralIndicators;
 
-  private String systemId;
+    private DataElementGroup infrastructuralDataElements;
+    
+    private PeriodType infrastructuralPeriodType;
+    
+    private UserAuthorityGroup selfRegistrationRole;
+    
+    private OrganisationUnit selfRegistrationOrgUnit;
+    
+    private Set<String> corsWhitelist = new HashSet<>();
+    
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  private UserGroup feedbackRecipients;
+    public Configuration()
+    {
+    }
 
-  private UserGroup systemUpdateNotificationRecipients;
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  private OrganisationUnitLevel offlineOrganisationUnitLevel;
+    public PeriodType getInfrastructuralPeriodTypeDefaultIfNull()
+    {
+        return infrastructuralPeriodType != null ? infrastructuralPeriodType : DEFAULT_INFRASTRUCTURAL_PERIODTYPE;
+    }
+    
+    public boolean selfRegistrationAllowed()
+    {
+        return selfRegistrationRole != null && selfRegistrationOrgUnit != null;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Set and get methods
+    // -------------------------------------------------------------------------
 
-  private IndicatorGroup infrastructuralIndicators;
+    public int getId()
+    {
+        return id;
+    }
 
-  private DataElementGroup infrastructuralDataElements;
+    public void setId( int id )
+    {
+        this.id = id;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSystemId()
+    {
+        return systemId;
+    }
 
-  private PeriodType infrastructuralPeriodType;
+    public void setSystemId( String systemId )
+    {
+        this.systemId = systemId;
+    }
 
-  private UserRole selfRegistrationRole;
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserGroup getFeedbackRecipients()
+    {
+        return feedbackRecipients;
+    }
 
-  private OrganisationUnit selfRegistrationOrgUnit;
+    public void setFeedbackRecipients( UserGroup feedbackRecipients )
+    {
+        this.feedbackRecipients = feedbackRecipients;
+    }
 
-  private OrganisationUnitGroupSet facilityOrgUnitGroupSet;
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitLevel getOfflineOrganisationUnitLevel()
+    {
+        return offlineOrganisationUnitLevel;
+    }
+    
+    public void setOfflineOrganisationUnitLevel( OrganisationUnitLevel offlineOrganisationUnitLevel )
+    {
+        this.offlineOrganisationUnitLevel = offlineOrganisationUnitLevel;
+    }
 
-  private OrganisationUnitLevel facilityOrgUnitLevel;
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public IndicatorGroup getInfrastructuralIndicators()
+    {
+        return infrastructuralIndicators;
+    }
 
-  private Set<String> corsWhitelist = new HashSet<>();
+    public void setInfrastructuralIndicators( IndicatorGroup infrastructuralIndicators )
+    {
+        this.infrastructuralIndicators = infrastructuralIndicators;
+    }
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementGroup getInfrastructuralDataElements()
+    {
+        return infrastructuralDataElements;
+    }
 
-  public Configuration() {}
+    public void setInfrastructuralDataElements( DataElementGroup infrastructuralDataElements )
+    {
+        this.infrastructuralDataElements = infrastructuralDataElements;
+    }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.TEXT )
+    public PeriodType getInfrastructuralPeriodType()
+    {
+        return infrastructuralPeriodType;
+    }
 
-  public PeriodType getInfrastructuralPeriodTypeDefaultIfNull() {
-    return infrastructuralPeriodType != null
-        ? infrastructuralPeriodType
-        : DEFAULT_INFRASTRUCTURAL_PERIODTYPE;
-  }
+    public void setInfrastructuralPeriodType( PeriodType infrastructuralPeriodType )
+    {
+        this.infrastructuralPeriodType = infrastructuralPeriodType;
+    }
 
-  public boolean selfRegistrationAllowed() {
-    return selfRegistrationRole != null && selfRegistrationOrgUnit != null;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserAuthorityGroup getSelfRegistrationRole()
+    {
+        return selfRegistrationRole;
+    }
 
-  // -------------------------------------------------------------------------
-  // Set and get methods
-  // -------------------------------------------------------------------------
+    public void setSelfRegistrationRole( UserAuthorityGroup selfRegistrationRole )
+    {
+        this.selfRegistrationRole = selfRegistrationRole;
+    }
 
-  public int getId() {
-    return id;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getSelfRegistrationOrgUnit()
+    {
+        return selfRegistrationOrgUnit;
+    }
 
-  public void setId(int id) {
-    this.id = id;
-  }
+    public void setSelfRegistrationOrgUnit( OrganisationUnit selfRegistrationOrgUnit )
+    {
+        this.selfRegistrationOrgUnit = selfRegistrationOrgUnit;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getSystemId() {
-    return systemId;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getCorsWhitelist()
+    {
+        return corsWhitelist;
+    }
 
-  public void setSystemId(String systemId) {
-    this.systemId = systemId;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserGroup getFeedbackRecipients() {
-    return feedbackRecipients;
-  }
-
-  public void setFeedbackRecipients(UserGroup feedbackRecipients) {
-    this.feedbackRecipients = feedbackRecipients;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserGroup getSystemUpdateNotificationRecipients() {
-    return systemUpdateNotificationRecipients;
-  }
-
-  public void setSystemUpdateNotificationRecipients(UserGroup systemUpdateNotificationRecipients) {
-    this.systemUpdateNotificationRecipients = systemUpdateNotificationRecipients;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnitLevel getOfflineOrganisationUnitLevel() {
-    return offlineOrganisationUnitLevel;
-  }
-
-  public void setOfflineOrganisationUnitLevel(OrganisationUnitLevel offlineOrganisationUnitLevel) {
-    this.offlineOrganisationUnitLevel = offlineOrganisationUnitLevel;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public IndicatorGroup getInfrastructuralIndicators() {
-    return infrastructuralIndicators;
-  }
-
-  public void setInfrastructuralIndicators(IndicatorGroup infrastructuralIndicators) {
-    this.infrastructuralIndicators = infrastructuralIndicators;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataElementGroup getInfrastructuralDataElements() {
-    return infrastructuralDataElements;
-  }
-
-  public void setInfrastructuralDataElements(DataElementGroup infrastructuralDataElements) {
-    this.infrastructuralDataElements = infrastructuralDataElements;
-  }
-
-  @JsonProperty
-  @JsonSerialize(using = JacksonPeriodTypeSerializer.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(PropertyType.TEXT)
-  public PeriodType getInfrastructuralPeriodType() {
-    return infrastructuralPeriodType;
-  }
-
-  public void setInfrastructuralPeriodType(PeriodType infrastructuralPeriodType) {
-    this.infrastructuralPeriodType = infrastructuralPeriodType;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserRole getSelfRegistrationRole() {
-    return selfRegistrationRole;
-  }
-
-  public void setSelfRegistrationRole(UserRole selfRegistrationRole) {
-    this.selfRegistrationRole = selfRegistrationRole;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnit getSelfRegistrationOrgUnit() {
-    return selfRegistrationOrgUnit;
-  }
-
-  public void setSelfRegistrationOrgUnit(OrganisationUnit selfRegistrationOrgUnit) {
-    this.selfRegistrationOrgUnit = selfRegistrationOrgUnit;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnitGroupSet getFacilityOrgUnitGroupSet() {
-    return facilityOrgUnitGroupSet;
-  }
-
-  public void setFacilityOrgUnitGroupSet(OrganisationUnitGroupSet facilityOrgUnitGroupSet) {
-    this.facilityOrgUnitGroupSet = facilityOrgUnitGroupSet;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnitLevel getFacilityOrgUnitLevel() {
-    return facilityOrgUnitLevel;
-  }
-
-  public void setFacilityOrgUnitLevel(OrganisationUnitLevel facilityOrgUnitLevel) {
-    this.facilityOrgUnitLevel = facilityOrgUnitLevel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Set<String> getCorsWhitelist() {
-    return corsWhitelist;
-  }
-
-  public void setCorsWhitelist(Set<String> corsWhitelist) {
-    this.corsWhitelist = corsWhitelist;
-  }
+    public void setCorsWhitelist( Set<String> corsWhitelist )
+    {
+        this.corsWhitelist = corsWhitelist;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.version;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.version;
 
 import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author mortenoh
  */
-public interface VersionStore extends GenericStore<Version> {
-  String ID = VersionStore.class.getName();
+public interface VersionStore
+    extends GenericStore<Version>
+{
+    String ID = VersionStore.class.getName();
 
-  /**
-   * @param key Key to lookup.
-   * @return Value that matched key, or null if there was no match.
-   */
-  Version getVersionByKey(String key);
+    /**
+     * @param key Key to lookup.
+     * @return Value that matched key, or null if there was no match.
+     */
+    Version getVersionByKey( String key );
 }

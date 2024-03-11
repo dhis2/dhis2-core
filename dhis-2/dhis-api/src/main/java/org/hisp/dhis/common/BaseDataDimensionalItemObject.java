@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -33,57 +34,64 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 /**
  * @author Lars Helge Overland
  */
-public class BaseDataDimensionalItemObject extends BaseDimensionalItemObject
-    implements DataDimensionalItemObject {
-  /**
-   * The category option combo identifier used for aggregated data exports through analytics, can be
-   * null.
-   */
-  protected String aggregateExportCategoryOptionCombo;
+public class BaseDataDimensionalItemObject
+    extends BaseDimensionalItemObject implements DataDimensionalItemObject
+{
+    /**
+     * The category option combo identifier used for aggregated data exports through
+     * analytics, can be null.
+     */
+    protected String aggregateExportCategoryOptionCombo;
 
-  /**
-   * The attribute option combo identifier used for aggregated data exports through analytics, can
-   * be null.
-   */
-  protected String aggregateExportAttributeOptionCombo;
+    /**
+     * The attribute option combo identifier used for aggregated data exports through
+     * analytics, can be null.
+     */
+    protected String aggregateExportAttributeOptionCombo;
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  @Override
-  public boolean hasAggregateExportCategoryOptionCombo() {
-    return aggregateExportCategoryOptionCombo != null;
-  }
+    @Override
+    public boolean hasAggregateExportCategoryOptionCombo()
+    {
+        return aggregateExportCategoryOptionCombo != null;
+    }
 
-  @Override
-  public boolean hasAggregateExportAttributeOptionCombo() {
-    return aggregateExportAttributeOptionCombo != null;
-  }
+    @Override
+    public boolean hasAggregateExportAttributeOptionCombo()
+    {
+        return aggregateExportAttributeOptionCombo != null;
+    }
 
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getAggregateExportCategoryOptionCombo() {
-    return aggregateExportCategoryOptionCombo;
-  }
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAggregateExportCategoryOptionCombo()
+    {
+        return aggregateExportCategoryOptionCombo;
+    }
 
-  public void setAggregateExportCategoryOptionCombo(String aggregateExportCategoryOptionCombo) {
-    this.aggregateExportCategoryOptionCombo = aggregateExportCategoryOptionCombo;
-  }
+    public void setAggregateExportCategoryOptionCombo( String aggregateExportCategoryOptionCombo )
+    {
+        this.aggregateExportCategoryOptionCombo = aggregateExportCategoryOptionCombo;
+    }
 
-  @Override
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getAggregateExportAttributeOptionCombo() {
-    return aggregateExportAttributeOptionCombo;
-  }
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAggregateExportAttributeOptionCombo()
+    {
+        return aggregateExportAttributeOptionCombo;
+    }
 
-  public void setAggregateExportAttributeOptionCombo(String aggregateExportAttributeOptionCombo) {
-    this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
-  }
+    public void setAggregateExportAttributeOptionCombo( String aggregateExportAttributeOptionCombo )
+    {
+        this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
+    }
 }

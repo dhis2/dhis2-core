@@ -1,5 +1,7 @@
+package org.hisp.dhis.trackedentity;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,276 +34,271 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
-@JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
-@Auditable(scope = AuditScope.TRACKER)
-public class TrackedEntityInstance extends SoftDeletableObject {
-  public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
+@JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityInstance
+    extends BaseIdentifiableObject
+{
+    public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
 
-  private Date createdAtClient;
+    private Date createdAtClient;
 
-  private Date lastUpdatedAtClient;
+    private Date lastUpdatedAtClient;
 
-  private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
+    private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
-  private Set<RelationshipItem> relationshipItems = new HashSet<>();
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-  private Set<ProgramInstance> programInstances = new HashSet<>();
+    private Set<ProgramInstance> programInstances = new HashSet<>();
 
-  private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
+    private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
-  private boolean potentialDuplicate;
+    private OrganisationUnit organisationUnit;
 
-  @AuditAttribute private OrganisationUnit organisationUnit;
+    private TrackedEntityInstance representative;
 
-  @AuditAttribute private TrackedEntityType trackedEntityType;
+    private TrackedEntityType trackedEntityType;
 
-  @AuditAttribute private Boolean inactive = false;
+    private Boolean inactive = false;
 
-  private Geometry geometry;
+    private Boolean deleted = false;
 
-  private Date lastSynchronized = new Date(0);
+    private Geometry geometry;
 
-  private String storedBy;
+    private Date lastSynchronized = new Date( 0 );
 
-  private UserInfoSnapshot createdByUserInfo;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  private UserInfoSnapshot lastUpdatedByUserInfo;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public TrackedEntityInstance() {}
-
-  @Override
-  public void setAutoFields() {
-    super.setAutoFields();
-
-    if (createdAtClient == null) {
-      createdAtClient = created;
+    public TrackedEntityInstance()
+    {
     }
 
-    if (lastUpdatedAtClient == null) {
-      lastUpdatedAtClient = lastUpdated;
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+
+        if ( createdAtClient == null )
+        {
+            createdAtClient = created;
+        }
+
+        if ( lastUpdatedAtClient == null )
+        {
+            lastUpdatedAtClient = lastUpdated;
+        }
     }
-  }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-  public void addAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    trackedEntityAttributeValues.add(attributeValue);
-    attributeValue.setEntityInstance(this);
-  }
+    public void addAttributeValue( TrackedEntityAttributeValue attributeValue )
+    {
+        trackedEntityAttributeValues.add( attributeValue );
+        attributeValue.setEntityInstance( this );
+    }
 
-  public void removeAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    trackedEntityAttributeValues.remove(attributeValue);
-    attributeValue.setEntityInstance(null);
-  }
+    public void removeAttributeValue( TrackedEntityAttributeValue attributeValue )
+    {
+        trackedEntityAttributeValues.remove( attributeValue );
+        attributeValue.setEntityInstance( null );
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isPotentialDuplicate() {
-    return potentialDuplicate;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
 
-  public void setPotentialDuplicate(boolean potentialDuplicate) {
-    this.potentialDuplicate = potentialDuplicate;
-  }
+    public void setCreatedAtClient( Date createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getCreatedAtClient() {
-    return createdAtClient;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdatedAtClient()
+    {
+        return lastUpdatedAtClient;
+    }
 
-  public void setCreatedAtClient(Date createdAtClient) {
-    this.createdAtClient = createdAtClient;
-  }
+    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
+    {
+        this.lastUpdatedAtClient = lastUpdatedAtClient;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getLastUpdatedAtClient() {
-    return lastUpdatedAtClient;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
 
-  public void setLastUpdatedAtClient(Date lastUpdatedAtClient) {
-    this.lastUpdatedAtClient = lastUpdatedAtClient;
-  }
+    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getStoredBy() {
-    return storedBy;
-  }
+    @JsonProperty( "trackedEntityAttributeValues" )
+    @JacksonXmlElementWrapper( localName = "trackedEntityAttributeValues", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues()
+    {
+        return trackedEntityAttributeValues;
+    }
 
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-  }
+    public void setTrackedEntityAttributeValues( Set<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+    {
+        this.trackedEntityAttributeValues = trackedEntityAttributeValues;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programInstances", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramInstance> getProgramInstances()
+    {
+        return programInstances;
+    }
 
-  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-  }
+    public void setProgramInstances( Set<ProgramInstance> programInstances )
+    {
+        this.programInstances = programInstances;
+    }
 
-  @JsonProperty("trackedEntityAttributeValues")
-  @JacksonXmlElementWrapper(
-      localName = "trackedEntityAttributeValues",
-      namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0)
-  public Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues() {
-    return trackedEntityAttributeValues;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<TrackedEntityProgramOwner> getProgramOwners()
+    {
+        return programOwners;
+    }
 
-  public void setTrackedEntityAttributeValues(
-      Set<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    this.trackedEntityAttributeValues = trackedEntityAttributeValues;
-  }
+    public void setProgramOwners( Set<TrackedEntityProgramOwner> programOwners )
+    {
+        this.programOwners = programOwners;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programInstances", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programInstance", namespace = DxfNamespaces.DXF_2_0)
-  public Set<ProgramInstance> getProgramInstances() {
-    return programInstances;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityInstance getRepresentative()
+    {
+        return representative;
+    }
 
-  public void setProgramInstances(Set<ProgramInstance> programInstances) {
-    this.programInstances = programInstances;
-  }
+    public void setRepresentative( TrackedEntityInstance representative )
+    {
+        this.representative = representative;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
-  public Set<TrackedEntityProgramOwner> getProgramOwners() {
-    return programOwners;
-  }
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
+    {
+        return trackedEntityType;
+    }
 
-  public void setProgramOwners(Set<TrackedEntityProgramOwner> programOwners) {
-    this.programOwners = programOwners;
-  }
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        this.trackedEntityType = trackedEntityType;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
-  public TrackedEntityType getTrackedEntityType() {
-    return trackedEntityType;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isInactive()
+    {
+        return inactive;
+    }
 
-  public void setTrackedEntityType(TrackedEntityType trackedEntityType) {
-    this.trackedEntityType = trackedEntityType;
-  }
+    public void setInactive( Boolean inactive )
+    {
+        this.inactive = inactive;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
-  public Boolean isInactive() {
-    return inactive;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isDeleted()
+    {
+        return deleted;
+    }
 
-  public void setInactive(Boolean inactive) {
-    this.inactive = inactive;
-  }
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
+    }
 
-  @JsonIgnore
-  public Date getLastSynchronized() {
-    return lastSynchronized;
-  }
+    @JsonIgnore
+    public Date getLastSynchronized()
+    {
+        return lastSynchronized;
+    }
 
-  public void setLastSynchronized(Date lastSynchronized) {
-    this.lastSynchronized = lastSynchronized;
-  }
+    public void setLastSynchronized( Date lastSynchronized )
+    {
+        this.lastSynchronized = lastSynchronized;
+    }
 
-  @JsonProperty
-  @JacksonXmlElementWrapper(localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0)
-  public Set<RelationshipItem> getRelationshipItems() {
-    return relationshipItems;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
 
-  public void setRelationshipItems(Set<RelationshipItem> relationshipItems) {
-    this.relationshipItems = relationshipItems;
-  }
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Geometry getGeometry() {
-    return geometry;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
 
-  public void setGeometry(Geometry geometry) {
-    this.geometry = geometry;
-  }
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getCreatedByUserInfo() {
-    return createdByUserInfo;
-  }
-
-  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
-    this.createdByUserInfo = createdByUserInfo;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public UserInfoSnapshot getLastUpdatedByUserInfo() {
-    return lastUpdatedByUserInfo;
-  }
-
-  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
-    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-  }
-
-  @Override
-  public String toString() {
-    return "TrackedEntityInstance{"
-        + "id="
-        + id
-        + ", uid='"
-        + uid
-        + '\''
-        + ", name='"
-        + name
-        + '\''
-        + ", organisationUnit="
-        + organisationUnit
-        + ", trackedEntityType="
-        + trackedEntityType
-        + ", inactive="
-        + inactive
-        + ", deleted="
-        + isDeleted()
-        + ", lastSynchronized="
-        + lastSynchronized
-        + '}';
-  }
+    @Override public String toString()
+    {
+        return "TrackedEntityInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", name='" + name + '\'' +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", representative=" + representative.getUid() +
+            ", trackedEntityType=" + trackedEntityType +
+            ", inactive=" + inactive +
+            ", deleted=" + deleted +
+            ", lastSynchronized=" + lastSynchronized +
+            '}';
+    }
 }

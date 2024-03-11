@@ -1,5 +1,7 @@
+package org.hisp.dhis.scheduling;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
-
-import org.springframework.stereotype.Component;
 
 /**
  * @author Henning Håkonsen
  */
-@Component("mockJob")
-public class MockJob implements Job {
-  @Override
-  public JobType getJobType() {
-    return JobType.MOCK;
-  }
-
-  @Override
-  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
-    try {
-      Thread.sleep(10000);
-    } catch (InterruptedException ex) {
-      Thread.currentThread().interrupt();
-      ex.printStackTrace();
+public class MockJob
+    extends AbstractJob
+{
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.MOCK;
     }
-  }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        try
+        {
+            Thread.sleep( 10000 );
+        }
+        catch ( InterruptedException e )
+        {
+            e.printStackTrace();
+        }
+    }
+
 }

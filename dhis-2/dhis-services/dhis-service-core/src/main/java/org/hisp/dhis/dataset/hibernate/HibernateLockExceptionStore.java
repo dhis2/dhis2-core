@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset.hibernate;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
@@ -44,159 +38,151 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository("org.hisp.dhis.dataset.LockExceptionStore")
-public class HibernateLockExceptionStore extends HibernateGenericStore<LockException>
-    implements LockExceptionStore {
-  private static final String AT_PERIOD = "period";
+public class HibernateLockExceptionStore
+    extends HibernateGenericStore<LockException>
+    implements LockExceptionStore
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  private static final String AT_ORG_UNIT = "organisationUnit";
+    private DataSetStore dataSetStore;
 
-  private static final String AT_DATA_SET = "dataSet";
+    public void setDataSetStore( DataSetStore dataSetStore )
+    {
+        this.dataSetStore = dataSetStore;
+    }
 
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
+    private PeriodService periodService;
 
-  private final DataSetStore dataSetStore;
+    public void setPeriodService( PeriodService periodService )
+    {
+        this.periodService = periodService;
+    }
 
-  private final PeriodService periodService;
+    // -------------------------------------------------------------------------
+    // LockExceptionStore Implementation
+    // -------------------------------------------------------------------------
 
-  public HibernateLockExceptionStore(
-      SessionFactory sessionFactory,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      DataSetStore dataSetStore,
-      PeriodService periodService) {
-    super(sessionFactory, jdbcTemplate, publisher, LockException.class, false);
+    @Override
+    public void save( LockException lockException )
+    {
+        lockException.setPeriod( periodService.reloadPeriod( lockException.getPeriod() ) );
 
-    checkNotNull(dataSetStore);
-    checkNotNull(periodService);
+        super.save( lockException );
+    }
 
-    this.dataSetStore = dataSetStore;
-    this.periodService = periodService;
-  }
+    @Override
+    public void update( LockException lockException )
+    {
+        lockException.setPeriod( periodService.reloadPeriod( lockException.getPeriod() ) );
 
-  // -------------------------------------------------------------------------
-  // LockExceptionStore Implementation
-  // -------------------------------------------------------------------------
+        super.update( lockException );
+    }
 
-  @Override
-  public void save(LockException lockException) {
-    lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
+    @Override
+    public List<LockException> getCombinations()
+    {
+        final String sql = "select distinct datasetid, periodid from lockexception";
 
-    super.save(lockException);
-  }
+        final List<LockException> lockExceptions = new ArrayList<>();
 
-  @Override
-  public void update(LockException lockException) {
-    lockException.setPeriod(periodService.reloadPeriod(lockException.getPeriod()));
+        jdbcTemplate.query( sql, new RowCallbackHandler()
+        {
+            @Override
+            public void processRow( ResultSet rs ) throws SQLException
+            {
+                int dataSetId = rs.getInt( 1 );
+                int periodId = rs.getInt( 2 );
 
-    super.update(lockException);
-  }
+                LockException lockException = new LockException();
+                Period period = periodService.getPeriod( periodId );
+                DataSet dataSet = dataSetStore.get( dataSetId );
 
-  @Override
-  public List<LockException> getLockExceptions(List<DataSet> dataSets) {
-    return getList(
-        getCriteriaBuilder(),
-        newJpaParameters().addPredicate(root -> root.get(AT_DATA_SET).in(dataSets)));
-  }
+                lockException.setDataSet( dataSet );
+                lockException.setPeriod( period );
 
-  @Override
-  public List<LockException> getLockExceptionCombinations() {
-    final String sql = "select distinct datasetid, periodid from lockexception";
+                lockExceptions.add( lockException );
+            }
+        } );
 
-    final List<LockException> lockExceptions = new ArrayList<>();
+        return lockExceptions;
+    }
 
-    jdbcTemplate.query(
-        sql,
-        new RowCallbackHandler() {
-          @Override
-          public void processRow(ResultSet rs) throws SQLException {
-            int dataSetId = rs.getInt(1);
-            int periodId = rs.getInt(2);
+    @Override
+    public void deleteCombination( DataSet dataSet, Period period )
+    {
+        final String hql = "delete from LockException where dataSet=:dataSet and period=:period";
 
-            LockException lockException = new LockException();
-            Period period = periodService.getPeriod(periodId);
-            DataSet dataSet = dataSetStore.get(dataSetId);
+        Query query = getQuery( hql );
+        query.setParameter( "dataSet", dataSet );
+        query.setParameter( "period", period );
 
-            lockException.setDataSet(dataSet);
-            lockException.setPeriod(period);
+        query.executeUpdate();
+    }
 
-            lockExceptions.add(lockException);
-          }
-        });
 
-    return lockExceptions;
-  }
+    @Override
+    public void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
+    {
+        final String hql = "delete from LockException where dataSet=:dataSet and period=:period and organisationUnit=:organisationUnit";
 
-  @Override
-  public void deleteLockExceptions(DataSet dataSet, Period period) {
-    final String hql = "delete from LockException where dataSet=:dataSet and period=:period";
+        Query query = getQuery( hql );
+        query.setParameter( "dataSet", dataSet );
+        query.setParameter( "period", period );
+        query.setParameter( "organisationUnit", organisationUnit );
 
-    getQuery(hql)
-        .setParameter(AT_DATA_SET, dataSet)
-        .setParameter(AT_PERIOD, period)
-        .executeUpdate();
-  }
+        query.executeUpdate();
+    }
 
-  @Override
-  public void deleteLockExceptions(
-      DataSet dataSet, Period period, OrganisationUnit organisationUnit) {
-    final String hql =
-        "delete from LockException where dataSet=:dataSet and period=:period and organisationUnit=:organisationUnit";
+    @Override
+    public List<LockException> getAllOrderedName( int first, int max )
+    {
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .setFirstResult( first )
+            .setMaxResults( max ) );
+    }
 
-    getQuery(hql)
-        .setParameter(AT_DATA_SET, dataSet)
-        .setParameter(AT_PERIOD, period)
-        .setParameter(AT_ORG_UNIT, organisationUnit)
-        .executeUpdate();
-  }
+    @Override
+    public long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public void deleteLockExceptions(OrganisationUnit organisationUnit) {
-    final String hql = "delete from LockException where organisationUnit=:organisationUnit";
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "period" ), periodService.reloadPeriod( period ) ) )
+            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
+            .addPredicate( root -> root.get( "dataSet" ).in( dataElement.getDataSets() ) ) );
+    }
 
-    getQuery(hql).setParameter("organisationUnit", organisationUnit).executeUpdate();
-  }
+    @Override
+    public long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-  @Override
-  public long getCount(DataElement dataElement, Period period, OrganisationUnit organisationUnit) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getCount(
-        builder,
-        newJpaParameters()
-            .addPredicate(
-                root -> builder.equal(root.get(AT_PERIOD), periodService.reloadPeriod(period)))
-            .addPredicate(root -> builder.equal(root.get(AT_ORG_UNIT), organisationUnit))
-            .addPredicate(root -> root.get(AT_DATA_SET).in(dataElement.getDataSets())));
-  }
-
-  @Override
-  public long getCount(DataSet dataSet, Period period, OrganisationUnit organisationUnit) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getCount(
-        builder,
-        newJpaParameters()
-            .addPredicate(
-                root -> builder.equal(root.get(AT_PERIOD), periodService.reloadPeriod(period)))
-            .addPredicate(root -> builder.equal(root.get(AT_ORG_UNIT), organisationUnit))
-            .addPredicate(root -> builder.equal(root.get(AT_DATA_SET), dataSet)));
-  }
-
-  @Override
-  public boolean anyExists() {
-    String hql = "from LockException";
-
-    return getQuery(hql).setMaxResults(1).list().size() > 0;
-  }
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "period" ),  periodService.reloadPeriod( period ) ) )
+            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
+            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
+    }
+    
+    @Override
+    public boolean anyExists()
+    {
+        String hql = "from LockException";
+        
+        return getQuery( hql )
+            .setMaxResults( 1 )
+            .list().size() > 0;
+    }
 }

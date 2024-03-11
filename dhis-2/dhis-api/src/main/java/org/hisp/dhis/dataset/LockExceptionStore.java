@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
-import java.util.List;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface LockExceptionStore extends GenericStore<LockException> {
-  List<LockException> getLockExceptions(List<DataSet> dataSets);
+public interface LockExceptionStore
+    extends GenericStore<LockException>
+{
+    String ID = LockExceptionStore.class.getName();
 
-  List<LockException> getLockExceptionCombinations();
+    List<LockException> getAllOrderedName( int first, int max );
 
-  void deleteLockExceptions(DataSet dataSet, Period period);
+    List<LockException> getCombinations();
 
-  void deleteLockExceptions(DataSet dataSet, Period period, OrganisationUnit organisationUnit);
+    void deleteCombination( DataSet dataSet, Period period );
 
-  void deleteLockExceptions(OrganisationUnit organisationUnit);
+    void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
 
-  long getCount(DataElement dataElement, Period period, OrganisationUnit organisationUnit);
+    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
 
-  long getCount(DataSet dataSet, Period period, OrganisationUnit organisationUnit);
-
-  boolean anyExists();
+    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+    
+    boolean anyExists();
 }

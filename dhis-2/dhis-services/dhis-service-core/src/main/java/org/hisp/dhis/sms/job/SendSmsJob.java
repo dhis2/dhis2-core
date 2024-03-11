@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.job;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +27,72 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.job;
 
-import static java.lang.String.format;
-
-import java.util.HashSet;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@RequiredArgsConstructor
-@Component
-public class SendSmsJob implements Job {
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
+import javax.annotation.Resource;
+import java.util.HashSet;
 
-  private final OutboundSmsService outboundSmsService;
+public class SendSmsJob
+    extends AbstractJob
+{
+    @Autowired
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.SMS_SEND;
-  }
+    @Autowired
+    private Notifier notifier;
 
-  @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    SmsJobParameters params = (SmsJobParameters) config.getJobParameters();
-    OutboundSms sms = new OutboundSms();
-    sms.setSubject(params.getSmsSubject());
-    sms.setMessage(params.getMessage());
-    sms.setRecipients(new HashSet<>(params.getRecipientsList()));
+    @Autowired
+    private OutboundSmsService outboundSmsService;
 
-    progress.startingProcess("Send SMS");
+    // -------------------------------------------------------------------------
+    // I18n
+    // -------------------------------------------------------------------------
 
-    progress.startingStage(format("Sending SMS to %d recipients", sms.getRecipients().size()));
-    OutboundMessageResponse status =
-        progress.runStage(
-            (OutboundMessageResponse) null,
-            () -> smsSender.sendMessage(sms.getSubject(), sms.getMessage(), sms.getRecipients()));
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.SMS_SEND;
+    }
 
-    sms.setStatus(
-        status != null && status.isOk() ? OutboundSmsStatus.SENT : OutboundSmsStatus.FAILED);
-    progress.startingStage(format("Persisting outcome as %s", sms.getStatus().name()));
-    progress.runStage(() -> outboundSmsService.save(sms));
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
+        OutboundSms sms = new OutboundSms();
+        sms.setSubject( parameters.getSmsSubject() );
+        sms.setMessage( parameters.getMessage() );
+        sms.setRecipients( new HashSet<>( parameters.getRecipientsList() ) );
 
-    progress.completedProcess(null);
-  }
+        notifier.notify( jobConfiguration, "Sending SMS" );
+
+        OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(), sms.getRecipients() );
+
+        if ( status.isOk() )
+        {
+            notifier.notify( jobConfiguration, "Message sending successful" );
+
+            sms.setStatus( OutboundSmsStatus.SENT );
+        }
+        else
+        {
+            notifier.notify( jobConfiguration, "Message sending failed" );
+
+            sms.setStatus( OutboundSmsStatus.FAILED );
+        }
+
+        outboundSmsService.saveOutboundSms( sms );
+    }
+
 }

@@ -1,1 +1,0 @@
-alter table dataelement add column if not exists valuetypeoptions jsonb default null;

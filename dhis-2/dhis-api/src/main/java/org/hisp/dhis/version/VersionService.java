@@ -1,5 +1,7 @@
+package org.hisp.dhis.version;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +27,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.version;
 
 import java.util.List;
 
 /**
  * @author mortenoh
  */
-public interface VersionService {
-  String ORGANISATIONUNIT_VERSION = "organisationUnit";
+public interface VersionService
+{
+    String ORGANISATIONUNIT_VERSION = "organisationUnit";
 
-  /**
-   * @param version Version object to add.
-   * @return ID of the saved version object.
-   */
-  long addVersion(Version version);
+    String ID = VersionService.class.getName();
 
-  /**
-   * @param version Version object to update.
-   */
-  void updateVersion(Version version);
+    /**
+     * @param version Version object to add.
+     * @return ID of the saved version object.
+     */
+    int addVersion( Version version );
 
-  /**
-   * @param key
-   */
-  void updateVersion(String key);
+    /**
+     * @param version Version object to update.
+     */
+    void updateVersion( Version version );
+    
+    /**
+     * @param key
+     */
+    void updateVersion( String key );
+    
+    /**
+     * @param key
+     * @param value
+     */
+    void updateVersion( String key, String value );
 
-  /**
-   * @param key
-   * @param value
-   */
-  void updateVersion(String key, String value);
+    /**
+     * @param version Version object to delete.
+     */
+    void deleteVersion( Version version );
 
-  /**
-   * @param version Version object to delete.
-   */
-  void deleteVersion(Version version);
+    /**
+     * @param id Get Version with this ID.
+     * @return Version that matched ID, or null if there was no match.
+     */
+    Version getVersion( int id );
 
-  /**
-   * @param id Get Version with this ID.
-   * @return Version that matched ID, or null if there was no match.
-   */
-  Version getVersion(long id);
+    /**
+     * @param key Key to lookup the value with.
+     * @return Version that matched key, or null if there was no match.
+     */
+    Version getVersionByKey( String key );
 
-  /**
-   * @param key Key to lookup the value with.
-   * @return Version that matched key, or null if there was no match.
-   */
-  Version getVersionByKey(String key);
-
-  /**
-   * @return List of all version objects.
-   */
-  List<Version> getAllVersions();
+    /**
+     * @return List of all version objects.
+     */
+    List<Version> getAllVersions();
 }

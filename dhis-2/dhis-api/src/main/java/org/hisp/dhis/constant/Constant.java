@@ -1,5 +1,7 @@
+package org.hisp.dhis.constant;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.constant;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -37,42 +38,48 @@ import org.hisp.dhis.common.MetadataObject;
 /**
  * @author Dang Duy Hieu
  */
-@JacksonXmlRootElement(localName = "constant", namespace = DxfNamespaces.DXF_2_0)
-public class Constant extends BaseNameableObject implements MetadataObject {
-  // -------------------------------------------------------------------------
-  // Variables
-  // -------------------------------------------------------------------------
+@JacksonXmlRootElement( localName = "constant", namespace = DxfNamespaces.DXF_2_0 )
+public class Constant
+    extends BaseNameableObject implements MetadataObject
+{
+    // -------------------------------------------------------------------------
+    // Variables
+    // -------------------------------------------------------------------------
 
-  private double value;
+    private double value;
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public Constant() {}
+    public Constant()
+    {
+    }
 
-  public Constant(String name) {
-    this.name = name;
-    this.shortName = name;
-  }
+    public Constant( String name )
+    {
+        this.name = name;
+    }
 
-  public Constant(String name, double value) {
-    this.name = name;
-    this.shortName = name;
-    this.value = value;
-  }
+    public Constant( String name, double value )
+    {
+        this.name = name;
+        this.value = value;
+    }
 
-  // -------------------------------------------------------------------------
-  // Getter & Setter
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Getter & Setter
+    // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public double getValue() {
-    return value;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public double getValue()
+    {
+        return value;
+    }
 
-  public void setValue(double value) {
-    this.value = value;
-  }
+    public void setValue( double value )
+    {
+        this.value = value;
+    }
 }

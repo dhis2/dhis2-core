@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Objects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
+import org.hisp.dhis.common.adapter.ValueRenderTypeDeserialize;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
@@ -43,219 +45,234 @@ import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 /**
  * @author Viet Nguyen
  */
-@JacksonXmlRootElement(localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramStageDataElement extends BaseIdentifiableObject implements EmbeddedObject {
-  private ProgramStage programStage;
+@JacksonXmlRootElement( localName = "programStageDataElement", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramStageDataElement
+    extends BaseIdentifiableObject implements EmbeddedObject
+{
+    private ProgramStage programStage;
 
-  private DataElement dataElement;
+    private DataElement dataElement;
 
-  /** Whether data element is mandatory for program stage. */
-  private boolean compulsory = false;
+    /**
+     * True if this dataElement is mandatory in the dataEntryForm for this
+     * programStage
+     */
+    private boolean compulsory = false;
 
-  private Boolean allowProvidedElsewhere = false;
+    private Boolean allowProvidedElsewhere = false;
 
-  private Integer sortOrder;
+    private Integer sortOrder;
 
-  private Boolean displayInReports = false;
+    private Boolean displayInReports = false;
 
-  /** Whether to allow capture of events in the future. */
-  private Boolean allowFutureDate = false;
+    private Boolean allowFutureDate = false;
 
-  // Remove this in the future, will be replaced by renderType
-  private Boolean renderOptionsAsRadio = false;
+    // Remove this in the future, will be replaced by renderType
+    private Boolean renderOptionsAsRadio = false;
 
-  private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
+    /**
+     * The renderType defines how the ProgramStageSection should be rendered on the client
+     */
+    private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
-  /** Whether to skip data element in data synchronization. */
-  private Boolean skipSynchronization = false;
+    private Boolean skipSynchronization = false;
 
-  /** Whether to skip data element in analytics tables and queries, not null. */
-  private Boolean skipAnalytics = false;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    public ProgramStageDataElement()
+    {
+    }
 
-  public ProgramStageDataElement() {}
+    public ProgramStageDataElement( ProgramStage programStage, DataElement dataElement )
+    {
+        this.programStage = programStage;
+        this.dataElement = dataElement;
+    }
 
-  public ProgramStageDataElement(ProgramStage programStage, DataElement dataElement) {
-    this.programStage = programStage;
-    this.dataElement = dataElement;
-  }
+    public ProgramStageDataElement( ProgramStage programStage, DataElement dataElement, boolean compulsory )
+    {
+        this.programStage = programStage;
+        this.dataElement = dataElement;
+        this.compulsory = compulsory;
+    }
 
-  public ProgramStageDataElement(
-      ProgramStage programStage, DataElement dataElement, boolean compulsory) {
-    this.programStage = programStage;
-    this.dataElement = dataElement;
-    this.compulsory = compulsory;
-  }
+    public ProgramStageDataElement( ProgramStage programStage, DataElement dataElement, boolean compulsory,
+        Integer sortOrder )
+    {
+        this.programStage = programStage;
+        this.dataElement = dataElement;
+        this.compulsory = compulsory;
+        this.sortOrder = sortOrder;
+    }
 
-  public ProgramStageDataElement(
-      ProgramStage programStage, DataElement dataElement, boolean compulsory, Integer sortOrder) {
-    this.programStage = programStage;
-    this.dataElement = dataElement;
-    this.compulsory = compulsory;
-    this.sortOrder = sortOrder;
-  }
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStage getProgramStage() {
-    return programStage;
-  }
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
+    }
 
-  public void setProgramStage(ProgramStage programStage) {
-    this.programStage = programStage;
-  }
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElement getDataElement()
+    {
+        return dataElement;
+    }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public DataElement getDataElement() {
-    return dataElement;
-  }
+    public void setDataElement( DataElement dataElement )
+    {
+        this.dataElement = dataElement;
+    }
 
-  public void setDataElement(DataElement dataElement) {
-    this.dataElement = dataElement;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getAllowProvidedElsewhere()
+    {
+        return allowProvidedElsewhere;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getAllowProvidedElsewhere() {
-    return allowProvidedElsewhere;
-  }
+    public void setAllowProvidedElsewhere( Boolean allowProvidedElsewhere )
+    {
+        this.allowProvidedElsewhere = allowProvidedElsewhere;
+    }
 
-  public void setAllowProvidedElsewhere(Boolean allowProvidedElsewhere) {
-    this.allowProvidedElsewhere = allowProvidedElsewhere;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCompulsory()
+    {
+        return compulsory;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isCompulsory() {
-    return compulsory;
-  }
+    public void setCompulsory( boolean compulsory )
+    {
+        this.compulsory = compulsory;
+    }
 
-  public void setCompulsory(boolean compulsory) {
-    this.compulsory = compulsory;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getSortOrder()
+    {
+        return sortOrder;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Integer getSortOrder() {
-    return sortOrder;
-  }
+    public void setSortOrder( Integer sortOrder )
+    {
+        this.sortOrder = sortOrder;
+    }
 
-  public void setSortOrder(Integer sortOrder) {
-    this.sortOrder = sortOrder;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getDisplayInReports()
+    {
+        return displayInReports;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getDisplayInReports() {
-    return displayInReports;
-  }
+    public void setDisplayInReports( Boolean displayInReports )
+    {
+        this.displayInReports = displayInReports;
+    }
 
-  public void setDisplayInReports(Boolean displayInReports) {
-    this.displayInReports = displayInReports;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getAllowFutureDate()
+    {
+        return allowFutureDate;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getAllowFutureDate() {
-    return allowFutureDate;
-  }
+    public void setAllowFutureDate( Boolean allowFutureDate )
+    {
+        this.allowFutureDate = allowFutureDate;
+    }
 
-  public void setAllowFutureDate(Boolean allowFutureDate) {
-    this.allowFutureDate = allowFutureDate;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getRenderOptionsAsRadio()
+    {
+        return renderOptionsAsRadio;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getRenderOptionsAsRadio() {
-    return renderOptionsAsRadio;
-  }
+    public void setRenderOptionsAsRadio( Boolean renderOptionsAsRadio )
+    {
+        this.renderOptionsAsRadio = renderOptionsAsRadio;
+    }
 
-  public void setRenderOptionsAsRadio(Boolean renderOptionsAsRadio) {
-    this.renderOptionsAsRadio = renderOptionsAsRadio;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonDeserialize( using = ValueRenderTypeDeserialize.class )
+    @JsonSerialize( using = DeviceRenderTypeMapSerializer.class )
+    public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType()
+    {
+        return renderType;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @JsonSerialize(using = DeviceRenderTypeMapSerializer.class)
-  public DeviceRenderTypeMap<ValueTypeRenderingObject> getRenderType() {
-    return renderType;
-  }
+    public void setRenderType( DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
+    {
+        this.renderType = renderType;
+    }
 
-  public void setRenderType(DeviceRenderTypeMap<ValueTypeRenderingObject> renderType) {
-    this.renderType = renderType;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getSkipSynchronization() {
-    return skipSynchronization;
-  }
+    public void setSkipSynchronization( Boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
+    }
 
-  public void setSkipSynchronization(Boolean skipSynchronization) {
-    this.skipSynchronization = skipSynchronization;
-  }
+    // -------------------------------------------------------------------------
+    // hashCode, equals and toString
+    // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getSkipAnalytics() {
-    return skipAnalytics;
-  }
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o ) return true;
+        if ( o == null || getClass() != o.getClass() ) return false;
 
-  public void setSkipAnalytics(Boolean skipAnalytics) {
-    this.skipAnalytics = skipAnalytics;
-  }
+        ProgramStageDataElement that = (ProgramStageDataElement) o;
 
-  // -------------------------------------------------------------------------
-  // hashCode, equals and toString
-  // -------------------------------------------------------------------------
+        if ( dataElement != null ? !dataElement.equals( that.dataElement ) : that.dataElement != null ) return false;
+        if ( programStage != null ? !programStage.equals( that.programStage ) : that.programStage != null ) return false;
 
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj
-        || obj instanceof ProgramStageDataElement && objectEquals((ProgramStageDataElement) obj);
-  }
+        return true;
+    }
 
-  private boolean objectEquals(ProgramStageDataElement other) {
-    return Objects.equals(dataElement, other.dataElement)
-        && Objects.equals(programStage, other.programStage);
-  }
+    @Override
+    public int hashCode()
+    {
+        int result = programStage != null ? programStage.hashCode() : 0;
+        result = 31 * result + (dataElement != null ? dataElement.hashCode() : 0);
+        return result;
+    }
 
-  @Override
-  public int hashCode() {
-    int result = programStage != null ? programStage.hashCode() : 0;
-    result = 31 * result + (dataElement != null ? dataElement.hashCode() : 0);
-    return result;
-  }
-
-  @Override
-  public String toString() {
-    return "ProgramStageDataElement{"
-        + "programStage="
-        + programStage
-        + ", dataElement="
-        + dataElement
-        + ", compulsory="
-        + compulsory
-        + ", allowProvidedElsewhere="
-        + allowProvidedElsewhere
-        + ", sortOrder="
-        + sortOrder
-        + ", displayInReports="
-        + displayInReports
-        + ", allowFutureDate="
-        + allowFutureDate
-        + ", renderOptionsAsRadio="
-        + renderOptionsAsRadio
-        + '}';
-  }
+    @Override
+    public String toString()
+    {
+        return "ProgramStageDataElement{" +
+            "programStage=" + programStage +
+            ", dataElement=" + dataElement +
+            ", compulsory=" + compulsory +
+            ", allowProvidedElsewhere=" + allowProvidedElsewhere +
+            ", sortOrder=" + sortOrder +
+            ", displayInReports=" + displayInReports +
+            ", allowFutureDate=" + allowFutureDate +
+            ", renderOptionsAsRadio=" + renderOptionsAsRadio +
+            '}';
+    }
 }

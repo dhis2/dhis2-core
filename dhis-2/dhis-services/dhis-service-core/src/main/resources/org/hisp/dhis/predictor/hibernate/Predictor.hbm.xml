@@ -15,8 +15,6 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
-
     <property name="description" type="text" />
 
     <many-to-one name="generator" column="generatorexpressionid" class="org.hisp.dhis.expression.Expression"
@@ -41,21 +39,11 @@
         foreign-key="fk_predictororgunitlevels_orgunitlevelid" />
     </set>
 
-    <property name="organisationUnitDescendants" column="organisationunitdescendants" length="100" not-null="true">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.common.OrganisationUnitDescendants</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
     <property name="sequentialSampleCount" column="sequentialsamplecount" not-null="true" />
 
     <property name="annualSampleCount" column="annualsamplecount" not-null="true" />
 
     <property name="sequentialSkipCount" column="sequentialskipcount" />
-
-    <property name="translations" type="jblTranslations"/>
 
     <set name="groups" table="predictorgroupmembers" inverse="true">
       <key column="predictorid" />

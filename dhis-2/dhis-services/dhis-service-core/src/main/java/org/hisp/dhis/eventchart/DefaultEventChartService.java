@@ -1,5 +1,7 @@
+package org.hisp.dhis.eventchart;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,70 +27,74 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventchart;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
- * @author Lars Helge Overland
- */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.eventchart.EventChartService")
-public class DefaultEventChartService extends GenericAnalyticalObjectService<EventChart>
-    implements EventChartService {
-  @Qualifier("org.hisp.dhis.eventchart.EventChartStore")
-  private final HibernateAnalyticalObjectStore<EventChart> eventChartStore;
+* @author Lars Helge Overland
+*/
+@Transactional
+public class DefaultEventChartService
+    extends GenericAnalyticalObjectService<EventChart>
+    implements EventChartService
+{
+    private HibernateAnalyticalObjectStore<EventChart> eventChartStore;
 
-  // -------------------------------------------------------------------------
-  // EventReportService implementation
-  // -------------------------------------------------------------------------
+    public void setEventChartStore( HibernateAnalyticalObjectStore<EventChart> eventChartStore )
+    {
+        this.eventChartStore = eventChartStore;
+    }
 
-  @Override
-  protected AnalyticalObjectStore<EventChart> getAnalyticalObjectStore() {
-    return eventChartStore;
-  }
+    // -------------------------------------------------------------------------
+    // EventReportService implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  public long saveEventChart(EventChart eventChart) {
-    eventChartStore.save(eventChart);
+    @Override
+    protected AnalyticalObjectStore<EventChart> getAnalyticalObjectStore()
+    {
+        return eventChartStore;
+    }
+    
+    @Override
+    public int saveEventChart( EventChart eventChart )
+    {
+        eventChartStore.save( eventChart );
 
-    return eventChart.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateEventChart(EventChart eventChart) {
-    eventChartStore.update(eventChart);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public EventChart getEventChart(long id) {
-    return eventChartStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public EventChart getEventChart(String uid) {
-    return eventChartStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional
-  public void deleteEventChart(EventChart eventChart) {
-    eventChartStore.delete(eventChart);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<EventChart> getAllEventCharts() {
-    return eventChartStore.getAll();
-  }
+        return eventChart.getId();
+    }
+    
+    @Override
+    public void updateEventChart( EventChart eventChart )
+    {
+        eventChartStore.update( eventChart );
+    }
+    
+    @Override
+    public EventChart getEventChart( int id )
+    {
+        return eventChartStore.get( id );
+    }
+    
+    @Override
+    public EventChart getEventChart( String uid )
+    {
+        return eventChartStore.getByUid( uid );
+    }
+    
+    @Override
+    public void deleteEventChart( EventChart eventChart )
+    {
+        eventChartStore.delete( eventChart );
+    }
+    
+    @Override
+    public List<EventChart> getAllEventCharts()
+    {
+        return eventChartStore.getAll();
+    }
 }

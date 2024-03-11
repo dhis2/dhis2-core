@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_SPECIAL;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.regex.Pattern;
 
-/** Created by zubair on 16.03.17. */
-public class SpecialCharacterValidationRule implements PasswordValidationRule {
-  private static final Pattern SPECIAL_CHARACTER = Pattern.compile(".*[^A-Za-z0-9].*");
+/**
+ * Created by zubair on 16.03.17.
+ */
+public class SpecialCharacterValidationRule
+        implements PasswordValidationRule
+{
+    private static final Pattern SPECIAL_CHARACTER = Pattern.compile( ".*[^A-Za-z0-9].*" );
 
-  @Override
-  public PasswordValidationResult validate(CredentialsInfo credentials) {
-    return !SPECIAL_CHARACTER.matcher(credentials.getPassword()).matches()
-        ? new PasswordValidationResult(PASSWORD_MUST_HAVE_SPECIAL)
-        : PasswordValidationResult.VALID;
-  }
+    public static final String ERROR = "Password must have at least one special character";
+    public static final String I18_ERROR = "password_specialcharacter_validation";
+
+    @Override
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
+        if ( !SPECIAL_CHARACTER.matcher( credentialsInfo.getPassword() ).matches() )
+        {
+            return new PasswordValidationResult( ERROR, I18_ERROR ,false );
+        }
+
+        return new PasswordValidationResult( true );
+    }
+
+    @Override
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    {
+        return true;
+    }
 }

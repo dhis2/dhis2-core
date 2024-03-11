@@ -1,5 +1,7 @@
+package org.hisp.dhis.security;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +27,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
 
-import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same security context as
- * the creator, you must implement the call method.
+ * Implementation of a runnable that makes sure the thread is run in the same
+ * security context as the creator, you must implement the call method.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable {
-  private final SecurityContext securityContext;
+public abstract class SecurityContextRunnable
+    implements Runnable
+{
+    private final SecurityContext securityContext;
 
-  public SecurityContextRunnable() {
-    this(SecurityContextHolder.getContext());
-  }
-
-  @Override
-  public final void run() {
-    try {
-      SecurityContextHolder.setContext(securityContext);
-      before();
-      call();
-    } catch (Throwable ex) {
-      handleError(ex);
-    } finally {
-      after();
-      SecurityContextHolder.clearContext();
+    public SecurityContextRunnable()
+    {
+        this.securityContext = SecurityContextHolder.getContext();
     }
-  }
 
-  public abstract void call();
+    @Override
+    final public void run()
+    {
+        try
+        {
+            SecurityContextHolder.setContext( securityContext );
+            before();
+            call();
+        }
+        finally
+        {
+            after();
+            SecurityContextHolder.clearContext();
+        }
+    }
 
-  /** Hook invoked before {@link #call()}. */
-  public void before() {}
+    public abstract void call();
+    
+    /**
+     * Hook invoked before {@link #call()}.
+     */
+    public void before()
+    {
+    }
 
-  /** Hook invoked after {@link #call()}. */
-  public void after() {}
-
-  public void handleError(Throwable ex) {}
+    /**
+     * Hook invoked after {@link #call()}.
+     */
+    public void after()
+    {   
+    }
 }

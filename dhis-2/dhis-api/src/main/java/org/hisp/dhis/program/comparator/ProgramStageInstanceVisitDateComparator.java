@@ -1,5 +1,7 @@
+package org.hisp.dhis.program.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+
+import org.hisp.dhis.program.ProgramStageInstance;
 
 import java.util.Comparator;
 import java.util.Date;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Chau Thu Tran
+ * @version ProgramStageInstanceVisitDateComparator.java 8:24:02 PM Mar 5, 2013
+ *          $
  */
-public class ProgramStageInstanceVisitDateComparator implements Comparator<ProgramStageInstance> {
-  @Override
-  public int compare(
-      ProgramStageInstance programStageInstance1, ProgramStageInstance programStageInstance2) {
-    Date d1 =
-        (programStageInstance1.getExecutionDate() != null)
-            ? programStageInstance1.getExecutionDate()
-            : programStageInstance1.getDueDate();
-    Date d2 =
-        (programStageInstance2.getExecutionDate() != null)
-            ? programStageInstance2.getExecutionDate()
-            : programStageInstance2.getDueDate();
-    if (d1.before(d2)) {
-      return -1;
-    } else if (d1.after(d2)) {
-      return 1;
+public class ProgramStageInstanceVisitDateComparator
+    implements Comparator<ProgramStageInstance>
+{
+    @Override
+    public int compare( ProgramStageInstance programStageInstance1, ProgramStageInstance programStageInstance2 )
+    {
+        Date d1 = (programStageInstance1.getExecutionDate() != null) ? programStageInstance1.getExecutionDate() : programStageInstance1.getDueDate();
+        Date d2 = (programStageInstance2.getExecutionDate() != null) ? programStageInstance2.getExecutionDate() : programStageInstance2.getDueDate();
+        if ( d1.before( d2 ) )
+        {
+            return -1;
+        }
+        else if ( d1.after( d2 ) )
+        {
+            return 1;
+        }
+        return 0;
     }
-    return 0;
-  }
 }

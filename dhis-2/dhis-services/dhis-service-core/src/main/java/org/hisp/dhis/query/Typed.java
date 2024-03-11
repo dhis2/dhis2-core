@@ -1,5 +1,7 @@
+package org.hisp.dhis.query;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +27,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
 
-import static java.util.Arrays.stream;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.hisp.dhis.schema.Klass;
 
+import com.google.common.collect.Iterators;
+
 /**
- * Simple class for checking if an object is one of several allowed classes, mainly used in Operator
- * where a parameter can be type constrained.
+ * Simple class for checking if an object is one of several allowed classes, mainly used in Operator where
+ * a parameter can be type constrained.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Typed {
-  private final Class<?>[] klasses;
+public class Typed
+{
+    private final Class<?>[] klasses;
 
-  public boolean isValid(Klass klass) {
-    return klass == null || isValid(klass.getKlass());
-  }
-
-  public boolean isValid(Class<?> klass) {
-    if (klasses.length == 0 || klass == null) {
-      return true;
+    public Typed( Class<?>[] klasses )
+    {
+        this.klasses = klasses;
     }
-    return stream(klasses).anyMatch(k -> k != null && k.isAssignableFrom(klass));
-  }
 
-  public static Typed from(Class<?>... klasses) {
-    return new Typed(klasses);
-  }
+    public Class<?>[] getKlasses()
+    {
+        return klasses;
+    }
+
+    public boolean isValid( Klass klass )
+    {
+        return klass == null || isValid( klass.getKlass() );
+    }
+
+    public boolean isValid( Class<?> klass )
+    {
+        if ( klasses.length == 0 || klass == null )
+        {
+            return true;
+        }
+
+        for ( Class<?> k : klasses )
+        {
+            if ( k != null && k.isAssignableFrom( klass ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static Typed from( Class<?>... klasses )
+    {
+        return new Typed( klasses );
+    }
+
+    public static Typed from( Iterable<? extends Class<?>> iterable )
+    {
+        return new Typed( Iterators.toArray( iterable.iterator(), Class.class ) );
+    }
 }

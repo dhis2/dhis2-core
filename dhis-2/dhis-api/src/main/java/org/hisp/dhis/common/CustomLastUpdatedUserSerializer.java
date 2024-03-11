@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import java.io.IOException;
 import org.hisp.dhis.user.User;
+
+import java.io.IOException;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class CustomLastUpdatedUserSerializer extends JsonSerializer<User> {
-  @Override
-  public void serialize(
-      User user, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-      throws IOException {
-    ToXmlGenerator xmlGenerator = null;
-    if (jsonGenerator instanceof ToXmlGenerator) {
-      xmlGenerator = (ToXmlGenerator) jsonGenerator;
-    }
+public class CustomLastUpdatedUserSerializer extends JsonSerializer<User>
+{
+    @Override
+    public void serialize( User user, JsonGenerator jsonGenerator, SerializerProvider serializerProvider ) throws  IOException
+    {
+        ToXmlGenerator xmlGenerator = null;
+        if ( jsonGenerator instanceof ToXmlGenerator )
+        {
+            xmlGenerator = (ToXmlGenerator) jsonGenerator;
+        }
 
-    jsonGenerator.writeStartObject();
-    if (xmlGenerator != null) {
-      xmlGenerator.setNextIsAttribute(true);
-      xmlGenerator.setNextName(null);
+        jsonGenerator.writeStartObject();
+        if ( xmlGenerator != null )
+        {
+            xmlGenerator.setNextIsAttribute( true );
+            xmlGenerator.setNextName( null );
+        }
+        jsonGenerator.writeStringField( "id", user.getUid() );
+        jsonGenerator.writeStringField( "name", user.getDisplayName() );
+        jsonGenerator.writeEndObject();
     }
-    jsonGenerator.writeStringField("id", user.getUid());
-    jsonGenerator.writeStringField("name", user.getDisplayName());
-    jsonGenerator.writeEndObject();
-  }
 }

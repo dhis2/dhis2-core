@@ -1,5 +1,7 @@
+package org.hisp.dhis.resourcetable.table;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable.table;
-
-import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.period.Cal;
@@ -43,100 +43,95 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
-public class DatePeriodResourceTable extends ResourceTable<Integer> {
-  private final String tableType;
-
-  /**
-   * Constructor method.
-   *
-   * @param years the list of years that periods will be generated for.
-   * @param tableType the table type.
-   */
-  public DatePeriodResourceTable(List<Integer> years, String tableType) {
-    super(years);
-    this.tableType = tableType;
-  }
-
-  @Override
-  public ResourceTableType getTableType() {
-    return ResourceTableType.DATE_PERIOD_STRUCTURE;
-  }
-
-  @Override
-  public String getCreateTempTableStatement() {
-    String sql =
-        "create "
-            + tableType
-            + " table "
-            + getTempTableName()
-            + " (dateperiod date not null primary key, year integer not null";
-
-    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
-      sql += ", " + quote(periodType.getName().toLowerCase()) + " varchar(15)";
+public class DatePeriodResourceTable
+    extends ResourceTable<Period>
+{
+    public DatePeriodResourceTable( List<Period> objects )
+    {
+        super( objects );
+    }
+    
+    @Override
+    public ResourceTableType getTableType()
+    {
+        return ResourceTableType.DATE_PERIOD_STRUCTURE;
     }
 
-    sql += ")";
-
-    return sql;
-  }
-
-  @Override
-  public Optional<String> getPopulateTempTableStatement() {
-    return Optional.empty();
-  }
-
-  @Override
-  public Optional<List<Object[]>> getPopulateTempTableContent() {
-    List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-
-    List<Object[]> batchArgs = new ArrayList<>();
-
-    int firstYearSupported = objects.get(0);
-    int lastYearSupported = objects.get(objects.size() - 1);
-
-    Date startDate = new Cal(firstYearSupported, 1, 1, true).time();
-    Date endDate = new Cal(lastYearSupported + 1, 1, 1, true).time();
-
-    List<Period> dailyPeriods = new DailyPeriodType().generatePeriods(startDate, endDate);
-
-    List<Date> days =
-        new UniqueArrayList<>(dailyPeriods.stream().map(Period::getStartDate).collect(toList()));
-
-    Calendar calendar = PeriodType.getCalendar();
-
-    for (Date day : days) {
-      List<Object> values = new ArrayList<>();
-
-      int year = PeriodType.getCalendar().fromIso(day).getYear();
-
-      values.add(day);
-      values.add(year);
-
-      for (PeriodType periodType : periodTypes) {
-        values.add(periodType.createPeriod(day, calendar).getIsoDate());
-      }
-
-      batchArgs.add(values.toArray());
+    @Override
+    public String getCreateTempTableStatement()
+    {
+        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key, year integer not null";
+        
+        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+        {
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
+        }
+        
+        sql += ")";
+        
+        return sql;        
     }
 
-    return Optional.of(batchArgs);
-  }
-
-  @Override
-  public List<String> getCreateIndexStatements() {
-    List<String> indexes = new ArrayList<>();
-
-    for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
-      String colName = periodType.getName().toLowerCase();
-      String indexName = "in" + getTableName() + "_" + colName + "_" + getRandomSuffix();
-      String sql =
-          "create index " + indexName + " on " + getTempTableName() + "(" + quote(colName) + ")";
-      indexes.add(sql);
+    @Override
+    public Optional<String> getPopulateTempTableStatement()
+    {
+        return Optional.empty();
     }
 
-    return indexes;
-  }
+    @Override
+    public Optional<List<Object[]>> getPopulateTempTableContent()
+    {
+        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
+
+        List<Object[]> batchArgs = new ArrayList<>();
+
+        Date startDate = new Cal( 1975, 1, 1, true ).time(); //TODO
+        Date endDate = new Cal( 2025, 1, 1, true ).time();
+        
+        List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
+
+        List<Date> days = new UniqueArrayList<>( dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
+
+        Calendar calendar = PeriodType.getCalendar();
+
+        for ( Date day : days )
+        {
+            List<Object> values = new ArrayList<>();
+
+            final int year = PeriodType.getCalendar().fromIso( day ).getYear();
+            
+            values.add( day );
+            values.add( year );
+
+            for ( PeriodType periodType : periodTypes )
+            {
+                values.add( periodType.createPeriod( day, calendar ).getIsoDate() );
+            }
+
+            batchArgs.add( values.toArray() );
+        }
+
+        return Optional.of( batchArgs );
+    }
+
+    @Override
+    public List<String> getCreateIndexStatements()
+    {
+        List<String> indexes = new ArrayList<>();
+
+        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+        {
+            String colName = periodType.getName().toLowerCase();
+            String indexName = "in" + getTableName() + "_" + colName + "_" + getRandomSuffix();
+            String sql = "create index " + indexName + " on " + getTempTableName() + "(" + quote( colName ) + ")";
+            indexes.add( sql );
+        }
+        
+        return indexes;
+    }
 }

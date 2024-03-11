@@ -1,5 +1,7 @@
+package org.hisp.dhis.eventchart;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,76 +27,115 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventchart;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+
+import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-@Component
 public class EventChartDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventChart, EventChartService> {
-  public EventChartDeletionHandler(EventChartService eventChartService) {
-    super(new DeletionVeto(EventChart.class), eventChartService);
-  }
+    extends GenericAnalyticalObjectDeletionHandler<EventChart>
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected void registerHandler() {
-    // generic
-    whenDeleting(Period.class, this::deletePeriod);
-    whenVetoing(Period.class, this::allowDeletePeriod);
-    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
-    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
-    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);
-    // special
-    whenDeleting(DataElement.class, this::deleteDataElementSpecial);
-    whenDeleting(ProgramStage.class, this::deleteProgramStage);
-    whenDeleting(Program.class, this::deleteProgram);
-  }
+    @Autowired
+    private EventChartService eventChartService;
 
-  private void deleteDataElementSpecial(DataElement dataElement) {
-    List<EventChart> eventCharts = service.getAnalyticalObjectsByDataDimension(dataElement);
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
 
-    for (EventChart chart : eventCharts) {
-      chart
-          .getDataElementDimensions()
-          .removeIf(
-              trackedEntityDataElementDimension ->
-                  trackedEntityDataElementDimension.getDataElement().equals(dataElement));
-
-      service.update(chart);
+    @Override
+    protected AnalyticalObjectService<EventChart> getAnalyticalObjectService()
+    {
+        return eventChartService;
     }
-  }
-
-  private void deleteProgramStage(ProgramStage programStage) {
-    Collection<EventChart> charts = service.getAllEventCharts();
-
-    for (EventChart chart : charts) {
-      if (chart.getProgramStage().equals(programStage)) {
-        service.deleteEventChart(chart);
-      }
+    
+    @Override
+    protected String getClassName()
+    {
+        return EventChart.class.getSimpleName();
     }
-  }
 
-  private void deleteProgram(Program program) {
-    Collection<EventChart> charts = service.getAllEventCharts();
-
-    for (EventChart chart : charts) {
-      if (chart.getProgram().equals(program)) {
-        service.deleteEventChart(chart);
-      }
+    @Override
+    public void deleteIndicator( Indicator indicator )
+    {
+        // Ignore default implementation
     }
-  }
+
+    @Override
+    public void deleteDataElement( DataElement dataElement )
+    {
+        List<EventChart> eventCharts = getAnalyticalObjectService().getAnalyticalObjectsByDataDimension( dataElement );
+        
+        for ( EventChart chart : eventCharts )
+        {
+            Iterator<TrackedEntityDataElementDimension> dimensions = chart.getDataElementDimensions().iterator();
+            
+            while ( dimensions.hasNext() )
+            {
+                if ( dimensions.next().getDataElement().equals( dataElement ) )
+                {
+                    dimensions.remove();
+                }
+            }
+            
+            eventChartService.update( chart );
+        }
+    }
+
+    @Override
+    public void deleteDataSet( DataSet dataSet )
+    {
+        // Ignore default implementation
+    }
+
+    @Override
+    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    {
+     // Ignore default implementation
+    }
+    
+    @Override
+    public void deleteProgramStage( ProgramStage programStage )
+    {
+        Collection<EventChart> charts = eventChartService.getAllEventCharts();
+        
+        for ( EventChart chart : charts )
+        {
+            if( chart.getProgramStage().equals( programStage ))
+            {
+                eventChartService.deleteEventChart( chart );
+            }
+        }
+    }
+
+    @Override
+    public void deleteProgram( Program program )
+    {
+        Collection<EventChart> charts = eventChartService.getAllEventCharts();
+        
+        for ( EventChart chart : charts )
+        {
+            if ( chart.getProgram().equals( program ))
+            {
+                eventChartService.deleteEventChart( chart );
+            }
+        }
+    }
 }

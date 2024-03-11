@@ -1,5 +1,7 @@
+package org.hisp.dhis.security.spring2fa;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,134 +27,109 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.spring2fa;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
+import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.security.SecurityUtils;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Henning Håkonsen
  */
-@Slf4j
-@Component
-public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
-  @Autowired private UserService userService;
+public class TwoFactorAuthenticationProvider
+    extends DaoAuthenticationProvider
+{
+    private static final Logger log = LoggerFactory.getLogger( TwoFactorAuthenticationProvider.class );
 
-  @Autowired private SecurityService securityService;
+    private UserService userService;
 
-  @Autowired
-  public TwoFactorAuthenticationProvider(
-      @Qualifier("userDetailsService") UserDetailsService detailsService,
-      PasswordEncoder passwordEncoder) {
-    setUserDetailsService(detailsService);
-    setPasswordEncoder(passwordEncoder);
-  }
-
-  @Override
-  public Authentication authenticate(Authentication auth) throws AuthenticationException {
-    String username = auth.getName();
-    String ip = "";
-    if (auth.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails) {
-      ForwardedIpAwareWebAuthenticationDetails details =
-          (ForwardedIpAwareWebAuthenticationDetails) auth.getDetails();
-      ip = details.getIp();
+    public void setUserService( UserService userService )
+    {
+        this.userService = userService;
     }
 
-    log.debug(String.format("Login attempt: %s", username));
+    private SecurityService securityService;
 
-    // If enabled, temporarily block user with too many failed attempts
-    if (securityService.isLocked(username)) {
-      log.debug(String.format("Temporary lockout for user: %s and IP: %s", username, ip));
-      throw new LockedException(String.format("IP is temporarily locked: %s", ip));
+    public void setSecurityService( SecurityService securityService )
+    {
+        this.securityService = securityService;
     }
 
-    Authentication result = super.authenticate(auth);
+    @Override
+    public Authentication authenticate( Authentication auth )
+        throws AuthenticationException
+    {
+        log.info( String.format( "Login attempt: %s", auth.getName() ) );
 
-    User user = userService.getUserWithEagerFetchAuthorities(username);
-    if (user == null) {
-      log.info("Invalid username; username={}", username);
-      throw new BadCredentialsException("Invalid username or password");
+        String username = auth.getName();
+
+        UserCredentials userCredentials = userService.getUserCredentialsWithEagerFetchAuthorities( username );
+
+        if ( userCredentials == null )
+        {
+            throw new BadCredentialsException( "Invalid username or password" );
+        }
+
+        // -------------------------------------------------------------------------
+        // Check two-factor authentication
+        // -------------------------------------------------------------------------
+
+        if ( userCredentials.isTwoFA() )
+        {
+            TwoFactorWebAuthenticationDetails authDetails =
+                (TwoFactorWebAuthenticationDetails) auth.getDetails();
+
+            // -------------------------------------------------------------------------
+            // Check whether account is locked due to multiple failed login attempts
+            // -------------------------------------------------------------------------
+
+            if ( authDetails == null )
+            {
+                log.info( "Missing authentication details in authentication request." );
+                throw new PreAuthenticatedCredentialsNotFoundException( "Missing authentication details in authentication request." );
+            }
+
+            String ip = authDetails.getIp();
+            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
+
+            if ( securityService.isLocked( username ) )
+            {
+                log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
+
+                throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
+            }
+
+            if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( userCredentials, code ) )
+            {
+                log.info( String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
+
+                throw new BadCredentialsException( "Invalid verification code" );
+            }
+        }
+
+        // -------------------------------------------------------------------------
+        // Delegate authentication downstream, using UserCredentials as principal
+        // -------------------------------------------------------------------------
+
+        Authentication result = super.authenticate( auth );
+
+        return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(), result.getAuthorities() );
     }
 
-    if (user.isExternalAuth()) {
-      log.info(
-          String.format(
-              "User '%s' is using external authentication, password login attempt aborted",
-              username));
-      throw new BadCredentialsException(
-          "Invalid login method, user is using external authentication.");
+    @Override
+    public boolean supports( Class<?> authentication )
+    {
+        return authentication.equals( UsernamePasswordAuthenticationToken.class );
     }
-
-    validateTwoFactor(user, auth.getDetails());
-
-    return new UsernamePasswordAuthenticationToken(
-        userService.createUserDetails(user), result.getCredentials(), result.getAuthorities());
-  }
-
-  private void validateTwoFactor(User user, Object details) {
-    // If user has 2FA enabled and tries to authenticate with HTTP Basic or OAuth
-    if (user.isTwoFactorEnabled() && !(details instanceof TwoFactorWebAuthenticationDetails)) {
-      throw new PreAuthenticatedCredentialsNotFoundException(
-          "User has 2FA enabled, but tried to authenticate with a non-form based login method; username="
-              + user.getUsername());
-    }
-
-    // If user require 2FA, and it's not enabled/provisioned, redirect to
-    // the enrolment page, (via the CustomAuthFailureHandler)
-    if (userService.hasTwoFactorRoleRestriction(user) && !user.isTwoFactorEnabled()) {
-      throw new TwoFactorAuthenticationEnrolmentException(
-          "User must setup two factor authentication");
-    }
-
-    if (user.isTwoFactorEnabled()) {
-      TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
-      if (authDetails == null) {
-        log.info("Missing authentication details in authentication request.");
-        throw new PreAuthenticatedCredentialsNotFoundException(
-            "Missing authentication details in authentication request.");
-      }
-
-      validateTwoFactorCode(StringUtils.deleteWhitespace(authDetails.getCode()), user);
-    }
-  }
-
-  private void validateTwoFactorCode(String code, User user) {
-    code = StringUtils.deleteWhitespace(code);
-
-    if (!TwoFactoryAuthenticationUtils.verify(code, user.getSecret())) {
-      log.debug(
-          String.format("Two-factor authentication failure for user: %s", user.getUsername()));
-
-      if (UserService.hasTwoFactorSecretForApproval(user)) {
-        userService.resetTwoFactor(user);
-        throw new TwoFactorAuthenticationEnrolmentException("Invalid verification code");
-      } else {
-        throw new TwoFactorAuthenticationException("Invalid verification code");
-      }
-    } else if (UserService.hasTwoFactorSecretForApproval(user)) {
-      userService.approveTwoFactorSecret(user);
-    }
-  }
-
-  @Override
-  public boolean supports(Class<?> authentication) {
-    return authentication.equals(UsernamePasswordAuthenticationToken.class);
-  }
 }

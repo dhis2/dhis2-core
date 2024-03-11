@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataanalysis;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,72 +27,87 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Strings;
+
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @JacksonXmlRootElement
-public class ValidationRuleExpressionDetails {
-  private static final String NAME_PROPERTY_KEY = "name";
+public class ValidationRuleExpressionDetails
+{
+    private static final String NAME_PROPERTY_KEY = "name";
 
-  private static final String VALUE_PROPERTY_KEY = "value";
+    private static final String VALUE_PROPERTY_KEY = "value";
 
-  private List<Map<String, String>> leftSide = new ArrayList<>();
+    private List<Map<String, String>> leftSide = new ArrayList<>();
 
-  private List<Map<String, String>> rightSide = new ArrayList<>();
+    private List<Map<String, String>> rightSide = new ArrayList<>();
 
-  public static void addDetailTo(String name, String value, List<Map<String, String>> side) {
-    if (!Strings.isNullOrEmpty(name)) {
-      Map<String, String> map = new HashMap<>();
-      map.put(NAME_PROPERTY_KEY, name);
-      map.put(VALUE_PROPERTY_KEY, value);
-
-      side.add(map);
+    public ValidationRuleExpressionDetails()
+    {
     }
-  }
 
-  private Comparator<Map<String, String>> mapComparator =
-      (m1, m2) -> m1.get("name").compareTo(m2.get("name"));
+    public ValidationRuleExpressionDetails( List<Map<String, String>> leftSide, List<Map<String, String>> rightSide )
+    {
+        this.leftSide = leftSide;
+        this.rightSide = rightSide;
+    }
 
-  public void sortByName() {
-    Collections.sort(leftSide, mapComparator);
+    private void addDetailTo( String name, String value, List<Map<String, String>> side )
+    {
+        if ( !Strings.isNullOrEmpty( name ) )
+        {
+            Map<String, String> map = new HashMap<>();
+            map.put( NAME_PROPERTY_KEY, name );
+            map.put( VALUE_PROPERTY_KEY, value );
 
-    Collections.sort(rightSide, mapComparator);
-  }
+            side.add( map );
+        }
+    }
 
-  @JsonProperty
-  public List<Map<String, String>> getLeftSide() {
-    return leftSide;
-  }
+    public void addLeftSideDetail( String name, String value )
+    {
+        addDetailTo( name, value, leftSide );
+    }
 
-  public void setLeftSide(List<Map<String, String>> leftSide) {
-    this.leftSide = leftSide;
-  }
+    public void addRightSideDetail( String name, String value )
+    {
+        addDetailTo( name, value, rightSide );
+    }
 
-  @JsonProperty
-  public List<Map<String, String>> getRightSide() {
-    return rightSide;
-  }
+    @JsonProperty
+    public List<Map<String, String>> getLeftSide()
+    {
+        return leftSide;
+    }
 
-  public void setRightSide(List<Map<String, String>> rightSide) {
-    this.rightSide = rightSide;
-  }
+    public void setLeftSide( List<Map<String, String>> leftSide )
+    {
+        this.leftSide = leftSide;
+    }
 
-  @Override
-  public String toString() {
-    return "ValidationRuleExpressionDetails{"
-        + "leftSide="
-        + leftSide
-        + ", rightSide="
-        + rightSide
-        + '}';
-  }
+    @JsonProperty
+    public List<Map<String, String>> getRightSide()
+    {
+        return rightSide;
+    }
+
+    public void setRightSide( List<Map<String, String>> rightSide )
+    {
+        this.rightSide = rightSide;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ValidationRuleExpressionDetails{" +
+            "leftSide=" + leftSide +
+            ", rightSide=" + rightSide +
+            '}';
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@Transactional(readOnly = true)
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.program.EventSyncService")
-public class DefaultEventSyncService implements EventSyncService {
-  private final EventSyncStore eventSyncStore;
+@Transactional
+public class DefaultEventSyncService implements EventSyncService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
+    private EventSyncStore eventSyncStore;
 
-  @Override
-  public List<ProgramStageInstance> getEvents(List<String> uids) {
-    return eventSyncStore.getEvents(uids);
-  }
+    public void setEventSyncStore( EventSyncStore eventSyncStore )
+    {
+        this.eventSyncStore = eventSyncStore;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+    
+    @Override
+    public List<ProgramStageInstance> getEvents( List<String> uids )
+    {
+        return eventSyncStore.getEvents( uids );
+    }
 
-  @Override
-  public ProgramStageInstance getEvent(String uid) {
-    return eventSyncStore.getEvent(uid);
-  }
+    @Override
+    public ProgramStageInstance getEvent( String uid )
+    {
+        return eventSyncStore.getEvent( uid );
+    }
 
-  @Override
-  public ProgramInstance getEnrollment(String uid) {
-    return eventSyncStore.getEnrollment(uid);
-  }
+    @Override
+    public ProgramInstance getEnrollment( String uid )
+    {
+        return eventSyncStore.getEnrollment( uid );
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public interface ProgramOwnershipHistoryService {
+public interface ProgramOwnershipHistoryService
+{
 
-  String ID = ProgramOwnershipHistoryService.class.getName();
+    String ID = ProgramOwnershipHistoryService.class.getName();
 
-  /**
-   * Adds program ownership history
-   *
-   * @param programOwnershipHistory the history to add
-   */
-  void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory);
+    /**
+     * Adds program ownership history
+     * 
+     * @param programOwnershipHistory the history to add
+     */
+    void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory );
 }

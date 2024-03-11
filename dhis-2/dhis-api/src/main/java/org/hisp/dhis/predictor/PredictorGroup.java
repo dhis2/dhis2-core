@@ -1,5 +1,7 @@
+package org.hisp.dhis.predictor;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,98 +27,100 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * @author Jim Grace
  */
-@JacksonXmlRootElement(localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0)
-public class PredictorGroup extends BaseIdentifiableObject implements MetadataObject {
-  private String description;
+@JacksonXmlRootElement( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
+public class PredictorGroup
+    extends BaseIdentifiableObject implements MetadataObject
+{
+    private String description;
 
-  private Set<Predictor> members = new HashSet<>();
+    private Set<Predictor> members = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  public PredictorGroup() {}
+    public PredictorGroup()
+    {
 
-  public PredictorGroup(String name, String description, Set<Predictor> members) {
-    this.name = name;
-    this.description = description;
-    this.members = members;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public void addPredictor(Predictor predictor) {
-    members.add(predictor);
-    predictor.getGroups().add(this);
-  }
-
-  public void removePredictor(Predictor predictor) {
-    members.remove(predictor);
-    predictor.getGroups().remove(this);
-  }
-
-  public void removeAllPredictors() {
-    for (Predictor predictor : members) {
-      predictor.getGroups().remove(this);
     }
 
-    members.clear();
-  }
+    public PredictorGroup( String name, String description, Set<Predictor> members )
+    {
+        this.name = name;
+        this.description = description;
+        this.members = members;
+    }
 
-  public List<Predictor> getSortedMembers() {
-    List<Predictor> predictors = new ArrayList<>(members);
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
 
-    predictors.sort(Comparator.comparing(BaseIdentifiableObject::getName));
+    public void addPredictor( Predictor predictor )
+    {
+        members.add( predictor );
+        predictor.getGroups().add( this );
+    }
 
-    return predictors;
-  }
+    public void removePredictor( Predictor predictor )
+    {
+        members.remove( predictor );
+        predictor.getGroups().remove( this );
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    public void removeAllPredictors()
+    {
+        for ( Predictor predictor : members )
+        {
+            predictor.getGroups().remove( this );
+        }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
-  public String getDescription() {
-    return description;
-  }
+        members.clear();
+    }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  @JsonProperty("predictors")
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "predictors", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "predictor", namespace = DxfNamespaces.DXF_2_0)
-  public Set<Predictor> getMembers() {
-    return members;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 2 )
+    public String getDescription()
+    {
+        return description;
+    }
 
-  public void setMembers(Set<Predictor> members) {
-    this.members = members;
-  }
-}
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
+
+    @JsonProperty( "predictors" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Predictor> getMembers()
+    {
+        return members;
+    }
+
+    public void setMembers( Set<Predictor> members )
+    {
+        this.members = members;
+    }}

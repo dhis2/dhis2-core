@@ -1,5 +1,7 @@
+package org.hisp.dhis.programrule;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule;
 
 import java.util.List;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -35,30 +37,16 @@ import org.hisp.dhis.program.Program;
 /**
  * @author markusbekken
  */
-public interface ProgramRuleVariableStore extends IdentifiableObjectStore<ProgramRuleVariable> {
-  /**
-   * Get programRuleVariable by program
-   *
-   * @param program {@link Program}
-   * @return ProgramRuleVariable list
-   */
-  List<ProgramRuleVariable> get(Program program);
+public interface ProgramRuleVariableStore
+    extends IdentifiableObjectStore<ProgramRuleVariable>
+{
+    /**
+     * Get programRuleVariable by program
+     *
+     * @param program {@link Program}
+     * @return ProgramRuleVariable list
+     */
+    List<ProgramRuleVariable> get( Program program );
 
-  /**
-   * @param program program
-   * @param dataElement to find association with
-   * @return list of ProgramRuleVariables associated with given dataElement
-   */
-  List<ProgramRuleVariable> getProgramVariables(Program program, DataElement dataElement);
-
-  /**
-   * @return all ProgramRuleVariables which are linked to {@link DataElement}.
-   */
-  List<ProgramRuleVariable> getVariablesWithNoDataElement();
-
-  /**
-   * @return all ProgramRuleVariables which are linked to {@link
-   *     org.hisp.dhis.trackedentity.TrackedEntityAttribute}
-   */
-  List<ProgramRuleVariable> getVariablesWithNoAttribute();
+    List<ProgramRuleVariable> getProgramVariables( Program program, DataElement dataElement );
 }

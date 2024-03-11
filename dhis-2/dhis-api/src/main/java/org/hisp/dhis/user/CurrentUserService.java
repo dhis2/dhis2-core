@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,115 +27,66 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This interface defined methods for getting access to the currently logged in user and clearing
- * the logged in state. If no user is logged in or the auto access admin is active, all user access
- * methods will return null.
- *
+ * This interface defined methods for getting access to the currently logged in
+ * user and clearing the logged in state. If no user is logged in or the auto
+ * access admin is active, all user access methods will return null.
+ * 
  * @author Torgeir Lorange Ostby
+ * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
-@Service("org.hisp.dhis.user.CurrentUserService")
-public class CurrentUserService {
-  private final UserStore userStore;
+public interface CurrentUserService
+{
+    String ID = CurrentUserService.class.getName();
 
-  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+    /**
+     * @return the username of the currently logged in user. If no user is
+     *          logged in or the auto access admin is active, null is returned.
+     */
+    String getCurrentUsername();
+    
+    /**
+     * @return the currently logged in user. If no user is logged in or the auto
+     *          access admin is active, null is returned.
+     */
+    User getCurrentUser();
+    
+    /**
+     * @return the user info for the currently logged in user. If no user is 
+     *          logged in or the auto access admin is active, null is returned.
+     */
+    UserInfo getCurrentUserInfo();
+    
+    /**
+     * @return the data capture organisation units of the current user, empty set
+     *          if no current user.
+     */
+    Set<OrganisationUnit> getCurrentUserOrganisationUnits();
+    
+    /**
+     * @return true if the current logged in user has the ALL privileges set, false
+     *          otherwise.
+     */
+    boolean currentUserIsSuper();
 
-  private final SessionRegistry sessionRegistry;
+    /**
+     * Clears the current logged in state, which means that the currently logged
+     * in user is logged out.
+     */
+    void clearCurrentUser();
+    
+    /**
+     * Indicates whether the current user has been granted the given authority.
+     */
+    boolean currentUserIsAuthorized( String auth );
 
-  public CurrentUserService(
-      @Lazy UserStore userStore, CacheProvider cacheProvider, SessionRegistry sessionRegistry) {
-    checkNotNull(userStore);
-
-    this.userStore = userStore;
-    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
-    this.sessionRegistry = sessionRegistry;
-  }
-
-  /**
-   * @return the username of the currently logged in user. If no user is logged in or the auto
-   *     access admin is active, null is returned.
-   */
-  public String getCurrentUsername() {
-    return CurrentUserUtil.getCurrentUsername();
-  }
-
-  public User getCurrentUser() {
-    String username = CurrentUserUtil.getCurrentUsername();
-
-    return userStore.getUserByUsername(username, false);
-  }
-
-  @Transactional(readOnly = true)
-  public boolean currentUserIsSuper() {
-    User user = getCurrentUser();
-
-    return user != null && user.isSuper();
-  }
-
-  @Transactional(readOnly = true)
-  public Set<OrganisationUnit> getCurrentUserOrganisationUnits() {
-    User user = getCurrentUser();
-
-    return user != null ? new HashSet<>(user.getOrganisationUnits()) : new HashSet<>();
-  }
-
-  @Transactional(readOnly = true)
-  public boolean currentUserIsAuthorized(String auth) {
-    User user = getCurrentUser();
-
-    return user != null && user.isAuthorized(auth);
-  }
-
-  @Transactional(readOnly = true)
-  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
-    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-
-    return user == null ? null : getCurrentUserGroupsInfo(user.getUid());
-  }
-
-  @Transactional(readOnly = true)
-  public CurrentUserGroupInfo getCurrentUserGroupsInfo(String userUID) {
-    return currentUserGroupInfoCache.get(userUID, key -> userStore.getCurrentUserGroupInfo(key));
-  }
-
-  @Transactional(readOnly = true)
-  public void invalidateUserGroupCache(String userUID) {
-    try {
-      currentUserGroupInfoCache.invalidate(userUID);
-    } catch (NullPointerException exception) {
-      // Ignore if key doesn't exist
-    }
-  }
-
-  public CurrentUserDetailsImpl getCurrentUserPrincipal(String uid) {
-    return sessionRegistry.getAllPrincipals().stream()
-        .map(CurrentUserDetailsImpl.class::cast)
-        .filter(principal -> principal.getUid().equals(uid))
-        .findFirst()
-        .orElse(null);
-  }
-
-  public void invalidateUserSessions(String uid) {
-    CurrentUserDetailsImpl principal = getCurrentUserPrincipal(uid);
-    if (principal != null) {
-      List<SessionInformation> allSessions = sessionRegistry.getAllSessions(principal, false);
-      allSessions.forEach(SessionInformation::expireNow);
-    }
-  }
+    /**
+     * Expire all the sessions associated with current user.
+     */
+    void expireUserSessions();
 }

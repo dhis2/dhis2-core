@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author Lars Helge Overland
  */
-public class MapMap<T, U, V> extends HashMap<T, Map<U, V>> {
-  public Map<U, V> putEntry(T key, U valueKey, V value) {
-    Map<U, V> map = this.computeIfAbsent(key, k -> new HashMap<>());
-    map.put(valueKey, value);
-    return map;
-  }
-
-  public void putEntries(T key, Map<U, V> m) {
-    Map<U, V> map = this.computeIfAbsent(key, k -> new HashMap<>());
-    map.putAll(m);
-  }
-
-  public void putMap(MapMap<T, U, V> map) {
-    for (Map.Entry<T, Map<U, V>> entry : map.entrySet()) {
-      this.putEntries(entry.getKey(), entry.getValue());
+public class MapMap<T, U, V>
+    extends HashMap<T, Map<U, V>>
+{
+    public Map<U, V> putEntry( T key, U valueKey, V value )
+    {
+        Map<U, V> map = this.get( key );
+        map = map == null ? new HashMap<>() : map;
+        map.put( valueKey, value );
+        return this.put( key, map );
     }
-  }
-
-  public V getValue(T key, U valueKey) {
-    Map<U, V> map = this.get(key);
-    return map == null ? null : map.get(valueKey);
-  }
-
-  @SafeVarargs
-  public static <T, U, V> MapMap<T, U, V> ofEntries(Map.Entry<T, Map<U, V>>... entries) {
-    MapMap<T, U, V> map = new MapMap<>();
-
-    for (Map.Entry<T, Map<U, V>> entry : entries) {
-      map.put(entry.getKey(), entry.getValue());
+    
+    public void putEntries( T key, Map<U, V> m )
+    {
+        Map<U, V> map = this.get( key );
+        map = map == null ? new HashMap<>() : map;
+        map.putAll( m );
+        this.put( key, map );
     }
 
-    return map;
-  }
+    public void putMap( MapMap<T, U, V> map )
+    {
+        for ( Map.Entry<T, Map<U, V>> entry : map.entrySet() )
+        {
+            this.putEntries( entry.getKey(), entry.getValue() );
+        }
+    }
+    
+    public V getValue( T key, U valueKey )
+    {
+        return this.get( key ) == null ? null : this.get( key ).get( valueKey );
+    }
+    
+    @SafeVarargs
+    public static <T, U, V> MapMap<T, U, V> asMapMap( final AbstractMap.SimpleEntry<T, Map<U, V>>... entries )
+    {
+        MapMap<T, U, V> map = new MapMap<>();
+
+        for ( AbstractMap.SimpleEntry<T, Map<U, V>> entry : entries )
+        {
+            map.put( entry.getKey(), entry.getValue() );
+        }
+
+        return map;
+    }
 }

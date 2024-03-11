@@ -1,5 +1,7 @@
+package org.hisp.dhis.program;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,167 +27,161 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-@JacksonXmlRootElement(localName = "programOwnershipHistory", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramOwnershipHistory implements Serializable {
-  private static final long serialVersionUID = 6713155272099925278L;
+@JacksonXmlRootElement( localName = "programOwnershipHistory", namespace = DxfNamespaces.DXF_2_0 )
+public class ProgramOwnershipHistory implements Serializable
+{
+    private static final long serialVersionUID = 6713155272099925278L;
 
-  private int id;
+    private int id;
 
-  private Program program;
+    private Program program;
 
-  private Date startDate;
+    private Date startDate;
 
-  private Date endDate;
+    private Date endDate;
 
-  private String createdBy;
+    private String createdBy;
 
-  private TrackedEntityInstance entityInstance;
+    private TrackedEntityInstance entityInstance;
 
-  private OrganisationUnit organisationUnit;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public ProgramOwnershipHistory() {}
-
-  public ProgramOwnershipHistory(
-      Program program,
-      TrackedEntityInstance entityInstance,
-      OrganisationUnit organisationUnit,
-      Date startDate,
-      String createdBy) {
-    this.program = program;
-    this.startDate = startDate;
-    this.createdBy = createdBy;
-    this.endDate = new Date();
-    this.entityInstance = entityInstance;
-    this.organisationUnit = organisationUnit;
-  }
-
-  public ProgramOwnershipHistory(
-      Program program,
-      TrackedEntityInstance entityInstance,
-      OrganisationUnit organisationUnit,
-      Date startDate,
-      Date endDate,
-      String createdBy) {
-    this.program = program;
-    this.startDate = startDate;
-    this.createdBy = createdBy;
-    this.endDate = endDate;
-    this.entityInstance = entityInstance;
-    this.organisationUnit = organisationUnit;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(program, entityInstance, startDate, createdBy, endDate);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
+    public ProgramOwnershipHistory()
+    {
     }
 
-    if (obj == null || getClass() != obj.getClass()) {
-      return false;
+    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance, Date startDate,
+        String createdBy )
+    {
+        this.program = program;
+        this.startDate = startDate;
+        this.createdBy = createdBy;
+        this.endDate = new Date();
+        this.entityInstance = entityInstance;
     }
 
-    final ProgramOwnershipHistory other = (ProgramOwnershipHistory) obj;
+    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance, Date startDate, Date endDate,
+        String createdBy )
+    {
+        this.program = program;
+        this.startDate = startDate;
+        this.createdBy = createdBy;
+        this.endDate = endDate;
+        this.entityInstance = entityInstance;
+    }
 
-    return Objects.equals(this.program, other.program)
-        && Objects.equals(this.startDate, other.startDate)
-        && Objects.equals(this.createdBy, other.createdBy)
-        && Objects.equals(this.endDate, other.endDate)
-        && Objects.equals(this.entityInstance, other.entityInstance);
-  }
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( program, entityInstance, startDate, createdBy, endDate );
+    }
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
+    @Override
+    public boolean equals( Object obj )
+    {
+        if ( this == obj )
+        {
+            return true;
+        }
 
-  public int getId() {
-    return id;
-  }
+        if ( obj == null || getClass() != obj.getClass() )
+        {
+            return false;
+        }
 
-  public void setId(int id) {
-    this.id = id;
-  }
+        final ProgramOwnershipHistory other = (ProgramOwnershipHistory) obj;
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Program getProgram() {
-    return program;
-  }
+        return Objects.equals( this.program, other.program ) && Objects.equals( this.startDate, other.startDate )
+            && Objects.equals( this.createdBy, other.createdBy ) && Objects.equals( this.endDate, other.endDate )
+            && Objects.equals( this.entityInstance, other.entityInstance );
+    }
 
-  public void setProgram(Program program) {
-    this.program = program;
-  }
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public TrackedEntityInstance getEntityInstance() {
-    return entityInstance;
-  }
+    public int getId()
+    {
+        return id;
+    }
 
-  public void setEntityInstance(TrackedEntityInstance entityInstance) {
-    this.entityInstance = entityInstance;
-  }
+    public void setId( int id )
+    {
+        this.id = id;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getStartDate() {
-    return startDate;
-  }
+    public Program getProgram()
+    {
+        return program;
+    }
 
-  public void setStartDate(Date startDate) {
-    this.startDate = startDate;
-  }
+    public void setProgram( Program program )
+    {
+        this.program = program;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Date getEndDate() {
-    return endDate;
-  }
+    public TrackedEntityInstance getEntityInstance()
+    {
+        return entityInstance;
+    }
 
-  public void setEndDate(Date endDate) {
-    this.endDate = endDate;
-  }
+    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    {
+        this.entityInstance = entityInstance;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getCreatedBy() {
-    return createdBy;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getStartDate()
+    {
+        return startDate;
+    }
 
-  public void setCreatedBy(String createdBy) {
-    this.createdBy = createdBy;
-  }
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public OrganisationUnit getOrganisationUnit() {
-    return organisationUnit;
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getEndDate()
+    {
+        return endDate;
+    }
 
-  public void setOrganisationUnit(OrganisationUnit organisationUnit) {
-    this.organisationUnit = organisationUnit;
-  }
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    public void setCreatedBy( String createdBy )
+    {
+        this.createdBy = createdBy;
+    }
+
 }

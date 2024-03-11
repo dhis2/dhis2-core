@@ -1,5 +1,7 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.jupiter.api.Test;
+
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
  */
-class DimensionalObjectTest {
-
-  @Test
-  void testGetFilterItemsAsList() {
-    BaseDimensionalObject objectA =
-        new BaseDimensionalObject(
-            "dimA",
-            DimensionType.PROGRAM_DATA_ELEMENT,
-            null,
-            null,
-            null,
-            null,
-            "IN:uidA;uidB;uidC");
-    List<String> expectedA = new ArrayList<>(Arrays.asList("uidA", "uidB", "uidC"));
-    assertEquals(expectedA, objectA.getFilterItemsAsList());
-    BaseDimensionalObject objectB =
-        new BaseDimensionalObject(
-            "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, null, "EQ:uidA");
-    assertEquals(null, objectB.getFilterItemsAsList());
-  }
+public class DimensionalObjectTest
+{
+    @Test
+    public void testGetFilterItemsAsList()
+    {
+        BaseDimensionalObject objectA = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, "IN:uidA;uidB;uidC" );
+        List<String> expectedA = new ArrayList<>( Arrays.asList( "uidA", "uidB", "uidC" ) );
+        assertEquals( expectedA, objectA.getFilterItemsAsList() );
+        
+        BaseDimensionalObject objectB = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, "EQ:uidA" );
+        assertEquals( null, objectB.getFilterItemsAsList() );
+    }
 }

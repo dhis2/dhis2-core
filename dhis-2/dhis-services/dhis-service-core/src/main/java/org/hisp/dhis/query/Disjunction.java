@@ -1,5 +1,7 @@
+package org.hisp.dhis.query;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
 
 import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public final class Disjunction extends Junction {
-  public Disjunction(Schema schema) {
-    super(schema, Type.OR);
-  }
+public class Disjunction extends Junction
+{
+    public Disjunction( Schema schema )
+    {
+        super( schema, Type.OR );
+    }
 
-  @Override
-  public String toString() {
-    return "OR[" + criterions + "]";
-  }
+    @Override
+    public String toString()
+    {
+        return "OR[" + criterions + "]";
+    }
 }

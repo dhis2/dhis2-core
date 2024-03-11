@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_NAME_OR_EMAIL;
+import org.apache.commons.lang.StringUtils;
 
 /**
- * @author Zubair
+ * Created by zubair on 16.03.17.
  */
-public class UserParameterValidationRule implements PasswordValidationRule {
-  @Override
-  public PasswordValidationResult validate(CredentialsInfo credentials) {
-    String email = credentials.getEmail();
-    String password = credentials.getPassword();
-    String username = credentials.getUsername();
+public class UserParameterValidationRule
+    implements PasswordValidationRule
+{
+    public static final String ERROR = "Username/Email must not be a part of password";
+    private static final String I18_ERROR = "password_username_validation";
 
-    // Password should not contain part of either username or email
-    if (containsIgnoreCase(password, defaultIfEmpty(username, null))
-        || containsIgnoreCase(password, defaultIfEmpty(email, null))) {
-      return new PasswordValidationResult(PASSWORD_CONTAINS_NAME_OR_EMAIL);
+    @Override
+    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
+    {
+        return true;
     }
-    return PasswordValidationResult.VALID;
-  }
+
+    @Override
+    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    {
+        String email = credentialsInfo.getEmail();
+        String password = credentialsInfo.getPassword();
+        String username = credentialsInfo.getUsername();
+
+        // other parameters will be skipped in case of new user
+        if ( credentialsInfo.isNewUser() )
+        {
+            if ( StringUtils.isBlank( password ) )
+            {
+                return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+            }
+        }
+        else if ( StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
+        // Password should not contain part of either username or email
+        if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
+                StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
+        {
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
+        }
+
+        return new PasswordValidationResult( true );
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.command;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.command;
 
-import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
-
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-@RequiredArgsConstructor
-public class SMSCommandDeletionHandler extends IdObjectDeletionHandler<SMSCommand> {
-  private final SMSCommandService smsCommandService;
+public class SMSCommandDeletionHandler
+    extends DeletionHandler
+{
+    @Autowired
+    private SMSCommandService smsCommandService;
 
-  @Override
-  protected void registerHandler() {
-    whenVetoing(DataSet.class, this::allowDeleteDataSet);
-  }
+    @Override
+    protected String getClassName()
+    {
+        return SMSCommand.class.getSimpleName();
+    }
 
-  private DeletionVeto allowDeleteDataSet(DataSet dataSet) {
-    return smsCommandService.countDataSetSmsCommands(dataSet) == 0 ? ACCEPT : VETO;
-  }
+    @Override
+    public String allowDeleteDataSet( DataSet dataSet )
+    {
+        return smsCommandService.countDataSetSmsCommands( dataSet ) == 0 ? null : ERROR;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.textpattern;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,84 +27,101 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.textpattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.Objects;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.Objects;
 
 /**
  * @author Stian Sandvold
  */
-public class TextPatternSegment {
-  private TextPatternMethod method;
+public class TextPatternSegment
+{
+    private TextPatternMethod method;
 
-  private String parameter;
+    private String parameter;
 
-  public TextPatternSegment() {
-    this.parameter = "";
-  }
-
-  public TextPatternSegment(TextPatternMethod method, String segment) {
-    this.method = method;
-    this.parameter = method.getType().getParam(segment);
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public TextPatternMethod getMethod() {
-    return method;
-  }
-
-  public void setMethod(TextPatternMethod method) {
-    this.method = method;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getParameter() {
-    return parameter;
-  }
-
-  public void setParameter(String parameter) {
-    this.parameter = parameter;
-  }
-
-  /* Helper methods */
-
-  /**
-   * Recreates the original segment text from the method name and segment parameter.
-   *
-   * @return The original segment based on method and parameter
-   */
-  @JsonIgnore
-  public String getRawSegment() {
-    if (method.equals(TextPatternMethod.TEXT)) {
-      return "\"" + parameter + "\"";
-    } else {
-      return String.format("%s(%s)", method.name(), parameter);
-    }
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
+    public TextPatternSegment()
+    {
+        this.parameter = "";
     }
 
-    if (o == null || getClass() != o.getClass()) {
-      return false;
+    public TextPatternSegment( TextPatternMethod method, String segment )
+    {
+        this.method = method;
+        this.parameter = method.getType().getParam( segment );
     }
 
-    TextPatternSegment that = (TextPatternSegment) o;
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TextPatternMethod getMethod()
+    {
+        return method;
+    }
 
-    return method == that.method && Objects.equals(parameter, that.parameter);
-  }
+    public void setMethod( TextPatternMethod method )
+    {
+        this.method = method;
+    }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(method, parameter);
-  }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getParameter()
+    {
+        return parameter;
+    }
+
+    public void setParameter( String parameter )
+    {
+        this.parameter = parameter;
+    }
+
+
+    /* Helper methods */
+
+    /**
+     * Recreates the original segment text from the method name and segment parameter.
+     *
+     * @return The original segment based on method and parameter
+     */
+    @JsonIgnore
+    public String getRawSegment()
+    {
+        if ( method.equals( TextPatternMethod.TEXT ) )
+        {
+            return "\"" + parameter + "\"";
+        }
+        else
+        {
+            return String.format( "%s(%s)", method.name(), parameter );
+        }
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        TextPatternSegment that = (TextPatternSegment) o;
+
+        return method == that.method &&
+            Objects.equals( parameter, that.parameter );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( method, parameter );
+    }
 }

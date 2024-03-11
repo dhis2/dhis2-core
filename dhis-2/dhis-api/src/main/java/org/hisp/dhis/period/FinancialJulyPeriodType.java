@@ -1,5 +1,7 @@
+package org.hisp.dhis.period;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +27,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+
+import org.hisp.dhis.calendar.DateTimeUnit;
 
 import java.util.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
  * @author Lars Helge Overland
  */
-public class FinancialJulyPeriodType extends FinancialPeriodType {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 5190072405972068226L;
+public class FinancialJulyPeriodType
+    extends FinancialPeriodType
+{
+    /**
+     * Determines if a de-serialized file is compatible with this class.
+     */
+    private static final long serialVersionUID = 5190072405972068226L;
 
-  private static final String ISO_FORMAT = "yyyyJuly";
+    private static final String ISO_FORMAT = "yyyyJuly";
 
-  private static final String ISO8601_DURATION = "P1Y";
+    private static final String ISO8601_DURATION = "P1Y";
 
-  @Override
-  public int getBaseMonth() {
-    return Calendar.JULY;
-  }
+    public static final String NAME = "FinancialJuly";
 
-  @Override
-  public PeriodTypeEnum getPeriodTypeEnum() {
-    return PeriodTypeEnum.FINANCIAL_JULY;
-  }
+    @Override
+    public int getBaseMonth()
+    {
+        return Calendar.JULY;
+    }
 
-  @Override
-  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
-    return String.format("%dJuly", dateTimeUnit.getYear());
-  }
+    @Override
+    public String getName()
+    {
+        return NAME;
+    }
 
-  @Override
-  public String getIsoFormat() {
-    return ISO_FORMAT;
-  }
+    @Override
+    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
+    {
+        return String.format( "%dJuly", dateTimeUnit.getYear() );
+    }
 
-  @Override
-  public String getIso8601Duration() {
-    return ISO8601_DURATION;
-  }
+    @Override
+    public String getIsoFormat()
+    {
+        return ISO_FORMAT;
+    }
+
+    @Override
+    public String getIso8601Duration()
+    {
+        return ISO8601_DURATION;
+    }
+
 }

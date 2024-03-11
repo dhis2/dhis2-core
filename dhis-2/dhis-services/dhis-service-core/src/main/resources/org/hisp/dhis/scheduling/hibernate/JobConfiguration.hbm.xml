@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
-  >
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
 
 <hibernate-mapping>
     <class name="org.hisp.dhis.scheduling.JobConfiguration" table="jobconfiguration">
@@ -16,43 +16,27 @@
 
         <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-        <property name="queueName" column="queuename" length="50" />
+        <property name="cronExpression" not-null="true" />
 
-        <property name="queuePosition" column="queueposition" />
+        <property name="jobType" not-null="true" />
 
-        <property name="cronExpression" />
-        
-        <property name="delay" />
+        <property name="jobStatus" not-null="true" />
 
-        <property name="jobType" column="jobtype" not-null="true" length="120">
-            <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.scheduling.JobType</param>
-                <param name="useNamed">true</param>
-                <param name="type">12</param>
-            </type>
-        </property>
-
-        <property name="jobStatus" column="jobstatus" not-null="true" length="120" >
-            <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.scheduling.JobStatus</param>
-                <param name="useNamed">true</param>
-                <param name="type">12</param>
-            </type>
-        </property>
-
-        <property name="lastExecutedStatus" column="lastexecutedstatus" not-null="true" length="120" >
-            <type name="org.hibernate.type.EnumType">
-                <param name="enumClass">org.hisp.dhis.scheduling.JobStatus</param>
-                <param name="useNamed">true</param>
-                <param name="type">12</param>
-            </type>
-        </property>
+        <property name="lastExecutedStatus" />
 
         <property name="lastExecuted" type="timestamp" />
 
         <property name="lastRuntimeExecution" type="text" />
 
+        <property name="nextExecutionTime" type="timestamp" />
+
+        <property name="continuousExecution" not-null="true" type="boolean" />
+
         <property name="enabled" not-null="true" type="boolean" />
+
+		<property name="leaderOnlyJob" not-null="true" type="boolean">
+			<column name="leaderonlyjob" default="false" />
+		</property>
 
         <property name="jobParameters" column="jsonbjobparameters" type="jbJobParameters" />
     </class>

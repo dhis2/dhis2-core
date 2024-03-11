@@ -1,5 +1,7 @@
+package org.hisp.dhis.analytics;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,116 +27,120 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 /**
- * Immutable class representing parameters for query planning. Should be instantiated using the
- * Builder class. Example usage:
- *
+ * Immutable class representing parameters for query planning. Should be
+ * instantiated using the Builder class. Example usage:
+ * 
  * <pre>
- * {
- *     &#64;code
- *     QueryPlannerParams params = QueryPlannerParams.newBuilder()
- *         .withOptimalQueries( 4 )
- *         .withTableType( AnalyticsTableType.DATA_VALUE )
- *         .withTableSuffix( "table_suffix" )
- *         .build();
+ * {@code
+ * QueryPlannerParams params = QueryPlannerParams.newBuilder()
+ *     .withOptimalQueries( 4 )
+ *     .withTableName( "table_name" )
+ *     .withTableSuffix( "table_suffix" )
+ *     .build();
  * }
  * </pre>
- *
+ * 
  * @author Lars Helge Overland
  */
-public class QueryPlannerParams {
-  private int optimalQueries;
+public class QueryPlannerParams
+{
+    private int optimalQueries;
+    
+    private String tableName;
+        
+    private List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = new ArrayList<>();
 
-  private AnalyticsTableType tableType;
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
-  private List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = new ArrayList<>();
+    private QueryPlannerParams()
+    {
+    }
+    
+    public static Builder newBuilder()
+    {
+        return new Builder();
+    }
+    
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
-
-  private QueryPlannerParams() {}
-
-  public static Builder newBuilder() {
-    return new Builder();
-  }
-
-  // -------------------------------------------------------------------------
-  // Get and set methods
-  // -------------------------------------------------------------------------
-
-  /**
-   * Returns the number of optimal queries for the planner to return for each query group.
-   *
-   * @return number of optimal queries.
-   */
-  public int getOptimalQueries() {
-    return optimalQueries;
-  }
-
-  /**
-   * Returns the {@link AnalyticsTableType}.
-   *
-   * @return the {@link AnalyticsTableType}.
-   */
-  public AnalyticsTableType getTableType() {
-    return tableType;
-  }
-
-  /**
-   * Returns the base name of the analytics table.
-   *
-   * @return the base name of the analytics table.
-   */
-  public String getTableName() {
-    return tableType.getTableName();
-  }
-
-  /**
-   * Returns additional query groupers to apply in planning.
-   *
-   * @return additional query groupers to apply in planning.
-   */
-  public List<Function<DataQueryParams, List<DataQueryParams>>> getQueryGroupers() {
-    return queryGroupers;
-  }
-
-  // -------------------------------------------------------------------------
-  // Builder of immutable instances
-  // -------------------------------------------------------------------------
-
-  /** Builder of {@link QueryPlannerParams} instances. */
-  public static class Builder {
-    private QueryPlannerParams params;
-
-    private Builder() {
-      params = new QueryPlannerParams();
+    /**
+     * Returns the number of optimal queries for the planner to return for each 
+     * query group.
+     * 
+     * @return number of optimal queries.
+     */
+    public int getOptimalQueries()
+    {
+        return optimalQueries;
     }
 
-    public Builder withOptimalQueries(int optimalQueries) {
-      this.params.optimalQueries = optimalQueries;
-      return this;
+    /**
+     * Returns the base name of the analytics table.
+     * 
+     * @return the base name of the analytics table.
+     */
+    public String getTableName()
+    {
+        return tableName;
     }
 
-    public Builder withTableType(AnalyticsTableType tableType) {
-      this.params.tableType = tableType;
-      return this;
+    /**
+     * Returns additional query groupers to apply in planning.
+     * 
+     * @return additional query groupers to apply in planning.
+     */
+    public List<Function<DataQueryParams, List<DataQueryParams>>> getQueryGroupers()
+    {
+        return queryGroupers;
     }
 
-    public Builder withQueryGroupers(
-        List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers) {
-      this.params.queryGroupers = queryGroupers;
-      return this;
-    }
+    // -------------------------------------------------------------------------
+    // Builder of immutable instances
+    // -------------------------------------------------------------------------
 
-    public QueryPlannerParams build() {
-      return params;
+    /**
+     * Builder of {@link QueryPlannerParams} instances.
+     */
+    public static class Builder
+    {
+        private QueryPlannerParams params;
+        
+        private Builder()
+        {
+            params = new QueryPlannerParams();
+        }
+        
+        public Builder withOptimalQueries( int optimalQueries )
+        {
+            this.params.optimalQueries = optimalQueries;
+            return this;
+        }
+        
+        public Builder withTableName( String tableName )
+        {
+            this.params.tableName = tableName;
+            return this;
+        }
+        
+        public Builder withQueryGroupers( List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
+        {
+            this.params.queryGroupers = queryGroupers;
+            return this;
+        }
+                
+        public QueryPlannerParams build()
+        {
+            return params;
+        }
     }
-  }
 }

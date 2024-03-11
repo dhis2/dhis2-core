@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.incoming;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,155 +27,202 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.incoming;
+
+import java.io.Serializable;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import java.util.Date;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.user.User;
 
-@JacksonXmlRootElement(localName = "inboundsms")
-public class IncomingSms extends BaseIdentifiableObject implements Serializable {
-  private static final long serialVersionUID = 3954710607630454226L;
+@JacksonXmlRootElement( localName = "inboundsms" )
+public class IncomingSms
+    implements Serializable
+{
+    private static final long serialVersionUID = 3954710607630454226L;
 
-  private SmsMessageEncoding encoding = SmsMessageEncoding.ENC7BIT;
+    private Integer id;
 
-  private Date sentDate;
+    private SmsMessageEncoding encoding = SmsMessageEncoding.ENC7BIT;
 
-  private Date receivedDate;
+    private Date sentDate;
 
-  /*
-   * The originator of the received message.
-   */
-  private String originator;
+    private Date receivedDate;
 
-  /*
-   * The ID of the gateway from which the message was received.
-   */
-  private String gatewayId;
+    /*
+     * The originator of the received message.
+     */
+    private String originator;
 
-  private String text;
+    /*
+     * The ID of the gateway from which the message was received.
+     */
+    private String gatewayId;
 
-  private byte[] bytes;
+    private String text;
 
-  private SmsMessageStatus status = SmsMessageStatus.INCOMING;
+    private byte[] bytes;
 
-  private String statusMessage;
+    private SmsMessageStatus status = SmsMessageStatus.INCOMING;
 
-  private boolean parsed = false;
+    private String statusMessage;
 
-  public IncomingSms() {
-    setAutoFields();
-  }
+    private boolean parsed = false;
 
-  /**
-   * Incoming smses are one of two types, text or binary.
-   *
-   * @return is this message a text (not binary) message?
-   */
-  public boolean isTextSms() {
-    return text != null;
-  }
+    private User user;
 
-  @JsonProperty(value = "smsencoding", defaultValue = "1")
-  @JacksonXmlProperty(localName = "smsencoding")
-  public SmsMessageEncoding getEncoding() {
-    return encoding;
-  }
-
-  public void setEncoding(SmsMessageEncoding encoding) {
-    this.encoding = encoding;
-  }
-
-  @JsonProperty(value = "sentdate")
-  @JacksonXmlProperty(localName = "sentdate")
-  public Date getSentDate() {
-    return sentDate;
-  }
-
-  public void setSentDate(Date sentDate) {
-    this.sentDate = sentDate;
-  }
-
-  @JsonProperty(value = "receiveddate")
-  @JacksonXmlProperty(localName = "receiveddate")
-  public Date getReceivedDate() {
-    return receivedDate;
-  }
-
-  public void setReceivedDate(Date receivedDate) {
-    this.receivedDate = receivedDate;
-  }
-
-  @JsonProperty(value = "originator")
-  @JacksonXmlProperty(localName = "originator")
-  public String getOriginator() {
-    return originator;
-  }
-
-  public void setOriginator(String originator) {
-    this.originator = originator;
-  }
-
-  @JsonProperty(value = "gatewayid", defaultValue = "unknown")
-  @JacksonXmlProperty(localName = "gatewayid")
-  public String getGatewayId() {
-    return gatewayId;
-  }
-
-  public void setGatewayId(String gatewayId) {
-    this.gatewayId = gatewayId;
-  }
-
-  @JsonProperty(value = "text")
-  @JacksonXmlProperty(localName = "text")
-  public String getText() {
-    return text;
-  }
-
-  public void setText(String text) {
-    if (bytes != null) {
-      throw new IllegalArgumentException("Text and bytes cannot both be set on incoming sms");
+    /**
+     * Incoming smses are one of two types, text or binary.
+     * 
+     * @return is this message a text (not binary) message?
+     */
+    public boolean isTextSms()
+    {
+        return text != null;
     }
-    this.text = text;
-  }
 
-  public byte[] getBytes() {
-    return bytes;
-  }
-
-  public void setBytes(byte[] bytes) {
-    if (text != null) {
-      throw new IllegalArgumentException("Text and bytes cannot both be set on incoming sms");
+    public Integer getId()
+    {
+        return id;
     }
-    this.bytes = bytes;
-  }
 
-  @JsonProperty(value = "smsstatus", defaultValue = "1")
-  @JacksonXmlProperty(localName = "smsstatus")
-  public SmsMessageStatus getStatus() {
-    return status;
-  }
+    public void setId( Integer id )
+    {
+        this.id = id;
+    }
 
-  public void setStatus(SmsMessageStatus status) {
-    this.status = status;
-  }
+    @JsonProperty( value = "smsencoding", defaultValue = "1" )
+    @JacksonXmlProperty( localName = "smsencoding" )
+    public SmsMessageEncoding getEncoding()
+    {
+        return encoding;
+    }
 
-  public String getStatusMessage() {
-    return statusMessage;
-  }
+    public void setEncoding( SmsMessageEncoding encoding )
+    {
+        this.encoding = encoding;
+    }
 
-  public void setStatusMessage(String statusMessage) {
-    this.statusMessage = statusMessage;
-  }
+    @JsonProperty( value = "sentdate" )
+    @JacksonXmlProperty( localName = "sentdate" )
+    public Date getSentDate()
+    {
+        return sentDate;
+    }
 
-  public boolean isParsed() {
-    return parsed;
-  }
+    public void setSentDate( Date sentDate )
+    {
+        this.sentDate = sentDate;
+    }
 
-  public void setParsed(boolean parsed) {
-    this.parsed = parsed;
-  }
+    @JsonProperty( value = "receiveddate" )
+    @JacksonXmlProperty( localName = "receiveddate" )
+    public Date getReceivedDate()
+    {
+        return receivedDate;
+    }
+
+    public void setReceivedDate( Date receivedDate )
+    {
+        this.receivedDate = receivedDate;
+    }
+
+    @JsonProperty( value = "originator" )
+    @JacksonXmlProperty( localName = "originator" )
+    public String getOriginator()
+    {
+        return originator;
+    }
+
+    public void setOriginator( String originator )
+    {
+        this.originator = originator;
+    }
+
+    @JsonProperty( value = "gatewayid", defaultValue = "unknown" )
+    @JacksonXmlProperty( localName = "gatewayid" )
+    public String getGatewayId()
+    {
+        return gatewayId;
+    }
+
+    public void setGatewayId( String gatewayId )
+    {
+        this.gatewayId = gatewayId;
+    }
+
+    @JsonProperty( value = "text" )
+    @JacksonXmlProperty( localName = "text" )
+    public String getText()
+    {
+        return text;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "user" )
+    public User getUser()
+    {
+        return user;
+    }
+
+    public void setUser( User user )
+    {
+        this.user = user;
+    }
+
+    public void setText(String text )
+    {
+        if ( bytes != null )
+        {
+            throw new IllegalArgumentException( "Text and bytes cannot both be set on incoming sms" );
+        }
+        this.text = text;
+    }
+
+    public byte[] getBytes()
+    {
+        return bytes;
+    }
+
+    public void setBytes( byte[] bytes )
+    {
+        if ( text != null )
+        {
+            throw new IllegalArgumentException( "Text and bytes cannot both be set on incoming sms" );
+        }
+        this.bytes = bytes;
+    }
+
+    @JsonProperty( value = "smsstatus", defaultValue = "1" )
+    @JacksonXmlProperty( localName = "smsstatus" )
+    public SmsMessageStatus getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus( SmsMessageStatus status )
+    {
+        this.status = status;
+    }
+
+    public String getStatusMessage()
+    {
+        return statusMessage;
+    }
+
+    public void setStatusMessage( String statusMessage )
+    {
+        this.statusMessage = statusMessage;
+    }
+
+    public boolean isParsed()
+    {
+        return parsed;
+    }
+
+    public void setParsed( boolean parsed )
+    {
+        this.parsed = parsed;
+    }
 }

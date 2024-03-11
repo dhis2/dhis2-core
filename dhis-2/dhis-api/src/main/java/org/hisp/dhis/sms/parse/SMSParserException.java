@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.parse;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.parse;
 
-public class SMSParserException extends RuntimeException {
-  private String reason;
+public class SMSParserException
+    extends RuntimeException
+{
+    private String reason;
 
-  public static final String NO_VALUE = "no_value";
+    public static final String NO_VALUE = "no_value";
 
-  public static final String WRONG_FORMAT = "wrong_format";
+    public static final String WRONG_FORMAT = "wrong_format";
 
-  public static final String MORE_THAN_ONE_ORGUNIT = "more_than_one_orgunit";
+    public static final String MORE_THAN_ONE_ORGUNIT = "more_than_one_orgunit";
 
-  public SMSParserException(String message) {
-    super(message);
-  }
+    public SMSParserException( String message )
+    {
+        super( message );
+    }
 
-  public SMSParserException(String message, String reason) {
-    super(message);
-    this.reason = reason;
-  }
+    public SMSParserException( String message, String reason )
+    {
+        super( message );
+        this.reason = reason;
+    }
 
-  public String getReason() {
-    return reason;
-  }
+    public String getReason()
+    {
+        return reason;
+    }
 
-  public void setReason(String reason) {
-    this.reason = reason;
-  }
+    public void setReason( String reason )
+    {
+        this.reason = reason;
+    }
 }

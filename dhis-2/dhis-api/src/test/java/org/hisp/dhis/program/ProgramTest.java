@@ -1,5 +1,15 @@
+package org.hisp.dhis.program;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.junit.Test;
+
+import com.google.common.collect.Sets;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +35,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class ProgramTest {
+public class ProgramTest
+{
+    @Test
+    public void testUpdateOrganisationUnits()
+    {
+        Program prA = new Program();
+        
+        OrganisationUnit ouA = new OrganisationUnit( "ouA" );
+        OrganisationUnit ouB = new OrganisationUnit( "ouB" );
+        OrganisationUnit ouC = new OrganisationUnit( "ouC" );
+        OrganisationUnit ouD = new OrganisationUnit( "ouD" );
+        
+        prA.addOrganisationUnit( ouA );
+        prA.addOrganisationUnit( ouB );
+        
+        assertEquals( 2, prA.getOrganisationUnits().size() );
+        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouA, ouB ) ) );
+        assertTrue( ouA.getPrograms().contains( prA ) );
+        assertTrue( ouB.getPrograms().contains( prA ) );
+        assertTrue( ouC.getPrograms().isEmpty() );
+        assertTrue( ouD.getPrograms().isEmpty() );
+        
+        prA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
 
-  @Test
-  void testGetAnalyticsDataElements() {
-    DataElement deA = new DataElement("DataElementA");
-    deA.setAutoFields();
-    DataElement deB = new DataElement("DataElementA");
-    deB.setAutoFields();
-    Program prA = new Program("ProgramA");
-    prA.setAutoFields();
-    ProgramStage psA = new ProgramStage("ProgramStageA", prA);
-    psA.setAutoFields();
-    prA.getProgramStages().add(psA);
-    ProgramStageDataElement psdeA = new ProgramStageDataElement(psA, deA);
-    psdeA.setSkipAnalytics(false);
-    ProgramStageDataElement psdeB = new ProgramStageDataElement(psA, deB);
-    psdeB.setSkipAnalytics(true);
-    psA.getProgramStageDataElements().add(psdeA);
-    psA.getProgramStageDataElements().add(psdeB);
-    assertEquals(2, prA.getDataElements().size());
-    assertTrue(prA.getDataElements().contains(deA));
-    assertTrue(prA.getDataElements().contains(deB));
-    assertEquals(1, prA.getAnalyticsDataElements().size());
-    assertTrue(prA.getDataElements().contains(deA));
-  }
+        assertEquals( 2, prA.getOrganisationUnits().size() );
+        assertTrue( prA.getOrganisationUnits().containsAll( Sets.newHashSet( ouB, ouC ) ) );
+        assertTrue( ouA.getPrograms().isEmpty() );
+        assertTrue( ouB.getPrograms().contains( prA ) );
+        assertTrue( ouC.getPrograms().contains( prA ) );
+        assertTrue( ouD.getPrograms().isEmpty() );
+    }
 }

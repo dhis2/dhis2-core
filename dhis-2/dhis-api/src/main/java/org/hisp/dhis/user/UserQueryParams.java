@@ -1,5 +1,7 @@
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,138 +27,336 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.UserOrgUnitType;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@ToString(onlyExplicitlyIncluded = true)
-@NoArgsConstructor
-public class UserQueryParams {
-  /** The user query string. */
-  @ToString.Include private String query;
+public class UserQueryParams
+{
+    private String query;
+    
+    private String phoneNumber;
+    
+    private User user;
+    
+    private boolean canManage;
+    
+    private boolean authSubset;
+    
+    private boolean disjointRoles;
+    
+    private Date lastLogin;
+    
+    private Date inactiveSince;
 
-  @ToString.Include private String phoneNumber;
+    private Date passwordLastUpdated;
+    
+    private Integer inactiveMonths;
+    
+    private boolean selfRegistered;
 
-  /** The current user in the context of the user query. */
-  private User user;
+    private boolean isNot2FA;
+    
+    private UserInvitationStatus invitationStatus;
+    
+    private List<OrganisationUnit> organisationUnits = new ArrayList<>();
+    
+    private Integer first;
+    
+    private Integer max;
+    
+    private boolean userOrgUnits;
 
-  @ToString.Include private boolean canManage;
+    private boolean includeOrgUnitChildren;
+    
+    private boolean prefetchUserGroups;
+    
+    private Boolean disabled;
 
-  @ToString.Include private boolean authSubset;
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
-  @ToString.Include private boolean disjointRoles;
-
-  @ToString.Include private Date lastLogin;
-
-  @ToString.Include private Date inactiveSince;
-
-  @ToString.Include private Date passwordLastUpdated;
-
-  @ToString.Include private Integer inactiveMonths;
-
-  @ToString.Include private boolean selfRegistered;
-
-  @ToString.Include private boolean isNot2FA;
-
-  @ToString.Include private UserInvitationStatus invitationStatus;
-
-  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-  private Set<UserGroup> userGroups = new HashSet<>();
-
-  @ToString.Include private Integer first;
-
-  @ToString.Include private Integer max;
-
-  @ToString.Include private boolean userOrgUnits;
-
-  @ToString.Include private UserOrgUnitType orgUnitBoundary;
-
-  @ToString.Include private boolean includeOrgUnitChildren;
-
-  @ToString.Include private boolean prefetchUserGroups;
-
-  @ToString.Include private Boolean disabled;
-
-  /**
-   * Indicates whether users should be able to see users which have the same user roles. This
-   * setting is for internal use only, and will override the {@link
-   * SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS} system setting. Should not be exposed in the
-   * API.
-   */
-  @ToString.Include private boolean canSeeOwnRoles = false;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
-
-  public UserQueryParams(User user) {
-    this.user = user;
-  }
-
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
-  public UserQueryParams addOrganisationUnit(OrganisationUnit unit) {
-    this.organisationUnits.add(unit);
-    setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
-    return this;
-  }
-
-  public UserQueryParams addDataViewOrganisationUnit(OrganisationUnit unit) {
-
-    this.organisationUnits.add(unit);
-    setOrgUnitBoundary(UserOrgUnitType.DATA_OUTPUT);
-    return this;
-  }
-
-  public UserQueryParams addTeiSearchOrganisationUnit(OrganisationUnit unit) {
-    this.organisationUnits.add(unit);
-    setOrgUnitBoundary(UserOrgUnitType.TEI_SEARCH);
-    return this;
-  }
-
-  public UserQueryParams setOrganisationUnits(Set<OrganisationUnit> units) {
-    this.organisationUnits = units;
-    if (orgUnitBoundary == null) {
-      this.orgUnitBoundary = UserOrgUnitType.DATA_CAPTURE;
+    public UserQueryParams()
+    {
     }
-    return this;
-  }
 
-  public UserQueryParams setDataViewOrganisationUnits(Set<OrganisationUnit> units) {
-    this.organisationUnits = units;
-    this.orgUnitBoundary = UserOrgUnitType.DATA_OUTPUT;
-    return this;
-  }
+    public UserQueryParams( User user )
+    {
+        this.user = user;
+    }
 
-  public UserQueryParams setTeiSearchOrganisationUnits(Set<OrganisationUnit> units) {
-    this.organisationUnits = units;
-    this.orgUnitBoundary = UserOrgUnitType.TEI_SEARCH;
-    return this;
-  }
+    // -------------------------------------------------------------------------
+    // toString
+    // -------------------------------------------------------------------------
 
-  public boolean hasUserGroups() {
-    return !userGroups.isEmpty();
-  }
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "query", query )
+            .add( "phone number", phoneNumber )
+            .add( "user", user != null ? user.getUsername() : null )
+            .add( "can manage", canManage )
+            .add( "auth subset", authSubset )
+            .add( "disjoint roles", disjointRoles )
+            .add( "last login", lastLogin )
+            .add( "inactive since", inactiveSince )
+            .add( "passwordLastUpdated", passwordLastUpdated )
+            .add( "inactive months", inactiveMonths )
+            .add( "self registered", selfRegistered )
+            .add( "isNot2FA", isNot2FA )
+            .add( "invitation status", invitationStatus )
+            .add( "first", first )
+            .add( "max", max )
+            .add( "includeOrgUnitChildren", includeOrgUnitChildren )
+            .add( "prefetchUserGroups", prefetchUserGroups )
+            .add( "disabled", disabled ).toString();
+    }
 
-  public boolean hasUser() {
-    return user != null;
-  }
+    // -------------------------------------------------------------------------
+    // Builder
+    // -------------------------------------------------------------------------
+
+    public UserQueryParams addOrganisationUnit( OrganisationUnit unit )
+    {
+        this.organisationUnits.add( unit );
+        return this;
+    }
+    
+    public boolean hasUser()
+    {
+        return user != null;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    public String getQuery()
+    {
+        return query;
+    }
+
+    public UserQueryParams setQuery( String query )
+    {
+        this.query = query;
+        return this;
+    }
+
+    public String getPhoneNumber()
+    {
+        return phoneNumber;
+    }
+
+    public UserQueryParams setPhoneNumber( String phoneNumber )
+    {
+        this.phoneNumber = phoneNumber;
+        return this;
+    }
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public UserQueryParams setUser( User user )
+    {
+        this.user = user;
+        return this;
+    }
+
+    public boolean isCanManage()
+    {
+        return canManage;
+    }
+
+    public UserQueryParams setCanManage( boolean canManage )
+    {
+        this.canManage = canManage;
+        return this;
+    }
+
+    public boolean isAuthSubset()
+    {
+        return authSubset;
+    }
+
+    public UserQueryParams setAuthSubset( boolean authSubset )
+    {
+        this.authSubset = authSubset;
+        return this;
+    }
+
+    public boolean isDisjointRoles()
+    {
+        return disjointRoles;
+    }
+
+    public UserQueryParams setDisjointRoles( boolean disjointRoles )
+    {
+        this.disjointRoles = disjointRoles;
+        return this;
+    }
+
+    public Date getLastLogin()
+    {
+        return lastLogin;
+    }
+
+    public UserQueryParams setLastLogin( Date lastLogin )
+    {
+        this.lastLogin = lastLogin;
+        return this;
+    }
+
+    public Date getInactiveSince()
+    {
+        return inactiveSince;
+    }
+
+    public UserQueryParams setInactiveSince( Date inactiveSince )
+    {
+        this.inactiveSince = inactiveSince;
+        return this;
+    }
+
+    public Integer getInactiveMonths()
+    {
+        return inactiveMonths;
+    }
+
+    public UserQueryParams setInactiveMonths( Integer inactiveMonths )
+    {
+        this.inactiveMonths = inactiveMonths;
+        return this;
+    }
+
+    public boolean isSelfRegistered()
+    {
+        return selfRegistered;
+    }
+
+    public UserQueryParams setSelfRegistered( boolean selfRegistered )
+    {
+        this.selfRegistered = selfRegistered;
+        return this;
+    }
+
+    public boolean isNot2FA()
+    {
+        return isNot2FA;
+    }
+
+    public UserQueryParams setNot2FA( boolean isNot2FA )
+    {
+        this.isNot2FA = isNot2FA;
+        return this;
+    }
+    
+    public UserInvitationStatus getInvitationStatus()
+    {
+        return invitationStatus;
+    }
+
+    public UserQueryParams setInvitationStatus( UserInvitationStatus invitationStatus )
+    {
+        this.invitationStatus = invitationStatus;
+        return this;
+    }
+
+    public List<OrganisationUnit> getOrganisationUnits()
+    {
+        return organisationUnits;
+    }
+
+    public UserQueryParams setOrganisationUnits( List<OrganisationUnit> organisationUnits )
+    {
+        this.organisationUnits = organisationUnits;
+        return this;
+    }
+
+    public Integer getFirst()
+    {
+        return first;
+    }
+
+    public UserQueryParams setFirst( Integer first )
+    {
+        this.first = first;
+        return this;
+    }
+
+    public Integer getMax()
+    {
+        return max;
+    }
+
+    public UserQueryParams setMax( Integer max )
+    {
+        this.max = max;
+        return this;
+    }
+
+    public boolean isUserOrgUnits()
+    {
+        return userOrgUnits;
+    }
+
+    public UserQueryParams setUserOrgUnits( boolean userOrgUnits )
+    {
+        this.userOrgUnits = userOrgUnits;
+        return this;
+    }
+
+    public boolean isIncludeOrgUnitChildren()
+    {
+        return includeOrgUnitChildren;
+    }
+
+    public UserQueryParams setIncludeOrgUnitChildren( boolean includeOrgUnitChildren )
+    {
+        this.includeOrgUnitChildren = includeOrgUnitChildren;
+        return this;
+    }
+
+    public boolean isPrefetchUserGroups()
+    {
+        return prefetchUserGroups;
+    }
+
+    public UserQueryParams setPrefetchUserGroups( boolean prefetchUserGroups )
+    {
+        this.prefetchUserGroups = prefetchUserGroups;
+        return this;
+    }
+
+    public Date getPasswordLastUpdated()
+    {
+        return passwordLastUpdated;
+    }
+
+    public UserQueryParams setPasswordLastUpdated( Date passwordLastUpdated )
+    {
+        this.passwordLastUpdated = passwordLastUpdated;
+        return this;
+    }
+
+    public Boolean getDisabled()
+    {
+        return disabled;
+    }
+
+    public UserQueryParams setDisabled( Boolean disabled )
+    {
+        this.disabled = disabled;
+        return this;
+    }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.common.adapter;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
 
-import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+import java.io.IOException;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * TODO switch to <code>jgen.writeObject( field )</code>
- *
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JacksonRowDataSerializer extends JsonSerializer<List<List<Object>>> {
-  private static final String EMPTY = "";
-
-  @Override
-  public void serialize(List<List<Object>> values, JsonGenerator jgen, SerializerProvider provider)
-      throws IOException {
-    jgen.writeStartArray();
-
-    for (List<Object> row : values) {
-      jgen.writeStartArray();
-
-      for (Object field : row) {
-        jgen.writeString(field != null ? String.valueOf(maybeFormat(field)) : EMPTY);
-      }
-
-      jgen.writeEndArray();
+public class JacksonRowDataSerializer
+    extends JsonSerializer<List<List<Object>>>
+{
+    private static final String EMPTY = "";
+    
+    @Override
+    public void serialize( List<List<Object>> values, JsonGenerator jgen, SerializerProvider provider ) throws IOException
+    {
+        jgen.writeStartArray();
+        
+        for ( List<Object> row : values )
+        {
+            jgen.writeStartArray();
+            
+            for ( Object field : row )
+            {
+                jgen.writeString( field != null ? String.valueOf( field ) : EMPTY );
+            }
+            
+            jgen.writeEndArray();
+        }
+        
+        jgen.writeEndArray();
     }
-
-    jgen.writeEndArray();
-  }
 }

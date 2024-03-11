@@ -1,5 +1,7 @@
+package org.hisp.dhis.common.comparator;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,24 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.comparator;
 
 import java.util.Comparator;
 import java.util.Objects;
 
 /**
- * Converts the given objects based on their string value. Null objects are interpreted as empty
- * strings.
- *
+ * Converts the given objects based on their string value. Null objects are
+ * interpreted as empty strings.
+ * 
  * @author Lars Helge Overland
  */
-public class ObjectStringValueComparator implements Comparator<Object> {
-  public static final ObjectStringValueComparator INSTANCE = new ObjectStringValueComparator();
-
-  private static final String NULL_REPLACEMENT = "";
-
-  @Override
-  public int compare(Object o1, Object o2) {
-    return Objects.toString(o1, NULL_REPLACEMENT).compareTo(Objects.toString(o2, NULL_REPLACEMENT));
-  }
+public class ObjectStringValueComparator
+    implements Comparator<Object>
+{
+    public static final ObjectStringValueComparator INSTANCE = new ObjectStringValueComparator();
+    
+    private static final String NULL_REPLACEMENT = "";
+    
+    @Override
+    public int compare( Object o1, Object o2 )
+    {
+        return Objects.toString( o1, NULL_REPLACEMENT ).compareTo( Objects.toString( o2, NULL_REPLACEMENT ) );
+    }
 }

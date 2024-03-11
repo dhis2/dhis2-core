@@ -1,5 +1,8 @@
+
+package org.hisp.dhis.user;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +28,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+
+import org.hisp.dhis.common.GenericStore;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RequiredArgsConstructor
-@Service("org.hisp.dhis.user.UserAccessService")
-public class DefaultUserAccessService implements UserAccessService {
-  @Qualifier("org.hisp.dhis.user.UserAccessStore")
-  private final GenericStore<UserAccess> userAccessStore;
+@Transactional
+public class DefaultUserAccessService implements UserAccessService
+{
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  // -------------------------------------------------------------------------
-  // UserGroupAccess
-  // -------------------------------------------------------------------------
+    private GenericStore<UserAccess> userAccessStore;
 
-  @Override
-  @Transactional
-  public void addUserAccess(UserAccess userAccess) {
-    userAccessStore.save(userAccess);
-  }
+    public void setUserAccessStore( GenericStore<UserAccess> userAccessStore )
+    {
+        this.userAccessStore = userAccessStore;
+    }
 
-  @Override
-  @Transactional
-  public void updateUserAccess(UserAccess userAccess) {
-    userAccessStore.update(userAccess);
-  }
+    // -------------------------------------------------------------------------
+    // UserGroupAccess
+    // -------------------------------------------------------------------------
 
-  @Override
-  @Transactional
-  public void deleteUserAccess(UserAccess userAccess) {
-    userAccessStore.delete(userAccess);
-  }
+    @Override
+    public void addUserAccess( UserAccess userAccess )
+    {
+        userAccessStore.save( userAccess );
+    }
 
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserAccess> getAllUserAccesses() {
-    return userAccessStore.getAll();
-  }
+    @Override
+    public void updateUserAccess( UserAccess userAccess )
+    {
+        userAccessStore.update( userAccess );
+    }
+
+    @Override
+    public void deleteUserAccess( UserAccess userAccess )
+    {
+        userAccessStore.delete( userAccess );
+    }
+
+    @Override
+    public List<UserAccess> getAllUserAccesses()
+    {
+        return userAccessStore.getAll();
+    }
 }

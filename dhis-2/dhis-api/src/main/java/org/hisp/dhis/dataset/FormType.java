@@ -1,5 +1,7 @@
+package org.hisp.dhis.dataset;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum FormType {
-  DEFAULT,
-  CUSTOM,
-  SECTION,
-  SECTION_MULTIORG;
+public enum FormType
+{
+    DEFAULT,
+    CUSTOM,
+    SECTION,
+    SECTION_MULTIORG;
 
-  public boolean isDefault() {
-    return this == DEFAULT;
-  }
+    public boolean isDefault()
+    {
+        return this == DEFAULT;
+    }
 
-  public boolean isCustom() {
-    return this == CUSTOM;
-  }
+    public boolean isCustom()
+    {
+        return this == CUSTOM;
+    }
 
-  public boolean isSection() {
-    return this == SECTION || this == SECTION_MULTIORG;
-  }
+    public boolean isSection()
+    {
+        return this == SECTION || this == SECTION_MULTIORG;
+    }
 }

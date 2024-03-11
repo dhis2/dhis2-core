@@ -7,9 +7,7 @@
   <class name="org.hisp.dhis.program.ProgramStageInstance" table="programstageinstance">
 
     <id name="id" column="programstageinstanceid">
-      <generator class="sequence">
-        <param name="sequence_name">programstageinstance_sequence</param>
-      </generator>
+      <generator class="native" />
     </id>
 
     <property name="uid" column="uid" unique="true" length="11" />
@@ -18,11 +16,7 @@
 
     <property name="created" type="timestamp" not-null="true" />
 
-    <property name="createdByUserInfo" type="jbUserInfoSnapshot" column="createdbyuserinfo" />
-
     <property name="lastUpdated" type="timestamp" not-null="true" />
-
-    <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo" />
 
     <property name="createdAtClient" type="timestamp" />
 
@@ -66,17 +60,17 @@
 
     <property name="geometry" />
 
-    <many-to-one name="assignedUser" class="org.hisp.dhis.user.User" column="assigneduserid"
-                 foreign-key="fk_programstageinstance_assigneduserid" />
-
-    <property name="eventDataValues" type="jsbEventDataValues" />
-
     <list name="comments" table="programstageinstancecomments" cascade="all-delete-orphan">
       <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
         unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
     </list>
+
+    <set name="dataValues" inverse="true" lazy="true">
+      <key column="programstageinstanceid" />
+      <one-to-many class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
+    </set>
 
     <set name="relationshipItems" inverse="true">
       <key column="programstageinstanceid" />

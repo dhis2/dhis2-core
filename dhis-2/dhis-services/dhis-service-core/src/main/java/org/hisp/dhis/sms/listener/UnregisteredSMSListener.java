@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.listener;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,119 +27,96 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component("org.hisp.dhis.sms.listener.UnregisteredSMSListener")
+import java.util.Map;
+
 @Transactional
-public class UnregisteredSMSListener extends CommandSMSListener {
-  private final SMSCommandService smsCommandService;
+public class UnregisteredSMSListener
+    extends BaseSMSListener
+{
 
-  private final UserService userService;
+    private static final String USER_NAME = "anonymous";
 
-  private final MessageService messageService;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-  public UnregisteredSMSListener(
-      ProgramInstanceService programInstanceService,
-      CategoryService dataElementCategoryService,
-      ProgramStageInstanceService programStageInstanceService,
-      UserService userService,
-      CurrentUserService currentUserService,
-      IncomingSmsService incomingSmsService,
-      @Qualifier("smsMessageSender") MessageSender smsSender,
-      SMSCommandService smsCommandService,
-      UserService userService1,
-      MessageService messageService) {
-    super(
-        programInstanceService,
-        dataElementCategoryService,
-        programStageInstanceService,
-        userService,
-        currentUserService,
-        incomingSmsService,
-        smsSender);
+    @Autowired
+    private SMSCommandService smsCommandService;
 
-    checkNotNull(smsCommandService);
-    checkNotNull(userService);
-    checkNotNull(messageService);
+    @Autowired
+    private UserService userService;
 
-    this.smsCommandService = smsCommandService;
-    this.userService = userService1;
-    this.messageService = messageService;
-  }
+    @Autowired
+    private MessageService messageService;
 
-  // -------------------------------------------------------------------------
-  // IncomingSmsListener implementation
-  // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // IncomingSmsListener implementation
+    // -------------------------------------------------------------------------
 
-  @Override
-  protected SMSCommand getSMSCommand(IncomingSms sms) {
-    return smsCommandService.getSMSCommand(
-        SmsUtils.getCommandString(sms), ParserType.UNREGISTERED_PARSER);
-  }
-
-  @Override
-  protected boolean hasCorrectFormat(IncomingSms sms, SMSCommand smsCommand) {
-    return true;
-  }
-
-  @Override
-  protected void postProcess(
-      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
-    UserGroup userGroup = smsCommand.getUserGroup();
-
-    String userName = sms.getOriginator();
-
-    if (userGroup != null) {
-      User anonymousUser = userService.getUserByUsername(userName);
-      if (anonymousUser == null) {
-        User user = new User();
-        user.setSurname(userName);
-        user.setFirstName("");
-        user.setAutoFields();
-
-        userService.addUser(user);
-
-        anonymousUser = userService.getUserByUsername(userName);
-      }
-
-      messageService.sendMessage(
-          new MessageConversationParams.Builder(
-                  userGroup.getMembers(),
-                  anonymousUser,
-                  smsCommand.getName(),
-                  sms.getText(),
-                  MessageType.SYSTEM,
-                  null)
-              .build());
-
-      sendFeedback(smsCommand.getReceivedMessage(), sms.getOriginator(), INFO);
-
-      update(sms, SmsMessageStatus.PROCESSED, true);
+    @Override
+    protected SMSCommand getSMSCommand( IncomingSms sms )
+    {
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
+            ParserType.UNREGISTERED_PARSER );
     }
-  }
+
+    @Override
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
+    {
+        UserGroup userGroup = smsCommand.getUserGroup();
+
+        String userName = sms.getOriginator();
+
+        if ( userGroup != null )
+        {
+            UserCredentials anonymousUser = userService.getUserCredentialsByUsername( userName );
+
+            if ( anonymousUser == null )
+            {
+                User user = new User();
+
+                UserCredentials usercredential = new UserCredentials();
+                usercredential.setUsername( userName );
+                usercredential.setPassword( USER_NAME );
+                usercredential.setUserInfo( user );
+
+                user.setSurname( userName );
+                user.setFirstName( "" );
+                user.setUserCredentials( usercredential );
+                user.setAutoFields();
+
+                userService.addUserCredentials( usercredential );
+                userService.addUser( user );
+
+                anonymousUser = userService.getUserCredentialsByUsername( userName );
+            }
+
+
+            messageService.sendMessage(
+                new MessageConversationParams.Builder( userGroup.getMembers(), anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM )
+                .build()
+            );
+
+            sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
+
+            update( sms, SmsMessageStatus.PROCESSED, true );
+        }
+    }
 }

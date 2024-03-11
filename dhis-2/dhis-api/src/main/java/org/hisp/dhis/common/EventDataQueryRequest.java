@@ -1,13 +1,15 @@
+package org.hisp.dhis.common;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018; University of Oslo
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ * Redistribution and use in source and binary forms; with or without
+ * modification; are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice; this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * Redistributions in binary form must reproduce the above copyright notice;
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
@@ -15,374 +17,560 @@
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * ANY EXPRESS OR IMPLIED WARRANTIES; INCLUDING; BUT NOT LIMITED TO; THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * ANY DIRECT; INDIRECT; INCIDENTAL; SPECIAL; EXEMPLARY; OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING; BUT NOT LIMITED TO; PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE; DATA; OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY; WHETHER IN CONTRACT; STRICT LIABILITY; OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * SOFTWARE; EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.CustomDateHelper.getCustomDateFilters;
-import static org.hisp.dhis.common.CustomDateHelper.getDimensionsWithRefactoredPeDimension;
-import static org.hisp.dhis.common.CustomDateHelper.isPeDimension;
-
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 
-@Builder
-@Getter
-@AllArgsConstructor
-public class EventDataQueryRequest {
-  private String program;
+public class EventDataQueryRequest
+{
+    protected String program;
 
-  private String stage;
+    protected String stage;
 
-  private Date startDate;
+    protected Date startDate;
 
-  private Date endDate;
+    protected Date endDate;
 
-  private Set<Set<String>> dimension;
+    protected Set<String> dimension;
 
-  private Set<Set<String>> filter;
+    protected Set<String> filter;
 
-  private Set<String> headers;
+    protected String value;
 
-  private String value;
+    protected AggregationType aggregationType;
 
-  private AggregationType aggregationType;
+    protected boolean skipMeta;
 
-  private boolean skipMeta;
+    protected boolean skipData;
 
-  private boolean skipData;
+    protected boolean skipRounding;
 
-  private boolean skipRounding;
+    protected boolean completedOnly;
 
-  private boolean completedOnly;
+    protected boolean hierarchyMeta;
 
-  private boolean hierarchyMeta;
+    protected boolean showHierarchy;
 
-  private boolean showHierarchy;
+    protected SortOrder sortOrder;
 
-  private SortOrder sortOrder;
+    protected Integer limit;
 
-  private Integer limit;
+    protected EventOutputType outputType;
 
-  private EventOutputType outputType;
+    protected EventStatus eventStatus;
 
-  private Set<EventStatus> eventStatus;
+    protected ProgramStatus programStatus;
 
-  private Set<ProgramStatus> programStatus;
+    protected boolean collapseDataDimensions;
 
-  private boolean collapseDataDimensions;
+    protected boolean aggregateData;
 
-  private boolean aggregateData;
+    protected boolean includeMetadataDetails;
+    
+    protected IdScheme dataIdScheme;
 
-  private boolean includeMetadataDetails;
+    protected DisplayProperty displayProperty;
 
-  private IdScheme dataIdScheme;
+    protected Date relativePeriodDate;
 
-  private IdScheme outputIdScheme;
+    protected String userOrgUnit;
 
-  private DisplayProperty displayProperty;
+    protected DhisApiVersion apiVersion;
 
-  private Date relativePeriodDate;
+    protected OrganisationUnitSelectionMode ouMode;
 
-  private String userOrgUnit;
+    protected Set<String> asc;
 
-  private DhisApiVersion apiVersion;
+    protected Set<String> desc;
 
-  private OrganisationUnitSelectionMode ouMode;
+    protected String timeField;
 
-  private Set<String> asc;
+    protected boolean coordinatesOnly;
 
-  private Set<String> desc;
+    protected String coordinateField;
 
-  private String timeField;
+    protected Integer page;
 
-  private String orgUnitField;
+    protected Integer pageSize;
 
-  private boolean coordinatesOnly;
-
-  private boolean defaultCoordinateFallback;
-
-  private String coordinateField;
-
-  private String fallbackCoordinateField;
-
-  private Integer page;
-
-  private Integer pageSize;
-
-  private boolean paging;
-
-  private boolean totalPages;
-
-  private EndpointItem endpointItem;
-
-  private EndpointAction endpointAction;
-
-  private boolean enhancedConditions;
-
-  /** flag to enable row context in grid response */
-  private boolean rowContext;
-
-  /**
-   * Copies all properties of this request onto the given request.
-   *
-   * @param request the request to copy properties onto.
-   * @return the given request with all properties of this request set.
-   */
-  public <T extends EventDataQueryRequest> T copyTo(T request) {
-    EventDataQueryRequest queryRequest = request;
-    queryRequest.program = this.program;
-    queryRequest.stage = this.stage;
-    queryRequest.startDate = this.startDate;
-    queryRequest.endDate = this.endDate;
-    queryRequest.dimension = new HashSet<>(this.dimension);
-    queryRequest.filter = new HashSet<>(this.filter);
-    queryRequest.headers = new LinkedHashSet<>(this.headers);
-    queryRequest.value = this.value;
-    queryRequest.aggregationType = this.aggregationType;
-    queryRequest.skipMeta = this.skipMeta;
-    queryRequest.skipData = this.skipData;
-    queryRequest.skipRounding = this.skipRounding;
-    queryRequest.completedOnly = this.completedOnly;
-    queryRequest.hierarchyMeta = this.hierarchyMeta;
-    queryRequest.showHierarchy = this.showHierarchy;
-    queryRequest.sortOrder = this.sortOrder;
-    queryRequest.limit = this.limit;
-    queryRequest.outputType = this.outputType;
-    queryRequest.eventStatus = new LinkedHashSet<>(this.eventStatus);
-    queryRequest.programStatus = new LinkedHashSet<>(this.programStatus);
-    queryRequest.collapseDataDimensions = this.collapseDataDimensions;
-    queryRequest.aggregateData = this.aggregateData;
-    queryRequest.includeMetadataDetails = this.includeMetadataDetails;
-    queryRequest.displayProperty = this.displayProperty;
-    queryRequest.relativePeriodDate = this.relativePeriodDate;
-    queryRequest.userOrgUnit = this.userOrgUnit;
-    queryRequest.apiVersion = this.apiVersion;
-    queryRequest.ouMode = this.ouMode;
-    queryRequest.asc = new HashSet<>(this.asc);
-    queryRequest.desc = new HashSet<>(this.desc);
-    queryRequest.timeField = this.timeField;
-    queryRequest.coordinatesOnly = this.coordinatesOnly;
-    queryRequest.coordinateField = this.coordinateField;
-    queryRequest.fallbackCoordinateField = this.fallbackCoordinateField;
-    queryRequest.page = this.page;
-    queryRequest.pageSize = this.pageSize;
-    queryRequest.paging = this.paging;
-    queryRequest.totalPages = this.totalPages;
-    queryRequest.endpointItem = this.endpointItem;
-    queryRequest.endpointAction = this.endpointAction;
-    queryRequest.enhancedConditions = this.enhancedConditions;
-    queryRequest.outputIdScheme = outputIdScheme;
-    queryRequest.rowContext = rowContext;
-    return request;
-  }
-
-  public static ExtendedEventDataQueryRequestBuilder builder() {
-    return new ExtendedEventDataQueryRequestBuilder();
-  }
-
-  public boolean hasStartEndDate() {
-    return startDate != null && endDate != null;
-  }
-
-  public static class ExtendedEventDataQueryRequestBuilder extends EventDataQueryRequestBuilder {
-    public static final Pattern DIMENSION_OR_SEPARATOR = Pattern.compile("_OR_");
-
-    public EventDataQueryRequestBuilder fromCriteria(EventsAnalyticsQueryCriteria criteria) {
-      EventDataQueryRequestBuilder builder =
-          aggregationType(criteria.getAggregationType())
-              .aggregateData(criteria.isAggregateData())
-              .asc(criteria.getAsc())
-              .collapseDataDimensions(criteria.isCollapseDataDimensions())
-              .completedOnly(criteria.isCompletedOnly())
-              .coordinateField(criteria.getCoordinateField())
-              .fallbackCoordinateField(criteria.getFallbackCoordinateField())
-              .defaultCoordinateFallback(criteria.isDefaultCoordinateFallback())
-              .desc(criteria.getDesc())
-              .displayProperty(criteria.getDisplayProperty())
-              .endDate(criteria.getEndDate())
-              .eventStatus(criteria.getEventStatus())
-              .filter(getGrouped(criteria.getFilter()))
-              .headers(criteria.getHeaders())
-              .hierarchyMeta(criteria.isHierarchyMeta())
-              .includeMetadataDetails(criteria.isIncludeMetadataDetails())
-              .limit(criteria.getLimit())
-              .ouMode(criteria.getOuMode())
-              .outputType(criteria.getOutputType())
-              .page(criteria.getPage())
-              .pageSize(criteria.getPageSize())
-              .paging(criteria.isPaging())
-              .programStatus(criteria.getProgramStatus())
-              .relativePeriodDate(criteria.getRelativePeriodDate())
-              .showHierarchy(criteria.isShowHierarchy())
-              .skipRounding(criteria.isSkipRounding())
-              .skipData(criteria.isSkipData())
-              .skipMeta(criteria.isSkipMeta())
-              .sortOrder(criteria.getSortOrder())
-              .stage(criteria.getStage())
-              .startDate(criteria.getStartDate())
-              .timeField(criteria.getTimeField())
-              .userOrgUnit(criteria.getUserOrgUnit())
-              .value(criteria.getValue())
-              .dataIdScheme(criteria.getDataIdScheme())
-              .outputIdScheme(criteria.getOutputIdScheme())
-              .orgUnitField(criteria.getOrgUnitField())
-              .coordinatesOnly(criteria.isCoordinatesOnly())
-              .defaultCoordinateFallback(criteria.isDefaultCoordinateFallback())
-              .totalPages(criteria.isTotalPages())
-              .endpointItem(criteria.getEndpointItem())
-              .endpointAction(criteria.getEndpointAction())
-              .enhancedConditions(criteria.isEnhancedConditions())
-              .rowContext(criteria.isRowContext());
-
-      if (criteria.getDimension() == null) {
-        criteria.setDimension(new HashSet<>());
-      }
-
-      Set<String> dimensions;
-
-      if (criteria.isQueryEndpoint()) {
-        /*
-         * for each AnalyticsDateFilter whose event extractor is set,
-         * concatenates the timeField with the extracted value:
-         *
-         * example: eventCriteria.lastUpdated=TODAY
-         * eventCriteria.incidentDate=LAST_WEEK
-         *
-         * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
-         */
-        String customDateFilters =
-            getCustomDateFilters(
-                AnalyticsDateFilter::appliesToEvents,
-                analyticsDateFilter ->
-                    o ->
-                        analyticsDateFilter
-                            .getEventExtractor()
-                            .apply((EventsAnalyticsQueryCriteria) o),
-                criteria);
-        /*
-         * sets the new time dimensions into the requestBuilder
-         */
-        dimensions =
-            new HashSet<>(
-                getDimensionsWithRefactoredPeDimension(criteria.getDimension(), customDateFilters));
-      } else {
-        dimensions = new HashSet<>(criteria.getDimension());
-      }
-
-      return builder.dimension(getGrouped(dimensions));
+    public String getProgram()
+    {
+        return program;
     }
 
-    private static Set<String> splitDimension(String dimension) {
-      return Arrays.stream(DIMENSION_OR_SEPARATOR.split(dimension)).collect(Collectors.toSet());
+    public String getStage()
+    {
+        return stage;
     }
 
-    public EventDataQueryRequestBuilder fromCriteria(EnrollmentAnalyticsQueryCriteria criteria) {
-      EventDataQueryRequestBuilder builder =
-          startDate(criteria.getStartDate())
-              .timeField(criteria.getTimeField())
-              .endDate(criteria.getEndDate())
-              .filter(getGrouped(criteria.getFilter()))
-              .headers(criteria.getHeaders())
-              .ouMode(criteria.getOuMode())
-              .asc(criteria.getAsc())
-              .desc(criteria.getDesc())
-              .skipMeta(criteria.isSkipMeta())
-              .skipData(criteria.isSkipData())
-              .completedOnly(criteria.isCompletedOnly())
-              .hierarchyMeta(criteria.isHierarchyMeta())
-              .showHierarchy(criteria.isShowHierarchy())
-              .coordinatesOnly(criteria.isCoordinatesOnly())
-              .includeMetadataDetails(criteria.isIncludeMetadataDetails())
-              .dataIdScheme(criteria.getDataIdScheme())
-              .outputIdScheme(criteria.getOutputIdScheme())
-              .programStatus(criteria.getProgramStatus())
-              .page(criteria.getPage())
-              .pageSize(criteria.getPageSize())
-              .paging(criteria.isPaging())
-              .displayProperty(criteria.getDisplayProperty())
-              .relativePeriodDate(criteria.getRelativePeriodDate())
-              .userOrgUnit(criteria.getUserOrgUnit())
-              .coordinateField(criteria.getCoordinateField())
-              .sortOrder(criteria.getSortOrder())
-              .totalPages(criteria.isTotalPages())
-              .endpointItem(criteria.getEndpointItem())
-              .endpointAction(criteria.getEndpointAction())
-              .enhancedConditions(criteria.isEnhancedConditions())
-              .rowContext(criteria.isRowContext());
-
-      if (criteria.getDimension() == null) {
-        criteria.setDimension(new HashSet<>());
-      }
-
-      Set<String> dimensions;
-      if (criteria.isQueryEndpoint()) {
-        /*
-         * for each AnalyticsDateFilter whose enrollment extractor is
-         * set, concatenates the timeField with the extracted value:
-         *
-         * example: enrollmentCriteria.lastUpdated=TODAY
-         * enrollmentCriteria.incidentDate=LAST_WEEK
-         *
-         * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
-         */
-        String customDateFilters =
-            getCustomDateFilters(
-                AnalyticsDateFilter::appliesToEnrollments,
-                analyticsDateFilter ->
-                    o ->
-                        analyticsDateFilter
-                            .getEnrollmentExtractor()
-                            .apply((EnrollmentAnalyticsQueryCriteria) o),
-                criteria);
-
-        dimensions =
-            new HashSet<>(
-                getDimensionsWithRefactoredPeDimension(criteria.getDimension(), customDateFilters));
-      } else {
-        dimensions = new HashSet<>(criteria.getDimension());
-      }
-
-      return builder.dimension(getGrouped(dimensions));
+    public Date getStartDate()
+    {
+        return startDate;
     }
 
-    private static Set<Set<String>> getGrouped(Set<String> dimensions) {
-      if (dimensions == null) {
-        return null;
-      }
-      Set<Set<String>> groupedDimensions = new HashSet<>();
-      for (String dimension : dimensions) {
-        if (isPeDimension(dimension)) {
-          groupedDimensions.add(new HashSet<>(Set.of(dimension)));
-        } else {
-          groupedDimensions.add(splitDimension(dimension));
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public Set<String> getDimension()
+    {
+        return dimension;
+    }
+
+    public Set<String> getFilter()
+    {
+        return filter;
+    }
+
+    public String getValue()
+    {
+        return value;
+    }
+
+    public AggregationType getAggregationType()
+    {
+        return aggregationType;
+    }
+
+    public boolean isSkipMeta()
+    {
+        return skipMeta;
+    }
+
+    public boolean isSkipData()
+    {
+        return skipData;
+    }
+
+    public boolean isSkipRounding()
+    {
+        return skipRounding;
+    }
+
+    public boolean isCompletedOnly()
+    {
+        return completedOnly;
+    }
+
+    public boolean isHierarchyMeta()
+    {
+        return hierarchyMeta;
+    }
+
+    public boolean isShowHierarchy()
+    {
+        return showHierarchy;
+    }
+
+    public SortOrder getSortOrder()
+    {
+        return sortOrder;
+    }
+
+    public Integer getLimit()
+    {
+        return limit;
+    }
+
+    public EventOutputType getOutputType()
+    {
+        return outputType;
+    }
+
+    public EventStatus getEventStatus()
+    {
+        return eventStatus;
+    }
+
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public boolean isCollapseDataDimensions()
+    {
+        return collapseDataDimensions;
+    }
+
+    public boolean isAggregateData()
+    {
+        return aggregateData;
+    }
+
+    public boolean isIncludeMetadataDetails()
+    {
+        return includeMetadataDetails;
+    }
+
+    public IdScheme getDataIdScheme()
+    {
+        return dataIdScheme;
+    }
+
+    public DisplayProperty getDisplayProperty()
+    {
+        return displayProperty;
+    }
+
+    public Date getRelativePeriodDate()
+    {
+        return relativePeriodDate;
+    }
+
+    public String getUserOrgUnit()
+    {
+        return userOrgUnit;
+    }
+
+    public DhisApiVersion getApiVersion()
+    {
+        return apiVersion;
+    }
+
+    public OrganisationUnitSelectionMode getOuMode()
+    {
+        return ouMode;
+    }
+
+    public Set<String> getAsc()
+    {
+        return asc;
+    }
+
+    public Set<String> getDesc()
+    {
+        return desc;
+    }
+
+    public String getTimeField()
+    {
+        return timeField;
+    }
+
+    public boolean isCoordinatesOnly()
+    {
+        return coordinatesOnly;
+    }
+
+    public String getCoordinateField()
+    {
+        return coordinateField;
+    }
+
+    public Integer getPage()
+    {
+        return page;
+    }
+
+    public Integer getPageSize()
+    {
+        return pageSize;
+    }
+
+    /**
+     * Copies all properties of this request onto the given request.
+     * 
+     * @param request the request to copy properties onto.
+     * @return the given request with all properties of this request set.
+     */
+    public <T extends EventDataQueryRequest> T copyTo( T request )
+    {
+        request.program = this.program;
+        request.stage = this.stage;
+        request.startDate = this.startDate;
+        request.endDate = this.endDate;
+        request.dimension = new HashSet<>( this.dimension );
+        request.filter = new HashSet<>( this.filter );
+        request.value = this.value;
+        request.aggregationType = this.aggregationType;
+        request.skipMeta = this.skipMeta;
+        request.skipData = this.skipData;
+        request.skipRounding = this.skipRounding;
+        request.completedOnly = this.completedOnly;
+        request.hierarchyMeta = this.hierarchyMeta;
+        request.showHierarchy = this.showHierarchy;
+        request.sortOrder = this.sortOrder;
+        request.limit = this.limit;
+        request.outputType = this.outputType;
+        request.eventStatus = this.eventStatus;
+        request.programStatus = this.programStatus;
+        request.collapseDataDimensions = this.collapseDataDimensions;
+        request.aggregateData = this.aggregateData;
+        request.includeMetadataDetails = this.includeMetadataDetails;
+        request.displayProperty = this.displayProperty;
+        request.relativePeriodDate = this.relativePeriodDate;
+        request.userOrgUnit = this.userOrgUnit;
+        request.apiVersion = this.apiVersion;
+        request.ouMode = this.ouMode;
+        request.asc = new HashSet<>( this.asc );
+        request.desc = new HashSet<>( this.desc );
+        request.timeField = this.timeField;
+        request.coordinatesOnly = this.coordinatesOnly;
+        request.coordinateField = this.coordinateField;
+        request.page = this.page;
+        request.pageSize = this.pageSize;
+        return request;
+    }
+
+    public static EventDataQueryRequestBuilder newBuilder()
+    {
+        return new EventDataQueryRequest.EventDataQueryRequestBuilder();
+    }
+
+    protected EventDataQueryRequest()
+    {
+    }
+
+    protected EventDataQueryRequest instance()
+    {
+        return copyTo( new EventDataQueryRequest() );
+    }
+
+    public static class EventDataQueryRequestBuilder
+    {
+        private EventDataQueryRequest request;
+
+        protected EventDataQueryRequestBuilder()
+        {
+            this.request = new EventDataQueryRequest();
         }
-      }
 
-      return groupedDimensions;
+        protected EventDataQueryRequestBuilder( EventDataQueryRequest request )
+        {
+            this.request = request.instance();
+        }
+
+        public EventDataQueryRequestBuilder program( String program )
+        {
+            this.request.program = program;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder stage( String stage )
+        {
+            this.request.stage = stage;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder startDate( Date startDate )
+        {
+            this.request.startDate = startDate;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder endDate( Date endDate )
+        {
+            this.request.endDate = endDate;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder dimension( Set<String> dimension )
+        {
+            this.request.dimension = dimension;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder filter( Set<String> filter )
+        {
+            this.request.filter = filter;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder value( String value )
+        {
+            this.request.value = value;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder aggregationType( AggregationType aggregationType )
+        {
+            this.request.aggregationType = aggregationType;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder skipMeta( boolean skipMeta )
+        {
+            this.request.skipMeta = skipMeta;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder skipData( boolean skipData )
+        {
+            this.request.skipData = skipData;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder skipRounding( boolean skipRounding )
+        {
+            this.request.skipRounding = skipRounding;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder completedOnly( boolean completedOnly )
+        {
+            this.request.completedOnly = completedOnly;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder hierarchyMeta( boolean hierarchyMeta )
+        {
+            this.request.hierarchyMeta = hierarchyMeta;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder showHierarchy( boolean showHierarchy )
+        {
+            this.request.showHierarchy = showHierarchy;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder sortOrder( SortOrder sortOrder )
+        {
+            this.request.sortOrder = sortOrder;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder limit( Integer limit )
+        {
+            this.request.limit = limit;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder outputType( EventOutputType outputType )
+        {
+            this.request.outputType = outputType;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder eventStatus( EventStatus eventStatus )
+        {
+            this.request.eventStatus = eventStatus;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder programStatus( ProgramStatus programStatus )
+        {
+            this.request.programStatus = programStatus;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder collapseDataDimensions( boolean collapseDataDimensions )
+        {
+            this.request.collapseDataDimensions = collapseDataDimensions;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder aggregateData( boolean aggregateData )
+        {
+            this.request.aggregateData = aggregateData;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder includeMetadataDetails( boolean includeMetadataDetails )
+        {
+            this.request.includeMetadataDetails = includeMetadataDetails;
+            return this;
+        }
+        
+        public EventDataQueryRequestBuilder dataIdScheme( IdScheme dataIdScheme )
+        {
+            this.request.dataIdScheme = dataIdScheme;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder displayProperty( DisplayProperty displayProperty )
+        {
+            this.request.displayProperty = displayProperty;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder relativePeriodDate( Date relativePeriodDate )
+        {
+            this.request.relativePeriodDate = relativePeriodDate;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder userOrgUnit( String userOrgUnit )
+        {
+            this.request.userOrgUnit = userOrgUnit;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder apiVersion( DhisApiVersion apiVersion )
+        {
+            this.request.apiVersion = apiVersion;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder ouMode( OrganisationUnitSelectionMode ouMode )
+        {
+            this.request.ouMode = ouMode;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder asc( Set<String> asc )
+        {
+            this.request.asc = asc;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder desc( Set<String> desc )
+        {
+            this.request.desc = desc;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder timeField( String timeField )
+        {
+            this.request.timeField = timeField;
+            return this;
+        }
+        
+        public EventDataQueryRequestBuilder coordinatesOnly( boolean coordinatesOnly )
+        {
+            this.request.coordinatesOnly = coordinatesOnly;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder coordinateField( String coordinateField )
+        {
+            this.request.coordinateField = coordinateField;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder page( Integer page )
+        {
+            this.request.page = page;
+            return this;
+        }
+
+        public EventDataQueryRequestBuilder pageSize( Integer pageSize )
+        {
+            this.request.pageSize = pageSize;
+            return this;
+        }
+
+        public EventDataQueryRequest build()
+        {
+            return request;
+        }
     }
-  }
 }

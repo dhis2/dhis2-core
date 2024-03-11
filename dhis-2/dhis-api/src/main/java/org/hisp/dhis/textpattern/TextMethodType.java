@@ -1,5 +1,7 @@
+package org.hisp.dhis.textpattern;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.textpattern;
 
 import java.util.regex.Pattern;
 
 /**
  * @author Stian Sandvold
  */
-public class TextMethodType extends BaseMethodType {
-  TextMethodType(Pattern pattern) {
-    super(pattern);
-  }
+public class TextMethodType
+    extends BaseMethodType
+{
+    TextMethodType( Pattern pattern )
+    {
+        super( pattern );
+    }
 
-  @Override
-  public boolean validateText(String format, String text) {
-    format = format.replaceAll("\\\\d", "[0-9]");
-    format = format.replaceAll("\\\\x", "[a-z]");
-    format = format.replaceAll("\\\\X", "[A-Z]");
-    format = format.replaceAll("\\\\w", "[0-9a-zA-Z]");
+    @Override
+    public boolean validateText( String format, String text )
+    {
+        format = format.replaceAll( "\\\\d", "[0-9]" );
+        format = format.replaceAll( "\\\\x", "[a-z]" );
+        format = format.replaceAll( "\\\\X", "[A-Z]" );
+        format = format.replaceAll( "\\\\w", "[0-9a-zA-Z]" );
 
-    return Pattern.compile(format).matcher(text).matches();
-  }
+        return Pattern.compile( format ).matcher( text ).matches();
+    }
 
-  @Override
-  public String getValueRegex(String format) {
-    return format;
-  }
+    @Override
+    public String getValueRegex( String format )
+    {
+        return format;
+    }
 }

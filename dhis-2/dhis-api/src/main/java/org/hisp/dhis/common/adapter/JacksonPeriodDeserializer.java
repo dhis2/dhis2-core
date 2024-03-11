@@ -1,5 +1,7 @@
+package org.hisp.dhis.common.adapter;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +27,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.adapter;
+
+import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
-class LocalPeriod {
-  private String id;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
-  private String name;
+class LocalPeriod
+{
+    private String id;
 
-  LocalPeriod() {}
+    private String name;
 
-  @JsonProperty
-  public String getId() {
-    return id;
-  }
+    LocalPeriod()
+    {
+    }
 
-  public void setId(String id) {
-    this.id = id;
-  }
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
 
-  @JsonProperty
-  public String getName() {
-    return name;
-  }
+    public void setId( String id )
+    {
+        this.id = id;
+    }
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
 }
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JacksonPeriodDeserializer extends JsonDeserializer<Period> {
-  @Override
-  public Period deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-    LocalPeriod period = jp.readValueAs(LocalPeriod.class);
+public class JacksonPeriodDeserializer
+    extends JsonDeserializer<Period>
+{
+    @Override
+    public Period deserialize( JsonParser jp, DeserializationContext ctxt )
+        throws IOException
+    {
+        LocalPeriod period = jp.readValueAs( LocalPeriod.class );
 
-    return period.getId() == null ? null : PeriodType.getPeriodFromIsoString(period.getId());
-  }
+        return period.getId() == null ? null : PeriodType.getPeriodFromIsoString( period.getId() );
+    }
 }

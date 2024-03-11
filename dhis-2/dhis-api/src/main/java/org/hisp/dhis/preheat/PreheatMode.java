@@ -1,5 +1,7 @@
+package org.hisp.dhis.preheat;
+
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.preheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated only REFERENCE mode is now allowed, all other modes will use REFERENCE, keeping enum
- *     for backward compatibility
  */
-public enum PreheatMode {
-  /** Scan objects for references. */
-  REFERENCE,
+public enum PreheatMode
+{
+    /**
+     * Scan objects for references.
+     */
+    REFERENCE,
 
-  /** Load inn all object of given types. */
-  ALL,
+    /**
+     * Load inn all object of given types.
+     */
+    ALL,
 
-  /** Preheating is disabled. */
-  NONE
+    /**
+     * Preheating is disabled.
+     */
+    NONE
 }
