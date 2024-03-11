@@ -30,8 +30,16 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.util.Properties;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
+import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
@@ -48,9 +56,21 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
 
   @Autowired SystemSettingManager systemSettingManager;
   @Autowired SystemService systemService;
+  @Autowired DhisOidcProviderRepository dhisOidcProviderRepository;
+
+  private void addGoogleProvider(String clientId) {
+    Properties config = new Properties();
+    config.put(ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_ID.getKey(), clientId);
+    config.put(ConfigurationKey.OIDC_PROVIDER_GOOGLE_CLIENT_SECRET.getKey(), "secret");
+    DhisOidcClientRegistration parse = GoogleProvider.parse(config);
+    dhisOidcProviderRepository.addRegistration(parse);
+  }
 
   @Test
   void shouldGetLoginConfig() {
+
+    addGoogleProvider("testClientId");
+
     systemSettingManager.saveSystemSetting(SettingKey.APPLICATION_TITLE, "DHIS2");
     systemSettingManager.saveSystemSettingTranslation(
         SettingKey.APPLICATION_TITLE, "no", "Distrikstshelsesinformasjonssystem versjon 2");
@@ -132,22 +152,34 @@ class LoginConfigControllerTest extends DhisControllerIntegrationTest {
     assertEquals(
         LoginPageLayout.DEFAULT.name(),
         responseDefaultLocale.getString("loginPageLayout").string());
+
+    JsonArray oidcProviders = responseDefaultLocale.getArray("oidcProviders");
+    assertEquals(1, oidcProviders.size());
+    for (JsonValue provider : oidcProviders) {
+      JsonMap<JsonObject> map = provider.asMap(JsonObject.class);
+      assertEquals("\"google\"", map.get("id").toString());
+      assertEquals(
+          "\"/dhis-web-commons/oidc/btn_google_light_normal_ios.svg\"", map.get("icon").toString());
+      assertEquals("\"0px 0px\"", map.get("iconPadding").toString());
+      assertEquals("\"login_with_google\"", map.get("loginText").toString());
+      assertEquals("\"/oauth2/authorization/google\"", map.get("url").toString());
+    }
   }
 
   @Test
   void testLoginPageLayout() {
     String template =
         """
-                <!DOCTYPE HTML>
-                <html class="loginPage" dir="ltr">
-                <head>
-                <title>DHIS 2 Demo</title>
-                <meta name="description" content="DHIS 2">
-                <meta name="keywords" content="DHIS 2">
-                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                </head>
-                <body>test</body>
-                </html>""";
+            <!DOCTYPE HTML>
+            <html class="loginPage" dir="ltr">
+            <head>
+            <title>DHIS 2 Demo</title>
+            <meta name="description" content="DHIS 2">
+            <meta name="keywords" content="DHIS 2">
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+            </head>
+            <body>test</body>
+            </html>""";
     POST("/systemSettings/loginPageTemplate", template).content(HttpStatus.OK);
     POST("/systemSettings/loginPageLayout", "CUSTOM").content(HttpStatus.OK);
     JsonObject response = GET("/loginConfig").content();
