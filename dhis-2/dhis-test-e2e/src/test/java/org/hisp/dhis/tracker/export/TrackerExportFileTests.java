@@ -183,7 +183,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  public void shouldGetTrackedEntitiesFromCsvGzip() throws IOException {
+  void shouldGetTrackedEntitiesFromCsvGzip() throws IOException {
     String csvRecords =
         gZipToStringContent(
             trackerActions
@@ -191,7 +191,7 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
                     new QueryParamsBuilder()
                         .add("trackedEntityType", TRACKED_ENTITY_TYPE)
                         .add("orgUnit", ORG_UNIT)
-                        .add("trackedEntities", trackedEntity))
+                        .add("trackedEntity", trackedEntity))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+gzip;charset=utf-8")
@@ -209,14 +209,14 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  public void shouldGetTrackedEntitiesFromCsv() throws IOException {
+  void shouldGetTrackedEntitiesFromCsv() throws IOException {
     byte[] csvRecords =
         trackerActions
             .getTrackedEntitiesCsv(
                 new QueryParamsBuilder()
                     .add("trackedEntityType", TRACKED_ENTITY_TYPE)
                     .add("orgUnit", ORG_UNIT)
-                    .add("trackedEntities", trackedEntity))
+                    .add("trackedEntity", trackedEntity))
             .validate()
             .statusCode(200)
             .contentType("application/csv;charset=utf-8")
@@ -290,12 +290,12 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  public void shouldGetEventsFromJsonGZip() throws IOException {
+  void shouldGetEventsFromJsonGZip() throws IOException {
     String s =
         gZipToStringContent(
             trackerActions
                 .getEventsJsonGZip(
-                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
+                    new QueryParamsBuilder().add("event", event).add("fields", "*,relationships"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+gzip;charset=utf-8")
@@ -311,12 +311,12 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  public void shouldGetEventsFromJsonZip() throws IOException {
+  void shouldGetEventsFromJsonZip() throws IOException {
     Map<String, String> s =
         mapZipEntryToStringContent(
             trackerActions
                 .getEventsJsonZip(
-                    new QueryParamsBuilder().add("events", event).add("fields", "*,relationships"))
+                    new QueryParamsBuilder().add("event", event).add("fields", "*,relationships"))
                 .validate()
                 .statusCode(200)
                 .contentType("application/json+zip;charset=utf-8")
@@ -449,11 +449,11 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  public void shouldGetEventsFromCsvGZip() throws IOException {
+  void shouldGetEventsFromCsvGZip() throws IOException {
     String s =
         gZipToStringContent(
             trackerActions
-                .getEventsCsvGZip(new QueryParamsBuilder().add("events", event))
+                .getEventsCsvGZip(new QueryParamsBuilder().add("event", event))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+gzip;charset=utf-8")
@@ -471,11 +471,11 @@ public class TrackerExportFileTests extends TrackerNtiApiTest {
   }
 
   @Test
-  public void shouldGetEventsFromCsvZip() throws IOException {
+  void shouldGetEventsFromCsvZip() throws IOException {
     Map<String, String> s =
         mapZipEntryToStringContent(
             trackerActions
-                .getEventsCsvZip(new QueryParamsBuilder().add("events", event))
+                .getEventsCsvZip(new QueryParamsBuilder().add("event", event))
                 .validate()
                 .statusCode(200)
                 .contentType("application/csv+zip;charset=utf-8")
