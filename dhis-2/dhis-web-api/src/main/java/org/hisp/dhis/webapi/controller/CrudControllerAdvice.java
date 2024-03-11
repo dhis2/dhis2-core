@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
 import javax.servlet.ServletException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
@@ -79,9 +80,6 @@ import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.common.OrderCriteriaParamEditor;
-import org.hisp.dhis.webapi.common.UIDParamEditor;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -90,8 +88,13 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
@@ -119,6 +122,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @ControllerAdvice
 public class CrudControllerAdvice {
   // Add sensitive exceptions into this array
@@ -151,8 +155,6 @@ public class CrudControllerAdvice {
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
-    binder.registerCustomEditor(OrderCriteria.class, new OrderCriteriaParamEditor());
-    binder.registerCustomEditor(UID.class, new UIDParamEditor());
   }
 
   @ExceptionHandler
@@ -199,6 +201,12 @@ public class CrudControllerAdvice {
     return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.NOT_FOUND, ex.getCode());
   }
 
+  @ExceptionHandler(org.hisp.dhis.feedback.HiddenNotFoundException.class)
+  @ResponseBody
+  public WebMessage hiddenNotFoundException(org.hisp.dhis.feedback.HiddenNotFoundException ex) {
+    return createWebMessage(Status.OK, HttpStatus.OK);
+  }
+
   @ExceptionHandler(RestClientException.class)
   @ResponseBody
   public WebMessage restClientExceptionHandler(RestClientException ex) {
@@ -217,8 +225,10 @@ public class CrudControllerAdvice {
     Class<?> requiredType = ex.getRequiredType();
     PathVariable pathVariableAnnotation =
         ex.getParameter().getParameterAnnotation(PathVariable.class);
-    String notValidValueMessage =
-        getNotValidValueMessage(ex.getValue(), ex.getName(), pathVariableAnnotation != null);
+    String field = ex.getName();
+    Object value = ex.getValue();
+    boolean isPathVariable = pathVariableAnnotation != null;
+    String notValidValueMessage = getNotValidValueMessage(value, field, isPathVariable);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -229,6 +239,10 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
+      notValidValueMessage =
+          getConversionErrorMessage(value, field, conversionException, isPathVariable);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -240,7 +254,9 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage handleTypeMismatchException(TypeMismatchException ex) {
     Class<?> requiredType = ex.getRequiredType();
-    String notValidValueMessage = getNotValidValueMessage(ex.getValue(), ex.getPropertyName());
+    String field = ex.getPropertyName();
+    Object value = ex.getValue();
+    String notValidValueMessage = getNotValidValueMessage(value, field);
 
     String customErrorMessage;
     if (requiredType == null) {
@@ -251,6 +267,9 @@ public class CrudControllerAdvice {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     } else if (ex.getCause() instanceof IllegalArgumentException) {
       customErrorMessage = ex.getCause().getMessage();
+    } else if (ex.getCause() instanceof ConversionFailedException conversionException) {
+      notValidValueMessage = getConversionErrorMessage(value, field, conversionException, false);
+      customErrorMessage = "";
     } else {
       customErrorMessage = getGenericFieldErrorMessage(requiredType.getSimpleName());
     }
@@ -272,11 +291,12 @@ public class CrudControllerAdvice {
     return MessageFormat.format("It should be of type {0}", fieldType);
   }
 
-  private String getNotValidValueMessage(Object value, String field) {
+  private static String getNotValidValueMessage(Object value, String field) {
     return getNotValidValueMessage(value, field, false);
   }
 
-  private String getNotValidValueMessage(Object value, String field, boolean isPathVariable) {
+  private static String getNotValidValueMessage(
+      Object value, String field, boolean isPathVariable) {
     if (value == null || (value instanceof String stringValue && stringValue.isEmpty())) {
       return MessageFormat.format("{0} cannot be empty.", field);
     }
@@ -291,7 +311,27 @@ public class CrudControllerAdvice {
   }
 
   private String getFormattedBadRequestMessage(String fieldErrorMessage, String customMessage) {
+    if (StringUtils.isEmpty(customMessage)) {
+      return fieldErrorMessage;
+    }
     return fieldErrorMessage + " " + customMessage;
+  }
+
+  private static String getConversionErrorMessage(
+      Object rootValue, String field, ConversionFailedException ex, boolean isPathVariable) {
+    Object invalidValue = ex.getValue();
+    if (TypeDescriptor.valueOf(String.class).equals(ex.getSourceType())
+        && (invalidValue != null && ((String) invalidValue).contains(","))
+        && (rootValue != null && rootValue.getClass().isArray())) {
+      return "You likely repeated request parameter '"
+          + field
+          + "' and used multiple comma-separated values within at least one of its values. Choose one of these approaches. "
+          + ex.getCause().getMessage();
+    }
+
+    return getNotValidValueMessage(invalidValue, field, isPathVariable)
+        + " "
+        + ex.getCause().getMessage();
   }
 
   /**
@@ -323,7 +363,7 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(Dhis2ClientException.class)
   @ResponseBody
-  public WebMessage dhis2ClientException(Dhis2ClientException ex) {
+  public WebMessage dhis2ClientExceptionHandler(Dhis2ClientException ex) {
     return conflict(ex.getMessage(), ex.getErrorCode());
   }
 
@@ -346,7 +386,7 @@ public class CrudControllerAdvice {
     return conflict(ex.getMessage());
   }
 
-  @ExceptionHandler({DataApprovalException.class, AdxException.class, IllegalStateException.class})
+  @ExceptionHandler({DataApprovalException.class, AdxException.class})
   @ResponseBody
   public WebMessage dataApprovalExceptionHandler(Exception ex) {
     return conflict(ex.getMessage());
@@ -400,8 +440,11 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(WebMessageException.class)
   @ResponseBody
-  public WebMessage webMessageExceptionHandler(WebMessageException ex) {
-    return ex.getWebMessage();
+  public ResponseEntity<WebMessage> webMessageExceptionHandler(WebMessageException ex) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    return new ResponseEntity<>(
+        ex.getWebMessage(), headers, ex.getWebMessage().getHttpStatusCode());
   }
 
   @ExceptionHandler(HttpStatusCodeException.class)
@@ -448,14 +491,34 @@ public class CrudControllerAdvice {
     throw ex;
   }
 
-  @ExceptionHandler({
-    IllegalArgumentException.class,
-    SchemaPathException.class,
-    JsonPatchException.class
-  })
+  @ExceptionHandler({SchemaPathException.class, JsonPatchException.class})
   @ResponseBody
-  public WebMessage handleBadRequest(Exception exception) {
-    return badRequest(exception.getMessage());
+  public WebMessage handleBadRequest(Exception ex) {
+    return badRequest(ex.getMessage());
+  }
+
+  /**
+   * Handles {@link IllegalArgumentException} and logs the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * indicate programming errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(IllegalArgumentException.class)
+  @ResponseBody
+  public WebMessage illegalArgumentExceptionHandler(IllegalArgumentException ex) {
+    log.error(IllegalArgumentException.class.getName(), ex);
+    return badRequest(ex.getMessage());
+  }
+
+  /**
+   * Handles {@link IllegalStateException} and logs the stack trace to standard error. {@link
+   * IllegalArgumentException} is used in DHIS 2 application code but also by various frameworks to
+   * indicate programming errors, so stack trace must be printed and not swallowed.
+   */
+  @ExceptionHandler(IllegalStateException.class)
+  @ResponseBody
+  public WebMessage illegalArgumentExceptionHandler(IllegalStateException ex) {
+    log.error(IllegalStateException.class.getName(), ex);
+    return conflict(ex.getMessage());
   }
 
   @ExceptionHandler(MetadataVersionException.class)
@@ -467,8 +530,8 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(MetadataSyncException.class)
   @ResponseBody
-  public WebMessage handleMetaDataSyncException(MetadataSyncException metadataSyncException) {
-    return error(metadataSyncException.getMessage());
+  public WebMessage handleMetaDataSyncException(MetadataSyncException ex) {
+    return error(ex.getMessage());
   }
 
   @ExceptionHandler(DhisVersionMismatchException.class)
@@ -480,12 +543,11 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler(MetadataImportConflictException.class)
   @ResponseBody
-  public WebMessage handleMetadataImportConflictException(
-      MetadataImportConflictException conflictException) {
-    if (conflictException.getMetadataSyncSummary() == null) {
-      return conflict(conflictException.getMessage());
+  public WebMessage handleMetadataImportConflictException(MetadataImportConflictException ex) {
+    if (ex.getMetadataSyncSummary() == null) {
+      return conflict(ex.getMessage());
     }
-    return conflict(null).setResponse(conflictException.getMetadataSyncSummary());
+    return conflict(null).setResponse(ex.getMetadataSyncSummary());
   }
 
   @ExceptionHandler(OAuth2AuthenticationException.class)
@@ -527,14 +589,14 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler({PotentialDuplicateConflictException.class})
   @ResponseBody
-  public WebMessage handlePotentialDuplicateConflictRequest(Exception exception) {
-    return conflict(exception.getMessage());
+  public WebMessage handlePotentialDuplicateConflictRequest(Exception ex) {
+    return conflict(ex.getMessage());
   }
 
   @ExceptionHandler({PotentialDuplicateForbiddenException.class})
   @ResponseBody
-  public WebMessage handlePotentialDuplicateForbiddenRequest(Exception exception) {
-    return forbidden(exception.getMessage());
+  public WebMessage handlePotentialDuplicateForbiddenRequest(Exception ex) {
+    return forbidden(ex.getMessage());
   }
 
   /**
@@ -544,7 +606,7 @@ public class CrudControllerAdvice {
   @ResponseBody
   @ExceptionHandler(Exception.class)
   public WebMessage defaultExceptionHandler(Exception ex) {
-    ex.printStackTrace();
+    log.error(Exception.class.getName(), ex);
     return error(getExceptionMessage(ex));
   }
 
@@ -619,7 +681,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       setValue(fromText.apply(text));
     }
   }
@@ -632,7 +694,7 @@ public class CrudControllerAdvice {
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
+    public void setAsText(String text) {
       Enum<T> enumValue = EnumUtils.getEnumIgnoreCase(enumClass, text);
 
       if (enumValue == null) {

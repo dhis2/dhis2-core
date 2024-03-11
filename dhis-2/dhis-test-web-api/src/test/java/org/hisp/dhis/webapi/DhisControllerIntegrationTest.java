@@ -88,6 +88,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @BeforeEach
   final void setup() {
     userService = _userService;
+
     clearSecurityContext();
 
     createAndPersistAdminUserAndRole();

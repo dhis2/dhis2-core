@@ -920,6 +920,12 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  public User getUserByEmail(String email) {
+    return userStore.getUserByEmail(email);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public boolean canCurrentUserCanModify(
       User currentUser, User userToModify, Consumer<ErrorReport> errors) {
     if (!aclService.canUpdate(currentUser, userToModify)) {
@@ -1145,7 +1151,7 @@ public class DefaultUserService implements UserService {
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
 
-    updateUser(user);
+    updateUser(user, new SystemUser());
 
     return Base64.getUrlEncoder()
         .withoutPadding()

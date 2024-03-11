@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -172,8 +171,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
             ImportStrategy.class, parameters, "importStrategy", ImportStrategy.CREATE_AND_UPDATE));
     params.setAtomicMode(
         getEnumWithDefault(AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL));
-    params.setMergeMode(
-        getEnumWithDefault(MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE));
     params.setFlushMode(
         getEnumWithDefault(FlushMode.class, parameters, "flushMode", FlushMode.AUTO));
     params.setImportReportMode(
@@ -218,7 +215,6 @@ public class DefaultMetadataImportService implements MetadataImportService {
     params.setPreheatIdentifier(importParams.getIdentifier());
     params.setPreheatMode(importParams.getPreheatMode());
     params.setObjectBundleMode(importParams.getImportMode());
-    params.setMergeMode(importParams.getMergeMode());
     params.setFlushMode(importParams.getFlushMode());
     params.setImportReportMode(importParams.getImportReportMode());
     params.setMetadataSyncImport(importParams.isMetadataSyncImport());

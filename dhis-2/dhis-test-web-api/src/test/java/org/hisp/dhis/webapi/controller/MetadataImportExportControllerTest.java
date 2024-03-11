@@ -579,4 +579,35 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
     assertEquals("SUCCESS", report.getStatus());
   }
+
+  @Test
+  @DisplayName("Should not insert duplicate translation records when updating object")
+  void testUpdateObjectWithTranslation() {
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "      \"locale\": \"en_GB\",\n"
+                + "      \"property\": \"NAME\",\n"
+                + "      \"value\": \"Device category 1\"\n"
+                + "    }]}]}")
+        .content(HttpStatus.OK);
+
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\", \"translations\":[{\n"
+                + "      \"locale\": \"en_GB\",\n"
+                + "      \"property\": \"NAME\",\n"
+                + "      \"value\": \"Device category 2\"\n"
+                + "    }]}]}")
+        .content(HttpStatus.OK);
+
+    JsonObject response = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content();
+
+    assertEquals(1, response.getArray("translations").size());
+    assertEquals(
+        "Device category 2",
+        response.getArray("translations").getObject(0).getString("value").string());
+  }
 }

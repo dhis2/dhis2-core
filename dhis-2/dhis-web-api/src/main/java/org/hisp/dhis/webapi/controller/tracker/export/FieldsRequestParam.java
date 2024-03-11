@@ -25,26 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 
-@OpenApi.Shared(name = "ChangeLogRequestParams")
-@OpenApi.Property
-@Data
-@NoArgsConstructor
-public class ChangeLogRequestParams {
-
-  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
-
-  private int page = 1;
-
-  private int pageSize = 50;
-
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
+/**
+ * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
+ * specify the exact fields they want in the JSON response.
+ */
+interface FieldsRequestParam {
+  List<FieldPath> getFields();
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -41,7 +42,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("org.hisp.dhis.tracker.export.event.ChangeLogService")
+@Service("org.hisp.dhis.tracker.export.event.EventChangeLogService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {
@@ -55,7 +56,8 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final UserService userService;
 
   @Override
-  public Page<EventChangeLog> getEventChangeLog(UID eventUid, PageParams pageParams)
+  public Page<EventChangeLog> getEventChangeLog(
+      UID eventUid, EventChangeLogOperationParams operationParams, PageParams pageParams)
       throws NotFoundException {
     Event event = eventService.getEvent(eventUid.getValue());
     if (event == null) {
@@ -68,6 +70,12 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    return jdbcEventChangeLogStore.getEventChangeLog(eventUid, pageParams);
+    return jdbcEventChangeLogStore.getEventChangeLog(
+        eventUid, operationParams.getOrder(), pageParams);
+  }
+
+  @Override
+  public Set<String> getOrderableFields() {
+    return jdbcEventChangeLogStore.getOrderableFields();
   }
 }
