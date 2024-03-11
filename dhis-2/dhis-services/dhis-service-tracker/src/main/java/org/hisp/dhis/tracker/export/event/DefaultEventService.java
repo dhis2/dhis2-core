@@ -147,6 +147,9 @@ class DefaultEventService implements EventService {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
+      // TODO This one returns OWNERSHIP_ACCESS_DENIED, frontend/android might use the error code
+      // for something (even though it doesn't make a distinction between closed an protected
+      // programs)
       throw new NotFoundException(Event.class, event.getUid());
     }
 

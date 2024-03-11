@@ -89,7 +89,8 @@ class DefaultEnrollmentService
 
     if (!errors.isEmpty()) {
       // TODO This one clearly reveals the enrollment exists. Problem is it the returned message
-      // OWNERSHIP_ACCESS_DENIED, might be used by frontend/android
+      // OWNERSHIP_ACCESS_DENIED, might be used by frontend/android (even though it doesn't make a
+      // distinction between closed an protected programs)
       throw new ForbiddenException(errors.toString());
     }
 

@@ -290,9 +290,9 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
 
     assertTrue(
         GET("/tracker/events/{id}", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
+            .error(HttpStatus.NOT_FOUND)
             .getMessage()
-            .contains("OWNERSHIP_ACCESS_DENIED"));
+            .contains(String.format("Event with id %s could not be found.", from.getUid())));
   }
 
   @Test

@@ -284,6 +284,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
 
     if (!errors.isEmpty()) {
+      // TODO Here we validate the org unit or the TET, but if we don't return a NFE, we are
+      // implicitly saying the tracked entity exists
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
 
