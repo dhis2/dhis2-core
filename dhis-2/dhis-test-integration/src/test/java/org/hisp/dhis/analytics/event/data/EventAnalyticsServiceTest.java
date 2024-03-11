@@ -585,7 +585,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // second until the time is 11:23:51. Then 11:23:50.123 will appear to
     // be in the past.
     Date oneSecondFromNow =
-        Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+        Date.from(LocalDateTime.now().plusSeconds(3).atZone(ZoneId.systemDefault()).toInstant());
 
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateTables(
@@ -1198,7 +1198,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testEventProgramIndicatorFirstAverageOrgUnit() {
+  void testEventProgramIndicatorFirstAverageOrgUnit() { //
     assertGridContains(
         // Headers
         List.of("pe", "ou", "value"),
