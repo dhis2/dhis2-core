@@ -54,20 +54,20 @@ public class ValidationReport {
     return new ValidationReport();
   }
 
-  public static ValidationReport merge(
-      ValidationResult validationResult, ValidationResult anotherValidationResult) {
-    ValidationReport validationReport = fromResult(validationResult);
-    ValidationReport anotherValidationReport = fromResult(anotherValidationResult);
-    validationReport.addErrors(anotherValidationReport.getErrors());
-    validationReport.addWarnings(anotherValidationReport.getWarnings());
-    return validationReport;
+  public static ValidationReport merge(ValidationResult a, ValidationResult b) {
+    ValidationReport merged = fromResult(a);
+    ValidationReport with = fromResult(b);
+    merged.addErrors(with.getErrors());
+    merged.addWarnings(with.getWarnings());
+    return merged;
   }
 
-  public static ValidationReport fromResult(ValidationResult validationResult) {
-    ValidationReport validationReport = new ValidationReport();
-    validationReport.addErrors(convertToError(List.copyOf(validationResult.getErrors())));
-    validationReport.addWarnings(convertToWarning(List.copyOf(validationResult.getWarnings())));
-    return validationReport;
+  public static ValidationReport fromResult(ValidationResult src) {
+    if (src == null) return new ValidationReport();
+    ValidationReport report = new ValidationReport();
+    report.addErrors(convertToError(List.copyOf(src.getErrors())));
+    report.addWarnings(convertToWarning(List.copyOf(src.getWarnings())));
+    return report;
   }
 
   private static List<Error> convertToError(List<Validation> errors) {

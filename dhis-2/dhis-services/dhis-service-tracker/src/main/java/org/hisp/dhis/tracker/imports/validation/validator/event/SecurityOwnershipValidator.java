@@ -231,9 +231,9 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           .findEnrollmentByUid(event.getEnrollment())
           .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
           .orElse(null);
-    } else {
-      return enrollment.getTrackedEntity().getUid();
     }
+    TrackedEntity te = enrollment.getTrackedEntity();
+    return te == null ? null : te.getUid();
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
