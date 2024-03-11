@@ -33,7 +33,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,7 +60,6 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 public class AuthenticationProviderConfig {
   @Autowired private DhisConfigurationProvider configurationProvider;
 
-
   @Autowired
   @Qualifier("ldapUserDetailsService")
   UserDetailsService ldapUserDetailsService;
@@ -75,6 +73,7 @@ public class AuthenticationProviderConfig {
   CustomLdapAuthenticationProvider customLdapAuthenticationProvider() {
     return new CustomLdapAuthenticationProvider(
         dhisBindAuthenticator(),
+        ldapUserDetailsService,
         userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
         configurationProvider);
   }
