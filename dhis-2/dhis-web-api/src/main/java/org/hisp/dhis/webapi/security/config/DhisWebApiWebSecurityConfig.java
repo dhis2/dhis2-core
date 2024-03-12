@@ -462,7 +462,7 @@ public class DhisWebApiWebSecurityConfig {
      */
     @Bean
     public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
-      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
     }
 
     @Bean
