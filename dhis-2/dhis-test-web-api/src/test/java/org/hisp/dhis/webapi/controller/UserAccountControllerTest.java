@@ -82,7 +82,7 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   @DisplayName("Happy path for forgot password with username as input")
   void testResetPasswordOkUsername() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
-    User user = switchToNewUser("test");
+    User user = switchToNewUser("testA");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getUsername());
     doAndCheckPasswordResetWithUser(user);
@@ -92,14 +92,15 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   @DisplayName("Happy path for forgot password with email as input")
   void testResetPasswordOkEmail() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
-    User user = switchToNewUser("test");
+    User user = switchToNewUser("testB");
     clearSecurityContext();
     sendForgotPasswordRequest(user.getEmail());
     doAndCheckPasswordResetWithUser(user);
   }
 
   @Test
-  @DisplayName("Send wrong/non-existent email, should return OK to avoid email enumeration")
+  @DisplayName(
+      "Send wrong/non-existent email, should return OK to avoid email enumeration and not send any email")
   void testResetPasswordWrongEmail() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
     clearSecurityContext();
@@ -108,7 +109,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Send wrong/non-existent username, should return OK to avoid username enumeration")
+  @DisplayName(
+      "Send wrong/non-existent username, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordWrongUsername() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
     clearSecurityContext();
@@ -118,7 +120,8 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Send non-unique email, should return OK to avoid username enumeration")
+  @DisplayName(
+      "Send non-unique email, should return OK to avoid username enumeration and not send any email")
   void testResetPasswordNonUniqueEmail() {
     systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
 
@@ -130,6 +133,21 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
 
     clearSecurityContext();
     sendForgotPasswordRequest("wrong");
+    List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
+    assertTrue(allMessages.isEmpty());
+  }
+
+  @Test
+  @DisplayName(
+      "Try to reset password for external auth user, should return OK to avoid username enumeration and not send any email")
+  void testResetPasswordExternalAuthUser() {
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    clearSecurityContext();
+    User user = switchToNewUser("testC");
+    user.setExternalAuth(true);
+    userService.updateUser(user);
+
+    sendForgotPasswordRequest("testC");
     List<OutboundMessage> allMessages = ((FakeMessageSender) messageSender).getAllMessages();
     assertTrue(allMessages.isEmpty());
   }
@@ -357,42 +375,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Self registration error when null phone number")
-  void selfRegInvalidPhoneNumber() {
-    disableRecaptcha();
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Phone number is not specified or invalid",
-        POST(
-                "/auth/registration",
-                renderService.toJsonAsString(getRegParamsWithPhone(null, RegType.SELF_REG)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Self registration error when phone number too long")
-  void selfRegPhoneNumberTooLong() {
-    disableRecaptcha();
-    enableSelfRegistration();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Phone number is not specified or invalid",
-        POST(
-                "/auth/registration",
-                renderService.toJsonAsString(
-                    getRegParamsWithPhone(
-                        "12345678910, 12345678910, 12345678910", RegType.SELF_REG)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
   @DisplayName("Self registration error when not enabled")
   void selfRegNotEnabled() {
     disableRecaptcha();
@@ -549,39 +531,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @DisplayName("Invite registration error when null phone number")
-  void inviteRegInvalidPhoneNumber() {
-    disableRecaptcha();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Phone number is not specified or invalid",
-        POST(
-                "/auth/invite",
-                renderService.toJsonAsString(getRegParamsWithPhone(null, RegType.INVITE)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  @DisplayName("Invite registration error when phone number too long")
-  void inviteRegPhoneNumberTooLong() {
-    disableRecaptcha();
-
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        "Phone number is not specified or invalid",
-        POST(
-                "/auth/invite",
-                renderService.toJsonAsString(
-                    getRegParamsWithPhone("12345678910, 12345678910, 12345678910", RegType.INVITE)))
-            .content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
   @DisplayName("Invite registration error when invalid recaptcha input")
   void inviteRegInvalidRecaptchaInput() {
     systemSettingManager.saveSystemSetting(
@@ -673,7 +622,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
     userParams.setSurname("gamgee");
     userParams.setPassword("Test123!");
     userParams.setEmail("samewise@dhis2.org");
-    userParams.setPhoneNumber("1234566-99");
     userParams.setRecaptchaResponse("recaptcha response");
     return userParams;
   }
@@ -714,12 +662,6 @@ class UserAccountControllerTest extends DhisControllerConvenienceTest {
   private RegistrationParams getRegParamsWithEmail(String email) {
     RegistrationParams regParams = getUserRegParams(new UserRegistrationParams());
     regParams.setEmail(email);
-    return regParams;
-  }
-
-  private RegistrationParams getRegParamsWithPhone(String phone, RegType regType) {
-    RegistrationParams regParams = getUserRegParams(getParamsFromType(regType));
-    regParams.setPhoneNumber(phone);
     return regParams;
   }
 
