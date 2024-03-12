@@ -167,7 +167,7 @@ public class DhisWebApiWebSecurityConfig {
                       .tokenEndpoint()
                       .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
                       .and()
-                      .failureUrl("/dhis-web-commons/security/login.action?oidcFailure=true")
+                      .failureUrl("/dhis-web-login?oidcFailure=true")
                       .clientRegistrationRepository(dhisOidcProviderRepository)
                       .loginProcessingUrl("/oauth2/code/*")
                       .authorizationEndpoint()
