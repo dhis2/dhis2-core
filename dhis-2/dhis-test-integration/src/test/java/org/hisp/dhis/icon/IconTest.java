@@ -102,22 +102,26 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetIconsMatchingILikeKey()
+  void shouldGetIconsMatchingILikeKeyOrKeywords()
       throws SQLException, BadRequestException, NotFoundException {
     Icon icon1 = createIcon('I', keywords, createAndPersistFileResource('I'));
     Icon icon2 = createIcon('J', keywords, createAndPersistFileResource('J'));
+    Icon icon3 = createIcon('J', Set.of("corona-ward"), createAndPersistFileResource('K'));
 
-    icon1.setKey("lab-agent");
-    icon2.setKey("facility-agent");
+    icon1.setKey("tb-ward");
+    icon2.setKey("malaria-ward");
+
+    icon3.setKey("non-matching-key");
 
     iconService.addIcon(icon1);
     iconService.addIcon(icon2);
+    iconService.addIcon(icon3);
 
     IconQueryParams operationParams = new IconQueryParams();
-    operationParams.setSearch("agent");
+    operationParams.setSearch("ward");
     List<Icon> icons = iconService.getIcons(operationParams);
 
-    assertContainsOnly(List.of(icon1, icon2), icons);
+    assertContainsOnly(List.of(icon1, icon2, icon3), icons);
   }
 
   @Test
