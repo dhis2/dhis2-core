@@ -576,7 +576,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     enableDataSharing(userA, programB, AccessStringHelper.DATA_READ_WRITE);
     idObjectManager.update(userA);
 
-    // Wait for three seconds. This is needed because last updated time for
+    // Wait for one second. This is needed because last updated time for
     // the data we just created is stored to milliseconds, hh:mm:ss.SSS.
     // The queries to build analytics tables tests data last updated times
     // to be in the past but compares only to the second. So for example a
@@ -584,12 +584,12 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     // future compared with 11:23:50. To compensate for this, we wait a
     // second until the time is 11:23:51. Then 11:23:50.123 will appear to
     // be in the past.
-    Date threeSecondsFromNow =
-        Date.from(LocalDateTime.now().plusSeconds(3).atZone(ZoneId.systemDefault()).toInstant());
+    Date oneSecondFromNow =
+        Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
 
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(threeSecondsFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
         NoopJobProgress.INSTANCE);
   }
 
