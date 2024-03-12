@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -57,13 +58,18 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectMapper OBJECT_MAPPER;
+
+  static {
+    OBJECT_MAPPER = new ObjectMapper();
+    OBJECT_MAPPER.findAndRegisterModules();
+  }
 
   private static final Comparator<JsonEnrollment> ENR_ENROLLMENT_DATE_COMPARATOR =
       comparing(JsonEnrollment::getEnrollmentDate, nullsFirst(naturalOrder())).reversed();
 
   private static final Comparator<JsonEnrollment.JsonEvent> EVT_EXECUTION_DATE_COMPARATOR =
-      comparing(JsonEnrollment.JsonEvent::getExecutionDate, nullsFirst(naturalOrder())).reversed();
+      comparing(JsonEnrollment.JsonEvent::getOccurredDate, nullsFirst(naturalOrder())).reversed();
 
   private final transient Map<String, DimensionIdentifier<DimensionParam>> dimIdByKey;
 
@@ -108,50 +114,74 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
   private Object getObjectForEvents(
       List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return enrollments.stream()
-        // gets only enrollments whose program is the same as specified in the dimension
-        .filter(
-            jsonEnrollment ->
-                jsonEnrollment
-                    .getProgramUid()
-                    .equals(dimensionIdentifier.getProgram().getElement().getUid()))
-        // sorts enrollments by enrollment date, descending
-        .sorted(ENR_ENROLLMENT_DATE_COMPARATOR)
-        // skips the number of enrollments specified in the dimension (offset)
-        .skip(dimensionIdentifier.getProgram().getOffsetWithDefault())
-        .findFirst()
-        .map(JsonEnrollment::getEvents)
-        .stream()
-        .flatMap(Collection::stream)
-        // gets only events whose program stage is the same as specified in the dimension
-        .filter(
-            jsonEvent ->
-                jsonEvent
-                    .getProgramStageUid()
-                    .equals(dimensionIdentifier.getProgramStage().getElement().getUid()))
-        // sorts events by execution date, descending
-        .sorted(EVT_EXECUTION_DATE_COMPARATOR)
-        // skips the number of events specified in the dimension (offset)
-        .skip(dimensionIdentifier.getProgramStage().getOffsetWithDefault())
+    Stream<JsonEnrollment> jsonEnrollmentStream =
+        enrollments.stream()
+            // gets only enrollments whose program is the same as specified in the dimension
+            .filter(
+                jsonEnrollment ->
+                    jsonEnrollment
+                        .getProgramUid()
+                        .equals(dimensionIdentifier.getProgram().getElement().getUid()));
+
+    jsonEnrollmentStream =
+        offsetBasedStream(
+            jsonEnrollmentStream,
+            // sorts enrollments by enrollment date, descending
+            ENR_ENROLLMENT_DATE_COMPARATOR,
+            // skips the number of enrollments specified in the dimension (offset)
+            dimensionIdentifier.getProgram().getOffsetWithDefault());
+
+    // sorts enrollments by enrollment date, descending
+    Stream<JsonEvent> jsonEventStream =
+        jsonEnrollmentStream.findFirst().map(JsonEnrollment::getEvents).stream()
+            .flatMap(Collection::stream)
+            // gets only events whose program stage is the same as specified in the dimension
+            .filter(
+                jsonEvent ->
+                    jsonEvent
+                        .getProgramStageUid()
+                        .equals(dimensionIdentifier.getProgramStage().getElement().getUid()));
+
+    jsonEventStream =
+        offsetBasedStream(
+            jsonEventStream,
+            // sorts events by execution date, descending
+            EVT_EXECUTION_DATE_COMPARATOR,
+            // skips the number of events specified in the dimension (offset)
+            dimensionIdentifier.getProgramStage().getOffsetWithDefault());
+
+    return jsonEventStream
         .findFirst()
         // extracts the value of the dimension from the event
         .map(jsonEvent -> getEventExtractor(dimensionIdentifier.getDimension()).apply(jsonEvent))
         .orElse(null);
   }
 
+  private <T> Stream<T> offsetBasedStream(Stream<T> stream, Comparator<T> comparator, int offset) {
+    if (offset > 0) { // 1 first, 2 second, 3 third, etc.
+      return stream.sorted(comparator.reversed()).skip(offset);
+    }
+    // 0 latest, -1 second latest, -2 third latest, etc.
+    return stream.sorted(comparator).skip(-offset);
+  }
+
   private Object getObjectForEnrollments(
       List<JsonEnrollment> enrollments, DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    return enrollments.stream()
-        // gets only enrollments whose program is the same as specified in the dimension
-        .filter(
-            jsonEnrollment ->
-                jsonEnrollment
-                    .getProgramUid()
-                    .equals(dimensionIdentifier.getProgram().getElement().getUid()))
-        // sorts enrollments by enrollment date, descending
-        .sorted(ENR_ENROLLMENT_DATE_COMPARATOR)
-        // skips the number of enrollments specified in the dimension (offset)
-        .skip(dimensionIdentifier.getProgram().getOffsetWithDefault())
+    Stream<JsonEnrollment> jsonEnrollmentStream =
+        enrollments.stream()
+            // gets only enrollments whose program is the same as specified in the dimension
+            .filter(
+                jsonEnrollment ->
+                    jsonEnrollment
+                        .getProgramUid()
+                        .equals(dimensionIdentifier.getProgram().getElement().getUid()));
+
+    return offsetBasedStream(
+            jsonEnrollmentStream,
+            // sorts enrollments by enrollment date, descending
+            ENR_ENROLLMENT_DATE_COMPARATOR,
+            // skips the number of enrollments specified in the dimension (offset)
+            dimensionIdentifier.getProgram().getOffsetWithDefault())
         .findFirst()
         // extracts the value of the dimension from the enrollment
         .map(

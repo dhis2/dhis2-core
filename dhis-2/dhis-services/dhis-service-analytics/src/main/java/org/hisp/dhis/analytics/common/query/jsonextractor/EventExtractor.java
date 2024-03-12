@@ -40,7 +40,8 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDime
  */
 @RequiredArgsConstructor
 enum EventExtractor {
-  EXECUTION_DATE(StaticDimension.OCCURREDDATE, JsonEnrollment.JsonEvent::getExecutionDate),
+  OCCURREDDATE(
+      StaticDimension.OCCURREDDATE, a -> JsonExtractorUtils.getFormattedDate(a.getOccurredDate())),
   OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment.JsonEvent::getOrgUnitName),
   OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment.JsonEvent::getOrgUnitCode),
   OUNAMEHIERARCHY(

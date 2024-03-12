@@ -31,6 +31,7 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
@@ -71,7 +72,7 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQueryCreator, SqlQuery
             forSelect.getStatement(), new MapSqlParameterSource().addValues(forSelect.getParams()));
 
     List<DimensionIdentifier<DimensionParam>> allDimensionIdentifiers =
-        Stream.concat(
+        Stream.of(
                 queryCreator
                     .getQueryContext()
                     .getTeiQueryParams()
@@ -84,7 +85,14 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQueryCreator, SqlQuery
                     .getCommonParams()
                     .getOrderParams()
                     .stream()
-                    .map(AnalyticsSortingParams::getOrderBy))
+                    .map(AnalyticsSortingParams::getOrderBy),
+                queryCreator
+                    .getQueryContext()
+                    .getTeiQueryParams()
+                    .getCommonParams()
+                    .getParsedHeaders()
+                    .stream())
+            .flatMap(Function.identity())
             .toList();
 
     return new SqlQueryResult(new SqlRowSetJsonExtractorDelegator(rowSet, allDimensionIdentifiers));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,18 @@
  */
 package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import java.util.Arrays;
-import java.util.function.Function;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import org.hisp.dhis.util.DateUtils;
 
-/**
- * This enum represents a mapping between static dimensions and their corresponding getter method
- */
-@RequiredArgsConstructor
-enum EnrollmentExtractor {
-  ENROLLMENTDATE(
-      DimensionParam.StaticDimension.ENROLLMENTDATE,
-      a -> JsonExtractorUtils.getFormattedDate(a.getEnrollmentDate())),
-  INCIDENTDATE(
-      DimensionParam.StaticDimension.INCIDENTDATE,
-      a -> JsonExtractorUtils.getFormattedDate(a.getIncidentDate())),
-  OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment::getOrgUnitName),
-  OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment::getOrgUnitCode),
-  OUNAMEHIERARCHY(
-      DimensionParam.StaticDimension.OUNAMEHIERARCHY, JsonEnrollment::getOrgUnitNameHierarchy);
+public class JsonExtractorUtils {
 
-  private final DimensionParam.StaticDimension dimension;
+  public static String getFormattedDate(LocalDateTime date) {
+    if (date == null) {
+      return null;
+    }
 
-  @Getter private final Function<JsonEnrollment, Object> extractor;
-
-  static EnrollmentExtractor byDimension(DimensionParam.StaticDimension dimension) {
-    return Arrays.stream(values())
-        .filter(enrollmentExtractor -> enrollmentExtractor.dimension.equals(dimension))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "No enrollment extractor is defined for static dimension " + dimension));
+    return DateUtils.toLongDateNoT(Date.from(date.atZone(ZoneId.systemDefault()).toInstant()));
   }
 }

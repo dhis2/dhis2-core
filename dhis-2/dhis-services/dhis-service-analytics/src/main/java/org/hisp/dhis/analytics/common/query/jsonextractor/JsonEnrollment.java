@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.common.query.jsonextractor;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 import lombok.Data;
 
@@ -38,11 +38,11 @@ class JsonEnrollment {
 
   private String enrollmentUid;
 
-  private Date enrollmentDate;
+  private LocalDateTime enrollmentDate;
 
-  private Date incidentDate;
+  private LocalDateTime incidentDate;
 
-  private Date endDate;
+  private LocalDateTime endDate;
 
   private String orgUnitUid;
 
@@ -60,9 +60,9 @@ class JsonEnrollment {
 
     private String eventUid;
 
-    private Date executionDate;
+    private LocalDateTime occurredDate;
 
-    private Date dueDate;
+    private LocalDateTime dueDate;
 
     private String orgUnitUid;
 

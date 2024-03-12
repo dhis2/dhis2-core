@@ -67,7 +67,7 @@ import org.springframework.stereotype.Service;
 public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
   private static final String JSON_AGGREGATION_QUERY =
       """
-        (select json_agg(json_build_object('programUid', pr.uid,
+        coalesce( (select json_agg(json_build_object('programUid', pr.uid,
                                               'enrollmentUid', en.programinstanceuid,
                                               'enrollmentDate', en.enrollmentdate,
                                               'incidentDate', en.incidentdate,
@@ -77,9 +77,9 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                                               'orgUnitCode', en.oucode,
                                               'orgUnitNameHierarchy', en.ounamehierarchy,
                                               'events',
-                                              (select json_agg(json_build_object('programStageUid', ps.uid,
+                                              coalesce( (select json_agg(json_build_object('programStageUid', ps.uid,
                                                                                  'eventUid', ev.programstageuid,
-                                                                                 'executionDate', ev.occurreddate,
+                                                                                 'occurredDate', ev.occurreddate,
                                                                                  'dueDate', ev.scheduleddate,
                                                                                  'orgUnitUid', ev.ou,
                                                                                  'orgUnitName', ev.ouname,
@@ -89,11 +89,11 @@ public class TeiQueryBuilder extends SqlQueryBuilderAdaptor {
                                                from analytics_tei_events_%s ev,
                                                     programstage ps
                                                where ev.programinstanceuid = en.programinstanceuid
-                                                 and ps.uid = ev.programstageuid)))
+                                                 and ps.uid = ev.programstageuid), '[]'::json)))
             from analytics_tei_enrollments_%s en,
                  program pr
             where en.trackedentityinstanceuid = t_1.trackedentityinstanceuid
-              and pr.uid = en.programuid)""";
+              and pr.uid = en.programuid), '[]'::json)""";
 
   private final IdentifiableObjectManager identifiableObjectManager;
 
