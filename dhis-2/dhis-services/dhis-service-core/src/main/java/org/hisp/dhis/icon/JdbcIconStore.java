@@ -230,7 +230,7 @@ public class JdbcIconStore implements IconStore {
     if (params.hasSearch()) {
       String searchValue = params.getSearch();
 
-      sql += hlp.whereAnd() + " c.iconkey ilike :search";
+      sql += hlp.whereAnd() + "(c.iconkey ilike :search or c.keywords #>> '{}' ilike :search)";
       parameterSource.addValue("search", wrap(addIlikeReplacingCharacters(searchValue), '%'));
     }
 
