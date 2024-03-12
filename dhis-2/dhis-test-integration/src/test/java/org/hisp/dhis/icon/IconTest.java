@@ -30,6 +30,7 @@ package org.hisp.dhis.icon;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -86,11 +87,7 @@ class IconTest extends TrackerTest {
     fileResource = createAndPersistFileResource('A');
     icon = new Icon(Key, "description", keywords, true, fileResource);
 
-    try {
-      iconService.addIcon(icon);
-    } catch (NotFoundException | BadRequestException | SQLException e) {
-      log.error("Icon creation failed", e);
-    }
+    assertDoesNotThrow(() -> iconService.addIcon(icon));
   }
 
   @Test
