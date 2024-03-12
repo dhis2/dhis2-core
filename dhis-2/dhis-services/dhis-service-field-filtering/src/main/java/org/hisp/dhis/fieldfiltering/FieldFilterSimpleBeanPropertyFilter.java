@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
@@ -51,6 +52,7 @@ import org.hisp.dhis.system.util.AnnotationUtils;
  *
  * @author Morten Olav Hansen
  */
+@Slf4j
 @RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter {
   private final List<FieldPath> fieldPaths;
@@ -58,7 +60,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   private final boolean skipSharing;
 
   /** Cache that contains true/false for classes that should always be expanded. */
-  private final Map<Class<?>, Boolean> alwaysExpandCache = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
 
   @Override
   protected boolean include(final BeanPropertyWriter writer) {
@@ -75,6 +77,10 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     if (ctx.getCurrentValue() == null) {
       return false;
+    }
+
+    if (log.isDebugEnabled()) {
+      log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
     }
 
     if (skipSharing
@@ -115,15 +121,15 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
 
     while (sc != null) {
+      if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
+        nestedPath.insert(0, ".");
+        nestedPath.insert(0, sc.getCurrentName());
+      }
+
       if (isAlwaysExpandType(sc.getCurrentValue())) {
         sc = sc.getParent();
         alwaysExpand = true;
         continue;
-      }
-
-      if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
-        nestedPath.insert(0, ".");
-        nestedPath.insert(0, sc.getCurrentName());
       }
 
       sc = sc.getParent();
@@ -147,22 +153,16 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
   }
 
-  private boolean isAlwaysExpandType(Object object) {
+  private static boolean isAlwaysExpandType(Object object) {
     if (object == null) {
       return false;
     }
-
-    Class<?> klass = object.getClass();
-
-    if (!alwaysExpandCache.containsKey(klass)) {
-      alwaysExpandCache.put(
-          klass,
-          Map.class.isAssignableFrom(klass)
-              || JobParameters.class.isAssignableFrom(klass)
-              || AnnotationUtils.isAnnotationPresent(klass, JsonTypeInfo.class));
-    }
-
-    return alwaysExpandCache.get(klass);
+    return ALWAYS_EXPAND_CACHE.computeIfAbsent(
+        object.getClass(),
+        type ->
+            Map.class.isAssignableFrom(type)
+                || JobParameters.class.isAssignableFrom(type)
+                || AnnotationUtils.isAnnotationPresent(type, JsonTypeInfo.class));
   }
 }
 
