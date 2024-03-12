@@ -78,7 +78,7 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
         "Not Found",
         404,
         "ERROR",
-        "No gateway found",
+        "SmsGatewayConfig with id xyz could not be found.",
         PUT("/gateways/default/xyz").content(HttpStatus.NOT_FOUND));
   }
 
@@ -105,7 +105,7 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
         "Not Found",
         404,
         "ERROR",
-        "No gateway found",
+        "SmsGatewayConfig with id xyz could not be found.",
         PUT("/gateways/xyz").content(HttpStatus.NOT_FOUND));
   }
 
@@ -142,7 +142,7 @@ class SmsGatewayControllerTest extends DhisControllerConvenienceTest {
         "Not Found",
         404,
         "ERROR",
-        "No gateway found with id: xyz",
+        "SmsGatewayConfig with id xyz could not be found.",
         DELETE("/gateways/xyz").content(HttpStatus.NOT_FOUND));
   }
 }
