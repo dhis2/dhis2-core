@@ -77,6 +77,8 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
 
   private boolean skipData;
 
+  private boolean skipRounding;
+
   private boolean completedOnly;
 
   private boolean hierarchyMeta;
