@@ -59,6 +59,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
@@ -234,6 +235,10 @@ public class DimensionParam implements UidObject {
     }
 
     return staticDimension.name();
+  }
+
+  public String transformValue(String value) {
+    return ValueTypeMapping.fromValueType(getValueType()).getSelectTransformer().apply(value);
   }
 
   @RequiredArgsConstructor
