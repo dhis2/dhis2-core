@@ -65,7 +65,6 @@ public class DefaultUserAccountService implements UserAccountService {
   private final PasswordValidationService passwordValidationService;
 
   private static final int MAX_LENGTH = 80;
-  private static final int MAX_PHONE_NO_LENGTH = 30;
 
   @Override
   public void validateUserRegistration(RegistrationParams params, String remoteAddress)
@@ -97,7 +96,6 @@ public class DefaultUserAccountService implements UserAccountService {
     user.setFirstName(params.getFirstName());
     user.setSurname(params.getSurname());
     user.setEmail(params.getEmail());
-    user.setPhoneNumber(params.getPhoneNumber());
     user.getOrganisationUnits().add(orgUnit);
     user.getDataViewOrganisationUnits().add(orgUnit);
 
@@ -121,7 +119,6 @@ public class DefaultUserAccountService implements UserAccountService {
     user.setUsername(params.getUsername());
     user.setFirstName(params.getFirstName());
     user.setSurname(params.getSurname());
-    user.setPhoneNumber(params.getPhoneNumber());
 
     userService.encodeAndSetPassword(user, params.getPassword());
     userService.updateUser(user, new SystemUser());
@@ -157,7 +154,6 @@ public class DefaultUserAccountService implements UserAccountService {
     validateSurname(params.getSurname());
     validatePassword(params);
     validateEmail(params.getEmail());
-    validatePhoneNumber(params.getPhoneNumber());
   }
 
   /**
@@ -171,7 +167,6 @@ public class DefaultUserAccountService implements UserAccountService {
     validateFirstName(params.getFirstName());
     validateSurname(params.getSurname());
     validatePassword(params);
-    validatePhoneNumber(params.getPhoneNumber());
   }
 
   private void validateCaptcha(String recapResponse, String remoteAddress)
@@ -235,13 +230,6 @@ public class DefaultUserAccountService implements UserAccountService {
     if (email == null || !ValidationUtils.emailIsValid(email)) {
       log.warn("Email validation failed");
       throw new BadRequestException("Email is not specified or invalid");
-    }
-  }
-
-  private void validatePhoneNumber(String phoneNumber) throws BadRequestException {
-    if (phoneNumber == null || phoneNumber.trim().length() > MAX_PHONE_NO_LENGTH) {
-      log.warn("Phone number validation failed");
-      throw new BadRequestException("Phone number is not specified or invalid");
     }
   }
 

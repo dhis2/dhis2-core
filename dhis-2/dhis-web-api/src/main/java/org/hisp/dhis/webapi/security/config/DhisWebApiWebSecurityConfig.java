@@ -274,6 +274,14 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers(apiContextPath + "/**/auth/login")
           .permitAll()
+          .antMatchers(apiContextPath + "/**/auth/forgotPassword")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/auth/passwordReset")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/auth/registration")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/auth/invite")
+          .permitAll()
           .antMatchers(apiContextPath + "/**/authentication/login")
           .permitAll()
           .antMatchers(apiContextPath + "/**/account/recovery")
@@ -454,7 +462,7 @@ public class DhisWebApiWebSecurityConfig {
      */
     @Bean
     public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
-      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
     }
 
     @Bean

@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -306,7 +307,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
 
     assertThrows(
-        IllegalArgumentException.class, () -> entityInstanceService.getTrackedEntitiesGrid(params));
+        IllegalQueryException.class, () -> entityInstanceService.getTrackedEntitiesGrid(params));
   }
 
   @Test
@@ -322,7 +323,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
 
     assertThrows(
-        IllegalArgumentException.class, () -> entityInstanceService.getTrackedEntitiesGrid(params));
+        IllegalQueryException.class, () -> entityInstanceService.getTrackedEntitiesGrid(params));
   }
 
   @Test
