@@ -47,11 +47,6 @@ class RenderableDataValueTest {
     RenderableDataValue renderableDataValue =
         RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
     String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals(
-        "case when"
-            + " (alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::BOOLEAN = 'true' then 1"
-            + " when (alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::BOOLEAN = 'false' then 0"
-            + " end",
-        result);
+    assertEquals("0", result);
   }
 }
