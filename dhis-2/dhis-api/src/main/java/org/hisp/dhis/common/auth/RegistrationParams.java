@@ -43,7 +43,6 @@ public abstract class RegistrationParams {
   @JsonProperty String surname;
   @JsonProperty String password;
   @JsonProperty String email;
-  @JsonProperty String phoneNumber;
 
   @JsonProperty("g-recaptcha-response")
   String recaptchaResponse;

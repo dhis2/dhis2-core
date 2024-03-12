@@ -129,14 +129,14 @@ public class UserAccountController {
       throw new ConflictException("Account recovery is not enabled");
     }
 
-    String token = resetRequest.getResetToken();
+    String token = resetRequest.getToken();
     String newPassword = resetRequest.getNewPassword();
 
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
     User user = userService.getUserByIdToken(idToken);
-    if (user == null || idAndRestoreToken.length < 2) {
+    if (user == null || idAndRestoreToken.length < 2 || user.isExternalAuth()) {
       throw new ConflictException("Account recovery failed");
     }
 

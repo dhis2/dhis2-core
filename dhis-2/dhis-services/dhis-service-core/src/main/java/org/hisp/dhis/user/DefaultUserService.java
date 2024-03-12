@@ -1279,6 +1279,11 @@ public class DefaultUserService implements UserService {
       return ErrorCode.E6202;
     }
 
+    if (user.isExternalAuth()) {
+      log.warn("Could reset password, user is using external authentication.");
+      return ErrorCode.E6202;
+    }
+
     if (!emailMessageSender.isConfigured()) {
       log.warn("Could not send restore/invite message as email is not configured");
       return ErrorCode.E6203;
