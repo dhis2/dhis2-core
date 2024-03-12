@@ -268,8 +268,6 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers("/oauth2/**")
           .permitAll()
-          .antMatchers("/dhis-web-login/**")
-          .permitAll()
           .antMatchers(apiContextPath + "/**/locales/ui")
           .permitAll()
           .antMatchers(apiContextPath + "/**/loginConfig")
@@ -342,7 +340,7 @@ public class DhisWebApiWebSecurityConfig {
       if (Arrays.asList(activeProfiles).contains("embeddedJetty")) {
         http.formLogin()
             .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-            .loginPage("/dhis-web-login")
+            .loginPage("/index.html")
             .usernameParameter("j_username")
             .passwordParameter("j_password")
             .loginProcessingUrl("/api/authentication/login")
@@ -456,7 +454,7 @@ public class DhisWebApiWebSecurityConfig {
      */
     @Bean
     public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
-      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
+      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
     }
 
     @Bean
