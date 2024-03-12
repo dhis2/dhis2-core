@@ -30,8 +30,11 @@ package org.hisp.dhis.analytics.common.query.jsonextractor;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.util.DateUtils;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JsonExtractorUtils {
 
   public static String getFormattedDate(LocalDateTime date) {
