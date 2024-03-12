@@ -132,6 +132,13 @@ public class UserAccountController {
     String token = resetRequest.getToken();
     String newPassword = resetRequest.getNewPassword();
 
+    if (StringUtils.isBlank(token)) {
+      throw new BadRequestException("Token is required");
+    }
+    if (StringUtils.isBlank(newPassword)) {
+      throw new BadRequestException("New password is required");
+    }
+
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
