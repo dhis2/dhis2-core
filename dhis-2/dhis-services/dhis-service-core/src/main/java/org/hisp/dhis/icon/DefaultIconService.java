@@ -43,6 +43,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -125,8 +126,9 @@ public class DefaultIconService implements IconService {
       fileResourceService.updateFileResource(fileResource);
     }
 
-    if (icon.getCreatedBy() == null) {
-      icon.setCreatedBy(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()));
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null) {
+      icon.setCreatedBy(currentUser);
     }
 
     if (icon.getKeywords() == null) {
