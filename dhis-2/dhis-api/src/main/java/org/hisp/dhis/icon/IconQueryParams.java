@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
  * Represents query parameters sent to {@link Icon}.
@@ -46,6 +47,7 @@ public class IconQueryParams {
 
   private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();
+  private List<OrderCriteria> order = new ArrayList<>();
   private Date createdStartDate;
   private Date createdEndDate;
   private Date lastUpdatedStartDate;

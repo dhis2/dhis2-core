@@ -36,6 +36,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.icon.IconTypeFilter;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
  * @author Zubair Asghar
@@ -48,6 +49,7 @@ public class IconRequestParams {
 
   private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();
+  private List<OrderCriteria> order = new ArrayList<>();
   private Date createdStartDate;
   private Date createdEndDate;
   private Date lastUpdatedStartDate;

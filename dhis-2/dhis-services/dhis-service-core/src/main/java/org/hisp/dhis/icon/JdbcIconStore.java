@@ -32,6 +32,7 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacin
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -39,11 +40,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -56,6 +59,16 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.icon.IconStore")
 @RequiredArgsConstructor
 public class JdbcIconStore implements IconStore {
+
+  private static final String KEY_COLUMN = "iconkey";
+  private static final String DEFAULT_ORDER = KEY_COLUMN + " asc";
+
+  private static final ImmutableMap<String, String> COLUMN_MAPPER =
+      ImmutableMap.<String, String>builder()
+          .put("key", KEY_COLUMN)
+          .put("lastUpdated", "lastupdated")
+          .put("created", "created")
+          .build();
 
   private static final ObjectMapper keywordsMapper = new ObjectMapper();
 
@@ -152,6 +165,7 @@ public class JdbcIconStore implements IconStore {
     MapSqlParameterSource parameterSource = new MapSqlParameterSource();
 
     sql = buildIconQuery(params, sql, parameterSource);
+    sql += orderByQuery(params.getOrder());
 
     if (params.isPaging()) {
       sql =
@@ -267,5 +281,24 @@ public class JdbcIconStore implements IconStore {
       icon.setFileResource(fileResourceStore.get(rs.getLong("fileresourceid")));
       return icon;
     };
+  }
+
+  private String orderByQuery(List<OrderCriteria> orders) {
+    if (orders.isEmpty()) {
+      return " order by " + DEFAULT_ORDER;
+    }
+
+    StringJoiner orderJoiner = new StringJoiner(", ");
+    for (OrderCriteria order : orders) {
+      orderJoiner.add(
+          getColumnName(order.getField())
+              + " "
+              + (order.getDirection().isAscending() ? "asc" : "desc"));
+    }
+    return " order by " + orderJoiner;
+  }
+
+  private String getColumnName(String column) {
+    return COLUMN_MAPPER.getOrDefault(column, KEY_COLUMN);
   }
 }

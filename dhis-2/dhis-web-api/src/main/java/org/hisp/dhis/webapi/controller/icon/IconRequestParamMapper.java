@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.icon.IconQueryParams;
@@ -43,6 +46,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class IconRequestParamMapper {
 
+  private static final Set<String> ORDER_FIELD_NAMES = Set.of("created", "lastUpdated", "key");
+
   private static final ImmutableMap<IconTypeFilter, Boolean> TYPE_MAPPER =
       ImmutableMap.<IconTypeFilter, Boolean>builder()
           .put(IconTypeFilter.DEFAULT, Boolean.FALSE)
@@ -52,23 +57,25 @@ public class IconRequestParamMapper {
   public IconQueryParams map(IconRequestParams iconRequestParams) throws BadRequestException {
 
     validateRequestParams(iconRequestParams);
-    IconQueryParams operationParams = new IconQueryParams();
-    operationParams.setKeywords(
+    validateOrderParams(iconRequestParams.getOrder(), ORDER_FIELD_NAMES);
+
+    IconQueryParams queryParams = new IconQueryParams();
+    queryParams.setKeywords(
         iconRequestParams.getKeywords() != null
             ? iconRequestParams.getKeywords()
             : new ArrayList<>());
 
-    operationParams.setKeys(iconRequestParams.getKeys());
-    operationParams.setCreatedStartDate(iconRequestParams.getCreatedStartDate());
-    operationParams.setCreatedEndDate(iconRequestParams.getCreatedEndDate());
-    operationParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
-    operationParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
-    operationParams.setPaging(iconRequestParams.isPaging());
-    operationParams.setIncludeCustomIcon(
-        TYPE_MAPPER.getOrDefault(iconRequestParams.getType(), null));
-    operationParams.setSearch(iconRequestParams.getSearch());
+    queryParams.setOrder(iconRequestParams.getOrder());
+    queryParams.setKeys(iconRequestParams.getKeys());
+    queryParams.setCreatedStartDate(iconRequestParams.getCreatedStartDate());
+    queryParams.setCreatedEndDate(iconRequestParams.getCreatedEndDate());
+    queryParams.setLastUpdatedStartDate(iconRequestParams.getLastUpdatedStartDate());
+    queryParams.setLastUpdatedEndDate(iconRequestParams.getLastUpdatedEndDate());
+    queryParams.setPaging(iconRequestParams.isPaging());
+    queryParams.setIncludeCustomIcon(TYPE_MAPPER.getOrDefault(iconRequestParams.getType(), null));
+    queryParams.setSearch(iconRequestParams.getSearch());
 
-    return operationParams;
+    return queryParams;
   }
 
   private void validateRequestParams(IconRequestParams iconRequestParams)
