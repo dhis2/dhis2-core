@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.sms.config;
 
+import javax.annotation.CheckForNull;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
@@ -45,5 +47,6 @@ public interface GatewayAdministrationService {
 
   boolean addGateway(SmsGatewayConfig config);
 
-  void updateGateway(SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig);
+  void updateGateway(
+      @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updatedConfig);
 }

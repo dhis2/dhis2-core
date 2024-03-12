@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -35,10 +36,13 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
  * PropertyFilter that supports filtering using FieldPaths, also supports skipping of all fields
@@ -48,11 +52,15 @@ import org.hisp.dhis.scheduling.JobParameters;
  *
  * @author Morten Olav Hansen
  */
+@Slf4j
 @RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter {
   private final List<FieldPath> fieldPaths;
 
   private final boolean skipSharing;
+
+  /** Cache that contains true/false for classes that should always be expanded. */
+  private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
 
   @Override
   protected boolean include(final BeanPropertyWriter writer) {
@@ -65,16 +73,19 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   }
 
   protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
-    PathValue pathValue = getPath(writer, jgen);
-    String path = pathValue.getPath();
+    PathContext ctx = getPath(writer, jgen);
 
-    if (pathValue.getValue() == null) {
+    if (ctx.getCurrentValue() == null) {
       return false;
+    }
+
+    if (log.isDebugEnabled()) {
+      log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
     }
 
     if (skipSharing
         && StringUtils.equalsAny(
-            path,
+            ctx.getFullPath(),
             "user",
             "publicAccess",
             "externalAccess",
@@ -84,12 +95,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
       return false;
     }
 
-    if (pathValue.isInsideMap()) {
+    if (ctx.isAlwaysExpand()) {
       return true;
     }
 
     for (FieldPath fieldPath : fieldPaths) {
-      if (fieldPath.toFullPath().equals(path)) {
+      if (fieldPath.toFullPath().equals(ctx.getFullPath())) {
         return true;
       }
     }
@@ -97,42 +108,38 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     return false;
   }
 
-  private PathValue getPath(PropertyWriter writer, JsonGenerator jgen) {
+  private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {
     StringBuilder nestedPath = new StringBuilder();
     JsonStreamContext sc = jgen.getOutputContext();
-    Object value = null;
-    boolean isInsideMap = false;
+    Object currentValue = null;
+    boolean alwaysExpand = false;
 
     if (sc != null) {
       nestedPath.append(writer.getName());
-      value = sc.getCurrentValue();
+      currentValue = sc.getCurrentValue();
       sc = sc.getParent();
     }
 
     while (sc != null) {
-      if (sc.getCurrentValue() != null
-          && (Map.class.isAssignableFrom(sc.getCurrentValue().getClass())
-              || JobParameters.class.isAssignableFrom(sc.getCurrentValue().getClass()))) {
-        sc = sc.getParent();
-        isInsideMap = true;
-        continue;
-      }
-
       if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
         nestedPath.insert(0, ".");
         nestedPath.insert(0, sc.getCurrentName());
       }
 
+      if (isAlwaysExpandType(sc.getCurrentValue())) {
+        sc = sc.getParent();
+        alwaysExpand = true;
+        continue;
+      }
+
       sc = sc.getParent();
     }
 
-    if (value != null
-        && (Map.class.isAssignableFrom(value.getClass())
-            || JobParameters.class.isAssignableFrom(value.getClass()))) {
-      isInsideMap = true;
+    if (isAlwaysExpandType(currentValue)) {
+      alwaysExpand = true;
     }
 
-    return new PathValue(nestedPath.toString(), value, isInsideMap);
+    return new PathContext(nestedPath.toString(), currentValue, alwaysExpand);
   }
 
   @Override
@@ -145,15 +152,28 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
       writer.serializeAsOmittedField(pojo, jgen, provider);
     }
   }
+
+  private static boolean isAlwaysExpandType(Object object) {
+    if (object == null) {
+      return false;
+    }
+    return ALWAYS_EXPAND_CACHE.computeIfAbsent(
+        object.getClass(),
+        type ->
+            Map.class.isAssignableFrom(type)
+                || JobParameters.class.isAssignableFrom(type)
+                || AnnotationUtils.isAnnotationPresent(type, JsonTypeInfo.class));
+  }
 }
 
 /** Simple container class used by getPath to handle Maps. */
 @Data
 @RequiredArgsConstructor
-class PathValue {
-  private final String path;
+class PathContext {
+  private final String fullPath;
 
-  private final Object value;
+  private final Object currentValue;
 
-  private final boolean insideMap;
+  /** true if special type we do not support field filtering on. */
+  private final boolean alwaysExpand;
 }
