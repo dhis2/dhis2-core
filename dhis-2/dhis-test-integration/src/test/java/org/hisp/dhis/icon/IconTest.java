@@ -30,6 +30,7 @@ package org.hisp.dhis.icon;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -54,7 +55,6 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
@@ -117,7 +117,7 @@ class IconTest extends TrackerTest {
     operationParams.setSearch("agent");
     List<Icon> icons = iconService.getIcons(operationParams);
 
-    Assertions.assertContainsOnly(List.of(icon1, icon2), icons);
+    assertContainsOnly(List.of(icon1, icon2), icons);
   }
 
   @Test
