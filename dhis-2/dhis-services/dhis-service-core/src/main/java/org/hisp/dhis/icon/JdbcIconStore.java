@@ -291,14 +291,14 @@ public class JdbcIconStore implements IconStore {
     StringJoiner orderJoiner = new StringJoiner(", ");
     for (OrderCriteria order : orders) {
       orderJoiner.add(
-          getColumnName(order.getField())
+          getColumnNameForOrdering(order.getField())
               + " "
               + (order.getDirection().isAscending() ? "asc" : "desc"));
     }
     return " order by " + orderJoiner;
   }
 
-  private String getColumnName(String column) {
+  private String getColumnNameForOrdering(String column) {
     return COLUMN_MAPPER.getOrDefault(column, KEY_COLUMN);
   }
 }
