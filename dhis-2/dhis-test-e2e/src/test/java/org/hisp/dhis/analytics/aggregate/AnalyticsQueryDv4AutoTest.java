@@ -93,25 +93,25 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("qhqAxPSTUXp", "2021Q1", "42.0"));
-    validateRow(response, List.of("qhqAxPSTUXp", "2021Q2", "44.2"));
-    validateRow(response, List.of("qhqAxPSTUXp", "2021Q3", "51.7"));
-    validateRow(response, List.of("qhqAxPSTUXp", "2021Q4", "20.5"));
-    validateRow(response, List.of("Vth0fbpFcsO", "2021Q1", "42.3"));
-    validateRow(response, List.of("Vth0fbpFcsO", "2021Q2", "48.8"));
-    validateRow(response, List.of("Vth0fbpFcsO", "2021Q3", "43.9"));
-    validateRow(response, List.of("Vth0fbpFcsO", "2021Q4", "15.9"));
-    validateRow(response, List.of("jmIPBj66vD6", "2021Q1", "98.3"));
-    validateRow(response, List.of("jmIPBj66vD6", "2021Q2", "99.0"));
-    validateRow(response, List.of("jmIPBj66vD6", "2021Q3", "96.1"));
-    validateRow(response, List.of("jmIPBj66vD6", "2021Q4", "83.9"));
-    validateRow(response, List.of("TEQlaapDQoK", "2021Q1", "45.8"));
-    validateRow(response, List.of("TEQlaapDQoK", "2021Q2", "55.6"));
+    validateRow(response, List.of("qhqAxPSTUXp", "2021Q1", "41.96"));
+    validateRow(response, List.of("qhqAxPSTUXp", "2021Q2", "44.18"));
+    validateRow(response, List.of("qhqAxPSTUXp", "2021Q3", "51.67"));
+    validateRow(response, List.of("qhqAxPSTUXp", "2021Q4", "20.46"));
+    validateRow(response, List.of("Vth0fbpFcsO", "2021Q1", "42.31"));
+    validateRow(response, List.of("Vth0fbpFcsO", "2021Q2", "48.77"));
+    validateRow(response, List.of("Vth0fbpFcsO", "2021Q3", "43.88"));
+    validateRow(response, List.of("Vth0fbpFcsO", "2021Q4", "15.94"));
+    validateRow(response, List.of("jmIPBj66vD6", "2021Q1", "98.27"));
+    validateRow(response, List.of("jmIPBj66vD6", "2021Q2", "99.02"));
+    validateRow(response, List.of("jmIPBj66vD6", "2021Q3", "96.13"));
+    validateRow(response, List.of("jmIPBj66vD6", "2021Q4", "83.89"));
+    validateRow(response, List.of("TEQlaapDQoK", "2021Q1", "45.78"));
+    validateRow(response, List.of("TEQlaapDQoK", "2021Q2", "55.62"));
     validateRow(response, List.of("TEQlaapDQoK", "2021Q3", "57.1"));
-    validateRow(response, List.of("TEQlaapDQoK", "2021Q4", "36.6"));
-    validateRow(response, List.of("bL4ooGhyHRQ", "2021Q1", "75.3"));
-    validateRow(response, List.of("bL4ooGhyHRQ", "2021Q2", "74.8"));
-    validateRow(response, List.of("bL4ooGhyHRQ", "2021Q3", "82.0"));
+    validateRow(response, List.of("TEQlaapDQoK", "2021Q4", "36.57"));
+    validateRow(response, List.of("bL4ooGhyHRQ", "2021Q1", "75.32"));
+    validateRow(response, List.of("bL4ooGhyHRQ", "2021Q2", "74.83"));
+    validateRow(response, List.of("bL4ooGhyHRQ", "2021Q3", "82.02"));
     validateRow(response, List.of("bL4ooGhyHRQ", "2021Q4", "0.74"));
   }
 
@@ -152,7 +152,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("sB79w2hiLp8", "65.8"));
+    validateRow(response, List.of("sB79w2hiLp8", "65.83"));
   }
 
   @Test
@@ -529,10 +529,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202101",
             "J40PpdN4Wkk",
-            "76.9",
+            "76.88",
             "4473.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -541,10 +541,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202101",
             "b0EsAxm8Nge",
-            "100.7",
+            "100.66",
             "6538.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -553,10 +553,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202101",
             "jqBqIXoXpfy",
-            "123.8",
+            "123.85",
             "4596.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -565,10 +565,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202101",
             "nlX2VoouN63",
-            "96.7",
+            "96.66",
             "2463.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -577,10 +577,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202102",
             "J40PpdN4Wkk",
-            "90.4",
+            "90.39",
             "4750.0",
             "68500.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -589,10 +589,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202102",
             "b0EsAxm8Nge",
-            "96.7",
+            "96.66",
             "5671.0",
             "76477.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -601,10 +601,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202102",
             "jqBqIXoXpfy",
-            "132.3",
+            "132.31",
             "4435.0",
             "43695.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -613,10 +613,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202102",
             "nlX2VoouN63",
-            "93.7",
+            "93.72",
             "2157.0",
             "30002.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -625,10 +625,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202103",
             "J40PpdN4Wkk",
-            "82.7",
+            "82.75",
             "4814.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -637,10 +637,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202103",
             "b0EsAxm8Nge",
-            "121.0",
+            "121.04",
             "7862.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -649,10 +649,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202103",
             "jqBqIXoXpfy",
-            "122.8",
+            "122.79",
             "4557.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -661,10 +661,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202103",
             "nlX2VoouN63",
-            "100.9",
+            "100.86",
             "2570.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -676,7 +676,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "81.9",
             "4611.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -685,10 +685,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202104",
             "b0EsAxm8Nge",
-            "92.2",
+            "92.16",
             "5793.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -697,10 +697,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202104",
             "jqBqIXoXpfy",
-            "116.2",
+            "116.17",
             "4172.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -709,10 +709,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202104",
             "nlX2VoouN63",
-            "90.1",
+            "90.11",
             "2222.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -721,10 +721,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202105",
             "J40PpdN4Wkk",
-            "111.3",
+            "111.28",
             "6474.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -733,10 +733,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202105",
             "b0EsAxm8Nge",
-            "179.5",
+            "179.55",
             "11662.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -748,7 +748,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "146.8",
             "5448.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -760,7 +760,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "112.4",
             "2864.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -769,10 +769,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202106",
             "J40PpdN4Wkk",
-            "95.4",
+            "95.36",
             "5369.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -784,7 +784,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "138.9",
             "8731.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -793,10 +793,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202106",
             "jqBqIXoXpfy",
-            "137.4",
+            "137.38",
             "4934.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -805,10 +805,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202106",
             "nlX2VoouN63",
-            "110.0",
+            "110.02",
             "2713.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -817,10 +817,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202107",
             "J40PpdN4Wkk",
-            "84.6",
+            "84.55",
             "4919.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -829,10 +829,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202107",
             "b0EsAxm8Nge",
-            "116.9",
+            "116.85",
             "7590.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -844,7 +844,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "144.7",
             "5370.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -853,10 +853,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202107",
             "nlX2VoouN63",
-            "102.9",
+            "102.94",
             "2623.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -865,10 +865,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202108",
             "J40PpdN4Wkk",
-            "93.8",
+            "93.78",
             "5456.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -877,10 +877,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202108",
             "b0EsAxm8Nge",
-            "115.4",
+            "115.38",
             "7494.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -889,10 +889,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202108",
             "jqBqIXoXpfy",
-            "129.7",
+            "129.67",
             "4812.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -901,10 +901,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202108",
             "nlX2VoouN63",
-            "94.1",
+            "94.07",
             "2397.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -913,10 +913,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202109",
             "J40PpdN4Wkk",
-            "97.8",
+            "97.81",
             "5507.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -925,10 +925,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202109",
             "b0EsAxm8Nge",
-            "114.2",
+            "114.18",
             "7177.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -940,7 +940,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "149.3",
             "5362.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -949,10 +949,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202109",
             "nlX2VoouN63",
-            "90.4",
+            "90.35",
             "2228.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -961,10 +961,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202110",
             "J40PpdN4Wkk",
-            "61.1",
+            "61.11",
             "3555.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -973,10 +973,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202110",
             "b0EsAxm8Nge",
-            "109.3",
+            "109.33",
             "7101.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -985,10 +985,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202110",
             "jqBqIXoXpfy",
-            "110.4",
+            "110.37",
             "4096.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -997,10 +997,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202110",
             "nlX2VoouN63",
-            "44.7",
+            "44.66",
             "1138.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1012,7 +1012,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "60.9",
             "3429.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1021,10 +1021,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202111",
             "b0EsAxm8Nge",
-            "118.0",
+            "118.04",
             "7420.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1033,10 +1033,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202111",
             "jqBqIXoXpfy",
-            "154.8",
+            "154.79",
             "5559.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1045,10 +1045,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202111",
             "nlX2VoouN63",
-            "51.7",
+            "51.66",
             "1274.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1057,10 +1057,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202112",
             "J40PpdN4Wkk",
-            "76.4",
+            "76.44",
             "4447.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1069,10 +1069,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202112",
             "b0EsAxm8Nge",
-            "79.6",
+            "79.64",
             "5173.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1081,10 +1081,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202112",
             "jqBqIXoXpfy",
-            "88.8",
+            "88.82",
             "3296.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1093,10 +1093,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "Uvn6LCg7dVU",
             "202112",
             "nlX2VoouN63",
-            "45.4",
+            "45.45",
             "1158.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1105,7 +1105,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202101",
             "J40PpdN4Wkk",
-            "50.4",
+            "50.44",
             "2256.0",
             "4473.0",
             "100.0",
@@ -1117,7 +1117,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202101",
             "b0EsAxm8Nge",
-            "47.0",
+            "46.96",
             "3070.0",
             "6538.0",
             "100.0",
@@ -1129,7 +1129,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202101",
             "jqBqIXoXpfy",
-            "37.4",
+            "37.38",
             "1718.0",
             "4596.0",
             "100.0",
@@ -1141,7 +1141,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202101",
             "nlX2VoouN63",
-            "31.7",
+            "31.71",
             "781.0",
             "2463.0",
             "100.0",
@@ -1153,7 +1153,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202102",
             "J40PpdN4Wkk",
-            "41.0",
+            "40.99",
             "1947.0",
             "4750.0",
             "100.0",
@@ -1177,7 +1177,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202102",
             "jqBqIXoXpfy",
-            "40.8",
+            "40.81",
             "1810.0",
             "4435.0",
             "100.0",
@@ -1189,7 +1189,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202102",
             "nlX2VoouN63",
-            "27.0",
+            "26.98",
             "582.0",
             "2157.0",
             "100.0",
@@ -1201,7 +1201,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202103",
             "J40PpdN4Wkk",
-            "40.6",
+            "40.57",
             "1953.0",
             "4814.0",
             "100.0",
@@ -1213,7 +1213,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202103",
             "b0EsAxm8Nge",
-            "46.0",
+            "46.02",
             "3618.0",
             "7862.0",
             "100.0",
@@ -1225,7 +1225,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202103",
             "jqBqIXoXpfy",
-            "33.2",
+            "33.25",
             "1515.0",
             "4557.0",
             "100.0",
@@ -1237,7 +1237,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202103",
             "nlX2VoouN63",
-            "21.2",
+            "21.25",
             "546.0",
             "2570.0",
             "100.0",
@@ -1249,7 +1249,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202104",
             "J40PpdN4Wkk",
-            "34.4",
+            "34.42",
             "1587.0",
             "4611.0",
             "100.0",
@@ -1261,7 +1261,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202104",
             "b0EsAxm8Nge",
-            "45.6",
+            "45.57",
             "2640.0",
             "5793.0",
             "100.0",
@@ -1273,7 +1273,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202104",
             "jqBqIXoXpfy",
-            "31.1",
+            "31.14",
             "1299.0",
             "4172.0",
             "100.0",
@@ -1285,7 +1285,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202104",
             "nlX2VoouN63",
-            "27.6",
+            "27.59",
             "613.0",
             "2222.0",
             "100.0",
@@ -1297,7 +1297,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202105",
             "J40PpdN4Wkk",
-            "49.9",
+            "49.91",
             "3231.0",
             "6474.0",
             "100.0",
@@ -1309,7 +1309,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202105",
             "b0EsAxm8Nge",
-            "57.5",
+            "57.51",
             "6707.0",
             "11662.0",
             "100.0",
@@ -1321,7 +1321,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202105",
             "jqBqIXoXpfy",
-            "40.3",
+            "40.31",
             "2196.0",
             "5448.0",
             "100.0",
@@ -1333,7 +1333,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202105",
             "nlX2VoouN63",
-            "30.2",
+            "30.17",
             "864.0",
             "2864.0",
             "100.0",
@@ -1345,7 +1345,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202106",
             "J40PpdN4Wkk",
-            "42.3",
+            "42.28",
             "2270.0",
             "5369.0",
             "100.0",
@@ -1357,7 +1357,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202106",
             "b0EsAxm8Nge",
-            "43.1",
+            "43.05",
             "3759.0",
             "8731.0",
             "100.0",
@@ -1369,7 +1369,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202106",
             "jqBqIXoXpfy",
-            "33.3",
+            "33.26",
             "1641.0",
             "4934.0",
             "100.0",
@@ -1381,7 +1381,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202106",
             "nlX2VoouN63",
-            "23.4",
+            "23.44",
             "636.0",
             "2713.0",
             "100.0",
@@ -1393,7 +1393,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202107",
             "J40PpdN4Wkk",
-            "40.6",
+            "40.58",
             "1996.0",
             "4919.0",
             "100.0",
@@ -1405,7 +1405,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202107",
             "b0EsAxm8Nge",
-            "38.3",
+            "38.29",
             "2906.0",
             "7590.0",
             "100.0",
@@ -1417,7 +1417,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202107",
             "jqBqIXoXpfy",
-            "35.0",
+            "35.05",
             "1882.0",
             "5370.0",
             "100.0",
@@ -1429,7 +1429,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202107",
             "nlX2VoouN63",
-            "26.4",
+            "26.38",
             "692.0",
             "2623.0",
             "100.0",
@@ -1441,7 +1441,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202108",
             "J40PpdN4Wkk",
-            "41.3",
+            "41.31",
             "2254.0",
             "5456.0",
             "100.0",
@@ -1453,7 +1453,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202108",
             "b0EsAxm8Nge",
-            "39.8",
+            "39.83",
             "2985.0",
             "7494.0",
             "100.0",
@@ -1465,7 +1465,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202108",
             "jqBqIXoXpfy",
-            "33.8",
+            "33.77",
             "1625.0",
             "4812.0",
             "100.0",
@@ -1477,7 +1477,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202108",
             "nlX2VoouN63",
-            "19.9",
+            "19.94",
             "478.0",
             "2397.0",
             "100.0",
@@ -1489,7 +1489,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202109",
             "J40PpdN4Wkk",
-            "41.5",
+            "41.46",
             "2283.0",
             "5507.0",
             "100.0",
@@ -1501,7 +1501,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202109",
             "b0EsAxm8Nge",
-            "33.6",
+            "33.62",
             "2413.0",
             "7177.0",
             "100.0",
@@ -1513,7 +1513,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202109",
             "jqBqIXoXpfy",
-            "34.3",
+            "34.33",
             "1841.0",
             "5362.0",
             "100.0",
@@ -1525,7 +1525,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202109",
             "nlX2VoouN63",
-            "15.6",
+            "15.57",
             "347.0",
             "2228.0",
             "100.0",
@@ -1537,7 +1537,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202110",
             "J40PpdN4Wkk",
-            "42.1",
+            "42.08",
             "1496.0",
             "3555.0",
             "100.0",
@@ -1549,7 +1549,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202110",
             "b0EsAxm8Nge",
-            "43.2",
+            "43.23",
             "3070.0",
             "7101.0",
             "100.0",
@@ -1561,7 +1561,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202110",
             "jqBqIXoXpfy",
-            "32.1",
+            "32.08",
             "1314.0",
             "4096.0",
             "100.0",
@@ -1570,14 +1570,14 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "ReUHfIn0pTQ", "202110", "nlX2VoouN63", "4.7", "53.0", "1138.0", "100.0", "100", "1"));
+            "ReUHfIn0pTQ", "202110", "nlX2VoouN63", "4.66", "53.0", "1138.0", "100.0", "100", "1"));
     validateRow(
         response,
         List.of(
             "ReUHfIn0pTQ",
             "202111",
             "J40PpdN4Wkk",
-            "50.9",
+            "50.86",
             "1744.0",
             "3429.0",
             "100.0",
@@ -1598,18 +1598,18 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "ReUHfIn0pTQ", "202111", "jqBqIXoXpfy", "1.5", "82.0", "5559.0", "100.0", "100", "1"));
+            "ReUHfIn0pTQ", "202111", "jqBqIXoXpfy", "1.48", "82.0", "5559.0", "100.0", "100", "1"));
     validateRow(
         response,
         List.of(
-            "ReUHfIn0pTQ", "202111", "nlX2VoouN63", "2.3", "29.0", "1274.0", "100.0", "100", "1"));
+            "ReUHfIn0pTQ", "202111", "nlX2VoouN63", "2.28", "29.0", "1274.0", "100.0", "100", "1"));
     validateRow(
         response,
         List.of(
             "ReUHfIn0pTQ",
             "202112",
             "J40PpdN4Wkk",
-            "43.7",
+            "43.67",
             "1942.0",
             "4447.0",
             "100.0",
@@ -1621,7 +1621,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202112",
             "b0EsAxm8Nge",
-            "43.7",
+            "43.67",
             "2259.0",
             "5173.0",
             "100.0",
@@ -1633,7 +1633,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202112",
             "jqBqIXoXpfy",
-            "27.9",
+            "27.88",
             "919.0",
             "3296.0",
             "100.0",
@@ -1645,7 +1645,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "ReUHfIn0pTQ",
             "202112",
             "nlX2VoouN63",
-            "13.4",
+            "13.39",
             "155.0",
             "1158.0",
             "100.0",
@@ -1657,10 +1657,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202101",
             "J40PpdN4Wkk",
-            "60.8",
+            "60.83",
             "3539.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1672,7 +1672,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "81.3",
             "5281.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1681,10 +1681,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202101",
             "jqBqIXoXpfy",
-            "105.5",
+            "105.55",
             "3917.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1693,10 +1693,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202101",
             "nlX2VoouN63",
-            "87.4",
+            "87.44",
             "2228.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1705,10 +1705,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202102",
             "J40PpdN4Wkk",
-            "83.0",
+            "82.99",
             "4361.0",
             "68500.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -1717,10 +1717,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202102",
             "b0EsAxm8Nge",
-            "93.0",
+            "92.98",
             "5455.0",
             "76477.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -1729,10 +1729,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202102",
             "jqBqIXoXpfy",
-            "130.9",
+            "130.94",
             "4389.0",
             "43695.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -1741,10 +1741,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202102",
             "nlX2VoouN63",
-            "86.9",
+            "86.94",
             "2001.0",
             "30002.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -1753,10 +1753,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202103",
             "J40PpdN4Wkk",
-            "73.9",
+            "73.95",
             "4302.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1765,10 +1765,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202103",
             "b0EsAxm8Nge",
-            "97.0",
+            "96.99",
             "6300.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1777,10 +1777,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202103",
             "jqBqIXoXpfy",
-            "115.2",
+            "115.22",
             "4276.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1789,10 +1789,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202103",
             "nlX2VoouN63",
-            "94.3",
+            "94.27",
             "2402.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1801,10 +1801,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202104",
             "J40PpdN4Wkk",
-            "76.7",
+            "76.68",
             "4317.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1813,10 +1813,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202104",
             "b0EsAxm8Nge",
-            "89.9",
+            "89.92",
             "5652.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1825,10 +1825,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202104",
             "jqBqIXoXpfy",
-            "117.7",
+            "117.67",
             "4226.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1840,7 +1840,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "78.1",
             "1926.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1852,7 +1852,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "84.4",
             "4910.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1861,10 +1861,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202105",
             "b0EsAxm8Nge",
-            "124.5",
+            "124.46",
             "8084.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1873,10 +1873,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202105",
             "jqBqIXoXpfy",
-            "134.9",
+            "134.87",
             "5005.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1885,10 +1885,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202105",
             "nlX2VoouN63",
-            "100.6",
+            "100.58",
             "2563.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1897,10 +1897,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202106",
             "J40PpdN4Wkk",
-            "81.2",
+            "81.17",
             "4570.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1909,10 +1909,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202106",
             "b0EsAxm8Nge",
-            "127.0",
+            "126.99",
             "7982.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1921,10 +1921,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202106",
             "jqBqIXoXpfy",
-            "158.7",
+            "158.74",
             "5701.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1933,10 +1933,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202106",
             "nlX2VoouN63",
-            "110.6",
+            "110.59",
             "2727.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -1945,10 +1945,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202107",
             "J40PpdN4Wkk",
-            "74.1",
+            "74.12",
             "4312.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1957,10 +1957,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202107",
             "b0EsAxm8Nge",
-            "108.4",
+            "108.37",
             "7039.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1969,10 +1969,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202107",
             "jqBqIXoXpfy",
-            "134.6",
+            "134.57",
             "4994.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1981,10 +1981,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202107",
             "nlX2VoouN63",
-            "95.0",
+            "95.01",
             "2421.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -1993,10 +1993,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202108",
             "J40PpdN4Wkk",
-            "77.3",
+            "77.28",
             "4496.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2005,10 +2005,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202108",
             "b0EsAxm8Nge",
-            "96.8",
+            "96.82",
             "6289.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2017,10 +2017,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202108",
             "jqBqIXoXpfy",
-            "135.2",
+            "135.22",
             "5018.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2029,10 +2029,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202108",
             "nlX2VoouN63",
-            "93.8",
+            "93.83",
             "2391.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2041,10 +2041,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202109",
             "J40PpdN4Wkk",
-            "78.7",
+            "78.67",
             "4429.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2053,10 +2053,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202109",
             "b0EsAxm8Nge",
-            "108.0",
+            "108.04",
             "6791.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2065,10 +2065,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202109",
             "jqBqIXoXpfy",
-            "133.8",
+            "133.85",
             "4807.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2077,10 +2077,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202109",
             "nlX2VoouN63",
-            "89.9",
+            "89.91",
             "2217.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2089,10 +2089,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202110",
             "J40PpdN4Wkk",
-            "50.9",
+            "50.88",
             "2960.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2101,10 +2101,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202110",
             "b0EsAxm8Nge",
-            "90.6",
+            "90.56",
             "5882.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2113,10 +2113,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202110",
             "jqBqIXoXpfy",
-            "89.5",
+            "89.54",
             "3323.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2125,10 +2125,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202110",
             "nlX2VoouN63",
-            "50.3",
+            "50.31",
             "1282.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2137,10 +2137,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202111",
             "J40PpdN4Wkk",
-            "48.3",
+            "48.31",
             "2720.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2149,10 +2149,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202111",
             "b0EsAxm8Nge",
-            "124.8",
+            "124.84",
             "7847.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2161,10 +2161,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202111",
             "jqBqIXoXpfy",
-            "143.8",
+            "143.76",
             "5163.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2173,10 +2173,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202111",
             "nlX2VoouN63",
-            "56.1",
+            "56.13",
             "1384.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2185,10 +2185,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202112",
             "J40PpdN4Wkk",
-            "70.6",
+            "70.58",
             "4106.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2197,10 +2197,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202112",
             "b0EsAxm8Nge",
-            "62.5",
+            "62.48",
             "4058.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2209,10 +2209,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202112",
             "jqBqIXoXpfy",
-            "84.9",
+            "84.88",
             "3150.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2221,112 +2221,112 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "OdiHJayrsKo",
             "202112",
             "nlX2VoouN63",
-            "46.6",
+            "46.58",
             "1187.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "J40PpdN4Wkk", "20.7", "11184.0", "539.4", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "J40PpdN4Wkk", "21.08", "11184.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "b0EsAxm8Nge", "29.8", "16916.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "b0EsAxm8Nge", "30.33", "16916.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "jqBqIXoXpfy", "207.0", "12837.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "jqBqIXoXpfy", "210.48", "12837.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202101", "nlX2VoouN63", "31.4", "7157.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202101", "nlX2VoouN63", "31.91", "7157.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202102", "J40PpdN4Wkk", "24.7", "13324.0", "539.4", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202102", "J40PpdN4Wkk", "24.7", "13324.0", "539.34", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202102", "b0EsAxm8Nge", "29.4", "16665.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202102", "b0EsAxm8Nge", "29.39", "16665.0", "567.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202102", "jqBqIXoXpfy", "210.7", "13063.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202102", "jqBqIXoXpfy", "210.69", "13063.0", "62.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202102", "nlX2VoouN63", "28.7", "6542.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202102", "nlX2VoouN63", "28.69", "6542.0", "228.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "J40PpdN4Wkk", "25.0", "13480.0", "539.4", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "J40PpdN4Wkk", "25.41", "13480.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "b0EsAxm8Nge", "36.9", "20940.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "b0EsAxm8Nge", "37.54", "20940.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "jqBqIXoXpfy", "239.9", "14875.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "jqBqIXoXpfy", "243.89", "14875.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202103", "nlX2VoouN63", "35.7", "8143.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202103", "nlX2VoouN63", "36.31", "8143.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "J40PpdN4Wkk", "24.7", "13324.0", "539.4", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "J40PpdN4Wkk", "25.11", "13324.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "b0EsAxm8Nge", "29.5", "16739.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "b0EsAxm8Nge", "30.01", "16739.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "jqBqIXoXpfy", "214.9", "13321.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "jqBqIXoXpfy", "218.41", "13321.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202104", "nlX2VoouN63", "29.3", "6669.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202104", "nlX2VoouN63", "29.74", "6669.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "J40PpdN4Wkk", "30.3", "16324.0", "539.4", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "J40PpdN4Wkk", "30.77", "16324.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "b0EsAxm8Nge", "48.9", "27723.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "b0EsAxm8Nge", "49.71", "27723.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "jqBqIXoXpfy", "256.5", "15901.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "jqBqIXoXpfy", "260.71", "15901.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202105", "nlX2VoouN63", "38.5", "8777.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202105", "nlX2VoouN63", "39.13", "8777.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "J40PpdN4Wkk", "27.1", "14611.0", "539.4", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "J40PpdN4Wkk", "27.54", "14611.0", "530.54", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "b0EsAxm8Nge", "43.3", "24567.0", "567.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "b0EsAxm8Nge", "44.05", "24567.0", "557.74", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "jqBqIXoXpfy", "261.6", "16217.0", "62.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "jqBqIXoXpfy", "265.9", "16217.0", "60.99", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202106", "nlX2VoouN63", "38.8", "8851.0", "228.0", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202106", "nlX2VoouN63", "39.46", "8851.0", "224.28", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "J40PpdN4Wkk", "29.7", "13560.0", "456.3", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "J40PpdN4Wkk", "30.2", "13560.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2334,15 +2334,15 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "jqBqIXoXpfy", "56.0", "16173.0", "288.6", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "jqBqIXoXpfy", "56.95", "16173.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202107", "nlX2VoouN63", "23.1", "8204.0", "354.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202107", "nlX2VoouN63", "23.51", "8204.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "J40PpdN4Wkk", "32.2", "14684.0", "456.3", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "J40PpdN4Wkk", "32.7", "14684.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2350,15 +2350,15 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "jqBqIXoXpfy", "52.6", "15194.0", "288.6", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "jqBqIXoXpfy", "53.5", "15194.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202108", "nlX2VoouN63", "22.5", "7971.0", "354.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202108", "nlX2VoouN63", "22.84", "7971.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "J40PpdN4Wkk", "33.8", "15427.0", "456.3", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "J40PpdN4Wkk", "34.36", "15427.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2366,15 +2366,15 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "jqBqIXoXpfy", "55.2", "15941.0", "288.6", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "jqBqIXoXpfy", "56.13", "15941.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202109", "nlX2VoouN63", "21.2", "7523.0", "354.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202109", "nlX2VoouN63", "21.56", "7523.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "J40PpdN4Wkk", "20.8", "9495.0", "456.3", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "J40PpdN4Wkk", "21.15", "9495.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2382,15 +2382,15 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "jqBqIXoXpfy", "43.0", "12421.0", "288.6", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "jqBqIXoXpfy", "43.74", "12421.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202110", "nlX2VoouN63", "11.8", "4201.0", "354.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202110", "nlX2VoouN63", "12.04", "4201.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "J40PpdN4Wkk", "19.3", "8797.0", "456.3", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "J40PpdN4Wkk", "19.59", "8797.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2398,15 +2398,15 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "jqBqIXoXpfy", "65.2", "18825.0", "288.6", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "jqBqIXoXpfy", "66.29", "18825.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202111", "nlX2VoouN63", "13.0", "4626.0", "354.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202111", "nlX2VoouN63", "13.26", "4626.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "J40PpdN4Wkk", "26.6", "12122.0", "456.3", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "J40PpdN4Wkk", "27.0", "12122.0", "449.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
@@ -2414,21 +2414,21 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "jqBqIXoXpfy", "37.8", "10908.0", "288.6", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "jqBqIXoXpfy", "38.41", "10908.0", "284.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
-            "Lzg9LtG1xg3", "202112", "nlX2VoouN63", "11.4", "4036.0", "354.7", "1.0", "1", "1"));
+            "Lzg9LtG1xg3", "202112", "nlX2VoouN63", "11.56", "4036.0", "349.0", "1.0", "1", "1"));
     validateRow(
         response,
         List.of(
             "sB79w2hiLp8",
             "202101",
             "J40PpdN4Wkk",
-            "38.1",
+            "38.11",
             "2217.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2437,10 +2437,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202101",
             "b0EsAxm8Nge",
-            "53.4",
+            "53.39",
             "3468.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2449,10 +2449,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202101",
             "jqBqIXoXpfy",
-            "77.6",
+            "77.55",
             "2878.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2461,10 +2461,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202101",
             "nlX2VoouN63",
-            "66.0",
+            "66.01",
             "1682.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2473,10 +2473,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202102",
             "J40PpdN4Wkk",
-            "53.3",
+            "53.34",
             "2803.0",
             "68500.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -2485,10 +2485,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202102",
             "b0EsAxm8Nge",
-            "58.5",
+            "58.48",
             "3431.0",
             "76477.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -2497,10 +2497,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202102",
             "jqBqIXoXpfy",
-            "78.3",
+            "78.31",
             "2625.0",
             "43695.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -2509,10 +2509,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202102",
             "nlX2VoouN63",
-            "68.4",
+            "68.43",
             "1575.0",
             "30002.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -2521,10 +2521,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202103",
             "J40PpdN4Wkk",
-            "49.2",
+            "49.18",
             "2861.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2533,10 +2533,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202103",
             "b0EsAxm8Nge",
-            "65.3",
+            "65.34",
             "4244.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2545,10 +2545,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202103",
             "jqBqIXoXpfy",
-            "82.0",
+            "81.97",
             "3042.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2557,10 +2557,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202103",
             "nlX2VoouN63",
-            "79.4",
+            "79.43",
             "2024.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2569,10 +2569,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202104",
             "J40PpdN4Wkk",
-            "53.7",
+            "53.71",
             "3024.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2581,10 +2581,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202104",
             "b0EsAxm8Nge",
-            "50.2",
+            "50.16",
             "3153.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2596,7 +2596,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "80.0",
             "2873.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2605,10 +2605,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202104",
             "nlX2VoouN63",
-            "65.2",
+            "65.25",
             "1609.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2617,10 +2617,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202105",
             "J40PpdN4Wkk",
-            "55.7",
+            "55.74",
             "3243.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2629,10 +2629,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202105",
             "b0EsAxm8Nge",
-            "76.3",
+            "76.29",
             "4955.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2641,10 +2641,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202105",
             "jqBqIXoXpfy",
-            "87.6",
+            "87.63",
             "3252.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2653,10 +2653,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202105",
             "nlX2VoouN63",
-            "78.5",
+            "78.49",
             "2000.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2665,10 +2665,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202106",
             "J40PpdN4Wkk",
-            "55.0",
+            "55.04",
             "3099.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2680,7 +2680,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "79.1",
             "4972.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2689,10 +2689,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202106",
             "jqBqIXoXpfy",
-            "91.7",
+            "91.69",
             "3293.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2701,10 +2701,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202106",
             "nlX2VoouN63",
-            "84.2",
+            "84.23",
             "2077.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2713,10 +2713,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202107",
             "J40PpdN4Wkk",
-            "50.2",
+            "50.24",
             "2923.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2725,10 +2725,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202107",
             "b0EsAxm8Nge",
-            "72.1",
+            "72.11",
             "4684.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2737,10 +2737,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202107",
             "jqBqIXoXpfy",
-            "94.0",
+            "93.99",
             "3488.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2749,10 +2749,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202107",
             "nlX2VoouN63",
-            "75.8",
+            "75.78",
             "1931.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2761,10 +2761,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202108",
             "J40PpdN4Wkk",
-            "55.0",
+            "55.04",
             "3202.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2773,10 +2773,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202108",
             "b0EsAxm8Nge",
-            "69.4",
+            "69.42",
             "4509.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2785,10 +2785,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202108",
             "jqBqIXoXpfy",
-            "85.9",
+            "85.88",
             "3187.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2797,10 +2797,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202108",
             "nlX2VoouN63",
-            "75.3",
+            "75.31",
             "1919.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2809,10 +2809,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202109",
             "J40PpdN4Wkk",
-            "57.3",
+            "57.26",
             "3224.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2821,10 +2821,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202109",
             "b0EsAxm8Nge",
-            "75.8",
+            "75.79",
             "4764.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2833,10 +2833,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202109",
             "jqBqIXoXpfy",
-            "98.0",
+            "98.04",
             "3521.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2845,10 +2845,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202109",
             "nlX2VoouN63",
-            "76.3",
+            "76.28",
             "1881.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2857,10 +2857,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202110",
             "J40PpdN4Wkk",
-            "35.4",
+            "35.39",
             "2059.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2869,10 +2869,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202110",
             "b0EsAxm8Nge",
-            "62.1",
+            "62.06",
             "4031.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2881,10 +2881,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202110",
             "jqBqIXoXpfy",
-            "75.0",
+            "74.96",
             "2782.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2893,10 +2893,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202110",
             "nlX2VoouN63",
-            "42.6",
+            "42.58",
             "1085.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2905,10 +2905,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202111",
             "J40PpdN4Wkk",
-            "29.9",
+            "29.93",
             "1685.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2917,10 +2917,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202111",
             "b0EsAxm8Nge",
-            "74.0",
+            "74.01",
             "4652.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2932,7 +2932,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "152.5",
             "5477.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2941,10 +2941,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202111",
             "nlX2VoouN63",
-            "50.5",
+            "50.49",
             "1245.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -2953,10 +2953,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202112",
             "J40PpdN4Wkk",
-            "43.1",
+            "43.06",
             "2505.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2965,10 +2965,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202112",
             "b0EsAxm8Nge",
-            "44.9",
+            "44.86",
             "2914.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2977,10 +2977,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202112",
             "jqBqIXoXpfy",
-            "64.1",
+            "64.05",
             "2377.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -2989,10 +2989,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "sB79w2hiLp8",
             "202112",
             "nlX2VoouN63",
-            "39.4",
+            "39.36",
             "1003.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3001,10 +3001,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202101",
             "J40PpdN4Wkk",
-            "16.4",
+            "16.42",
             "955.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3013,10 +3013,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202101",
             "b0EsAxm8Nge",
-            "25.1",
+            "25.08",
             "1629.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3025,10 +3025,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202101",
             "jqBqIXoXpfy",
-            "39.0",
+            "38.96",
             "1446.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3037,10 +3037,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202101",
             "nlX2VoouN63",
-            "30.8",
+            "30.77",
             "784.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3049,10 +3049,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202102",
             "J40PpdN4Wkk",
-            "26.8",
+            "26.83",
             "1410.0",
             "68500.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -3061,10 +3061,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202102",
             "b0EsAxm8Nge",
-            "35.9",
+            "35.93",
             "2108.0",
             "76477.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -3073,10 +3073,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202102",
             "jqBqIXoXpfy",
-            "48.2",
+            "48.15",
             "1614.0",
             "43695.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -3085,10 +3085,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202102",
             "nlX2VoouN63",
-            "35.2",
+            "35.15",
             "809.0",
             "30002.0",
-            "1303.6",
+            "1303.57",
             "36500",
             "28"));
     validateRow(
@@ -3097,10 +3097,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202103",
             "J40PpdN4Wkk",
-            "25.8",
+            "25.83",
             "1503.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3109,10 +3109,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202103",
             "b0EsAxm8Nge",
-            "39.0",
+            "39.01",
             "2534.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3121,10 +3121,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202103",
             "jqBqIXoXpfy",
-            "80.8",
+            "80.84",
             "3000.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3133,10 +3133,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202103",
             "nlX2VoouN63",
-            "45.0",
+            "45.01",
             "1147.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3145,10 +3145,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202104",
             "J40PpdN4Wkk",
-            "24.4",
+            "24.37",
             "1372.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3157,10 +3157,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202104",
             "b0EsAxm8Nge",
-            "34.1",
+            "34.06",
             "2141.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3169,10 +3169,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202104",
             "jqBqIXoXpfy",
-            "57.1",
+            "57.08",
             "2050.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3181,10 +3181,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202104",
             "nlX2VoouN63",
-            "37.0",
+            "36.98",
             "912.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3193,10 +3193,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202105",
             "J40PpdN4Wkk",
-            "29.2",
+            "29.17",
             "1697.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3205,10 +3205,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202105",
             "b0EsAxm8Nge",
-            "46.5",
+            "46.53",
             "3022.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3217,10 +3217,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202105",
             "jqBqIXoXpfy",
-            "59.2",
+            "59.17",
             "2196.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3229,10 +3229,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202105",
             "nlX2VoouN63",
-            "53.0",
+            "52.98",
             "1350.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3241,10 +3241,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202106",
             "J40PpdN4Wkk",
-            "27.9",
+            "27.94",
             "1573.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3253,10 +3253,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202106",
             "b0EsAxm8Nge",
-            "45.8",
+            "45.85",
             "2882.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3265,10 +3265,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202106",
             "jqBqIXoXpfy",
-            "63.7",
+            "63.74",
             "2289.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3280,7 +3280,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "54.1",
             "1334.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3289,10 +3289,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202107",
             "J40PpdN4Wkk",
-            "24.2",
+            "24.17",
             "1406.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3301,10 +3301,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202107",
             "b0EsAxm8Nge",
-            "43.4",
+            "43.39",
             "2818.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3313,10 +3313,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202107",
             "jqBqIXoXpfy",
-            "62.5",
+            "62.54",
             "2321.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3325,10 +3325,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202107",
             "nlX2VoouN63",
-            "48.2",
+            "48.23",
             "1229.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3340,7 +3340,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "26.3",
             "1530.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3349,10 +3349,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202108",
             "b0EsAxm8Nge",
-            "44.4",
+            "44.42",
             "2885.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3361,10 +3361,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202108",
             "jqBqIXoXpfy",
-            "58.7",
+            "58.66",
             "2177.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3373,10 +3373,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202108",
             "nlX2VoouN63",
-            "49.6",
+            "49.61",
             "1264.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3385,10 +3385,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202109",
             "J40PpdN4Wkk",
-            "40.3",
+            "40.27",
             "2267.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3397,10 +3397,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202109",
             "b0EsAxm8Nge",
-            "54.9",
+            "54.95",
             "3454.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3409,10 +3409,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202109",
             "jqBqIXoXpfy",
-            "62.7",
+            "62.68",
             "2251.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3421,10 +3421,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202109",
             "nlX2VoouN63",
-            "48.5",
+            "48.54",
             "1197.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3433,10 +3433,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202110",
             "J40PpdN4Wkk",
-            "15.8",
+            "15.83",
             "921.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3445,10 +3445,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202110",
             "b0EsAxm8Nge",
-            "47.8",
+            "47.83",
             "3107.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3457,10 +3457,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202110",
             "jqBqIXoXpfy",
-            "59.8",
+            "59.82",
             "2220.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3469,10 +3469,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202110",
             "nlX2VoouN63",
-            "27.3",
+            "27.31",
             "696.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3484,7 +3484,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "17.1",
             "963.0",
             "68500.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3493,10 +3493,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202111",
             "b0EsAxm8Nge",
-            "57.5",
+            "57.46",
             "3612.0",
             "76477.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3505,10 +3505,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202111",
             "jqBqIXoXpfy",
-            "73.1",
+            "73.12",
             "2626.0",
             "43695.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3517,10 +3517,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202111",
             "nlX2VoouN63",
-            "29.3",
+            "29.32",
             "723.0",
             "30002.0",
-            "1216.7",
+            "1216.67",
             "36500",
             "30"));
     validateRow(
@@ -3529,10 +3529,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202112",
             "J40PpdN4Wkk",
-            "18.3",
+            "18.29",
             "1064.0",
             "68500.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3541,10 +3541,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202112",
             "b0EsAxm8Nge",
-            "34.2",
+            "34.21",
             "2222.0",
             "76477.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3553,10 +3553,10 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "AUqdhY4mpvp",
             "202112",
             "jqBqIXoXpfy",
-            "56.2",
+            "56.18",
             "2085.0",
             "43695.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3568,7 +3568,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "27.0",
             "688.0",
             "30002.0",
-            "1177.4",
+            "1177.42",
             "36500",
             "31"));
     validateRow(
@@ -3577,7 +3577,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202101",
             "J40PpdN4Wkk",
-            "110.7",
+            "110.66",
             "4950.0",
             "4473.0",
             "100.0",
@@ -3589,7 +3589,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202101",
             "b0EsAxm8Nge",
-            "110.7",
+            "110.66",
             "7235.0",
             "6538.0",
             "100.0",
@@ -3601,7 +3601,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202101",
             "jqBqIXoXpfy",
-            "112.2",
+            "112.21",
             "5157.0",
             "4596.0",
             "100.0",
@@ -3613,7 +3613,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202101",
             "nlX2VoouN63",
-            "99.4",
+            "99.35",
             "2447.0",
             "2463.0",
             "100.0",
@@ -3625,7 +3625,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202102",
             "J40PpdN4Wkk",
-            "111.5",
+            "111.52",
             "5297.0",
             "4750.0",
             "100.0",
@@ -3637,7 +3637,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202102",
             "b0EsAxm8Nge",
-            "126.3",
+            "126.31",
             "7163.0",
             "5671.0",
             "100.0",
@@ -3649,7 +3649,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202102",
             "jqBqIXoXpfy",
-            "98.7",
+            "98.67",
             "4376.0",
             "4435.0",
             "100.0",
@@ -3661,7 +3661,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202102",
             "nlX2VoouN63",
-            "100.5",
+            "100.46",
             "2167.0",
             "2157.0",
             "100.0",
@@ -3673,7 +3673,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202103",
             "J40PpdN4Wkk",
-            "102.4",
+            "102.41",
             "4930.0",
             "4814.0",
             "100.0",
@@ -3685,7 +3685,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202103",
             "b0EsAxm8Nge",
-            "115.6",
+            "115.57",
             "9086.0",
             "7862.0",
             "100.0",
@@ -3697,7 +3697,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202103",
             "jqBqIXoXpfy",
-            "97.5",
+            "97.54",
             "4445.0",
             "4557.0",
             "100.0",
@@ -3721,7 +3721,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202104",
             "J40PpdN4Wkk",
-            "104.3",
+            "104.32",
             "4810.0",
             "4611.0",
             "100.0",
@@ -3733,7 +3733,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202104",
             "b0EsAxm8Nge",
-            "114.2",
+            "114.24",
             "6618.0",
             "5793.0",
             "100.0",
@@ -3757,7 +3757,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202104",
             "nlX2VoouN63",
-            "93.3",
+            "93.34",
             "2074.0",
             "2222.0",
             "100.0",
@@ -3769,7 +3769,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202105",
             "J40PpdN4Wkk",
-            "114.5",
+            "114.46",
             "7410.0",
             "6474.0",
             "100.0",
@@ -3781,7 +3781,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202105",
             "b0EsAxm8Nge",
-            "147.5",
+            "147.48",
             "17199.0",
             "11662.0",
             "100.0",
@@ -3805,7 +3805,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202105",
             "nlX2VoouN63",
-            "117.0",
+            "116.97",
             "3350.0",
             "2864.0",
             "100.0",
@@ -3817,7 +3817,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202106",
             "J40PpdN4Wkk",
-            "94.1",
+            "94.13",
             "5054.0",
             "5369.0",
             "100.0",
@@ -3829,7 +3829,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202106",
             "b0EsAxm8Nge",
-            "114.8",
+            "114.75",
             "10019.0",
             "8731.0",
             "100.0",
@@ -3841,7 +3841,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202106",
             "jqBqIXoXpfy",
-            "103.5",
+            "103.53",
             "5108.0",
             "4934.0",
             "100.0",
@@ -3853,7 +3853,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202106",
             "nlX2VoouN63",
-            "108.0",
+            "108.04",
             "2931.0",
             "2713.0",
             "100.0",
@@ -3865,7 +3865,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202107",
             "J40PpdN4Wkk",
-            "89.6",
+            "89.55",
             "4405.0",
             "4919.0",
             "100.0",
@@ -3877,7 +3877,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202107",
             "b0EsAxm8Nge",
-            "182.9",
+            "182.92",
             "13884.0",
             "7590.0",
             "100.0",
@@ -3889,7 +3889,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202107",
             "jqBqIXoXpfy",
-            "101.4",
+            "101.38",
             "5444.0",
             "5370.0",
             "100.0",
@@ -3901,7 +3901,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202107",
             "nlX2VoouN63",
-            "105.6",
+            "105.57",
             "2769.0",
             "2623.0",
             "100.0",
@@ -3913,7 +3913,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202108",
             "J40PpdN4Wkk",
-            "76.9",
+            "76.94",
             "4198.0",
             "5456.0",
             "100.0",
@@ -3925,7 +3925,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202108",
             "b0EsAxm8Nge",
-            "127.7",
+            "127.69",
             "9569.0",
             "7494.0",
             "100.0",
@@ -3937,7 +3937,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202108",
             "jqBqIXoXpfy",
-            "85.1",
+            "85.08",
             "4094.0",
             "4812.0",
             "100.0",
@@ -3949,7 +3949,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202108",
             "nlX2VoouN63",
-            "117.0",
+            "117.02",
             "2805.0",
             "2397.0",
             "100.0",
@@ -3961,7 +3961,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202109",
             "J40PpdN4Wkk",
-            "111.6",
+            "111.59",
             "6145.0",
             "5507.0",
             "100.0",
@@ -3973,7 +3973,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202109",
             "b0EsAxm8Nge",
-            "125.9",
+            "125.92",
             "9037.0",
             "7177.0",
             "100.0",
@@ -3985,7 +3985,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202109",
             "jqBqIXoXpfy",
-            "105.9",
+            "105.86",
             "5676.0",
             "5362.0",
             "100.0",
@@ -3997,7 +3997,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202109",
             "nlX2VoouN63",
-            "111.3",
+            "111.31",
             "2480.0",
             "2228.0",
             "100.0",
@@ -4009,7 +4009,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202110",
             "J40PpdN4Wkk",
-            "123.7",
+            "123.74",
             "4399.0",
             "3555.0",
             "100.0",
@@ -4021,7 +4021,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202110",
             "b0EsAxm8Nge",
-            "123.2",
+            "123.15",
             "8745.0",
             "7101.0",
             "100.0",
@@ -4033,7 +4033,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202110",
             "jqBqIXoXpfy",
-            "120.6",
+            "120.56",
             "4938.0",
             "4096.0",
             "100.0",
@@ -4045,7 +4045,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202110",
             "nlX2VoouN63",
-            "155.6",
+            "155.62",
             "1771.0",
             "1138.0",
             "100.0",
@@ -4057,7 +4057,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202111",
             "J40PpdN4Wkk",
-            "113.4",
+            "113.39",
             "3888.0",
             "3429.0",
             "100.0",
@@ -4069,7 +4069,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202111",
             "b0EsAxm8Nge",
-            "136.1",
+            "136.11",
             "10099.0",
             "7420.0",
             "100.0",
@@ -4081,7 +4081,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202111",
             "jqBqIXoXpfy",
-            "110.4",
+            "110.43",
             "6139.0",
             "5559.0",
             "100.0",
@@ -4093,7 +4093,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202111",
             "nlX2VoouN63",
-            "118.9",
+            "118.92",
             "1515.0",
             "1274.0",
             "100.0",
@@ -4105,7 +4105,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202112",
             "J40PpdN4Wkk",
-            "108.5",
+            "108.52",
             "4826.0",
             "4447.0",
             "100.0",
@@ -4117,7 +4117,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202112",
             "b0EsAxm8Nge",
-            "127.5",
+            "127.49",
             "6595.0",
             "5173.0",
             "100.0",
@@ -4129,7 +4129,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202112",
             "jqBqIXoXpfy",
-            "125.8",
+            "125.79",
             "4146.0",
             "3296.0",
             "100.0",
@@ -4141,7 +4141,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "dwEq7wi6nXV",
             "202112",
             "nlX2VoouN63",
-            "118.9",
+            "118.91",
             "1377.0",
             "1158.0",
             "100.0",
@@ -4153,7 +4153,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202101",
             "J40PpdN4Wkk",
-            "119.8",
+            "119.81",
             "4240.0",
             "3539.0",
             "100.0",
@@ -4165,7 +4165,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202101",
             "b0EsAxm8Nge",
-            "107.8",
+            "107.76",
             "5691.0",
             "5281.0",
             "100.0",
@@ -4189,7 +4189,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202101",
             "nlX2VoouN63",
-            "86.8",
+            "86.85",
             "1935.0",
             "2228.0",
             "100.0",
@@ -4201,7 +4201,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202102",
             "J40PpdN4Wkk",
-            "90.1",
+            "90.07",
             "3928.0",
             "4361.0",
             "100.0",
@@ -4213,7 +4213,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202102",
             "b0EsAxm8Nge",
-            "207.8",
+            "207.81",
             "11336.0",
             "5455.0",
             "100.0",
@@ -4225,7 +4225,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202102",
             "jqBqIXoXpfy",
-            "77.8",
+            "77.81",
             "3415.0",
             "4389.0",
             "100.0",
@@ -4249,7 +4249,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202103",
             "J40PpdN4Wkk",
-            "87.4",
+            "87.45",
             "3762.0",
             "4302.0",
             "100.0",
@@ -4261,7 +4261,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202103",
             "b0EsAxm8Nge",
-            "130.0",
+            "129.98",
             "8189.0",
             "6300.0",
             "100.0",
@@ -4273,7 +4273,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202103",
             "jqBqIXoXpfy",
-            "90.4",
+            "90.41",
             "3866.0",
             "4276.0",
             "100.0",
@@ -4285,7 +4285,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202103",
             "nlX2VoouN63",
-            "78.5",
+            "78.48",
             "1885.0",
             "2402.0",
             "100.0",
@@ -4309,7 +4309,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202104",
             "b0EsAxm8Nge",
-            "97.9",
+            "97.86",
             "5531.0",
             "5652.0",
             "100.0",
@@ -4321,7 +4321,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202104",
             "jqBqIXoXpfy",
-            "81.7",
+            "81.66",
             "3451.0",
             "4226.0",
             "100.0",
@@ -4333,7 +4333,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202104",
             "nlX2VoouN63",
-            "86.2",
+            "86.19",
             "1660.0",
             "1926.0",
             "100.0",
@@ -4345,7 +4345,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202105",
             "J40PpdN4Wkk",
-            "96.2",
+            "96.23",
             "4725.0",
             "4910.0",
             "100.0",
@@ -4357,7 +4357,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202105",
             "b0EsAxm8Nge",
-            "114.9",
+            "114.86",
             "9285.0",
             "8084.0",
             "100.0",
@@ -4381,7 +4381,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202105",
             "nlX2VoouN63",
-            "86.9",
+            "86.89",
             "2227.0",
             "2563.0",
             "100.0",
@@ -4393,7 +4393,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202106",
             "J40PpdN4Wkk",
-            "84.9",
+            "84.92",
             "3881.0",
             "4570.0",
             "100.0",
@@ -4405,7 +4405,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202106",
             "b0EsAxm8Nge",
-            "87.7",
+            "87.72",
             "7002.0",
             "7982.0",
             "100.0",
@@ -4417,7 +4417,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202106",
             "jqBqIXoXpfy",
-            "74.0",
+            "73.95",
             "4216.0",
             "5701.0",
             "100.0",
@@ -4429,7 +4429,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202106",
             "nlX2VoouN63",
-            "74.8",
+            "74.77",
             "2039.0",
             "2727.0",
             "100.0",
@@ -4441,7 +4441,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202107",
             "J40PpdN4Wkk",
-            "70.3",
+            "70.27",
             "3030.0",
             "4312.0",
             "100.0",
@@ -4465,7 +4465,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202107",
             "jqBqIXoXpfy",
-            "83.3",
+            "83.34",
             "4162.0",
             "4994.0",
             "100.0",
@@ -4477,7 +4477,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202107",
             "nlX2VoouN63",
-            "101.2",
+            "101.24",
             "2451.0",
             "2421.0",
             "100.0",
@@ -4489,7 +4489,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202108",
             "J40PpdN4Wkk",
-            "68.0",
+            "67.97",
             "3056.0",
             "4496.0",
             "100.0",
@@ -4501,7 +4501,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202108",
             "b0EsAxm8Nge",
-            "166.3",
+            "166.34",
             "10461.0",
             "6289.0",
             "100.0",
@@ -4513,7 +4513,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202108",
             "jqBqIXoXpfy",
-            "66.7",
+            "66.74",
             "3349.0",
             "5018.0",
             "100.0",
@@ -4525,7 +4525,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202108",
             "nlX2VoouN63",
-            "95.8",
+            "95.78",
             "2290.0",
             "2391.0",
             "100.0",
@@ -4537,7 +4537,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202109",
             "J40PpdN4Wkk",
-            "99.7",
+            "99.71",
             "4416.0",
             "4429.0",
             "100.0",
@@ -4561,7 +4561,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202109",
             "jqBqIXoXpfy",
-            "86.7",
+            "86.71",
             "4168.0",
             "4807.0",
             "100.0",
@@ -4573,7 +4573,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202109",
             "nlX2VoouN63",
-            "89.2",
+            "89.22",
             "1978.0",
             "2217.0",
             "100.0",
@@ -4585,7 +4585,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202110",
             "J40PpdN4Wkk",
-            "85.5",
+            "85.47",
             "2530.0",
             "2960.0",
             "100.0",
@@ -4597,7 +4597,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202110",
             "b0EsAxm8Nge",
-            "135.8",
+            "135.84",
             "7990.0",
             "5882.0",
             "100.0",
@@ -4609,7 +4609,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202110",
             "jqBqIXoXpfy",
-            "104.5",
+            "104.45",
             "3471.0",
             "3323.0",
             "100.0",
@@ -4621,7 +4621,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202110",
             "nlX2VoouN63",
-            "103.5",
+            "103.51",
             "1327.0",
             "1282.0",
             "100.0",
@@ -4633,7 +4633,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202111",
             "J40PpdN4Wkk",
-            "100.0",
+            "99.96",
             "2719.0",
             "2720.0",
             "100.0",
@@ -4669,7 +4669,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202111",
             "nlX2VoouN63",
-            "109.7",
+            "109.68",
             "1518.0",
             "1384.0",
             "100.0",
@@ -4681,7 +4681,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202112",
             "J40PpdN4Wkk",
-            "76.8",
+            "76.81",
             "3154.0",
             "4106.0",
             "100.0",
@@ -4693,7 +4693,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202112",
             "b0EsAxm8Nge",
-            "150.8",
+            "150.76",
             "6118.0",
             "4058.0",
             "100.0",
@@ -4717,7 +4717,7 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
             "c8fABiNpT0B",
             "202112",
             "nlX2VoouN63",
-            "99.0",
+            "98.99",
             "1175.0",
             "1187.0",
             "100.0",
@@ -4764,17 +4764,17 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("Uvn6LCg7dVU", "J40PpdN4Wkk", "82.8"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "b0EsAxm8Nge", "113.1"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "jqBqIXoXpfy", "126.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "nlX2VoouN63", "84.3"));
-    validateRow(response, List.of("OdiHJayrsKo", "J40PpdN4Wkk", "70.3"));
-    validateRow(response, List.of("OdiHJayrsKo", "b0EsAxm8Nge", "98.3"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "J40PpdN4Wkk", "82.82"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "b0EsAxm8Nge", "113.08"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jqBqIXoXpfy", "126.23"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "nlX2VoouN63", "84.32"));
+    validateRow(response, List.of("OdiHJayrsKo", "J40PpdN4Wkk", "70.32"));
+    validateRow(response, List.of("OdiHJayrsKo", "b0EsAxm8Nge", "98.27"));
     validateRow(response, List.of("OdiHJayrsKo", "jqBqIXoXpfy", "119.7"));
     validateRow(response, List.of("OdiHJayrsKo", "nlX2VoouN63", "80.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "J40PpdN4Wkk", "47.1"));
-    validateRow(response, List.of("sB79w2hiLp8", "b0EsAxm8Nge", "63.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "jqBqIXoXpfy", "86.9"));
-    validateRow(response, List.of("sB79w2hiLp8", "nlX2VoouN63", "65.4"));
+    validateRow(response, List.of("sB79w2hiLp8", "J40PpdN4Wkk", "47.06"));
+    validateRow(response, List.of("sB79w2hiLp8", "b0EsAxm8Nge", "63.81"));
+    validateRow(response, List.of("sB79w2hiLp8", "jqBqIXoXpfy", "86.92"));
+    validateRow(response, List.of("sB79w2hiLp8", "nlX2VoouN63", "65.45"));
   }
 }

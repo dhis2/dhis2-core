@@ -115,7 +115,7 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
             .add("relativePeriodDate=2022-01-01");
 
     // When
-    ApiResponse response = actions.get(params);
+    ApiResponse response = actions.get("", JSON, JSON, params);
 
     // Then
     response
@@ -139,90 +139,90 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("FbKK4ofIv5R", "202101", "23.0"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202102", "28.1"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202103", "25.5"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202104", "27.1"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202105", "28.7"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202106", "26.2"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202107", "24.1"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202108", "30.1"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202109", "31.3"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202110", "26.4"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202101", "23.04"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202102", "28.06"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202103", "25.54"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202104", "27.06"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202105", "28.69"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202106", "26.23"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202107", "24.11"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202108", "30.15"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202109", "31.32"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202110", "26.36"));
     validateRow(response, List.of("FbKK4ofIv5R", "202111", "31.2"));
-    validateRow(response, List.of("FbKK4ofIv5R", "202112", "18.6"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202101", "23.9"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202102", "29.3"));
+    validateRow(response, List.of("FbKK4ofIv5R", "202112", "18.62"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202101", "23.88"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202102", "29.34"));
     validateRow(response, List.of("tUIlpyeeX9N", "202103", "27.0"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202104", "27.9"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202104", "27.91"));
     validateRow(response, List.of("tUIlpyeeX9N", "202105", "29.7"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202106", "29.0"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202107", "27.5"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202108", "32.9"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202109", "31.8"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202110", "26.7"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202111", "30.7"));
-    validateRow(response, List.of("tUIlpyeeX9N", "202112", "19.7"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202106", "28.97"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202107", "27.53"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202108", "32.88"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202109", "31.77"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202110", "26.73"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202111", "30.72"));
+    validateRow(response, List.of("tUIlpyeeX9N", "202112", "19.66"));
     validateRow(response, List.of("YlTWksXEhEO", "202101", "33.0"));
-    validateRow(response, List.of("YlTWksXEhEO", "202102", "38.2"));
+    validateRow(response, List.of("YlTWksXEhEO", "202102", "38.22"));
     validateRow(response, List.of("YlTWksXEhEO", "202103", "32.0"));
-    validateRow(response, List.of("YlTWksXEhEO", "202104", "33.8"));
-    validateRow(response, List.of("YlTWksXEhEO", "202105", "34.8"));
-    validateRow(response, List.of("YlTWksXEhEO", "202106", "36.6"));
-    validateRow(response, List.of("YlTWksXEhEO", "202107", "34.2"));
-    validateRow(response, List.of("YlTWksXEhEO", "202108", "37.2"));
-    validateRow(response, List.of("YlTWksXEhEO", "202109", "35.8"));
+    validateRow(response, List.of("YlTWksXEhEO", "202104", "33.84"));
+    validateRow(response, List.of("YlTWksXEhEO", "202105", "34.79"));
+    validateRow(response, List.of("YlTWksXEhEO", "202106", "36.58"));
+    validateRow(response, List.of("YlTWksXEhEO", "202107", "34.25"));
+    validateRow(response, List.of("YlTWksXEhEO", "202108", "37.24"));
+    validateRow(response, List.of("YlTWksXEhEO", "202109", "35.76"));
     validateRow(response, List.of("YlTWksXEhEO", "202110", "30.6"));
-    validateRow(response, List.of("YlTWksXEhEO", "202111", "33.2"));
-    validateRow(response, List.of("YlTWksXEhEO", "202112", "24.0"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202101", "22.8"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202102", "26.6"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202103", "24.3"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202104", "24.9"));
+    validateRow(response, List.of("YlTWksXEhEO", "202111", "33.24"));
+    validateRow(response, List.of("YlTWksXEhEO", "202112", "23.99"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202101", "22.79"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202102", "26.64"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202103", "24.32"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202104", "24.91"));
     validateRow(response, List.of("eTDtyyaSA7f", "202105", "25.7"));
     validateRow(response, List.of("eTDtyyaSA7f", "202106", "22.9"));
     validateRow(response, List.of("eTDtyyaSA7f", "202107", "22.0"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202108", "27.0"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202109", "26.6"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202110", "24.3"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202111", "26.8"));
-    validateRow(response, List.of("eTDtyyaSA7f", "202112", "17.5"));
-    validateRow(response, List.of("d9thHOJMROr", "202101", "30.3"));
-    validateRow(response, List.of("d9thHOJMROr", "202102", "26.2"));
-    validateRow(response, List.of("d9thHOJMROr", "202103", "20.7"));
-    validateRow(response, List.of("d9thHOJMROr", "202104", "21.6"));
-    validateRow(response, List.of("d9thHOJMROr", "202105", "17.9"));
-    validateRow(response, List.of("d9thHOJMROr", "202106", "28.4"));
-    validateRow(response, List.of("d9thHOJMROr", "202107", "29.7"));
-    validateRow(response, List.of("d9thHOJMROr", "202108", "19.7"));
-    validateRow(response, List.of("d9thHOJMROr", "202109", "13.0"));
-    validateRow(response, List.of("d9thHOJMROr", "202110", "12.8"));
-    validateRow(response, List.of("d9thHOJMROr", "202111", "6.9"));
-    validateRow(response, List.of("d9thHOJMROr", "202112", "25.1"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202101", "31.8"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202102", "37.4"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202103", "32.5"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202104", "33.6"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202105", "35.3"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202106", "35.5"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202107", "33.8"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202108", "31.2"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202109", "34.2"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202110", "28.8"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202111", "31.0"));
-    validateRow(response, List.of("n5nS0SmkUpq", "202112", "27.5"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202101", "23.9"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202102", "30.2"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202103", "27.0"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202104", "27.1"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202108", "27.03"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202109", "26.61"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202110", "24.29"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202111", "26.77"));
+    validateRow(response, List.of("eTDtyyaSA7f", "202112", "17.53"));
+    validateRow(response, List.of("d9thHOJMROr", "202101", "30.27"));
+    validateRow(response, List.of("d9thHOJMROr", "202102", "26.19"));
+    validateRow(response, List.of("d9thHOJMROr", "202103", "20.73"));
+    validateRow(response, List.of("d9thHOJMROr", "202104", "21.64"));
+    validateRow(response, List.of("d9thHOJMROr", "202105", "17.89"));
+    validateRow(response, List.of("d9thHOJMROr", "202106", "28.44"));
+    validateRow(response, List.of("d9thHOJMROr", "202107", "29.73"));
+    validateRow(response, List.of("d9thHOJMROr", "202108", "19.71"));
+    validateRow(response, List.of("d9thHOJMROr", "202109", "13.04"));
+    validateRow(response, List.of("d9thHOJMROr", "202110", "12.77"));
+    validateRow(response, List.of("d9thHOJMROr", "202111", "6.88"));
+    validateRow(response, List.of("d9thHOJMROr", "202112", "25.11"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202101", "31.85"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202102", "37.36"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202103", "32.52"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202104", "33.61"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202105", "35.26"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202106", "35.52"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202107", "33.78"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202108", "31.22"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202109", "34.22"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202110", "28.77"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202111", "31.01"));
+    validateRow(response, List.of("n5nS0SmkUpq", "202112", "27.55"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202101", "23.94"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202102", "30.23"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202103", "26.96"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202104", "27.15"));
     validateRow(response, List.of("JoEzWYGdX7s", "202105", "29.1"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202106", "27.6"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202107", "27.8"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202108", "32.5"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202109", "31.8"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202110", "26.3"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202111", "29.9"));
-    validateRow(response, List.of("JoEzWYGdX7s", "202112", "18.2"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202106", "27.57"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202107", "27.77"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202108", "32.53"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202109", "31.79"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202110", "26.28"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202111", "29.89"));
+    validateRow(response, List.of("JoEzWYGdX7s", "202112", "18.24"));
   }
 
   @Test
@@ -239,7 +239,7 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
             .add("relativePeriodDate=2022-01-01");
 
     // When
-    ApiResponse response = actions.get(params);
+    ApiResponse response = actions.get("", JSON, JSON, params);
 
     // Then
     response
@@ -253,7 +253,7 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202109\":{\"name\":\"September 2021\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"wjP19dkFeIk\":{\"uid\":\"wjP19dkFeIk\",\"name\":\"District\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"pe\":{\"name\":\"Period\"},\"ReUHfIn0pTQ\":{\"name\":\"ANC 1-3 Dropout Rate\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"dx\":[\"ReUHfIn0pTQ\",\"Uvn6LCg7dVU\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[]}}";
+        "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"202109\":{\"name\":\"September 2021\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"wjP19dkFeIk\":{\"uid\":\"wjP19dkFeIk\",\"code\":\"TA_DISTRICT\",\"name\":\"District\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202112\":{\"name\":\"December 2021\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"202101\":{\"name\":\"January 2021\"},\"202102\":{\"name\":\"February 2021\"},\"pe\":{\"name\":\"Period\"},\"ReUHfIn0pTQ\":{\"name\":\"ANC 1-3 Dropout Rate\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"},\"yMXcwGmzIWY\":{\"name\":\"TA id schemes test ou\"}},\"dimensions\":{\"dx\":[\"ReUHfIn0pTQ\",\"Uvn6LCg7dVU\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"yMXcwGmzIWY\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -263,32 +263,32 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("ReUHfIn0pTQ", "O6uvpzGd5pu", "35.7"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "fdc6uOvgoji", "38.0"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "lc3eMKXaEfw", "33.6"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "jUb8gELQApl", "13.0"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "PMa2VCrupOd", "36.6"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "kJq2mPyFEHo", "8.1"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "qhqAxPSTUXp", "42.1"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "O6uvpzGd5pu", "35.66"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "fdc6uOvgoji", "37.98"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "lc3eMKXaEfw", "33.63"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "jUb8gELQApl", "13.01"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "PMa2VCrupOd", "36.63"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "kJq2mPyFEHo", "8.09"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "qhqAxPSTUXp", "42.11"));
     validateRow(response, List.of("ReUHfIn0pTQ", "Vth0fbpFcsO", "30.0"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "jmIPBj66vD6", "21.9"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "TEQlaapDQoK", "52.0"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "jmIPBj66vD6", "21.95"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "TEQlaapDQoK", "51.95"));
     validateRow(response, List.of("ReUHfIn0pTQ", "bL4ooGhyHRQ", "35.7"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "eIQbndfxQMb", "52.9"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "at6UHUQatSo", "41.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "O6uvpzGd5pu", "146.7"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "eIQbndfxQMb", "52.95"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "at6UHUQatSo", "41.58"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "O6uvpzGd5pu", "146.73"));
     validateRow(response, List.of("Uvn6LCg7dVU", "fdc6uOvgoji", "83.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "lc3eMKXaEfw", "91.8"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "jUb8gELQApl", "83.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "PMa2VCrupOd", "104.9"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "kJq2mPyFEHo", "96.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "qhqAxPSTUXp", "68.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "Vth0fbpFcsO", "53.8"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "jmIPBj66vD6", "120.8"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "TEQlaapDQoK", "101.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "bL4ooGhyHRQ", "90.3"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "lc3eMKXaEfw", "91.83"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jUb8gELQApl", "83.22"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "PMa2VCrupOd", "104.92"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "kJq2mPyFEHo", "96.32"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "qhqAxPSTUXp", "68.31"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "Vth0fbpFcsO", "53.81"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jmIPBj66vD6", "120.81"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "TEQlaapDQoK", "101.49"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "bL4ooGhyHRQ", "90.33"));
     validateRow(response, List.of("Uvn6LCg7dVU", "eIQbndfxQMb", "127.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "at6UHUQatSo", "127.2"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "at6UHUQatSo", "127.19"));
   }
 
   @Test
@@ -306,7 +306,7 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
             .add("relativePeriodDate=2022-01-01");
 
     // When
-    ApiResponse response = actions.get(params);
+    ApiResponse response = actions.get("", JSON, JSON, params);
 
     // Then
     response
@@ -330,62 +330,62 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("X3taFC1HtE5", "at6UHUQatSo", "63.7"));
-    validateRow(response, List.of("X3taFC1HtE5", "bL4ooGhyHRQ", "83.0"));
-    validateRow(response, List.of("X3taFC1HtE5", "TEQlaapDQoK", "54.0"));
-    validateRow(response, List.of("X3taFC1HtE5", "O6uvpzGd5pu", "61.0"));
-    validateRow(response, List.of("X3taFC1HtE5", "kJq2mPyFEHo", "60.8"));
-    validateRow(response, List.of("X3taFC1HtE5", "jUb8gELQApl", "68.1"));
-    validateRow(response, List.of("X3taFC1HtE5", "eIQbndfxQMb", "101.9"));
-    validateRow(response, List.of("X3taFC1HtE5", "Vth0fbpFcsO", "45.6"));
-    validateRow(response, List.of("X3taFC1HtE5", "fdc6uOvgoji", "64.1"));
-    validateRow(response, List.of("X3taFC1HtE5", "jmIPBj66vD6", "84.9"));
-    validateRow(response, List.of("X3taFC1HtE5", "ImspTQPwCqd", "66.0"));
-    validateRow(response, List.of("X3taFC1HtE5", "lc3eMKXaEfw", "65.2"));
-    validateRow(response, List.of("X3taFC1HtE5", "qhqAxPSTUXp", "67.7"));
-    validateRow(response, List.of("X3taFC1HtE5", "PMa2VCrupOd", "59.2"));
-    validateRow(response, List.of("vhzPbO1eEyr", "at6UHUQatSo", "7.1"));
-    validateRow(response, List.of("vhzPbO1eEyr", "bL4ooGhyHRQ", "2.4"));
-    validateRow(response, List.of("vhzPbO1eEyr", "TEQlaapDQoK", "5.1"));
-    validateRow(response, List.of("vhzPbO1eEyr", "O6uvpzGd5pu", "5.5"));
-    validateRow(response, List.of("vhzPbO1eEyr", "kJq2mPyFEHo", "6.1"));
-    validateRow(response, List.of("vhzPbO1eEyr", "jUb8gELQApl", "3.5"));
-    validateRow(response, List.of("vhzPbO1eEyr", "eIQbndfxQMb", "8.2"));
-    validateRow(response, List.of("vhzPbO1eEyr", "Vth0fbpFcsO", "9.9"));
-    validateRow(response, List.of("vhzPbO1eEyr", "fdc6uOvgoji", "2.7"));
+    validateRow(response, List.of("X3taFC1HtE5", "at6UHUQatSo", "63.69"));
+    validateRow(response, List.of("X3taFC1HtE5", "bL4ooGhyHRQ", "83.04"));
+    validateRow(response, List.of("X3taFC1HtE5", "TEQlaapDQoK", "53.97"));
+    validateRow(response, List.of("X3taFC1HtE5", "O6uvpzGd5pu", "60.96"));
+    validateRow(response, List.of("X3taFC1HtE5", "kJq2mPyFEHo", "60.84"));
+    validateRow(response, List.of("X3taFC1HtE5", "jUb8gELQApl", "68.14"));
+    validateRow(response, List.of("X3taFC1HtE5", "eIQbndfxQMb", "101.91"));
+    validateRow(response, List.of("X3taFC1HtE5", "Vth0fbpFcsO", "45.56"));
+    validateRow(response, List.of("X3taFC1HtE5", "fdc6uOvgoji", "64.14"));
+    validateRow(response, List.of("X3taFC1HtE5", "jmIPBj66vD6", "84.86"));
+    validateRow(response, List.of("X3taFC1HtE5", "ImspTQPwCqd", "65.98"));
+    validateRow(response, List.of("X3taFC1HtE5", "lc3eMKXaEfw", "65.21"));
+    validateRow(response, List.of("X3taFC1HtE5", "qhqAxPSTUXp", "67.68"));
+    validateRow(response, List.of("X3taFC1HtE5", "PMa2VCrupOd", "59.23"));
+    validateRow(response, List.of("vhzPbO1eEyr", "at6UHUQatSo", "7.07"));
+    validateRow(response, List.of("vhzPbO1eEyr", "bL4ooGhyHRQ", "2.39"));
+    validateRow(response, List.of("vhzPbO1eEyr", "TEQlaapDQoK", "5.06"));
+    validateRow(response, List.of("vhzPbO1eEyr", "O6uvpzGd5pu", "5.52"));
+    validateRow(response, List.of("vhzPbO1eEyr", "kJq2mPyFEHo", "6.08"));
+    validateRow(response, List.of("vhzPbO1eEyr", "jUb8gELQApl", "3.52"));
+    validateRow(response, List.of("vhzPbO1eEyr", "eIQbndfxQMb", "8.18"));
+    validateRow(response, List.of("vhzPbO1eEyr", "Vth0fbpFcsO", "9.91"));
+    validateRow(response, List.of("vhzPbO1eEyr", "fdc6uOvgoji", "2.72"));
     validateRow(response, List.of("vhzPbO1eEyr", "jmIPBj66vD6", "12.9"));
-    validateRow(response, List.of("vhzPbO1eEyr", "ImspTQPwCqd", "6.3"));
-    validateRow(response, List.of("vhzPbO1eEyr", "lc3eMKXaEfw", "5.8"));
-    validateRow(response, List.of("vhzPbO1eEyr", "qhqAxPSTUXp", "8.2"));
-    validateRow(response, List.of("vhzPbO1eEyr", "PMa2VCrupOd", "7.2"));
-    validateRow(response, List.of("joIQbN4L1Ok", "at6UHUQatSo", "17.0"));
-    validateRow(response, List.of("joIQbN4L1Ok", "bL4ooGhyHRQ", "15.4"));
-    validateRow(response, List.of("joIQbN4L1Ok", "TEQlaapDQoK", "20.7"));
-    validateRow(response, List.of("joIQbN4L1Ok", "O6uvpzGd5pu", "19.6"));
-    validateRow(response, List.of("joIQbN4L1Ok", "kJq2mPyFEHo", "22.0"));
-    validateRow(response, List.of("joIQbN4L1Ok", "jUb8gELQApl", "17.0"));
-    validateRow(response, List.of("joIQbN4L1Ok", "eIQbndfxQMb", "20.3"));
-    validateRow(response, List.of("joIQbN4L1Ok", "Vth0fbpFcsO", "21.0"));
-    validateRow(response, List.of("joIQbN4L1Ok", "fdc6uOvgoji", "12.0"));
+    validateRow(response, List.of("vhzPbO1eEyr", "ImspTQPwCqd", "6.35"));
+    validateRow(response, List.of("vhzPbO1eEyr", "lc3eMKXaEfw", "5.84"));
+    validateRow(response, List.of("vhzPbO1eEyr", "qhqAxPSTUXp", "8.23"));
+    validateRow(response, List.of("vhzPbO1eEyr", "PMa2VCrupOd", "7.19"));
+    validateRow(response, List.of("joIQbN4L1Ok", "at6UHUQatSo", "16.97"));
+    validateRow(response, List.of("joIQbN4L1Ok", "bL4ooGhyHRQ", "15.42"));
+    validateRow(response, List.of("joIQbN4L1Ok", "TEQlaapDQoK", "20.68"));
+    validateRow(response, List.of("joIQbN4L1Ok", "O6uvpzGd5pu", "19.58"));
+    validateRow(response, List.of("joIQbN4L1Ok", "kJq2mPyFEHo", "22.01"));
+    validateRow(response, List.of("joIQbN4L1Ok", "jUb8gELQApl", "16.99"));
+    validateRow(response, List.of("joIQbN4L1Ok", "eIQbndfxQMb", "20.34"));
+    validateRow(response, List.of("joIQbN4L1Ok", "Vth0fbpFcsO", "21.04"));
+    validateRow(response, List.of("joIQbN4L1Ok", "fdc6uOvgoji", "12.02"));
     validateRow(response, List.of("joIQbN4L1Ok", "jmIPBj66vD6", "31.6"));
-    validateRow(response, List.of("joIQbN4L1Ok", "ImspTQPwCqd", "19.0"));
+    validateRow(response, List.of("joIQbN4L1Ok", "ImspTQPwCqd", "19.05"));
     validateRow(response, List.of("joIQbN4L1Ok", "lc3eMKXaEfw", "23.9"));
-    validateRow(response, List.of("joIQbN4L1Ok", "qhqAxPSTUXp", "29.0"));
-    validateRow(response, List.of("joIQbN4L1Ok", "PMa2VCrupOd", "21.5"));
-    validateRow(response, List.of("aGByu8NFs9m", "at6UHUQatSo", "76.0"));
-    validateRow(response, List.of("aGByu8NFs9m", "bL4ooGhyHRQ", "82.2"));
-    validateRow(response, List.of("aGByu8NFs9m", "TEQlaapDQoK", "74.3"));
-    validateRow(response, List.of("aGByu8NFs9m", "O6uvpzGd5pu", "74.9"));
-    validateRow(response, List.of("aGByu8NFs9m", "kJq2mPyFEHo", "71.9"));
-    validateRow(response, List.of("aGByu8NFs9m", "jUb8gELQApl", "79.5"));
-    validateRow(response, List.of("aGByu8NFs9m", "eIQbndfxQMb", "71.5"));
-    validateRow(response, List.of("aGByu8NFs9m", "Vth0fbpFcsO", "69.0"));
-    validateRow(response, List.of("aGByu8NFs9m", "fdc6uOvgoji", "85.3"));
-    validateRow(response, List.of("aGByu8NFs9m", "jmIPBj66vD6", "55.5"));
+    validateRow(response, List.of("joIQbN4L1Ok", "qhqAxPSTUXp", "28.99"));
+    validateRow(response, List.of("joIQbN4L1Ok", "PMa2VCrupOd", "21.52"));
+    validateRow(response, List.of("aGByu8NFs9m", "at6UHUQatSo", "75.96"));
+    validateRow(response, List.of("aGByu8NFs9m", "bL4ooGhyHRQ", "82.19"));
+    validateRow(response, List.of("aGByu8NFs9m", "TEQlaapDQoK", "74.26"));
+    validateRow(response, List.of("aGByu8NFs9m", "O6uvpzGd5pu", "74.91"));
+    validateRow(response, List.of("aGByu8NFs9m", "kJq2mPyFEHo", "71.91"));
+    validateRow(response, List.of("aGByu8NFs9m", "jUb8gELQApl", "79.49"));
+    validateRow(response, List.of("aGByu8NFs9m", "eIQbndfxQMb", "71.47"));
+    validateRow(response, List.of("aGByu8NFs9m", "Vth0fbpFcsO", "69.05"));
+    validateRow(response, List.of("aGByu8NFs9m", "fdc6uOvgoji", "85.27"));
+    validateRow(response, List.of("aGByu8NFs9m", "jmIPBj66vD6", "55.49"));
     validateRow(response, List.of("aGByu8NFs9m", "ImspTQPwCqd", "74.6"));
-    validateRow(response, List.of("aGByu8NFs9m", "lc3eMKXaEfw", "70.3"));
-    validateRow(response, List.of("aGByu8NFs9m", "qhqAxPSTUXp", "62.8"));
-    validateRow(response, List.of("aGByu8NFs9m", "PMa2VCrupOd", "71.3"));
+    validateRow(response, List.of("aGByu8NFs9m", "lc3eMKXaEfw", "70.27"));
+    validateRow(response, List.of("aGByu8NFs9m", "qhqAxPSTUXp", "62.78"));
+    validateRow(response, List.of("aGByu8NFs9m", "PMa2VCrupOd", "71.29"));
   }
 
   @Test
@@ -425,14 +425,14 @@ public class AnalyticsQueryDv10AutoTest extends AnalyticsApiTest {
     validateHeader(response, 1, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("202201", "5.0"));
-    validateRow(response, List.of("202202", "6.0"));
+    validateRow(response, List.of("202201", "4.97"));
+    validateRow(response, List.of("202202", "6.03"));
     validateRow(response, List.of("202203", "6.5"));
-    validateRow(response, List.of("202204", "5.3"));
-    validateRow(response, List.of("202205", "5.9"));
-    validateRow(response, List.of("202206", "9.5"));
-    validateRow(response, List.of("202207", "5.4"));
-    validateRow(response, List.of("202208", "6.8"));
+    validateRow(response, List.of("202204", "5.25"));
+    validateRow(response, List.of("202205", "5.89"));
+    validateRow(response, List.of("202206", "9.52"));
+    validateRow(response, List.of("202207", "5.42"));
+    validateRow(response, List.of("202208", "6.76"));
     validateRow(response, List.of("202209", "6.2"));
   }
 
