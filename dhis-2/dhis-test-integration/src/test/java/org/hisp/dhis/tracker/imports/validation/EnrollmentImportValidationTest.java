@@ -255,9 +255,8 @@ class EnrollmentImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldNotImportEnrollmentWhenTeIsMissingTe() {
+  void shouldNotImportEnrollmentWhenTeIsMissing() {
     Enrollment enrollment = new Enrollment();
-
     enrollment.setEnrollment("MNWZ6hnuhSw");
     enrollment.setProgram(MetadataIdentifier.ofUid("E8o1E9tAppy"));
     enrollment.setOrgUnit(MetadataIdentifier.ofUid("QfUVllTs6cS"));

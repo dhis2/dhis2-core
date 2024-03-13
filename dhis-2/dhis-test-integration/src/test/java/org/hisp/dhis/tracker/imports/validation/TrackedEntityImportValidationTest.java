@@ -38,18 +38,12 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
@@ -243,34 +237,6 @@ class TrackedEntityImportValidationTest extends TrackerTest {
         trackerImportService.importTracker(params, deleteTrackerObjects);
     assertNoErrors(importReportDelete);
     assertEquals(1, importReportDelete.getStats().getDeleted());
-  }
-
-  @Test
-  void shouldNotImportTeWhenEnrollmentIsMissingTe() {
-
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setTrackedEntity("Kj6vYde4LHh");
-    trackedEntity.setTrackedEntityType(MetadataIdentifier.ofUid("bPJ0FMtcnEh"));
-    trackedEntity.setOrgUnit(MetadataIdentifier.ofUid("QfUVllTs6cS"));
-
-    Enrollment enrollment = new Enrollment();
-    enrollment.setEnrollment("MNWZ6hnuhSQ");
-    enrollment.setProgram(MetadataIdentifier.ofUid("E8o1E9tAppy"));
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid("QfUVllTs6cS"));
-    enrollment.setEnrolledAt(Instant.now().minus(1, ChronoUnit.DAYS));
-    enrollment.setOccurredAt(Instant.now().minus(1, ChronoUnit.DAYS));
-
-    trackedEntity.setEnrollments(List.of(enrollment));
-
-    TrackerObjects trackerObjects =
-        TrackerObjects.builder()
-            .trackedEntities(List.of(trackedEntity))
-            .enrollments(List.of(enrollment))
-            .build();
-    ImportReport importReport =
-        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
-
-    assertHasOnlyErrors(importReport.getValidationReport(), ValidationCode.E1122);
   }
 
   protected void importEnrollments() throws IOException {
