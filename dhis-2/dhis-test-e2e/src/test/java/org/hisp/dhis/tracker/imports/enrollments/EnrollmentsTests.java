@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -71,7 +72,7 @@ public class EnrollmentsTests extends TrackerApiTest {
   private String multipleEnrollmentsProgramStage;
 
   @BeforeAll
-  public void beforeAll() {
+  void beforeAll() {
     multipleEnrollmentsProgram =
         programActions
             .createTrackerProgram(Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS)
@@ -94,7 +95,7 @@ public class EnrollmentsTests extends TrackerApiTest {
   }
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     loginActions.loginAsAdmin();
   }
 
@@ -104,7 +105,7 @@ public class EnrollmentsTests extends TrackerApiTest {
         "src/test/resources/tracker/importer/teis/teiWithEnrollments.json",
         "src/test/resources/tracker/importer/teis/teiAndEnrollment.json"
       })
-  public void shouldImportTeisWithEnrollments(String file) {
+  void shouldImportTeisWithEnrollments(String file) {
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(new File(file));
 
     response
@@ -128,9 +129,36 @@ public class EnrollmentsTests extends TrackerApiTest {
         .body("trackedEntity", equalTo(teiId));
   }
 
+  @Test
+  void shouldNotImportEnrollmentsWithoutTe() {
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            JsonParser.parseString(
+                    """
+              {
+                "enrollments": [
+                  {
+                    "enrollment": "JjZ2Nwds92E",
+                    "trackedEntityType": "Q9GufDoplCL",
+                    "program": "f1AyMswryyQ",
+                    "orgUnit": "g8upMTyEZGZ",
+                    "enrolledAt": "2018-11-01T00:00:00.000",
+                    "occurredAt": "2018-10-01T00:00:00.000"
+                  }
+                ]
+              }
+""")
+                .getAsJsonObject());
+
+    response
+        .validateErrorReport()
+        .body("errorCode", hasSize(1))
+        .body("errorCode", hasItems("E1122"));
+  }
+
   @ParameterizedTest
   @ValueSource(strings = {"true", "false "})
-  public void shouldAllowFutureEnrollments(String shouldAddFutureDays) throws Exception {
+  void shouldAllowFutureEnrollments(String shouldAddFutureDays) throws Exception {
     // arrange
     JsonObject object =
         programActions
@@ -175,7 +203,7 @@ public class EnrollmentsTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldAddNote() {
+  void shouldAddNote() {
     String enrollmentId =
         trackerImportExportActions
             .postAndGetJobReport(
@@ -214,7 +242,7 @@ public class EnrollmentsTests extends TrackerApiTest {
 
   @ValueSource(strings = {"true", "false"})
   @ParameterizedTest
-  public void shouldOnlyEnrollOnce(String shouldEnrollOnce) throws Exception {
+  void shouldOnlyEnrollOnce(String shouldEnrollOnce) throws Exception {
     // arrange
     String program =
         programActions
@@ -260,7 +288,7 @@ public class EnrollmentsTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldImportEnrollmentToExistingTei() throws Exception {
+  void shouldImportEnrollmentToExistingTei() throws Exception {
     String teiId = importTei();
 
     JsonObject enrollmentPayload =
@@ -289,7 +317,7 @@ public class EnrollmentsTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnErrorWhenUpdatingSoftDeletedEnrollment() throws Exception {
+  void shouldReturnErrorWhenUpdatingSoftDeletedEnrollment() throws Exception {
     String teiId = importTei();
     JsonObject enrollments =
         new EnrollmentDataBuilder()
