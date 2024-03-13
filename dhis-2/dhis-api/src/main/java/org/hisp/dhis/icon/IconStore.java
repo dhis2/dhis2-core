@@ -70,6 +70,12 @@ public interface IconStore {
    */
   List<Icon> getIcons(IconQueryParams params);
 
+  /**
+   * Check if the store contains entries for all provided keys
+   *
+   * @param keys a set of keys
+   * @return true, if all exist
+   */
   boolean containsKeys(Set<String> keys);
 
   /**

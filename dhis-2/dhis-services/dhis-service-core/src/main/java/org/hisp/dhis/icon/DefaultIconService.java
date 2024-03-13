@@ -41,7 +41,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -75,7 +74,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void createDefaultIcon(DefaultIcon icon) throws ConflictException {
+  public void createDefaultIcon(DefaultIcon icon) {
     if (iconStore.containsKeys(getKeysForVariants(icon))) return;
 
     for (Icon i : createIconWithVariants(icon)) {
@@ -91,7 +90,7 @@ public class DefaultIconService implements IconService {
 
           addIconInternal(i);
         } catch (Exception ex) {
-          throw new ConflictException(ex.getMessage());
+          throw new RuntimeException(ex);
         }
       }
     }

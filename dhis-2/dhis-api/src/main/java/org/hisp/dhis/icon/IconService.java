@@ -31,7 +31,6 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -44,7 +43,7 @@ public interface IconService {
    *
    * @param icon to create if not exist
    */
-  void createDefaultIcon(DefaultIcon icon) throws ConflictException;
+  void createDefaultIcon(DefaultIcon icon);
 
   /**
    * Get the count of Icons based on filters provided in {@link IconQueryParams}
