@@ -58,7 +58,7 @@ public class IconMapper {
     }
 
     Icon icon = new Icon();
-    icon.setKey(customIconRequest.getKey());
+    icon.setKey(customIconRequest.getKey().trim());
     icon.setDescription(customIconRequest.getDescription());
     icon.setKeywords(customIconRequest.getKeywords());
     icon.setFileResource(fileResource.get());
