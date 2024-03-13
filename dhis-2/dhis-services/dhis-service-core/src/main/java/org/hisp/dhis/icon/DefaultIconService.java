@@ -163,7 +163,7 @@ public class DefaultIconService implements IconService {
 
   @Override
   @Transactional
-  public void updateIcon(Icon icon) throws BadRequestException, SQLException {
+  public void updateIcon(@Nonnull Icon icon) throws BadRequestException, SQLException {
     if (!icon.isCustom()) {
       throw new BadRequestException("Not allowed to update default icon");
     }
