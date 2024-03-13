@@ -36,6 +36,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.util.MimeType;
 
 /**
@@ -80,18 +81,42 @@ public interface JobCreationHelper {
       throws ConflictException {
     try {
       byte[] data = IOUtils.toByteArray(content);
-      FileResource fr =
-          new FileResource(
-              "job_input_data_for_" + uid,
-              contentType.toString(),
-              data.length,
-              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
-              FileResourceDomain.JOB_DATA);
-      fr.setUid(uid);
-      fr.setAssigned(true);
+      FileResource fr = getFileResource(uid, contentType, data, FileResourceDomain.JOB_DATA);
       fileResourceService.syncSaveFileResource(fr, data);
     } catch (IOException ex) {
       throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
     }
+  }
+
+  @SuppressWarnings("java:S4790")
+  default void saveIconJobData(
+      String uid,
+      MimeType contentType,
+      InputStream content,
+      FileResourceService fileResourceService)
+      throws ConflictException {
+    try {
+      byte[] data = IOUtils.toByteArray(content);
+      FileResource fr = getFileResource(uid, contentType, data, FileResourceDomain.CUSTOM_ICON);
+      fileResourceService.syncSaveFileResource(fr, data);
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
+    }
+  }
+
+  @NotNull
+  private FileResource getFileResource(
+      String uid, MimeType contentType, byte[] data, FileResourceDomain fileResourceDomain)
+      throws IOException {
+    FileResource fr =
+        new FileResource(
+            "job_input_data_for_" + uid,
+            contentType.toString(),
+            data.length,
+            ByteSource.wrap(data).hash(Hashing.md5()).toString(),
+            fileResourceDomain);
+    fr.setUid(uid);
+    fr.setAssigned(true);
+    return fr;
   }
 }

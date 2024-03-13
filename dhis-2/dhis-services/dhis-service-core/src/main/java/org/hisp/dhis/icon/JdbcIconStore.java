@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -152,6 +153,15 @@ public class JdbcIconStore implements IconStore {
     params.addValue("key", icon.getKey());
 
     namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<String> getIconKeys() {
+    String sql = """
+     select iconkey from icon c
+                      """;
+
+    return namedParameterJdbcTemplate.queryForList(sql, new HashMap<>(), String.class);
   }
 
   @Override

@@ -69,6 +69,8 @@ public interface IconStore {
    */
   List<Icon> getIcons(IconQueryParams params);
 
+  List<String> getIconKeys();
+
   /**
    * Returns an icon that contains a given key
    *

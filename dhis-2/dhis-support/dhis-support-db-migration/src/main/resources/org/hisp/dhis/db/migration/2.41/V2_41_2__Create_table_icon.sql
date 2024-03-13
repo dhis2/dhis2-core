@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS icon
 (
     iconkey             varchar(100)   NOT NULL,
-    fileresourceid      bigint         NULL,
+    fileresourceid      bigint         NOT NULL,
     description         text           NULL,
     keywords            jsonb          NULL,
     created             TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,

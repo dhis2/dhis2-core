@@ -30,7 +30,10 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -38,15 +41,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.scheduling.JobCreationHelper;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,16 +77,50 @@ public class DefaultIconService implements IconService {
 
   private final UserService userService;
 
+  private final JobCreationHelper jobCreationHelper;
+
   @Override
   @Transactional
   public void createDefaultIcons() {
-    // build a set of all default icon variant combination that we want to have exiting
-    // build a diff with DB state => missing icons (select iconkey from icon where iconkey not in
-    // (%placeholder);)
-    // diff == nothing? => return;
-    // loop missing icons for insert =>
-    // 1. create FileResource for InputStream (use syncSaveFileResource) see JobCreationHelper
-    // 2. call addIconInternal
+    List<String> keysNotInDatabase =
+        CollectionUtils.difference(getKeysWithVariants(), iconStore.getIconKeys());
+
+    if (keysNotInDatabase.isEmpty()) return;
+
+    List<Icon> icons =
+        Arrays.stream(DefaultIcon.values())
+            .map(this::createIconWithVariants)
+            .flatMap(Collection::stream)
+            .filter(i -> keysNotInDatabase.contains(i.getKey()))
+            .toList();
+
+    icons.forEach(
+        i -> {
+          try {
+
+            String fileResourceId = CodeGenerator.generateUid();
+
+            Resource resource = getDefaultIconResource(i.getKey());
+
+            jobCreationHelper.saveIconJobData(
+                fileResourceId,
+                MediaType.IMAGE_PNG,
+                resource.getInputStream(),
+                fileResourceService);
+
+            FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+
+            i.setFileResource(fileResource);
+
+            addIconInternal(i);
+          } catch (NotFoundException
+              | ConflictException
+              | IOException
+              | SQLException
+              | BadRequestException e) {
+            e.printStackTrace();
+          }
+        });
   }
 
   @Override
@@ -243,5 +285,34 @@ public class DefaultIconService implements IconService {
   private Icon validateIconExists(String key) throws NotFoundException, BadRequestException {
     validateIconKeyNotNullOrEmpty(key);
     return getIcon(key);
+  }
+
+  private List<Icon> createIconWithVariants(DefaultIcon defaultIcon) {
+
+    return DefaultIcon.VARIANTS.stream()
+        .map(
+            variant ->
+                new Icon(
+                    String.format("%s_%s", defaultIcon.getKey(), variant),
+                    defaultIcon.getDescription(),
+                    defaultIcon.getKeywords(),
+                    false,
+                    null))
+        .toList();
+  }
+
+  private List<String> getKeysWithVariants() {
+
+    return Arrays.stream(DefaultIcon.values())
+        .map(i -> getVariants(i.getKey()))
+        .flatMap(Collection::stream)
+        .toList();
+  }
+
+  private List<String> getVariants(String key) {
+
+    return DefaultIcon.VARIANTS.stream()
+        .map(variant -> String.format("%s_%s", key, variant))
+        .toList();
   }
 }
