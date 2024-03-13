@@ -39,6 +39,8 @@ import org.springframework.core.io.Resource;
  */
 public interface IconService {
 
+  void createDefaultIcons();
+
   /**
    * Get the count of Icons based on filters provided in {@link IconQueryParams}
    *

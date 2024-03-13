@@ -70,6 +70,18 @@ public class DefaultIconService implements IconService {
   private final UserService userService;
 
   @Override
+  @Transactional
+  public void createDefaultIcons() {
+    // build a set of all default icon variant combination that we want to have exiting
+    // build a diff with DB state => missing icons (select iconkey from icon where iconkey not in
+    // (%placeholder);)
+    // diff == nothing? => return;
+    // loop missing icons for insert =>
+    // 1. create FileResource for InputStream (use syncSaveFileResource) see JobCreationHelper
+    // 2. call addIconInternal
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public List<Icon> getIcons(IconQueryParams params) {
     return iconStore.getIcons(params);
@@ -117,6 +129,11 @@ public class DefaultIconService implements IconService {
       throw new BadRequestException("Not allowed to create default icon");
     }
 
+    addIconInternal(icon);
+  }
+
+  private void addIconInternal(@Nonnull Icon icon)
+      throws BadRequestException, NotFoundException, SQLException {
     validateIconDoesNotExists(icon);
     validateIconKey(icon.getKey());
 
