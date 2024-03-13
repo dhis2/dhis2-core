@@ -42,7 +42,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /** Groups e2e tests for "/analytics" aggregate endpoint. */
@@ -477,7 +476,6 @@ public class AnalyticsQueryDv4AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  @Disabled("for next investigation, local env not the same like dev one")
   public void queryAncByAreaLast12Months() throws JSONException {
     // Given
     QueryParamsBuilder params =
