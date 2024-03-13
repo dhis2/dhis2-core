@@ -27,17 +27,24 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,6 +58,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Autowired private UserService _userService;
 
   @Autowired private TrackedEntityService entityInstanceService;
+
+  @Autowired private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -86,9 +95,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     entityInstanceB1 = createTrackedEntity(organisationUnitB);
     entityInstanceService.addTrackedEntity(entityInstanceA1);
     entityInstanceService.addTrackedEntity(entityInstanceB1);
+
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programService.addProgram(programA);
+    programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    programService.updateProgram(programA);
     programB = createProgram('B');
     programB.setAccessLevel(AccessLevel.CLOSED);
     programService.addProgram(programB);
@@ -124,7 +136,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void testTransferOwnership() {
+  void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToAnotherOrgUnit() throws ForbiddenException, NotFoundException {
     trackerOwnershipAccessManager.assignOwnership(
         entityInstanceA1, programA, organisationUnitA, false, true);
     assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
@@ -133,6 +145,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         entityInstanceA1, programA, organisationUnitB, false, true);
     assertFalse(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
     assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
+
+    injectSecurityContextUser(userB);
+    TrackedEntityParams params = new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
+    assertEquals(entityInstanceA1, trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), programA.getUid(), params, false));
   }
 
   @Test
@@ -167,6 +183,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertTrue(
         trackerOwnershipAccessManager.hasAccess(
             userB, entityInstanceB1.getUid(), entityInstanceB1.getOrganisationUnit(), programB));
+
   }
 
   @Test

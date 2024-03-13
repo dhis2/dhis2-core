@@ -43,7 +43,9 @@ import org.junit.jupiter.api.Test;
  */
 class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
 
-  private String ouId;
+  private String orgUnitA;
+
+  private String orgUnitB;
 
   private String teiId;
 
@@ -51,7 +53,13 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
 
   @BeforeEach
   void setUp() {
-    ouId =
+    orgUnitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    orgUnitB =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -63,7 +71,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
             HttpStatus.OK,
             POST(
                 "/trackedEntityInstances",
-                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}"));
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + orgUnitA + "'}"));
     pId =
         assertStatus(
             HttpStatus.CREATED,
@@ -83,12 +91,12 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}",
                 teiId,
                 pId,
-                ouId)
+                orgUnitA)
             .content(HttpStatus.OK));
   }
 
   @Test
-  void shouldUpdateTrackerProgramOwner() {
+  void shouldUpdateTrackerProgramOwnerAndBeAccessibleFromTransferredOrgUnit() {
     assertWebMessage(
         "OK",
         200,
@@ -98,7 +106,15 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
                 "/tracker/ownership/transfer?trackedEntity={tei}&program={prog}&ou={ou}",
                 teiId,
                 pId,
-                ouId)
+                orgUnitB)
+            .content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Ownership transferred",
+        GET("/tracker/trackedEntities/{te}?enrollments&program={prog}", teiId, pId)
             .content(HttpStatus.OK));
   }
 
@@ -113,7 +129,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
                 teiId,
                 teiId,
                 pId,
-                ouId)
+                orgUnitA)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -122,7 +138,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
   void shouldFailToUpdateWhenNoTrackedEntityOrTrackedEntityInstanceParametersArePresent() {
     assertEquals(
         "Required request parameter 'trackedEntity' is not present",
-        PUT("/tracker/ownership/transfer?program={prog}&ou={ou}", pId, ouId)
+        PUT("/tracker/ownership/transfer?program={prog}&ou={ou}", pId, orgUnitA)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
