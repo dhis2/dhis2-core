@@ -207,7 +207,7 @@ public class IconController {
   public WebMessage deleteIcon(@PathVariable String key)
       throws NotFoundException, BadRequestException {
 
-    iconService.deleteIcon(key.trim());
+    iconService.deleteIcon(key);
 
     return WebMessageUtils.ok(String.format("Icon with key %s deleted", key));
   }
