@@ -193,9 +193,9 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertHasMember(iconResponse, "pager");
 
     assertEquals(2, pager.getPage());
-    assertEquals(900, pager.getTotal());
+    assertEquals(3, pager.getTotal());
     assertEquals(2, pager.getPageSize());
-    assertEquals(450, pager.getPageCount());
+    assertEquals(2, pager.getPageCount());
 
     assertEquals(
         2,
@@ -221,7 +221,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
 
     assertHasMember(iconResponse, "pager");
     assertEquals(
-        50,
+        3,
         icons.size(),
         () -> String.format("mismatch in number of expected Icon(s), fetched %s", icons));
   }

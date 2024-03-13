@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.hash.HashCode;
@@ -93,12 +92,6 @@ class IconTest extends TrackerTest {
   @Test
   void shouldGetIconByKey() throws NotFoundException {
     assertIcon(iconService.getIcon(Key));
-  }
-
-  @Test
-  void shouldGetIconDataWhenKeyBelongsToIcon() throws NotFoundException {
-
-    assertNotNull(iconService.getDefaultIconResource(Key));
   }
 
   @Test
@@ -215,15 +208,6 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenGettingIconDataOfNonDefaultIcon() {
-    Exception exception =
-        assertThrows(
-            NotFoundException.class, () -> iconService.getDefaultIconResource("madeUpIconKey"));
-
-    assertEquals("No Icon found with key madeUpIconKey.", exception.getMessage());
-  }
-
-  @Test
   void shouldFailWhenSavingIconWithExistingKey() {
 
     FileResource fileResource = createAndPersistFileResource('A');
@@ -241,11 +225,9 @@ class IconTest extends TrackerTest {
     String nonExistingKey = "non-existent-Key";
 
     Exception exception =
-        assertThrows(
-            NotFoundException.class, () -> iconService.getDefaultIconResource(nonExistingKey));
+        assertThrows(NotFoundException.class, () -> iconService.getIcon(nonExistingKey));
 
-    assertEquals(
-        String.format("No Icon found with key %s.", nonExistingKey), exception.getMessage());
+    assertEquals(String.format("Icon not found: %s", nonExistingKey), exception.getMessage());
   }
 
   private FileResource createAndPersistFileResource(char uniqueChar) {

@@ -91,7 +91,7 @@ public class HousekeepingJob implements Job {
         "%d jobs were rescheduled"::formatted,
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
 
-    progress.startingStage("Insert default icons");
+    progress.startingStage("Insert default icons", SKIP_STAGE);
     progress.runStage(iconService::createDefaultIcons);
 
     progress.completedProcess(null);

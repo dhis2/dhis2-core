@@ -32,13 +32,13 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.springframework.core.io.Resource;
 
 /**
  * @author Kristian Wærstad
  */
 public interface IconService {
 
+  /** To create list of default icons which are not persisted in database. */
   void createDefaultIcons();
 
   /**
@@ -65,15 +65,6 @@ public interface IconService {
    * @throws NotFoundException if no custom icon exists with the provided key
    */
   Icon getIcon(String key) throws NotFoundException;
-
-  /**
-   * Gets the icon with the correct key if one exists
-   *
-   * @param key key of the icon
-   * @return the icon resource
-   * @throws NotFoundException if no default icon exists with the provided key
-   */
-  Resource getDefaultIconResource(String key) throws NotFoundException;
 
   /**
    * Checks whether an icon with a given key exists, either default or custom

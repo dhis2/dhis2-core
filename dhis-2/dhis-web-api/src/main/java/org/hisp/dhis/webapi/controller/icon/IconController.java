@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -53,7 +52,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconQueryParams;
 import org.hisp.dhis.icon.IconService;
@@ -66,7 +64,6 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
-import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -125,12 +122,7 @@ public class IconController {
 
     List<Icon> icons = iconService.getIcons(iconQueryParams);
 
-    icons.forEach(
-        i ->
-            i.setHref(
-                i.isCustom()
-                    ? getCustomIconReference(i.getKey())
-                    : getDefaultIconReference(i.getKey())));
+    icons.forEach(i -> i.setHref(getCustomIconReference(i.getKey())));
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(icons.stream().toList(), iconRequestParams.getFields());
@@ -142,14 +134,10 @@ public class IconController {
 
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
-      throws NotFoundException, WebMessageException, IOException {
+      throws NotFoundException, WebMessageException {
     Icon icon = iconService.getIcon(key);
 
-    if (!icon.isCustom()) {
-      downloadDefaultIcon(icon.getKey(), response);
-    } else {
-      downloadCustomIcon(icon.getFileResource(), response);
-    }
+    downloadIconFile(icon, response);
   }
 
   @GetMapping(value = "/{key}")
@@ -160,10 +148,7 @@ public class IconController {
       throw new NotFoundException(String.format("Icon with key %s not found", key));
     }
 
-    icon.setHref(
-        Boolean.TRUE.equals(icon.isCustom())
-            ? getCustomIconReference(key)
-            : getDefaultIconReference(key));
+    icon.setHref(getCustomIconReference(icon.getKey()));
 
     return new ResponseEntity<>(icon, HttpStatus.OK);
   }
@@ -227,25 +212,20 @@ public class IconController {
     return WebMessageUtils.ok(String.format("Icon with key %s deleted", key));
   }
 
-  private void downloadDefaultIcon(String key, HttpServletResponse response)
-      throws IOException, NotFoundException {
-    Resource icon = iconService.getDefaultIconResource(key);
-
-    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    response.setContentType(MediaType.SVG_UTF_8.toString());
-
-    StreamUtils.copyThenCloseInputStream(icon.getInputStream(), response.getOutputStream());
-  }
-
-  private void downloadCustomIcon(FileResource iconFileResource, HttpServletResponse response)
+  private void downloadIconFile(Icon icon, HttpServletResponse response)
       throws NotFoundException, WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(iconFileResource.getUid());
+
+    FileResource fileResource =
+        fileResourceService.getFileResource(icon.getFileResource().getUid());
 
     if (fileResource == null) {
-      throw new NotFoundException(FileResource.class, iconFileResource.getUid());
+      throw new NotFoundException(FileResource.class, icon.getFileResource().getUid());
     }
 
-    response.setContentType(fileResource.getContentType());
+    response.setContentType(
+        icon.isCustom() ? fileResource.getContentType() : MediaType.SVG_UTF_8.toString());
+
+    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     response.setHeader(
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
@@ -268,11 +248,5 @@ public class IconController {
   private String getCustomIconReference(String key) {
     return String.format(
         "%s%s/%s/icon", contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key);
-  }
-
-  private String getDefaultIconReference(String key) {
-    return String.format(
-        "%s%s/%s/icon.%s",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key, DefaultIcon.SUFFIX);
   }
 }

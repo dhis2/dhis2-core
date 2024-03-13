@@ -83,7 +83,7 @@ public class DefaultIconService implements IconService {
   @Transactional
   public void createDefaultIcons() {
     List<String> keysNotInDatabase =
-        CollectionUtils.difference(getKeysWithVariants(), iconStore.getIconKeys());
+        CollectionUtils.difference(getInMemoryKeysWithVariants(), iconStore.getIconKeys());
 
     if (keysNotInDatabase.isEmpty()) return;
 
@@ -102,11 +102,12 @@ public class DefaultIconService implements IconService {
 
             Resource resource = getDefaultIconResource(i.getKey());
 
-            jobCreationHelper.saveIconJobData(
+            jobCreationHelper.saveJobData(
                 fileResourceId,
                 MediaType.IMAGE_PNG,
                 resource.getInputStream(),
-                fileResourceService);
+                fileResourceService,
+                CUSTOM_ICON);
 
             FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
 
@@ -144,16 +145,6 @@ public class DefaultIconService implements IconService {
     }
 
     return icon;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Resource getDefaultIconResource(String key) throws NotFoundException {
-    if (iconExists(key)) {
-      return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
-    }
-
-    throw new NotFoundException(String.format("No Icon found with key %s.", key));
   }
 
   @Override
@@ -301,7 +292,7 @@ public class DefaultIconService implements IconService {
         .toList();
   }
 
-  private List<String> getKeysWithVariants() {
+  private List<String> getInMemoryKeysWithVariants() {
 
     return Arrays.stream(DefaultIcon.values())
         .map(i -> getVariants(i.getKey()))
@@ -314,5 +305,9 @@ public class DefaultIconService implements IconService {
     return DefaultIcon.VARIANTS.stream()
         .map(variant -> String.format("%s_%s", key, variant))
         .toList();
+  }
+
+  private Resource getDefaultIconResource(String key) {
+    return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
   }
 }

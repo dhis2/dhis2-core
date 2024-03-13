@@ -116,16 +116,16 @@ public class JdbcIconStore implements IconStore {
     String sql =
         """
             INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom)
-            VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),true)
+            VALUES (:key,:description,cast(:keywords as jsonb),:fileresourceid,:createdby,now(),now(),:custom)
             """;
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("key", icon.getKey());
     params.addValue("description", icon.getDescription());
+    params.addValue("custom", icon.isCustom());
     params.addValue(
         "keywords", convertKeywordsSetToJsonString(icon.getKeywords().stream().toList()));
-    params.addValue(
-        "fileresourceid", icon.getFileResource() != null ? icon.getFileResource().getId() : null);
+    params.addValue("fileresourceid", icon.getFileResource().getId());
     params.addValue("createdby", icon.getCreatedBy() != null ? icon.getCreatedBy().getId() : null);
 
     namedParameterJdbcTemplate.update(sql, params);
