@@ -30,25 +30,21 @@ package org.hisp.dhis.icon;
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import com.google.common.base.Strings;
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.scheduling.JobCreationHelper;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -77,51 +73,28 @@ public class DefaultIconService implements IconService {
 
   private final UserService userService;
 
-  private final JobCreationHelper jobCreationHelper;
-
   @Override
   @Transactional
-  public void createDefaultIcons() {
-    List<String> keysNotInDatabase =
-        CollectionUtils.difference(getInMemoryKeysWithVariants(), iconStore.getIconKeys());
+  public void createDefaultIcon(DefaultIcon icon) throws ConflictException {
+    if (iconStore.containsKeys(getKeysForVariants(icon))) return;
 
-    if (keysNotInDatabase.isEmpty()) return;
+    for (Icon i : createIconWithVariants(icon)) {
+      if (!iconStore.containsKeys(Set.of(i.getKey()))) {
+        String fileResourceId = CodeGenerator.generateUid();
+        Resource resource = getDefaultIconResource(i.getKey());
+        try {
+          FileResource fileResource =
+              fileResourceService.syncSaveFileResource(
+                  fileResourceId, MediaType.IMAGE_PNG, resource.getInputStream(), CUSTOM_ICON);
 
-    List<Icon> icons =
-        Arrays.stream(DefaultIcon.values())
-            .map(this::createIconWithVariants)
-            .flatMap(Collection::stream)
-            .filter(i -> keysNotInDatabase.contains(i.getKey()))
-            .toList();
+          i.setFileResource(fileResource);
 
-    icons.forEach(
-        i -> {
-          try {
-
-            String fileResourceId = CodeGenerator.generateUid();
-
-            Resource resource = getDefaultIconResource(i.getKey());
-
-            jobCreationHelper.saveJobData(
-                fileResourceId,
-                MediaType.IMAGE_PNG,
-                resource.getInputStream(),
-                fileResourceService,
-                CUSTOM_ICON);
-
-            FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
-
-            i.setFileResource(fileResource);
-
-            addIconInternal(i);
-          } catch (NotFoundException
-              | ConflictException
-              | IOException
-              | SQLException
-              | BadRequestException e) {
-            e.printStackTrace();
-          }
-        });
+          addIconInternal(i);
+        } catch (Exception ex) {
+          throw new ConflictException(ex.getMessage());
+        }
+      }
+    }
   }
 
   @Override
@@ -278,33 +251,29 @@ public class DefaultIconService implements IconService {
     return getIcon(key);
   }
 
-  private List<Icon> createIconWithVariants(DefaultIcon defaultIcon) {
+  private List<Icon> createIconWithVariants(DefaultIcon icon) {
 
     return DefaultIcon.VARIANTS.stream()
         .map(
             variant ->
                 new Icon(
-                    String.format("%s_%s", defaultIcon.getKey(), variant),
-                    defaultIcon.getDescription(),
-                    defaultIcon.getKeywords(),
+                    String.format("%s_%s", icon.getKey(), variant),
+                    icon.getDescription(),
+                    icon.getKeywords(),
                     false,
                     null))
         .toList();
   }
 
-  private List<String> getInMemoryKeysWithVariants() {
-
-    return Arrays.stream(DefaultIcon.values())
-        .map(i -> getVariants(i.getKey()))
-        .flatMap(Collection::stream)
-        .toList();
+  private static Set<String> getKeysForVariants(DefaultIcon icon) {
+    return getKeysForVariants(icon.getKey());
   }
 
-  private List<String> getVariants(String key) {
+  private static Set<String> getKeysForVariants(String key) {
 
     return DefaultIcon.VARIANTS.stream()
         .map(variant -> String.format("%s_%s", key, variant))
-        .toList();
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   private Resource getDefaultIconResource(String key) {

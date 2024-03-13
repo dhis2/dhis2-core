@@ -40,6 +40,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.springframework.util.MimeType;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -115,6 +116,10 @@ public interface FileResourceService {
    * @return the UID of the created file resource
    */
   String syncSaveFileResource(FileResource fileResource, byte[] bytes) throws ConflictException;
+
+  FileResource syncSaveFileResource(
+      String uid, MimeType contentType, InputStream content, FileResourceDomain domain)
+      throws ConflictException;
 
   void deleteFileResource(String uid);
 
