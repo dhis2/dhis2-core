@@ -42,5 +42,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ResetPasswordRequest {
   @JsonProperty private String newPassword;
-  @JsonProperty private String resetToken;
+  @JsonProperty private String token;
 }
