@@ -59,7 +59,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private TrackedEntityService entityInstanceService;
 
-  @Autowired private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
+  @Autowired
+  private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -136,7 +137,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToAnotherOrgUnit() throws ForbiddenException, NotFoundException {
+  void shouldHaveAccessToEnrollmentWithUserBWhenTransferredToAnotherOrgUnit()
+      throws ForbiddenException, NotFoundException {
     trackerOwnershipAccessManager.assignOwnership(
         entityInstanceA1, programA, organisationUnitA, false, true);
     assertTrue(trackerOwnershipAccessManager.hasAccess(userA, entityInstanceA1, programA));
@@ -147,8 +149,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertTrue(trackerOwnershipAccessManager.hasAccess(userB, entityInstanceA1, programA));
 
     injectSecurityContextUser(userB);
-    TrackedEntityParams params = new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
-    assertEquals(entityInstanceA1, trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), programA.getUid(), params, false));
+    TrackedEntityParams params =
+        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
+    assertEquals(
+        entityInstanceA1,
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), programA.getUid(), params, false));
   }
 
   @Test
@@ -183,7 +189,6 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertTrue(
         trackerOwnershipAccessManager.hasAccess(
             userB, entityInstanceB1.getUid(), entityInstanceB1.getOrganisationUnit(), programB));
-
   }
 
   @Test

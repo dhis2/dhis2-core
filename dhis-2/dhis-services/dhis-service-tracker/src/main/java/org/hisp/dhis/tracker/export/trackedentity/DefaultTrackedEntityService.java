@@ -278,8 +278,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @Nonnull TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
       throws ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    //TODO This should not be done if the request contains a program, if not, transferred TE will never be seen by the owner, only the registering org unit will see it
-/*    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+    // TODO This should not be done if the request contains a program, if not, transferred TE will
+    // never be seen by the owner, only the registering org unit will see it
+    /*    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
 
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());

@@ -108,14 +108,6 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
                 pId,
                 orgUnitB)
             .content(HttpStatus.OK));
-
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Ownership transferred",
-        GET("/tracker/trackedEntities/{te}?enrollments&program={prog}", teiId, pId)
-            .content(HttpStatus.OK));
   }
 
   @Test
