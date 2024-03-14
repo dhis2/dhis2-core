@@ -102,16 +102,13 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     TestUtils.executeStartupRoutines(webApplicationContext);
 
-      try
-      {
-          integrationTestBefore();
-      }
-      catch ( Exception e )
-      {
-          throw new RuntimeException( e );
-      }
+    try {
+      integrationTestBefore();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
-      dbmsManager.flushSession();
+    dbmsManager.flushSession();
     dbmsManager.clearSession();
 
     beforeEach();
@@ -151,7 +148,6 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     return user;
   }
-
 
   protected User createAndPersistDataEntryRole() {
     UserRole role =
