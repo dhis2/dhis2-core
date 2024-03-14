@@ -31,9 +31,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
@@ -76,7 +78,6 @@ class IconTest extends TrackerTest {
 
   @Override
   protected void initTest() throws IOException {
-
     userService = _userService;
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     currentUser = userService.getUserByUsername(currentUsername);
@@ -130,7 +131,6 @@ class IconTest extends TrackerTest {
 
   @Test
   void shouldFailWhenUpdatingDefaultIcon() {
-
     Icon defaultIcon = new Icon("iconKey2", "description", null, false, null);
 
     Exception exception =
@@ -142,7 +142,6 @@ class IconTest extends TrackerTest {
   @Test
   void shouldUpdateLastUpdatedWhenIconIsUpdated()
       throws BadRequestException, NotFoundException, SQLException {
-
     Icon iconUpdated = icon;
     iconUpdated.setDescription("description updated");
 
@@ -199,7 +198,6 @@ class IconTest extends TrackerTest {
 
   @Test
   void shouldFailWhenIconKeyDoesNotExist() {
-
     String nonExistingKey = "non-existent-Key";
     Exception exception =
         assertThrows(NotFoundException.class, () -> iconService.getIcon(nonExistingKey));
@@ -209,7 +207,6 @@ class IconTest extends TrackerTest {
 
   @Test
   void shouldFailWhenSavingIconWithExistingKey() {
-
     FileResource fileResource = createAndPersistFileResource('A');
     Exception exception =
         assertThrows(
@@ -221,13 +218,27 @@ class IconTest extends TrackerTest {
 
   @Test
   void shouldFailWhenFetchingIconDataWithNonExistentKey() {
-
     String nonExistingKey = "non-existent-Key";
 
     Exception exception =
         assertThrows(NotFoundException.class, () -> iconService.getIcon(nonExistingKey));
 
     assertEquals(String.format("Icon not found: %s", nonExistingKey), exception.getMessage());
+  }
+
+  @Test
+  void shouldCreateIconInDatabase() {
+    iconService.createDefaultIcon(DefaultIcon.DOCTOR);
+
+    IconQueryParams iconQueryParams = new IconQueryParams();
+    iconQueryParams.setSearch("doctor");
+    List<Icon> icons = iconService.getIcons(iconQueryParams);
+
+    assertNotEmpty(icons);
+    List<String> keys = icons.stream().map(Icon::getKey).toList();
+    assertTrue(keys.contains("doctor_outline"), "list should contain doctor_outline");
+    assertTrue(keys.contains("doctor_negative"), "list should contain doctor_negative");
+    assertTrue(keys.contains("doctor_positive"), "list should contain doctor_positive");
   }
 
   private FileResource createAndPersistFileResource(char uniqueChar) {

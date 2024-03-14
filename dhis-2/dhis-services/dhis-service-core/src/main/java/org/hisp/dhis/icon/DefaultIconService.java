@@ -181,7 +181,6 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public void deleteIcon(String key) throws BadRequestException, NotFoundException {
-
     Icon icon = validateIconExists(key);
 
     if (!icon.isCustom()) {
@@ -251,7 +250,6 @@ public class DefaultIconService implements IconService {
   }
 
   private List<Icon> createIconWithVariants(DefaultIcon icon) {
-
     return DefaultIcon.VARIANTS.stream()
         .map(
             variant ->
@@ -269,7 +267,6 @@ public class DefaultIconService implements IconService {
   }
 
   private static Set<String> getKeysForVariants(String key) {
-
     return DefaultIcon.VARIANTS.stream()
         .map(variant -> String.format("%s_%s", key, variant))
         .collect(Collectors.toUnmodifiableSet());
