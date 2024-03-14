@@ -117,7 +117,7 @@ ownership of the given `program` will be used to determine access to the tracked
 
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
 
-Get a tracked entity that has at least one enrollment with the status specified.
+Get tracked entities that have at least one enrollment with the status specified.
 
 Valid options are:
 - `ACTIVE`
