@@ -67,10 +67,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
-    if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
-      if (!user.isInUserSearchHierarchy(ou.getPath())) {
-        errors.add("User has no read access to organisation unit: " + ou.getUid());
-      }
+    // ou should never be null, but needs to be checked for legacy reasons
+    if (ou != null && !user.isInUserSearchHierarchy(ou.getPath())) {
+      errors.add("User has no read access to organisation unit: " + ou.getUid());
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
@@ -94,10 +93,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
-    if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
-      if (!user.isInUserSearchHierarchy(ou.getPath())) {
-        errors.add("User has no write access to organisation unit: " + ou.getUid());
-      }
+    // ou should never be null, but needs to be checked for legacy reasons
+    if (ou != null && !user.isInUserSearchHierarchy(ou.getPath())) {
+      errors.add("User has no write access to organisation unit: " + ou.getUid());
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
@@ -214,10 +212,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     Program program = enrollment.getProgram();
 
     OrganisationUnit ou = enrollment.getOrganisationUnit();
-    if (ou != null) {
-      if (!user.isInUserHierarchy(ou.getPath())) {
-        errors.add("User has no create access to organisation unit: " + ou.getUid());
-      }
+    if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+      errors.add("User has no create access to organisation unit: " + ou.getUid());
     }
 
     if (!aclService.canDataWrite(user, program)) {
@@ -272,10 +268,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     } else {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
-      if (ou != null) {
-        if (!user.isInUserHierarchy(ou.getPath())) {
-          errors.add("User has no write access to organisation unit: " + ou.getUid());
-        }
+      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+        errors.add("User has no write access to organisation unit: " + ou.getUid());
       }
     }
 

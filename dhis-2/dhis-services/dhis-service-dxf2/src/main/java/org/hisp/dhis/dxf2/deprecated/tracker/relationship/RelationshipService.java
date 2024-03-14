@@ -109,8 +109,7 @@ public interface RelationshipService {
 
   ImportSummary deleteRelationship(String uid);
 
-  ImportSummaries deleteRelationships(
-      List<Relationship> relationships, ImportOptions importOptions);
+  ImportSummaries deleteRelationships(List<Relationship> relationships);
 
   Optional<Relationship> findRelationshipByUid(String id);
 

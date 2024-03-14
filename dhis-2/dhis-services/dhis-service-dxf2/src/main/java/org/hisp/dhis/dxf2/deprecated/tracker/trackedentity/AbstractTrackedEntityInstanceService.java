@@ -1078,8 +1078,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     importSummaries.addImportSummaries(relationshipService.addRelationships(create, importOptions));
     importSummaries.addImportSummaries(
         relationshipService.updateRelationships(update, importOptions));
-    importSummaries.addImportSummaries(
-        relationshipService.deleteRelationships(delete, importOptions));
+    importSummaries.addImportSummaries(relationshipService.deleteRelationships(delete));
 
     return importSummaries;
   }

@@ -201,7 +201,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     importSummaries.addImportSummaries(addRelationships(create, importOptions));
     importSummaries.addImportSummaries(updateRelationships(update, importOptions));
-    importSummaries.addImportSummaries(deleteRelationships(delete, importOptions));
+    importSummaries.addImportSummaries(deleteRelationships(delete));
 
     if (ImportReportMode.ERRORS == importOptions.getReportMode()) {
       importSummaries.getImportSummaries().removeIf(is -> !is.hasConflicts());
@@ -407,22 +407,13 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
   @Override
   @Transactional
-  public ImportSummary deleteRelationship(String uid) {
-    return deleteRelationship(uid, null);
-  }
-
-  @Override
-  @Transactional
-  public ImportSummaries deleteRelationships(
-      List<Relationship> relationships, ImportOptions importOptions) {
+  public ImportSummaries deleteRelationships(List<Relationship> relationships) {
     ImportSummaries importSummaries = new ImportSummaries();
-    importOptions = updateImportOptions(importOptions);
 
     int counter = 0;
 
     for (Relationship relationship : relationships) {
-      importSummaries.addImportSummary(
-          deleteRelationship(relationship.getRelationship(), importOptions));
+      importSummaries.addImportSummary(deleteRelationship(relationship.getRelationship()));
 
       if (counter % FLUSH_FREQUENCY == 0) {
         clearSession();
@@ -531,9 +522,10 @@ public abstract class AbstractRelationshipService implements RelationshipService
     return relationshipItem;
   }
 
-  private ImportSummary deleteRelationship(String uid, ImportOptions importOptions) {
+  @Override
+  @Transactional
+  public ImportSummary deleteRelationship(String uid) {
     ImportSummary importSummary = new ImportSummary();
-    importOptions = updateImportOptions(importOptions);
 
     if (uid.isEmpty()) {
       importSummary.setStatus(ImportStatus.WARNING);
