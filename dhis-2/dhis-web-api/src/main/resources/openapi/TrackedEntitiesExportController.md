@@ -113,7 +113,7 @@ Get tracked entities using given organisation unit mode.
 ### `*.parameter.TrackedEntityRequestParams.program`
 
 Get tracked entity with tracked entity attribute and enrollment data from the specified program. The
-ownership to the given `program` will be used to determine access to the tracked entities.
+ownership of the given `program` will be used to determine access to the tracked entities.
 
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
 
