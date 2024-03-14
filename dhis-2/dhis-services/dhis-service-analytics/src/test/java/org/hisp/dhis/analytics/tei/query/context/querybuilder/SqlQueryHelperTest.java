@@ -141,7 +141,7 @@ class SqlQueryHelperTest {
 
     // Then
     assertEquals(
-        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate desc ) as rn from analytics_tei_events_uid2 where programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 1",
+        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate, created desc ) as rn from analytics_tei_events_uid2 where programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 1",
         statement);
   }
 
@@ -172,7 +172,7 @@ class SqlQueryHelperTest {
 
     // Then
     assertEquals(
-        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate asc ) as rn from analytics_tei_events_uid2 where programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 2",
+        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate, created asc ) as rn from analytics_tei_events_uid2 where programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 2",
         statement);
   }
 
@@ -203,7 +203,7 @@ class SqlQueryHelperTest {
 
     // Then
     assertEquals(
-        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate desc ) as rn from analytics_tei_events_uid2 where programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 4",
+        "select innermost_evt.* from (select *, row_number() over (partition by programinstanceuid order by occurreddate, created desc ) as rn from analytics_tei_events_uid2 where programuid = :1 and programstageuid = :2) innermost_evt where innermost_evt.rn = 4",
         statement);
   }
 }

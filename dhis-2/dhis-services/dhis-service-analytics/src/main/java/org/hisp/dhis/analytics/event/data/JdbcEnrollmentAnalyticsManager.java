@@ -88,7 +88,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String ANALYTICS_EVENT = "analytics_event_";
 
-  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate ";
+  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate, created ";
 
   private static final String LIMIT_1 = "limit 1";
 
