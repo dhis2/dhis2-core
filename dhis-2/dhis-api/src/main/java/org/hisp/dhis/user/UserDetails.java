@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.user;
 
-import static java.util.Collections.unmodifiableMap;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -86,7 +84,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         .userOrgUnitIds(setOfIds(user.getOrganisationUnits()))
         .userSearchOrgUnitIds(setOfIds(user.getTeiSearchOrganisationUnitsWithFallback()))
         .userDataOrgUnitIds(setOfIds(user.getDataViewOrganisationUnitsWithFallback()))
-        .userSettings(settings == null ? Map.of() : unmodifiableMap(settings))
+        .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings))
         .build();
   }
 
