@@ -400,7 +400,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         String columnForExists = " exists (" + columnAndAlias.column + ")";
         String aliasForExists = columnAndAlias.alias + ".exists";
         columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
-        String columnForStatus = " (" + columnAndAlias.column.replace(queryItem.getItem().getUid(), "psistatus") + ")";
+        String columnForStatus =
+            " (" + columnAndAlias.column.replace(queryItem.getItem().getUid(), "psistatus") + ")";
         String aliasForStatus = columnAndAlias.alias + ".status";
         columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }

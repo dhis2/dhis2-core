@@ -182,7 +182,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         if (params.isRowContext()
             && addValueMetaInfo(grid, rowSet, grid.getHeaders().get(i).getName())) {
-          //skip two columns (.exists, .status)
+          // skip two columns (.exists, .status)
           columnOffset += 2;
         }
       }
@@ -209,9 +209,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (existsMetaInfoColumnName.isPresent()) {
       try {
         Optional<String> statusMetaInfoColumnName =
-                Arrays.stream(rowSet.getMetaData().getColumnNames())
-                        .filter((columnName + ".status")::equalsIgnoreCase)
-                        .findFirst();
+            Arrays.stream(rowSet.getMetaData().getColumnNames())
+                .filter((columnName + ".status")::equalsIgnoreCase)
+                .findFirst();
 
         boolean isDefined = rowSet.getBoolean(existsMetaInfoColumnName.get());
 
@@ -219,7 +219,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         boolean isScheduled = false;
 
-        if(statusMetaInfoColumnName.isPresent()){
+        if (statusMetaInfoColumnName.isPresent()) {
           String status = rowSet.getString(statusMetaInfoColumnName.get());
           isScheduled = "schedule".equalsIgnoreCase(status);
         }

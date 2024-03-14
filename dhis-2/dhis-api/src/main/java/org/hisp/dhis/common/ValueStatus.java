@@ -52,7 +52,7 @@ public enum ValueStatus {
       return ValueStatus.NOT_DEFINED;
     }
 
-    if(isScheduled){
+    if (isScheduled) {
       return ValueStatus.SCHEDULED;
     }
 

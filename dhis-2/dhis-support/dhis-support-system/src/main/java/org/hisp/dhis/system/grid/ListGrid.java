@@ -1231,10 +1231,9 @@ public class ListGrid implements Grid, Serializable {
       if (!isDefined && !isScheduled) {
         valueStatus = ValueStatus.NOT_DEFINED;
 
-      } else if (isScheduled){
+      } else if (isScheduled) {
         valueStatus = ValueStatus.SCHEDULED;
-      }
-      else {
+      } else {
         valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
       }
 
