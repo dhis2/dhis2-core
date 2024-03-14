@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Arrays;
+import java.util.function.Function;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.junit.jupiter.api.Test;
+/**
+ * This enum maps static dimensions to functions that extract the corresponding values from an
+ * JsonEvent
+ */
+@RequiredArgsConstructor
+enum EventExtractor {
+  OCCURREDDATE(
+      StaticDimension.OCCURREDDATE, a -> JsonExtractorUtils.getFormattedDate(a.getOccurredDate())),
+  OUNAME(DimensionParam.StaticDimension.OUNAME, JsonEnrollment.JsonEvent::getOrgUnitName),
+  OUCODE(DimensionParam.StaticDimension.OUCODE, JsonEnrollment.JsonEvent::getOrgUnitCode),
+  OUNAMEHIERARCHY(
+      DimensionParam.StaticDimension.OUNAMEHIERARCHY,
+      JsonEnrollment.JsonEvent::getOrgUnitNameHierarchy);
 
-class RenderableDataValueTest {
+  private final DimensionParam.StaticDimension dimension;
 
-  @Test
-  void testRender() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING", result);
-  }
+  @Getter private final Function<JsonEnrollment.JsonEvent, Object> extractor;
 
-  @Test
-  void testRenderBoolean() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("0", result);
+  static EventExtractor byDimension(DimensionParam.StaticDimension dimension) {
+    return Arrays.stream(values())
+        .filter(eventExtractor -> eventExtractor.dimension.equals(dimension))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "No event extractor is defined for static dimension " + dimension));
   }
 }

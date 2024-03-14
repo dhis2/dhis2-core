@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Map;
+import lombok.Data;
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.junit.jupiter.api.Test;
+@Data
+class JsonEnrollment {
+  private String programUid;
 
-class RenderableDataValueTest {
+  private String enrollmentUid;
 
-  @Test
-  void testRender() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING", result);
-  }
+  private LocalDateTime enrollmentDate;
 
-  @Test
-  void testRenderBoolean() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("0", result);
+  private LocalDateTime incidentDate;
+
+  private LocalDateTime endDate;
+
+  private String orgUnitUid;
+
+  private String orgUnitName;
+
+  private String orgUnitCode;
+
+  private String orgUnitNameHierarchy;
+
+  private Collection<JsonEvent> events;
+
+  @Data
+  static class JsonEvent {
+    private String programStageUid;
+
+    private String eventUid;
+
+    private LocalDateTime occurredDate;
+
+    private LocalDateTime dueDate;
+
+    private String orgUnitUid;
+
+    private String orgUnitName;
+
+    private String orgUnitCode;
+
+    private String orgUnitNameHierarchy;
+
+    private Map<String, Object> eventDataValues;
   }
 }

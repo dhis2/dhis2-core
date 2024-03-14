@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.junit.jupiter.api.Test;
-
-class RenderableDataValueTest {
-
-  @Test
-  void testRender() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING", result);
-  }
-
-  @Test
-  void testRenderBoolean() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("0", result);
-  }
+/**
+ * This class is a simple SqlRowSet wrapper that delegates all calls to the wrapped SqlRowSet. It is
+ * used to simplify the implementation of the {@link SqlRowSetJsonExtractorDelegator} class.
+ */
+@RequiredArgsConstructor
+class SqlRowSetDelegator implements SqlRowSet {
+  @Delegate private final SqlRowSet sqlRowSet;
 }

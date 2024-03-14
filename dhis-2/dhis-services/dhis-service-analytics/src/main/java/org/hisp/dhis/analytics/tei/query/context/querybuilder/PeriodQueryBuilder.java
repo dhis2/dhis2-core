@@ -79,16 +79,15 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
-        .map(
-            dimensionIdentifier -> {
-              String field = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
-              String alias = getTimeField(dimensionIdentifier, StaticDimension::getHeaderName);
+        .filter(DimensionIdentifier::isTeiDimension)
+        .map(PeriodQueryBuilder::asField)
+        .forEach(builder::selectField);
 
-              String prefix = getPrefix(dimensionIdentifier, false);
-
-              return Field.ofUnquoted(
-                  doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + alias);
-            })
+    streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams)
+        .filter(dimensionIdentifier -> !dimensionIdentifier.isTeiDimension())
+        .map(PeriodQueryBuilder::asField)
+        // non TEI periods are virtual fields, since those will be extracted from JSON
+        .map(Field::asVirtual)
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
@@ -123,6 +122,15 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
    */
   private String getGroupId(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     return dimensionIdentifier.getGroupId() + ":" + getTimeField(dimensionIdentifier, Enum::name);
+  }
+
+  private static Field asField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String field = getTimeField(dimensionIdentifier, StaticDimension::getColumnName);
+    String alias = getTimeField(dimensionIdentifier, StaticDimension::getHeaderName);
+
+    String prefix = getPrefix(dimensionIdentifier, false);
+
+    return Field.ofUnquoted(doubleQuote(prefix), () -> field, prefix + DIMENSION_SEPARATOR + alias);
   }
 
   /**

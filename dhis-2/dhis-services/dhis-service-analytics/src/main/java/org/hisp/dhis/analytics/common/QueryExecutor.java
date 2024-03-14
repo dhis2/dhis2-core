@@ -37,21 +37,21 @@ import javax.annotation.Nonnull;
  *
  * @author maikel arabori
  */
-public interface QueryExecutor<T extends Query, E extends QueryResult> {
+public interface QueryExecutor<T extends QueryCreator, E extends QueryResult> {
   /**
    * Executes a find operation based on the given SQL query object.
    *
-   * @param query the SQL statement to be executed.
+   * @param queryCreator the SQL statement to be executed.
    * @return the result of the execution represented by a {@link QueryResult} object.
    */
   @Nonnull
-  E find(@Nonnull T query);
+  E find(@Nonnull T queryCreator);
 
   /**
    * Executes a count operation based on the given SQL query object.
    *
-   * @param query the SQL statement to be executed.
+   * @param queryCreator the SQL statement to be executed.
    * @return the number of results found.
    */
-  long count(@Nonnull T query);
+  long count(@Nonnull T queryCreator);
 }

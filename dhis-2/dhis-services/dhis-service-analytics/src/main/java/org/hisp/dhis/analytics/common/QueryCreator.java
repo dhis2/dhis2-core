@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,28 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+public interface QueryCreator {
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.junit.jupiter.api.Test;
+  Query createForSelect();
 
-class RenderableDataValueTest {
-
-  @Test
-  void testRender() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING", result);
-  }
-
-  @Test
-  void testRenderBoolean() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("0", result);
-  }
+  Query createForCount();
 }

@@ -43,6 +43,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -64,17 +65,18 @@ public enum ValueTypeMapping {
   DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME),
   BOOLEAN(
       ValueTypeMapping::booleanConverter,
-      ValueTypeMapping::booleanSelectTransformer,
+      ValueTypeMapping::booleanJsonExtractor,
       ValueType.BOOLEAN,
       TRUE_ONLY);
 
-  private static final UnaryOperator<String> BOOLEAN_SELECT_TRANSFORMER =
-      columnName ->
-          "case when "
-              + columnName
-              + " = 'true' then 1 when "
-              + columnName
-              + " = 'false' then 0 end";
+  private static final UnaryOperator<String> BOOLEAN_JSON_EXTRACTOR =
+      value -> {
+        if (Objects.isNull(value)) {
+          return null;
+        }
+        return value.equalsIgnoreCase("true") ? "1" : "0";
+      };
+
   private final Function<String, Object> converter;
   @Getter private final UnaryOperator<String> selectTransformer;
   private final ValueType[] valueTypes;
@@ -106,8 +108,8 @@ public enum ValueTypeMapping {
     return "1".equals(value) || "true".equalsIgnoreCase(value);
   }
 
-  private static String booleanSelectTransformer(String columnName) {
-    return BOOLEAN_SELECT_TRANSFORMER.apply(columnName);
+  private static String booleanJsonExtractor(String value) {
+    return BOOLEAN_JSON_EXTRACTOR.apply(value);
   }
 
   /**

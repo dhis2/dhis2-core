@@ -25,28 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.analytics.common.query.jsonextractor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.util.DateUtils;
 
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.junit.jupiter.api.Test;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class JsonExtractorUtils {
 
-class RenderableDataValueTest {
+  public static String getFormattedDate(LocalDateTime date) {
+    if (date == null) {
+      return null;
+    }
 
-  @Test
-  void testRender() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING", result);
-  }
-
-  @Test
-  void testRenderBoolean() {
-    RenderableDataValue renderableDataValue =
-        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.BOOLEAN);
-    String result = renderableDataValue.transformedIfNecessary().render();
-    assertEquals("0", result);
+    return DateUtils.toLongDateNoT(Date.from(date.atZone(ZoneId.systemDefault()).toInstant()));
   }
 }
