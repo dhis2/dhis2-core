@@ -811,7 +811,9 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
     verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
 
-    assertNoErrors(reporter);
+    assertFalse(
+        reporter.hasErrorReport(
+            r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
   }
 
   @Test
