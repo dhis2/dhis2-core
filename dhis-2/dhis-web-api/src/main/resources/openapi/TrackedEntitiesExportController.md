@@ -66,7 +66,12 @@ and program attributes too.
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
 
-Get tracked entities owned by given `orgUnit`.
+Get tracked entities and enrollments owned by given orgUnits relative to the `orgUnitMode` and `program` parameters. If a `program` is provided, the ownership is determied with this program. When no program is provided, the registration org unit for the tracked entity would be used to determine ownership.
+
+- When `orgUnitMode=SELECTED` - or no orgUnitMode is given (default) - the tracked entity or enrollments owned by the orgUnits are returned.
+- When `orgUnitMode=CHILDREN` the tracked entity or enrollments owned by the orgUnits or by the orgUnits direct children is returned.
+- When `orgUnitMode=DESCENDANTS` the tracked entity or enrollments owned by the orgUnits or any of its descendants are returned.
+- When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter is not allowed.
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnit`
 
@@ -79,7 +84,20 @@ Get tracked entities owned by given `orgUnit`.
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnitMode`
 
-Get tracked entities using given organisation unit mode.
+Get tracked entities and enrollments using given `orgUnitMode` and `program` parameters. If a `program` is provided, the ownership is determied with this program. When no program is provided, the registration org unit for the tracked entity would be used to determine ownership.
+
+- When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
+  parameter is
+  required to specify which tracked entity or enrollments to return.
+- When `orgUnitMode=ALL` tracked entity or enrollments will be downloaded irrespective of the organization unit they
+  are
+  owned by. To use this parameter, the user needs the `Search Tracked entity in all org units`
+  authority.
+- When `orgUnitMode=ACCESSIBLE` tracked entity or enrollments owned by any org unit in the users capture scope will be
+  returned.
+- When `orgUnitMode=CAPTURE` tracked entity or enrollments that has an enrollment org unit in the users capture scope
+  will
+  be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.ouMode`
 
@@ -89,25 +107,50 @@ Get tracked entities using given organisation unit mode.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
 
+Get tracked entity with tracked entity attribute and enrollment data from the specified program. The ownership to the given `program` will be used to determine access to the tracked entities.
+
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
+
+Get a tracked entity that has at least one enrollment with the status specified.
+
+Valid options are:
+- `ACTIVE`
+- `COMPLETED`
+- `CANCELLED`
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
+Gets a tracked entities that has at least one enrollment that is marked with follow up.
+
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
+Gets tracked entities that is updated after the given time. The update can be on the tracked entity or on one of the tracked entity attributes, enrollments or events for that tracked entity.
+
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
+
+Gets tracked entities that is updated before the given time. The update can be on the tracked entity or on one of the tracked entity attributes, enrollments or events for that tracked entity.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
+Gets tracked entities that has at least one enrollment with an enrollment date after the date specified in `enrollmentEnrolledAfter`.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
+
+Gets tracked entities that has at least one enrollment with an enrollment date before the date specified in `enrollmentEnrolledBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
+Gets tracked entities that has at least one enrollment with an occurred date after the date specified in `enrollmentOccurredAfter`.
+
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
+Gets tracked entities that has at least one enrollment with an occurred date before the date specified in `enrollmentOccurredBefore`.
+
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
+
+Gets tracked entities with the given tracked entity type. Required if no `program` is specified.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntities`
 
@@ -125,6 +168,13 @@ by comma!
 Get tracked entities with given UID(s).
 
 ### `*.parameter.TrackedEntityRequestParams.assignedUserMode`
+
+Get tracked entities and enrollments based on the user assignment in the events of these enrollments.
+
+- When `assignedUserMode=ME` tracked entities and enrollments that has at least one event assigned to the logged in user will be returned.
+- When `assignedUserMode=ANYONE` tracked entities and enrollments that has at least one event with an assigned user will be returned.
+- When `assignedUserMode=NONE` tracked entities with no events assigned to any user will be returned. 
+- When `assignedUserMode=SELECTED` The `assignedUsers` parameter will be required, and the tracked entities and enrollments that has any events assigned to the users specified will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
@@ -156,6 +206,8 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
+
+Get tracked entities that is marked as a potential duplicate.
 
 ### `*.parameter.TrackedEntityRequestParams.order`
 
