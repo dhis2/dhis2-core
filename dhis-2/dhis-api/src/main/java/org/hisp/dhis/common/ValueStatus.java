@@ -36,7 +36,10 @@ public enum ValueStatus {
   NOT_SET("NS"),
 
   // value is set
-  SET("S");
+  SET("S"),
+
+  // value is scheduled
+  SCHEDULED("SC");
 
   private final String value;
 
@@ -44,9 +47,13 @@ public enum ValueStatus {
     this.value = value;
   }
 
-  public static ValueStatus of(boolean isDefined, boolean isSet) {
-    if (!isDefined) {
+  public static ValueStatus of(boolean isDefined, boolean isSet, boolean isScheduled) {
+    if (!isDefined && !isScheduled) {
       return ValueStatus.NOT_DEFINED;
+    }
+
+    if(isScheduled){
+      return ValueStatus.SCHEDULED;
     }
 
     return isSet ? ValueStatus.SET : ValueStatus.NOT_SET;

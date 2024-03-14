@@ -1217,18 +1217,24 @@ public class ListGrid implements Grid, Serializable {
   private Map<String, Object> getRowContextItem(
       SqlRowSet rs, String columnName, Object value, int rowIndex) {
     Map<String, Object> rowContextItem = new HashMap<>();
-    String indicatorColumnLabel = columnName + ".exists";
+    String existIndicatorColumnLabel = columnName + ".exists";
+    String statusIndicatorColumnLabel = columnName + ".status";
 
     if (Arrays.stream(rs.getMetaData().getColumnNames())
-        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
+        .anyMatch(n -> n.equalsIgnoreCase(existIndicatorColumnLabel))) {
 
-      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
+      boolean isDefined = rs.getBoolean(existIndicatorColumnLabel);
       boolean isSet = isDefined && value != null;
+      boolean isScheduled = "schedule".equalsIgnoreCase(rs.getString(statusIndicatorColumnLabel));
 
       ValueStatus valueStatus;
-      if (!isDefined) {
+      if (!isDefined && !isScheduled) {
         valueStatus = ValueStatus.NOT_DEFINED;
-      } else {
+
+      } else if (isScheduled){
+        valueStatus = ValueStatus.SCHEDULED;
+      }
+      else {
         valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
       }
 
