@@ -37,7 +37,6 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -96,7 +95,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     Map<String, List<String>> supplementaryData =
         providerToTest.getSupplementaryData(getProgramRules());
     assertFalse(supplementaryData.isEmpty());
-    assertEquals(getUserRoleUids(), supplementaryData.get("USER"));
+    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER")));
     assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
     assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
     assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
@@ -108,8 +107,8 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     return Lists.newArrayList(programRule);
   }
 
-  private List<String> getUserRoleUids() {
-    return getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toList());
+  private Set<String> getUserRoleUids() {
+    return Set.copyOf(getUserRoles().stream().map(UserRole::getUid).toList());
   }
 
   private Set<UserRole> getUserRoles() {
