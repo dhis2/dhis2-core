@@ -67,7 +67,7 @@ and program attributes too.
 
 Get tracked entities and enrollments owned by given orgUnits relative to the `orgUnitMode` and
 `program` parameters. If a `program` is provided, the ownership is determied with this program. When
-no program is provided, the registration org unit for the tracked entity would be used to determine
+no program is provided, the registration orgUnit for the tracked entity would be used to determine
 ownership.
 
 - When `orgUnitMode=SELECTED` - or no orgUnitMode is given (default) - the tracked entity or
