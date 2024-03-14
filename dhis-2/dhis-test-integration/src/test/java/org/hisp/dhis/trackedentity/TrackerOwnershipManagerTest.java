@@ -83,6 +83,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private User userB;
 
+  private TrackedEntityParams defaultParams;
+
   @Override
   protected void setUpTest() throws Exception {
     //    userService = _userService;
@@ -113,6 +115,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     userB = createUserWithAuth("userB");
     userB.addOrganisationUnit(organisationUnitB);
     userService.updateUser(userB);
+
+    defaultParams =
+        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
   }
 
   @Test
@@ -145,15 +150,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         entityInstanceA1, programA, organisationUnitB, false, true);
 
     injectSecurityContextUser(userA);
-    TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
-
     ForbiddenException exception =
         assertThrows(
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    entityInstanceA1.getUid(), programA.getUid(), params, false));
+                    entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
     assertEquals("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
   }
 
@@ -166,36 +168,32 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         entityInstanceA1, programA, organisationUnitB, false, true);
 
     injectSecurityContextUser(userB);
-    TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
     assertEquals(
         entityInstanceA1,
         trackedEntityService.getTrackedEntity(
-            entityInstanceA1.getUid(), programA.getUid(), params, false));
+            entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
   }
 
   @Test
   void shouldHaveAccessToTrackedEntityWhenProgramNotProvidedAndRegisteringOrgUnitInScope()
       throws ForbiddenException, NotFoundException {
     injectSecurityContextUser(userA);
-    TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
 
     assertEquals(
         entityInstanceA1,
-        trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), params, false));
+        trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), defaultParams, false));
   }
 
   @Test
   void shouldNotHaveAccessToTrackedEntityWhenProgramNotProvidedAndRegisteringOrgUnitNotInScope() {
     injectSecurityContextUser(userB);
-    TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
 
     ForbiddenException exception =
         assertThrows(
             ForbiddenException.class,
-            () -> trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), params, false));
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceA1.getUid(), defaultParams, false));
     assertEquals(
         String.format(
             "[User has no read access to organisation unit: %s]", organisationUnitA.getUid()),
@@ -226,6 +224,15 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
             userB, entityInstanceA1.getUid(), entityInstanceA1.getOrganisationUnit(), programA));
+
+    injectSecurityContextUser(userB);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
+    assertEquals(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED, exception.getMessage());
   }
 
   @Test
@@ -244,5 +251,14 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
             userB, entityInstanceA1.getUid(), entityInstanceA1.getOrganisationUnit(), programB));
+
+    injectSecurityContextUser(userB);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceA1.getUid(), programB.getUid(), defaultParams, false));
+    assertEquals(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED, exception.getMessage());
   }
 }
