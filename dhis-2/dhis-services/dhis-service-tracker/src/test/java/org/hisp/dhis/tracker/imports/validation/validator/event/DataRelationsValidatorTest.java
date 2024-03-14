@@ -27,16 +27,22 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1313;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
@@ -50,6 +56,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -750,6 +757,111 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
                     && r.getMessage().contains(aoc.getUid())));
   }
 
+  @Test
+  void eventOfProgramWithRegistrationInEnrollmentWithoutTrackedEntity() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
+
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(null);
+
+    validator.validate(reporter, bundle, event);
+
+    verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
+    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
+
+    assertTrue(
+        reporter.hasErrorReport(
+            r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
+  }
+
+  @Test
+  void eventOfProgramWithRegistrationInEnrollmentWithTrackedEntityInBundle() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+
+    Enrollment enrollment = enrollment(ENROLLMENT_ID, new TrackedEntity());
+
+    Program program = setupProgram(orgUnit, enrollment);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
+
+    org.hisp.dhis.tracker.imports.domain.Enrollment e =
+        new org.hisp.dhis.tracker.imports.domain.Enrollment();
+    e.setTrackedEntity(CodeGenerator.generateUid());
+
+    when(bundle.findEnrollmentByUid(ENROLLMENT_ID)).thenReturn(Optional.of(e));
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(null);
+
+    validator.validate(reporter, bundle, event);
+
+    verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
+    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void eventOfProgramWithRegistrationInEnrollmentWithTrackedEntityInPreheat() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
+
+    validator.validate(reporter, bundle, event);
+
+    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
+    verify(bundle, times(0)).findEnrollmentByUid(ENROLLMENT_ID);
+
+    assertNoErrors(reporter);
+  }
+
+  @Test
+  void eventOfProgramWithRegistrationInEnrollmentWithoutTrackedEntityInPreheat() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+
+    Enrollment enrollment = enrollment(ENROLLMENT_ID);
+
+    Program program = setupProgram(orgUnit, enrollment);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
+
+    validator.validate(reporter, bundle, event);
+
+    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
+    verify(bundle, times(0)).findEnrollmentByUid(ENROLLMENT_ID);
+
+    assertTrue(
+        reporter.hasErrorReport(
+            r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
+  }
+
   private OrganisationUnit organisationUnit(String uid) {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(uid);
@@ -791,9 +903,22 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   }
 
   private Enrollment enrollment(String uid, Program program) {
+    Enrollment enrollment = enrollment(uid);
+    enrollment.setProgram(program);
+    enrollment.setTrackedEntity(new TrackedEntity());
+    return enrollment;
+  }
+
+  private Enrollment enrollment(String uid, TrackedEntity trackedEntity) {
     Enrollment enrollment = new Enrollment();
     enrollment.setUid(uid);
-    enrollment.setProgram(program);
+    enrollment.setTrackedEntity(trackedEntity);
+    return enrollment;
+  }
+
+  private Enrollment enrollment(String uid) {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(uid);
     return enrollment;
   }
 
@@ -805,6 +930,18 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
+    return program;
+  }
+
+  private Program setupProgram(OrganisationUnit orgUnit, Enrollment enrollment) {
+    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
+        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
+    enrollment.setProgram(program);
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment);
     return program;
   }
 

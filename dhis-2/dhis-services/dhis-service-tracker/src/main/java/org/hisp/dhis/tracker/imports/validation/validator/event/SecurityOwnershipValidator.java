@@ -119,7 +119,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       }
     }
 
-    String teUid = getTeiUidFromEvent(bundle, event, program);
+    String teUid = getTeUidFromEvent(bundle, event, program);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
@@ -218,7 +218,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private String getTeiUidFromEvent(
+  private String getTeUidFromEvent(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return null;
