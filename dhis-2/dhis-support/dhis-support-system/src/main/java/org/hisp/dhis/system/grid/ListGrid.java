@@ -1225,7 +1225,12 @@ public class ListGrid implements Grid, Serializable {
 
       boolean isDefined = rs.getBoolean(existIndicatorColumnLabel);
       boolean isSet = isDefined && value != null;
-      boolean isScheduled = "schedule".equalsIgnoreCase(rs.getString(statusIndicatorColumnLabel));
+      boolean isScheduled = false;
+
+      if (Arrays.stream(rs.getMetaData().getColumnNames())
+          .anyMatch(n -> n.equalsIgnoreCase(statusIndicatorColumnLabel))) {
+        isScheduled = "schedule".equalsIgnoreCase(rs.getString(statusIndicatorColumnLabel));
+      }
 
       ValueStatus valueStatus;
       if (!isDefined && !isScheduled) {
