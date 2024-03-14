@@ -259,7 +259,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
-      String uid, Program program, User currentUser, TrackedEntityInstanceParams params) {
+      String uid, User currentUser, TrackedEntityInstanceParams params) {
     return getTrackedEntityInstance(teiService.getTrackedEntity(uid), params, currentUser, false);
   }
 

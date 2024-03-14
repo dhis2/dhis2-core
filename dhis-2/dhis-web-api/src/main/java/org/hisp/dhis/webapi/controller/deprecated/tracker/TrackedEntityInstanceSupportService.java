@@ -90,7 +90,7 @@ public class TrackedEntityInstanceSupportService {
 
       trackedEntityInstance =
           trackedEntityInstanceService.getTrackedEntityInstance(
-              id, program, currentUser, trackedEntityInstanceParams);
+              id, currentUser, trackedEntityInstanceParams);
       if (trackedEntityInstance == null) {
         throw new NotFoundException(TrackedEntityInstance.class, id);
       }

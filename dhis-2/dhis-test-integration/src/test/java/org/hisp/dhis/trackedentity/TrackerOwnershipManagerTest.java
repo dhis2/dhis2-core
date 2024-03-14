@@ -154,7 +154,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
             () ->
                 trackedEntityService.getTrackedEntity(
                     entityInstanceA1.getUid(), programA.getUid(), params, false));
-    assertEquals("[OWNERSHIP_ACCESS_DENIED]", exception.getMessage());
+    assertEquals("OWNERSHIP_ACCESS_DENIED", exception.getMessage());
   }
 
   @Test

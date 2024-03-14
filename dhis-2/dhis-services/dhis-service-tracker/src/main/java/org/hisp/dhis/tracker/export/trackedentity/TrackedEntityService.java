@@ -56,7 +56,8 @@ public interface TrackedEntityService {
    *
    * @return the TE object if found and accessible by the current user
    * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE registration org unit not in user's scope
+   * @throws ForbiddenException if TE registration org unit not in user's scope or not enough
+   *     sharing access
    */
   TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException;
@@ -66,7 +67,7 @@ public interface TrackedEntityService {
    *
    * @return the TE object if found and accessible by the current user
    * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE owner is not in user's scope
+   * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
    */
   TrackedEntity getTrackedEntity(
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)

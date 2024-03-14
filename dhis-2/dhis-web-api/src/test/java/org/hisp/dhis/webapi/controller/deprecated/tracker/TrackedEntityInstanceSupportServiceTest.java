@@ -88,8 +88,7 @@ class TrackedEntityInstanceSupportServiceTest {
 
   @Test
   void shouldValidateOwnershipWhenProgramProvided() {
-    when(trackedEntityInstanceService.getTrackedEntityInstance(
-            entity.getUid(), program, user, FALSE))
+    when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), user, FALSE))
         .thenReturn(new TrackedEntityInstance());
     when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
     when(programService.getProgram(program.getUid())).thenReturn(program);
@@ -97,7 +96,7 @@ class TrackedEntityInstanceSupportServiceTest {
     trackedEntityInstanceSupportService.getTrackedEntityInstance(
         entity.getUid(), program.getUid(), emptyList());
     verify(trackedEntityInstanceService, times(1))
-        .getTrackedEntityInstance(entity.getUid(), program, user, FALSE);
+        .getTrackedEntityInstance(entity.getUid(), user, FALSE);
   }
 
   @Test
