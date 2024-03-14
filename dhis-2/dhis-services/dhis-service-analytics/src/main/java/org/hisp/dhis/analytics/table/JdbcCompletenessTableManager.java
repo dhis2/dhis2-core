@@ -42,6 +42,7 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -154,22 +155,25 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        "delete from "
-            + quote(getAnalyticsTableType().getTableName())
-            + " ax "
-            + "where ax.id in ("
-            + "select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id "
-            + "from completedatasetregistration cdr "
-            + "inner join dataset ds on cdr.datasetid=ds.datasetid "
-            + "inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid "
-            + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
-            + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "where cdr.lastupdated >= '"
-            + toLongDate(partition.getStartDate())
-            + "' "
-            + "and cdr.lastupdated < '"
-            + toLongDate(partition.getEndDate())
-            + "')";
+        TextUtils.replace(
+            """
+            delete from ${tableName} ax
+            where ax.id in (
+            select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id
+            from completedatasetregistration cdr
+            inner join dataset ds on cdr.datasetid=ds.datasetid
+            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid
+            inner join organisationunit ou on cdr.sourceid=ou.organisationunitid
+            inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid
+            where cdr.lastupdated >= '${startDate}'
+            and cdr.lastupdated < '${endDate}')""",
+            Map.of(
+                "tableName",
+                quote(getAnalyticsTableType().getTableName()),
+                "startDate",
+                toLongDate(partition.getStartDate()),
+                "endDate",
+                toLongDate(partition.getEndDate())));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }
@@ -207,22 +211,27 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        "from completedatasetregistration cdr "
-            + "inner join dataset ds on cdr.datasetid=ds.datasetid "
-            + "inner join period pe on cdr.periodid=pe.periodid "
-            + "inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid "
-            + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
-            + "inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid "
-            + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
-            + "left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid "
-            + "inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "where cdr.date is not null "
-            + partitionClause
-            + "and cdr.lastupdated < '"
-            + toLongDate(params.getStartTime())
-            + "' "
-            + "and cdr.completed = true";
+        TextUtils.replace(
+            """
+            from completedatasetregistration cdr
+            inner join dataset ds on cdr.datasetid=ds.datasetid
+            inner join period pe on cdr.periodid=pe.periodid
+            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid
+            inner join organisationunit ou on cdr.sourceid=ou.organisationunitid
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid
+            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null)
+            left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid
+            inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid
+            inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid
+            where cdr.date is not null
+            ${partitionClause}
+            and cdr.lastupdated < '${startTime}'
+            and cdr.completed = true""",
+            Map.of(
+                "partitionClause",
+                partitionClause,
+                "startTime",
+                toLongDate(params.getStartTime())));
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
