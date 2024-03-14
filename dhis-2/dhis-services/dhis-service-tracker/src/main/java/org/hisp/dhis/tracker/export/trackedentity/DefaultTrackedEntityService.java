@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -210,19 +210,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public TrackedEntity getTrackedEntity(
-      String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
-    if (daoTrackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
-    return getTrackedEntity(daoTrackedEntity, params, includeDeleted);
-  }
-
-  @Override
-  public TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     Program program = null;
@@ -235,11 +222,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    TrackedEntity trackedEntity = getTrackedEntity(uid, params, includeDeleted);
-
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
+    TrackedEntity trackedEntity;
     if (program != null) {
+      trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
+
       if (!trackerAccessManager.canRead(currentUser, trackedEntity, program, false).isEmpty()) {
         if (program.getAccessLevel() == AccessLevel.CLOSED) {
           throw new ForbiddenException(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED);
@@ -256,6 +244,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     } else {
       // return only tracked entity type attributes
+      trackedEntity = getTrackedEntity(uid, params, includeDeleted);
       TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
       if (trackedEntityType != null) {
         Set<String> tetAttributes =
@@ -269,23 +258,54 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntity.setTrackedEntityAttributeValues(tetAttributeValues);
       }
     }
-
     return trackedEntity;
   }
 
   @Override
   public TrackedEntity getTrackedEntity(
-      @Nonnull TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    // TODO This should not be done if the request contains a program, if not, transferred TE will
-    // never be seen by the owner, only the registering org unit will see it
-    /*    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+      String uid, TrackedEntityParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    return getTrackedEntity(uid, params, includeDeleted, trackerAccessManager::canRead);
+  }
 
+  @Override
+  public TrackedEntity getTrackedEntity(
+      String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    return getTrackedEntity(
+        uid,
+        params,
+        includeDeleted,
+        (currentUser, daoTrackedEntity) ->
+            trackerAccessManager.canRead(currentUser, daoTrackedEntity, program, false));
+  }
+
+  private TrackedEntity getTrackedEntity(
+      String uid,
+      TrackedEntityParams params,
+      boolean includeDeleted,
+      BiFunction<User, TrackedEntity, List<String>> aclCheckFunction)
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
+    if (daoTrackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = aclCheckFunction.apply(currentUser, daoTrackedEntity);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
-    }*/
+    }
 
+    return mapTrackedEntity(daoTrackedEntity, params, currentUser, includeDeleted);
+  }
+
+  private TrackedEntity mapTrackedEntity(
+      TrackedEntity trackedEntity,
+      TrackedEntityParams params,
+      User currentUser,
+      boolean includeDeleted) {
     TrackedEntity result = new TrackedEntity();
     result.setId(trackedEntity.getId());
     result.setUid(trackedEntity.getUid());
