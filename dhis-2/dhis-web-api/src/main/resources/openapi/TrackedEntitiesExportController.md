@@ -126,43 +126,43 @@ Valid options are:
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
-Gets a tracked entities that has at least one enrollment that is marked with follow up.
+Get tracked entities that has at least one enrollment that is marked with follow up.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
-Gets tracked entities that is updated after the given time. The update can be on the tracked entity
+Get tracked entities that is updated after the given time. The update can be on the tracked entity
 or on one of the tracked entity attributes, enrollments or events for that tracked entity.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
-Gets tracked entities that is updated before the given time. The update can be on the tracked entity
+Get tracked entities that is updated before the given time. The update can be on the tracked entity
 or on one of the tracked entity attributes, enrollments or events for that tracked entity.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
-Gets tracked entities that has at least one enrollment with an enrollment date after the date
+Get tracked entities that has at least one enrollment with an enrollment date after the date
 specified in `enrollmentEnrolledAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
-Gets tracked entities that has at least one enrollment with an enrollment date before the date
+Get tracked entities that has at least one enrollment with an enrollment date before the date
 specified in `enrollmentEnrolledBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
-Gets tracked entities that has at least one enrollment with an occurred date after the date
+Get tracked entities that has at least one enrollment with an occurred date after the date
 specified in `enrollmentOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
-Gets tracked entities that has at least one enrollment with an occurred date before the date
+Get tracked entities that has at least one enrollment with an occurred date before the date
 specified in `enrollmentOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
-Gets tracked entities with the given tracked entity type. Required if no `program` is specified.
+Get tracked entities with the given tracked entity type. Required if no `program` is specified.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntities`
 
