@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
@@ -155,7 +155,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        TextUtils.replace(
+        replace(
             """
             delete from ${tableName} ax
             where ax.id in (
@@ -211,7 +211,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        TextUtils.replace(
+        replace(
             """
             from completedatasetregistration cdr
             inner join dataset ds on cdr.datasetid=ds.datasetid
@@ -244,8 +244,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        format("and cdr.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
-    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+        replace(
+            "and cdr.lastupdated >= '${startDate}'",
+            Map.of("startDate", toLongDate(partition.getStartDate())));
+    String partitionFilter =
+        replace("and ps.year = ${year}", Map.of("year", String.valueOf(partition.getYear())));
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
