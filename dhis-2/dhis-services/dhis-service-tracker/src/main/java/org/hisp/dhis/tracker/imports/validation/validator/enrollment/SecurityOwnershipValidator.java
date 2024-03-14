@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -172,7 +173,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private void checkTeiTypeAndTeiProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      User user,
+      UserDetails user,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program) {
@@ -216,7 +217,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
       checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
       checkTeiTypeAndTeiProgramAccess(
-          reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
+          reporter, enrollment, UserDetails.fromUser(user), trackedEntity, ownerOrgUnit, program);
     }
   }
 

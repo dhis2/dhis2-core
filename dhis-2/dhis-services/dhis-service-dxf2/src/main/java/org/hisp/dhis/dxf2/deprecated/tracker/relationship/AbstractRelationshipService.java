@@ -119,7 +119,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
       boolean skipAccessValidation,
       boolean includeDeleted) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     return relationshipService
         .getRelationshipsByTrackedEntity(tei, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
@@ -138,7 +138,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
       boolean skipAccessValidation,
       boolean includeDeleted) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     return relationshipService
         .getRelationshipsByEnrollment(enrollment, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
@@ -157,7 +157,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
       PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
       boolean skipAccessValidation,
       boolean includeDeleted) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     return relationshipService
         .getRelationshipsByEvent(psi, pagingAndSortingCriteriaAdapter, includeDeleted)
         .stream()
@@ -219,9 +219,10 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     ImportSummaries importSummaries = new ImportSummaries();
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     for (List<Relationship> _relationships : partitions) {
       reloadUser(importOptions);
-      prepareCaches(_relationships, importOptions.getUser());
+      prepareCaches(_relationships, user);
 
       for (Relationship relationship : _relationships) {
         importSummaries.addImportSummary(addRelationship(relationship, importOptions));
@@ -239,8 +240,9 @@ public abstract class AbstractRelationshipService implements RelationshipService
     importOptions = updateImportOptions(importOptions);
 
     // Set up cache if not set already
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     if (!cacheExists()) {
-      prepareCaches(Lists.newArrayList(relationship), importOptions.getUser());
+      prepareCaches(Lists.newArrayList(relationship), user);
     }
 
     ImportSummary importSummary = new ImportSummary(relationship.getRelationship());
@@ -265,7 +267,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
     }
 
     // Check access for both sides
-    List<String> errors = trackerAccessManager.canWrite(importOptions.getUser(), daoRelationship);
+    List<String> errors = trackerAccessManager.canWrite(user, daoRelationship);
 
     if (!errors.isEmpty()) {
       return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
@@ -287,9 +289,10 @@ public abstract class AbstractRelationshipService implements RelationshipService
     importOptions = updateImportOptions(importOptions);
     ImportSummaries importSummaries = new ImportSummaries();
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     for (List<Relationship> _relationships : partitions) {
       reloadUser(importOptions);
-      prepareCaches(_relationships, importOptions.getUser());
+      prepareCaches(_relationships, user);
 
       for (Relationship relationship : _relationships) {
         importSummaries.addImportSummary(updateRelationship(relationship, importOptions));
@@ -306,8 +309,9 @@ public abstract class AbstractRelationshipService implements RelationshipService
     importOptions = updateImportOptions(importOptions);
 
     // Set up cache if not set already
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     if (!cacheExists()) {
-      prepareCaches(Lists.newArrayList(relationship), importOptions.getUser());
+      prepareCaches(Lists.newArrayList(relationship), user);
     }
 
     org.hisp.dhis.relationship.Relationship daoRelationship =
@@ -333,7 +337,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
           .incrementIgnored();
     }
 
-    List<String> errors = trackerAccessManager.canWrite(importOptions.getUser(), daoRelationship);
+    List<String> errors = trackerAccessManager.canWrite(user, daoRelationship);
 
     if (!errors.isEmpty() || importSummary.hasConflicts()) {
       importSummary.setStatus(ImportStatus.ERROR);
@@ -439,14 +443,14 @@ public abstract class AbstractRelationshipService implements RelationshipService
       return Optional.empty();
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     return getRelationship(relationship, currentUser);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Optional<Relationship> findRelationship(
-      org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user) {
+      org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, UserDetails user) {
     List<String> errors = trackerAccessManager.canRead(user, dao);
 
     if (!errors.isEmpty()) {
@@ -472,7 +476,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
   }
 
   private Optional<Relationship> getRelationship(
-      org.hisp.dhis.relationship.Relationship dao, User user) {
+      org.hisp.dhis.relationship.Relationship dao, UserDetails user) {
     return findRelationship(dao, RelationshipParams.TRUE, user);
   }
 
@@ -543,7 +547,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
     if (daoRelationship != null) {
       importSummary.setReference(uid);
 
-      List<String> errors = trackerAccessManager.canWrite(importOptions.getUser(), daoRelationship);
+      UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+      List<String> errors = trackerAccessManager.canWrite(currentUser, daoRelationship);
 
       if (!errors.isEmpty()) {
         importSummary.setDescription(errors.toString());
@@ -753,7 +758,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
     return !relationshipTypeCache.isEmpty();
   }
 
-  private void prepareCaches(List<Relationship> relationships, User user) {
+  private void prepareCaches(List<Relationship> relationships, UserDetails user) {
     Map<RelationshipEntity, List<String>> relationshipEntities = new HashMap<>();
     Map<String, List<Relationship>> relationshipTypeMap =
         relationships.stream().collect(Collectors.groupingBy(Relationship::getRelationshipType));
@@ -761,7 +766,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
     // Find all the RelationshipTypes first, so we know what the uids refer
     // to
     Query query = Query.from(schemaService.getDynamicSchema(RelationshipType.class));
-    query.setCurrentUserDetails(UserDetails.fromUser(user));
+    query.setCurrentUserDetails(user);
     query.add(Restrictions.in("id", relationshipTypeMap.keySet()));
     queryService
         .query(query)
@@ -804,7 +809,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     if (relationshipEntities.get(PROGRAM_INSTANCE) != null) {
       Query piQuery = Query.from(schemaService.getDynamicSchema(Enrollment.class));
-      piQuery.setCurrentUserDetails(UserDetails.fromUser(user));
+      piQuery.setCurrentUserDetails(user);
       piQuery.add(Restrictions.in("id", relationshipEntities.get(PROGRAM_INSTANCE)));
       queryService
           .query(piQuery)
@@ -813,7 +818,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
 
     if (relationshipEntities.get(PROGRAM_STAGE_INSTANCE) != null) {
       Query psiQuery = Query.from(schemaService.getDynamicSchema(Event.class));
-      psiQuery.setCurrentUserDetails(UserDetails.fromUser(user));
+      psiQuery.setCurrentUserDetails(user);
       psiQuery.add(Restrictions.in("id", relationshipEntities.get(PROGRAM_STAGE_INSTANCE)));
       queryService
           .query(psiQuery)

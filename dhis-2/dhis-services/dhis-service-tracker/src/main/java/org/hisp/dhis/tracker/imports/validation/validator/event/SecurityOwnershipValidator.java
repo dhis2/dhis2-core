@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -267,7 +268,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   private void checkTeiTypeAndTeiProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      User user,
+      UserDetails user,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program) {
@@ -315,7 +316,12 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       checkProgramReadAccess(reporter, event, user, program);
 
       checkTeiTypeAndTeiProgramAccess(
-          reporter, event, user, trackedEntity, ownerOrgUnit, programStage.getProgram());
+          reporter,
+          event,
+          UserDetails.fromUser(user),
+          trackedEntity,
+          ownerOrgUnit,
+          programStage.getProgram());
     }
 
     if (categoryOptionCombo != null) {

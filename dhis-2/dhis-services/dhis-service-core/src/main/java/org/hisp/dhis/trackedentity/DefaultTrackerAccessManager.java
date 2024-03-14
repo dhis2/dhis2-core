@@ -34,7 +34,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -43,7 +42,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,14 +52,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DefaultTrackerAccessManager implements TrackerAccessManager {
-  private final AclService aclService;
 
+  private final AclService aclService;
   private final TrackerOwnershipManager ownershipAccessManager;
 
-  private final OrganisationUnitService organisationUnitService;
-
   @Override
-  public List<String> canRead(User user, TrackedEntity trackedEntity) {
+  public List<String> canRead(UserDetails user, TrackedEntity trackedEntity) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -71,7 +68,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
     if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
-      if (!organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
+      if (!user.isInUserSearchHierarchy(ou.getPath())) {
         errors.add("User has no read access to organisation unit: " + ou.getUid());
       }
     }
@@ -87,7 +84,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canWrite(User user, TrackedEntity trackedEntity) {
+  public List<String> canWrite(UserDetails user, TrackedEntity trackedEntity) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -98,7 +95,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
     if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
-      if (!organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
+      if (!user.isInUserSearchHierarchy(ou.getPath())) {
         errors.add("User has no write access to organisation unit: " + ou.getUid());
       }
     }
@@ -114,7 +111,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(
-      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -141,7 +138,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canWrite(
-      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -167,7 +164,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -205,7 +202,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canCreate(
+      UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -217,7 +215,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     OrganisationUnit ou = enrollment.getOrganisationUnit();
     if (ou != null) {
-      if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+      if (!user.isInUserHierarchy(ou.getPath())) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
     }
@@ -245,7 +243,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(
+      UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -274,7 +273,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     } else {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
       if (ou != null) {
-        if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+        if (!user.isInUserHierarchy(ou.getPath())) {
           errors.add("User has no write access to organisation unit: " + ou.getUid());
         }
       }
@@ -284,7 +283,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canDelete(
+      UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -312,7 +312,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     } else {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
       if (ou != null) {
-        if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+        if (!user.isInUserHierarchy(ou.getPath())) {
           errors.add("User has no delete access to organisation unit: " + ou.getUid());
         }
       }
@@ -322,7 +322,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(User user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canRead(UserDetails user, Event event, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -372,7 +372,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(User user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canCreate(UserDetails user, Event event, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -391,8 +391,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     OrganisationUnit ou = event.getOrganisationUnit();
     if (ou != null) {
       if (event.isCreatableInSearchScope()
-          ? !organisationUnitService.isInUserSearchHierarchyCached(user, ou)
-          : !organisationUnitService.isInUserHierarchyCached(user, ou)) {
+          ? !user.isInUserSearchHierarchy(ou.getPath())
+          : !user.isInUserHierarchy(ou.getPath())) {
         errors.add("User has no create access to organisation unit: " + ou.getUid());
       }
     }
@@ -429,7 +429,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(User user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(UserDetails user, Event event, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -466,7 +466,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
       OrganisationUnit ou = event.getOrganisationUnit();
       if (ou != null) {
-        if (!organisationUnitService.isInUserSearchHierarchy(user, ou)) {
+        if (!user.isInUserSearchHierarchy(ou.getPath())) {
           errors.add("User has no update access to organisation unit: " + ou.getUid());
         }
       }
@@ -484,7 +484,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(User user, Event event, boolean skipOwnershipCheck) {
+  public List<String> canDelete(UserDetails user, Event event, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -503,7 +503,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     if (program.isWithoutRegistration()) {
       OrganisationUnit ou = event.getOrganisationUnit();
       if (ou != null) {
-        if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+        if (!user.isInUserDataHierarchy(ou.getPath())) {
           errors.add("User has no delete access to organisation unit: " + ou.getUid());
         }
       }
@@ -539,7 +539,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(User user, Relationship relationship) {
+  public List<String> canRead(UserDetails user, Relationship relationship) {
     List<String> errors = new ArrayList<>();
     RelationshipType relationshipType;
     RelationshipItem from;
@@ -571,7 +571,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canWrite(User user, Relationship relationship) {
+  public List<String> canWrite(UserDetails user, Relationship relationship) {
     List<String> errors = new ArrayList<>();
     RelationshipType relationshipType;
     RelationshipItem from;
@@ -604,7 +604,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(
-      User user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     if (user == null || user.isSuper()) {
@@ -622,7 +622,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canWrite(
-      User user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
     List<String> errors = new ArrayList<>();
 
     if (user == null || user.isSuper()) {
@@ -639,7 +639,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(User user, CategoryOptionCombo categoryOptionCombo) {
+  public List<String> canRead(UserDetails user, CategoryOptionCombo categoryOptionCombo) {
     List<String> errors = new ArrayList<>();
 
     if (user == null || user.isSuper() || categoryOptionCombo == null) {
@@ -656,7 +656,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canWrite(User user, CategoryOptionCombo categoryOptionCombo) {
+  public List<String> canWrite(UserDetails user, CategoryOptionCombo categoryOptionCombo) {
     List<String> errors = new ArrayList<>();
 
     if (user == null || user.isSuper() || categoryOptionCombo == null) {
@@ -673,7 +673,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public boolean canAccess(User user, Program program, OrganisationUnit orgUnit) {
+  public boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit) {
     if (orgUnit == null) {
       return false;
     }
@@ -683,10 +683,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     if (program != null && (program.isClosed() || program.isProtected())) {
-      return organisationUnitService.isInUserHierarchy(user, orgUnit);
+      return user.isInUserHierarchy(orgUnit.getPath());
     }
 
-    return organisationUnitService.isInUserSearchHierarchy(user, orgUnit);
+    return user.isInUserSearchHierarchy(orgUnit.getPath());
   }
 
   private boolean isNull(ProgramStage programStage) {

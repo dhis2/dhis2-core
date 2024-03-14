@@ -140,7 +140,7 @@ class TrackerCrudTest {
     when(notifier.notify(any(JobConfiguration.class), anyString())).thenReturn(notifier);
     when(notifier.clear(any())).thenReturn(notifier);
 
-    when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid, user))
+    when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid, any()))
         .thenReturn(new TrackedEntity());
     when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid))
         .thenReturn(new TrackedEntity());
@@ -240,7 +240,7 @@ class TrackerCrudTest {
             .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
 
     verify(defaultTrackedEntityInstanceService, times(1))
-        .getTrackedEntity(trackedEntityInstanceUid, user);
+        .getTrackedEntity(trackedEntityInstanceUid, any());
     verify(defaultTrackedEntityInstanceService, times(1)).updateTrackedEntity(any());
   }
 

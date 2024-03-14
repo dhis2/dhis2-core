@@ -90,7 +90,7 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
   private Event event;
 
-  private User user;
+  private UserDetails user;
 
   @BeforeEach
   public void setUp() {
@@ -105,11 +105,12 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
     event = createEvent(programStage, enrollment, organisationUnit);
     event.setUid(EV_UID);
 
-    user = new User();
-    user.setUsername("admin");
+    User u = new User();
+    u.setUsername("admin");
 
-    injectSecurityContext(UserDetails.fromUser(user));
-    when(userService.getUserByUsername(anyString())).thenReturn(user);
+    user = UserDetails.fromUser(u);
+    injectSecurityContext(user);
+    when(userService.getUserByUsername(anyString())).thenReturn(u);
   }
 
   @Test
