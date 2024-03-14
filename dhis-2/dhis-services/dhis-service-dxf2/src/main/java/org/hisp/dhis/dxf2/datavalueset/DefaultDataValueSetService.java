@@ -823,13 +823,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
     // -----------------------------------
     // Preserve any existing created date
     // -----------------------------------
-    if (existingValue != null) {
+    if (existingValue != null && !context.currentUserCanAttributeData()) {
       internalValue.setCreated(existingValue.getCreated());
     }
-
-    // if (existingValue != null && !context.currentUserCanAttributeData()) {
-    //  internalValue.setCreated(existingValue.getCreated());
-    // }
 
     final ImportStrategy strategy = context.getStrategy();
     boolean zeroAndInsignificant =
