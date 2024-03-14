@@ -41,7 +41,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -68,11 +67,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 class SecurityOwnershipValidator implements Validator<Enrollment> {
+
   @Nonnull private final AclService aclService;
-
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
-
-  @Nonnull private final OrganisationUnitService organisationUnitService;
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
       " has no organisation unit assigned, so we skip user validation";
@@ -165,7 +162,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
 
-    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+    if (!UserDetails.fromUser(user).isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
@@ -198,7 +195,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Enrollment enrollment,
       Program program,
       OrganisationUnit ownerOrgUnit) {
-    User user = bundle.getUser();
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
@@ -217,12 +214,12 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
       checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
       checkTeiTypeAndTeiProgramAccess(
-          reporter, enrollment, UserDetails.fromUser(user), trackedEntity, ownerOrgUnit, program);
+          reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
     }
   }
 
   private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, User user, Program program) {
+      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 

@@ -34,7 +34,6 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -110,7 +109,6 @@ class RelationshipOperationParamsMapperTest extends DhisConvenienceTest {
 
     user = UserDetails.fromUser(u);
     injectSecurityContext(user);
-    when(userService.getUserByUsername(anyString())).thenReturn(u);
   }
 
   @Test
