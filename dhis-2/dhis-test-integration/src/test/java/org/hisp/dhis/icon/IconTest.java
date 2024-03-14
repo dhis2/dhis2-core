@@ -236,6 +236,11 @@ class IconTest extends TrackerTest {
 
     assertNotEmpty(icons);
     List<String> keys = icons.stream().map(Icon::getKey).toList();
+
+    assertEquals(
+        3,
+        keys.size(),
+        String.format("Should have 3 icons with key %s", DefaultIcon.DOCTOR.getKey()));
     assertTrue(keys.contains("doctor_outline"), "list should contain doctor_outline");
     assertTrue(keys.contains("doctor_negative"), "list should contain doctor_negative");
     assertTrue(keys.contains("doctor_positive"), "list should contain doctor_positive");
