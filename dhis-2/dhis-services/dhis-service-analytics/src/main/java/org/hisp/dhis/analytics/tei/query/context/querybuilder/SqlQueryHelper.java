@@ -80,7 +80,7 @@ class SqlQueryHelper {
 
     return "select innermost_evt.*"
         + " from (select *,"
-        + " row_number() over (partition by programinstanceuid order by occurreddate "
+        + " row_number() over (partition by programinstanceuid order by occurreddate, created "
         + (offset > 0 ? "asc" : "desc")
         + " ) as rn"
         + " from "
