@@ -70,7 +70,7 @@ Get tracked entities and enrollments owned by given orgUnits relative to the `or
 no program is provided, the registration orgUnit for the tracked entity would be used to determine
 ownership.
 
-- When `orgUnitMode=SELECTED` - or no orgUnitMode is given (default) - the tracked entity or
+- When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the tracked entity or
   enrollments owned by the `orgUnits` are returned.
 - When `orgUnitMode=CHILDREN` the tracked entity or enrollments owned by the orgUnits or by the
   orgUnits direct children is returned.
