@@ -1579,13 +1579,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     trackedEntityInstance.setTrackedEntityInstance(daoTrackedEntity.getUid());
     trackedEntityInstance.setOrgUnit(daoTrackedEntity.getOrganisationUnit().getUid());
     trackedEntityInstance.setTrackedEntityType(daoTrackedEntity.getTrackedEntityType().getUid());
-    trackedEntityInstance.setCreated(DateUtils.getIso8601NoTz(daoTrackedEntity.getCreated()));
+    trackedEntityInstance.setCreated(DateUtils.toIso8601NoTz(daoTrackedEntity.getCreated()));
     trackedEntityInstance.setCreatedAtClient(
-        DateUtils.getIso8601NoTz(daoTrackedEntity.getCreatedAtClient()));
+        DateUtils.toIso8601NoTz(daoTrackedEntity.getCreatedAtClient()));
     trackedEntityInstance.setLastUpdated(
-        DateUtils.getIso8601NoTz(daoTrackedEntity.getLastUpdated()));
+        DateUtils.toIso8601NoTz(daoTrackedEntity.getLastUpdated()));
     trackedEntityInstance.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(daoTrackedEntity.getLastUpdatedAtClient()));
+        DateUtils.toIso8601NoTz(daoTrackedEntity.getLastUpdatedAtClient()));
     trackedEntityInstance.setInactive(
         Optional.ofNullable(daoTrackedEntity.isInactive()).orElse(false));
     trackedEntityInstance.setGeometry(daoTrackedEntity.getGeometry());
@@ -1644,8 +1644,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       if (readableAttributesCopy.contains(attributeValue.getAttribute())) {
         Attribute attribute = new Attribute();
 
-        attribute.setCreated(DateUtils.getIso8601NoTz(attributeValue.getCreated()));
-        attribute.setLastUpdated(DateUtils.getIso8601NoTz(attributeValue.getLastUpdated()));
+        attribute.setCreated(DateUtils.toIso8601NoTz(attributeValue.getCreated()));
+        attribute.setLastUpdated(DateUtils.toIso8601NoTz(attributeValue.getLastUpdated()));
         attribute.setDisplayName(attributeValue.getAttribute().getDisplayName());
         attribute.setAttribute(attributeValue.getAttribute().getUid());
         attribute.setValueType(attributeValue.getAttribute().getValueType());

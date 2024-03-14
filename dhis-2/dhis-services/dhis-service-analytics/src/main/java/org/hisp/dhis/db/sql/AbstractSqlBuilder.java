@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.db.sql;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
 import org.hisp.dhis.db.model.IndexType;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Abstract SQL builder class.
@@ -39,22 +46,62 @@ import org.hisp.dhis.db.model.IndexType;
  */
 public abstract class AbstractSqlBuilder implements SqlBuilder {
 
-  protected static final String QUOTE = "\"";
+  // Constants
+
   protected static final String SINGLE_QUOTE = "'";
   protected static final String BACKSLASH = "\\";
   protected static final String COMMA = ", ";
   protected static final String DOT = ".";
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
+  protected static final String SCHEMA = "public";
+
+  // Utilities
+
+  @Override
+  public String quoteAx(String relation) {
+    return ALIAS_AX + DOT + quote(relation);
+  }
+
+  @Override
+  public String singleQuotedCommaDelimited(Collection<String> items) {
+    return isEmpty(items)
+        ? EMPTY
+        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
+  }
+
+  // Statements
+
+  @Override
+  public String analyzeTable(Table table) {
+    return analyzeTable(table.getName());
+  }
+
+  @Override
+  public String dropTableIfExists(Table table) {
+    return dropTableIfExists(table.getName());
+  }
+
+  @Override
+  public String swapTable(Table table, String newName) {
+    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
+  }
+
+  @Override
+  public String swapParentTable(Table table, String parentName, String newParentName) {
+    return String.join(
+        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
+  }
+
+  // Mapping
 
   /**
    * Returns the database name of the given data type.
    *
    * @param dataType the {@link DataType}.
-   * @return the data type name.
+   * @return the database name of the given data type.
    */
-  @Override
-  public String getDataTypeName(DataType dataType) {
+  protected String getDataTypeName(DataType dataType) {
     switch (dataType) {
       case SMALLINT:
         return dataTypeSmallInt();
@@ -62,10 +109,10 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeInteger();
       case BIGINT:
         return dataTypeBigInt();
-      case NUMERIC:
-        return dataTypeNumeric();
-      case REAL:
-        return dataTypeReal();
+      case DECIMAL:
+        return dataTypeDecimal();
+      case FLOAT:
+        return dataTypeFloat();
       case DOUBLE:
         return dataTypeDouble();
       case BOOLEAN:
@@ -78,8 +125,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeVarchar(50);
       case VARCHAR_255:
         return dataTypeVarchar(255);
-      case VARCHAR_1200:
-        return dataTypeVarchar(1200);
       case TEXT:
         return dataTypeText();
       case DATE:
@@ -88,16 +133,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return dataTypeTimestamp();
       case TIMESTAMPTZ:
         return dataTypeTimestampTz();
-      case TIME:
-        return dataTypeTime();
-      case TIMETZ:
-        return dataTypeTimeTz();
       case GEOMETRY:
         return dataTypeGeometry();
       case GEOMETRY_POINT:
         return dataTypeGeometryPoint();
       case JSONB:
-        return dataTypeJsonb();
+        return dataTypeJson();
       default:
         throw new UnsupportedOperationException(
             String.format("Unsuported data type: %s", dataType));
@@ -105,13 +146,30 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   }
 
   /**
+   * Returns the database name of the given index function.
+   *
+   * @param indexFunction the {@link IndexFunction}.
+   * @return the database name of the given index function.
+   */
+  protected String getIndexFunctionName(IndexFunction indexFunction) {
+    switch (indexFunction) {
+      case UPPER:
+        return indexFunctionUpper();
+      case LOWER:
+        return indexFunctionLower();
+      default:
+        throw new UnsupportedOperationException(
+            String.format("Unsuported index function: %s", indexFunction));
+    }
+  }
+
+  /**
    * Returns the database name of the given index type.
    *
    * @param indexType the {@link IndexType}.
-   * @return the index type name.
+   * @return the database name of the given index type.
    */
-  @Override
-  public String getIndexTypeName(IndexType indexType) {
+  protected String getIndexTypeName(IndexType indexType) {
     switch (indexType) {
       case BTREE:
         return indexTypeBtree();
@@ -125,23 +183,17 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     }
   }
 
+  // Supportive
+
   /**
-   * Returns the database name of the given index function.
+   * Replaces variables in the given template string with the given variable values.
    *
-   * @param indexFunction the {@link IndexFunction}.
-   * @return the index function name.
+   * @param template the template string.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
    */
-  @Override
-  public String getIndexFunctionName(IndexFunction indexFunction) {
-    switch (indexFunction) {
-      case UPPER:
-        return indexFunctionUpper();
-      case LOWER:
-        return indexFunctionLower();
-      default:
-        throw new UnsupportedOperationException(
-            String.format("Unsuported index function: %s", indexFunction));
-    }
+  protected String replace(String template, Map<String, String> variables) {
+    return new StringSubstitutor(variables).replace(template);
   }
 
   /**
@@ -156,5 +208,15 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     String functionName = index.hasFunction() ? getIndexFunctionName(index.getFunction()) : null;
     String indexColumn = quote(column);
     return index.hasFunction() ? String.format("%s(%s)", functionName, indexColumn) : indexColumn;
+  }
+
+  /**
+   * Indicates that the feature or syntax is not supported by throwing an {@link
+   * UnsupportedOperationException}.
+   *
+   * @throws UnsupportedOperationException
+   */
+  protected String notSupported() {
+    throw new UnsupportedOperationException();
   }
 }

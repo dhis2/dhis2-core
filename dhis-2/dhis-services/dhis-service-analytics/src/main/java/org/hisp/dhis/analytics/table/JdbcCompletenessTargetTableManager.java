@@ -45,7 +45,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -87,7 +87,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -101,7 +101,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }
@@ -114,7 +114,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
         : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
@@ -157,13 +157,13 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        "from _datasetorganisationunitcategory doc "
+        "from analytics_rs_datasetorganisationunitcategory doc "
             + "inner join dataset ds on doc.datasetid=ds.datasetid "
             + "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid "
-            + "left join _orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
             + "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
+            + "left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }

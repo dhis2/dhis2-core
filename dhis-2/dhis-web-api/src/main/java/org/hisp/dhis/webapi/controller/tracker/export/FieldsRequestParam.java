@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.beans.PropertyEditorSupport;
-import org.hisp.dhis.common.UID;
+import java.util.List;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
-public class UIDParamEditor extends PropertyEditorSupport {
-  @Override
-  public void setAsText(String source) {
-    setValue(UID.of(source));
-  }
+/**
+ * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
+ * specify the exact fields they want in the JSON response.
+ */
+interface FieldsRequestParam {
+  List<FieldPath> getFields();
 }

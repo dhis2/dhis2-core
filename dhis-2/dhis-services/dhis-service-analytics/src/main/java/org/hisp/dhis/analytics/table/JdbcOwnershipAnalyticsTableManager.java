@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -106,7 +106,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsTableExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsExportSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -143,7 +143,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a list of {@link AnalyticsTableUpdateParams}.
    */
   private List<AnalyticsTable> getRegularAnalyticsTables() {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return idObjectManager.getAllNoAcl(Program.class).stream()
         .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr))
         .collect(toList());
@@ -262,8 +262,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 + ") a "
                 + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
                 + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-                + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-                + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
+                + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+                + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
                 + "order by tei.uid, a.startdate, a.enddate")
         .toString();
   }

@@ -59,6 +59,7 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.QueryHints;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -481,6 +482,23 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+    String sql =
+        """
+            select u.username, u.email from userinfo u
+            where u.email is not null
+              and u.userinfoid in (select m.userid from usergroup g inner join usergroupmembers m on m.usergroupid = g.usergroupid where g.uid = :group);
+            """;
+    NativeQuery<?> emailsByUsername =
+        getSession().createNativeQuery(sql).setParameter("group", userGroupId);
+    return emailsByUsername.stream()
+        .collect(
+            toMap(
+                columns -> (String) ((Object[]) columns)[0],
+                columns -> (String) ((Object[]) columns)[1]));
+  }
+
+  @Override
   @SuppressWarnings("unchecked")
   public String getDisplayName(String userUid) {
     String sql = "select concat(firstname, ' ', surname) from userinfo where uid =:uid";
@@ -517,6 +535,19 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     Query<User> query = getQuery("from User u where u.uuid = :uuid");
     query.setParameter("uuid", uuid);
     return query.uniqueResult();
+  }
+
+  @Override
+  public User getUserByEmail(String email) {
+    Query<User> query = getQuery("from User u where u.email = :email");
+    query.setParameter("email", email);
+    List<User> list = query.getResultList();
+    if (list.size() > 1) {
+      // password, but that should be changed when we have verified emails implemented.
+      log.warn("Multiple users found with email: {}", email);
+      return null;
+    }
+    return list.isEmpty() ? null : list.get(0);
   }
 
   @Override

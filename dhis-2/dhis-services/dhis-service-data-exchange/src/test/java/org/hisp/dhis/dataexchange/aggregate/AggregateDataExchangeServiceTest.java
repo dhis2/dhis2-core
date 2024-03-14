@@ -51,6 +51,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -60,6 +61,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -73,6 +77,8 @@ class AggregateDataExchangeServiceTest {
   @Mock private AggregateDataExchangeStore aggregateDataExchangeStore;
 
   @Mock private DataQueryService dataQueryService;
+
+  @Mock private AclService aclService;
 
   @Mock private DataValueSetService dataValueSetService;
 
@@ -118,6 +124,8 @@ class AggregateDataExchangeServiceTest {
                 DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
     when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
         .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
+    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(true);
 
     SourceRequest sourceRequest =
         new SourceRequest()
@@ -135,7 +143,8 @@ class AggregateDataExchangeServiceTest {
     AggregateDataExchange exchange =
         new AggregateDataExchange().setSource(source).setTarget(target);
 
-    ImportSummaries summaries = service.exchangeData(exchange, NoopJobProgress.INSTANCE);
+    ImportSummaries summaries =
+        service.exchangeData(UserDetails.fromUser(new User()), exchange, NoopJobProgress.INSTANCE);
 
     assertNotNull(summaries);
     assertEquals(1, summaries.getImportSummaries().size());

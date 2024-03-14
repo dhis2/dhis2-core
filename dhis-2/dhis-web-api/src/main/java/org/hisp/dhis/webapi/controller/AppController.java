@@ -62,6 +62,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -113,7 +114,7 @@ public class AppController {
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     checkForEmbeddedJettyRuntime(request);
 
-    String contextPath = ContextUtils.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
     return Map.of("modules", getAccessibleAppMenu(contextPath));
   }
 
@@ -205,7 +206,7 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException {
-    String contextPath = ContextUtils.getContextPath(request);
+    String contextPath = HttpServletRequestPaths.getContextPath(request);
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested
@@ -274,7 +275,7 @@ public class AppController {
 
       response.setContentLengthLong(resource.contentLength());
       response.setHeader(
-          "Last-Modified", DateUtils.getHttpDateString(new Date(resource.lastModified())));
+          "Last-Modified", DateUtils.toHttpDateString(new Date(resource.lastModified())));
 
       StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
     }

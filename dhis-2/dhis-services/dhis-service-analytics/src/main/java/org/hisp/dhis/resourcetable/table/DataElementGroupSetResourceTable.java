@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Column;
@@ -41,21 +43,21 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class DataElementGroupSetResourceTable implements ResourceTable {
-  private static final String TABLE_NAME = "_dataelementgroupsetstructure";
-
-  private final SqlBuilder sqlBuilder;
+public class DataElementGroupSetResourceTable extends AbstractResourceTable {
+  public static final String TABLE_NAME = "analytics_rs_dataelementgroupsetstructure";
 
   private final List<DataElementGroupSet> groupSets;
 
-  private final Logged logged;
+  public DataElementGroupSetResourceTable(
+      SqlBuilder sqlBuilder, Logged logged, List<DataElementGroupSet> groupSets) {
+    super(sqlBuilder, logged);
+    this.groupSets = groupSets;
+  }
 
   @Override
   public Table getTable() {
@@ -97,30 +99,25 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
 
     for (DataElementGroupSet groupSet : groupSets) {
       sql +=
-          "("
-              + "select deg.name from dataelementgroup deg "
-              + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
-              + "inner join dataelementgroupsetmembers degsm on "
-              + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where degm.dataelementid = d.dataelementid "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getName())
-              + ", ";
-
-      sql +=
-          "("
-              + "select deg.uid from dataelementgroup deg "
-              + "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid "
-              + "inner join dataelementgroupsetmembers degsm on "
-              + "degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
-              + groupSet.getId()
-              + " "
-              + "where degm.dataelementid = d.dataelementid "
-              + "limit 1) as "
-              + sqlBuilder.quote(groupSet.getUid())
-              + ", ";
+          replace(
+              """
+          (
+          select deg.name from dataelementgroup deg \
+          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+          and degsm.dataelementgroupsetid = ${groupSetId} \
+          where degm.dataelementid = d.dataelementid limit 1) as ${groupSetName}, \
+          (
+          select deg.uid from dataelementgroup deg \
+          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+          and degsm.dataelementgroupsetid = ${groupSetId} \
+          where degm.dataelementid = d.dataelementid limit 1) as ${groupSetUid}, \
+          """,
+              Map.of(
+                  "groupSetId", valueOf(groupSet.getId()),
+                  "groupSetName", quote(groupSet.getName()),
+                  "groupSetUid", quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";

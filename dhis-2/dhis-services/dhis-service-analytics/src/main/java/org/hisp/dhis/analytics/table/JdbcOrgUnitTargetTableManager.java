@@ -44,7 +44,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -80,7 +80,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
       PartitionManager partitionManager,
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
-      AnalyticsTableExportSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -94,7 +94,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
   }
@@ -107,7 +107,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
         : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
@@ -152,8 +152,8 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql +=
         "from orgunitgroupmembers ougm "
             + "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid "
-            + "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
+            + "left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
 
     invokeTimeAndLog(sql, tableName);
   }

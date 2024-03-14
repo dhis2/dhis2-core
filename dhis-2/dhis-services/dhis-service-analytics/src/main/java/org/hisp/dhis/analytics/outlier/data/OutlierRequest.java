@@ -86,6 +86,8 @@ public class OutlierRequest {
 
   @Default private IdScheme outputIdScheme = IdScheme.UID;
 
+  private boolean skipRounding;
+
   private boolean analyzeOnly;
 
   private String explainOrderId;

@@ -37,12 +37,15 @@ import static org.hisp.dhis.feedback.ErrorCode.E7140;
 import static org.hisp.dhis.feedback.ErrorCode.E7141;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +67,27 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
 
   private final List<Function<CommonQueryRequest, CommonQueryRequest>> processors =
       List.of(this::computePagingParams, this::computeEnrollmentStatus, this::computeEventStatus);
+
+  private static final Predicate<String> IS_EVENT_STATUS =
+      s -> find(() -> EventStatus.valueOf(s)).isPresent();
+  private static final Predicate<String> IS_ENROLLMENT_STATUS =
+      s -> find(() -> EnrollmentStatus.valueOf(s)).isPresent();
+
+  /**
+   * Tries to get a value from the given supplier, and returns an Optional with the value if
+   * successful, or an empty Optional if an exception is thrown.
+   *
+   * @param supplier the supplier to get the value from
+   * @return an Optional with the value if successful, or an empty Optional
+   * @param <T>
+   */
+  private static <T> Optional<T> find(Supplier<T> supplier) {
+    try {
+      return Optional.of(supplier.get());
+    } catch (Exception e) {
+      return Optional.empty();
+    }
+  }
 
   /**
    * Based on the given query request object {@link CommonQueryRequest}, this method will
@@ -150,12 +174,16 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     return commonQueryRequest;
   }
 
-  private Collection<String> eventStatusAsDimension(Set<String> eventStatuses) {
+  private List<String> eventStatusAsDimension(Set<String> eventStatuses) {
     // builds a map of [program,program stage] with a list of event statuses
     Map<Pair<String, String>, List<EventStatus>> statusesByProgramAndProgramStage =
         eventStatuses.stream()
-            .map(eventStatus -> splitAndValidate(eventStatus, 3, E7141))
-            .map(parts -> Pair.of(Pair.of(parts[0], parts[1]), EventStatus.valueOf(parts[2])))
+            .map(eventStatus -> splitAndValidate(eventStatus, IS_EVENT_STATUS, 3, E7141))
+            .map(
+                parts ->
+                    Pair.of(
+                        Pair.of(parts[0], parts[1]),
+                        find(() -> EventStatus.valueOf(parts[2])).orElse(null)))
             .collect(groupingBy(Pair::getLeft, mapping(Pair::getRight, Collectors.toList())));
 
     return statusesByProgramAndProgramStage.keySet().stream()
@@ -173,6 +201,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
                     +
                     // ";" concatenated values - for example "COMPLETED;SKIPPED"
                     statusesByProgramAndProgramStage.get(programWithStage).stream()
+                        .filter(Objects::nonNull)
                         .map(EventStatus::name)
                         .collect(Collectors.joining(";")))
         .collect(Collectors.toList());
@@ -182,8 +211,12 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
     // builds a map of [program] with a list of program (enrollment) statuses
     Map<String, List<EnrollmentStatus>> statusesByProgram =
         enrollmentStatuses.stream()
-            .map(enrollmentStatus -> splitAndValidate(enrollmentStatus, 2, E7140))
-            .map(parts -> Pair.of(parts[0], EnrollmentStatus.valueOf(parts[1])))
+            .map(
+                enrollmentStatus ->
+                    splitAndValidate(enrollmentStatus, IS_ENROLLMENT_STATUS, 2, E7140))
+            .map(
+                parts ->
+                    Pair.of(parts[0], find(() -> EnrollmentStatus.valueOf(parts[1])).orElse(null)))
             .collect(groupingBy(Pair::getLeft, mapping(Pair::getRight, Collectors.toList())));
 
     return statusesByProgram.keySet().stream()
@@ -194,6 +227,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
                     + ENROLLMENT_STATUS.name()
                     + DIMENSION_NAME_SEP
                     + statusesByProgram.get(program).stream()
+                        .filter(Objects::nonNull)
                         .map(EnrollmentStatus::name)
                         .collect(Collectors.joining(";")))
         .collect(Collectors.toList());
@@ -208,11 +242,25 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
    * @param errorCode the error code to use in case of error
    * @return the resulting array
    */
-  private String[] splitAndValidate(String parameter, int allowedLength, ErrorCode errorCode) {
+  private String[] splitAndValidate(
+      String parameter, Predicate<String> valueValidator, int allowedLength, ErrorCode errorCode) {
     String[] parts = parameter.split("\\.");
-    if (parts.length != allowedLength) {
+
+    // if the number of parts is the same as the allowed length, we should validate the last part
+    if (parts.length == allowedLength) {
+      // in this case the last part is the value and should be validated
+      if (valueValidator.test(parts[parts.length - 1])) {
+        return parts;
+      }
       throw new IllegalQueryException(new ErrorMessage(errorCode));
     }
-    return parts;
+
+    // if the number of parts is less than the allowed length, we ensure the last part is
+    // not valid enum value.
+    if (parts.length == allowedLength - 1 && !valueValidator.test(parts[parts.length - 1])) {
+      return parts;
+    }
+
+    throw new IllegalQueryException(new ErrorMessage(errorCode));
   }
 }

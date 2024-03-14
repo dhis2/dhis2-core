@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
 import org.hisp.dhis.analytics.common.processing.Processor;
@@ -73,7 +74,8 @@ public class TeiQueryRequestMapper {
    * @throws IllegalQueryException if the current TrackedEntityType specified in the given request
    *     is invalid or non-existent.
    */
-  public TeiQueryParams map(QueryRequest<TeiQueryRequest> queryRequest) {
+  public TeiQueryParams map(
+      QueryRequest<TeiQueryRequest> queryRequest, CommonQueryRequest originalRequest) {
     TrackedEntityType trackedEntityType =
         getTrackedEntityType(queryRequest.getRequest().getTrackedEntityType());
 
@@ -100,7 +102,7 @@ public class TeiQueryRequestMapper {
             .trackedEntityType(trackedEntityType)
             .commonParams(
                 commonQueryRequestMapper
-                    .map(queryRequest.getCommonQueryRequest())
+                    .map(queryRequest.getCommonQueryRequest(), originalRequest)
                     .withProgramsFromRequest(programsFromRequest))
             .build());
   }

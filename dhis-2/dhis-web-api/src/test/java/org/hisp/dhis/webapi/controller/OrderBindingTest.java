@@ -27,16 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import lombok.Data;
+import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -45,9 +54,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 class OrderBindingTest {
-  private static final String ENDPOINT = "/ordering";
-
+  private static final String METHOD_PARAMETER_ENDPOINT = "/order/methodParameter";
+  private static final String CLASS_PARAMETER_ENDPOINT = "/order/classParameter";
   private MockMvc mockMvc;
+  private List<OrderCriteria> actual;
 
   @BeforeEach
   public void setUp() {
@@ -60,60 +70,134 @@ class OrderBindingTest {
   @Test
   void shouldReturnDefaultSortDirectionWhenNoSortDirectionIsPassedAsParameter() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT).param("order", "field"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("field")))
-        .andExpect(content().string(containsString("ASC")));
+        .perform(get(METHOD_PARAMETER_ENDPOINT).param("order", "field"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(OrderCriteria.of("field", SortDirection.ASC)), actual);
   }
 
   @Test
   void shouldReturnAscSortDirectionWhenAscSortDirectionIsPassedAsParameter() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT).param("order", "field:asc"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("field")))
-        .andExpect(content().string(containsString("ASC")));
+        .perform(get(METHOD_PARAMETER_ENDPOINT).param("order", "field:asc"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(OrderCriteria.of("field", SortDirection.ASC)), actual);
   }
 
   @Test
   void shouldReturnDescSortDirectionWhenDescSortDirectionIsPassedAsParameter() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT).param("order", "field:desc"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("field")))
-        .andExpect(content().string(containsString("DESC")));
+        .perform(get(METHOD_PARAMETER_ENDPOINT).param("order", "field:desc"))
+        .andExpect(status().isOk());
+
+    assertEquals(List.of(OrderCriteria.of("field", SortDirection.DESC)), actual);
   }
 
-  @Test
-  void shouldReturnABadRequestWhenInvalidSortDirectionIsPassedAsParameter() throws Exception {
+  @ParameterizedTest
+  @ValueSource(strings = {METHOD_PARAMETER_ENDPOINT, CLASS_PARAMETER_ENDPOINT})
+  void shouldHandleMultipleOrderComponentsGivenViaOneParameter(String endpoint) throws Exception {
     mockMvc
-        .perform(get(ENDPOINT).param("order", "field:wrong"))
-        .andExpect(content().string(containsString("Bad Request")))
-        .andExpect(
-            content()
-                .string(
-                    containsString(
-                        "'wrong' is not a valid sort direction. Valid values are: [ASC, DESC]")));
+        .perform(get(endpoint).param("order", "field1:desc,field2:asc"))
+        .andExpect(status().isOk());
+
+    assertEquals(
+        List.of(
+            OrderCriteria.of("field1", SortDirection.DESC),
+            OrderCriteria.of("field2", SortDirection.ASC)),
+        actual);
   }
 
-  @Test
-  void shouldReturnABadRequestWhenInvalidSortDirectionIsPassedAsParameterInAListOfOrders()
+  @ParameterizedTest
+  @ValueSource(strings = {METHOD_PARAMETER_ENDPOINT, CLASS_PARAMETER_ENDPOINT})
+  void shouldHandleMultipleOrderComponentsGivenViaMultipleParameters(String endpoint)
       throws Exception {
     mockMvc
-        .perform(get(ENDPOINT).param("order", "field1:wrong").param("order", "field2:asc"))
-        .andExpect(content().string(containsString("Bad Request")))
-        .andExpect(
-            content()
-                .string(
-                    containsString(
-                        "'wrong' is not a valid sort direction. Valid values are: [ASC, DESC]")));
+        .perform(get(endpoint).param("order", "field1:desc").param("order", "field2:asc"))
+        .andExpect(status().isOk());
+
+    assertEquals(
+        List.of(
+            OrderCriteria.of("field1", SortDirection.DESC),
+            OrderCriteria.of("field2", SortDirection.ASC)),
+        actual);
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {METHOD_PARAMETER_ENDPOINT, CLASS_PARAMETER_ENDPOINT})
+  void shouldReturnABadRequestWhenMixingRepeatedParameterAndCommaSeparatedValues(String endpoint)
+      throws Exception {
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(
+                get(endpoint)
+                    .accept("application/json")
+                    .param("order", "field1:desc")
+                    .param("order", "field2:asc,field3:desc"))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith(
+        "You likely repeated request parameter 'order' and used", message.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {METHOD_PARAMETER_ENDPOINT, CLASS_PARAMETER_ENDPOINT})
+  void shouldReturnABadRequestWhenInvalidSortDirectionIsPassedAsParameter(String endpoint)
+      throws Exception {
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(get(endpoint).accept("application/json").param("order", "field:wrong"))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertContains(
+        "'wrong' is not a valid sort direction. Valid values are: [ASC,", message.getMessage());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {METHOD_PARAMETER_ENDPOINT, CLASS_PARAMETER_ENDPOINT})
+  void shouldReturnABadRequestWhenInvalidSortDirectionIsPassedAsParameterInAListOfOrders(
+      String endpoint) throws Exception {
+    MockHttpServletResponse response =
+        mockMvc
+            .perform(
+                get(endpoint)
+                    .accept("application/json")
+                    .param("order", "field1:wrong")
+                    .param("order", "field2:asc"))
+            .andReturn()
+            .getResponse();
+
+    JsonWebMessage message = JsonMixed.of(response.getContentAsString()).as(JsonWebMessage.class);
+    assertEquals(400, message.getHttpStatusCode());
+    assertStartsWith("Value 'field1:wrong' is not valid for parameter order", message.getMessage());
+    assertContains(
+        "'wrong' is not a valid sort direction. Valid values are: [ASC,", message.getMessage());
   }
 
   @Controller
-  private static class OrderingController extends CrudControllerAdvice {
-    @GetMapping(value = ENDPOINT)
-    public @ResponseBody WebMessage getOrder(@RequestParam List<OrderCriteria> order) {
-      return ok(order.toString());
+  private class OrderingController extends CrudControllerAdvice {
+    @Data
+    static class RequestParams {
+      List<OrderCriteria> order;
+    }
+
+    @GetMapping(value = CLASS_PARAMETER_ENDPOINT)
+    public @ResponseBody WebMessage getOrderViaClassParameter(RequestParams params) {
+      actual = params.order;
+      return ok();
+    }
+
+    @GetMapping(value = METHOD_PARAMETER_ENDPOINT)
+    public @ResponseBody WebMessage getOrderViaMethodParameter(
+        @RequestParam List<OrderCriteria> order) {
+      actual = order;
+      return ok();
     }
   }
 }

@@ -89,6 +89,8 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
 
@@ -117,6 +119,11 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   public SessionRegistry sessionRegistry() {
     return new SessionRegistryImpl();
+  }
+
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
   }
 
   /** This class is configuring the OIDC login endpoints */
@@ -160,7 +167,7 @@ public class DhisWebApiWebSecurityConfig {
                       .tokenEndpoint()
                       .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
                       .and()
-                      .failureUrl("/dhis-web-commons/security/login.action?oidcFailure=true")
+                      .failureUrl("/dhis-web-login?oidcFailure=true")
                       .clientRegistrationRepository(dhisOidcProviderRepository)
                       .loginProcessingUrl("/oauth2/code/*")
                       .authorizationEndpoint()
@@ -212,6 +219,8 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
+    @Autowired private RequestCache requestCache;
+
     @Override
     public void configure(AuthenticationManagerBuilder auth) {
       auth.authenticationProvider(customLdapAuthenticationProvider);
@@ -259,25 +268,37 @@ public class DhisWebApiWebSecurityConfig {
           .permitAll()
           .antMatchers("/oauth2/**")
           .permitAll()
-          .antMatchers(apiContextPath + "/loginConfig")
+          .antMatchers(apiContextPath + "/**/locales/ui")
           .permitAll()
-          .antMatchers(apiContextPath + "/authentication/login")
+          .antMatchers(apiContextPath + "/**/loginConfig")
           .permitAll()
-          .antMatchers(apiContextPath + "/account/recovery")
+          .antMatchers(apiContextPath + "/**/auth/login")
           .permitAll()
-          .antMatchers(apiContextPath + "/account/restore")
+          .antMatchers(apiContextPath + "/**/auth/forgotPassword")
           .permitAll()
-          .antMatchers(apiContextPath + "/account")
+          .antMatchers(apiContextPath + "/**/auth/passwordReset")
           .permitAll()
-          .antMatchers(apiContextPath + "/staticContent/**")
+          .antMatchers(apiContextPath + "/**/auth/registration")
           .permitAll()
-          .antMatchers(apiContextPath + "/externalFileResources/**")
+          .antMatchers(apiContextPath + "/**/auth/invite")
           .permitAll()
-          .antMatchers(apiContextPath + "/icons/*/icon.svg")
+          .antMatchers(apiContextPath + "/**/authentication/login")
           .permitAll()
-          .antMatchers(apiContextPath + "/files/style/external")
+          .antMatchers(apiContextPath + "/**/account/recovery")
           .permitAll()
-          .antMatchers(apiContextPath + "/publicKeys/**")
+          .antMatchers(apiContextPath + "/**/account/restore")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/account")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/staticContent/**")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/externalFileResources/**")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/icons/*/icon.svg")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/files/style/external")
+          .permitAll()
+          .antMatchers(apiContextPath + "/**/publicKeys/**")
           .permitAll()
           .anyRequest()
           .authenticated()
@@ -288,6 +309,8 @@ public class DhisWebApiWebSecurityConfig {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http.csrf().disable();
+
+      http.requestCache().requestCache(requestCache);
 
       configureMatchers(http);
       configureCspFilter(http, dhisConfig, configurationService);
@@ -439,7 +462,7 @@ public class DhisWebApiWebSecurityConfig {
      */
     @Bean
     public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
-      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+      return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
     }
 
     @Bean

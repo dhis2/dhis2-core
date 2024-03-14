@@ -86,8 +86,9 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @Autowired private TransactionTemplate txTemplate;
 
   @BeforeEach
-  final void setup() throws Exception {
+  final void setup() {
     userService = _userService;
+
     clearSecurityContext();
 
     createAndPersistAdminUserAndRole();
@@ -101,9 +102,16 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     TestUtils.executeStartupRoutines(webApplicationContext);
 
-    integrationTestBefore();
+      try
+      {
+          integrationTestBefore();
+      }
+      catch ( Exception e )
+      {
+          throw new RuntimeException( e );
+      }
 
-    dbmsManager.flushSession();
+      dbmsManager.flushSession();
     dbmsManager.clearSession();
 
     beforeEach();
@@ -144,6 +152,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     return user;
   }
 
+
   protected User createAndPersistDataEntryRole() {
     UserRole role =
         createUserRole("DataEntry_Test_" + CodeGenerator.generateUid(), "F_DATAVALUE_ADD");
@@ -168,6 +177,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   }
 
   protected void integrationTestBefore() throws Exception {
+
     boolean enableQueryLogging =
         dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
     // Enable to query logger to log only what's happening inside the test

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
+import static java.lang.String.format;
+
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.ldap.core.DirContextOperations;
@@ -42,6 +45,7 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
  *
  * @author Lars Helge Overland
  */
+@Slf4j
 public class DhisBindAuthenticator extends BindAuthenticator {
 
   private UserStore userStore;
@@ -60,11 +64,23 @@ public class DhisBindAuthenticator extends BindAuthenticator {
     }
 
     if (user.hasLdapId()) {
+      log.debug(
+          "LDAP authentication attempt with username: '{}' and LDAP ID: '{}'",
+          user.getUsername(),
+          user.getLdapId());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
     }
 
     return super.authenticate(authentication);
+  }
+
+  @Override
+  public void handleBindException(String userDn, String username, Throwable cause) {
+    String message =
+        format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username);
+    log.warn(message, cause);
+    log.debug("LDAP user bind failed", cause);
   }
 }

@@ -35,11 +35,11 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
-import static org.hisp.dhis.util.DateUtils.getMediumDate;
 import static org.hisp.dhis.util.DateUtils.minusOneDay;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.hisp.dhis.util.DateUtils.safeParseDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -64,6 +64,8 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class DateUtilsTest {
+  private static final String NULL_STRING = null;
+  private static final Date NULL_DATE = null;
 
   @Test
   void testDateIsValid() {
@@ -111,10 +113,9 @@ class DateUtilsTest {
 
   @Test
   void testDaysBetween() {
-    assertEquals(
-        6,
-        DateUtils.daysBetween(
-            new DateTime(2014, 3, 1, 0, 0).toDate(), new DateTime(2014, 3, 7, 0, 0).toDate()));
+    Date dateA = new DateTime(2014, 3, 1, 0, 0).toDate();
+    Date dateB = new DateTime(2014, 3, 7, 0, 0).toDate();
+    assertEquals(6, DateUtils.daysBetween(dateA, dateB));
   }
 
   @Test
@@ -201,39 +202,39 @@ class DateUtilsTest {
   }
 
   @Test
-  void testGetMediumDate() {
+  void testToMediumDate() {
     assertEquals(
-        new DateTime(2014, 5, 18, 0, 0, 0, 0).toDate(), DateUtils.getMediumDate("2014-05-18"));
+        new DateTime(2014, 5, 18, 0, 0, 0, 0).toDate(), DateUtils.toMediumDate("2014-05-18"));
     assertEquals(
-        new DateTime(2015, 11, 3, 0, 0, 0, 0).toDate(), DateUtils.getMediumDate("2015-11-03"));
-    assertNull(DateUtils.getMediumDate(null));
+        new DateTime(2015, 11, 3, 0, 0, 0, 0).toDate(), DateUtils.toMediumDate("2015-11-03"));
+    assertNull(DateUtils.toMediumDate(NULL_STRING));
   }
 
   @Test
   void testGetInvalidMediumDate() {
     assertThrows(
-        IllegalArgumentException.class, () -> DateUtils.getMediumDate("StringWhichIsNotADate"));
+        IllegalArgumentException.class, () -> DateUtils.toMediumDate("StringWhichIsNotADate"));
   }
 
   @Test
-  void testGetMediumDateString() {
+  void testToMediumDateString() {
     Date date = new DateTime(2014, 5, 18, 15, 10, 5, 12).toDate();
-    assertEquals("2014-05-18", DateUtils.getMediumDateString(date));
-    assertNull(DateUtils.getMediumDateString(null));
+    assertEquals("2014-05-18", DateUtils.toMediumDate(date));
+    assertNull(DateUtils.toMediumDate(NULL_DATE));
   }
 
   @Test
-  void testGetLongDateString() {
+  void testToLongDateString() {
     Date date = new DateTime(2014, 5, 18, 15, 10, 5, 12).toDate();
-    assertEquals("2014-05-18T15:10:05", DateUtils.getLongDateString(date));
-    assertNull(DateUtils.getLongDateString(null));
+    assertEquals("2014-05-18T15:10:05", DateUtils.toLongDate(date));
+    assertNull(DateUtils.toLongDate(NULL_DATE));
   }
 
   @Test
-  void testGetHttpDateString() {
+  void testToHttpDateString() {
     Date date = new DateTime(2014, 5, 18, 15, 10, 5, 12).toDate();
-    assertEquals("Sun, 18 May 2014 15:10:05 GMT", DateUtils.getHttpDateString(date));
-    assertNull(DateUtils.getLongDateString(null));
+    assertEquals("Sun, 18 May 2014 15:10:05 GMT", DateUtils.toHttpDateString(date));
+    assertNull(DateUtils.toLongDate(NULL_DATE));
   }
 
   @Test
@@ -281,7 +282,7 @@ class DateUtilsTest {
     assertEquals(year, cal.get(Calendar.YEAR));
     assertEquals(month, cal.get(Calendar.MONTH) + 1);
     assertEquals(day, cal.get(Calendar.DAY_OF_MONTH));
-    Date mediumDateParsed = getMediumDate(dateString);
+    Date mediumDateParsed = toMediumDate(dateString);
     assertEquals(dateParsed, mediumDateParsed);
   }
 
@@ -313,63 +314,42 @@ class DateUtilsTest {
 
   @Test
   void getNextDate() {
-    Date now1 = new DateTime(2019, 4, 6, 15, 2, 24).toDate();
-    Date now2 = new DateTime(2019, 4, 7, 3, 2, 35).toDate();
-    assertEquals(new DateTime(2019, 4, 6, 19, 0, 0, 0).toDate(), DateUtils.getNextDate(19, now1));
-    assertEquals(new DateTime(2019, 4, 6, 21, 0, 0, 0).toDate(), DateUtils.getNextDate(21, now1));
-    assertEquals(new DateTime(2019, 4, 7, 4, 0, 0, 0).toDate(), DateUtils.getNextDate(4, now1));
-    assertEquals(new DateTime(2019, 4, 7, 15, 0, 0, 0).toDate(), DateUtils.getNextDate(15, now1));
-    assertEquals(new DateTime(2019, 4, 8, 2, 0, 0, 0).toDate(), DateUtils.getNextDate(2, now2));
-    assertEquals(new DateTime(2019, 4, 7, 5, 0, 0, 0).toDate(), DateUtils.getNextDate(5, now2));
-    assertEquals(new DateTime(2019, 4, 7, 17, 0, 0, 0).toDate(), DateUtils.getNextDate(17, now2));
-    assertNotNull(DateUtils.getNextDate(4, null));
+    Date dateA = new DateTime(2023, 4, 6, 15, 2, 24).toDate();
+    Date dateB = new DateTime(2023, 4, 7, 3, 2, 35).toDate();
+    assertEquals(new DateTime(2023, 4, 6, 19, 0, 0, 0).toDate(), DateUtils.getNextDate(19, dateA));
+    assertEquals(new DateTime(2023, 4, 6, 21, 0, 0, 0).toDate(), DateUtils.getNextDate(21, dateA));
+    assertEquals(new DateTime(2023, 4, 7, 4, 0, 0, 0).toDate(), DateUtils.getNextDate(4, dateA));
+    assertEquals(new DateTime(2023, 4, 7, 15, 0, 0, 0).toDate(), DateUtils.getNextDate(15, dateA));
+    assertEquals(new DateTime(2023, 4, 8, 2, 0, 0, 0).toDate(), DateUtils.getNextDate(2, dateB));
+    assertEquals(new DateTime(2023, 4, 7, 5, 0, 0, 0).toDate(), DateUtils.getNextDate(5, dateB));
+    assertEquals(new DateTime(2023, 4, 7, 17, 0, 0, 0).toDate(), DateUtils.getNextDate(17, dateB));
   }
 
   @Test
   void testCalculateDateFromUsingPositiveDays() {
-    // Given
     Date anyInitialDate = new Date();
-
-    // When
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, 1, DATE);
-
-    // Then
     assertThat(theNewDate, is(greaterThan(anyInitialDate)));
   }
 
   @Test
   void testCalculateDateFromUsingNegativeDays() {
-    // Given
     Date anyInitialDate = new Date();
-
-    // When
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, -1, DATE);
-
-    // Then
     assertThat(theNewDate, is(lessThan(anyInitialDate)));
   }
 
   @Test
   void testCalculateDateFromUsingPositiveMilis() {
-    // Given
     Date anyInitialDate = new Date();
-
-    // When
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, 1, MILLISECOND);
-
-    // Then
     assertThat(theNewDate, is(greaterThan(anyInitialDate)));
   }
 
   @Test
   void testCalculateDateFromUsingNegativeMilis() {
-    // Given
     Date anyInitialDate = new Date();
-
-    // When
     Date theNewDate = DateUtils.calculateDateFrom(anyInitialDate, -1, MILLISECOND);
-
-    // Then
     assertThat(theNewDate, is(lessThan(anyInitialDate)));
   }
 
@@ -478,29 +458,29 @@ class DateUtilsTest {
 
   @Test
   void testPlusOneDay() {
-    Date aDay = getMediumDate("2021-01-01");
-    Date theDayAfter = getMediumDate("2021-01-02");
+    Date aDay = toMediumDate("2021-01-01");
+    Date theDayAfter = toMediumDate("2021-01-02");
     assertThat(theDayAfter, is(plusOneDay(aDay)));
   }
 
   @Test
   void testPlusOneSqlDay() {
-    java.sql.Date sqlDay = new java.sql.Date(getMediumDate("2021-01-01").getTime());
-    Date theDayAfter = getMediumDate("2021-01-02");
+    java.sql.Date sqlDay = new java.sql.Date(toMediumDate("2021-01-01").getTime());
+    Date theDayAfter = toMediumDate("2021-01-02");
     assertThat(theDayAfter, is(plusOneDay(sqlDay)));
   }
 
   @Test
   void testMinusOneDay() {
-    Date aDay = getMediumDate("2021-01-01");
-    Date theDayBefore = getMediumDate("2020-12-31");
+    Date aDay = toMediumDate("2021-01-01");
+    Date theDayBefore = toMediumDate("2020-12-31");
     assertThat(theDayBefore, is(minusOneDay(aDay)));
   }
 
   @Test
   void testMinusOneSqlDay() {
-    java.sql.Date sqlDay = new java.sql.Date(getMediumDate("2021-01-01").getTime());
-    Date theDayBefore = getMediumDate("2020-12-31");
+    java.sql.Date sqlDay = new java.sql.Date(toMediumDate("2021-01-01").getTime());
+    Date theDayBefore = toMediumDate("2020-12-31");
     assertThat(theDayBefore, is(minusOneDay(sqlDay)));
   }
 }

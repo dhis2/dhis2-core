@@ -29,16 +29,16 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
@@ -50,7 +50,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -93,12 +92,12 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
   }
 
   @Override
-  public int countEnrollments(EnrollmentQueryParams params) {
+  public long countEnrollments(EnrollmentQueryParams params) {
     String hql = buildCountEnrollmentHql(params);
 
     Query<Long> query = getTypedQuery(hql);
 
-    return query.getSingleResult().intValue();
+    return query.getSingleResult().longValue();
   }
 
   private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
@@ -124,21 +123,18 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
     query.setMaxResults(pageParams.getPageSize());
 
-    IntSupplier enrollmentCount = () -> countEnrollments(params);
+    LongSupplier enrollmentCount = () -> countEnrollments(params);
     return getPage(pageParams, query.list(), enrollmentCount);
   }
 
   private Page<Enrollment> getPage(
-      PageParams pageParams, List<Enrollment> enrollments, IntSupplier enrollmentCount) {
+      PageParams pageParams, List<Enrollment> enrollments, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(enrollments, pager, pageParams.isPageTotal());
+      return Page.withTotals(
+          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(enrollments, pager, pageParams.isPageTotal());
+    return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
@@ -157,11 +153,10 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.lastUpdated >= '"
-              + getLongGmtDateString(nowMinusDuration(params.getLastUpdatedDuration()))
+              + toLongGmtDate(nowMinusDuration(params.getLastUpdatedDuration()))
               + "'";
     } else if (params.hasLastUpdated()) {
-      hql +=
-          hlp.whereAnd() + "en.lastUpdated >= '" + getLongDateString(params.getLastUpdated()) + "'";
+      hql += hlp.whereAnd() + "en.lastUpdated >= '" + toLongDate(params.getLastUpdated()) + "'";
     }
 
     if (params.hasTrackedEntity()) {
@@ -203,16 +198,13 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       hql +=
           hlp.whereAnd()
               + "en.enrollmentDate >= '"
-              + getLongDateString(params.getProgramStartDate())
+              + toLongDate(params.getProgramStartDate())
               + "'";
     }
 
     if (params.hasProgramEndDate()) {
       hql +=
-          hlp.whereAnd()
-              + "en.enrollmentDate <= '"
-              + getLongDateString(params.getProgramEndDate())
-              + "'";
+          hlp.whereAnd() + "en.enrollmentDate <= '" + toLongDate(params.getProgramEndDate()) + "'";
     }
 
     if (!params.isIncludeDeleted()) {
