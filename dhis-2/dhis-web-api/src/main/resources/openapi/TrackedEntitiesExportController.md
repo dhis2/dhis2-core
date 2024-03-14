@@ -92,16 +92,16 @@ Get tracked entities owned by given `orgUnit`.
 
 Get tracked entities and enrollments using given `orgUnitMode` and `program` parameters. If a
 `program` is provided, the ownership is determied with this program. When no program is provided,
-the registration org unit for the tracked entity would be used to determine ownership.
+the registration organisation unit for the tracked entity would be used to determine ownership.
 
 - When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
   parameter is required to specify which tracked entity or enrollments to return.
 - When `orgUnitMode=ALL` tracked entity or enrollments will be downloaded irrespective of the
   organization unit they are owned by. To use this parameter, the user needs the `Search Tracked
   entity in all org units` authority.
-- When `orgUnitMode=ACCESSIBLE` tracked entity or enrollments owned by any org unit in the users
+- When `orgUnitMode=ACCESSIBLE` tracked entity or enrollments owned by any organisation unit in the users
   capture scope will be returned.
-- When `orgUnitMode=CAPTURE` tracked entity or enrollments that has an enrollment org unit in the
+- When `orgUnitMode=CAPTURE` tracked entity or enrollments that has an enrollment organisation unit in the
   users capture scope will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.ouMode`
