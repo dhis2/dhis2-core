@@ -203,14 +203,12 @@ public final class ImportContext {
   private final Function<Class<? extends IdentifiableObject>, String> singularNameForType;
 
   public String getCurrentUserName() {
-    return currentUser.getUsername();
+    return currentUser == null ? null : currentUser.getUsername();
   }
 
   public boolean currentUserCanAttributeData() {
-    if (currentUser.isSuper()) {
-      return true;
-    }
-
+    if (currentUser == null) return false;
+    if (currentUser.isSuper()) return true;
     return currentUser.isAuthorized(Authorities.F_DATAVALUE_ATTRIBUTE.name());
   }
 

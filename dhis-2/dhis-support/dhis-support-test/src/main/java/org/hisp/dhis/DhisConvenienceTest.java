@@ -1489,11 +1489,13 @@ public abstract class DhisConvenienceTest {
     return String.valueOf(USERNAME_CHARS[i]);
   }
 
-  public static User makeUser(String uniqueCharacter, List<String> auths, Set<OrganisationUnit> userOrganisationUnits) {
+  public static User makeUser(
+      String uniqueCharacter, List<String> auths, Set<OrganisationUnit> userOrganisationUnits) {
     User user = makeUser(uniqueCharacter, auths);
     user.setOrganisationUnits(userOrganisationUnits);
     return user;
   }
+
   public static User makeUser(String uniqueCharacter, List<String> auths) {
     User user = new User();
 
