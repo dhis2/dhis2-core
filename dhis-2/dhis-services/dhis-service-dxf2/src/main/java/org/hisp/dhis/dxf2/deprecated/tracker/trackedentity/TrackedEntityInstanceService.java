@@ -85,13 +85,19 @@ public interface TrackedEntityInstanceService {
 
   TrackedEntityInstance getTrackedEntityInstance(String uid, TrackedEntityInstanceParams params);
 
+  TrackedEntityInstance getTrackedEntityInstance(
+      String uid, Program program, User currentUser, TrackedEntityInstanceParams params);
+
   TrackedEntityInstance getTrackedEntityInstance(TrackedEntity entityInstance);
 
   TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity entityInstance, TrackedEntityInstanceParams params);
 
   TrackedEntityInstance getTrackedEntityInstance(
-      TrackedEntity entityInstance, TrackedEntityInstanceParams params, User user);
+      TrackedEntity entityInstance,
+      TrackedEntityInstanceParams params,
+      User user,
+      boolean checkAccess);
 
   List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids);
 

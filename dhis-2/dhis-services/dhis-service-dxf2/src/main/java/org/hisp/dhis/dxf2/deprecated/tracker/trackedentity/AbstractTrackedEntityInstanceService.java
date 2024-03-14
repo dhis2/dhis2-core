@@ -258,6 +258,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
   @Override
   @Transactional(readOnly = true)
+  public TrackedEntityInstance getTrackedEntityInstance(
+      String uid, Program program, User currentUser, TrackedEntityInstanceParams params) {
+    return getTrackedEntityInstance(teiService.getTrackedEntity(uid), params, currentUser, false);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(TrackedEntity daoTrackedEntity) {
     return getTrackedEntityInstance(daoTrackedEntity, TrackedEntityInstanceParams.TRUE);
   }
@@ -267,21 +274,26 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   public TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity daoTrackedEntity, TrackedEntityInstanceParams params) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    return getTrackedEntityInstance(daoTrackedEntity, params, currentUser);
+    return getTrackedEntityInstance(daoTrackedEntity, params, currentUser, true);
   }
 
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
-      TrackedEntity daoTrackedEntity, TrackedEntityInstanceParams params, User user) {
+      TrackedEntity daoTrackedEntity,
+      TrackedEntityInstanceParams params,
+      User user,
+      boolean checkAccess) {
     if (daoTrackedEntity == null) {
       return null;
     }
 
-    List<String> errors = trackerAccessManager.canRead(user, daoTrackedEntity);
+    if (checkAccess) {
+      List<String> errors = trackerAccessManager.canRead(user, daoTrackedEntity);
 
-    if (!errors.isEmpty()) {
-      throw new IllegalQueryException(errors.toString());
+      if (!errors.isEmpty()) {
+        throw new IllegalQueryException(errors.toString());
+      }
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
