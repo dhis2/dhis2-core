@@ -96,7 +96,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -569,7 +568,6 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     assertEquals("2020-02-02", toMediumDate(dv2.getCreated()));
     assertEquals("john", dv2.getStoredBy());
     assertEquals(currentDate, toMediumDate(dv2.getLastUpdated()));
-
   }
 
   @Test
