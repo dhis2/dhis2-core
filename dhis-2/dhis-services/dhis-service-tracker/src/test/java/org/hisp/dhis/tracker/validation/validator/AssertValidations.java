@@ -56,6 +56,12 @@ public class AssertValidations {
         "Missing required " + dto.getTrackerType().getName() + " property: `" + property + "`.");
   }
 
+  public static void assertNoErrors(Reporter reporter) {
+    assertTrue(
+        reporter.getErrors().isEmpty(),
+        String.format("Expecting no validation errors but found %s", reporter.getErrors().size()));
+  }
+
   public static void assertHasError(Reporter reporter, TrackerDto dto, ValidationCode code) {
     assertHasError(reporter.getErrors(), dto, code);
   }
