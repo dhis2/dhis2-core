@@ -71,7 +71,7 @@ no program is provided, the registration orgUnit for the tracked entity would be
 ownership.
 
 - When `orgUnitMode=SELECTED` - or no orgUnitMode is given (default) - the tracked entity or
-  enrollments owned by the orgUnits are returned.
+  enrollments owned by the `orgUnits` are returned.
 - When `orgUnitMode=CHILDREN` the tracked entity or enrollments owned by the orgUnits or by the
   orgUnits direct children is returned.
 - When `orgUnitMode=DESCENDANTS` the tracked entity or enrollments owned by the orgUnits or any of
