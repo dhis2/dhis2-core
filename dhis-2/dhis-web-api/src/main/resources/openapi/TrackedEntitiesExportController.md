@@ -222,7 +222,7 @@ valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
 
-Get tracked entities that is marked as a potential duplicate.
+Get tracked entities that are marked as potential duplicates.
 
 ### `*.parameter.TrackedEntityRequestParams.order`
 
