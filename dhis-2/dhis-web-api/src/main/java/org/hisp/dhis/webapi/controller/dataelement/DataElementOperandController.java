@@ -61,7 +61,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -105,7 +105,7 @@ public class DataElementOperandController {
   public @ResponseBody RootNode getObjectList(
       @RequestParam Map<String, String> rpParameters,
       OrderParams orderParams,
-      @CurrentUser User currentUser)
+      @CurrentUser UserDetails currentUser)
       throws QueryParserException {
     Schema schema = schemaService.getDynamicSchema(DataElementOperand.class);
 
@@ -199,7 +199,7 @@ public class DataElementOperandController {
     return rootNode;
   }
 
-  private String calculatePaginationCountKey(User currentUser, WebOptions options) {
+  private String calculatePaginationCountKey(UserDetails currentUser, WebOptions options) {
     return currentUser.getUsername()
         + "."
         + "DataElementOperand"

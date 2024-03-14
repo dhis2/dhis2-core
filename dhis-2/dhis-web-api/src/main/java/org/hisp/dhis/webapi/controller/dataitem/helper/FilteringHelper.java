@@ -79,7 +79,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -91,7 +90,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -251,7 +250,10 @@ public class FilteringHelper {
    * @param currentUser the current user logged
    */
   public static void setFilteringParams(
-      Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
+      Set<String> filters,
+      WebOptions options,
+      MapSqlParameterSource paramsMap,
+      UserDetails currentUser) {
     Locale currentLocale =
         ObjectUtils.defaultIfNull(
             CurrentUserUtil.getUserSetting(DB_LOCALE), CurrentUserUtil.getUserSetting(UI_LOCALE));
@@ -304,13 +306,8 @@ public class FilteringHelper {
     addIfNotBlank(paramsMap, PROGRAM_ID, programId);
 
     // Add user group filtering, when present.
-    if (currentUser != null && CollectionUtils.isNotEmpty(currentUser.getGroups())) {
-      Set<String> userGroupUids =
-          currentUser.getGroups().stream()
-              .filter(Objects::nonNull)
-              .map(group -> trimToEmpty(group.getUid()))
-              .collect(toSet());
-      paramsMap.addValue(USER_GROUP_UIDS, "{" + join(",", userGroupUids) + "}");
+    if (currentUser != null && !currentUser.getUserGroupIds().isEmpty()) {
+      paramsMap.addValue(USER_GROUP_UIDS, "{" + join(",", currentUser.getUserGroupIds()) + "}");
     }
   }
 

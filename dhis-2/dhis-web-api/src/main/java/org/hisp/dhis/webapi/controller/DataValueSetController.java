@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
@@ -71,8 +72,6 @@ import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -311,8 +310,7 @@ public class DataValueSetController {
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
       throws ConflictException, IOException, NotFoundException {
     JobConfiguration config = new JobConfiguration(DATAVALUE_IMPORT);
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    config.setExecutedBy(currentUser.getUid());
+    config.setExecutedBy(getCurrentUserDetails().getUid());
     config.setJobParameters(importOptions);
 
     jobSchedulerService.executeNow(

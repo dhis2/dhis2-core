@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -79,7 +80,6 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
@@ -129,8 +129,8 @@ public class MessageConversationController
       WebOptions options,
       Map<String, String> parameters) {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    if (!messageService.hasAccessToManageFeedbackMessages(UserDetails.fromUser(currentUser))) {
+    UserDetails currentUser = getCurrentUserDetails();
+    if (!messageService.hasAccessToManageFeedbackMessages(currentUser)) {
       entity.setMessages(
           entity.getMessages().stream().filter(message -> !message.isInternal()).toList());
     }

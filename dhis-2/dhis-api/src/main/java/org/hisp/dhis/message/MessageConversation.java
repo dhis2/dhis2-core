@@ -37,12 +37,15 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
@@ -192,9 +195,17 @@ public class MessageConversation extends BaseIdentifiableObject {
     return false;
   }
 
-  public boolean markRead(User user) {
+  public boolean markRead(@Nonnull User user) {
+    return markRead(user.getUid());
+  }
+
+  public boolean markRead(@Nonnull UserDetails user) {
+    return markRead(user.getUid());
+  }
+
+  private boolean markRead(String userId) {
     for (UserMessage userMessage : userMessages) {
-      if (userMessage.getUser() != null && userMessage.getUser().equals(user)) {
+      if (userMessage.getUser() != null && Objects.equals(userMessage.getUser().getUid(), userId)) {
         boolean read = userMessage.isRead();
 
         userMessage.setRead(true);
@@ -202,7 +213,6 @@ public class MessageConversation extends BaseIdentifiableObject {
         return !read;
       }
     }
-
     return false;
   }
 

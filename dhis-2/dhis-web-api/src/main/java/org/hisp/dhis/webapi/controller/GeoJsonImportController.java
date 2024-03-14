@@ -32,6 +32,7 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import java.io.IOException;
@@ -53,8 +54,7 @@ import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -111,7 +111,7 @@ public class GeoJsonImportController {
       boolean async, GeoJsonImportJobParams params, HttpServletRequest request)
       throws ConflictException, NotFoundException, IOException {
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = getCurrentUserDetails();
     if (async) {
       JobConfiguration jobConfig = new JobConfiguration(JobType.GEOJSON_IMPORT);
       jobConfig.setJobParameters(params);
@@ -139,7 +139,7 @@ public class GeoJsonImportController {
       @RequestParam(required = false) String attributeId,
       @RequestParam(required = false) boolean dryRun,
       @RequestBody String geometry,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     GeoJsonImportJobParams params =
         GeoJsonImportJobParams.builder()
             .user(currentUser)
@@ -162,7 +162,7 @@ public class GeoJsonImportController {
       @PathVariable("uid") String ou,
       @RequestParam(required = false) String attributeId,
       @RequestParam(required = false) boolean dryRun,
-      @CurrentUser User currentUser) {
+      @CurrentUser UserDetails currentUser) {
     return postImportSingle(ou, attributeId, dryRun, "null", currentUser);
   }
 

@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+import javax.annotation.CheckForNull;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -230,7 +231,8 @@ public class DefaultPushAnalysisService implements PushAnalysisService {
   }
 
   @Override
-  public String generateHtmlReport(PushAnalysis pushAnalysis, User user) throws IOException {
+  public String generateHtmlReport(PushAnalysis pushAnalysis, @CheckForNull User user)
+      throws IOException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     user = user == null ? currentUser : user;
 
