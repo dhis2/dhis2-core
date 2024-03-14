@@ -44,7 +44,6 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -95,8 +94,6 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
   @Mock private TrackerOwnershipManager ownershipAccessManager;
 
-  @Mock private OrganisationUnitService organisationUnitService;
-
   private UserDetails user;
 
   private Reporter reporter;
@@ -133,8 +130,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
-    validator =
-        new SecurityOwnershipValidator(aclService, ownershipAccessManager, organisationUnitService);
+    validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
   }
 
   private void setUpUser(Consumer<User> init) {

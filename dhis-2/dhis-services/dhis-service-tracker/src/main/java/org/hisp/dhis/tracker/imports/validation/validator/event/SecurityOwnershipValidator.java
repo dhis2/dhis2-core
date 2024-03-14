@@ -45,7 +45,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -74,11 +73,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
+
   @Nonnull private final AclService aclService;
-
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
-
-  @Nonnull private final OrganisationUnitService organisationUnitService;
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
       " has no organisation unit assigned, so we skip user validation";
@@ -255,12 +252,12 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
 
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
 
-    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+    if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
@@ -297,7 +294,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       CategoryOptionCombo categoryOptionCombo,
       String trackedEntity,
       boolean isCreatableInSearchScope) {
-    User user = bundle.getUser();
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
@@ -316,16 +313,11 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       checkProgramReadAccess(reporter, event, user, program);
 
       checkTeiTypeAndTeiProgramAccess(
-          reporter,
-          event,
-          UserDetails.fromUser(user),
-          trackedEntity,
-          ownerOrgUnit,
-          programStage.getProgram());
+          reporter, event, user, trackedEntity, ownerOrgUnit, programStage.getProgram());
     }
 
     if (categoryOptionCombo != null) {
-      checkWriteCategoryOptionComboAccess(reporter, bundle.getUser(), event, categoryOptionCombo);
+      checkWriteCategoryOptionComboAccess(reporter, user, event, categoryOptionCombo);
     }
   }
 
@@ -334,18 +326,18 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       org.hisp.dhis.tracker.imports.domain.Event event,
       OrganisationUnit eventOrgUnit,
       boolean isCreatableInSearchScope,
-      User user) {
+      UserDetails user) {
     if (eventOrgUnit == null) {
       log.warn("Event " + event.getUid() + ORG_UNIT_NO_USER_ASSIGNED);
     } else if (isCreatableInSearchScope
-        ? !organisationUnitService.isInUserSearchHierarchyCached(user, eventOrgUnit)
-        : !organisationUnitService.isInUserHierarchyCached(user, eventOrgUnit)) {
+        ? !user.isInUserSearchHierarchy(eventOrgUnit.getPath())
+        : !user.isInUserDataHierarchy(eventOrgUnit.getPath())) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }
 
   private void checkProgramReadAccess(
-      Reporter reporter, TrackerDto dto, User user, Program program) {
+      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
@@ -355,7 +347,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private void checkProgramStageWriteAccess(
-      Reporter reporter, TrackerDto dto, User user, ProgramStage programStage) {
+      Reporter reporter, TrackerDto dto, UserDetails user, ProgramStage programStage) {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
 
@@ -365,7 +357,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, User user, Program program) {
+      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
@@ -375,7 +367,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   }
 
   public void checkWriteCategoryOptionComboAccess(
-      Reporter reporter, User user, TrackerDto dto, CategoryOptionCombo categoryOptionCombo) {
+      Reporter reporter,
+      UserDetails user,
+      TrackerDto dto,
+      CategoryOptionCombo categoryOptionCombo) {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(
         categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL);
