@@ -58,7 +58,7 @@ public interface UserService {
 
   String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
 
-  String RESTORE_PATH = "/login-app/index.html#/";
+  String RESTORE_PATH = "/dhis-web-login/index.html#/";
 
   String TBD_NAME = "(TBD)";
 
