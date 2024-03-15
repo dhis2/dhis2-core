@@ -445,8 +445,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     psiA3.setAttributeOptionCombo(cocDefault);
 
     ProgramStageInstance psiB1 = createProgramStageInstance(psB, piB, ouI);
-    psiB1.setDueDate(jan15);
-    psiB1.setExecutionDate(jan15);
+    psiB1.setDueDate(jan1);
+    psiB1.setExecutionDate(jan1);
     psiB1.setUid("prgStgInsB1");
     psiB1.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "10"), new EventDataValue(deB.getUid(), "A")));
@@ -461,8 +461,8 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
     psiB2.setAttributeOptionCombo(cocDefault);
 
     ProgramStageInstance psiB3 = createProgramStageInstance(psB, piB, ouJ);
-    psiB3.setDueDate(jan15);
-    psiB3.setExecutionDate(jan15);
+    psiB3.setDueDate(jan1);
+    psiB3.setExecutionDate(jan1);
     psiB3.setUid("prgStgInsB3");
     psiB3.setEventDataValues(
         Set.of(new EventDataValue(deA.getUid(), "30"), new EventDataValue(deB.getUid(), "C")));
