@@ -29,7 +29,6 @@ package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 
 public interface IconStore {
 
@@ -71,12 +70,9 @@ public interface IconStore {
   List<Icon> getIcons(IconQueryParams params);
 
   /**
-   * Returns the keys that do not exist in DB for the set of provided keys
-   *
-   * @param keys a set of keys
-   * @return all keys in the provided parameter that have no icon in the DB
+   * @return all existing keys
    */
-  List<String> getKeysWithoutIcon(Set<String> keys);
+  List<String> getAllKeys();
 
   /**
    * Returns an icon that contains a given key

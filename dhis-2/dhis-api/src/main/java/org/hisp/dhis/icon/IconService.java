@@ -29,9 +29,9 @@ package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -40,16 +40,19 @@ import org.hisp.dhis.feedback.NotFoundException;
 public interface IconService {
 
   /**
-   * @return the set of {@link DefaultIcon}s that are at least missing 1 variant
+   * The {@link Icon}s returned by this method are not persisted in DB.
+   *
+   * @return an {@link Icon} for all {@link DefaultIcon}s variants that do not yet exist
    */
-  Set<DefaultIcon> findMissingIcons();
+  List<Icon> findNonExistingDefaultIcons();
 
   /**
-   * To create a specific {@link DefaultIcon} should it not exist in the database.
+   * To creates the {@link org.hisp.dhis.fileresource.FileResource} for the default icon provided
    *
-   * @param icon to create if not exist
+   * @param icon to create
+   * @return the UID of the crated {@link org.hisp.dhis.fileresource.FileResource}
    */
-  void createDefaultIcon(DefaultIcon icon);
+  String uploadDefaultIcon(Icon icon) throws ConflictException;
 
   /**
    * Get the count of Icons based on filters provided in {@link IconQueryParams}

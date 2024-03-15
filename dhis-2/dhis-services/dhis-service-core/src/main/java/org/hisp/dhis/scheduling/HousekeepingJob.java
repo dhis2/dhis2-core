@@ -30,9 +30,9 @@ package org.hisp.dhis.scheduling;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
-import java.util.Set;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.icon.DefaultIcon;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconService;
 import org.springframework.stereotype.Component;
 
@@ -95,10 +95,21 @@ public class HousekeepingJob implements Job {
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
 
     progress.startingStage("Finding missing default icons", SKIP_STAGE);
-    Set<DefaultIcon> missing = progress.runStage(Set.of(), iconService::findMissingIcons);
+    List<Icon> missing = progress.runStage(List.of(), iconService::findNonExistingDefaultIcons);
     progress.startingStage("Insert default icons", missing.size(), SKIP_ITEM);
-    progress.runStage(missing, DefaultIcon::getKey, iconService::createDefaultIcon);
+    progress.runStage(missing, Icon::getKey, this::createDefaultIcon);
 
     progress.completedProcess(null);
+  }
+
+  private void createDefaultIcon(Icon icon) {
+    try {
+      // note that these are split in two to have independent TX boundaries
+      // for file resource creation and icon creation
+      iconService.uploadDefaultIcon(icon);
+      iconService.addIcon(icon);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
   }
 }
