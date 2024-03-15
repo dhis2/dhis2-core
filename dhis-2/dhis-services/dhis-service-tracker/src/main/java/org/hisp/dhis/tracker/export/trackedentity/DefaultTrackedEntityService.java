@@ -251,8 +251,15 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntity;
   }
 
-  @Override
-  public TrackedEntity getTrackedEntity(
+  /**
+   * Gets a tracked entity based on the TE registration org unit
+   *
+   * @return the TE object if found and accessible by the current user
+   * @throws NotFoundException if uid does not exist
+   * @throws ForbiddenException if TE registration org unit not in user's scope or not enough
+   *     sharing access
+   */
+  private TrackedEntity getTrackedEntity(
       String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
@@ -270,8 +277,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return mapTrackedEntity(daoTrackedEntity, params, currentUser, includeDeleted);
   }
 
-  @Override
-  public TrackedEntity getTrackedEntity(
+  /**
+   * Gets a tracked entity based on the program and org unit ownership
+   *
+   * @return the TE object if found and accessible by the current user
+   * @throws NotFoundException if uid does not exist
+   * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
+   */
+  private TrackedEntity getTrackedEntity(
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);

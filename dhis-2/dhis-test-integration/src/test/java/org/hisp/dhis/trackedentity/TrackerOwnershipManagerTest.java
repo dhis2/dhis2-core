@@ -181,7 +181,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     assertEquals(
         entityInstanceA1,
-        trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), defaultParams, false));
+        trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), null, defaultParams, false));
   }
 
   @Test
@@ -193,7 +193,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    entityInstanceA1.getUid(), defaultParams, false));
+                    entityInstanceA1.getUid(), null, defaultParams, false));
     assertEquals(
         String.format(
             "[User has no read access to organisation unit: %s]", organisationUnitA.getUid()),

@@ -34,7 +34,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
@@ -50,28 +49,6 @@ public interface TrackedEntityService {
   FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
       throws NotFoundException;
-
-  /**
-   * Gets a tracked entity based on the TE registration org unit
-   *
-   * @return the TE object if found and accessible by the current user
-   * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE registration org unit not in user's scope or not enough
-   *     sharing access
-   */
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
-
-  /**
-   * Gets a tracked entity based on the program and org unit ownership
-   *
-   * @return the TE object if found and accessible by the current user
-   * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
-   */
-  TrackedEntity getTrackedEntity(
-      String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
