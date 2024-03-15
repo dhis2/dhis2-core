@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
@@ -38,6 +39,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -77,6 +79,21 @@ public class JdbcIconStore implements IconStore {
   private final UserService userService;
 
   private final FileResourceStore fileResourceStore;
+
+  @Override
+  public List<String> getKeysWithoutIcon(Set<String> keys) {
+    String sql =
+        """
+    SELECT ARRAY(
+                   SELECT UNNEST(ARRAY [:keys])
+                   except
+                   SELECT icon.iconkey from icon)""";
+    sql = sql.replace(":keys", keys.stream().map(key -> "'" + key + "'").collect(joining(",")));
+    String[] missing =
+        namedParameterJdbcTemplate.queryForObject(
+            sql, Map.of(), (rs, rowNum) -> (String[]) rs.getArray(1).getArray());
+    return missing == null ? List.of() : List.of(missing);
+  }
 
   @Override
   public long count(IconQueryParams params) {
@@ -152,13 +169,6 @@ public class JdbcIconStore implements IconStore {
     params.addValue("key", icon.getKey());
 
     namedParameterJdbcTemplate.update(sql, params);
-  }
-
-  @Override
-  public boolean containsKeys(Set<String> keys) {
-    IconQueryParams params = new IconQueryParams();
-    params.setKeys(List.copyOf(keys));
-    return count(params) == keys.size();
   }
 
   @Override

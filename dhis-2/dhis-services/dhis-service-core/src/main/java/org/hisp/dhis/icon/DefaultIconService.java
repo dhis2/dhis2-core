@@ -32,11 +32,14 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import com.google.common.base.Strings;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
@@ -67,31 +70,43 @@ public class DefaultIconService implements IconService {
   private static final String ICON_PATH = "SVGs";
 
   private final IconStore iconStore;
-
   private final FileResourceService fileResourceService;
-
   private final UserService userService;
+
+  private final Set<DefaultIcon> ignoredAfterFailure = ConcurrentHashMap.newKeySet();
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<DefaultIcon> findMissingIcons() {
+    List<String> keys = iconStore.getKeysWithoutIcon(getKeysForVariants(DefaultIcon.values()));
+    if (keys.isEmpty()) return Set.of();
+    return keys.stream()
+        .map(key -> DefaultIcon.fromKey(key.substring(0, key.lastIndexOf('_'))))
+        .filter(Objects::nonNull)
+        .filter(icon -> !ignoredAfterFailure.contains(icon))
+        .collect(Collectors.toUnmodifiableSet());
+  }
 
   @Override
   @Transactional
   public void createDefaultIcon(DefaultIcon icon) {
-    if (iconStore.containsKeys(getKeysForVariants(icon))) return;
+    List<String> missing = iconStore.getKeysWithoutIcon(getKeysForVariants(icon));
+    if (missing.isEmpty()) return;
 
-    for (Icon i : createIconWithVariants(icon)) {
-      if (!iconStore.containsKeys(Set.of(i.getKey()))) {
-        String fileResourceId = CodeGenerator.generateUid();
-        Resource resource = getDefaultIconResource(i.getKey());
-        try {
-          FileResource fileResource =
-              fileResourceService.syncSaveFileResource(
-                  fileResourceId, MediaType.IMAGE_PNG, resource.getInputStream(), CUSTOM_ICON);
+    for (Icon i : createIconWithVariants(icon, missing)) {
+      String fileResourceId = CodeGenerator.generateUid();
+      Resource resource = getDefaultIconResource(i.getKey());
+      try {
+        FileResource fileResource =
+            fileResourceService.syncSaveFileResource(
+                fileResourceId, MediaType.IMAGE_PNG, resource.getInputStream(), CUSTOM_ICON);
 
-          i.setFileResource(fileResource);
+        i.setFileResource(fileResource);
 
-          addIconInternal(i);
-        } catch (Exception ex) {
-          throw new RuntimeException(ex);
-        }
+        addIconInternal(i);
+      } catch (Exception ex) {
+        ignoredAfterFailure.add(icon);
+        throw new RuntimeException(ex);
       }
     }
   }
@@ -249,7 +264,7 @@ public class DefaultIconService implements IconService {
     return getIcon(key);
   }
 
-  private List<Icon> createIconWithVariants(DefaultIcon icon) {
+  private List<Icon> createIconWithVariants(DefaultIcon icon, List<String> missing) {
     return DefaultIcon.VARIANTS.stream()
         .map(
             variant ->
@@ -259,16 +274,16 @@ public class DefaultIconService implements IconService {
                     icon.getKeywords(),
                     false,
                     null))
+        .filter(i -> missing.contains(i.getKey()))
         .toList();
   }
 
-  private static Set<String> getKeysForVariants(DefaultIcon icon) {
-    return getKeysForVariants(icon.getKey());
-  }
-
-  private static Set<String> getKeysForVariants(String key) {
-    return DefaultIcon.VARIANTS.stream()
-        .map(variant -> String.format("%s_%s", key, variant))
+  private static Set<String> getKeysForVariants(DefaultIcon... icons) {
+    return Stream.of(icons)
+        .map(DefaultIcon::getKey)
+        .flatMap(
+            key ->
+                DefaultIcon.VARIANTS.stream().map(variant -> String.format("%s_%s", key, variant)))
         .collect(Collectors.toUnmodifiableSet());
   }
 

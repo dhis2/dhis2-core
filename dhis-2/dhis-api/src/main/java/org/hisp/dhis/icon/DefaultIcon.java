@@ -28,8 +28,11 @@
 package org.hisp.dhis.icon;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Getter;
 
 /** Default icons are pre-installed immutable icons. */
@@ -537,5 +540,13 @@ public enum DefaultIcon {
 
   public Set<String> getKeywords() {
     return Arrays.stream(this.keywords).collect(Collectors.toSet());
+  }
+
+  private static final Map<String, DefaultIcon> BY_KEY =
+      Stream.of(values())
+          .collect(Collectors.toUnmodifiableMap(DefaultIcon::getKey, Function.identity()));
+
+  public static DefaultIcon fromKey(String key) {
+    return BY_KEY.get(key);
   }
 }

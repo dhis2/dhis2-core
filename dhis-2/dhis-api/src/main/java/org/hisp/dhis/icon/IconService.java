@@ -29,6 +29,7 @@ package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -37,6 +38,11 @@ import org.hisp.dhis.feedback.NotFoundException;
  * @author Kristian Wærstad
  */
 public interface IconService {
+
+  /**
+   * @return the set of {@link DefaultIcon}s that are at least missing 1 variant
+   */
+  Set<DefaultIcon> findMissingIcons();
 
   /**
    * To create a specific {@link DefaultIcon} should it not exist in the database.

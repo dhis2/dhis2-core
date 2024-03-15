@@ -71,12 +71,12 @@ public interface IconStore {
   List<Icon> getIcons(IconQueryParams params);
 
   /**
-   * Check if the store contains entries for all provided keys
+   * Returns the keys that do not exist in DB for the set of provided keys
    *
    * @param keys a set of keys
-   * @return true, if all exist
+   * @return all keys in the provided parameter that have no icon in the DB
    */
-  boolean containsKeys(Set<String> keys);
+  List<String> getKeysWithoutIcon(Set<String> keys);
 
   /**
    * Returns an icon that contains a given key
