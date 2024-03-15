@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -87,39 +86,32 @@ class MessageFormatter {
   private static String formatArgument(TrackerIdSchemeParams idSchemes, Object argument) {
     if (argument == null) return "NULL";
     Class<?> type = argument.getClass();
-    if (String.class == type) {
-      return argument.toString();
-    } else if (MetadataIdentifier.class.isAssignableFrom(type)) {
+    if (String.class == type) return argument.toString();
+    if (MetadataIdentifier.class.isAssignableFrom(type))
       return ((MetadataIdentifier) argument).getIdentifierOrAttributeValue();
-    } else if (CategoryOptionCombo.class.isAssignableFrom(type)) {
+    if (CategoryOptionCombo.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((CategoryOptionCombo) argument));
-    } else if (CategoryOption.class.isAssignableFrom(type)) {
+    if (CategoryOption.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((CategoryOption) argument));
-    } else if (DataElement.class.isAssignableFrom(type)) {
+    if (DataElement.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((DataElement) argument));
-    } else if (OrganisationUnit.class.isAssignableFrom(type)) {
+    if (OrganisationUnit.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((OrganisationUnit) argument));
-    } else if (Program.class.isAssignableFrom(type)) {
+    if (Program.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((Program) argument));
-    } else if (ProgramStage.class.isAssignableFrom(type)) {
+    if (ProgramStage.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((ProgramStage) argument));
-    } else if (IdentifiableObject.class.isAssignableFrom(type)) {
+    if (IdentifiableObject.class.isAssignableFrom(type))
       return getIdAndName(idSchemes.toMetadataIdentifier((IdentifiableObject) argument));
-    } else if (UserDetails.class.isAssignableFrom(type)) {
-      return ((UserDetails) argument).getUid();
-    } else if (Date.class.isAssignableFrom(type)) {
-      return (DateFormat.getInstance().format(argument));
-    } else if (Instant.class.isAssignableFrom(type)) {
+    if (UserDetails.class.isAssignableFrom(type)) return ((UserDetails) argument).getUid();
+    if (Date.class.isAssignableFrom(type)) return (DateFormat.getInstance().format(argument));
+    if (Instant.class.isAssignableFrom(type))
       return DateUtils.toIso8601NoTz(DateUtils.fromInstant((Instant) argument));
-    } else if (Enrollment.class.isAssignableFrom(type)) {
-      return ((Enrollment) argument).getEnrollment();
-    } else if (Event.class.isAssignableFrom(type)) {
-      return ((Event) argument).getEvent();
-    } else if (TrackedEntity.class.isAssignableFrom(type)) {
+    if (Enrollment.class.isAssignableFrom(type)) return ((Enrollment) argument).getEnrollment();
+    if (Event.class.isAssignableFrom(type)) return ((Event) argument).getEvent();
+    if (TrackedEntity.class.isAssignableFrom(type))
       return ((TrackedEntity) argument).getTrackedEntity();
-    }
-
-    return StringUtils.EMPTY;
+    return "";
   }
 
   private static String getIdAndName(MetadataIdentifier identifier) {

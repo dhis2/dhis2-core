@@ -443,10 +443,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<String> errors = new ArrayList<>();
     if (program.isWithoutRegistration()) {
       OrganisationUnit ou = event.getOrganisationUnit();
-      if (ou != null) {
-        if (!user.isInUserDataHierarchy(ou.getPath())) {
-          errors.add("User has no delete access to organisation unit: " + ou.getUid());
-        }
+      if (ou != null && !user.isInUserDataHierarchy(ou.getPath())) {
+        errors.add("User has no delete access to organisation unit: " + ou.getUid());
       }
 
       if (!aclService.canDataWrite(user, program)) {
