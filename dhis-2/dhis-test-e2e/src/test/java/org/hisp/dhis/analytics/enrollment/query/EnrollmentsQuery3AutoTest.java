@@ -262,4 +262,273 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(response, 0, List.of("Motorbong MCHP", "1", "", "2022-02-18 12:27:49.129"));
   }
+
+  @Test
+  public void queryRandomquery12() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("dimension=ou:USER_ORGUNIT,pe:LAST_YEAR,CWaAcQYKVpq[-1].fyjPqlHE7Dn")
+            .add("skipRounding=true")
+            .add("relativePeriodDate=2022-01-01")
+            .add("desc=incidentdate");
+
+    // When
+    ApiResponse response = actions.query().get("M3xtLkYBlKI", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(17)))
+        .body("rows", hasSize(equalTo(8)))
+        .body("height", equalTo(8))
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"CWaAcQYKVpq\":{\"uid\":\"CWaAcQYKVpq\",\"name\":\"Foci investigation & classification\",\"description\":\"Includes the details on the foci investigation (including information on households, population, geography, breeding sites, species types, vector behaviour) as well as its final classification at the time of the investigation. This is a repeatable stage as foci can be investigated more than once and may change their classification as time goes on. \"},\"CWaAcQYKVpq.fyjPqlHE7Dn\":{\"uid\":\"fyjPqlHE7Dn\",\"name\":\"Proven insecticide resistance\",\"description\":\"Is there proven insecticide resistance\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"uvMKOn1oWvd\":{\"uid\":\"uvMKOn1oWvd\",\"name\":\"Foci response\",\"description\":\"Details the public health response conducted within the foci  (including diagnosis and treatment activities, vector control actions and the effectiveness/results of the response). This is a repeatable stage as multiple public health responses for the same foci can occur depending on its classification at the time of investigation.\"},\"fyjPqlHE7Dn\":{\"uid\":\"fyjPqlHE7Dn\",\"name\":\"Proven insecticide resistance\",\"description\":\"Is there proven insecticide resistance\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"M3xtLkYBlKI\":{\"uid\":\"M3xtLkYBlKI\",\"name\":\"Malaria focus investigation\",\"description\":\"It allows to register new focus areas in the system. Each focus area needs to be investigated and classified. Includes the relevant identifiers for the foci including the name and geographical details including the locality and its area. \"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"CWaAcQYKVpq.fyjPqlHE7Dn\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 1, "tei", "Tracked entity instance", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        2,
+        "enrollmentdate",
+        "Date of Focus Registration",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeader(
+        response, 3, "incidentdate", "Incident date", "DATE", "java.time.LocalDate", false, true);
+    validateHeader(response, 4, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 5, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        6,
+        "lastupdatedbydisplayname",
+        "Last updated by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(
+        response, 7, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+    validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        12,
+        "ounamehierarchy",
+        "Organisation unit name hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(
+        response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        16,
+        "CWaAcQYKVpq[-1].fyjPqlHE7Dn",
+        "Proven insecticide resistance",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // Assert rowContext
+    validateRowContext(response, 0, 16, "NS");
+    validateRowContext(response, 1, 16, "ND");
+    validateRowContext(response, 2, 16, "ND");
+    validateRowContext(response, 3, 16, "ND");
+    validateRowContext(response, 4, 16, "ND");
+    validateRowContext(response, 5, 16, "ND");
+    validateRowContext(response, 6, 16, "SC");
+    validateRowContext(response, 7, 16, "ND");
+
+    // Assert rows.
+    validateRow(
+        response,
+        List.of(
+            "TRE0GT7eh7Q",
+            "s4NfKOuayqG",
+            "2021-11-13 00:00:00.0",
+            "2021-11-13 00:00:00.0",
+            "healthworker1",
+            "",
+            "",
+            "2019-08-21 13:29:44.942",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "OU_559",
+            "COMPLETED",
+            "DiszpKrYNg8",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "o6xZZq7MPFH",
+            "nVtfCS1gUZH",
+            "2021-11-12 00:00:00.0",
+            "2021-11-12 07:24:56.327",
+            "healthworker3",
+            "",
+            "",
+            "2019-08-21 13:29:31.708",
+            "",
+            "",
+            "",
+            "Njandama MCHP",
+            "Sierra Leone / Bo / Badjia / Njandama MCHP",
+            "OU_167609",
+            "ACTIVE",
+            "g8upMTyEZGZ",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "aOc1W0Xb7Yj",
+            "neR4cmMY22o",
+            "2021-11-07 00:00:00.0",
+            "2021-11-12 04:20:50.918",
+            "healthworker2",
+            "",
+            "",
+            "2019-08-21 13:29:37.117",
+            "",
+            "",
+            "",
+            "Njandama MCHP",
+            "Sierra Leone / Bo / Badjia / Njandama MCHP",
+            "OU_167609",
+            "ACTIVE",
+            "g8upMTyEZGZ",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "zRfAPUpjoG3",
+            "S3JjTA4QMNe",
+            "2021-11-10 00:00:00.0",
+            "2021-11-10 03:53:09.193",
+            "karoline",
+            "",
+            "",
+            "2019-08-21 13:29:28.064",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "OU_559",
+            "ACTIVE",
+            "DiszpKrYNg8",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "HbLOTSi7jvg",
+            "yKO4L1jaUbg",
+            "2021-11-07 00:00:00.0",
+            "2021-11-10 03:53:09.027",
+            "karoline",
+            "",
+            "",
+            "2019-08-21 13:29:24.678",
+            "",
+            "",
+            "",
+            "Njandama MCHP",
+            "Sierra Leone / Bo / Badjia / Njandama MCHP",
+            "OU_167609",
+            "ACTIVE",
+            "g8upMTyEZGZ",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "V8uPJuhvlL7",
+            "dNpxRu1mWG5",
+            "2021-10-16 00:00:00.0",
+            "2021-10-16 10:13:57.545",
+            "testmalaria",
+            "",
+            "",
+            "2019-08-21 13:29:39.311",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "OU_559",
+            "ACTIVE",
+            "DiszpKrYNg8",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "FonAHm0CsIR",
+            "lebQyoZNcp7",
+            "2021-10-16 00:00:00.0",
+            "2021-10-16 10:13:57.42",
+            "testmalaria",
+            "",
+            "",
+            "2019-08-21 13:29:14.578",
+            "",
+            "",
+            "",
+            "Njandama MCHP",
+            "Sierra Leone / Bo / Badjia / Njandama MCHP",
+            "OU_167609",
+            "ACTIVE",
+            "g8upMTyEZGZ",
+            ""));
+    validateRow(
+        response,
+        List.of(
+            "ZjixUoY4jE8",
+            "Imv2o18b9wX",
+            "2021-07-26 00:00:00.0",
+            "2021-07-26 00:00:00.0",
+            "braimbault",
+            "",
+            "",
+            "2019-08-21 13:29:21.574",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "OU_559",
+            "ACTIVE",
+            "DiszpKrYNg8",
+            ""));
+  }
 }
