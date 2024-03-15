@@ -117,10 +117,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
@@ -150,10 +147,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
             programStage(
                 PROGRAM_STAGE_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
@@ -180,10 +174,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID)))
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
@@ -214,10 +205,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
             enrollment(
                 ENROLLMENT_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
@@ -249,10 +237,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
         .thenReturn(programStage(PROGRAM_STAGE_ID, program));
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(enrollment(ENROLLMENT_ID, program));
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event =
         Event.builder()
@@ -333,10 +318,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
   void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC() {
     OrganisationUnit orgUnit = setupOrgUnit();
     Program program = setupProgram(orgUnit);
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     CategoryCombo cc = categoryCombo();
     CategoryOption co = cc.getCategoryOptions().get(0);
@@ -764,10 +746,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     Program program = setupProgram(orgUnit);
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -792,10 +771,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     Program program = setupProgram(orgUnit, enrollment);
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -823,10 +799,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     Program program = setupProgram(orgUnit);
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -847,10 +820,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     Program program = setupProgram(orgUnit, enrollment);
 
-    CategoryCombo defaultCC = defaultCategoryCombo();
-    program.setCategoryCombo(defaultCC);
-    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
-    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+    setUpDefaultCategoryCombo(program);
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
@@ -862,6 +832,13 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     assertTrue(
         reporter.hasErrorReport(
             r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
+  }
+
+  private void setUpDefaultCategoryCombo(Program program) {
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
   }
 
   private OrganisationUnit organisationUnit(String uid) {
