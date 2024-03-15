@@ -182,7 +182,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         if (params.isRowContext()) {
           addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
-          ;
           columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
         }
       }
