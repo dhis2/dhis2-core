@@ -45,7 +45,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository("org.hisp.dhis.tracker.export.event.ChangeLogStore")
+@Repository("org.hisp.dhis.tracker.export.event.JdbcEventChangeLogStore")
 @RequiredArgsConstructor
 class JdbcEventChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "created";

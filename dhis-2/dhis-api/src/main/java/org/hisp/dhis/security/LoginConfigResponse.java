@@ -28,6 +28,7 @@
 package org.hisp.dhis.security;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,18 +43,26 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginConfigResponse {
 
+  @JsonProperty private String apiVersion;
+
   @JsonProperty private String applicationTitle;
   @JsonProperty private String applicationDescription;
   @JsonProperty private String applicationNotification;
   @JsonProperty private String applicationLeftSideFooter;
+  @JsonProperty private String applicationRightSideFooter;
   @JsonProperty private String countryFlag;
   @JsonProperty private String uiLocale;
   @JsonProperty private String loginPageLogo;
   @JsonProperty private String loginPopup;
+  @JsonProperty private String loginPageLayout;
+  @JsonProperty private String loginPageTemplate;
+  @JsonProperty private String recaptchaSite;
 
   @JsonProperty private boolean emailConfigured;
   @JsonProperty private boolean selfRegistrationEnabled;
   @JsonProperty private boolean selfRegistrationNoRecaptcha;
   @JsonProperty private boolean allowAccountRecovery;
   @JsonProperty private boolean useCustomLogoFront;
+
+  @JsonProperty private List<LoginOidcProvider> oidcProviders;
 }

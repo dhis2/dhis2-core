@@ -35,6 +35,10 @@ Get an event data value image for given event and data element UID. Images are r
 original dimension by default. This endpoint is only supported for data elements of value type
 image.
 
+### `getEventChangeLogsByUid`
+
+Get the change logs of all data elements related to that particular event UID.
+
 ## Common for all endpoints
 
 ### `*.parameter.EventRequestParams.program`
@@ -270,8 +274,3 @@ Valid operators are:
 - `NLIKE` - not like
 - `SW` - starts with
 - `EW` - ends with
-
-### `*.parameter.EventRequestParams.attachment`
-
-It allows you to specify the attachment file name when extracting in a binary format such as CSV, zip, or gzip.
-If not specified, it defaults to `events.<type>.<compression>` (for example, `events.csv.zip` for zip compression of a csv list)

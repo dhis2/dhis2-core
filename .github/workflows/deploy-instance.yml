@@ -55,13 +55,18 @@ jobs:
           IMAGE_TAG: ${{ github.event.pull_request.number }}
           IMAGE_PULL_POLICY: Always
           DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
-        run: ./findByName.sh dev $INSTANCE_NAME && ./restart.sh dev $INSTANCE_NAME || ./deploy-dhis2.sh dev $INSTANCE_NAME
+        run: |
+          ./findByName.sh dev $INSTANCE_NAME | jq --exit-status 'has("id")' &&
+          ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id') ||
+          ./deploy-dhis2.sh dev $INSTANCE_NAME
 
       - name: Wait for instance
         working-directory: scripts/instances
         env:
           EXPECTED_STATUS: Running
-        run: timeout 600 bash -ex -c 'until [[ "$(./status.sh dev $INSTANCE_NAME | jq -r)" == "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
+        run: |
+          export INSTANCE_ID=$(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id')
+          timeout 600 bash -ex -c 'until [[ "$(./status.sh $INSTANCE_ID | jq -r)" == "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
 
       - name: Start analytics generation
         run: curl -X POST -u "${{ secrets.DHIS2_USERNAME }}:${{ secrets.DHIS2_PASSWORD }}" "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics" -d 'executeTei=true'

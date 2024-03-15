@@ -57,7 +57,7 @@ jobs:
           PASSWORD: ${{ secrets.IM_BOT_PASSWORD }}
           IM_HOST: 'https://api.im.dhis2.org'
           INSTANCE_NAME: pr-${{ github.event.number }}
-        run: ./findByName.sh dev $INSTANCE_NAME && ./destroy.sh dev $INSTANCE_NAME
+        run: ./findByName.sh dev $INSTANCE_NAME && ./destroy-deployment.sh $(./findByName.sh dev $INSTANCE_NAME | jq -r '.id')
 
       - name: Delete instance URL comment
         uses: actions-cool/maintain-one-comment@v3

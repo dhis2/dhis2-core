@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-/**
- * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
- *
- * @author Zubair Asghar
- */
+@OpenApi.Shared(name = "ChangeLogRequestParams")
+@OpenApi.Property
 @Data
 @NoArgsConstructor
-public class IconOperationParams {
+public class ChangeLogRequestParams implements FieldsRequestParam {
 
-  private List<String> keys = new ArrayList<>();
-  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
-  private List<String> keywords = new ArrayList<>();
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private boolean paging = true;
-  private Pager pager = new Pager();
+  private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
+  private int page = 1;
 
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
+  private int pageSize = 50;
 
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasKeywords() {
-    return !keywords.isEmpty();
-  }
-
-  public boolean hasKeys() {
-    return !keys.isEmpty();
-  }
+  private List<OrderCriteria> order = new ArrayList<>();
 }

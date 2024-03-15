@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.41-SNAPSHOT</version>
+  <version>2.42-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
@@ -115,7 +115,7 @@
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.10.0-pre3</c3p0.version>
+    <c3p0.version>0.10.0-pre7</c3p0.version>
     <HikariCP.version>5.1.0</HikariCP.version>
     <postgresql-driver.version>42.7.2</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
@@ -156,13 +156,13 @@
     <batik-transcoder.version>1.17</batik-transcoder.version>
     <fop.version>2.9</fop.version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
-    <geotools.version>29.4</geotools.version>
+    <geotools.version>29.5</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis.version>2.32.0</artemis.version>
     <netty-all.version>4.1.107.Final</netty-all.version>
-    <classgraph.version>4.8.165</classgraph.version>
+    <classgraph.version>4.8.167</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -211,7 +211,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.19.5</testcontainers.version>
+    <testcontainers.version>1.19.7</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <swagger.version>2.1.20</swagger.version>

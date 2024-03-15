@@ -65,6 +65,8 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
 
   private boolean disableDataElementAutoGroup;
 
+  private String displayOptions;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -212,6 +214,16 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
 
   public void setShowColumnTotals(boolean showColumnTotals) {
     this.showColumnTotals = showColumnTotals;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayOptions() {
+    return displayOptions;
+  }
+
+  public void setDisplayOptions(String displayOptions) {
+    this.displayOptions = displayOptions;
   }
 
   @JsonProperty

@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -44,23 +43,31 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-public class OrganisationUnitStructureResourceTable implements ResourceTable {
+public class OrganisationUnitStructureResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_orgunitstructure";
-
-  private final OrganisationUnitService organisationUnitService;
 
   private final int organisationUnitLevels;
 
-  private final Logged logged;
+  /** A to do is removing this service and finding a way to retrieve with SQL. */
+  private final OrganisationUnitService organisationUnitService;
+
+  public OrganisationUnitStructureResourceTable(
+      SqlBuilder sqlBuilder,
+      Logged logged,
+      int organisationUnitLevels,
+      OrganisationUnitService organisationUnitService) {
+    super(sqlBuilder, logged);
+    this.organisationUnitLevels = organisationUnitLevels;
+    this.organisationUnitService = organisationUnitService;
+  }
 
   @Override
   public Table getTable() {

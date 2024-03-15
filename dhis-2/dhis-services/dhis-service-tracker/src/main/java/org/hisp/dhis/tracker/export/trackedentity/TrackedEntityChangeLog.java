@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.tracker.export.trackedentity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.util.Date;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-class IconDto {
+public record TrackedEntityChangeLog(
+    @JsonProperty UserInfoSnapshot createdBy,
+    @JsonProperty Date createdAt,
+    @JsonProperty String type,
+    @JsonProperty Change change) {
 
-  @JsonProperty private String key;
+  public record Change(@JsonProperty TrackedEntityAttributeChange attributeValue) {}
 
-  @JsonProperty private String description;
-
-  @JsonProperty private String[] keywords;
-
-  @JsonProperty private String fileResourceUid;
+  public record TrackedEntityAttributeChange(
+      @JsonProperty String attribute,
+      @JsonProperty String previousValue,
+      @JsonProperty String currentValue) {}
 }

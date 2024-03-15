@@ -76,7 +76,7 @@ import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -141,7 +141,9 @@ public class AccountController {
     }
 
     if (!userService.sendRestoreOrInviteMessage(
-        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+        user,
+        HttpServletRequestPaths.getContextPath(request),
+        RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       return conflict("Account could not be recovered");
     }
 
@@ -210,6 +212,7 @@ public class AccountController {
 
   @PostMapping
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage createAccount(
       @RequestParam String username,
       @RequestParam String firstName,
@@ -549,7 +552,8 @@ public class AccountController {
   }
 
   private Map<String, String> validatePassword(String password) {
-    CredentialsInfo credentialsInfo = new CredentialsInfo(password, true);
+    CredentialsInfo credentialsInfo =
+        CredentialsInfo.builder().password(password).newUser(true).build();
 
     PasswordValidationResult passwordValidationResult =
         passwordValidationService.validate(credentialsInfo);

@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -36,8 +39,13 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
+import org.hisp.dhis.security.LoginOidcProvider;
+import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,31 +64,42 @@ public class LoginConfigController {
 
   private final SystemSettingManager manager;
   private final ConfigurationService configurationService;
+  private final SystemService systemService;
+  private final DhisOidcProviderRepository oidcProviderRepository;
 
   @Getter
   private enum KEYS {
-    APPLICATION_TITLE("applicationTitle"),
-    APPLICATION_INTRO("applicationDescription"),
-    APPLICATION_NOTIFICATION("applicationNotification"),
-    APPLICATION_FOOTER("applicationLeftSideFooter"),
-    FLAG_IMAGE("countryFlag"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
-    UI_LOCALE("uiLocale"),
-    LOGIN_POPUP("loginPopup"),
-    SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha"),
-    USE_CUSTOM_LOGO_FRONT("useCustomLogoFront"),
-    ACCOUNT_RECOVERY("allowAccountRecovery");
+    APPLICATION_TITLE(),
+    APPLICATION_INTRO(),
+    APPLICATION_NOTIFICATION(),
+    APPLICATION_FOOTER(),
+    APPLICATION_RIGHT_FOOTER(),
+    FLAG(),
+    CUSTOM_LOGIN_PAGE_LOGO("/api/staticContent/logo_front.png"),
+    UI_LOCALE(),
+    LOGIN_POPUP(),
+    SELF_REGISTRATION_NO_RECAPTCHA(),
+    USE_CUSTOM_LOGO_FRONT(),
+    ACCOUNT_RECOVERY(),
+    RECAPTCHA_SITE(),
 
-    private final String keyName;
+    /** The layout to be used for displaying LoginPage. Value is the enum {@link LoginPageLayout} */
+    LOGIN_PAGE_LAYOUT(LoginPageLayout.DEFAULT.name()),
+
+    /**
+     * The HTML string which is used for displaying LoginPage if selected {@link LoginPageLayout} is
+     * CUSTOM.
+     */
+    LOGIN_PAGE_TEMPLATE();
+    ;
+
     private final String defaultValue;
 
-    KEYS(String keyName) {
-      this.keyName = keyName;
+    KEYS() {
       this.defaultValue = null;
     }
 
-    KEYS(String keyName, String defaultValue) {
-      this.keyName = keyName;
+    KEYS(String defaultValue) {
       this.defaultValue = defaultValue;
     }
   }
@@ -101,9 +120,11 @@ public class LoginConfigController {
     builder.applicationDescription(getTranslatableString(KEYS.APPLICATION_INTRO, locale));
     builder.applicationNotification(getTranslatableString(KEYS.APPLICATION_NOTIFICATION, locale));
     builder.applicationLeftSideFooter(getTranslatableString(KEYS.APPLICATION_FOOTER, locale));
+    builder.applicationRightSideFooter(
+        getTranslatableString(KEYS.APPLICATION_RIGHT_FOOTER, locale));
     builder.loginPopup(getTranslatableString(KEYS.LOGIN_POPUP, locale));
 
-    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG_IMAGE.name())));
+    builder.countryFlag(manager.getStringSetting(SettingKey.valueOf(KEYS.FLAG.name())));
 
     builder.uiLocale(
         manager
@@ -111,7 +132,7 @@ public class LoginConfigController {
             .getLanguage());
 
     builder.loginPageLogo(
-        manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_LOGIN_PAGE_LOGO.name()))
+        manager.getBoolSetting(SettingKey.valueOf(KEYS.USE_CUSTOM_LOGO_FRONT.name()))
             ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
             : null);
 
@@ -127,6 +148,39 @@ public class LoginConfigController {
     builder.selfRegistrationEnabled(
         configurationService.getConfiguration().selfRegistrationAllowed());
 
+    builder.apiVersion(systemService.getSystemInfo().getVersion());
+    builder.recaptchaSite(manager.getStringSetting(SettingKey.valueOf(KEYS.RECAPTCHA_SITE.name())));
+
+    builder.loginPageLayout(
+        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_LAYOUT.name())));
+
+    builder.loginPageTemplate(
+        manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_TEMPLATE.name())));
+
+    builder.oidcProviders(getRegisteredOidcProviders());
+
     return builder.build();
+  }
+
+  private List<LoginOidcProvider> getRegisteredOidcProviders() {
+    List<LoginOidcProvider> providers = new ArrayList<>();
+
+    Set<String> allRegistrationIds = oidcProviderRepository.getAllRegistrationId();
+
+    for (String registrationId : allRegistrationIds) {
+      DhisOidcClientRegistration clientRegistration =
+          oidcProviderRepository.getDhisOidcClientRegistration(registrationId);
+
+      providers.add(
+          LoginOidcProvider.builder()
+              .id(registrationId)
+              .icon(clientRegistration.getLoginIcon())
+              .iconPadding(clientRegistration.getLoginIconPadding())
+              .loginText(clientRegistration.getLoginText())
+              .url("/oauth2/authorization/" + registrationId)
+              .build());
+    }
+
+    return providers;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,14 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.beans.PropertyEditorSupport;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import java.util.Set;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.export.Page;
+import org.hisp.dhis.tracker.export.PageParams;
 
-public class OrderCriteriaParamEditor extends PropertyEditorSupport {
-  @Override
-  public void setAsText(String source) {
-    setValue(OrderCriteria.toOrderCriteria(source));
-  }
+public interface TrackedEntityChangeLogService {
+
+  /**
+   * Retrieves the change log data for a particular tracked entity.
+   *
+   * @return the paged change logs of the supplied tracked entity, if any
+   */
+  Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
+      UID trackedEntityUid,
+      UID programUid,
+      TrackedEntityChangeLogOperationParams operationParams,
+      PageParams pageParams)
+      throws NotFoundException;
+
+  /**
+   * Fields the {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)} can order tracked entities change logs by. Ordering by fields other than these are
+   * considered a programmer error. Validation of user provided field names should occur before
+   * calling {@link #getTrackedEntityChangeLog(UID, UID, TrackedEntityChangeLogOperationParams,
+   * PageParams)}.
+   */
+  Set<String> getOrderableFields();
 }
