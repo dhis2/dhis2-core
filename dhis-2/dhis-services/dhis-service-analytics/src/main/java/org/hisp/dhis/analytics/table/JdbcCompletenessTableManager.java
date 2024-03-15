@@ -275,16 +275,20 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
-        "select distinct(extract(year from pe.startdate)) "
-            + "from completedatasetregistration cdr "
-            + "inner join period pe on cdr.periodid=pe.periodid "
-            + "where pe.startdate is not null "
-            + "and cdr.date < '"
-            + toLongDate(params.getStartTime())
-            + "' ";
+        replace(
+            """
+            select distinct(extract(year from pe.startdate))
+            from completedatasetregistration cdr
+            inner join period pe on cdr.periodid=pe.periodid
+            where pe.startdate is not null
+            and cdr.date < '${startTime}'""",
+            Map.of("startTime", toLongDate(params.getStartTime())));
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
+      sql +=
+          replace(
+              "and pe.startdate >= '${fromDate}'",
+              Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     }
 
     return jdbcTemplate.queryForList(sql, Integer.class);
