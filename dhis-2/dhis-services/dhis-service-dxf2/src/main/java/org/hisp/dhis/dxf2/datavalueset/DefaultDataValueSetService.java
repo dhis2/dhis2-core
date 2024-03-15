@@ -821,9 +821,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
             : null;
 
     // -------------------------------------------------------------------
-    // Preserve any existing created date if the user cannot attribute data
+    // Preserve any existing created date regardless of the import payload
     // --------------------------------------------------------------------
-    if (existingValue != null && !context.currentUserCanAttributeData()) {
+    if (existingValue != null) {
       internalValue.setCreated(existingValue.getCreated());
     }
 
