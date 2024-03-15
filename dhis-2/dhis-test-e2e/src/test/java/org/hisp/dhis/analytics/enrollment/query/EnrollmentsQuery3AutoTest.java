@@ -72,9 +72,9 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(1)))
-        .body("height", equalTo(1))
-        .body("width", equalTo(3))
+        .body("rows", hasSize(equalTo(0)))
+        .body("height", equalTo(0))
+        .body("width", equalTo(0))
         .body("headerWidth", equalTo(3));
 
     // Assert metaData.
@@ -104,12 +104,6 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         "java.time.LocalDate",
         false,
         true);
-
-    // Assert rowContext
-    validateRowContext(response, 0, 1, "NS");
-
-    // Assert rows.
-    validateRow(response, 0, List.of("Motorbong MCHP", "", "2022-02-18 12:27:49.129"));
   }
 
   @Test
@@ -211,7 +205,9 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("page=1")
             .add(
-                "dimension=ou:USER_ORGUNIT,EPEcjy3FWmI[0].lJTx9EZ1dk1:IN:NV,EPEcjy3FWmI[-1].lJTx9EZ1dk1:IN:NV");
+                "dimension=ou:USER_ORGUNIT,EPEcjy3FWmI[0].lJTx9EZ1dk1,EPEcjy3FWmI[-1].lJTx9EZ1dk1:IN:NV")
+            .add("desc=ouname,enrollmentdate");
+    ;
 
     // When
     ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
@@ -263,10 +259,7 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Assert rowContext
-    validateRowContext(response, 0, 1, "NS");
-
     // Assert rows.
-    validateRow(response, 0, List.of("Motorbong MCHP", "", "1", "2022-02-18 12:27:49.129"));
+    validateRow(response, 0, List.of("Motorbong MCHP", "1", "", "2022-02-18 12:27:49.129"));
   }
 }

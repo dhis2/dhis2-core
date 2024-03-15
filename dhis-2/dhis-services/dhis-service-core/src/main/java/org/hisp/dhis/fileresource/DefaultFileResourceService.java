@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fileresource;
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +44,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -61,6 +64,7 @@ import org.joda.time.Hours;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeType;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -392,6 +396,30 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional(readOnly = true)
   public List<FileResource> getAllUnProcessedImagesFiles() {
     return fileResourceStore.getAllUnProcessedImages();
+  }
+
+  @SuppressWarnings("java:S4790")
+  @Override
+  @Transactional
+  public FileResource syncSaveFileResource(
+      String uid, MimeType contentType, InputStream content, FileResourceDomain domain)
+      throws ConflictException {
+    try {
+      byte[] data = IOUtils.toByteArray(content);
+      FileResource fr =
+          new FileResource(
+              "job_input_data_for_" + uid,
+              contentType.toString(),
+              data.length,
+              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
+              domain);
+      fr.setUid(uid);
+      fr.setAssigned(true);
+      syncSaveFileResource(fr, data);
+      return fr;
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
+    }
   }
 
   // -------------------------------------------------------------------------

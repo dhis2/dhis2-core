@@ -34,13 +34,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.CustomIcon;
-import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -48,58 +42,55 @@ import org.springframework.stereotype.Component;
 public class IconMapper {
   private FileResourceService fileResourceService;
 
-  private ContextService contextService;
+  public Icon to(CustomIconRequest customIconRequest) throws BadRequestException {
+    Optional<FileResource> fileResource;
 
-  public IconResponse from(Icon icon) {
-    if (icon instanceof CustomIcon ci) {
-      return new IconResponse(
-          icon.getKey(),
-          icon.getDescription(),
-          icon.getKeywords(),
-          ci.getFileResourceUid(),
-          ci.getCreatedByUserUid(),
-          getCustomIconReference(ci.getKey()),
-          icon.getCreated(),
-          icon.getLastUpdated());
-    } else {
-      return new IconResponse(
-          icon.getKey(),
-          icon.getDescription(),
-          icon.getKeywords(),
-          getDefaultIconReference(icon.getKey()),
-          icon.getCreated(),
-          icon.getLastUpdated());
+    if (customIconRequest.getFileResourceId() == null) {
+      throw new BadRequestException("FileResource must be provided with Icon");
     }
-  }
 
-  public CustomIcon to(IconDto iconDto) throws BadRequestException {
-    Optional<FileResource> fileResource =
-        fileResourceService.getFileResource(iconDto.getFileResourceUid(), CUSTOM_ICON);
+    fileResource =
+        fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
     if (fileResource.isEmpty()) {
       throw new BadRequestException(
-          String.format("File resource with uid %s does not exist", iconDto.getFileResourceUid()));
+          String.format(
+              "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
     }
 
-    return new CustomIcon(
-        iconDto.getKey(),
-        iconDto.getDescription(),
-        iconDto.getKeywords(),
-        fileResource.get().getUid(),
-        CurrentUserUtil.getCurrentUserDetails().getUid());
+    Icon icon = new Icon();
+    icon.setKey(customIconRequest.getKey().trim());
+    icon.setDescription(customIconRequest.getDescription());
+    icon.setKeywords(customIconRequest.getKeywords());
+    icon.setFileResource(fileResource.get());
+    icon.setCustom(true);
+
+    return icon;
   }
 
-  private String getCustomIconReference(String fileResourceUid) {
-    return String.format(
-        "%s%s/%s/icon",
-        contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, fileResourceUid);
-  }
+  public void merge(Icon persisted, CustomIconRequest customIconRequest)
+      throws BadRequestException {
+    Optional<FileResource> fileResource;
 
-  private String getDefaultIconReference(String key) {
-    return String.format(
-        "%s%s/%s/icon.%s",
-        contextService.getApiPath(),
-        IconSchemaDescriptor.API_ENDPOINT,
-        key,
-        DefaultIcon.Icons.SUFFIX);
+    if (customIconRequest.getFileResourceId() != null) {
+      fileResource =
+          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+      if (fileResource.isEmpty()) {
+        throw new BadRequestException(
+            String.format(
+                "FileResource with uid %s does not exist", customIconRequest.getFileResourceId()));
+      }
+
+      persisted.setFileResource(fileResource.get());
+    }
+
+    if (customIconRequest.getDescription() != null) {
+      persisted.setDescription(customIconRequest.getDescription());
+    }
+
+    if (customIconRequest.getKeywords() != null) {
+      persisted.setKeywords(customIconRequest.getKeywords());
+    }
+
+    persisted.setAutoFields();
   }
 }

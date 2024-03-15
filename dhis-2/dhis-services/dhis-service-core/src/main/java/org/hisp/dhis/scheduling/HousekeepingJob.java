@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.icon.DefaultIcon;
+import org.hisp.dhis.icon.IconService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +55,7 @@ public class HousekeepingJob implements Job {
 
   private final JobSchedulerLoopService jobSchedulerService;
   private final JobConfigurationService jobConfigurationService;
+  private final IconService iconService;
 
   @Override
   public JobType getJobType() {
@@ -88,6 +93,10 @@ public class HousekeepingJob implements Job {
         0,
         "%d jobs were rescheduled"::formatted,
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
+
+    progress.startingStage("Insert default icons", SKIP_ITEM);
+    progress.runStage(
+        Stream.of(DefaultIcon.values()), DefaultIcon::getKey, iconService::createDefaultIcon);
 
     progress.completedProcess(null);
   }
