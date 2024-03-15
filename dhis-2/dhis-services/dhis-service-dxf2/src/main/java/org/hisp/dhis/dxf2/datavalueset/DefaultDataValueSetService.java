@@ -820,9 +820,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
             ? context.getDataValueBatchHandler().findObject(internalValue)
             : null;
 
-    // -----------------------------------
-    // Preserve any existing created date
-    // -----------------------------------
+    // -------------------------------------------------------------------
+    // Preserve any existing created date if the user cannot attribute data
+    // --------------------------------------------------------------------
     if (existingValue != null && !context.currentUserCanAttributeData()) {
       internalValue.setCreated(existingValue.getCreated());
     }
