@@ -62,6 +62,7 @@ public interface JobCreationHelper {
           "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
     config.setAutoFields(); // ensure UID is set
     FileResource fr = FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType);
+    fr.setUid(config.getUid());
     fr.setAssigned(true);
     fileResourceService.syncSaveFileResource(fr, content);
     store.save(config);
