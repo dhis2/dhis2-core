@@ -1296,17 +1296,14 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setCategoryOptionCombo(valueContext.getCategoryOptionCombo());
     internalValue.setAttributeOptionCombo(valueContext.getAttrOptionCombo());
     internalValue.setValue(trimToNull(value));
+    internalValue.setCreated( now );
+    internalValue.setLastUpdated( now );
 
     if (context.currentUserCanAttributeData()) {
       internalValue.setStoredBy(
           dataValue.hasStoredBy() ? dataValue.getStoredBy() : context.getCurrentUserName());
-      internalValue.setLastUpdated(
-          dataValue.hasLastUpdated() ? parseDate(dataValue.getLastUpdated()) : now);
-      internalValue.setCreated(dataValue.hasCreated() ? parseDate(dataValue.getCreated()) : now);
     } else {
       internalValue.setStoredBy(context.getCurrentUserName());
-      internalValue.setLastUpdated(now);
-      internalValue.setCreated(now);
     }
 
     internalValue.setComment(trimToNull(dataValue.getComment()));
