@@ -335,8 +335,8 @@ class DataRelationsValidator implements Validator<Event> {
 
   /**
    * Given a program with registration, check whether an event in the preheat or payload refers to
-   * enrollment with an existing tracked entity. This should not happen because an enrollment
-   * without a tracked entity is not allowed, see {@link
+   * enrollment with an existing tracked entity. It should always find a tracked entity, because an
+   * enrollment without a tracked entity is not allowed see {@link
    * org.hisp.dhis.tracker.imports.validation.validator.enrollment.MandatoryFieldsValidator}
    *
    * @param bundle to load the enrollment from the preheat or the payload if not in the database

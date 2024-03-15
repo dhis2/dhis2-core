@@ -72,17 +72,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
-  @Nonnull private final AclService aclService;
-
-  @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
-
-  @Nonnull private final OrganisationUnitService organisationUnitService;
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
       "Event %s has no organisation unit assigned, so we skip user validation";
 
   private static final String ENROLLMENT_HAS_NO_TRACKED_ENTITY =
       "Event %s is in an enrollment with no tracked entity, so we skip ownership validation";
+
+  @Nonnull private final AclService aclService;
+
+  @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
+
+  @Nonnull private final OrganisationUnitService organisationUnitService;
 
   @Override
   public void validate(
