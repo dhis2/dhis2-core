@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
@@ -80,7 +79,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
   @Nonnull private final OrganisationUnitService organisationUnitService;
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      " has no organisation unit assigned, so we skip user validation";
+      "Event %s has no organisation unit assigned, so we skip user validation";
+
+  private static final String ENROLLMENT_HAS_NO_TRACKED_ENTITY =
+      "Event %s is in an enrollment with no tracked entity, so we skip ownership validation";
 
   @Override
   public void validate(
@@ -113,7 +115,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
       if (organisationUnit == null) {
-        log.warn("Event " + event.getEvent() + ORG_UNIT_NO_USER_ASSIGNED);
+        log.warn(String.format(ORG_UNIT_NO_USER_ASSIGNED, event.getUid()));
       } else {
         checkOrgUnitInCaptureScope(reporter, bundle, event, organisationUnit);
       }
@@ -231,9 +233,9 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           .findEnrollmentByUid(event.getEnrollment())
           .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
           .orElse(null);
-    } else {
-      return enrollment.getTrackedEntity().getUid();
     }
+
+    return enrollment.getTrackedEntity() != null ? enrollment.getTrackedEntity().getUid() : null;
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
@@ -264,7 +266,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private void checkTeiTypeAndTeiProgramAccess(
+  private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
       User user,
@@ -274,10 +276,18 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
     checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
 
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
+    }
+
+    //  We should never reach a point where a program with registration has an enrollment without
+    //  a tracked entity. However, we log a warning in this case and skip further validations as we
+    //  don't have information about the tracked entity. This is already been reported as an anomaly
+    // up in the validation chain
+    if (trackedEntity == null) {
+      log.warn(String.format(ENROLLMENT_HAS_NO_TRACKED_ENTITY, dto.getUid()));
+      return;
     }
 
     if (ownerOrganisationUnit != null
@@ -314,7 +324,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
 
       checkProgramReadAccess(reporter, event, user, program);
 
-      checkTeiTypeAndTeiProgramAccess(
+      checkTeTypeAndTeProgramAccess(
           reporter, event, user, trackedEntity, ownerOrgUnit, programStage.getProgram());
     }
 
@@ -330,7 +340,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       boolean isCreatableInSearchScope,
       User user) {
     if (eventOrgUnit == null) {
-      log.warn("Event " + event.getUid() + ORG_UNIT_NO_USER_ASSIGNED);
+      log.warn(String.format(ORG_UNIT_NO_USER_ASSIGNED, event.getUid()));
     } else if (isCreatableInSearchScope
         ? !organisationUnitService.isInUserSearchHierarchyCached(user, eventOrgUnit)
         : !organisationUnitService.isInUserHierarchyCached(user, eventOrgUnit)) {
