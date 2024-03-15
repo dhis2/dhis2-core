@@ -157,12 +157,12 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
 
-    if (!UserDetails.fromUser(user).isInUserHierarchy(orgUnit.getPath())) {
+    if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
