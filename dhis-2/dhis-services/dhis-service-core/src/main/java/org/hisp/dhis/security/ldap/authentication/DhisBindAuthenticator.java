@@ -58,12 +58,11 @@ public class DhisBindAuthenticator extends BindAuthenticator {
   @Override
   public DirContextOperations authenticate(Authentication authentication) {
     User user = userStore.getUserByUsername(authentication.getName());
-
     if (user == null) {
       throw new BadCredentialsException("Incorrect user credentials");
     }
 
-    if (user.hasLdapId()) {
+    if (user.hasLdapId() && user.isExternalAuth()) {
       log.debug(
           "LDAP authentication attempt with username: '{}' and LDAP ID: '{}'",
           user.getUsername(),
@@ -71,6 +70,8 @@ public class DhisBindAuthenticator extends BindAuthenticator {
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
+    } else {
+      throw new BadCredentialsException("Incorrect user credentials");
     }
 
     return super.authenticate(authentication);

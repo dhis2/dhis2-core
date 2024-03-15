@@ -31,19 +31,24 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AccountExpiredException;
-import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
@@ -84,14 +89,18 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags({"login"})
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@Order(2103)
 public class AuthenticationController {
 
-  private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-  private final SystemSettingManager settingManager;
-  private final RequestCache requestCache;
-  private final SessionRegistry sessionRegistry;
+  @Qualifier("customAuthenticationManager")
+  @Autowired
+  private AuthenticationManager authenticationManager;
+
+  @Autowired private SystemSettingManager settingManager;
+  @Autowired private RequestCache requestCache;
+  @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private UserService userService;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
   private final SecurityContextHolderStrategy securityContextHolderStrategy =
@@ -118,11 +127,11 @@ public class AuthenticationController {
       @RequestBody LoginRequest loginRequest) {
 
     try {
-      Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
-      Authentication authenticationResult = getAuthProvider().authenticate(authenticationToken);
+      validateRequest(loginRequest);
+
+      Authentication authenticationResult = doAuthentication(request, loginRequest);
 
       this.sessionStrategy.onAuthentication(authenticationResult, request, response);
-
       saveContext(request, response, authenticationResult);
 
       String redirectUrl = getRedirectUrl(request, response);
@@ -142,6 +151,26 @@ public class AuthenticationController {
     } catch (AccountExpiredException e) {
       return LoginResponse.builder().loginStatus(STATUS.ACCOUNT_EXPIRED).build();
     }
+  }
+
+  private void validateRequest(LoginRequest loginRequest) {
+    if (!ValidationUtils.usernameIsValid(loginRequest.getUsername())) {
+      throw new BadCredentialsException("Bad credentials");
+    }
+    User user = userService.getUserByUsername(loginRequest.getUsername());
+    if (user == null) {
+      throw new BadCredentialsException("Bad credentials");
+    }
+    boolean isOIDCUser =
+        user.isExternalAuth() && (user.getOpenId() != null && !user.getOpenId().isEmpty());
+    if (isOIDCUser) {
+      throw new BadCredentialsException("Bad credentials");
+    }
+  }
+
+  private Authentication doAuthentication(HttpServletRequest request, LoginRequest loginRequest) {
+    Authentication authenticationToken = createAuthenticationToken(request, loginRequest);
+    return authenticationManager.authenticate(authenticationToken);
   }
 
   private static Authentication createAuthenticationToken(
@@ -178,9 +207,5 @@ public class AuthenticationController {
     }
 
     return redirectUrl;
-  }
-
-  private AuthenticationProvider getAuthProvider() {
-    return twoFactorAuthenticationProvider;
   }
 }
