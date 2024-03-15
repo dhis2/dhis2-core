@@ -181,7 +181,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     assertEquals(
         entityInstanceA1,
-        trackedEntityService.getTrackedEntity(entityInstanceA1.getUid(), null, defaultParams, false));
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), null, defaultParams, false));
   }
 
   @Test
