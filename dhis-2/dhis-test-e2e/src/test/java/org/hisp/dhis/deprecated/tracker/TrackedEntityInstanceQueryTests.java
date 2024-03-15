@@ -153,9 +153,9 @@ class TrackedEntityInstanceQueryTests extends DeprecatedTrackerApiTest {
     trackedEntityInstanceQueryActions
         .get("?ouMode=ACCESSIBLE&query=LIKE:value&program=jDnjGYZFkA2")
         .validate()
-        .statusCode(400)
+        .statusCode(409)
         .body("status", equalTo("ERROR"))
-        .body("httpStatusCode", equalTo(400));
+        .body("httpStatusCode", equalTo(409));
   }
 
   private String createTei() {

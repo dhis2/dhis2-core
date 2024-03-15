@@ -338,7 +338,9 @@ public class UserController extends AbstractCrudController<User> {
 
     validateInviteUser(user, currentUser);
 
-    return postObject(inviteUser(user, currentUser, request));
+    ObjectReport objectReport = inviteUser(user, currentUser, request);
+
+    return postObject(objectReport);
   }
 
   @PostMapping(value = BULK_INVITE_PATH, consumes = APPLICATION_JSON_VALUE)

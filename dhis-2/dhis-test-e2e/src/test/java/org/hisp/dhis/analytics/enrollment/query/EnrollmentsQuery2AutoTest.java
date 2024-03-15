@@ -154,7 +154,7 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            ""));
+            "RESIDENT_IN_THE_FOCUS"));
     validateRow(
         response,
         1,
@@ -165,7 +165,7 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "Focus A focus",
             "1",
             "",
-            "",
+            "Some details",
             "",
             "RESIDENT_IN_THE_FOCUS"));
     validateRow(
@@ -245,7 +245,7 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            ""));
+            "RESIDENT_IN_THE_FOCUS"));
   }
 
   @Test
@@ -377,8 +377,8 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(8)))
-        .body("rows", hasSize(equalTo(1)))
-        .body("height", equalTo(1))
+        .body("rows", hasSize(equalTo(2)))
+        .body("height", equalTo(2))
         .body("width", equalTo(8))
         .body("headerWidth", equalTo(8));
 
@@ -445,8 +445,20 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "FSL054948",
             "1",
             "",
-            "20",
+            "5",
             "Focus A"));
+    validateRow(
+        response,
+        1,
+        List.of(
+            "Njandama MCHP",
+            "oRVt7g429ZO",
+            "2019-08-21 13:29:14.578",
+            "FJY949720",
+            "2",
+            "",
+            "30",
+            "Matalie Health Centre"));
   }
 
   @Test

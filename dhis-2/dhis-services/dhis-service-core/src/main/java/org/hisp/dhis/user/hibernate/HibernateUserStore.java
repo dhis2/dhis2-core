@@ -543,10 +543,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     query.setParameter("email", email);
     List<User> list = query.getResultList();
     if (list.size() > 1) {
-      // TODO: MAS: We need to handle this case more gracefully, now it's only used be reset
       // password, but that should be changed when we have verified emails implemented.
       log.warn("Multiple users found with email: {}", email);
-      throw new IllegalStateException("Multiple users found with email: " + email);
+      return null;
     }
     return list.isEmpty() ? null : list.get(0);
   }

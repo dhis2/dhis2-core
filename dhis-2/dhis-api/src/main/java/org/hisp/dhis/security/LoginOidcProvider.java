@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.security;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-class IconDto {
-
-  @JsonProperty private String key;
-
-  @JsonProperty private String description;
-
-  @JsonProperty private String[] keywords;
-
-  @JsonProperty private String fileResourceUid;
+@Builder
+public class LoginOidcProvider {
+  @JsonProperty private String id;
+  @JsonProperty private String icon;
+  @JsonProperty private String iconPadding;
+  @JsonProperty private String loginText;
+  @JsonProperty private String url;
 }
