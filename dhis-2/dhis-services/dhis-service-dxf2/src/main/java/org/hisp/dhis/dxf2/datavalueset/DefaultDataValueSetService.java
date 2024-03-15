@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -1296,8 +1295,8 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setCategoryOptionCombo(valueContext.getCategoryOptionCombo());
     internalValue.setAttributeOptionCombo(valueContext.getAttrOptionCombo());
     internalValue.setValue(trimToNull(value));
-    internalValue.setCreated( now );
-    internalValue.setLastUpdated( now );
+    internalValue.setCreated(now);
+    internalValue.setLastUpdated(now);
 
     if (context.currentUserCanAttributeData()) {
       internalValue.setStoredBy(
