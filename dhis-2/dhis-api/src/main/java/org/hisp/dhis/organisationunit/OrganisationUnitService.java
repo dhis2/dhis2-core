@@ -437,4 +437,13 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
 
   /** Update all OUs (thus forcing update of path). */
   void forceUpdatePaths();
+
+  /**
+   * Returns all OrganisationUnits that the user has access to.
+   *
+   * @param username
+   * @return
+   */
+  List<String> getOrganisationUnitsUidsByUser(String username);
+
 }

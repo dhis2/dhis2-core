@@ -197,6 +197,9 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   @Nonnull
   List<T> getAllEqName(@Nonnull String name);
 
+  @Nonnull
+  List<T> getAllEqName(@Nonnull String name, UserDetails userDetails);
+
   /**
    * Retrieves a List of objects where the name is like the given name.
    *

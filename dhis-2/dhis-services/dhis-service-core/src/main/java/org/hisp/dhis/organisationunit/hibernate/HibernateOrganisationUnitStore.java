@@ -86,6 +86,19 @@ public class HibernateOrganisationUnitStore
   // OrganisationUnit
   // -------------------------------------------------------------------------
 
+  @Override public List<String> getOrganisationUnitsUidsByUser(String username) {
+    String hql = "SELECT ou.uid FROM OrganisationUnit ou " +
+        "JOIN ou.userMemberships um " +
+        "JOIN um.userInfo ui " +
+        "WHERE ui.username = :username";
+
+    List<String> uids = getSession().createQuery(hql, String.class)
+        .setParameter("username", "john.doe")
+        .getResultList();
+
+    return uids;
+  }
+
   @Override
   public List<OrganisationUnit> getAllOrganisationUnitsByLastUpdated(Date lastUpdated) {
     return getAllGeLastUpdated(lastUpdated);

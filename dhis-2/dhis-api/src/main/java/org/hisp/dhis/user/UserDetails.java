@@ -46,13 +46,14 @@ public interface UserDetails extends org.springframework.security.core.userdetai
     }
 
     return createUserDetails(
-        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), new HashMap<>());
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, new HashMap<>());
   }
 
   static UserDetails createUserDetails(
       User user,
       boolean accountNonLocked,
       boolean credentialsNonExpired,
+      Set<String> userGroupIds,
       Map<String, Serializable> settings) {
     if (user == null) {
       return null;
@@ -94,10 +95,15 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         user.getGroups().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
     userDetails.setUserGroupIds(user.getUid() == null ? Set.of() : groupIds);
 
-    userDetails.setUserOrgUnitIds(
-        user.getOrganisationUnits().stream()
-            .map(BaseIdentifiableObject::getUid)
-            .collect(Collectors.toSet()));
+    if (userGroupIds == null || userGroupIds.isEmpty()) {
+      userDetails.setUserOrgUnitIds(
+          user.getOrganisationUnits().stream()
+              .map(BaseIdentifiableObject::getUid)
+              .collect(Collectors.toSet()));
+    } else {
+      userDetails.setUserOrgUnitIds(userGroupIds);
+    }
+
 
     userDetails.setUserSettings(settings);
 

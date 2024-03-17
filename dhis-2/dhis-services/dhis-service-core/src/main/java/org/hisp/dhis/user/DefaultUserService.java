@@ -47,6 +47,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -909,8 +910,15 @@ public class DefaultUserService implements UserService {
 
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
 
+    List<String> organisationUnitsUidsByUser = organisationUnitService.getOrganisationUnitsUidsByUser(
+        user.getUsername());
+
     return UserDetails.createUserDetails(
-        user, accountNonLocked, credentialsNonExpired, userSettings);
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        new HashSet<>(organisationUnitsUidsByUser)
+        , userSettings);
   }
 
   @Override

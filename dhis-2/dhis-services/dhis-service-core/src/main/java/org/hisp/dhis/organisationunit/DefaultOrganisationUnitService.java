@@ -640,6 +640,10 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     organisationUnitStore.forceUpdatePaths();
   }
 
+  @Override public List<String> getOrganisationUnitsUidsByUser(String username) {
+    return organisationUnitStore.getOrganisationUnitsUidsByUser(username);
+  }
+
   @Override
   @Transactional(readOnly = true)
   public Integer getOrganisationUnitLevelByLevelOrUid(String level) {

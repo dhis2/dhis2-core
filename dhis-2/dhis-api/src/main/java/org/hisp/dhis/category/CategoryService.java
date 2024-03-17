@@ -99,6 +99,8 @@ public interface CategoryService {
    */
   Category getCategoryByName(String name);
 
+  Category getCategoryByName(String name, UserDetails userDetails);
+
   /**
    * Returns all DataElementCategories.
    *
