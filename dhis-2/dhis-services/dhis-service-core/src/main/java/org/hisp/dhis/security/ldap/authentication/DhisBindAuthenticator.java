@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
+import static java.lang.String.format;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserStore;
@@ -56,19 +58,32 @@ public class DhisBindAuthenticator extends BindAuthenticator {
   @Override
   public DirContextOperations authenticate(Authentication authentication) {
     User user = userStore.getUserByUsername(authentication.getName());
-
     if (user == null) {
       throw new BadCredentialsException("Incorrect user credentials");
     }
 
-    if (user.hasLdapId()) {
+    if (user.hasLdapId() && user.isExternalAuth()) {
       log.debug(
           "Attemping username/password LDAP authentication for user: '{}'", user.getUsername());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
+    } else {
+      String msg =
+          format(
+              "Could not bind user to LDAP host due to missing LDAP ID or external auth: '%s'",
+              user.getUsername());
+      throw new BadCredentialsException(msg);
     }
 
     return super.authenticate(authentication);
+  }
+
+  @Override
+  public void handleBindException(String userDn, String username, Throwable cause) {
+    String msg =
+        format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username);
+    log.warn(msg, cause);
+    log.debug("LDAP user bind failed", cause);
   }
 }
