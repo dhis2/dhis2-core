@@ -93,7 +93,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Order(2103)
 public class AuthenticationController {
 
-  @Qualifier("customAuthenticationManager")
   @Autowired
   private AuthenticationManager authenticationManager;
 
