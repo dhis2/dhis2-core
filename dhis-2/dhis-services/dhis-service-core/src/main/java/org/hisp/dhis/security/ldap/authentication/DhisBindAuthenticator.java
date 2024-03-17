@@ -57,12 +57,11 @@ public class DhisBindAuthenticator extends BindAuthenticator {
   @Override
   public DirContextOperations authenticate(Authentication authentication) {
     User user = userService.getUserByUsername(authentication.getName());
-
     if (user == null) {
       throw new BadCredentialsException("Incorrect user credentials");
     }
 
-    if (user.hasLdapId()) {
+    if (user.hasLdapId() && user.isExternalAuth()) {
       log.debug(
           "LDAP authentication attempt with username: '{}' and LDAP ID: '{}'",
           user.getUsername(),
@@ -70,6 +69,12 @@ public class DhisBindAuthenticator extends BindAuthenticator {
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
+    } else {
+      String msg =
+          format(
+              "Could not bind user to LDAP host due to missing LDAP ID or external auth: '%s'",
+              user.getUsername());
+      throw new BadCredentialsException(msg);
     }
 
     return super.authenticate(authentication);
@@ -77,9 +82,9 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
   @Override
   public void handleBindException(String userDn, String username, Throwable cause) {
-    String message =
+    String msg =
         format("Failed to bind to LDAP host with DN: '%s' and username: '%s'", userDn, username);
-    log.warn(message, cause);
+    log.warn(msg, cause);
     log.debug("LDAP user bind failed", cause);
   }
 }

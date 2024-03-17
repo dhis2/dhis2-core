@@ -150,9 +150,4 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
       userService.approveTwoFactorSecret(user);
     }
   }
-
-  @Override
-  public boolean supports(Class<?> authentication) {
-    return authentication.equals(UsernamePasswordAuthenticationToken.class);
-  }
 }
