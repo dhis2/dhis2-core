@@ -44,7 +44,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -93,8 +92,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Order(2103)
 public class AuthenticationController {
 
-  @Autowired
-  private AuthenticationManager authenticationManager;
+  @Autowired private AuthenticationManager authenticationManager;
 
   @Autowired private SystemSettingManager settingManager;
   @Autowired private RequestCache requestCache;
