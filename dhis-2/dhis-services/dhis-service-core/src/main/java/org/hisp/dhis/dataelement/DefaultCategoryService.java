@@ -152,7 +152,6 @@ public class DefaultCategoryService implements CategoryService {
     return categoryStore.getByUid(uid);
   }
 
-
   @Override
   @Transactional(readOnly = true)
   public Category getCategoryByName(String name) {
