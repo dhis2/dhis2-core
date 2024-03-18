@@ -43,6 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,34 +77,32 @@ class TrackedEntityInstanceSupportServiceTest {
 
   private Program program;
 
-  private User user;
+  private UserDetails user;
 
   @BeforeEach
   public void setUpTest() throws Exception {
     entity = new TrackedEntity();
     program = new Program("A");
     program.setUid("A");
-    user = new User();
+    user = UserDetails.fromUser(new User());
   }
 
   @Test
   void shouldValidateOwnershipWhenProgramProvided() {
-    when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), user, FALSE))
+    when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), null, FALSE))
         .thenReturn(new TrackedEntityInstance());
-    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
     when(programService.getProgram(program.getUid())).thenReturn(program);
 
     trackedEntityInstanceSupportService.getTrackedEntityInstance(
         entity.getUid(), program.getUid(), emptyList());
     verify(trackedEntityInstanceService, times(1))
-        .getTrackedEntityInstance(entity.getUid(), user, FALSE);
+        .getTrackedEntityInstance(entity.getUid(), null, FALSE);
   }
 
   @Test
   void shouldValidateRegisteringOrgUnitWhenProgramNotProvided() {
     when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), FALSE))
         .thenReturn(new TrackedEntityInstance());
-    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
     trackedEntityInstanceSupportService.getTrackedEntityInstance(
         entity.getUid(), null, emptyList());

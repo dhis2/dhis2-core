@@ -86,7 +86,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -109,8 +108,6 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   @Autowired private EnrollmentService enrollmentService;
 

@@ -219,9 +219,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    TrackedEntity trackedEntity = getTrackedEntity(uid, params, includeDeleted);
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    TrackedEntity trackedEntity;
 
     if (program != null) {
       trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
@@ -285,16 +283,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity daoTrackedEntity = getTrackedEntity(uid);
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!trackerAccessManager.canRead(currentUser, daoTrackedEntity, program, false).isEmpty()) {
+    if (!trackerAccessManager.canRead(userDetails, daoTrackedEntity, program, false).isEmpty()) {
       if (program.getAccessLevel() == AccessLevel.CLOSED) {
         throw new ForbiddenException(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED);
       }
       throw new ForbiddenException(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
     }
 
-    return mapTrackedEntity(daoTrackedEntity, params, currentUser, includeDeleted);
+    return mapTrackedEntity(daoTrackedEntity, params, userDetails, includeDeleted);
   }
 
   private TrackedEntity getTrackedEntity(String uid) throws NotFoundException {
@@ -310,7 +308,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity mapTrackedEntity(
       TrackedEntity trackedEntity,
       TrackedEntityParams params,
-      User currentUser,
+      UserDetails currentUser,
       boolean includeDeleted) {
     TrackedEntity result = new TrackedEntity();
     result.setId(trackedEntity.getId());

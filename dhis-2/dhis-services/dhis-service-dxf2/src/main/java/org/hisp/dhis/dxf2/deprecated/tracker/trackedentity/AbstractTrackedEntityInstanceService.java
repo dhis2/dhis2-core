@@ -259,8 +259,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
-      String uid, User currentUser, TrackedEntityInstanceParams params) {
-    return getTrackedEntityInstance(teiService.getTrackedEntity(uid), params, currentUser, false);
+      String uid, UserDetails currentUser, TrackedEntityInstanceParams params) {
+    return getTrackedEntityInstance(teiService.getTrackedEntity(uid), params, currentUser);
   }
 
   @Override
@@ -285,12 +285,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       return null;
     }
 
-    if (checkAccess) {
-      List<String> errors = trackerAccessManager.canRead(user, daoTrackedEntity);
+    List<String> errors = trackerAccessManager.canRead(user, daoTrackedEntity);
 
-      if (!errors.isEmpty()) {
-        throw new IllegalQueryException(errors.toString());
-      }
+    if (!errors.isEmpty()) {
+      throw new IllegalQueryException(errors.toString());
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
