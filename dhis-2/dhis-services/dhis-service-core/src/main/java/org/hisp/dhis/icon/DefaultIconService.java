@@ -53,7 +53,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +68,7 @@ public class DefaultIconService implements IconService {
   private static final Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
 
   private static final String ICON_PATH = "SVGs";
+  private static final String MEDIA_TYPE_SVG = "image/svg+xml";
 
   private final IconStore iconStore;
   private final FileResourceService fileResourceService;
@@ -100,8 +100,7 @@ public class DefaultIconService implements IconService {
     String fileResourceId = CodeGenerator.generateUid();
     Resource resource = getDefaultIconResource(icon.getKey());
     try {
-      FileResource fileResource =
-          FileResource.ofKey(CUSTOM_ICON, icon.getKey(), MediaType.IMAGE_PNG);
+      FileResource fileResource = FileResource.ofKey(CUSTOM_ICON, icon.getKey(), MEDIA_TYPE_SVG);
       fileResource.setUid(fileResourceId);
       fileResource.setAssigned(true);
       try (InputStream image = resource.getInputStream()) {

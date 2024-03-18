@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.icon;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -198,9 +197,7 @@ public class IconController {
       throw new NotFoundException(FileResource.class, icon.getFileResource().getUid());
     }
 
-    response.setContentType(
-        icon.isCustom() ? fileResource.getContentType() : MediaType.SVG_UTF_8.toString());
-
+    response.setContentType(fileResource.getContentType());
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     response.setHeader(
         HttpHeaders.CONTENT_LENGTH,
