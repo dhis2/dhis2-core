@@ -73,14 +73,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
+
+  private static final String ORG_UNIT_NO_USER_ASSIGNED =
+      "Event {} has no organisation unit assigned, so we skip user validation";
+
   @Nonnull private final AclService aclService;
 
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
 
   @Nonnull private final OrganisationUnitService organisationUnitService;
-
-  private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      " has no organisation unit assigned, so we skip user validation";
 
   @Override
   public void validate(
@@ -113,13 +114,13 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
       if (organisationUnit == null) {
-        log.warn("Event " + event.getEvent() + ORG_UNIT_NO_USER_ASSIGNED);
+        log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
       } else {
         checkOrgUnitInCaptureScope(reporter, bundle, event, organisationUnit);
       }
     }
 
-    String teUid = getTeiUidFromEvent(bundle, event, program);
+    String teUid = getTeUidFromEvent(bundle, event, program);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
@@ -218,7 +219,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private String getTeiUidFromEvent(
+  private String getTeUidFromEvent(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return null;
@@ -231,9 +232,9 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           .findEnrollmentByUid(event.getEnrollment())
           .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
           .orElse(null);
-    } else {
-      return enrollment.getTrackedEntity().getUid();
     }
+
+    return enrollment.getTrackedEntity().getUid();
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
@@ -264,7 +265,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private void checkTeiTypeAndTeiProgramAccess(
+  private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
       User user,
@@ -314,7 +315,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
 
       checkProgramReadAccess(reporter, event, user, program);
 
-      checkTeiTypeAndTeiProgramAccess(
+      checkTeTypeAndTeProgramAccess(
           reporter, event, user, trackedEntity, ownerOrgUnit, programStage.getProgram());
     }
 
@@ -330,7 +331,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       boolean isCreatableInSearchScope,
       User user) {
     if (eventOrgUnit == null) {
-      log.warn("Event " + event.getUid() + ORG_UNIT_NO_USER_ASSIGNED);
+      log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
     } else if (isCreatableInSearchScope
         ? !organisationUnitService.isInUserSearchHierarchyCached(user, eventOrgUnit)
         : !organisationUnitService.isInUserHierarchyCached(user, eventOrgUnit)) {
