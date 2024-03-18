@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1313;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasNoError;
-import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -791,7 +790,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     validator.validate(reporter, bundle, event);
 
-    assertNoErrors(reporter);
+    assertHasNoError(reporter, event, E1313);
   }
 
   @Test
