@@ -33,7 +33,7 @@ import java.util.List;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,7 +42,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeleteProgramStageInstanceAclCheck extends BaseEventAclCheck {
   @Override
-  public List<String> checkAcl(TrackerAccessManager trackerAccessManager, User user, Event event) {
+  public List<String> checkAcl(
+      TrackerAccessManager trackerAccessManager, UserDetails user, Event event) {
     if (event != null) {
       return trackerAccessManager.canDelete(user, event, true);
     }

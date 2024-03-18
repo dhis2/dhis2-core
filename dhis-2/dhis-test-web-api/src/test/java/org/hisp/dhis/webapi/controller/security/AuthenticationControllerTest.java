@@ -37,7 +37,7 @@ import java.util.Calendar;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisAuthenticationApiTest;
 import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
@@ -210,7 +210,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     assertNotNull(response);
 
     assertEquals(1, sessionRegistry.getAllPrincipals().size());
-    UserDetailsImpl actual = (UserDetailsImpl) sessionRegistry.getAllPrincipals().get(0);
+    UserDetails actual = (UserDetails) sessionRegistry.getAllPrincipals().get(0);
 
     assertNotNull(actual);
     assertEquals("admin", actual.getUsername());

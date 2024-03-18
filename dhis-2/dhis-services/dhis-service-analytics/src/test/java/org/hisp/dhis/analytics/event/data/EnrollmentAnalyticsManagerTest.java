@@ -747,13 +747,13 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setValueType(ValueType.COORDINATE);
     item.setProgramStage(repeatableProgramStage);
     item.setProgram(programB);
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    RepeatableStageParams params = new RepeatableStageParams();
 
-    repeatableStageParams.setStartIndex(0);
-    repeatableStageParams.setCount(100);
-    repeatableStageParams.setStartDate(DateUtils.parseDate("2022-01-01"));
-    repeatableStageParams.setEndDate(DateUtils.parseDate("2022-01-31"));
-    item.setRepeatableStageParams(repeatableStageParams);
+    params.setStartIndex(0);
+    params.setCount(100);
+    params.setStartDate(DateUtils.parseDate("2022-01-01"));
+    params.setEndDate(DateUtils.parseDate("2022-01-31"));
+    item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);
 
@@ -779,11 +779,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setValueType(ValueType.COORDINATE);
     item.setProgramStage(repeatableProgramStage);
     item.setProgram(programB);
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    RepeatableStageParams params = new RepeatableStageParams();
 
-    repeatableStageParams.setStartIndex(0);
-    repeatableStageParams.setCount(1);
-    item.setRepeatableStageParams(repeatableStageParams);
+    params.setStartIndex(0);
+    params.setCount(1);
+    item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);
 

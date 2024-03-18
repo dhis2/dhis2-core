@@ -54,7 +54,7 @@ import org.hisp.dhis.db.model.constraint.Unique;
  * @author maikel arabori
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsIndexHelper {
+public final class AnalyticsIndexHelper {
   private static final String PREFIX_INDEX = "in_";
 
   /**

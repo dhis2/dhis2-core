@@ -347,9 +347,15 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param user the user to check for.
    * @param organisationUnit the organisation unit.
    * @return true if the given organisation unit is part of the hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserHierarchyCached(User user, OrganisationUnit organisationUnit);
 
+  /**
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserHierarchy(String)} instead
+   */
+  @Deprecated(forRemoval = true)
   boolean isInUserHierarchy(User user, OrganisationUnit organisationUnit);
 
   /**
@@ -359,7 +365,9 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param uid the uid of the organisation unit.
    * @param organisationUnits the set of organisation units associated with a user.
    * @return true if the organisation unit with the given uid is part of the hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserHierarchy(String uid, Set<OrganisationUnit> organisationUnits);
 
   /**
@@ -369,7 +377,9 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param user the user to check for.
    * @param organisationUnit the organisation unit.
    * @return true if the given organisation unit is part of the data view hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserDataHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit);
 
   /**
@@ -380,9 +390,15 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param user the user to check for.
    * @param organisationUnit the organisation unit.
    * @return true if the given organisation unit is part of the hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserSearchHierarchyCached(User user, OrganisationUnit organisationUnit);
 
+  /**
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
+   */
+  @Deprecated(forRemoval = true)
   boolean isInUserSearchHierarchy(User user, OrganisationUnit organisationUnit);
 
   // -------------------------------------------------------------------------
