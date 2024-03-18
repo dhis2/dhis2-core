@@ -483,42 +483,6 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     assertIsEmpty(reporter.getErrors());
   }
 
-  @Test
-  void shouldSkipTrackedEntityAccessValidationWhenEnrollmentHasNoTrackedEntity() {
-    String enrollmentUid = CodeGenerator.generateUid();
-
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.Event.builder()
-            .event(CodeGenerator.generateUid())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .status(EventStatus.COMPLETED)
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-
-    Enrollment enrollment = getEnrollment(enrollmentUid);
-    enrollment.setTrackedEntity(
-        null); // simulate the anomaly of an enrollment without a tracked entity
-
-    Event preheatEvent = getEvent();
-    preheatEvent.setEnrollment(enrollment);
-
-    when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
-
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
   private TrackedEntity teWithNoEnrollments() {
     TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setUid(TE_ID);

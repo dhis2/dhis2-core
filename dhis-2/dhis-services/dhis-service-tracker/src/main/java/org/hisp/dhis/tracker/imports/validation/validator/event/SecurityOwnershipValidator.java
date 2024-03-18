@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
@@ -75,9 +76,6 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
       "Event %s has no organisation unit assigned, so we skip user validation";
-
-  private static final String ENROLLMENT_HAS_NO_TRACKED_ENTITY =
-      "Event %s is in an enrollment with no tracked entity, so we skip ownership validation";
 
   @Nonnull private final AclService aclService;
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
@@ -233,7 +231,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           .orElse(null);
     }
 
-    return enrollment.getTrackedEntity() != null ? enrollment.getTrackedEntity().getUid() : null;
+    return enrollment.getTrackedEntity().getUid();
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
@@ -274,18 +272,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
     checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
+    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
 
     if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
-    }
-
-    //  We should never reach a point where a program with registration has an enrollment without
-    //  a tracked entity. However, we log a warning in this case and skip further validations as we
-    //  don't have information about the tracked entity. This is already been reported as an anomaly
-    // up in the validation chain
-    if (trackedEntity == null) {
-      log.warn(String.format(ENROLLMENT_HAS_NO_TRACKED_ENTITY, dto.getUid()));
-      return;
     }
 
     if (ownerOrganisationUnit != null
