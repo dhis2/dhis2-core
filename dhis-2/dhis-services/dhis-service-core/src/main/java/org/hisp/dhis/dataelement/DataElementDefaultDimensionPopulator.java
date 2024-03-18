@@ -72,7 +72,8 @@ public class DataElementDefaultDimensionPopulator extends TransactionContextStar
   public void executeInTransaction() {
     SystemUser actingUser = new SystemUser();
 
-    Category defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
+    Category defaultCategory =
+        categoryService.getCategoryByName(Category.DEFAULT_NAME, new SystemUser());
 
     if (defaultCategory == null) {
       categoryService.generateDefaultDimension(actingUser);

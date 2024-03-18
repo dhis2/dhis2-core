@@ -32,10 +32,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -45,11 +43,19 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   // to use UserDetails higher up in the layers.
   @CheckForNull
   static UserDetails fromUser(@CheckForNull User user) {
-    if (user == null) return null;
+    if (user == null) {
+      return null;
+    }
     // TODO check in session if a UserDetails for the user already exists (if the user is the
     // current user)
     return createUserDetails(
-        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, new HashMap<>());
+        user,
+        user.isAccountNonLocked(),
+        user.isCredentialsNonExpired(),
+        null,
+        null,
+        null,
+        new HashMap<>());
   }
 
   @CheckForNull
@@ -57,8 +63,10 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull User user,
       boolean accountNonLocked,
       boolean credentialsNonExpired,
-      Set<String> userGroupIds,
-      @CheckForNull  Map<String, Serializable> settings) {
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids,
+      @CheckForNull Map<String, Serializable> settings) {
     if (user == null) {
       return null;
     }
@@ -84,20 +92,17 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         .allRestrictions(user.getAllRestrictions())
         .userRoleIds(setOfIds(user.getUserRoles()))
         .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-        .userOrgUnitIds(setOfIds(user.getOrganisationUnits()))
-        .userSearchOrgUnitIds(setOfIds(user.getTeiSearchOrganisationUnitsWithFallback()))
-        .userDataOrgUnitIds(setOfIds(user.getDataViewOrganisationUnitsWithFallback()))
+        .userOrgUnitIds((orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids)
+        .userSearchOrgUnitIds(
+            (searchOrgUnitUids == null)
+                ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
+                : searchOrgUnitUids)
+        .userDataOrgUnitIds(
+            (dataViewUnitUids == null)
+                ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
+                : dataViewUnitUids)
         .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings))
         .build();
-
-    if (userGroupIds == null || userGroupIds.isEmpty()) {
-      userDetails.setUserOrgUnitIds(
-          user.getOrganisationUnits().stream()
-              .map(BaseIdentifiableObject::getUid)
-              .collect(Collectors.toSet()));
-    } else {
-      userDetails.setUserOrgUnitIds(userGroupIds);
-    }
   }
 
   @Nonnull
@@ -183,8 +188,14 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   private static boolean isInUserHierarchy(
       @CheckForNull String orgUnitPath, @Nonnull Set<String> orgUnitIds) {
-    if (orgUnitPath == null) return false;
-    for (String uid : orgUnitPath.split("/")) if (orgUnitIds.contains(uid)) return true;
+    if (orgUnitPath == null) {
+      return false;
+    }
+    for (String uid : orgUnitPath.split("/")) {
+      if (orgUnitIds.contains(uid)) {
+        return true;
+      }
+    }
     return false;
   }
 

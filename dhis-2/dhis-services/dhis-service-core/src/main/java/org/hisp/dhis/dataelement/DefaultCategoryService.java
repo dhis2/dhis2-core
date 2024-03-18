@@ -60,7 +60,6 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -169,8 +168,8 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public Category getCategoryByName(String name, UserDetails userDetails) {
-    List<Category> dataElementCategories = new ArrayList<>(
-        categoryStore.getAllEqName(name, userDetails));
+    List<Category> dataElementCategories =
+        new ArrayList<>(categoryStore.getAllEqName(name, userDetails));
 
     if (dataElementCategories.isEmpty()) {
       return null;

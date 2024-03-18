@@ -99,6 +99,13 @@ public interface CategoryService {
    */
   Category getCategoryByName(String name);
 
+  /**
+   * Retrieves the Category with the given name.
+   *
+   * @param name the name of the Category to retrieve.
+   * @param userDetails the user details of the acting user.
+   * @return the Category.
+   */
   Category getCategoryByName(String name, UserDetails userDetails);
 
   /**

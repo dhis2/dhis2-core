@@ -44,14 +44,29 @@ import org.hisp.dhis.program.Program;
 public interface OrganisationUnitStore
     extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider {
 
-
   /**
    * Returns all OrganisationUnits that the user has access to.
    *
-   * @param username
+   * @param username of the user.
    * @return
    */
   List<String> getOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all search scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getSearchOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all data view scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getDataViewOrganisationUnitsUidsByUser(String username);
 
   /**
    * Returns all OrganisationUnits by lastUpdated.

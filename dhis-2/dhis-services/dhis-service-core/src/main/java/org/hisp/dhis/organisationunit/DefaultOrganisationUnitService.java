@@ -640,8 +640,19 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     organisationUnitStore.forceUpdatePaths();
   }
 
-  @Override public List<String> getOrganisationUnitsUidsByUser(String username) {
+  @Override
+  public List<String> getOrganisationUnitsUidsByUser(String username) {
     return organisationUnitStore.getOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
+  public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
+    return organisationUnitStore.getDataViewOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
+  public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
+    return organisationUnitStore.getSearchOrganisationUnitsUidsByUser(username);
   }
 
   @Override

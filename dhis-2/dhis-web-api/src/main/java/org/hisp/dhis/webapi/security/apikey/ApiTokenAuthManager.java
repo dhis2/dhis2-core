@@ -146,14 +146,20 @@ public class ApiTokenAuthManager implements AuthenticationManager {
 
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
 
-    List<String> organisationUnitsUidsByUser = organisationUnitService.getOrganisationUnitsUidsByUser(
-        user.getUsername());
+    List<String> organisationUnitsUidsByUser =
+        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
 
     return UserDetails.createUserDetails(
         user,
         accountNonLocked,
         credentialsNonExpired,
         new HashSet<>(organisationUnitsUidsByUser),
+        new HashSet<>(searchOrganisationUnitsUidsByUser),
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
         userSettings);
   }
 
