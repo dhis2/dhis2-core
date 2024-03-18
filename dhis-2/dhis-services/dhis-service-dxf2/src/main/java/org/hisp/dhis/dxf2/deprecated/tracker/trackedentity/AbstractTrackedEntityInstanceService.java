@@ -273,17 +273,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity daoTrackedEntity, TrackedEntityInstanceParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    return getTrackedEntityInstance(daoTrackedEntity, params, currentUser, true);
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    return getTrackedEntityInstance(daoTrackedEntity, params, currentUser);
   }
 
   @Override
   @Transactional(readOnly = true)
   public TrackedEntityInstance getTrackedEntityInstance(
-      TrackedEntity daoTrackedEntity,
-      TrackedEntityInstanceParams params,
-      User user,
-      boolean checkAccess) {
+      TrackedEntity daoTrackedEntity, TrackedEntityInstanceParams params, UserDetails user) {
     if (daoTrackedEntity == null) {
       return null;
     }
@@ -297,8 +294,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            user == null ? null : UserDetails.fromUser(user));
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
 
     return getTei(daoTrackedEntity, readableAttributes, params, user);
   }
@@ -566,9 +562,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     List<List<TrackedEntityInstance>> partitions = Lists.partition(validTeis, FLUSH_FREQUENCY);
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     for (List<TrackedEntityInstance> _trackedEntityInstances : partitions) {
       reloadUser(importOptions);
-      prepareCaches(_trackedEntityInstances, importOptions.getUser());
+      prepareCaches(_trackedEntityInstances, user);
 
       for (TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances) {
         ImportSummary importSummary =
@@ -683,7 +680,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       return importSummary;
     }
 
-    List<String> errors = trackerAccessManager.canWrite(importOptions.getUser(), daoEntityInstance);
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
+    List<String> errors = trackerAccessManager.canWrite(user, daoEntityInstance);
 
     if (!errors.isEmpty()) {
       return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
@@ -691,7 +689,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     teiService.addTrackedEntity(daoEntityInstance);
 
-    addAttributeValues(dtoEntityInstance, daoEntityInstance, importOptions.getUser());
+    addAttributeValues(dtoEntityInstance, daoEntityInstance, user);
 
     importSummary.setReference(daoEntityInstance.getUid());
     importSummary.getImportCount().incrementImported();
@@ -723,9 +721,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments =
         new ArrayList<>();
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     for (List<TrackedEntityInstance> _trackedEntityInstances : partitions) {
       reloadUser(importOptions);
-      prepareCaches(_trackedEntityInstances, importOptions.getUser());
+      prepareCaches(_trackedEntityInstances, user);
 
       for (TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances) {
         ImportSummary importSummary =
@@ -771,10 +770,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     checkAttributes(dtoEntityInstance, importOptions, importSummary, true);
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     TrackedEntity daoEntityInstance =
-        teiService.getTrackedEntity(
-            dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser());
-    List<String> errors = trackerAccessManager.canWrite(importOptions.getUser(), daoEntityInstance);
+        teiService.getTrackedEntity(dtoEntityInstance.getTrackedEntityInstance(), user);
+    List<String> errors = trackerAccessManager.canWrite(user, daoEntityInstance);
     OrganisationUnit organisationUnit =
         getOrganisationUnit(importOptions.getIdSchemes(), dtoEntityInstance.getOrgUnit());
     Program program = getProgram(importOptions.getIdSchemes(), programId);
@@ -806,8 +805,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     daoEntityInstance.setOrganisationUnit(organisationUnit);
     daoEntityInstance.setInactive(dtoEntityInstance.isInactive());
     daoEntityInstance.setPotentialDuplicate(dtoEntityInstance.isPotentialDuplicate());
-    daoEntityInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
+    daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
     if (dtoEntityInstance.getGeometry() != null) {
       FeatureType featureType = daoEntityInstance.getTrackedEntityType().getFeatureType();
@@ -841,7 +839,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     if (!importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getAttributes().isEmpty()) {
-      updateAttributeValues(dtoEntityInstance, daoEntityInstance, program, importOptions.getUser());
+      updateAttributeValues(dtoEntityInstance, daoEntityInstance, program, user);
     }
 
     updateDateFields(dtoEntityInstance, daoEntityInstance);
@@ -905,8 +903,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             handleEnrollments(dtoEntityInstance, daoEntityInstance, importOptions));
       }
 
-      if (importOptions.getUser() != null) {
-        isAllowedToDelete(importOptions.getUser(), daoEntityInstance, importSummary);
+      UserDetails user = UserDetails.fromUser(importOptions.getUser());
+      if (user != null) {
+        isAllowedToDelete(user, daoEntityInstance, importSummary);
 
         if (importSummary.hasConflicts()) {
           importSummary.setStatus(ImportStatus.ERROR);
@@ -916,7 +915,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
       }
 
-      daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+      daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
       teiService.deleteTrackedEntity(daoEntityInstance);
 
       importSummary.setStatus(ImportStatus.SUCCESS);
@@ -1028,14 +1027,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             .map(Relationship::getRelationship)
             .collect(Collectors.toList());
 
+    UserDetails currentUser = UserDetails.fromUser(importOptions.getUser());
     List<Relationship> delete =
         daoEntityInstance.getRelationshipItems().stream()
             .map(RelationshipItem::getRelationship)
 
             // Remove items we cant write to
             .filter(
-                relationship ->
-                    trackerAccessManager.canWrite(importOptions.getUser(), relationship).isEmpty())
+                relationship -> trackerAccessManager.canWrite(currentUser, relationship).isEmpty())
             .filter(relationship -> isTeiPartOfRelationship(relationship, daoEntityInstance))
             .map(org.hisp.dhis.relationship.Relationship::getUid)
 
@@ -1088,8 +1087,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     importSummaries.addImportSummaries(relationshipService.addRelationships(create, importOptions));
     importSummaries.addImportSummaries(
         relationshipService.updateRelationships(update, importOptions));
-    importSummaries.addImportSummaries(
-        relationshipService.deleteRelationships(delete, importOptions));
+    importSummaries.addImportSummaries(relationshipService.deleteRelationships(delete));
 
     return importSummaries;
   }
@@ -1165,7 +1163,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     return importSummaries;
   }
 
-  private void prepareCaches(List<TrackedEntityInstance> trackedEntityInstances, User user) {
+  private void prepareCaches(List<TrackedEntityInstance> trackedEntityInstances, UserDetails user) {
     Collection<String> orgUnits =
         trackedEntityInstances.stream()
             .map(TrackedEntityInstance::getOrgUnit)
@@ -1173,7 +1171,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!orgUnits.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(OrganisationUnit.class));
-      query.setCurrentUserDetails(UserDetails.fromUser(user));
+      query.setCurrentUserDetails(user);
       query.add(Restrictions.in("id", orgUnits));
       queryService
           .query(query)
@@ -1186,7 +1184,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     if (!trackedEntityAttributes.isEmpty()) {
       Query query = Query.from(schemaService.getDynamicSchema(TrackedEntityAttribute.class));
-      query.setCurrentUserDetails(UserDetails.fromUser(user));
+      query.setCurrentUserDetails(user);
       query.add(Restrictions.in("id", trackedEntityAttributes));
       queryService
           .query(query)
@@ -1199,7 +1197,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       TrackedEntityInstance dtoEntityInstance,
       TrackedEntity daoEntityInstance,
       Program program,
-      User user) {
+      UserDetails user) {
     Set<String> incomingAttributes = new HashSet<>();
     Map<String, TrackedEntityAttributeValue> teiAttributeToValueMap =
         getTeiAttributeValueMap(
@@ -1261,7 +1259,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
   }
 
   private void addAttributeValues(
-      TrackedEntityInstance dtoEntityInstance, TrackedEntity daoEntityInstance, User user) {
+      TrackedEntityInstance dtoEntityInstance, TrackedEntity daoEntityInstance, UserDetails user) {
     for (Attribute dtoAttribute : dtoEntityInstance.getAttributes()) {
       TrackedEntityAttribute daoEntityAttribute =
           trackedEntityAttributeService.getTrackedEntityAttribute(dtoAttribute.getAttribute());
@@ -1385,9 +1383,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     TrackedEntity daoEntityInstance = null;
 
     if (teiExistsInDatabase) {
+      UserDetails user = UserDetails.fromUser(importOptions.getUser());
       daoEntityInstance =
-          teiService.getTrackedEntity(
-              dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser());
+          teiService.getTrackedEntity(dtoEntityInstance.getTrackedEntityInstance(), user);
 
       if (daoEntityInstance == null) {
         return;
@@ -1558,7 +1556,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     importOptions.setUser(userService.getUser(importOptions.getUser().getUid()));
   }
 
-  private void isAllowedToDelete(User user, TrackedEntity tei, ImportConflicts importConflicts) {
+  private void isAllowedToDelete(
+      UserDetails user, TrackedEntity tei, ImportConflicts importConflicts) {
     Set<Enrollment> enrollments =
         tei.getEnrollments().stream().filter(pi -> !pi.isDeleted()).collect(Collectors.toSet());
 
@@ -1582,7 +1581,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       TrackedEntity daoTrackedEntity,
       Set<TrackedEntityAttribute> readableAttributes,
       TrackedEntityInstanceParams params,
-      User user) {
+      UserDetails user) {
     if (daoTrackedEntity == null) {
       return null;
     }

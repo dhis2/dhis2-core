@@ -74,7 +74,7 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,8 +104,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final FileResourceService fileResourceService;
 
   private final TrackedEntityOperationParamsMapper mapper;
-
-  private final UserService userService;
 
   @Override
   public FileResourceStream getFileResource(
@@ -164,7 +162,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntityAttribute getAttribute(
       UID attributeUid, TrackedEntity trackedEntity, @CheckForNull UID programUid)
       throws NotFoundException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (programUid != null) {
       Program program = programService.getProgram(programUid.getValue());
@@ -221,7 +219,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    TrackedEntity trackedEntity;
+    TrackedEntity trackedEntity = getTrackedEntity(uid, params, includeDeleted);
+
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+
     if (program != null) {
       trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
 
@@ -263,7 +264,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
     TrackedEntity daoTrackedEntity = getTrackedEntity(uid);
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     List<String> errors = trackerAccessManager.canRead(currentUser, daoTrackedEntity);
     if (!errors.isEmpty()) {
@@ -343,7 +344,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<RelationshipItem> getRelationshipItems(
-      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
+      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted) {
     Set<RelationshipItem> items = new HashSet<>();
 
     for (RelationshipItem relationshipItem : trackedEntity.getRelationshipItems()) {
@@ -358,7 +359,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
+      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted) {
     Set<Enrollment> enrollments = new HashSet<>();
 
     for (Enrollment enrollment : trackedEntity.getEnrollments()) {
