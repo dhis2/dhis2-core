@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.P_
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -89,7 +90,9 @@ class SqlQueryHelper {
         + " from "
         + ANALYTICS_TEI_EVT
         + trackedEntityType.getUid().toLowerCase()
-        + " where "
+        + " where status != '"
+        + EventStatus.SCHEDULE
+        + "' and "
         + P_UID
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
