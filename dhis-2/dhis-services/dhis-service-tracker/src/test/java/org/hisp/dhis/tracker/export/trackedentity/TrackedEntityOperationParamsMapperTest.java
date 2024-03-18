@@ -62,6 +62,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -178,7 +179,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMapping() throws BadRequestException, ForbiddenException {
+  void testMapping() throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
         .thenReturn(trackedEntityType);
@@ -226,7 +227,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Test
   void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
         .thenReturn(trackedEntityType);
@@ -244,7 +245,8 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingProgramEnrollmentStartDate() throws BadRequestException, ForbiddenException {
+  void testMappingProgramEnrollmentStartDate()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -263,7 +265,8 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingProgramEnrollmentEndDate() throws BadRequestException, ForbiddenException {
+  void testMappingProgramEnrollmentEndDate()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -282,7 +285,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testFilter() throws BadRequestException, ForbiddenException {
+  void testFilter() throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -338,7 +341,8 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testFilterWhenTEAHasMultipleFilters() throws BadRequestException, ForbiddenException {
+  void testFilterWhenTEAHasMultipleFilters()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -374,7 +378,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingProgram() throws BadRequestException, ForbiddenException {
+  void testMappingProgram() throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -391,7 +395,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingProgramStage() throws BadRequestException, ForbiddenException {
+  void testMappingProgramStage() throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -432,7 +436,8 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingAssignedUsers() throws BadRequestException, ForbiddenException {
+  void testMappingAssignedUsers()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -455,7 +460,8 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
+  void shouldMapOrderInGivenOrder()
+      throws BadRequestException, ForbiddenException, NotFoundException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
 
@@ -484,7 +490,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailToMapOrderIfUIDIsNotAnAttribute() throws ForbiddenException, BadRequestException {
+  void shouldFailToMapOrderIfUIDIsNotAnAttribute() throws NotFoundException {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
@@ -505,8 +511,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailToMapGivenInvalidOrderNameWhichIsAValidUID()
-      throws ForbiddenException, BadRequestException {
+  void shouldFailToMapGivenInvalidOrderNameWhichIsAValidUID() throws NotFoundException {
     // This test case shows that some field names are valid UIDs. Previous stages (web) can thus not
     // rule out all
     // invalid field names and UIDs. Such invalid order values will be caught in this mapper.
@@ -528,8 +533,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndNoAttributeSpecified()
-      throws ForbiddenException, BadRequestException {
+  void shouldFailWhenGlobalSearchAndNoAttributeSpecified() throws NotFoundException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
 
@@ -552,8 +556,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndMaxTeLimitReached()
-      throws ForbiddenException, BadRequestException {
+  void shouldFailWhenGlobalSearchAndMaxTeLimitReached() throws NotFoundException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
 
@@ -592,9 +595,8 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).user(user).build();
 
-    Exception BadRequestException =
-        assertThrows(BadRequestException.class, () -> mapper.map(operationParams));
+    Exception exception = assertThrows(NotFoundException.class, () -> mapper.map(operationParams));
 
-    assertEquals("User has no access to any Tracked Entity Type", BadRequestException.getMessage());
+    assertEquals("No tracked entity found.", exception.getMessage());
   }
 }

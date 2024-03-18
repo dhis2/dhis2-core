@@ -37,7 +37,7 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -143,17 +143,16 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateProgram(PROGRAM_UID, new User()));
 
     assertEquals(
-        String.format("Program is specified but does not exist: %s", PROGRAM_UID),
+        String.format("Program with id %s could not be found.", PROGRAM_UID),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnProgramWhenUserHasAccessToProgram()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnProgramWhenUserHasAccessToProgram() throws NotFoundException {
     User user = new User();
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -169,16 +168,15 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
+            NotFoundException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
 
     assertEquals(
-        String.format("User has no access to program: %s", program.getUid()),
+        String.format("Program with id %s could not be found.", PROGRAM_UID),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnProgramWhenUserHasAccessToProgramTrackedEntityType()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnProgramWhenUserHasAccessToProgramTrackedEntityType() throws NotFoundException {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     program.setTrackedEntityType(trackedEntityType);
@@ -200,18 +198,15 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
+            NotFoundException.class, () -> paramsValidator.validateProgram(PROGRAM_UID, user));
 
     assertEquals(
-        String.format(
-            "Current user is not authorized to read data from selected program's tracked entity type: %s",
-            trackedEntityType.getUid()),
+        String.format("Program with id %s could not be found.", PROGRAM_UID),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnTrackedEntityWhenTrackedEntityUidExists() throws NotFoundException {
     when(trackedEntityService.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(trackedEntity);
 
     assertEquals(
@@ -224,17 +219,16 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, new User()));
 
     assertEquals(
-        String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
+        String.format("TrackedEntity with id %s could not be found.", TRACKED_ENTITY_UID),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnTrackedEntityWhenUserHasAccessToTrackedEntity() throws NotFoundException {
     User user = new User();
     TrackedEntityType trackedEntityType = new TrackedEntityType("trackedEntityType", "");
     trackedEntity.setTrackedEntityType(trackedEntityType);
@@ -254,13 +248,11 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
 
     assertEquals(
-        String.format(
-            "Current user is not authorized to read data from type of selected tracked entity: %s",
-            trackedEntity.getUid()),
+        String.format("TrackedEntity with id %s could not be found.", TRACKED_ENTITY_UID),
         exception.getMessage());
   }
 
@@ -270,18 +262,17 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, new User()));
 
     assertEquals(
-        String.format(
-            "Tracked entity type is specified but does not exist: %s", TRACKED_ENTITY_TYPE_UID),
+        String.format("TrackedEntityType with id %s could not be found.", TRACKED_ENTITY_TYPE_UID),
         exception.getMessage());
   }
 
   @Test
   void shouldReturnTrackedEntityTypeWhenUserHasAccessToTrackedEntityType()
-      throws ForbiddenException, BadRequestException {
+      throws NotFoundException {
     User user = new User();
     when(trackedEntityTypeService.getTrackedEntityType(TRACKED_ENTITY_TYPE_UID))
         .thenReturn(trackedEntityType);
@@ -301,13 +292,11 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user));
 
     assertEquals(
-        String.format(
-            "Current user is not authorized to read data from selected tracked entity type: %s",
-            trackedEntityType.getUid()),
+        String.format("TrackedEntityType with id %s could not be found.", TRACKED_ENTITY_TYPE_UID),
         exception.getMessage());
   }
 
@@ -317,17 +306,16 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            BadRequestException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), new User()));
 
     assertEquals(
-        String.format("Organisation unit does not exist: %s", ORG_UNIT_UID),
+        String.format("OrganisationUnit with id %s could not be found.", ORG_UNIT_UID),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnOrgUnitWhenUserHasAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnOrgUnitWhenUserHasAccessToOrgUnit() throws NotFoundException {
     User user = new User();
     when(organisationUnitService.getOrganisationUnit(ORG_UNIT_UID)).thenReturn(orgUnit);
     when(organisationUnitService.isInUserHierarchy(
@@ -347,17 +335,16 @@ class OperationsParamsValidatorTest {
 
     Exception exception =
         Assertions.assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () -> paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), user));
 
     assertEquals(
-        String.format("Organisation unit is not part of the search scope: %s", orgUnit.getUid()),
+        String.format("OrganisationUnit with id %s could not be found.", ORG_UNIT_UID),
         exception.getMessage());
   }
 
   @Test
-  void shouldReturnOrgUnitsWhenUserIsSuperButHasNoAccessToOrgUnit()
-      throws ForbiddenException, BadRequestException {
+  void shouldReturnOrgUnitsWhenUserIsSuperButHasNoAccessToOrgUnit() throws NotFoundException {
     User user = new User();
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Sets.newHashSet("ALL"));

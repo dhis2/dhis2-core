@@ -45,8 +45,16 @@
         <!--     <AppenderRef ref="console"/>-->
         <!-- </Logger>-->
         <!-- Uncomment if you want to debug JDBC template queries (SQL) -->
-        <!-- <Logger name="org.springframework.jdbc.core" level="TRACE">-->
-        <!--    <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
+         <!--<Logger name="org.springframework.jdbc.core" level="TRACE">
+            <AppenderRef ref="console"/>
+         </Logger>-->
+        <!-- Uncomment if you want to debug hibernate queries (SQL) -->
+         <!--<Logger name="org.hibernate.SQL" level="TRACE">
+                <AppenderRef ref="console"/>
+         </Logger>-->
+        <!-- Uncomment if you want to debug hibernate binding parameters -->
+         <!--<Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
+                <AppenderRef ref="console"/>
+         </Logger>-->
     </Loggers>
 </Configuration>

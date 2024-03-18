@@ -345,9 +345,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     assertTrue(
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
+            .error(HttpStatus.NOT_FOUND)
             .getMessage()
-            .contains("User has no read access to organisation unit"));
+            .contains(
+                String.format("TrackedEntity with id %s could not be found.", from.getUid())));
   }
 
   @Test
@@ -359,9 +360,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     assertTrue(
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
+            .error(HttpStatus.NOT_FOUND)
             .getMessage()
-            .contains("User has no read access to organisation unit"));
+            .contains(
+                String.format("TrackedEntity with id %s could not be found.", from.getUid())));
   }
 
   @Test
@@ -374,9 +376,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
 
     assertTrue(
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-            .error(HttpStatus.FORBIDDEN)
+            .error(HttpStatus.NOT_FOUND)
             .getMessage()
-            .contains("User has no data read access to tracked entity"));
+            .contains(
+                String.format("TrackedEntity with id %s could not be found.", from.getUid())));
   }
 
   @Test

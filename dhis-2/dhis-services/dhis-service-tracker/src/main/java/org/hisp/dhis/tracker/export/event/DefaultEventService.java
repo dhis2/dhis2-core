@@ -134,8 +134,7 @@ class DefaultEventService implements EventService {
   }
 
   @Override
-  public Event getEvent(String uid, EventParams eventParams)
-      throws NotFoundException, ForbiddenException {
+  public Event getEvent(String uid, EventParams eventParams) throws NotFoundException {
     Event event = eventService.getEvent(uid);
     if (event == null) {
       throw new NotFoundException(Event.class, uid);
@@ -144,11 +143,14 @@ class DefaultEventService implements EventService {
     return getEvent(event, eventParams);
   }
 
-  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
+  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws NotFoundException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+      // TODO This one returns OWNERSHIP_ACCESS_DENIED, frontend/android might use the error code
+      // for something (even though it doesn't make a distinction between closed an protected
+      // programs)
+      throw new NotFoundException(Event.class, event.getUid());
     }
 
     Event result = new Event();
@@ -222,14 +224,14 @@ class DefaultEventService implements EventService {
 
   @Override
   public List<Event> getEvents(EventOperationParams operationParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams);
   }
 
   @Override
   public Page<Event> getEvents(EventOperationParams operationParams, PageParams pageParams)
-      throws BadRequestException, ForbiddenException {
+      throws BadRequestException, ForbiddenException, NotFoundException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams, pageParams);
   }
