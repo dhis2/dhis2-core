@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ public enum IconTypeFilter {
   ALL("all"),
   CUSTOM("custom"),
   DEFAULT("default");
-
   private String type;
 
   IconTypeFilter(String type) {

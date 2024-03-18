@@ -58,7 +58,7 @@ public interface UserService {
 
   String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
 
-  String RESTORE_PATH = "/dhis-web-commons/security/";
+  String RESTORE_PATH = "/dhis-web-login/index.html#/";
 
   String TBD_NAME = "(TBD)";
 
@@ -126,7 +126,7 @@ public interface UserService {
   User getUserByUuid(UUID uuid);
 
   /**
-   * Retrieves the User with the given username.
+   * Retrieves the User with the given username. Returns null if no user is found.
    *
    * @param username the username of the User to retrieve.
    * @return the User.

@@ -64,7 +64,6 @@ import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -128,13 +127,6 @@ public class DhisWebCommonsWebSecurityConfig {
     @Autowired private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
     @Autowired private ConfigurationService configurationService;
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-      auth.authenticationProvider(customLdapAuthenticationProvider);
-      auth.authenticationProvider(twoFactorAuthenticationProvider);
-      auth.authenticationEventPublisher(authenticationEventPublisher);
-    }
 
     @Override
     public void configure(WebSecurity web) {

@@ -25,55 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.controller.icon;
 
-import java.util.Date;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-/** Custom icons are uploaded by users and can be modified and deleted. */
+@Builder
 @Getter
-@Setter
+@AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
-public class CustomIcon implements Icon {
-  private String key;
+class CustomIconRequest {
 
-  private String description;
+  @JsonProperty private String key;
 
-  private String[] keywords;
+  @JsonProperty private String description;
 
-  private String fileResourceUid;
+  @JsonProperty private Set<String> keywords = new HashSet<>();
 
-  private String createdByUserUid;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  public CustomIcon(
-      String key,
-      String description,
-      String[] keywords,
-      String fileResourceUid,
-      String createdByUserUid) {
-    this.key = key;
-    this.description = description;
-    this.keywords = keywords;
-    this.fileResourceUid = fileResourceUid;
-    this.createdByUserUid = createdByUserUid;
-    this.setAutoFields();
-  }
-
-  public void setAutoFields() {
-    Date date = new Date();
-
-    if (created == null) {
-      created = date;
-    }
-
-    lastUpdated = date;
-  }
+  @JsonProperty private String fileResourceId;
 }

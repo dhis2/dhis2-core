@@ -27,57 +27,58 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Set;
-import java.util.stream.Stream;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.UserDetails;
+import java.sql.SQLException;
+import java.util.List;
 
-public interface CustomIconStore {
+public interface IconStore {
+
   /**
-   * Returns a custom icon that contains a given key
+   * Persist {@link Icon}
+   *
+   * @param icon to persist
+   */
+  void save(Icon icon) throws SQLException;
+
+  /**
+   * Remove {@link Icon}
+   *
+   * @param icon to remove
+   */
+  void delete(Icon icon);
+
+  /**
+   * Update {@link Icon}
+   *
+   * @param icon to update
+   */
+  void update(Icon icon) throws SQLException;
+
+  /**
+   * Get the count of Icons based on filters provided in {@link IconQueryParams}
+   *
+   * @param params filters
+   * @return total count
+   */
+  long count(IconQueryParams params);
+
+  /**
+   * Get list of Icons based on filters provided in {@link IconQueryParams}
+   *
+   * @param params filters to build query
+   * @return list of Icons
+   */
+  List<Icon> getIcons(IconQueryParams params);
+
+  /**
+   * @return all existing keys, a key includes the variant suffix
+   */
+  List<String> getAllKeys();
+
+  /**
+   * Returns an icon that contains a given key
    *
    * @param key of the icon
    * @return the custom icon matching the key, or null instead
    */
-  CustomIcon getIconByKey(String key);
-
-  /**
-   * Returns a list of custom icons that contain all the specified keywords
-   *
-   * @param iconOperationParams contains query params for CustomIcon
-   * @return the list of custom icons that contain all the keywords
-   */
-  Stream<CustomIcon> getIcons(IconOperationParams iconOperationParams);
-
-  /**
-   * Returns a list with all the custom icon keywords
-   *
-   * @return a list with all the custom icon keywords
-   */
-  Set<String> getKeywords();
-
-  /**
-   * Persists a custom icon to the database
-   *
-   * @param customIcon Icon to be saved
-   * @param fileResource file resource linked to the custom icon
-   * @param createdByUser user that created the custom icon
-   */
-  void save(CustomIcon customIcon, FileResource fileResource, UserDetails createdByUser);
-
-  /**
-   * Deletes a custom icon from the database
-   *
-   * @param customIconKey Key of the icon to be deleted
-   */
-  void delete(String customIconKey);
-
-  /**
-   * Updates a custom icon from the database
-   *
-   * @param customIcon Icon to be updated
-   */
-  void update(CustomIcon customIcon);
-
-  long count(IconOperationParams iconOperationParams);
+  Icon getIconByKey(String key);
 }

@@ -58,7 +58,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -72,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Assertions;
@@ -229,22 +229,22 @@ class EventRequestToSearchParamsMapperTest {
   }
 
   @Test
-  void shouldMapRequestedOrgUnitAsSelectedWhenOrgUnitProvidedAndNoOrgUnitModeProvided()
-      throws ForbiddenException {
+  void shouldMapRequestedOrgUnitAsSelectedWhenOrgUnitProvidedAndNoOrgUnitModeProvided() {
     Program program = new Program();
     program.setUid(PROGRAM_UID);
     OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
     User user = new User();
     user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
+    user.setUsername("anyUser");
+    UserDetails userDetails = UserDetails.fromUser(user);
 
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
 
-    user.setUsername("anyUser");
     when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     //    when(getCurrentUser()).thenReturn(user.);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
+    when(trackerAccessManager.canAccess(userDetails, program, orgUnit)).thenReturn(true);
     when(organisationUnitService.isInUserHierarchy(
             orgUnit.getUid(), user.getTeiSearchOrganisationUnitsWithFallback()))
         .thenReturn(true);

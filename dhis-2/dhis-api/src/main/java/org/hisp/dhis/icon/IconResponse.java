@@ -29,8 +29,10 @@ package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 /**
@@ -41,14 +43,18 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
+@Builder
 public class IconResponse {
+
+  @JsonProperty private String uid;
+
+  @JsonProperty private String code;
 
   @JsonProperty private String key;
 
   @JsonProperty private String description;
 
-  @JsonProperty private String[] keywords;
+  @JsonProperty private Set<String> keywords = new HashSet<>();
 
   @JsonProperty private String fileResourceUid;
 
@@ -61,10 +67,12 @@ public class IconResponse {
 
   @JsonProperty private Date lastUpdated;
 
+  @JsonProperty private Boolean custom;
+
   public IconResponse(
       String key,
       String description,
-      String[] keywords,
+      Set<String> keywords,
       String reference,
       Date created,
       Date lastUpdated) {

@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.scheduling;
 
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import java.io.IOException;
 import java.io.InputStream;
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -48,8 +44,7 @@ public interface JobCreationHelper {
   String create(JobConfiguration config, MimeType contentType, InputStream content)
       throws ConflictException;
 
-  default String createFromConfig(JobConfiguration config, JobConfigurationStore store)
-      throws ConflictException {
+  default String createFromConfig(JobConfiguration config, JobConfigurationStore store) {
     config.setAutoFields();
     store.save(config);
     return config.getUid();
@@ -66,32 +61,11 @@ public interface JobCreationHelper {
       throw new ConflictException(
           "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
     config.setAutoFields(); // ensure UID is set
-    saveJobData(config.getUid(), contentType, content, fileResourceService);
+    FileResource fr = FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType);
+    fr.setUid(config.getUid());
+    fr.setAssigned(true);
+    fileResourceService.syncSaveFileResource(fr, content);
     store.save(config);
     return config.getUid();
-  }
-
-  @SuppressWarnings("java:S4790")
-  default void saveJobData(
-      String uid,
-      MimeType contentType,
-      InputStream content,
-      FileResourceService fileResourceService)
-      throws ConflictException {
-    try {
-      byte[] data = IOUtils.toByteArray(content);
-      FileResource fr =
-          new FileResource(
-              "job_input_data_for_" + uid,
-              contentType.toString(),
-              data.length,
-              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
-              FileResourceDomain.JOB_DATA);
-      fr.setUid(uid);
-      fr.setAssigned(true);
-      fileResourceService.syncSaveFileResource(fr, data);
-    } catch (IOException ex) {
-      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
-    }
   }
 }
