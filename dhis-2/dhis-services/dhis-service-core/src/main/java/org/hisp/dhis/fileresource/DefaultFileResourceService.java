@@ -64,7 +64,6 @@ import org.joda.time.Hours;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MimeType;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -221,6 +220,12 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional
   public String syncSaveFileResource(FileResource fileResource, byte[] bytes)
       throws ConflictException {
+    fileResource.setContentLength(bytes.length);
+    try {
+      fileResource.setContentMd5(ByteSource.wrap(bytes).hash(Hashing.md5()).toString());
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to compute content md5 resource: " + ex.getMessage());
+    }
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
     entityManager.flush();
@@ -231,6 +236,17 @@ public class DefaultFileResourceService implements FileResourceService {
     if (storageId == null) throw new ConflictException(ErrorCode.E6102);
 
     return uid;
+  }
+
+  @Override
+  @Transactional
+  public String syncSaveFileResource(FileResource fileResource, InputStream data)
+      throws ConflictException {
+    try {
+      return syncSaveFileResource(fileResource, IOUtils.toByteArray(data));
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to extract bytes from input stream: " + ex.getMessage());
+    }
   }
 
   @Override
@@ -396,30 +412,6 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional(readOnly = true)
   public List<FileResource> getAllUnProcessedImagesFiles() {
     return fileResourceStore.getAllUnProcessedImages();
-  }
-
-  @SuppressWarnings("java:S4790")
-  @Override
-  @Transactional
-  public FileResource syncSaveFileResource(
-      String uid, MimeType contentType, InputStream content, FileResourceDomain domain)
-      throws ConflictException {
-    try {
-      byte[] data = IOUtils.toByteArray(content);
-      FileResource fr =
-          new FileResource(
-              "job_input_data_for_" + uid,
-              contentType.toString(),
-              data.length,
-              ByteSource.wrap(data).hash(Hashing.md5()).toString(),
-              domain);
-      fr.setUid(uid);
-      fr.setAssigned(true);
-      syncSaveFileResource(fr, data);
-      return fr;
-    } catch (IOException ex) {
-      throw new ConflictException("Failed to create job data file resource: " + ex.getMessage());
-    }
   }
 
   // -------------------------------------------------------------------------
