@@ -33,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.statistics.StatisticsProvider;
@@ -59,8 +58,6 @@ import org.springframework.web.client.RestTemplate;
 @Service("org.hisp.dhis.dxf2.telemetry.TelemetryService")
 public class DefaultTelemetryService implements TelemetryService {
   private final SystemService systemService;
-
-  private final DhisConfigurationProvider config;
 
   private final SystemSettingManager systemSettingManager;
 
