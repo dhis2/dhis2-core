@@ -774,15 +774,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         replace(
             """
-            select temp.supportedyear from
-            (select distinct extract(year from ${eventDateExpression}) as supportedyear
-            from event psi
-            inner join enrollment pi on psi.enrollmentid = pi.enrollmentid
-            where psi.lastupdated <= '${startTime}' and pi.programid = ${programId}
-            and (${eventDateExpression}) is not null
-            and (${eventDateExpression}) > '1000-01-01'
-            and psi.deleted is false
-            ${fromDateClause} ) as temp
+            select temp.supportedyear from \
+            (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+            from event psi \
+            inner join enrollment pi on psi.enrollmentid = pi.enrollmentid \
+            where psi.lastupdated <= '${startTime}' and pi.programid = ${programId} \
+            and (${eventDateExpression}) is not null \
+            and (${eventDateExpression}) > '1000-01-01' \
+            and psi.deleted is false \
+            ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} and temp.supportedyear <= ${latestDataYear}""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
