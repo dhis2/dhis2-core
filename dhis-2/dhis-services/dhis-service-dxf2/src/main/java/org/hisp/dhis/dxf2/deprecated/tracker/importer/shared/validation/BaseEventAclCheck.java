@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Luciano Fiandesio
@@ -49,11 +49,9 @@ public abstract class BaseEventAclCheck implements Checker {
 
     Event programStageInstance = prepareForAclValidation(ctx, event);
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     List<String> errors =
-        checkAcl(
-            ctx.getServiceDelegator().getTrackerAccessManager(),
-            importOptions.getUser(),
-            programStageInstance);
+        checkAcl(ctx.getServiceDelegator().getTrackerAccessManager(), user, programStageInstance);
 
     final ImportSummary importSummary = new ImportSummary();
 
@@ -82,5 +80,5 @@ public abstract class BaseEventAclCheck implements Checker {
   }
 
   public abstract List<String> checkAcl(
-      TrackerAccessManager trackerAccessManager, User user, Event event);
+      TrackerAccessManager trackerAccessManager, UserDetails user, Event event);
 }

@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,7 +61,7 @@ public interface EnrollmentService {
   Enrollment getEnrollment(org.hisp.dhis.program.Enrollment enrollment, EnrollmentParams params);
 
   Enrollment getEnrollment(
-      User user,
+      UserDetails user,
       org.hisp.dhis.program.Enrollment enrollment,
       EnrollmentParams params,
       boolean skipOwnershipCheck);

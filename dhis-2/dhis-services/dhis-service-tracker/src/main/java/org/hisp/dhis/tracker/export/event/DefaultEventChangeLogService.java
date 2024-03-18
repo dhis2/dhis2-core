@@ -37,8 +37,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,8 +52,6 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private final TrackerAccessManager trackerAccessManager;
 
-  private final UserService userService;
-
   @Override
   public Page<EventChangeLog> getEventChangeLog(
       UID eventUid, EventChangeLogOperationParams operationParams, PageParams pageParams)
@@ -64,7 +61,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       throw new NotFoundException(Event.class, eventUid.getValue());
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
       throw new NotFoundException(Event.class, eventUid.getValue());

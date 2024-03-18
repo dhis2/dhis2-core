@@ -28,7 +28,7 @@
 package org.hisp.dhis.program;
 
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -44,5 +44,5 @@ public interface ProgramTempOwnerService {
    */
   void addProgramTempOwner(ProgramTempOwner programTempOwner);
 
-  int getValidTempOwnerRecordCount(Program program, TrackedEntity entityInstance, User user);
+  int getValidTempOwnerRecordCount(Program program, TrackedEntity entityInstance, UserDetails user);
 }

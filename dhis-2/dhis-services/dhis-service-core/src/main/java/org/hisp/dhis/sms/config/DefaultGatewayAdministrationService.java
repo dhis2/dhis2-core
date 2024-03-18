@@ -96,6 +96,8 @@ public class DefaultGatewayAdministrationService implements GatewayAdministratio
     config.setUid(CodeGenerator.generateCode(10));
 
     SmsConfiguration smsConfiguration = getSmsConfiguration();
+    if (smsConfiguration.getGateways().stream().anyMatch(c -> c.getClass() == config.getClass()))
+      return false;
 
     config.setDefault(smsConfiguration.getGateways().isEmpty());
 

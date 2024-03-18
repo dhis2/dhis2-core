@@ -1081,6 +1081,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addGridDoubleTypeValue(
       Double value, Grid grid, GridHeader header, EventQueryParams params) {
+    final int defaultScale = 10;
     if (header.hasOptionSet()) {
       Optional<Option> option =
           header.getOptionSetObject().getOptions().stream()
@@ -1093,10 +1094,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (option.isPresent()) {
         grid.addValue(option.get().getCode());
       } else {
-        grid.addValue(params.isSkipRounding() ? value : MathUtils.getRoundedObject(value));
+        grid.addValue(
+            params.isSkipRounding()
+                ? MathUtils.getRoundedObject(value, defaultScale)
+                : MathUtils.getRoundedObject(value));
       }
     } else {
-      grid.addValue(params.isSkipRounding() ? value : MathUtils.getRoundedObject(value));
+      grid.addValue(
+          params.isSkipRounding()
+              ? MathUtils.getRoundedObject(value, defaultScale)
+              : MathUtils.getRoundedObject(value));
     }
   }
 

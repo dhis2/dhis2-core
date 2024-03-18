@@ -59,8 +59,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -124,11 +122,9 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldPostPotentialDuplicateWhenTeisExistAndUserHasAccess() throws Exception {
-    when(trackerAccessManager.canRead(any(User.class), any(TrackedEntity.class)))
+    when(trackerAccessManager.canRead(any(), any(TrackedEntity.class)))
         .thenReturn(Collections.emptyList());
 
-    User user = new User();
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
     when(trackedEntityService.getTrackedEntity(duplicate)).thenReturn(trackedEntityB);
 
@@ -146,11 +142,9 @@ class DeduplicationMvcTest {
 
   @Test
   void shouldThrowForbiddenExceptionExceptionWhenPostAndUserHasNoTeiAccess() throws Exception {
-    when(trackerAccessManager.canRead(any(User.class), any(TrackedEntity.class)))
+    when(trackerAccessManager.canRead(any(), any(TrackedEntity.class)))
         .thenReturn(List.of("error"));
 
-    User user = new User();
-    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
     when(trackedEntityService.getTrackedEntity(original)).thenReturn(trackedEntityA);
 
     PotentialDuplicate potentialDuplicate = new PotentialDuplicate(original, duplicate);
