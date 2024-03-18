@@ -172,9 +172,9 @@ public class DefaultFileResourceService implements FileResourceService {
                       new FileResourceOwner(
                           dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
               .toList();
-      case CUSTOM_ICON ->
+      case ICON ->
           fileResourceStore.findCustomIconByFileResource(uid).stream()
-              .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
+              .map(key -> new FileResourceOwner(FileResourceDomain.ICON, key))
               .toList();
       case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };
@@ -240,10 +240,10 @@ public class DefaultFileResourceService implements FileResourceService {
 
   @Override
   @Transactional
-  public String syncSaveFileResource(FileResource fileResource, InputStream data)
+  public String syncSaveFileResource(FileResource fileResource, InputStream content)
       throws ConflictException {
     try {
-      return syncSaveFileResource(fileResource, IOUtils.toByteArray(data));
+      return syncSaveFileResource(fileResource, IOUtils.toByteArray(content));
     } catch (IOException ex) {
       throw new ConflictException("Failed to extract bytes from input stream: " + ex.getMessage());
     }

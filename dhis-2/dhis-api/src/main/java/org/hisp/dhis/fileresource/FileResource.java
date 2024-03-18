@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
 /**
@@ -47,9 +46,9 @@ public class FileResource extends BaseIdentifiableObject {
   public static final Set<String> IMAGE_CONTENT_TYPES =
       Set.of("image/jpg", "image/png", "image/jpeg");
 
-  public static FileResource ofKey(FileResourceDomain domain, String key, MimeType contentType) {
+  public static FileResource ofKey(FileResourceDomain domain, String key, String contentType) {
     return new FileResource(
-        key, domain.getContainerName() + "_" + key, contentType.toString(), 0, null, domain);
+        key, domain.getContainerName() + "_" + key, contentType, 0, null, domain);
   }
 
   /** MIME type. */

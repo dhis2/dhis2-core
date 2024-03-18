@@ -77,11 +77,14 @@ class SqlQueryHelper {
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
     int offset = programStage.getOffsetWithDefault();
+    String orderByDirection = offset > 0 ? "asc" : "desc";
 
     return "select innermost_evt.*"
         + " from (select *,"
-        + " row_number() over (partition by programinstanceuid order by occurreddate, created "
-        + (offset > 0 ? "asc" : "desc")
+        + " row_number() over (partition by programinstanceuid order by occurreddate "
+        + orderByDirection
+        + ", created "
+        + orderByDirection
         + " ) as rn"
         + " from "
         + ANALYTICS_TEI_EVT

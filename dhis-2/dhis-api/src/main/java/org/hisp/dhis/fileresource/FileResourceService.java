@@ -119,11 +119,12 @@ public interface FileResourceService {
   /**
    * Creates a new file resource with the provided UID, domain and content data.
    *
-   * @param data the content stored synchronously
+   * @param content the content stored synchronously
    * @return the created {@link FileResource}
    * @throws ConflictException when the content could not be stored
    */
-  String syncSaveFileResource(FileResource fileResource, InputStream data) throws ConflictException;
+  String syncSaveFileResource(FileResource fileResource, InputStream content)
+      throws ConflictException;
 
   void deleteFileResource(String uid);
 
