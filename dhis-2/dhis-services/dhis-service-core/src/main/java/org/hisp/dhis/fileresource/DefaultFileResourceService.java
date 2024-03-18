@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fileresource;
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +44,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -217,6 +220,12 @@ public class DefaultFileResourceService implements FileResourceService {
   @Transactional
   public String syncSaveFileResource(FileResource fileResource, byte[] bytes)
       throws ConflictException {
+    fileResource.setContentLength(bytes.length);
+    try {
+      fileResource.setContentMd5(ByteSource.wrap(bytes).hash(Hashing.md5()).toString());
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to compute content md5 resource: " + ex.getMessage());
+    }
     fileResource.setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceStore.save(fileResource);
     entityManager.flush();
@@ -227,6 +236,17 @@ public class DefaultFileResourceService implements FileResourceService {
     if (storageId == null) throw new ConflictException(ErrorCode.E6102);
 
     return uid;
+  }
+
+  @Override
+  @Transactional
+  public String syncSaveFileResource(FileResource fileResource, InputStream content)
+      throws ConflictException {
+    try {
+      return syncSaveFileResource(fileResource, IOUtils.toByteArray(content));
+    } catch (IOException ex) {
+      throw new ConflictException("Failed to extract bytes from input stream: " + ex.getMessage());
+    }
   }
 
   @Override

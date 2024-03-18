@@ -36,6 +36,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.icon.IconTypeFilter;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
  * @author Zubair Asghar
@@ -44,16 +45,17 @@ import org.hisp.dhis.icon.IconTypeFilter;
 @NoArgsConstructor
 public class IconRequestParams {
 
-  static final String DEFAULT_FIELDS_PARAM =
-      "key,keywords,description,fileResourceUid,createdByUserUid,href";
+  static final String DEFAULT_FIELDS_PARAM = "key,keywords,description,fileResource,createdBy,href";
 
   private List<String> keys = new ArrayList<>();
   private List<String> keywords = new ArrayList<>();
-  private IconTypeFilter type = IconTypeFilter.ALL;
+  private List<OrderCriteria> order = new ArrayList<>();
   private Date createdStartDate;
   private Date createdEndDate;
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
+  private IconTypeFilter type = IconTypeFilter.ALL;
+  private String search;
   private boolean paging = true;
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
   private int page = 1;

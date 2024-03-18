@@ -216,7 +216,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     if (valueType == ValueType.NUMBER) {
       subSelect = subSelect + " as \"fWIAEtYVEGk\"";
@@ -259,7 +259,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programUid
             + ".pi = ax.pi and ps = '"
             + repeatableProgramStage.getUid()
-            + "' order by occurreddate desc offset 1 limit 1 ) "
+            + "' order by occurreddate, created desc offset 1 limit 1 ) "
             + "as \""
             + programStageUid
             + "[-1]."
@@ -274,7 +274,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programUid
             + ".pi = ax.pi and ps = '"
             + programStageUid
-            + "' order by occurreddate desc offset 1 limit 1 )) "
+            + "' order by occurreddate, created desc offset 1 limit 1 )) "
             + "as \""
             + programStageUid
             + "[-1]."
@@ -305,7 +305,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String expected =
         "ax.\"quarterly\",ax.\"ou\","
@@ -379,7 +379,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String expected =
         "ax.\"quarterly\",ax.\"ou\","
@@ -406,7 +406,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String expected = subSelect + " is null";
 
@@ -425,7 +425,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String expected = subSelect + " is not null";
     testIt(
@@ -443,7 +443,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String numericValues = String.join(OPTION_SEP, "10", "11", "12");
     String expected =
@@ -471,7 +471,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String numericValues = String.join(OPTION_SEP, "10", "11", "12");
     String expected = subSelect + " in (" + String.join(",", numericValues.split(OPTION_SEP)) + ")";
@@ -490,7 +490,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
-            + "' order by occurreddate desc limit 1 )";
+            + "' order by occurreddate, created desc limit 1 )";
 
     String expected = subSelect + " is null";
     String unexpected = "(" + subSelect + " in (";
@@ -722,7 +722,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + dataElementA.getUid()
                 + "\" is not null and ps = '"
                 + programStage.getUid()
-                + "' order by occurreddate desc limit 1 )"));
+                + "' order by occurreddate, created desc limit 1 )"));
   }
 
   @Test
@@ -733,13 +733,13 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setValueType(ValueType.COORDINATE);
     item.setProgramStage(repeatableProgramStage);
     item.setProgram(programB);
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    RepeatableStageParams params = new RepeatableStageParams();
 
-    repeatableStageParams.setStartIndex(0);
-    repeatableStageParams.setCount(100);
-    repeatableStageParams.setStartDate(DateUtils.parseDate("2022-01-01"));
-    repeatableStageParams.setEndDate(DateUtils.parseDate("2022-01-31"));
-    item.setRepeatableStageParams(repeatableStageParams);
+    params.setStartIndex(0);
+    params.setCount(100);
+    params.setStartDate(DateUtils.parseDate("2022-01-01"));
+    params.setEndDate(DateUtils.parseDate("2022-01-31"));
+    item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);
 
@@ -754,7 +754,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + programB.getUid()
                 + ".pi = ax.pi and ps = '"
                 + repeatableProgramStage.getUid()
-                + "' and occurreddate >= '2022-01-01'  and occurreddate <= '2022-01-31' order by occurreddate desc LIMIT 100 ) as t1)"));
+                + "' and occurreddate >= '2022-01-01'  and occurreddate <= '2022-01-31' order by occurreddate, created desc LIMIT 100 ) as t1)"));
   }
 
   @Test
@@ -765,11 +765,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setValueType(ValueType.COORDINATE);
     item.setProgramStage(repeatableProgramStage);
     item.setProgram(programB);
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    RepeatableStageParams params = new RepeatableStageParams();
 
-    repeatableStageParams.setStartIndex(0);
-    repeatableStageParams.setCount(1);
-    item.setRepeatableStageParams(repeatableStageParams);
+    params.setStartIndex(0);
+    params.setCount(1);
+    item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);
 
@@ -784,7 +784,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + programB.getUid()
                 + ".pi = ax.pi and ps = '"
                 + repeatableProgramStage.getUid()
-                + "' order by occurreddate desc limit 1 )"));
+                + "' order by occurreddate, created desc limit 1 )"));
   }
 
   @Test
@@ -820,7 +820,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + "and "
                 + colName
                 + " is not null "
-                + "order by occurreddate "
+                + "order by occurreddate, created "
                 + "desc limit 1 )"));
   }
 
@@ -860,7 +860,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + " is not null "
                 + "and ps = '"
                 + item.getProgramStage().getUid()
-                + "' order by occurreddate "
+                + "' order by occurreddate, created "
                 + "desc limit 1 )"));
   }
 

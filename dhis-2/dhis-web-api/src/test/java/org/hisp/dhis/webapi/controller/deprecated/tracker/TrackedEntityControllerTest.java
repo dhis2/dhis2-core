@@ -94,8 +94,7 @@ class TrackedEntityControllerTest {
             null,
             null,
             new TrackedEntityInstanceStrategyImpl(
-                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy),
-            userService);
+                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy));
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
