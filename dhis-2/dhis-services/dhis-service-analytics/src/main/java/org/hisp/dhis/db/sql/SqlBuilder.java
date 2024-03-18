@@ -37,6 +37,7 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 public interface SqlBuilder {
+
   // Data types
 
   /**
