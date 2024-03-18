@@ -63,8 +63,6 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.dxf2.telemetry.TelemetryService")
 public class DefaultTelemetryService implements TelemetryService {
-    public static final String TELEMETRY_URL = "https://telemetry.dhis2.org/v1";
-
     private final SystemService systemService;
 
     private final DhisConfigurationProvider config;
@@ -81,16 +79,10 @@ public class DefaultTelemetryService implements TelemetryService {
 
     @PostConstruct
     public void init() {
-        String url = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
-
-        if (StringUtils.isNotBlank(url)) {
-            log.info(String.format("Telemetry service configured, URL: %s", url));
-        }
-
         CronTrigger cronTrigger = new CronTrigger("10 * * * * ?");
-        scheduler.schedule(this::pushTelemetryData, cronTrigger);
+        scheduler.schedule(this::pushTelemetryReport, cronTrigger);
 
-        log.info("Scheduled monitoring service");
+        log.info("Scheduled telemetry service");
     }
 
     public TelemetryData getTelemetryData() {
@@ -133,59 +125,44 @@ public class DefaultTelemetryService implements TelemetryService {
     }
 
     @Override
-    public void pushTelemetryData() {
-        MonitoringTarget target = getMonitoringTarget();
-        if (StringUtils.isBlank(target.getUrl())) {
-            log.debug("Monitoring service URL not configured, aborting monitoring request");
+    public void pushTelemetryReport() {
+        Boolean enabled = systemSettingManager.getBooleanSetting(SettingKey.TELEMETRY_REPORTS_ENABLED)
+        if (!enabled) {
+            log.debug("Telemetry reports are disabled, skipping telemetry report push");
+            return;
+        }
+
+        String url = systemSettingManager.getStringSetting(SettingKey.TELEMETRY_URL);
+        if (StringUtils.isBlank(url)) {
+            log.debug("Telemetry service URL not configured, aborting telemetry report");
             return;
         }
 
         TelemetryData telemetryData = getTelemetryData();
 
         if (StringUtils.isBlank(telemetryData.getSystemId())) {
-            log.warn("System ID not available, aborting monitoring request");
+            log.warn("System ID not available, aborting telemetry report");
             return;
         }
 
-        pushTelemetryData(telemetryData, target);
-    }
-
-    /**
-     * Returns the monitoring target instance URL and credentials.
-     *
-     * @return the {@link MonitoringTarget}.
-     */
-    private MonitoringTarget getMonitoringTarget() {
-        return new MonitoringTarget(
-                config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL),
-                config.getProperty(ConfigurationKey.SYSTEM_MONITORING_USERNAME),
-                config.getProperty(ConfigurationKey.SYSTEM_MONITORING_PASSWORD));
+        pushTelemetryReport(telemetryData, url);
     }
 
     /**
      * Pushes system info to the monitoring target.
      *
-     * @param systemInfo the {@link SystemInfo}.
-     * @param target     the {@link MonitoringTarget}.
+     * @param telemetryData the {@link TelemetryData}.
      */
-    private void pushTelemetryData(TelemetryData telemetryData, MonitoringTarget target) {
-
-        HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
-
-        if (StringUtils.isNotBlank(target.getUsername())
-                && StringUtils.isNotBlank(target.getPassword())) {
-            headersBuilder.withBasicAuth(target.getUsername(), target.getPassword());
-        }
-
+    private void pushTelemetryReport(TelemetryData telemetryData, String url) {
         Date startTime = new Date();
 
-        HttpEntity<TelemetryData> requestEntity = new HttpEntity<>(telemetryData, headersBuilder.build());
+        HttpEntity<TelemetryData> requestEntity = new HttpEntity<>(telemetryData);
 
         ResponseEntity<String> response = null;
         HttpStatus sc = null;
 
         try {
-            response = restTemplate.postForEntity(target.getUrl(), requestEntity, String.class);
+            response = restTemplate.postForEntity(url, requestEntity, String.class);
             sc = response.getStatusCode();
         } catch (HttpClientErrorException | HttpServerErrorException ex) {
             log.warn(String.format("Monitoring request failed, status code: %s", sc), ex);
@@ -199,17 +176,9 @@ public class DefaultTelemetryService implements TelemetryService {
             systemSettingManager.saveSystemSetting(
                     SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
 
-            log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));
+            log.debug(String.format("Telemetry report successfully sent, URL: %s", url));
         } else {
-            log.warn(String.format("Monitoring request failed with status code: %s", sc));
+            log.warn(String.format("Telemetry report failed with status code: %s", sc));
         }
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    private static class MonitoringTarget {
-        private final String url;
-        private final String username;
-        private final String password;
     }
 }
