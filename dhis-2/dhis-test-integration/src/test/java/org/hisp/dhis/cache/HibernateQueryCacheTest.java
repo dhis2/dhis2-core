@@ -72,8 +72,7 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
   }
 
   @AfterEach
-  public final void afterEach() throws Exception {
-    unbindSession();
+  public final void afterEach() {
     entityManager.close();
   }
 

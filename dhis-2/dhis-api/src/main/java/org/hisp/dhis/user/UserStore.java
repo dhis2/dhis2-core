@@ -88,7 +88,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<UserAccountExpiryInfo> getExpiringUserAccounts(int inDays);
 
   /**
-   * Returns User for given username.
+   * Returns User for given username. Returns null if no user is found.
    *
    * @param username username for which the User will be returned
    * @param ignoreCase
@@ -190,6 +190,14 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @return the User.
    */
   User getUserByUuid(UUID uuid);
+
+  /**
+   * Retrieves the User associated with the User with the given email.
+   *
+   * @param email email.
+   * @return the User.
+   */
+  User getUserByEmail(String email);
 
   List<User> getHasAuthority(String authority);
 

@@ -64,7 +64,6 @@ import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -130,13 +129,6 @@ public class DhisWebCommonsWebSecurityConfig {
     @Autowired private ConfigurationService configurationService;
 
     @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-      auth.authenticationProvider(customLdapAuthenticationProvider);
-      auth.authenticationProvider(twoFactorAuthenticationProvider);
-      auth.authenticationEventPublisher(authenticationEventPublisher);
-    }
-
-    @Override
     public void configure(WebSecurity web) {
       web.ignoring().antMatchers("/api/ping");
     }
@@ -145,6 +137,8 @@ public class DhisWebCommonsWebSecurityConfig {
     protected void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests()
           .accessDecisionManager(accessDecisionManager())
+          .antMatchers("/dhis-web-login/**")
+          .permitAll()
           .requestMatchers(analyticsPluginResources())
           .permitAll()
           .antMatchers("/impersonate")
@@ -249,9 +243,10 @@ public class DhisWebCommonsWebSecurityConfig {
           .and()
           .formLogin()
           .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-          .loginPage("/dhis-web-commons/security/login.action")
+          .loginPage("/dhis-web-login")
           .usernameParameter("j_username")
           .passwordParameter("j_password")
+          // This will be for fallback login, when the new login app is not used
           .loginProcessingUrl("/dhis-web-commons-security/login.action")
           .failureHandler(customAuthFailureHandler)
           .successHandler(authenticationSuccessHandler())
@@ -291,7 +286,7 @@ public class DhisWebCommonsWebSecurityConfig {
     public Http401LoginUrlAuthenticationEntryPoint entryPoint() {
       // Converts to a HTTP basic login if "XMLHttpRequest".equals(
       // request.getHeader( "X-Requested-With" ) )
-      return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-commons/security/login.action");
+      return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-login");
     }
 
     @Bean

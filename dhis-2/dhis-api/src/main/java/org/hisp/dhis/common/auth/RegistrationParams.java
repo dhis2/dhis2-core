@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.common.auth;
 
-import java.util.Date;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
-/** Custom icons are uploaded by users and can be modified and deleted. */
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
-@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
-public class CustomIcon implements Icon {
-  private String key;
+public abstract class RegistrationParams {
+  @JsonProperty String username;
+  @JsonProperty String firstName;
+  @JsonProperty String surname;
+  @JsonProperty String password;
+  @JsonProperty String email;
 
-  private String description;
-
-  private String[] keywords;
-
-  private String fileResourceUid;
-
-  private String createdByUserUid;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  public CustomIcon(
-      String key,
-      String description,
-      String[] keywords,
-      String fileResourceUid,
-      String createdByUserUid) {
-    this.key = key;
-    this.description = description;
-    this.keywords = keywords;
-    this.fileResourceUid = fileResourceUid;
-    this.createdByUserUid = createdByUserUid;
-    this.setAutoFields();
-  }
-
-  public void setAutoFields() {
-    Date date = new Date();
-
-    if (created == null) {
-      created = date;
-    }
-
-    lastUpdated = date;
-  }
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
 }

@@ -194,7 +194,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertEquals(
         67L, AnalyticsUtils.getRoundedValueObject(paramsA, 67.0), "Should be a long value: 67");
     assertEquals(
-        3.1,
+        3.12,
         (Double) AnalyticsUtils.getRoundedValueObject(paramsA, 3.123),
         0.01,
         "Should be a double value: 3.1");
@@ -231,7 +231,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding(true).build();
     assertEquals(null, AnalyticsUtils.getRoundedValue(paramsA, null, (Double) null));
     assertEquals(3d, AnalyticsUtils.getRoundedValue(paramsA, null, 3d).doubleValue(), 0.01);
-    assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, null, 3.123).doubleValue(), 0.01);
+    assertEquals(3.12, AnalyticsUtils.getRoundedValue(paramsA, null, 3.123).doubleValue(), 0.01);
     assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, 1, 3.123).doubleValue(), 0.01);
     assertEquals(3.12, AnalyticsUtils.getRoundedValue(paramsA, 2, 3.123).doubleValue(), 0.01);
     assertEquals(3.123, AnalyticsUtils.getRoundedValue(paramsB, 3, 3.123).doubleValue(), 0.01);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
- * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
- *
- * @author Zubair Asghar
+ * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
+ * specify the exact fields they want in the JSON response.
  */
-@Data
-@NoArgsConstructor
-public class IconOperationParams {
-
-  private List<String> keys = new ArrayList<>();
-  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
-  private List<String> keywords = new ArrayList<>();
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private boolean paging = true;
-  private Pager pager = new Pager();
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
-
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
-
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasKeywords() {
-    return !keywords.isEmpty();
-  }
-
-  public boolean hasKeys() {
-    return !keys.isEmpty();
-  }
+interface FieldsRequestParam {
+  List<FieldPath> getFields();
 }
