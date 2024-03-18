@@ -78,7 +78,8 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>This class is targeted for the new LoginApp and JSON input/output.
  *
- * <p>This class is inspired by, and partly copied from the UsernamePasswordAuthenticationFilter and
+ * <p>This class is inspired by, and partly copied from the UsernamePasswordAuthenticationFilter
+ * and
  * AbstractAuthenticationProcessingFilter in Spring.
  *
  * <p>
@@ -200,7 +201,8 @@ public class AuthenticationController {
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-      redirectUrl = defaultSavedRequest.getRequestURI();
+      redirectUrl =
+          defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
       this.requestCache.removeRequest(request, response);
     }
 
