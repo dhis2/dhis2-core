@@ -29,15 +29,12 @@ package org.hisp.dhis.tracker.validation.validator.event;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1313;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
-import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertNoErrors;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasNoError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -741,8 +738,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
   @Test
   void eventOfProgramWithRegistrationInEnrollmentWithoutTrackedEntity() {
-    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    OrganisationUnit orgUnit = setupOrgUnit();
 
     Program program = setupProgram(orgUnit);
 
@@ -754,18 +750,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     validator.validate(reporter, bundle, event);
 
-    verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-
-    assertTrue(
-        reporter.hasErrorReport(
-            r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
+    assertHasError(reporter, event, E1313);
   }
 
   @Test
   void eventOfProgramWithRegistrationInEnrollmentWithTrackedEntityInBundle() {
-    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    OrganisationUnit orgUnit = setupOrgUnit();
 
     ProgramInstance enrollment = programInstance(ENROLLMENT_ID, new TrackedEntityInstance());
 
@@ -775,26 +765,21 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(null);
     org.hisp.dhis.tracker.domain.Enrollment e = new org.hisp.dhis.tracker.domain.Enrollment();
+
     e.setTrackedEntity(CodeGenerator.generateUid());
 
     when(bundle.findEnrollmentByUid(ENROLLMENT_ID)).thenReturn(Optional.of(e));
-    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(null);
 
     validator.validate(reporter, bundle, event);
 
-    verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-
-    assertFalse(
-        reporter.hasErrorReport(
-            r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
+    assertHasNoError(reporter, event, E1313);
   }
 
   @Test
   void eventOfProgramWithRegistrationInEnrollmentWithTrackedEntityInPreheat() {
-    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    OrganisationUnit orgUnit = setupOrgUnit();
 
     Program program = setupProgram(orgUnit);
 
@@ -804,16 +789,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     validator.validate(reporter, bundle, event);
 
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-    verify(bundle, times(0)).findEnrollmentByUid(ENROLLMENT_ID);
-
-    assertNoErrors(reporter);
+    assertHasNoError(reporter, event, E1313);
   }
 
   @Test
   void eventOfProgramWithRegistrationInEnrollmentWithoutTrackedEntityInPreheat() {
-    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    OrganisationUnit orgUnit = setupOrgUnit();
 
     ProgramInstance enrollment = programInstance(ENROLLMENT_ID);
 
@@ -825,12 +806,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     validator.validate(reporter, bundle, event);
 
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-    verify(bundle, times(0)).findEnrollmentByUid(ENROLLMENT_ID);
-
-    assertTrue(
-        reporter.hasErrorReport(
-            r -> r.getErrorCode() == E1313 && r.getMessage().contains(event.getEvent())));
+    assertHasError(reporter, event, E1313);
   }
 
   private void setUpDefaultCategoryCombo(Program program) {
