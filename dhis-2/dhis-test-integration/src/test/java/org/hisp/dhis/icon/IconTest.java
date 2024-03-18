@@ -227,8 +227,11 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldCreateIconInDatabase() {
-    iconService.createDefaultIcon(DefaultIcon.DOCTOR);
+  void shouldCreateIconInDatabase() throws Exception {
+    for (Icon icon : DefaultIcon.DOCTOR.createIcons()) {
+      iconService.uploadDefaultIcon(icon);
+      iconService.addIcon(icon);
+    }
 
     IconQueryParams iconQueryParams = new IconQueryParams();
     iconQueryParams.setSearch("doctor");
