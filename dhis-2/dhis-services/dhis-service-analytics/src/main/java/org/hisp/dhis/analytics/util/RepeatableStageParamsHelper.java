@@ -44,7 +44,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.util.DateUtils;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class RepeatableStageParamsHelper {
+public final class RepeatableStageParamsHelper {
   private static final String SEPARATOR = "~";
 
   // [-1]
