@@ -79,19 +79,19 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional(readOnly = true)
   public List<Icon> findNonExistingDefaultIcons() {
-    Set<String> existing = Set.copyOf(iconStore.getAllKeys());
-    List<Icon> missing = new ArrayList<>();
+    Set<String> existingKeys = Set.copyOf(iconStore.getAllKeys());
+    List<Icon> missingIcons = new ArrayList<>();
     for (DefaultIcon icon : DefaultIcon.values()) {
       if (!ignoredAfterFailure.contains(icon)
-          && icon.getVariants().stream().anyMatch(key -> !existing.contains(key))) {
-        for (Icon i : icon.createIcons()) {
-          if (!existing.contains(i.getKey())) {
-            missing.add(i);
+          && icon.getVariantKeys().stream().anyMatch(key -> !existingKeys.contains(key))) {
+        for (Icon i : icon.toVariantIcons()) {
+          if (!existingKeys.contains(i.getKey())) {
+            missingIcons.add(i);
           }
         }
       }
     }
-    return missing;
+    return missingIcons;
   }
 
   @Override

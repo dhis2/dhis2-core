@@ -72,9 +72,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Auto spawn default jobs when missing", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d default jobs were created"::formatted, //
-        jobConfigurationService::createDefaultJobs);
+        0, "%d default jobs were created"::formatted, jobConfigurationService::createDefaultJobs);
 
     progress.startingStage("Update statue to DISABLED for non enabled jobs", SKIP_STAGE);
     progress.runStage(
@@ -84,9 +82,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Cleanup finished ONCE_ASAP jobs", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d jobs were deleted"::formatted, //
-        () -> jobConfigurationService.deleteFinishedJobs(-1));
+        0, "%d jobs were deleted"::formatted, () -> jobConfigurationService.deleteFinishedJobs(-1));
 
     progress.startingStage("Reschedule stale jobs", SKIP_STAGE);
     progress.runStage(
@@ -106,6 +102,7 @@ public class HousekeepingJob implements Job {
     try {
       // note that these are split in two to have independent TX boundaries
       // for file resource creation and icon creation
+      // to make sure the file upload is complete before creating the icon
       iconService.uploadDefaultIcon(icon);
       iconService.addIcon(icon);
     } catch (Exception ex) {
