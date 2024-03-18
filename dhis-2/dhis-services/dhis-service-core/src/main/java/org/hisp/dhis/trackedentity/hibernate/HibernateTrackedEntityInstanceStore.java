@@ -621,6 +621,18 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
+        if ( params.isSynchronizationQuery() )
+        {
+            trackedEntity.append( whereAnd.whereAnd() )
+                .append( " TEI.lastupdated >= TEI.lastsynchronized " );
+            if ( params.getSkipChangedBefore() != null )
+            {
+                trackedEntity.append( " AND TEI.lastupdated >= '" )
+                    .append( getMediumDateString( params.getSkipChangedBefore() ) )
+                    .append( SINGLE_QUOTE );
+            }
+        }
+
         if ( !params.isIncludeDeleted() )
         {
             trackedEntity

@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -67,7 +73,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,8 +83,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-public class TrackerSynchronizationTest extends DhisSpringTest
+public class TrackerSynchronizationTest extends IntegrationTestBase
 {
+    // We need to pick a future date as lastUpdated is automatically set to now
+    // and cannot be changed
+    private static final Date TOMORROW = DateUtils.getDateForTomorrow( 0 );
+
+    private static final String TE_NOT_IN_SYNC_UID = "ABCDEFGHI01";
+
+    private static final String SYNCHRONIZED_TE_UID = "ABCDEFGHI02";
+
     @Autowired
     private UserService _userService;
 
@@ -182,19 +196,22 @@ public class TrackerSynchronizationTest extends DhisSpringTest
         currentSession.save( tet );
 
         OrganisationUnit ou = createOrganisationUnit( 'a' );
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'a', ou, teaA );
-        tei.setTrackedEntityType( tet );
-
-        TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', tei, teaB );
-        tei.getTrackedEntityAttributeValues().add( teavB );
-
-        TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', tei, teaA );
-        tei.getTrackedEntityAttributeValues().add( teavA );
-
-        currentSession.save( ou );
-        currentSession.save( tei );
-        currentSession.save( teavA );
-        currentSession.save( teavB );
+        manager.save( ou );
+        TrackedEntityInstance teiToSync = createTrackedEntityInstance( 'a', ou, teaA );
+        teiToSync.setTrackedEntityType( tet );
+        teiToSync.setUid( TE_NOT_IN_SYNC_UID );
+        TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', teiToSync, teaB );
+        TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', teiToSync, teaA );
+        manager.save( teiToSync );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavA );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
+        teiToSync.getTrackedEntityAttributeValues().addAll( Arrays.asList( teavA, teavB ) );
+        manager.update( teiToSync );
+        TrackedEntityInstance alreadySynchronizedTei = createTrackedEntityInstance( 'b', ou );
+        alreadySynchronizedTei.setTrackedEntityType( tet );
+        alreadySynchronizedTei.setLastSynchronized( TOMORROW );
+        alreadySynchronizedTei.setUid( SYNCHRONIZED_TE_UID );
+        manager.save( alreadySynchronizedTei );
     }
 
     @Override
@@ -226,7 +243,6 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     {
         queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
-        queryParams.setSynchronizationQuery( true );
 
         params = new TrackedEntityInstanceParams();
         params.setDataSynchronizationQuery( true );
@@ -234,18 +250,64 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore
-    /*
-     * TODO: fails in H2 with newer
-     * AbstractTrackedEntityInstanceService::getTrackedEntityInstances because
-     * of some custom postgresql syntax/function. We should find a way to test
-     * this in a different way
-     */
     public void testSkipSyncFunctionality()
     {
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> teList = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
 
-        assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
+        assertEquals( 1, teList.get( 0 ).getAttributes().size() );
+    }
+
+    @Test
+    public void shouldReturnAllTrackedEntitiesWhenNotSyncQuery()
+    {
+        queryParams.setSynchronizationQuery( false );
+        queryParams.setSkipChangedBefore( null );
+
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> teList = subject
+            .getTrackedEntityInstances( queryParams, params, true, true );
+
+        assertContainsOnly(
+            teList.stream()
+                .map( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance::getTrackedEntityInstance )
+                .collect( Collectors.toList() ),
+            TE_NOT_IN_SYNC_UID, SYNCHRONIZED_TE_UID );
+        assertEquals( 1, getTeByUid( teList, TE_NOT_IN_SYNC_UID ).getAttributes().size() );
+    }
+
+    @Test
+    public void shouldNotSynchronizeTrackedEntityUpdatedBeforeLastSync()
+    {
+        queryParams.setSynchronizationQuery( true );
+        queryParams.setSkipChangedBefore( null );
+
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> teList = subject
+            .getTrackedEntityInstances( queryParams, params, true, true );
+
+        assertContainsOnly(
+            teList.stream()
+                .map( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance::getTrackedEntityInstance )
+                .collect( Collectors.toList() ),
+            TE_NOT_IN_SYNC_UID );
+        assertEquals( 1, getTeByUid( teList, TE_NOT_IN_SYNC_UID ).getAttributes().size() );
+    }
+
+    @Test
+    public void shouldNotSynchronizeTrackedEntityUpdatedBeforeSkipChangedBeforeDate()
+    {
+        queryParams.setSynchronizationQuery( true );
+        queryParams.setSkipChangedBefore( TOMORROW );
+
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> teList = subject
+            .getTrackedEntityInstances( queryParams, params, true, true );
+
+        assertIsEmpty( teList );
+    }
+
+    private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance getTeByUid(
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> instances, String uid )
+    {
+        return instances.stream().filter( t -> Objects.equals( t.getTrackedEntityInstance(), uid ) ).findAny()
+            .orElse( null );
     }
 }
