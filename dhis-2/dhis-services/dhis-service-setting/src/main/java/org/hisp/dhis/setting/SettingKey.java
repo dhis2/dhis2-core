@@ -290,7 +290,10 @@ public enum SettingKey {
   /** The HTML string which is used for displaying LoginPage when LOGIN_PAGE_LAYOUT is CUSTOM. */
   LOGIN_PAGE_TEMPLATE("loginPageTemplate", null, String.class, false, false),
 
-  /** The app to serve as the global app shell.  Global app shell is disabled if this is NULL or if the app does not exist **/
+  /**
+   * The app to serve as the global app shell. Global app shell is disabled if this is NULL or if
+   * the app does not exist *
+   */
   GLOBAL_SHELL_APP_NAME("globalShellAppName", "global-app-shell", String.class, false, false),
   ;
 

@@ -56,7 +56,6 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   @Autowired AppManager appManager;
 
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
-  public static final String DEFAULT_GLOBAL_SHELL_APP_NAME = "global-app-shell";
 
   private static final Pattern LEGACY_APP_PATH_PATTERN =
       compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)" + "(\\S+)/(.*)");
@@ -70,8 +69,9 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    String globalShellAppName = systemSettingManager.getStringSetting(SettingKey.GLOBAL_SHELL_APP_NAME);
-    if (!appManager.exists(globalShellAppName)) {
+    String globalShellAppName =
+        systemSettingManager.getStringSetting(SettingKey.GLOBAL_SHELL_APP_NAME);
+    if (globalShellAppName == null || !appManager.exists(globalShellAppName)) {
       chain.doFilter(request, response);
       return;
     }
@@ -82,7 +82,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
 
     if (path.startsWith(GLOBAL_SHELL_PATH_PREFIX)) {
-      serveGlobalAppShell(request, response, globalShellAppName, path);
+      serveGlobalShell(request, response, globalShellAppName, path);
       return;
     }
 
@@ -106,8 +106,11 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     return false;
   }
 
-  private void serveGlobalAppShell(
-      HttpServletRequest request, HttpServletResponse response, String globalShellAppName, String path)
+  private void serveGlobalShell(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      String globalShellAppName,
+      String path)
       throws IOException, ServletException {
 
     if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
@@ -117,21 +120,23 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       }
       // Return index.html for all index.html or directory root requests
       log.debug("Serving global shell");
-      serveGlobalAppShellResource(request, response, globalShellAppName, "index.html");
+      serveGlobalShellResource(request, response, globalShellAppName, "index.html");
     } else {
       // Serve global app shell resources
-      serveGlobalAppShellResource(
+      serveGlobalShellResource(
           request, response, globalShellAppName, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
     }
   }
 
-  private void serveGlobalAppShellResource(
-      HttpServletRequest request, HttpServletResponse response, String globalShellAppName, String resource)
+  private void serveGlobalShellResource(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      String globalShellAppName,
+      String resource)
       throws IOException, ServletException {
     RequestDispatcher dispatcher =
         getServletContext()
-            .getRequestDispatcher(
-                String.format("/api/apps/%s/%s", globalShellAppName, resource));
+            .getRequestDispatcher(String.format("/api/apps/%s/%s", globalShellAppName, resource));
     dispatcher.forward(request, response);
   }
 
