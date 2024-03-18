@@ -71,6 +71,19 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
 
+    Set<String> userOrgUnitIds =
+        (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
+
+    Set<String> userSearchOrgUnitIds =
+        (searchOrgUnitUids == null)
+            ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
+            : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
+
+    Set<String> userDataOrgUnitIds =
+        (dataViewUnitUids == null)
+            ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
+            : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
+
     return UserDetailsImpl.builder()
         .id(user.getId())
         .uid(user.getUid())
@@ -92,15 +105,9 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         .allRestrictions(user.getAllRestrictions())
         .userRoleIds(setOfIds(user.getUserRoles()))
         .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-        .userOrgUnitIds((orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids)
-        .userSearchOrgUnitIds(
-            (searchOrgUnitUids == null)
-                ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
-                : searchOrgUnitUids)
-        .userDataOrgUnitIds(
-            (dataViewUnitUids == null)
-                ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
-                : dataViewUnitUids)
+        .userOrgUnitIds(userOrgUnitIds)
+        .userSearchOrgUnitIds(userSearchOrgUnitIds)
+        .userDataOrgUnitIds(userDataOrgUnitIds)
         .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings))
         .build();
   }
@@ -193,6 +200,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
     return false;
   }
 
+  @Nonnull
   private static Set<String> setOfIds(
       @CheckForNull Collection<? extends IdentifiableObject> objects) {
     return objects == null || objects.isEmpty()
