@@ -70,7 +70,7 @@ public interface IconStore {
   List<Icon> getIcons(IconQueryParams params);
 
   /**
-   * @return all existing keys
+   * @return all existing keys, a key includes the variant suffix
    */
   List<String> getAllKeys();
 
