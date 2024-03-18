@@ -40,6 +40,8 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -50,23 +52,26 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class GlobalAppShellFilter extends OncePerRequestFilter {
+public class GlobalShellFilter extends OncePerRequestFilter {
   @Autowired AppManager appManager;
 
-  public static final String GLOBAL_APP_SHELL_PATH_PREFIX = "/apps/";
-  public static final String GLOBAL_APP_SHELL_APP_NAME = "global-app-shell";
+  public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
+  public static final String DEFAULT_GLOBAL_SHELL_APP_NAME = "global-app-shell";
 
-  private static final Pattern APP_PATH_PATTERN =
+  private static final Pattern LEGACY_APP_PATH_PATTERN =
       compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|api/apps/)" + "(\\S+)/(.*)");
 
   private static final Pattern APP_IN_GLOBAL_SHELL_PATTERN =
-      compile("^" + GLOBAL_APP_SHELL_PATH_PREFIX + "([^/.]+)/?$");
+      compile("^" + GLOBAL_SHELL_PATH_PREFIX + "([^/.]+)/?$");
+
+  private final SystemSettingManager systemSettingManager;
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    if (!appManager.exists(GLOBAL_APP_SHELL_APP_NAME)) {
+    String globalShellAppName = systemSettingManager.getStringSetting(SettingKey.GLOBAL_SHELL_APP_NAME);
+    if (!appManager.exists(globalShellAppName)) {
       chain.doFilter(request, response);
       return;
     }
@@ -76,8 +81,8 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    if (path.startsWith(GLOBAL_APP_SHELL_PATH_PREFIX)) {
-      serveGlobalAppShell(request, response, path);
+    if (path.startsWith(GLOBAL_SHELL_PATH_PREFIX)) {
+      serveGlobalAppShell(request, response, globalShellAppName, path);
       return;
     }
 
@@ -87,14 +92,14 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
   private boolean redirectLegacyAppPaths(
       HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
     String queryString = request.getQueryString();
-    Matcher m = APP_PATH_PATTERN.matcher(path);
+    Matcher m = LEGACY_APP_PATH_PATTERN.matcher(path);
 
     boolean matchesPattern = m.find();
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
-    boolean hasRedirectFalse = queryString == null || !queryString.contains("redirect=false");
-    if (matchesPattern && isIndexPath && hasRedirectFalse) {
+    boolean hasRedirectFalse = queryString != null && queryString.contains("redirect=false");
+    if (matchesPattern && isIndexPath && !hasRedirectFalse) {
       String appName = m.group(1);
-      response.sendRedirect(request.getContextPath() + GLOBAL_APP_SHELL_PATH_PREFIX + appName);
+      response.sendRedirect(request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName);
       log.debug("Redirecting to global shell");
       return true;
     }
@@ -102,7 +107,7 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
   }
 
   private void serveGlobalAppShell(
-      HttpServletRequest request, HttpServletResponse response, String path)
+      HttpServletRequest request, HttpServletResponse response, String globalShellAppName, String path)
       throws IOException, ServletException {
 
     if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
@@ -112,21 +117,21 @@ public class GlobalAppShellFilter extends OncePerRequestFilter {
       }
       // Return index.html for all index.html or directory root requests
       log.debug("Serving global shell");
-      serveGlobalAppShellResource(request, response, "index.html");
+      serveGlobalAppShellResource(request, response, globalShellAppName, "index.html");
     } else {
       // Serve global app shell resources
       serveGlobalAppShellResource(
-          request, response, path.substring(GLOBAL_APP_SHELL_PATH_PREFIX.length()));
+          request, response, globalShellAppName, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
     }
   }
 
   private void serveGlobalAppShellResource(
-      HttpServletRequest request, HttpServletResponse response, String resource)
+      HttpServletRequest request, HttpServletResponse response, String globalShellAppName, String resource)
       throws IOException, ServletException {
     RequestDispatcher dispatcher =
         getServletContext()
             .getRequestDispatcher(
-                String.format("/api/apps/%s/%s", GLOBAL_APP_SHELL_APP_NAME, resource));
+                String.format("/api/apps/%s/%s", globalShellAppName, resource));
     dispatcher.forward(request, response);
   }
 
