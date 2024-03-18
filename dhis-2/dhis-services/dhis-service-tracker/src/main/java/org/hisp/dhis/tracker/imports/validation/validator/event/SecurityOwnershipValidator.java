@@ -75,7 +75,7 @@ import org.springframework.stereotype.Component;
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      "Event %s has no organisation unit assigned, so we skip user validation";
+      "Event {} has no organisation unit assigned, so we skip user validation";
 
   @Nonnull private final AclService aclService;
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
@@ -111,7 +111,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
       if (organisationUnit == null) {
-        log.warn(String.format(ORG_UNIT_NO_USER_ASSIGNED, event.getUid()));
+        log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
       } else {
         checkOrgUnitInCaptureScope(reporter, bundle, event, organisationUnit);
       }
@@ -328,7 +328,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       boolean isCreatableInSearchScope,
       UserDetails user) {
     if (eventOrgUnit == null) {
-      log.warn(String.format(ORG_UNIT_NO_USER_ASSIGNED, event.getUid()));
+      log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
     } else if (isCreatableInSearchScope
         ? !user.isInUserSearchHierarchy(eventOrgUnit.getPath())
         : !user.isInUserDataHierarchy(eventOrgUnit.getPath())) {
