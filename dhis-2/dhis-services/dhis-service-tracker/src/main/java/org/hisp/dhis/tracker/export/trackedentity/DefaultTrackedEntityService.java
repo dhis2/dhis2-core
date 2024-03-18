@@ -262,13 +262,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity getTrackedEntity(
       String uid, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
-    if (daoTrackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
+    TrackedEntity daoTrackedEntity = getTrackedEntity(uid);
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     List<String> errors = trackerAccessManager.canRead(currentUser, daoTrackedEntity);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
@@ -287,13 +283,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity getTrackedEntity(
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
-    if (daoTrackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
+    TrackedEntity daoTrackedEntity = getTrackedEntity(uid);
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
     if (!trackerAccessManager.canRead(currentUser, daoTrackedEntity, program, false).isEmpty()) {
       if (program.getAccessLevel() == AccessLevel.CLOSED) {
         throw new ForbiddenException(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED);
@@ -301,11 +293,17 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new ForbiddenException(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
     }
 
-    return mapTrackedEntity(
-        daoTrackedEntity,
-        params,
-        userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()),
-        includeDeleted);
+    return mapTrackedEntity(daoTrackedEntity, params, currentUser, includeDeleted);
+  }
+
+  private TrackedEntity getTrackedEntity(String uid) throws NotFoundException {
+    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
+    if (daoTrackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+
+    return daoTrackedEntity;
   }
 
   private TrackedEntity mapTrackedEntity(
