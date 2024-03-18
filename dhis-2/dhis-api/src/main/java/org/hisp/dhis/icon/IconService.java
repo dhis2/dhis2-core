@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
@@ -39,11 +40,19 @@ import org.hisp.dhis.feedback.NotFoundException;
 public interface IconService {
 
   /**
-   * To create a specific {@link DefaultIcon} should it not exist in the database.
+   * The {@link Icon}s returned by this method are not persisted in DB.
    *
-   * @param icon to create if not exist
+   * @return an {@link Icon} for all {@link DefaultIcon}s variants that do not yet exist
    */
-  void createDefaultIcon(DefaultIcon icon);
+  List<Icon> findNonExistingDefaultIcons();
+
+  /**
+   * To creates the {@link org.hisp.dhis.fileresource.FileResource} for the default icon provided
+   *
+   * @param icon to create
+   * @return the UID of the crated {@link org.hisp.dhis.fileresource.FileResource}
+   */
+  String uploadDefaultIcon(Icon icon) throws ConflictException;
 
   /**
    * Get the count of Icons based on filters provided in {@link IconQueryParams}

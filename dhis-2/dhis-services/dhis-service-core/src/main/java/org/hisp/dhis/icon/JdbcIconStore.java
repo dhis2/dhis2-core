@@ -38,6 +38,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -77,6 +78,12 @@ public class JdbcIconStore implements IconStore {
   private final UserService userService;
 
   private final FileResourceStore fileResourceStore;
+
+  @Override
+  public List<String> getAllKeys() {
+    String sql = "select iconkey from icon";
+    return namedParameterJdbcTemplate.query(sql, Map.of(), (rs, rowNum) -> rs.getString(1));
+  }
 
   @Override
   public long count(IconQueryParams params) {
@@ -152,13 +159,6 @@ public class JdbcIconStore implements IconStore {
     params.addValue("key", icon.getKey());
 
     namedParameterJdbcTemplate.update(sql, params);
-  }
-
-  @Override
-  public boolean containsKeys(Set<String> keys) {
-    IconQueryParams params = new IconQueryParams();
-    params.setKeys(List.copyOf(keys));
-    return count(params) == keys.size();
   }
 
   @Override

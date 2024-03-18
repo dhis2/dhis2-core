@@ -227,8 +227,11 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldCreateIconInDatabase() {
-    iconService.createDefaultIcon(DefaultIcon.DOCTOR);
+  void shouldCreateIconInDatabase() throws Exception {
+    for (Icon icon : DefaultIcon.DOCTOR.toVariantIcons()) {
+      iconService.uploadDefaultIcon(icon);
+      iconService.addIcon(icon);
+    }
 
     IconQueryParams iconQueryParams = new IconQueryParams();
     iconQueryParams.setSearch("doctor");
@@ -240,7 +243,7 @@ class IconTest extends TrackerTest {
     assertEquals(
         3,
         keys.size(),
-        String.format("Should have 3 icons with key %s", DefaultIcon.DOCTOR.getKey()));
+        String.format("Should have 3 icons with key %s", DefaultIcon.DOCTOR.getKeyPrefix()));
     assertTrue(keys.contains("doctor_outline"), "list should contain doctor_outline");
     assertTrue(keys.contains("doctor_negative"), "list should contain doctor_negative");
     assertTrue(keys.contains("doctor_positive"), "list should contain doctor_positive");
