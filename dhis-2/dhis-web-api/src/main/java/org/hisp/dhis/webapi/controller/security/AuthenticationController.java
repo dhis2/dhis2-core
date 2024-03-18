@@ -194,7 +194,8 @@ public class AuthenticationController {
   }
 
   private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
-    String redirectUrl = "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+    String redirectUrl =
+        request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
 
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
