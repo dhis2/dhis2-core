@@ -288,7 +288,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programUid
             + ".pi = ax.pi and ps = '"
             + programStageUid
-            + "' order by occurreddate, created desc offset 1 limit 1 )) "
+            + "' order by occurreddate desc, created desc offset 1 limit 1 )) "
             + "as \""
             + programStageUid
             + "[-1]."
