@@ -29,21 +29,16 @@ package org.hisp.dhis.dxf2.telemetry;
 
 import java.util.Date;
 import javax.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.statistics.StatisticsProvider;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.HttpHeadersBuilder;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
 // import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
@@ -63,122 +58,127 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.dxf2.telemetry.TelemetryService")
 public class DefaultTelemetryService implements TelemetryService {
-    private final SystemService systemService;
+  private final SystemService systemService;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    private final RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
-    private final TaskScheduler scheduler;
+  private final TaskScheduler scheduler;
 
-    private final StatisticsProvider statisticsProvider;
+  private final StatisticsProvider statisticsProvider;
 
-    private final AppManager appManager;
+  private final AppManager appManager;
 
-    @PostConstruct
-    public void init() {
-        CronTrigger cronTrigger = new CronTrigger("10 * * * * ?");
-        scheduler.schedule(this::pushTelemetryReport, cronTrigger);
+  @PostConstruct
+  public void init() {
+    /* Schedule telemetry reports once per month on the first of the month */
+    CronTrigger cronTrigger = new CronTrigger("* * * 1 * ?");
+    scheduler.schedule(this::pushTelemetryReport, cronTrigger);
 
-        log.info("Scheduled telemetry service");
+    log.info("Scheduled telemetry service");
+  }
+
+  public TelemetryData getTelemetryData() {
+    SystemInfo systemInfo = systemService.getSystemInfo().withoutSensitiveInfo();
+    return TelemetryData.builder()
+        .systemId(systemInfo.getSystemId())
+        .version(systemInfo.getVersion())
+        .revision(systemInfo.getRevision())
+        .buildTime(systemInfo.getBuildTime())
+
+        // .javaVersion(systemInfo.getJavaVersion())
+        // .javaVendor(systemInfo.getJavaVendor())
+        // .osName(systemInfo.getOsName())
+
+        .readOnlyMode(systemInfo.getReadOnlyMode())
+        .readReplicaCount(systemInfo.getReadReplicaCount())
+        .encryption(systemInfo.isEncryption())
+        .emailConfigured(systemInfo.isEmailConfigured())
+        .redisEnabled(systemInfo.isRedisEnabled())
+        .isMetadataVersionEnabled(systemInfo.getIsMetadataVersionEnabled())
+        .isMetadataSyncEnabled(systemInfo.getIsMetadataSyncEnabled())
+        .calendar(systemInfo.getCalendar())
+        .dateFormat(systemInfo.getDateFormat())
+        .lastAnalyticsTableSuccess(systemInfo.getLastAnalyticsTableSuccess())
+        .lastAnalyticsTableRuntime(systemInfo.getLastAnalyticsTableRuntime())
+        .lastAnalyticsTablePartitionSuccess(systemInfo.getLastAnalyticsTablePartitionSuccess())
+        .lastAnalyticsTablePartitionRuntime(systemInfo.getLastAnalyticsTablePartitionRuntime())
+        .lastMetadataVersionSyncAttempt(systemInfo.getLastMetadataVersionSyncAttempt())
+        .objectCounts(statisticsProvider.getObjectCounts())
+        .apps(
+            appManager.getApps("").stream()
+                .map(
+                    app ->
+                        new TelemetryData.AppInfo(
+                            app.getName(),
+                            app.getVersion(),
+                            app.getAppHubId(),
+                            app.hasAppEntrypoint(),
+                            app.hasPluginEntrypoint(),
+                            app.getAppType(),
+                            app.getPluginType()))
+                .toList())
+        .build();
+  }
+
+  @Override
+  public void pushTelemetryReport() {
+    Boolean enabled = systemSettingManager.getBooleanSetting(SettingKey.TELEMETRY_REPORTS_ENABLED);
+    if (!enabled) {
+      log.debug("Telemetry reports are disabled, skipping telemetry report push");
+      return;
     }
 
-    public TelemetryData getTelemetryData() {
-        SystemInfo systemInfo = systemService.getSystemInfo().withoutSensitiveInfo();
-        return TelemetryData.builder()
-                .systemId(systemInfo.getSystemId())
-
-                .version(systemInfo.getVersion())
-                .revision(systemInfo.getRevision())
-                .buildTime(systemInfo.getBuildTime())
-
-                // .javaVersion(systemInfo.getJavaVersion())
-                // .javaVendor(systemInfo.getJavaVendor())
-                // .osName(systemInfo.getOsName())
-
-                .readOnlyMode(systemInfo.getReadOnlyMode())
-                .readReplicaCount(systemInfo.getReadReplicaCount())
-                .encryption(systemInfo.isEncryption())
-                .emailConfigured(systemInfo.isEmailConfigured())
-                .redisEnabled(systemInfo.isRedisEnabled())
-                .isMetadataVersionEnabled(systemInfo.getIsMetadataVersionEnabled())
-                .isMetadataSyncEnabled(systemInfo.getIsMetadataSyncEnabled())
-                .calendar(systemInfo.getCalendar())
-                .dateFormat(systemInfo.getDateFormat())
-
-                .lastAnalyticsTableSuccess(systemInfo.getLastAnalyticsTableSuccess())
-                .lastAnalyticsTableRuntime(systemInfo.getLastAnalyticsTableRuntime())
-                .lastAnalyticsTablePartitionSuccess(systemInfo.getLastAnalyticsTablePartitionSuccess())
-                .lastAnalyticsTablePartitionRuntime(systemInfo.getLastAnalyticsTablePartitionRuntime())
-                .lastMetadataVersionSyncAttempt(systemInfo.getLastMetadataVersionSyncAttempt())
-
-                .objectCounts(statisticsProvider.getObjectCounts())
-                .apps(appManager.getApps("").stream()
-                        .map(app -> new TelemetryData.AppInfo(app.getName(), app.getVersion(), app.getAppHubId(),
-                                app.hasAppEntrypoint(), app.hasPluginEntrypoint(), app.getAppType(),
-                                app.getPluginType()))
-                        .toList())
-
-                .build();
+    String url = systemSettingManager.getStringSetting(SettingKey.TELEMETRY_URL);
+    if (StringUtils.isBlank(url)) {
+      log.debug("Telemetry service URL not configured, aborting telemetry report");
+      return;
     }
 
-    @Override
-    public void pushTelemetryReport() {
-        Boolean enabled = systemSettingManager.getBooleanSetting(SettingKey.TELEMETRY_REPORTS_ENABLED)
-        if (!enabled) {
-            log.debug("Telemetry reports are disabled, skipping telemetry report push");
-            return;
-        }
+    TelemetryData telemetryData = getTelemetryData();
 
-        String url = systemSettingManager.getStringSetting(SettingKey.TELEMETRY_URL);
-        if (StringUtils.isBlank(url)) {
-            log.debug("Telemetry service URL not configured, aborting telemetry report");
-            return;
-        }
-
-        TelemetryData telemetryData = getTelemetryData();
-
-        if (StringUtils.isBlank(telemetryData.getSystemId())) {
-            log.warn("System ID not available, aborting telemetry report");
-            return;
-        }
-
-        pushTelemetryReport(telemetryData, url);
+    if (StringUtils.isBlank(telemetryData.getSystemId())) {
+      log.warn("System ID not available, aborting telemetry report");
+      return;
     }
 
-    /**
-     * Pushes system info to the monitoring target.
-     *
-     * @param telemetryData the {@link TelemetryData}.
-     */
-    private void pushTelemetryReport(TelemetryData telemetryData, String url) {
-        Date startTime = new Date();
+    pushTelemetryReport(telemetryData, url);
+  }
 
-        HttpEntity<TelemetryData> requestEntity = new HttpEntity<>(telemetryData);
+  /**
+   * Pushes system info to the monitoring target.
+   *
+   * @param telemetryData the {@link TelemetryData}.
+   */
+  private void pushTelemetryReport(TelemetryData telemetryData, String url) {
+    Date startTime = new Date();
 
-        ResponseEntity<String> response = null;
-        HttpStatus sc = null;
+    HttpEntity<TelemetryData> requestEntity = new HttpEntity<>(telemetryData);
 
-        try {
-            response = restTemplate.postForEntity(url, requestEntity, String.class);
-            sc = response.getStatusCode();
-        } catch (HttpClientErrorException | HttpServerErrorException ex) {
-            log.warn(String.format("Monitoring request failed, status code: %s", sc), ex);
-            return;
-        } catch (ResourceAccessException ex) {
-            log.info("Monitoring request failed, network is unreachable");
-            return;
-        }
+    ResponseEntity<String> response = null;
+    HttpStatus sc = null;
 
-        if (response != null && sc != null && sc.is2xxSuccessful()) {
-            systemSettingManager.saveSystemSetting(
-                    SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
-
-            log.debug(String.format("Telemetry report successfully sent, URL: %s", url));
-        } else {
-            log.warn(String.format("Telemetry report failed with status code: %s", sc));
-        }
+    try {
+      response = restTemplate.postForEntity(url, requestEntity, String.class);
+      sc = response.getStatusCode();
+    } catch (HttpClientErrorException | HttpServerErrorException ex) {
+      log.warn(String.format("Monitoring request failed, status code: %s", sc), ex);
+      return;
+    } catch (ResourceAccessException ex) {
+      log.info("Monitoring request failed, network is unreachable");
+      return;
     }
+
+    if (response != null && sc != null && sc.is2xxSuccessful()) {
+      systemSettingManager.saveSystemSetting(
+          SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
+
+      log.debug(String.format("Telemetry report successfully sent, URL: %s", url));
+    } else {
+      log.warn(String.format("Telemetry report failed with status code: %s", sc));
+    }
+  }
 }
