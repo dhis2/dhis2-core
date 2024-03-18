@@ -78,6 +78,7 @@ public class DefaultTelemetryService implements TelemetryService {
     log.info("Scheduled telemetry service");
   }
 
+  @Override
   public TelemetryData getTelemetryData() {
     SystemInfo systemInfo = systemService.getSystemInfo().withoutSensitiveInfo();
     return TelemetryData.builder()
