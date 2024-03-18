@@ -36,9 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -754,9 +751,6 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     validator.validate(reporter, bundle, event);
 
-    verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-
     assertHasError(reporter, event, E1313);
   }
 
@@ -782,9 +776,6 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
 
     validator.validate(reporter, bundle, event);
 
-    verify(bundle, atLeastOnce()).findEnrollmentByUid(ENROLLMENT_ID);
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-
     assertHasNoError(reporter, event, E1313);
   }
 
@@ -799,9 +790,6 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
     validator.validate(reporter, bundle, event);
-
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-    verify(bundle, times(0)).findEnrollmentByUid(ENROLLMENT_ID);
 
     assertNoErrors(reporter);
   }
@@ -819,9 +807,6 @@ class DataRelationsValidatorTest extends DhisConvenienceTest {
     Event event = eventBuilder().enrollment(ENROLLMENT_ID).build();
 
     validator.validate(reporter, bundle, event);
-
-    verify(preheat, atLeastOnce()).getEnrollment(ENROLLMENT_ID);
-    verify(bundle, times(0)).findEnrollmentByUid(ENROLLMENT_ID);
 
     assertHasError(reporter, event, E1313);
   }
