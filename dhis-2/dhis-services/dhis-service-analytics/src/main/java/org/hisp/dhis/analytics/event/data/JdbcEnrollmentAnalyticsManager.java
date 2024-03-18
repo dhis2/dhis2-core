@@ -88,7 +88,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String ANALYTICS_EVENT = "analytics_event_";
 
-  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate, created ";
+  private static final String DIRECTION_PLACEHOLDER = "#DIRECTION_PLACEHOLDER";
+
+  private static final String ORDER_BY_EXECUTION_DATE =
+      "order by occurreddate " + DIRECTION_PLACEHOLDER + ", created " + DIRECTION_PLACEHOLDER;
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -519,8 +522,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + colName
               + IS_NOT_NULL
               + psCondition
-              + ORDER_BY_EXECUTION_DATE
-              + createOrderTypeAndOffset(item.getProgramStageOffset())
+              + " "
+              + createOrderType(item.getProgramStageOffset())
+              + " "
+              + createOffset(item.getProgramStageOffset())
               + " "
               + LIMIT_1
               + " )",
@@ -571,8 +576,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + getExecutionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + ORDER_BY_EXECUTION_DATE
-            + createOrderTypeAndOffset(item.getProgramStageOffset())
+            + createOrderType(item.getProgramStageOffset())
+            + " "
+            + createOffset(item.getProgramStageOffset())
+            + " "
             + getLimit(item.getRepeatableStageParams().getCount())
             + " ) as t1)";
       }
@@ -593,8 +600,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + getExecutionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + ORDER_BY_EXECUTION_DATE
-            + createOrderTypeAndOffset(item.getProgramStageOffset())
+            + createOrderType(item.getProgramStageOffset())
+            + " "
+            + createOffset(item.getProgramStageOffset())
             + " "
             + LIMIT_1
             + " )";
@@ -620,8 +628,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + "and ps = '"
           + item.getProgramStage().getUid()
           + "' "
-          + ORDER_BY_EXECUTION_DATE
-          + createOrderTypeAndOffset(item.getProgramStageOffset())
+          + createOrderType(item.getProgramStageOffset())
+          + " "
+          + createOffset(item.getProgramStageOffset())
           + " "
           + LIMIT_1
           + " )";
@@ -677,14 +686,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return AnalyticsType.ENROLLMENT;
   }
 
-  private String createOrderTypeAndOffset(int offset) {
+  private String createOffset(int offset) {
     if (offset == 0) {
-      return "desc";
+      return EMPTY;
+    }
+
+    if (offset < 0) {
+      return "offset " + (-1 * offset);
+    } else {
+      return "offset " + (offset - 1);
+    }
+  }
+
+  private String createOrderType(int offset) {
+    if (offset == 0) {
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
     }
     if (offset < 0) {
-      return "desc offset " + (-1 * offset);
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
     } else {
-      return "asc offset " + (offset - 1);
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "asc");
     }
   }
 }
