@@ -143,7 +143,7 @@ class GatewayAdministrationServiceTest {
     subject.addGateway(bulkConfig);
 
     // bulksms gateway already exist so it will not be added.
-    assertGateways(3);
+    assertGateways(2);
   }
 
   @Test
