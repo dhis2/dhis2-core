@@ -172,9 +172,9 @@ public class DefaultFileResourceService implements FileResourceService {
                       new FileResourceOwner(
                           dv.de(), dv.ou(), periodService.getPeriod(dv.pe()).getIsoDate(), dv.co()))
               .toList();
-      case CUSTOM_ICON ->
+      case ICON ->
           fileResourceStore.findCustomIconByFileResource(uid).stream()
-              .map(key -> new FileResourceOwner(FileResourceDomain.CUSTOM_ICON, key))
+              .map(key -> new FileResourceOwner(FileResourceDomain.ICON, key))
               .toList();
       case JOB_DATA -> List.of(new FileResourceOwner(FileResourceDomain.JOB_DATA, uid));
     };

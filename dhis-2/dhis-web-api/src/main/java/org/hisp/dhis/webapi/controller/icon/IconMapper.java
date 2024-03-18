@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -49,8 +49,7 @@ public class IconMapper {
       throw new BadRequestException("FileResource must be provided with Icon");
     }
 
-    fileResource =
-        fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+    fileResource = fileResourceService.getFileResource(customIconRequest.getFileResourceId(), ICON);
     if (fileResource.isEmpty()) {
       throw new BadRequestException(
           String.format(
@@ -73,7 +72,7 @@ public class IconMapper {
 
     if (customIconRequest.getFileResourceId() != null) {
       fileResource =
-          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), CUSTOM_ICON);
+          fileResourceService.getFileResource(customIconRequest.getFileResourceId(), ICON);
       if (fileResource.isEmpty()) {
         throw new BadRequestException(
             String.format(

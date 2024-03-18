@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 
 import com.google.common.base.Strings;
 import java.io.IOException;
@@ -100,7 +100,7 @@ public class DefaultIconService implements IconService {
     String fileResourceId = CodeGenerator.generateUid();
     Resource resource = getDefaultIconResource(icon.getKey());
     try {
-      FileResource fileResource = FileResource.ofKey(CUSTOM_ICON, icon.getKey(), MEDIA_TYPE_SVG);
+      FileResource fileResource = FileResource.ofKey(ICON, icon.getKey(), MEDIA_TYPE_SVG);
       fileResource.setUid(fileResourceId);
       fileResource.setAssigned(true);
       try (InputStream image = resource.getInputStream()) {
@@ -249,7 +249,7 @@ public class DefaultIconService implements IconService {
     }
 
     Optional<FileResource> fileResource =
-        fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON);
+        fileResourceService.getFileResource(fileResourceUid, ICON);
     if (fileResource.isEmpty()) {
       throw new NotFoundException(String.format("FileResource %s does not exist", fileResourceUid));
     }
