@@ -234,12 +234,18 @@ public class ValidationUtils {
    * @return true if the username is valid, false otherwise.
    */
   public static boolean usernameIsValid(String username, boolean isInvite) {
-    if ((username == null || username.length() == 0) && !isInvite) {
+    if ((username == null || username.isEmpty()) && !isInvite) {
       return false;
     } else if (isInvite) {
       return true;
     }
+    return usernameIsValid(username);
+  }
 
+  public static boolean usernameIsValid(String username) {
+    if ((username == null || username.isEmpty())) {
+      return false;
+    }
     Matcher matcher = USERNAME_PATTERN.matcher(username);
     return matcher.matches();
   }

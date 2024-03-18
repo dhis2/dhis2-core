@@ -42,8 +42,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +62,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class TrackerOwnershipController {
   public static final String RESOURCE_PATH = "/tracker/ownership";
-
-  @Autowired private UserService userService;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -116,7 +113,7 @@ public class TrackerOwnershipController {
         validateMandatoryDeprecatedUidParameter(
             "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         trackedEntityService.getTrackedEntity(trackedEntityUid.getValue()),
         programService.getProgram(program),

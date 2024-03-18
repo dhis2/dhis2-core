@@ -126,7 +126,7 @@ public interface UserService {
   User getUserByUuid(UUID uuid);
 
   /**
-   * Retrieves the User with the given username.
+   * Retrieves the User with the given username. Returns null if no user is found.
    *
    * @param username the username of the User to retrieve.
    * @return the User.

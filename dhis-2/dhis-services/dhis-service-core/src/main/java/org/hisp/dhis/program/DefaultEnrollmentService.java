@@ -161,8 +161,8 @@ public class DefaultEnrollmentService implements EnrollmentService {
 
   @Override
   @Transactional
-  public void updateEnrollment(Enrollment enrollment, User user) {
-    enrollmentStore.update(enrollment, UserDetails.fromUser(user));
+  public void updateEnrollment(Enrollment enrollment, UserDetails user) {
+    enrollmentStore.update(enrollment, user);
   }
 
   // TODO consider security

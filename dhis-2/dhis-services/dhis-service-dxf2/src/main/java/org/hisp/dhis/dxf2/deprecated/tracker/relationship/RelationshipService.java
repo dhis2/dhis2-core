@@ -39,7 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
@@ -109,8 +109,7 @@ public interface RelationshipService {
 
   ImportSummary deleteRelationship(String uid);
 
-  ImportSummaries deleteRelationships(
-      List<Relationship> relationships, ImportOptions importOptions);
+  ImportSummaries deleteRelationships(List<Relationship> relationships);
 
   Optional<Relationship> findRelationshipByUid(String id);
 
@@ -119,7 +118,7 @@ public interface RelationshipService {
   // -------------------------------------------------------------------------
 
   Optional<Relationship> findRelationship(
-      org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user);
+      org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, UserDetails user);
 
   ImportSummaries processRelationshipList(
       List<Relationship> relationships, ImportOptions importOptions);
