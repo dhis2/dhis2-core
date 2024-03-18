@@ -52,9 +52,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,8 +67,6 @@ class DefaultEnrollmentService
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  private final UserService userService;
-
   private final TrackerAccessManager trackerAccessManager;
 
   private final EnrollmentOperationParamsMapper paramsMapper;
@@ -84,7 +80,7 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
 
     if (!errors.isEmpty()) {
@@ -99,7 +95,7 @@ class DefaultEnrollmentService
       @Nonnull Enrollment enrollment,
       EnrollmentParams params,
       boolean includeDeleted,
-      User currentUser) {
+      UserDetails currentUser) {
 
     Enrollment result = new Enrollment();
     result.setId(enrollment.getId());
@@ -138,13 +134,13 @@ class DefaultEnrollmentService
       result
           .getTrackedEntity()
           .setTrackedEntityAttributeValues(
-              getTrackedEntityAttributeValues(UserDetails.fromUser(currentUser), enrollment));
+              getTrackedEntityAttributeValues(currentUser, enrollment));
     }
 
     return result;
   }
 
-  private Set<Event> getEvents(User user, Enrollment enrollment, boolean includeDeleted) {
+  private Set<Event> getEvents(UserDetails user, Enrollment enrollment, boolean includeDeleted) {
     Set<Event> events = new HashSet<>();
 
     for (Event event : enrollment.getEvents()) {
@@ -157,7 +153,7 @@ class DefaultEnrollmentService
   }
 
   private Set<RelationshipItem> getRelationshipItems(
-      User user, Enrollment enrollment, boolean includeDeleted) {
+      UserDetails user, Enrollment enrollment, boolean includeDeleted) {
     Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     for (RelationshipItem relationshipItem : enrollment.getRelationshipItems()) {
@@ -221,7 +217,7 @@ class DefaultEnrollmentService
       boolean includeDeleted,
       OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
