@@ -96,7 +96,7 @@ class QueryControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void tesAliasRedirect() {
+  void testAliasRedirect() {
     HttpResponse response =
         POST(
             "/query/alias/redirect",
