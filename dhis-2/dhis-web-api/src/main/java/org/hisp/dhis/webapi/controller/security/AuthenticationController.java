@@ -78,8 +78,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>This class is targeted for the new LoginApp and JSON input/output.
  *
- * <p>This class is inspired by, and partly copied from the UsernamePasswordAuthenticationFilter
- * and
+ * <p>This class is inspired by, and partly copied from the UsernamePasswordAuthenticationFilter and
  * AbstractAuthenticationProcessingFilter in Spring.
  *
  * <p>
