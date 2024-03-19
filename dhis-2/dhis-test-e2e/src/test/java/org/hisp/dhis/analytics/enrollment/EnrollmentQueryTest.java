@@ -291,10 +291,14 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
     validateRow(
         response,
         0,
-        List.of("XLiqwElsFHO", "Sierra Leone / Port Loko / Koya / Kissy Koya MCHP", "25.0", ""));
+        List.of("fmkqsEx6MRo", "Sierra Leone / Port Loko / Koya / Mabora MCHP", "25.0", ""));
     validateRow(
         response,
         1,
-        List.of("O63vIA5MVn6", "Sierra Leone / Port Loko / Kaffu Bullom / Tagrin CHC", "25.0", ""));
+        List.of(
+            "GCbYmPqcOOP",
+            "Sierra Leone / Port Loko / Bureh Kasseh Maconteh / Romeni MCHP",
+            "25.0",
+            ""));
   }
 }

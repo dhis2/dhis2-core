@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -76,7 +76,7 @@ class IconMapperTest {
   void shouldReturnCustomIconFromIconDto() throws BadRequestException {
     CustomIconRequest customIconRequest =
         new CustomIconRequest(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid());
-    when(fileResourceService.getFileResource(fileResource.getUid(), CUSTOM_ICON))
+    when(fileResourceService.getFileResource(fileResource.getUid(), ICON))
         .thenReturn(Optional.of(fileResource));
 
     Icon icon = iconMapper.to(customIconRequest);
