@@ -46,8 +46,8 @@ class CodecUtilsTest {
   void testSha1Hex() {
     String value = "/api/me";
 
-    assertNull( CodecUtils.sha1Hex( null ) );
-    assertEquals( 40, CodecUtils.sha1Hex( value ).length() );
-    assertEquals( "4f8cc3f306852ecb642ba4375453be1a4b860e71", CodecUtils.sha1Hex( value ) );
+    assertNull(CodecUtils.sha1Hex(null));
+    assertEquals(40, CodecUtils.sha1Hex(value).length());
+    assertEquals("4f8cc3f306852ecb642ba4375453be1a4b860e71", CodecUtils.sha1Hex(value));
   }
 }

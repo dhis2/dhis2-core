@@ -98,8 +98,7 @@ public class CodecUtils {
     return value != null ? DigestUtils.md5Hex(value) : null;
   }
 
-  public static String sha1Hex( String value )
-  {
-    return value != null ? DigestUtils.sha1Hex( value ) : null;
+  public static String sha1Hex(String value) {
+    return value != null ? DigestUtils.sha1Hex(value) : null;
   }
 }

@@ -37,76 +37,78 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.openapi.QueryController} with Mock MVC
- * tests.
+ * Tests the {@link org.hisp.dhis.webapi.openapi.QueryController} with Mock MVC tests.
  *
  * @author Austin McGee
  */
-class QueryControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testGetUninitializedAlias()
-    {
-        assertStatus( HttpStatus.NOT_FOUND, GET( "/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd" ) );
-    }
+class QueryControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testGetUninitializedAlias() {
+    assertStatus(
+        HttpStatus.NOT_FOUND, GET("/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd"));
+  }
 
-    @Test
-    void testCreateAlias()
-    {
-        JsonObject doc = POST( "/query/alias", "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }" )
+  @Test
+  void testCreateAlias() {
+    JsonObject doc =
+        POST("/query/alias", "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }")
             .content();
 
-        assertTrue( doc.isObject() );
+    assertTrue(doc.isObject());
 
-        assertEquals( "671575eeea3d36a777efa6dcb48076083ff5cbbd", doc.getString( "id" ).string() );
-        assertEquals( "/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd", doc.getString( "path" ).string() );
-        assertEquals( "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
-            doc.getString( "href" ).string() );
-        assertEquals( "/api/me?fields=id,username,surname,firstName", doc.getString( "target" ).string() );
+    assertEquals("671575eeea3d36a777efa6dcb48076083ff5cbbd", doc.getString("id").string());
+    assertEquals(
+        "/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+        doc.getString("path").string());
+    assertEquals(
+        "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+        doc.getString("href").string());
+    assertEquals("/api/me?fields=id,username,surname,firstName", doc.getString("target").string());
 
-        /*
-         * Testing the actual query implementation requires a valid cache
-         * provider which is not available in integration test contexts
-         */
+    /*
+     * Testing the actual query implementation requires a valid cache
+     * provider which is not available in integration test contexts
+     */
 
-        // JsonObject targetResponse = GET( testTargetUrl.substring( "/api".length() ) ).content();
-        // JsonObject aliasResponse = GET( testTargetAliasPath ).content();
-        // assertEquals( targetResponse.toString(), aliasResponse.toString() );
-    }
+    // JsonObject targetResponse = GET( testTargetUrl.substring( "/api".length() ) ).content();
+    // JsonObject aliasResponse = GET( testTargetAliasPath ).content();
+    // assertEquals( targetResponse.toString(), aliasResponse.toString() );
+  }
 
-    private void testInvalidPayloads( String apiEndpoint )
-    {
-        assertStatus( HttpStatus.BAD_REQUEST, POST( apiEndpoint, "/api/me" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( apiEndpoint, "\"/api/me\"" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( apiEndpoint, "{ \"destination\": \"/api/me\"" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( apiEndpoint, "\"/api/me\"" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( apiEndpoint, "{ \"target\": \"/me\" }" ) );
-        assertStatus( HttpStatus.BAD_REQUEST, POST( apiEndpoint, "{ \"target\": \"api/me\" }" ) );
-        assertStatus( HttpStatus.BAD_REQUEST,
-            POST( apiEndpoint, "{ \"target\": \"http://localhost:8080/api/me\" }" ) );
-        assertStatus( HttpStatus.BAD_REQUEST,
-            POST( apiEndpoint, "{ \"target\": \"" + "/api/".repeat( 100000 ) + "\" }" ) );
-    }
+  private void testInvalidPayloads(String apiEndpoint) {
+    assertStatus(HttpStatus.BAD_REQUEST, POST(apiEndpoint, "/api/me"));
+    assertStatus(HttpStatus.BAD_REQUEST, POST(apiEndpoint, "\"/api/me\""));
+    assertStatus(HttpStatus.BAD_REQUEST, POST(apiEndpoint, "{ \"destination\": \"/api/me\""));
+    assertStatus(HttpStatus.BAD_REQUEST, POST(apiEndpoint, "\"/api/me\""));
+    assertStatus(HttpStatus.BAD_REQUEST, POST(apiEndpoint, "{ \"target\": \"/me\" }"));
+    assertStatus(HttpStatus.BAD_REQUEST, POST(apiEndpoint, "{ \"target\": \"api/me\" }"));
+    assertStatus(
+        HttpStatus.BAD_REQUEST,
+        POST(apiEndpoint, "{ \"target\": \"http://localhost:8080/api/me\" }"));
+    assertStatus(
+        HttpStatus.BAD_REQUEST,
+        POST(apiEndpoint, "{ \"target\": \"" + "/api/".repeat(100000) + "\" }"));
+  }
 
-    @Test
-    void testCreateAliasInvalidPayload()
-    {
-        testInvalidPayloads( "/query/alias" );
-    }
+  @Test
+  void testCreateAliasInvalidPayload() {
+    testInvalidPayloads("/query/alias");
+  }
 
-    @Test
-    void tesAliasRedirect()
-    {
-        HttpResponse response = POST( "/query/alias/redirect",
-            "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }" );
-        assertStatus( HttpStatus.SEE_OTHER, response );
-        assertEquals( "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
-            response.header( "Location" ) );
-    }
+  @Test
+  void tesAliasRedirect() {
+    HttpResponse response =
+        POST(
+            "/query/alias/redirect",
+            "{ \"target\": \"/api/me?fields=id,username,surname,firstName\" }");
+    assertStatus(HttpStatus.SEE_OTHER, response);
+    assertEquals(
+        "http://localhost/api/query/alias/671575eeea3d36a777efa6dcb48076083ff5cbbd",
+        response.header("Location"));
+  }
 
-    @Test
-    void testAliasRedirectInvalidPayload()
-    {
-        testInvalidPayloads( "/query/alias/redirect" );
-    }
+  @Test
+  void testAliasRedirectInvalidPayload() {
+    testInvalidPayloads("/query/alias/redirect");
+  }
 }

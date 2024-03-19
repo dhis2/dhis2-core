@@ -630,11 +630,12 @@ public class DefaultCacheProvider implements CacheProvider {
 
   @Override
   public <V> Cache<V> createQueryAliasCache() {
-    return registerCache( this.<V> newBuilder()
-            .forRegion( Region.queryAliasCache.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.queryAliasCache.name())
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .withInitialCapacity((int) getActualSize(SIZE_100))
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
   }
 }
