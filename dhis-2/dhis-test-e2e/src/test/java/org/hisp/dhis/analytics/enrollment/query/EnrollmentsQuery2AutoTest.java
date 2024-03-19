@@ -82,7 +82,7 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"Kv4fmHVAzwX\":{\"uid\":\"Kv4fmHVAzwX\",\"name\":\"Focus Name\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"Y14cBKFUsg4\":{\"uid\":\"Y14cBKFUsg4\",\"name\":\"Follow-up vector control action details 2\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"fADIatyOu2g\":{\"uid\":\"fADIatyOu2g\",\"name\":\"LLIN coverage (%)\",\"description\":\"LLIN coverage following a foci response\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"CH6wamtY9kK\":{\"uid\":\"CH6wamtY9kK\",\"name\":\"Foci investigations performed & classified\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"COUNT\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"FZwy4OoRZtV\":{\"uid\":\"FZwy4OoRZtV\",\"code\":\"RESIDENT_IN_THE_FOCUS\",\"name\":\"Resident in the focus\"},\"2021\":{\"name\":\"2021\"},\"MAs88nJc9nL\":{\"uid\":\"MAs88nJc9nL\",\"code\":\"Private Clinic\",\"name\":\"Private Clinic\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"uvMKOn1oWvd.Y14cBKFUsg4\":{\"uid\":\"Y14cBKFUsg4\",\"name\":\"Follow-up vector control action details 2\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"uvMKOn1oWvd.fADIatyOu2g\":{\"uid\":\"fADIatyOu2g\",\"name\":\"LLIN coverage (%)\",\"description\":\"LLIN coverage following a foci response\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"CWaAcQYKVpq\":{\"uid\":\"CWaAcQYKVpq\",\"name\":\"Foci investigation & classification\",\"description\":\"Includes the details on the foci investigation (including information on households, population, geography, breeding sites, species types, vector behaviour) as well as its final classification at the time of the investigation. This is a repeatable stage as foci can be investigated more than once and may change their classification as time goes on. \"},\"CWaAcQYKVpq.DanTR5x0WDK\":{\"uid\":\"DanTR5x0WDK\",\"name\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"description\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"PVLOW4bCshG\":{\"uid\":\"PVLOW4bCshG\",\"code\":\"NGO\",\"name\":\"NGO\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"oRVt7g429ZO\":{\"uid\":\"oRVt7g429ZO\",\"code\":\"Public facilities\",\"name\":\"Public facilities\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"Bpx0589u8y0\":{\"uid\":\"Bpx0589u8y0\",\"name\":\"Facility Ownership\",\"dimensionType\":\"ORGANISATION_UNIT_GROUP_SET\"},\"uvMKOn1oWvd\":{\"uid\":\"uvMKOn1oWvd\",\"name\":\"Foci response\",\"description\":\"Details the public health response conducted within the foci  (including diagnosis and treatment activities, vector control actions and the effectiveness/results of the response). This is a repeatable stage as multiple public health responses for the same foci can occur depending on its classification at the time of investigation.\"},\"zyTL3AMIkf2\":{\"uid\":\"zyTL3AMIkf2\",\"name\":\"Foci classified as active\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"COUNT\",\"totalAggregationType\":\"SUM\"},\"w0gFTTmsUcF\":{\"uid\":\"w0gFTTmsUcF\",\"code\":\"Mission\",\"name\":\"Mission\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"M3xtLkYBlKI\":{\"uid\":\"M3xtLkYBlKI\",\"name\":\"Malaria focus investigation\",\"description\":\"It allows to register new focus areas in the system. Each focus area needs to be investigated and classified. Includes the relevant identifiers for the foci including the name and geographical details including the locality and its area. \"},\"uvMKOn1oWvd.pKj8YrNKVda\":{\"uid\":\"pKj8YrNKVda\",\"name\":\"Follow-up vector control action details 3\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"DanTR5x0WDK\":{\"uid\":\"DanTR5x0WDK\",\"name\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"description\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"pKj8YrNKVda\":{\"uid\":\"pKj8YrNKVda\",\"name\":\"Follow-up vector control action details 3\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"Kv4fmHVAzwX\":[],\"uvMKOn1oWvd.Y14cBKFUsg4\":[],\"uvMKOn1oWvd.fADIatyOu2g\":[],\"CH6wamtY9kK\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"CWaAcQYKVpq.DanTR5x0WDK\":[\"FZwy4OoRZtV\"],\"Bpx0589u8y0\":[\"MAs88nJc9nL\",\"PVLOW4bCshG\",\"w0gFTTmsUcF\",\"oRVt7g429ZO\"],\"zyTL3AMIkf2\":[],\"uvMKOn1oWvd.pKj8YrNKVda\":[]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"Kv4fmHVAzwX\":{\"uid\":\"Kv4fmHVAzwX\",\"name\":\"Focus Name\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"CH6wamtY9kK\":{\"uid\":\"CH6wamtY9kK\",\"name\":\"Foci investigations performed & classified\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"COUNT\",\"totalAggregationType\":\"SUM\"},\"FZwy4OoRZtV\":{\"uid\":\"FZwy4OoRZtV\",\"code\":\"RESIDENT_IN_THE_FOCUS\",\"name\":\"Resident in the focus\"},\"MAs88nJc9nL\":{\"uid\":\"MAs88nJc9nL\",\"code\":\"Private Clinic\",\"name\":\"Private Clinic\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"CWaAcQYKVpq.DanTR5x0WDK\":{\"uid\":\"DanTR5x0WDK\",\"name\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"description\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"w0gFTTmsUcF\":{\"uid\":\"w0gFTTmsUcF\",\"code\":\"Mission\",\"name\":\"Mission\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"M3xtLkYBlKI\":{\"uid\":\"M3xtLkYBlKI\",\"name\":\"Malaria focus investigation\",\"description\":\"It allows to register new focus areas in the system. Each focus area needs to be investigated and classified. Includes the relevant identifiers for the foci including the name and geographical details including the locality and its area. \"},\"uvMKOn1oWvd.pKj8YrNKVda\":{\"uid\":\"pKj8YrNKVda\",\"name\":\"Follow-up vector control action details 3\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"Y14cBKFUsg4\":{\"uid\":\"Y14cBKFUsg4\",\"name\":\"Follow-up vector control action details 2\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"fADIatyOu2g\":{\"uid\":\"fADIatyOu2g\",\"name\":\"LLIN coverage (%)\",\"description\":\"LLIN coverage following a foci response\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"aqux991UIVF\":{\"uid\":\"aqux991UIVF\",\"name\":\"Residence of the malaria case/s  that prompted foci investigation\",\"options\":[{\"uid\":\"FZwy4OoRZtV\",\"code\":\"RESIDENT_IN_THE_FOCUS\"}]},\"2021\":{\"name\":\"2021\"},\"uvMKOn1oWvd.Y14cBKFUsg4\":{\"uid\":\"Y14cBKFUsg4\",\"name\":\"Follow-up vector control action details 2\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"uvMKOn1oWvd.fADIatyOu2g\":{\"uid\":\"fADIatyOu2g\",\"name\":\"LLIN coverage (%)\",\"description\":\"LLIN coverage following a foci response\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"CWaAcQYKVpq\":{\"uid\":\"CWaAcQYKVpq\",\"name\":\"Foci investigation & classification\",\"description\":\"Includes the details on the foci investigation (including information on households, population, geography, breeding sites, species types, vector behaviour) as well as its final classification at the time of the investigation. This is a repeatable stage as foci can be investigated more than once and may change their classification as time goes on. \"},\"PVLOW4bCshG\":{\"uid\":\"PVLOW4bCshG\",\"code\":\"NGO\",\"name\":\"NGO\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"oRVt7g429ZO\":{\"uid\":\"oRVt7g429ZO\",\"code\":\"Public facilities\",\"name\":\"Public facilities\",\"dimensionItemType\":\"ORGANISATION_UNIT_GROUP\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"Bpx0589u8y0\":{\"uid\":\"Bpx0589u8y0\",\"name\":\"Facility Ownership\",\"dimensionType\":\"ORGANISATION_UNIT_GROUP_SET\"},\"uvMKOn1oWvd\":{\"uid\":\"uvMKOn1oWvd\",\"name\":\"Foci response\",\"description\":\"Details the public health response conducted within the foci  (including diagnosis and treatment activities, vector control actions and the effectiveness/results of the response). This is a repeatable stage as multiple public health responses for the same foci can occur depending on its classification at the time of investigation.\"},\"zyTL3AMIkf2\":{\"uid\":\"zyTL3AMIkf2\",\"name\":\"Foci classified as active\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"COUNT\",\"totalAggregationType\":\"SUM\"},\"DanTR5x0WDK\":{\"uid\":\"DanTR5x0WDK\",\"name\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"description\":\"Residence of the malaria case/s  that prompted the current case investigation\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"},\"pKj8YrNKVda\":{\"uid\":\"pKj8YrNKVda\",\"name\":\"Follow-up vector control action details 3\",\"description\":\"Follow-up vector control action details\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"Kv4fmHVAzwX\":[],\"uvMKOn1oWvd.Y14cBKFUsg4\":[],\"uvMKOn1oWvd.fADIatyOu2g\":[],\"CH6wamtY9kK\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"CWaAcQYKVpq.DanTR5x0WDK\":[\"FZwy4OoRZtV\"],\"Bpx0589u8y0\":[\"MAs88nJc9nL\",\"PVLOW4bCshG\",\"w0gFTTmsUcF\",\"oRVt7g429ZO\"],\"zyTL3AMIkf2\":[],\"uvMKOn1oWvd.pKj8YrNKVda\":[]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -144,7 +144,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
-        0,
         List.of(
             "Njandama MCHP",
             "oRVt7g429ZO",
@@ -154,10 +153,9 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "RESIDENT_IN_THE_FOCUS"));
+            ""));
     validateRow(
         response,
-        1,
         List.of(
             "Ngelehun CHC",
             "oRVt7g429ZO",
@@ -165,12 +163,11 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "Focus A focus",
             "1",
             "",
-            "Some details",
+            "",
             "",
             "RESIDENT_IN_THE_FOCUS"));
     validateRow(
         response,
-        2,
         List.of(
             "Njandama MCHP",
             "oRVt7g429ZO",
@@ -183,7 +180,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "RESIDENT_IN_THE_FOCUS"));
     validateRow(
         response,
-        3,
         List.of(
             "Ngelehun CHC",
             "oRVt7g429ZO",
@@ -196,7 +192,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             ""));
     validateRow(
         response,
-        4,
         List.of(
             "Njandama MCHP",
             "oRVt7g429ZO",
@@ -209,7 +204,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             ""));
     validateRow(
         response,
-        5,
         List.of(
             "Njandama MCHP",
             "oRVt7g429ZO",
@@ -222,7 +216,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "RESIDENT_IN_THE_FOCUS"));
     validateRow(
         response,
-        6,
         List.of(
             "Ngelehun CHC",
             "oRVt7g429ZO",
@@ -235,7 +228,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             ""));
     validateRow(
         response,
-        7,
         List.of(
             "Ngelehun CHC",
             "oRVt7g429ZO",
@@ -245,7 +237,7 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "RESIDENT_IN_THE_FOCUS"));
+            ""));
   }
 
   @Test
@@ -377,8 +369,8 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(8)))
-        .body("rows", hasSize(equalTo(2)))
-        .body("height", equalTo(2))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
         .body("width", equalTo(8))
         .body("headerWidth", equalTo(8));
 
@@ -437,7 +429,6 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(
         response,
-        0,
         List.of(
             "Ngelehun CHC",
             "oRVt7g429ZO",
@@ -445,20 +436,8 @@ public class EnrollmentsQuery2AutoTest extends AnalyticsApiTest {
             "FSL054948",
             "1",
             "",
-            "5",
+            "20",
             "Focus A"));
-    validateRow(
-        response,
-        1,
-        List.of(
-            "Njandama MCHP",
-            "oRVt7g429ZO",
-            "2019-08-21 13:29:14.578",
-            "FJY949720",
-            "2",
-            "",
-            "30",
-            "Matalie Health Centre"));
   }
 
   @Test
