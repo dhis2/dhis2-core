@@ -200,7 +200,14 @@ public class AuthenticationController {
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-      redirectUrl = defaultSavedRequest.getRequestURI();
+
+      if (defaultSavedRequest.getQueryString() != null) {
+        redirectUrl =
+            defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+      } else {
+        redirectUrl = defaultSavedRequest.getRequestURI();
+      }
+
       this.requestCache.removeRequest(request, response);
     }
 
