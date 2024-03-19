@@ -30,22 +30,19 @@ package org.hisp.dhis.common;
 /**
  * @author Dusan Bernat
  */
-public enum FallbackCoordinateFieldType
-{
-    OU_GEOMETRY( "ougeometry" ),
-    PSI_GEOMETRY( "psigeometry" ),
-    PI_GEOMETRY( "pigeometry" ),
-    TEI_GEOMETRY( "teigeometry" );
+public enum FallbackCoordinateFieldType {
+  OU_GEOMETRY("ougeometry"),
+  PSI_GEOMETRY("psigeometry"),
+  PI_GEOMETRY("pigeometry"),
+  TEI_GEOMETRY("teigeometry");
 
-    private final String value;
+  private final String value;
 
-    FallbackCoordinateFieldType( String value )
-    {
-        this.value = value;
-    }
+  FallbackCoordinateFieldType(String value) {
+    this.value = value;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

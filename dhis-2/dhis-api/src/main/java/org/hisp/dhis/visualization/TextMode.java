@@ -32,8 +32,7 @@ package org.hisp.dhis.visualization;
  *
  * @author maikel arabori
  */
-public enum TextMode
-{
-    AUTO,
-    CUSTOM
+public enum TextMode {
+  AUTO,
+  CUSTOM
 }

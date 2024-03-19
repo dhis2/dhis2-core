@@ -32,8 +32,7 @@ package org.hisp.dhis.outlierdetection;
  *
  * @author Lars Helge Overland
  */
-public enum OrgUnitSelection
-{
-    DESCENDANTS,
-    SELECTED
+public enum OrgUnitSelection {
+  DESCENDANTS,
+  SELECTED
 }

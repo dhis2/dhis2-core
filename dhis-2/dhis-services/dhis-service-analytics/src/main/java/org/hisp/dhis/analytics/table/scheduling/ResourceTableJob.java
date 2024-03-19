@@ -39,27 +39,23 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "resourceTableJob" )
-public class ResourceTableJob implements Job
-{
-    private final AnalyticsTableGenerator analyticsTableGenerator;
+@Component("resourceTableJob")
+public class ResourceTableJob implements Job {
+  private final AnalyticsTableGenerator analyticsTableGenerator;
 
-    public ResourceTableJob( AnalyticsTableGenerator analyticsTableGenerator )
-    {
-        checkNotNull( analyticsTableGenerator );
+  public ResourceTableJob(AnalyticsTableGenerator analyticsTableGenerator) {
+    checkNotNull(analyticsTableGenerator);
 
-        this.analyticsTableGenerator = analyticsTableGenerator;
-    }
+    this.analyticsTableGenerator = analyticsTableGenerator;
+  }
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.RESOURCE_TABLE;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.RESOURCE_TABLE;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        analyticsTableGenerator.generateResourceTables( progress );
-    }
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    analyticsTableGenerator.generateResourceTables(progress);
+  }
 }

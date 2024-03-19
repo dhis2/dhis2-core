@@ -38,18 +38,14 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionIsNotNull
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.visitAllowingNulls( ctx.expr( 0 ) ) != null;
-    }
+public class FunctionIsNotNull implements ExpressionItem {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitor.visitAllowingNulls(ctx.expr(0)) != null;
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return castString( visitor.visitAllowingNulls( ctx.expr( 0 ) ) ) + " is not null";
-    }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return castString(visitor.visitAllowingNulls(ctx.expr(0))) + " is not null";
+  }
 }

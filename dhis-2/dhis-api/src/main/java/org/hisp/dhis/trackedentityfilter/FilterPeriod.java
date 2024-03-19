@@ -27,58 +27,46 @@
  */
 package org.hisp.dhis.trackedentityfilter;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class FilterPeriod implements Serializable
-{
-    private int periodFrom;
+public class FilterPeriod implements Serializable {
+  private int periodFrom;
 
-    private int periodTo;
+  private int periodTo;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public FilterPeriod()
-    {
+  public FilterPeriod() {}
 
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPeriodFrom() {
+    return periodFrom;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPeriodFrom()
-    {
-        return periodFrom;
-    }
+  public void setPeriodFrom(int periodFrom) {
+    this.periodFrom = periodFrom;
+  }
 
-    public void setPeriodFrom( int periodFrom )
-    {
-        this.periodFrom = periodFrom;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPeriodTo() {
+    return periodTo;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPeriodTo()
-    {
-        return periodTo;
-    }
-
-    public void setPeriodTo( int periodTo )
-    {
-        this.periodTo = periodTo;
-    }
-
+  public void setPeriodTo(int periodTo) {
+    this.periodTo = periodTo;
+  }
 }

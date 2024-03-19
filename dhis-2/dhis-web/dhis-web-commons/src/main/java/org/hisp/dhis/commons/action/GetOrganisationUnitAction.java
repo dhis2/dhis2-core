@@ -27,64 +27,56 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
  */
-public class GetOrganisationUnitAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetOrganisationUnitAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+  private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
+  public void setOrganisationUnitService(OrganisationUnitService organisationUnitService) {
+    this.organisationUnitService = organisationUnitService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
+
+  private String id;
+
+  public void setId(String id) {
+    this.id = id;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private OrganisationUnit organisationUnit;
+
+  public OrganisationUnit getOrganisationUnit() {
+    return organisationUnit;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(OrganisationUnit.class);
+
+    if (id != null) {
+      organisationUnit = organisationUnitService.getOrganisationUnit(id);
     }
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
-
-    private String id;
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private OrganisationUnit organisationUnit;
-
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( OrganisationUnit.class );
-
-        if ( id != null )
-        {
-            organisationUnit = organisationUnitService.getOrganisationUnit( id );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

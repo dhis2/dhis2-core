@@ -29,17 +29,16 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
 public interface OrganisationUnitGroupStore
-    extends IdentifiableObjectStore<OrganisationUnitGroup>, OrganisationUnitGroupDataIntegrityProvider
-{
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
+    extends IdentifiableObjectStore<OrganisationUnitGroup>,
+        OrganisationUnitGroupDataIntegrityProvider {
+  List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
 
-    OrganisationUnitGroup getOrgUnitGroupInGroupSet( Set<OrganisationUnitGroup> groups,
-        OrganisationUnitGroupSet groupSet );
+  OrganisationUnitGroup getOrgUnitGroupInGroupSet(
+      Set<OrganisationUnitGroup> groups, OrganisationUnitGroupSet groupSet);
 }

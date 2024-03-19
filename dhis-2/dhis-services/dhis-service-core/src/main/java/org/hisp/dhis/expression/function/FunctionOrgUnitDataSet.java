@@ -28,7 +28,6 @@
 package org.hisp.dhis.expression.function;
 
 import java.util.stream.Collectors;
-
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.dataset.DataSet;
@@ -39,61 +38,52 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
  * Function orgUnit.dataSet
- * <p>
- * Is the current orgUnit assigned to one of the data sets?
+ *
+ * <p>Is the current orgUnit assigned to one of the data sets?
  *
  * @author Jim Grace
  */
-public class FunctionOrgUnitDataSet
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        for ( TerminalNode uid : ctx.UID() )
-        {
-            DataSet dataSet = visitor.getIdObjectManager().get( DataSet.class, uid.getText() );
+public class FunctionOrgUnitDataSet implements ExpressionItem {
+  @Override
+  public Object getDescription(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    for (TerminalNode uid : ctx.UID()) {
+      DataSet dataSet = visitor.getIdObjectManager().get(DataSet.class, uid.getText());
 
-            if ( dataSet == null )
-            {
-                throw new ParserExceptionWithoutContext( "No data set defined for " + uid.getText() );
-            }
+      if (dataSet == null) {
+        throw new ParserExceptionWithoutContext("No data set defined for " + uid.getText());
+      }
 
-            visitor.getItemDescriptions().put( uid.getText(), dataSet.getDisplayName() );
+      visitor.getItemDescriptions().put(uid.getText(), dataSet.getDisplayName());
+    }
+
+    return false;
+  }
+
+  @Override
+  public Object getExpressionInfo(
+      ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    visitor
+        .getInfo()
+        .getOrgUnitDataSetIds()
+        .addAll(ctx.UID().stream().map(TerminalNode::getText).collect(Collectors.toList()));
+
+    return false;
+  }
+
+  @Override
+  public Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    ExpressionParams params = visitor.getParams();
+
+    if (params.getOrgUnit() != null) {
+      for (TerminalNode uid : ctx.UID()) {
+        DataSet dataSet = params.getDataSetMap().get(uid.getText());
+
+        if (dataSet != null && dataSet.getSources().contains(params.getOrgUnit())) {
+          return true;
         }
-
-        return false;
+      }
     }
 
-    @Override
-    public Object getExpressionInfo( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getInfo().getOrgUnitDataSetIds().addAll(
-            ctx.UID().stream()
-                .map( TerminalNode::getText )
-                .collect( Collectors.toList() ) );
-
-        return false;
-    }
-
-    @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ExpressionParams params = visitor.getParams();
-
-        if ( params.getOrgUnit() != null )
-        {
-            for ( TerminalNode uid : ctx.UID() )
-            {
-                DataSet dataSet = params.getDataSetMap().get( uid.getText() );
-
-                if ( dataSet != null && dataSet.getSources().contains( params.getOrgUnit() ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

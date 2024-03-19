@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
-import static org.hisp.dhis.common.DimensionItemType.*;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeExpressionProgramAttribute;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -39,17 +39,11 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class DimItemProgramAttribute
-    extends DimensionalItem
-{
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        assumeExpressionProgramAttribute( ctx );
+public class DimItemProgramAttribute extends DimensionalItem {
+  @Override
+  public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
+    assumeExpressionProgramAttribute(ctx);
 
-        return new DimensionalItemId( PROGRAM_ATTRIBUTE,
-            ctx.uid0.getText(),
-            ctx.uid1.getText() );
-    }
+    return new DimensionalItemId(PROGRAM_ATTRIBUTE, ctx.uid0.getText(), ctx.uid1.getText());
+  }
 }

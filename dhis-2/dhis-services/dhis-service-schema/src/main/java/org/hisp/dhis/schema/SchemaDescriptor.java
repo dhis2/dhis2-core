@@ -30,7 +30,6 @@ package org.hisp.dhis.schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface SchemaDescriptor
-{
-    Schema getSchema();
+public interface SchemaDescriptor {
+  Schema getSchema();
 }

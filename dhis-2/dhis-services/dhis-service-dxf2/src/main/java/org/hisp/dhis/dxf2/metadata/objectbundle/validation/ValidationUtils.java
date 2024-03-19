@@ -32,7 +32,6 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -42,38 +41,32 @@ import org.hisp.dhis.feedback.ObjectReport;
 /**
  * @author Luciano Fiandesio
  */
-public class ValidationUtils
-{
-    private ValidationUtils()
-    {
-        throw new UnsupportedOperationException( "util" );
-    }
+public class ValidationUtils {
+  private ValidationUtils() {
+    throw new UnsupportedOperationException("util");
+  }
 
-    public static <T> List<T> joinObjects( List<T> persistedObjects,
-        List<T> nonPersistedObjects )
-    {
-        if ( persistedObjects.isEmpty() )
-        {
-            return nonPersistedObjects;
-        }
-        if ( nonPersistedObjects.isEmpty() )
-        {
-            return persistedObjects;
-        }
-        return Stream.concat( persistedObjects.stream(), nonPersistedObjects.stream() ).collect( Collectors.toList() );
+  public static <T> List<T> joinObjects(List<T> persistedObjects, List<T> nonPersistedObjects) {
+    if (persistedObjects.isEmpty()) {
+      return nonPersistedObjects;
     }
+    if (nonPersistedObjects.isEmpty()) {
+      return persistedObjects;
+    }
+    return Stream.concat(persistedObjects.stream(), nonPersistedObjects.stream())
+        .collect(Collectors.toList());
+  }
 
-    public static ObjectReport createObjectReport( List<ErrorReport> reports, IdentifiableObject object,
-        ObjectBundle bundle )
-    {
-        ObjectReport objectReport = new ObjectReport( object, bundle );
-        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-        objectReport.addErrorReports( reports );
-        return objectReport;
-    }
+  public static ObjectReport createObjectReport(
+      List<ErrorReport> reports, IdentifiableObject object, ObjectBundle bundle) {
+    ObjectReport objectReport = new ObjectReport(object, bundle);
+    objectReport.setDisplayName(IdentifiableObjectUtils.getDisplayName(object));
+    objectReport.addErrorReports(reports);
+    return objectReport;
+  }
 
-    public static ObjectReport createObjectReport( ErrorReport report, IdentifiableObject object, ObjectBundle bundle )
-    {
-        return createObjectReport( singletonList( report ), object, bundle );
-    }
+  public static ObjectReport createObjectReport(
+      ErrorReport report, IdentifiableObject object, ObjectBundle bundle) {
+    return createObjectReport(singletonList(report), object, bundle);
+  }
 }

@@ -30,25 +30,19 @@ package org.hisp.dhis.system.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
 import org.jfree.chart.JFreeChart;
 
-public class ChartUtils
-{
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
-    {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+public class ChartUtils {
+  public static byte[] getChartAsPngByteArray(JFreeChart jFreeChart, int width, int height) {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        try
-        {
-            org.jfree.chart.ChartUtils.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
+    try {
+      org.jfree.chart.ChartUtils.writeChartAsPNG(out, jFreeChart, width, height);
+      out.flush();
 
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+      return out.toByteArray();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 }

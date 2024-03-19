@@ -29,13 +29,12 @@ package org.hisp.dhis.sms;
 
 import org.hisp.dhis.sms.incoming.IncomingSms;
 
-public interface MessageQueue
-{
-    void put( IncomingSms message );
+public interface MessageQueue {
+  void put(IncomingSms message);
 
-    IncomingSms get();
+  IncomingSms get();
 
-    void remove( IncomingSms message );
+  void remove(IncomingSms message);
 
-    void initialize();
+  void initialize();
 }

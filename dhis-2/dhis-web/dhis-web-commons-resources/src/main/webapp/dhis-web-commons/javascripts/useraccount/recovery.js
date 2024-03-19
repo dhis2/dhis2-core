@@ -1,19 +1,8 @@
 var login = {};
 login.localeKey = "dhis2.locale.ui";
 
-$(document).ready(function() {
-
-  var locale = localStorage[login.localeKey];
-
-  if( undefined !== locale && locale ) {
-    login.changeLocale(locale);
-  }
-
-});
-
 function recoverAccount() {
   var username = $.trim($("#username").val());
-
   if( username.length == 0 ) {
     return false;
   }
@@ -44,3 +33,15 @@ login.changeLocale = function(locale) {
     $('#recoveryErrorMessage').html(json.recover_error_message);
   });
 };
+
+$(document).ready(function() {
+    var locale = localStorage[login.localeKey];
+    if( undefined !== locale && locale ) {
+        login.changeLocale(locale);
+    }
+
+    $('#recoveryButton').click(function () {
+        recoverAccount();
+    });
+});
+

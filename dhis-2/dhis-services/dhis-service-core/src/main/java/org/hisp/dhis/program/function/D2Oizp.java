@@ -38,18 +38,16 @@ import org.hisp.dhis.program.ProgramExpressionItem;
  *
  * @author Jim Grace
  */
-public class D2Oizp
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return castDouble( visitor.visit( ctx.expr( 0 ) ) );
-    }
+public class D2Oizp extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return castDouble(visitor.visit(ctx.expr(0)));
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "coalesce(case when " + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " >= 0 then 1 else 0 end, 0)";
-    }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "coalesce(case when "
+        + visitor.visitAllowingNulls(ctx.expr(0))
+        + " >= 0 then 1 else 0 end, 0)";
+  }
 }

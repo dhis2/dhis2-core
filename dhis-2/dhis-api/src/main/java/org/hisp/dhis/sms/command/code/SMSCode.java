@@ -27,159 +27,133 @@
  */
 package org.hisp.dhis.sms.command.code;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import java.io.Serializable;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+@JacksonXmlRootElement(localName = "smscode", namespace = DxfNamespaces.DXF_2_0)
+public class SMSCode implements Serializable {
+  private int id;
 
-@JacksonXmlRootElement( localName = "smscode", namespace = DxfNamespaces.DXF_2_0 )
-public class SMSCode
-    implements Serializable
-{
-    private int id;
+  private String code;
 
-    private String code;
+  private DataElement dataElement;
 
-    private DataElement dataElement;
+  private TrackedEntityAttribute trackedEntityAttribute;
 
-    private TrackedEntityAttribute trackedEntityAttribute;
+  private CategoryOptionCombo optionId;
 
-    private CategoryOptionCombo optionId;
+  private String formula;
 
-    private String formula;
+  private boolean compulsory = false;
 
-    private boolean compulsory = false;
+  public SMSCode(String code, DataElement dataElement, CategoryOptionCombo optionId) {
+    this.code = code;
+    this.dataElement = dataElement;
+    this.optionId = optionId;
+  }
 
-    public SMSCode( String code, DataElement dataElement, CategoryOptionCombo optionId )
-    {
-        this.code = code;
-        this.dataElement = dataElement;
-        this.optionId = optionId;
-    }
+  public SMSCode(String code, TrackedEntityAttribute trackedEntityAttribute) {
+    this.code = code;
+    this.trackedEntityAttribute = trackedEntityAttribute;
+  }
 
-    public SMSCode( String code, TrackedEntityAttribute trackedEntityAttribute )
-    {
-        this.code = code;
-        this.trackedEntityAttribute = trackedEntityAttribute;
-    }
+  public SMSCode() {}
 
-    public SMSCode()
-    {
+  public boolean hasTrackedEntityAttribute() {
+    return this.trackedEntityAttribute != null;
+  }
 
-    }
+  public boolean hasDataElement() {
+    return this.dataElement != null;
+  }
 
-    public boolean hasTrackedEntityAttribute()
-    {
-        return this.trackedEntityAttribute != null;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public boolean hasDataElement()
-    {
-        return this.dataElement != null;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public int getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getCode() {
+    return code;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  public void setCode(String code) {
+    this.code = code;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getCode()
-    {
-        return code;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(localName = "dataElement")
+  public DataElement getDataElement() {
+    return dataElement;
+  }
 
-    public void setCode( String code )
-    {
-        this.code = code;
-    }
+  public void setDataElement(DataElement dataElement) {
+    this.dataElement = dataElement;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "dataElement" )
-    public DataElement getDataElement()
-    {
-        return dataElement;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public CategoryOptionCombo getOptionId() {
+    return optionId;
+  }
 
-    public void setDataElement( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
-    }
+  public void setOptionId(CategoryOptionCombo optionId) {
+    this.optionId = optionId;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public CategoryOptionCombo getOptionId()
-    {
-        return optionId;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public TrackedEntityAttribute getTrackedEntityAttribute() {
+    return trackedEntityAttribute;
+  }
 
-    public void setOptionId( CategoryOptionCombo optionId )
-    {
-        this.optionId = optionId;
-    }
+  public void setTrackedEntityAttribute(TrackedEntityAttribute trackedEntityAttribute) {
+    this.trackedEntityAttribute = trackedEntityAttribute;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityAttribute getTrackedEntityAttribute()
-    {
-        return trackedEntityAttribute;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getFormula() {
+    return formula;
+  }
 
-    public void setTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        this.trackedEntityAttribute = trackedEntityAttribute;
-    }
+  public void setFormula(String formula) {
+    this.formula = formula;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getFormula()
-    {
-        return formula;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public boolean isCompulsory() {
+    return compulsory;
+  }
 
-    public void setFormula( String formula )
-    {
-        this.formula = formula;
-    }
+  public void setCompulsory(boolean compulsory) {
+    this.compulsory = compulsory;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public boolean isCompulsory()
-    {
-        return compulsory;
-    }
-
-    public void setCompulsory( boolean compulsory )
-    {
-        this.compulsory = compulsory;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "code", code )
-            .add( "dataelement", dataElement )
-            .add( "trackedentityattribute", trackedEntityAttribute )
-            .add( "formula", formula )
-            .add( "compulsory", compulsory )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("code", code)
+        .add("dataelement", dataElement)
+        .add("trackedentityattribute", trackedEntityAttribute)
+        .add("formula", formula)
+        .add("compulsory", compulsory)
+        .toString();
+  }
 }

@@ -29,7 +29,6 @@ name: indicator_group_sets_scarce
 description: Indicator groups sets should have at least two members.
 section: Group size
 section_order: 2
-summary_uid: dkxYkOAgUbS
 summary_sql: >-
   WITH group_size as (
   SELECT uid,name, COALESCE(x.count,0) as count from
@@ -42,7 +41,6 @@ summary_sql: >-
   SELECT COUNT(*) as value,
    100*COUNT(*) / NULLIF( ( select COUNT(*) from indicatorgroupset), 0) as percent
   from group_size where count < 2;
-details_uid: zbWRFdq5Sjq
 details_sql: >-
   WITH group_size as (
   SELECT uid,name, COALESCE(x.count,0) as count from

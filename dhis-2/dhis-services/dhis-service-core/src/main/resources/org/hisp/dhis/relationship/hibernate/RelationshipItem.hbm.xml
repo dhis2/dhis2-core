@@ -17,16 +17,16 @@
                      foreign-key="fk_relationshipitem_relationshipid"
                         cascade="delete"/>
 
-        <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
-                     column="trackedentityinstanceid"
+        <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+                     column="trackedentityid"
                      foreign-key="fk_relationshipitem_trackedentityinstanceid"/>
 
-        <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
-                     column="programinstanceid"
+        <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
+                     column="enrollmentid"
                      foreign-key="fk_relationshipitem_programinstanceid"/>
 
-        <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
-                     column="programstageinstanceid"
+        <many-to-one name="event" class="org.hisp.dhis.program.Event"
+                     column="eventid"
                      foreign-key="fk_relationshipitem_programstageinstanceid"/>
     </class>
 </hibernate-mapping>

@@ -5,7 +5,7 @@
 <thead>
 <tr>
 #foreach( $header in $grid.getVisibleHeaders() )
-<th#if( $header.meta ) style="text-align:left"#end>$!encoder.htmlEncode( $header.column )</th>
+<th#if( $header.meta ) style="text-align:left"#end>$!encoder.htmlEncode( $header.displayColumn )</th>
 #end
 </tr>
 </thead>

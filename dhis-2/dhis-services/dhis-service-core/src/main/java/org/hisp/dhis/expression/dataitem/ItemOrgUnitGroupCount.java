@@ -40,43 +40,39 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class ItemOrgUnitGroupCount
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        OrganisationUnitGroup orgUnitGroup = visitor.getIdObjectManager()
-            .get( OrganisationUnitGroup.class, ctx.uid0.getText() );
+public class ItemOrgUnitGroupCount implements ExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    OrganisationUnitGroup orgUnitGroup =
+        visitor.getIdObjectManager().get(OrganisationUnitGroup.class, ctx.uid0.getText());
 
-        if ( orgUnitGroup == null )
-        {
-            throw new ParserExceptionWithoutContext( "No organization unit group defined for " + ctx.uid0.getText() );
-        }
-
-        visitor.getItemDescriptions().put( ctx.getText(), orgUnitGroup.getDisplayName() );
-
-        return DOUBLE_VALUE_IF_NULL;
+    if (orgUnitGroup == null) {
+      throw new ParserExceptionWithoutContext(
+          "No organization unit group defined for " + ctx.uid0.getText());
     }
 
-    @Override
-    public Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getInfo().getOrgUnitGroupCountIds().add( ctx.uid0.getText() );
+    visitor.getItemDescriptions().put(ctx.getText(), orgUnitGroup.getDisplayName());
 
-        return DOUBLE_VALUE_IF_NULL;
+    return DOUBLE_VALUE_IF_NULL;
+  }
+
+  @Override
+  public Object getExpressionInfo(ExprContext ctx, CommonExpressionVisitor visitor) {
+    visitor.getInfo().getOrgUnitGroupCountIds().add(ctx.uid0.getText());
+
+    return DOUBLE_VALUE_IF_NULL;
+  }
+
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Integer count = visitor.getParams().getOrgUnitCountMap().get(ctx.uid0.getText());
+
+    if (count == null) // Shouldn't happen for a valid expression.
+    {
+      throw new ParserExceptionWithoutContext(
+          "Can't find count for organisation unit " + ctx.uid0.getText());
     }
 
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Integer count = visitor.getParams().getOrgUnitCountMap().get( ctx.uid0.getText() );
-
-        if ( count == null ) // Shouldn't happen for a valid expression.
-        {
-            throw new ParserExceptionWithoutContext( "Can't find count for organisation unit " + ctx.uid0.getText() );
-        }
-
-        return count.doubleValue();
-    }
+    return count.doubleValue();
+  }
 }

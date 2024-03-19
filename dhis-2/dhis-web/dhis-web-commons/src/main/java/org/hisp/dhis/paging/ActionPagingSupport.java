@@ -27,117 +27,100 @@
  */
 package org.hisp.dhis.paging;
 
+import com.opensymphony.xwork2.Action;
 import java.util.Enumeration;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.commons.action.BaseAction;
 import org.hisp.dhis.system.paging.Paging;
 import org.hisp.dhis.util.ContextUtils;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Quang Nguyen
  */
-public abstract class ActionPagingSupport<T> extends BaseAction
-    implements Action
-{
-    protected Integer currentPage;
+public abstract class ActionPagingSupport<T> extends BaseAction implements Action {
+  protected Integer currentPage;
 
-    public Integer getCurrentPage()
-    {
-        return currentPage;
+  public Integer getCurrentPage() {
+    return currentPage;
+  }
+
+  public void setCurrentPage(Integer currentPage) {
+    this.currentPage = currentPage;
+  }
+
+  protected Integer pageSize;
+
+  public void setPageSize(Integer pageSize) {
+    this.pageSize = pageSize;
+  }
+
+  protected Paging paging;
+
+  public Paging getPaging() {
+    return paging;
+  }
+
+  protected boolean usePaging = false;
+
+  public boolean isUsePaging() {
+    return usePaging;
+  }
+
+  public void setUsePaging(boolean usePaging) {
+    this.usePaging = usePaging;
+  }
+
+  protected Integer getDefaultPageSize() {
+    String sessionPageSize =
+        ContextUtils.getCookieValue(ServletActionContext.getRequest(), "pageSize");
+
+    if (sessionPageSize != null) {
+      return Integer.valueOf(sessionPageSize);
     }
 
-    public void setCurrentPage( Integer currentPage )
-    {
-        this.currentPage = currentPage;
-    }
+    return Paging.DEFAULT_PAGE_SIZE;
+  }
 
-    protected Integer pageSize;
+  private String getCurrentLink() {
+    HttpServletRequest request = ServletActionContext.getRequest();
 
-    public void setPageSize( Integer pageSize )
-    {
-        this.pageSize = pageSize;
-    }
+    String baseLink = request.getRequestURI() + "?";
 
-    protected Paging paging;
+    Enumeration<String> paramNames = request.getParameterNames();
 
-    public Paging getPaging()
-    {
-        return paging;
-    }
-
-    protected boolean usePaging = false;
-
-    public boolean isUsePaging()
-    {
-        return usePaging;
-    }
-
-    public void setUsePaging( boolean usePaging )
-    {
-        this.usePaging = usePaging;
-    }
-
-    protected Integer getDefaultPageSize()
-    {
-        String sessionPageSize = ContextUtils.getCookieValue( ServletActionContext.getRequest(), "pageSize" );
-
-        if ( sessionPageSize != null )
-        {
-            return Integer.valueOf( sessionPageSize );
+    while (paramNames.hasMoreElements()) {
+      String paramName = paramNames.nextElement();
+      if (!paramName.equalsIgnoreCase("pageSize") && !paramName.equalsIgnoreCase("currentPage")) {
+        String[] values = request.getParameterValues(paramName);
+        for (String value : values) {
+          baseLink += paramName + "=" + value + "&";
         }
-
-        return Paging.DEFAULT_PAGE_SIZE;
+      }
     }
 
-    private String getCurrentLink()
-    {
-        HttpServletRequest request = ServletActionContext.getRequest();
+    return baseLink.substring(0, baseLink.length() - 1);
+  }
 
-        String baseLink = request.getRequestURI() + "?";
+  protected Paging createPaging(Integer totalRecord) {
+    Paging resultPaging =
+        new Paging(getCurrentLink(), pageSize == null ? getDefaultPageSize() : pageSize);
 
-        Enumeration<String> paramNames = request.getParameterNames();
+    resultPaging.setCurrentPage(currentPage == null ? 0 : currentPage);
 
-        while ( paramNames.hasMoreElements() )
-        {
-            String paramName = paramNames.nextElement();
-            if ( !paramName.equalsIgnoreCase( "pageSize" ) && !paramName.equalsIgnoreCase( "currentPage" ) )
-            {
-                String[] values = request.getParameterValues( paramName );
-                for ( String value : values )
-                {
-                    baseLink += paramName + "=" + value + "&";
-                }
-            }
-        }
+    resultPaging.setTotal(totalRecord);
 
-        return baseLink.substring( 0, baseLink.length() - 1 );
-    }
+    return resultPaging;
+  }
 
-    protected Paging createPaging( Integer totalRecord )
-    {
-        Paging resultPaging = new Paging( getCurrentLink(), pageSize == null ? getDefaultPageSize() : pageSize );
+  protected List<T> getBlockElement(List<T> elementList, int startPos, int pageSize) {
+    List<T> returnList;
 
-        resultPaging.setCurrentPage( currentPage == null ? 0 : currentPage );
+    int endPos = paging.getEndPos();
 
-        resultPaging.setTotal( totalRecord );
+    returnList = elementList.subList(startPos, endPos);
 
-        return resultPaging;
-    }
-
-    protected List<T> getBlockElement( List<T> elementList, int startPos, int pageSize )
-    {
-        List<T> returnList;
-
-        int endPos = paging.getEndPos();
-
-        returnList = elementList.subList( startPos, endPos );
-
-        return returnList;
-    }
+    return returnList;
+  }
 }

@@ -27,63 +27,49 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.UserGroup;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserGroupAccess
-    extends AccessObject
-{
-    public UserGroupAccess( UserGroup userGroup, String access )
-    {
-        super( access, userGroup.getUid() );
-    }
+@JacksonXmlRootElement(localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0)
+public class UserGroupAccess extends AccessObject {
 
-    /**
-     * This is for backward compatibility with legacy
-     * {@link org.hisp.dhis.user.UserGroupAccess}
-     */
-    public UserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
-    {
-        super( userGroupAccess.getAccess(), userGroupAccess.getUid() );
-    }
+  // ------------------------------------------------------------------------------------------
+  // Constructors
+  // ------------------------------------------------------------------------------------------
 
-    public UserGroupAccess( String access, String id )
-    {
-        super( access, id );
-    }
+  public UserGroupAccess(UserGroup userGroup, String access) {
+    super(access, userGroup.getUid());
+  }
 
-    public void setUserGroup( UserGroup userGroup )
-    {
-        setId( userGroup.getUid() );
-    }
+  public UserGroupAccess(String access, String id) {
+    super(access, id);
+  }
 
-    public org.hisp.dhis.user.UserGroupAccess toDtoObject()
-    {
-        org.hisp.dhis.user.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.UserGroupAccess();
-        userGroupAccess.setUid( getId() );
-        userGroupAccess.setAccess( getAccess() );
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUid( getId() );
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setUid( getId() );
-        userGroupAccess.setDisplayName( getDisplayName() );
+  // ------------------------------------------------------------------------------------------
+  // Helpers
+  // ------------------------------------------------------------------------------------------
 
-        return userGroupAccess;
-    }
+  public void setUserGroup(UserGroup userGroup) {
+    setId(userGroup.getUid());
+  }
 
-    @Override
-    public UserGroupAccess copy()
-    {
-        return new UserGroupAccess( this.access, this.id );
-    }
+  @JsonIgnore
+  public UserGroup getUserGroup() {
+    UserGroup userGroup = new UserGroup();
+    userGroup.setUid(this.id);
+    return userGroup;
+  }
+
+  @Override
+  public UserGroupAccess copy() {
+    return new UserGroupAccess(this.access, this.id);
+  }
 }

@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.dataentryform.hibernate;
 
+import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -43,30 +43,39 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Bharath Kumar
  */
-@Repository( "org.hisp.dhis.dataentryform.DataEntryFormStore" )
-public class HibernateDataEntryFormStore
-    extends HibernateIdentifiableObjectStore<DataEntryForm>
-    implements DataEntryFormStore
-{
-    public HibernateDataEntryFormStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataEntryForm.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.dataentryform.DataEntryFormStore")
+public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStore<DataEntryForm>
+    implements DataEntryFormStore {
+  public HibernateDataEntryFormStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, DataEntryForm.class, aclService, false);
+  }
 
-    // -------------------------------------------------------------------------
-    // DataEntryFormStore implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataEntryFormStore implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public DataEntryForm getDataEntryFormByName( String name )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public DataEntryForm getDataEntryFormByName(String name) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataEntryForm> parameters = new JpaQueryParameters<DataEntryForm>()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
+    JpaQueryParameters<DataEntryForm> parameters =
+        new JpaQueryParameters<DataEntryForm>()
+            .addPredicate(root -> builder.equal(root.get("name"), name));
 
-        return getSingleResult( builder, parameters );
-    }
+    return getSingleResult(builder, parameters);
+  }
+
+  @Override
+  public List<DataEntryForm> getDataEntryFormsHtmlContaining(String uid) {
+    // language=sql
+    TypedQuery<DataEntryForm> query =
+        entityManager.createQuery(
+            "FROM DataEntryForm d where d.htmlCode like :uid", DataEntryForm.class);
+    query.setParameter("uid", "%" + uid + "%");
+    return query.getResultList();
+  }
 }

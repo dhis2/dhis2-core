@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.document.impl;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,25 +44,25 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Repository( "org.hisp.dhis.document.DocumentStore" )
-public class HibernateDocumentStore
-    extends HibernateIdentifiableObjectStore<Document> implements DocumentStore
-{
-    public HibernateDocumentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Document.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.document.DocumentStore")
+public class HibernateDocumentStore extends HibernateIdentifiableObjectStore<Document>
+    implements DocumentStore {
+  public HibernateDocumentStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Document.class, aclService, true);
+  }
 
-    @Override
-    public long getCountByUser( User user )
-    {
-        CriteriaBuilder builder = getSession().getCriteriaBuilder();
-        CriteriaQuery<Long> query = builder.createQuery( Long.class );
-        Root<Document> root = query.from( Document.class );
-        query.select( builder.count( root ) );
-        query.where( builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) );
+  @Override
+  public long getCountByUser(User user) {
+    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+    CriteriaQuery<Long> query = builder.createQuery(Long.class);
+    Root<Document> root = query.from(Document.class);
+    query.select(builder.count(root));
+    query.where(builder.equal(root.get(BaseIdentifiableObject_.CREATED_BY), user));
 
-        return getSession().createQuery( query ).getSingleResult();
-    }
+    return getSession().createQuery(query).getSingleResult();
+  }
 }

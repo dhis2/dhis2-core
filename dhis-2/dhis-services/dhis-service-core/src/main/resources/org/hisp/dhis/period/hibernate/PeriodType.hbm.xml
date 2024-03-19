@@ -24,6 +24,7 @@
     <subclass name="org.hisp.dhis.period.MonthlyPeriodType" discriminator-value="Monthly" />
     <subclass name="org.hisp.dhis.period.BiMonthlyPeriodType" discriminator-value="BiMonthly" />
     <subclass name="org.hisp.dhis.period.QuarterlyPeriodType" discriminator-value="Quarterly" />
+    <subclass name="org.hisp.dhis.period.QuarterlyNovemberPeriodType" discriminator-value="QuarterlyNov" />
     <subclass name="org.hisp.dhis.period.SixMonthlyPeriodType" discriminator-value="SixMonthly" />
     <subclass name="org.hisp.dhis.period.SixMonthlyAprilPeriodType" discriminator-value="SixMonthlyApril" />
     <subclass name="org.hisp.dhis.period.SixMonthlyNovemberPeriodType" discriminator-value="SixMonthlyNov" />

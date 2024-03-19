@@ -29,35 +29,23 @@ package org.hisp.dhis.jsonpatch.validator;
 
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.schema.Schema;
 
-/**
- * Contains all objects that will be validated before applying JsonPatch.
- */
+/** Contains all objects that will be validated before applying JsonPatch. */
 @Builder
 @Getter
-public class BulkPatchValidateParams
-{
-    /**
-     * Schema of current patch object.
-     */
-    private Schema schema;
+public class BulkPatchValidateParams {
+  /** Schema of current patch object. */
+  private Schema schema;
 
-    /**
-     * The JsonPatch object used for patching.
-     */
-    private JsonPatch jsonPatch;
+  /** The JsonPatch object used for patching. */
+  private JsonPatch jsonPatch;
 
-    /**
-     * UID of current {@link IdentifiableObject} that will be patched.
-     */
-    private String id;
+  /** UID of current {@link IdentifiableObject} that will be patched. */
+  private String id;
 
-    /**
-     * The current entity that will be patched.
-     */
-    private IdentifiableObject entity;
+  /** The current entity that will be patched. */
+  private IdentifiableObject entity;
 }

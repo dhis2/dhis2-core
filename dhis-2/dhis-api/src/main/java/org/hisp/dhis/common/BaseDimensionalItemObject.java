@@ -29,192 +29,163 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.legend.LegendSet;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.legend.LegendSet;
 
 /**
  * @author Lars Helge Overland
  */
-public class BaseDimensionalItemObject
-    extends BaseNameableObject
-    implements DimensionalItemObject
-{
-    /**
-     * The dimension type.
-     */
-    private DimensionItemType dimensionItemType;
+public class BaseDimensionalItemObject extends BaseNameableObject implements DimensionalItemObject {
+  /** The dimension type. */
+  private DimensionItemType dimensionItemType;
 
-    /**
-     * The legend sets for this dimension.
-     */
-    protected List<LegendSet> legendSets = new ArrayList<>();
+  /** The legend sets for this dimension. */
+  protected List<LegendSet> legendSets = new ArrayList<>();
 
-    /**
-     * The aggregation type for this dimension.
-     */
-    protected AggregationType aggregationType;
+  /** The aggregation type for this dimension. */
+  protected AggregationType aggregationType;
 
-    /**
-     * Query modifiers for this object.
-     */
-    protected transient QueryModifiers queryMods;
+  /** Query modifiers for this object. */
+  protected transient QueryModifiers queryMods;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public BaseDimensionalItemObject()
-    {
-    }
+  public BaseDimensionalItemObject() {}
 
-    public BaseDimensionalItemObject( String dimensionItem )
-    {
-        this.uid = dimensionItem;
-        this.code = dimensionItem;
-        this.name = dimensionItem;
-    }
+  public BaseDimensionalItemObject(String dimensionItem) {
+    this.uid = dimensionItem;
+    this.code = dimensionItem;
+    this.name = dimensionItem;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public BaseDimensionalItemObject(String dimensionItem, String code) {
+    this.uid = dimensionItem;
+    this.code = code;
+  }
 
-    @Override
-    public String getDimensionItemWithQueryModsId()
-    {
-        return getDimensionItem()
-            + ((queryMods != null && queryMods.getQueryModsId() != null)
-                ? QUERY_MODS_ID_SEPARATOR + queryMods.getQueryModsId()
-                : "");
-    }
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AggregationType getAggregationType()
-    {
-        return (queryMods != null && queryMods.getAggregationType() != null)
-            ? queryMods.getAggregationType()
-            : aggregationType;
-    }
+  @Override
+  public String getDimensionItemWithQueryModsId() {
+    return getDimensionItem()
+        + ((queryMods != null && queryMods.getQueryModsId() != null)
+            ? QUERY_MODS_ID_SEPARATOR + queryMods.getQueryModsId()
+            : "");
+  }
 
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AggregationType getAggregationType() {
+    return (queryMods != null && queryMods.getAggregationType() != null)
+        ? queryMods.getAggregationType()
+        : aggregationType;
+  }
 
-    @Override
-    public boolean hasLegendSet()
-    {
-        return legendSets != null && !legendSets.isEmpty();
-    }
+  // -------------------------------------------------------------------------
+  // DimensionalItemObject
+  // -------------------------------------------------------------------------
 
-    @Override
-    public boolean hasAggregationType()
-    {
-        return getAggregationType() != null;
-    }
+  @Override
+  public boolean hasLegendSet() {
+    return legendSets != null && !legendSets.isEmpty();
+  }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDimensionItem()
-    {
-        return getUid();
-    }
+  @Override
+  public boolean hasAggregationType() {
+    return getAggregationType() != null;
+  }
 
-    @Override
-    public String getDimensionItem( IdScheme idScheme )
-    {
-        return getPropertyValue( idScheme );
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDimensionItem() {
+    return getUid();
+  }
 
-    @Override
-    public TotalAggregationType getTotalAggregationType()
-    {
-        return TotalAggregationType.SUM;
-    }
+  @Override
+  public String getDimensionItem(IdScheme idScheme) {
+    return getPropertyValue(idScheme);
+  }
 
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
+  @Override
+  public TotalAggregationType getTotalAggregationType() {
+    return TotalAggregationType.SUM;
+  }
 
-    public void setAggregationType( AggregationType aggregationType )
-    {
-        this.aggregationType = aggregationType;
-    }
+  // -------------------------------------------------------------------------
+  // Get and set methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DimensionItemType getDimensionItemType()
-    {
-        return dimensionItemType;
-    }
+  public void setAggregationType(AggregationType aggregationType) {
+    this.aggregationType = aggregationType;
+  }
 
-    public void setDimensionItemType( DimensionItemType dimensionItemType )
-    {
-        this.dimensionItemType = dimensionItemType;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DimensionItemType getDimensionItemType() {
+    return dimensionItemType;
+  }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
-    public List<LegendSet> getLegendSets()
-    {
-        return this.legendSets;
-    }
+  public void setDimensionItemType(DimensionItemType dimensionItemType) {
+    this.dimensionItemType = dimensionItemType;
+  }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LegendSet getLegendSet()
-    {
-        return legendSets.isEmpty() ? null : legendSets.get( 0 );
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
+  public List<LegendSet> getLegendSets() {
+    return this.legendSets;
+  }
 
-    public void setLegendSets( List<LegendSet> legendSets )
-    {
-        this.legendSets = legendSets;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendSet getLegendSet() {
+    return legendSets.isEmpty() ? null : legendSets.get(0);
+  }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public QueryModifiers getQueryMods()
-    {
-        return queryMods;
-    }
+  public void setLegendSets(List<LegendSet> legendSets) {
+    this.legendSets = legendSets;
+  }
 
-    @Override
-    public void setQueryMods( QueryModifiers queryMods )
-    {
-        this.queryMods = queryMods;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public QueryModifiers getQueryMods() {
+    return queryMods;
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj || super.equals( obj ) && objectEquals( (BaseDimensionalItemObject) obj );
-    }
+  @Override
+  public void setQueryMods(QueryModifiers queryMods) {
+    this.queryMods = queryMods;
+  }
 
-    private boolean objectEquals( BaseDimensionalItemObject that )
-    {
-        return Objects.equals( queryMods, that.queryMods );
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj || super.equals(obj) && objectEquals((BaseDimensionalItemObject) obj);
+  }
 
-    @Override
-    public int hashCode()
-    {
-        int result = super.hashCode();
-        result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
-        return result;
-    }
+  private boolean objectEquals(BaseDimensionalItemObject that) {
+    return Objects.equals(queryMods, that.queryMods);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
+    return result;
+  }
 }

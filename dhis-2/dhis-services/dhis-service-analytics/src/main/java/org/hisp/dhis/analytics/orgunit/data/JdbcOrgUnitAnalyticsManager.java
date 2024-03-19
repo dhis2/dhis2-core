@@ -27,108 +27,151 @@
  */
 package org.hisp.dhis.analytics.orgunit.data;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.feedback.ErrorCode.E7302;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.stream.Collectors;
-
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-
+import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
+@Service("org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager")
 @RequiredArgsConstructor
-public class JdbcOrgUnitAnalyticsManager
-    implements OrgUnitAnalyticsManager
-{
-    private final JdbcTemplate jdbcTemplate;
+public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
+  private final TableInfoReader tableInfoReader;
 
-    @Override
-    public Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params )
-    {
-        Map<String, Integer> dataMap = new HashMap<>();
+  private final SqlBuilder sqlBuilder;
 
-        List<String> columns = getMetadataColumns( params );
+  @Qualifier("analyticsJdbcTemplate")
+  private final JdbcTemplate jdbcTemplate;
 
-        String sql = getQuerySql( params );
+  @Override
+  public Map<String, Integer> getOrgUnitData(OrgUnitQueryParams params) {
+    checkForMissingOrgUnitGroupSetColumns(params);
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+    Map<String, Integer> dataMap = new HashMap<>();
 
-        while ( rowSet.next() )
-        {
-            StringBuilder key = new StringBuilder();
+    Set<String> columns = getMetadataColumns(params);
 
-            for ( String column : columns )
-            {
-                key.append( rowSet.getString( column ) ).append( DIMENSION_SEP );
-            }
+    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(getQuerySql(params));
 
-            key.deleteCharAt( key.length() - 1 );
+    while (rowSet.next()) {
+      String key = columns.stream().map(rowSet::getString).collect(joining(DIMENSION_SEP));
+      int value = rowSet.getInt("count");
 
-            int value = rowSet.getInt( "count" );
-
-            dataMap.put( key.toString(), value );
-        }
-
-        return dataMap;
+      dataMap.put(key, value);
     }
 
-    /**
-     * Returns metadata column names for the given query.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a list of column names.
-     */
-    private List<String> getMetadataColumns( OrgUnitQueryParams params )
-    {
-        List<String> columns = Lists.newArrayList( "orgunit" );
-        params.getOrgUnitGroupSets().forEach( ougs -> columns.add( ougs.getUid() ) );
-        return columns;
+    return dataMap;
+  }
+
+  /**
+   * Checks if there is an org. unit dimension column, specified in the given params, not present in
+   * the respective DB table ("analytics_rs_organisationunitgroupsetstructure"). If a dimension
+   * column (which in this case represents an org. unit group set) is found to be missing in the
+   * table, it will not be possible to query for the missing org. unit group set. In such cases, the
+   * request cannot be processed.
+   *
+   * @param params the query params {@link OrgUnitQueryParams}.
+   * @throws QueryRuntimeException if there are missing columns.
+   */
+  private void checkForMissingOrgUnitGroupSetColumns(OrgUnitQueryParams params) {
+    Set<String> missingColumns =
+        tableInfoReader.checkColumnsPresence(
+            OrganisationUnitGroupSetResourceTable.TABLE_NAME, getOrgUnitGroupSetUids(params));
+
+    boolean hasMissingColumns = isNotEmpty(missingColumns);
+
+    if (hasMissingColumns) {
+      throw new QueryRuntimeException(new ErrorMessage(E7302, missingColumns));
     }
+  }
 
-    /**
-     * Returns a SQL query based on the given query.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a SQL query.
-     */
-    private String getQuerySql( OrgUnitQueryParams params )
-    {
-        String levelCol = String.format( "ous.uidlevel%d", params.getOrgUnitLevel() );
+  /**
+   * Returns dimension columns for the given query params.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a set of columns.
+   */
+  private Set<String> getOrgUnitGroupSetUids(OrgUnitQueryParams params) {
+    return params.getOrgUnitGroupSets().stream()
+        .map(OrganisationUnitGroupSet::getUid)
+        .collect(toUnmodifiableSet());
+  }
 
-        List<String> orgUnits = params.getOrgUnits().stream()
-            .map( OrganisationUnit::getUid )
-            .collect( Collectors.toList() );
+  /**
+   * Returns metadata column names for the given query. Note that the "orgunit" column is always
+   * returned.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a set of column names.
+   */
+  private Set<String> getMetadataColumns(OrgUnitQueryParams params) {
+    Set<String> columns = new HashSet<>(getOrgUnitGroupSetUids(params));
+    columns.add("orgunit");
 
-        List<String> quotedGroupSets = params.getOrgUnitGroupSets().stream()
-            .map( OrganisationUnitGroupSet::getUid )
-            .map( uid -> quote( "ougs", uid ) )
-            .collect( Collectors.toList() );
+    return columns;
+  }
 
-        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) + ", " +
-            "count(ougs.organisationunitid) as count " +
-            "from " + quote( "_orgunitstructure" ) + " ous " +
-            "inner join " + quote( "_organisationunitgroupsetstructure" ) + " " +
-            "ougs on ous.organisationunitid = ougs.organisationunitid " +
-            "where " + levelCol + " in (" + getQuotedCommaDelimitedString( orgUnits ) + ") " +
-            "group by " + levelCol + ", " + getCommaDelimitedString( quotedGroupSets ) + ";";
+  /**
+   * Returns a SQL query based on the given query.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a SQL query.
+   */
+  private String getQuerySql(OrgUnitQueryParams params) {
+    String levelCol = String.format("ous.uidlevel%d", params.getOrgUnitLevel());
 
-        return sql;
-    }
+    Set<String> orgUnits =
+        params.getOrgUnits().stream().map(OrganisationUnit::getUid).collect(toSet());
+
+    Set<String> quotedGroupSets =
+        params.getOrgUnitGroupSets().stream()
+            .map(OrganisationUnitGroupSet::getUid)
+            .map(uid -> sqlBuilder.quote("ougs", uid))
+            .collect(toSet());
+
+    return "select "
+        + levelCol
+        + " as orgunit, "
+        + getCommaDelimitedString(quotedGroupSets)
+        + ", "
+        + "count(ougs.organisationunitid) as count "
+        + "from analytics_rs_orgunitstructure ous "
+        + "inner join analytics_rs_organisationunitgroupsetstructure ougs "
+        + "on ous.organisationunitid = ougs.organisationunitid "
+        + "where "
+        + levelCol
+        + " in ("
+        + getQuotedCommaDelimitedString(orgUnits)
+        + ") "
+        + "group by "
+        + levelCol
+        + ", "
+        + getCommaDelimitedString(quotedGroupSets)
+        + ";";
+  }
 }

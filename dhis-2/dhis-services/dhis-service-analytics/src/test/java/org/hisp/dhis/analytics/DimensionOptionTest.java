@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,48 +49,43 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class DimensionOptionTest extends DhisConvenienceTest
-{
-    private DataElement deA;
+class DimensionOptionTest extends DhisConvenienceTest {
+  private DataElement deA;
 
-    private Period peA;
+  private Period peA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private List<DimensionItem> options;
+  private List<DimensionItem> options;
 
-    @BeforeEach
-    void before()
-    {
-        deA = createDataElement( 'A', new CategoryCombo() );
-        peA = createPeriod( "2000Q1" );
-        ouA = createOrganisationUnit( 'A' );
-        options = new ArrayList<>();
-        options.add( new DimensionItem( DATA_X_DIM_ID, deA ) );
-        options.add( new DimensionItem( PERIOD_DIM_ID, peA ) );
-        options.add( new DimensionItem( ORGUNIT_DIM_ID, ouA ) );
-    }
+  @BeforeEach
+  void before() {
+    deA = createDataElement('A', new CategoryCombo());
+    peA = createPeriod("2000Q1");
+    ouA = createOrganisationUnit('A');
+    options = new ArrayList<>();
+    options.add(new DimensionItem(DATA_X_DIM_ID, deA));
+    options.add(new DimensionItem(PERIOD_DIM_ID, peA));
+    options.add(new DimensionItem(ORGUNIT_DIM_ID, ouA));
+  }
 
-    @Test
-    void testAsOptionKey()
-    {
-        String expected = deA.getUid() + DIMENSION_SEP + peA.getUid() + DIMENSION_SEP + ouA.getUid();
-        assertEquals( expected, DimensionItem.asItemKey( options ) );
-        assertEquals( EMPTY, DimensionItem.asItemKey( null ) );
-    }
+  @Test
+  void testAsOptionKey() {
+    String expected = deA.getUid() + DIMENSION_SEP + peA.getUid() + DIMENSION_SEP + ouA.getUid();
+    assertEquals(expected, DimensionItem.asItemKey(options));
+    assertEquals(EMPTY, DimensionItem.asItemKey(null));
+  }
 
-    @Test
-    void testGetOptions()
-    {
-        String[] expected = { deA.getUid(), peA.getUid(), ouA.getUid() };
-        assertArrayEquals( expected, DimensionItem.getItemIdentifiers( options ) );
-        assertArrayEquals( new String[0], DimensionItem.getItemIdentifiers( null ) );
-    }
+  @Test
+  void testGetOptions() {
+    String[] expected = {deA.getUid(), peA.getUid(), ouA.getUid()};
+    assertArrayEquals(expected, DimensionItem.getItemIdentifiers(options));
+    assertArrayEquals(new String[0], DimensionItem.getItemIdentifiers(null));
+  }
 
-    @Test
-    void testGetPeriodOption()
-    {
-        assertEquals( peA, DimensionItem.getPeriodItem( options ) );
-        assertNull( DimensionItem.getPeriodItem( null ) );
-    }
+  @Test
+  void testGetPeriodOption() {
+    assertEquals(peA, DimensionItem.getPeriodItem(options));
+    assertNull(DimensionItem.getPeriodItem(null));
+  }
 }

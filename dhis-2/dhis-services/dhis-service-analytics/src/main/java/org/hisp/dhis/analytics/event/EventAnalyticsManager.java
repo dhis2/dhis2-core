@@ -33,15 +33,14 @@ import org.hisp.dhis.common.Grid;
 /**
  * @author Lars Helge Overland
  */
-public interface EventAnalyticsManager
-{
-    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
+public interface EventAnalyticsManager {
+  Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit);
 
-    Grid getEvents( EventQueryParams params, Grid grid, int maxLimit );
+  Grid getEvents(EventQueryParams params, Grid grid, int maxLimit);
 
-    Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit );
+  Grid getEventClusters(EventQueryParams params, Grid grid, int maxLimit);
 
-    long getEventCount( EventQueryParams params );
+  long getEventCount(EventQueryParams params);
 
-    Rectangle getRectangle( EventQueryParams params );
+  Rectangle getRectangle(EventQueryParams params);
 }

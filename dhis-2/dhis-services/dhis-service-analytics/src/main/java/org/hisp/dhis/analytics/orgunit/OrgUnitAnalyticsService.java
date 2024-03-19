@@ -28,47 +28,43 @@
 package org.hisp.dhis.analytics.orgunit;
 
 import java.util.Map;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 
-public interface OrgUnitAnalyticsService
-{
-    /**
-     * Returns parameters for the given query.
-     *
-     * @param orgUnits the organisation unit string.
-     * @param orgUnitGroupSets the organisation unit group set string.
-     * @param columns the organisation unit group set to place as columns,
-     *        implies rendering in table layout, can be null.
-     * @return a {@link OrgUnitQueryParams}.
-     */
-    OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns );
+public interface OrgUnitAnalyticsService {
+  /**
+   * Returns parameters for the given query.
+   *
+   * @param orgUnits the organisation unit string.
+   * @param orgUnitGroupSets the organisation unit group set string.
+   * @param columns the organisation unit group set to place as columns, implies rendering in table
+   *     layout, can be null.
+   * @return a {@link OrgUnitQueryParams}.
+   */
+  OrgUnitQueryParams getParams(String orgUnits, String orgUnitGroupSets, String columns);
 
-    /**
-     * Returns the org unit data for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Grid}.
-     */
-    Grid getOrgUnitData( OrgUnitQueryParams params );
+  /**
+   * Returns the org unit data for the given parameters.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a {@link Grid}.
+   */
+  Grid getOrgUnitData(OrgUnitQueryParams params);
 
-    /**
-     * Returns the org unit data as a map with the metadata as key and org unit
-     * count as value for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Map}.
-     */
-    Map<String, Object> getOrgUnitDataMap( OrgUnitQueryParams params );
+  /**
+   * Returns the org unit data as a map with the metadata as key and org unit count as value for the
+   * given parameters.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a {@link Map}.
+   */
+  Map<String, Object> getOrgUnitDataMap(OrgUnitQueryParams params);
 
-    /**
-     * Validates the given parameters. Throws an {@link IllegalQueryException}
-     * if invalid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @throws IllegalQueryException if invalid.
-     */
-    void validate( OrgUnitQueryParams params )
-        throws IllegalQueryException;
+  /**
+   * Validates the given parameters. Throws an {@link IllegalQueryException} if invalid.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @throws IllegalQueryException if invalid.
+   */
+  void validate(OrgUnitQueryParams params) throws IllegalQueryException;
 }

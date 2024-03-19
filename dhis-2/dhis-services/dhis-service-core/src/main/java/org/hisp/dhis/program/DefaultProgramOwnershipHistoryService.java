@@ -28,28 +28,24 @@
 package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramOwnershipHistoryService" )
+@Service("org.hisp.dhis.program.ProgramOwnershipHistoryService")
 @Transactional
-public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService
-{
-    private final ProgramOwnershipHistoryStore programOwnershipHistoryStore;
+public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService {
+  private final ProgramOwnershipHistoryStore programOwnershipHistoryStore;
 
-    // -------------------------------------------------------------------------
-    // ProgramOwnershipHistoryService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramOwnershipHistoryService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory )
-    {
-        programOwnershipHistoryStore.addProgramOwnershipHistory( programOwnershipHistory );
-    }
+  @Override
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    programOwnershipHistoryStore.addProgramOwnershipHistory(programOwnershipHistory);
+  }
 }

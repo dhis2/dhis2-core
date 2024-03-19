@@ -27,37 +27,36 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataSetSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataSet";
+public class DataSetSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataSet";
 
-    public static final String PLURAL = "dataSets";
+  public static final String PLURAL = "dataSets";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DataSet.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1310 );
-        schema.setDataShareable( true );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DataSet.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1310);
+    schema.setDataShareable(true);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATASET_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_DATASET_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATASET_DELETE" ) ) );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_DATASET_PUBLIC_ADD")));
+    schema.add(
+        new Authority(AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_DATASET_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_DATASET_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

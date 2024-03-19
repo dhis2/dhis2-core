@@ -40,40 +40,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-class SyncUtilsTest extends SingleSetupIntegrationTestBase
-{
+class SyncUtilsTest extends SingleSetupIntegrationTestBase {
 
-    private static final String USERNAME = "user";
+  private static final String USERNAME = "user";
 
-    private static final String PASSWORD = "pass";
+  private static final String PASSWORD = "pass";
 
-    private static final String URL = "https://localhost:8080";
+  private static final String URL = "https://localhost:8080";
 
-    private static final String EVENTS_URL = URL + SyncEndpoint.EVENTS.getPath();
+  private static final String EVENTS_URL = URL + SyncEndpoint.EVENTS.getPath();
 
-    private static final String EVENTS_URL_WITH_SYNC_STRATEGY = EVENTS_URL + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+  private static final String EVENTS_URL_WITH_SYNC_STRATEGY =
+      EVENTS_URL + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
 
-    @Autowired
-    SystemSettingManager systemSettingManager;
+  @Autowired SystemSettingManager systemSettingManager;
 
-    @Test
-    void getRemoteInstanceTest()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME, USERNAME );
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD, PASSWORD );
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, URL );
-        SystemInstance systemInstance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.EVENTS );
-        assertThat( systemInstance.getUsername(), is( USERNAME ) );
-        assertThat( systemInstance.getPassword(), is( PASSWORD ) );
-        assertThat( systemInstance.getUrl(), is( EVENTS_URL ) );
-    }
+  @Test
+  void getRemoteInstanceTest() {
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_USERNAME, USERNAME);
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_PASSWORD, PASSWORD);
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
+    SystemInstance systemInstance =
+        SyncUtils.getRemoteInstance(systemSettingManager, SyncEndpoint.EVENTS);
+    assertThat(systemInstance.getUsername(), is(USERNAME));
+    assertThat(systemInstance.getPassword(), is(PASSWORD));
+    assertThat(systemInstance.getUrl(), is(EVENTS_URL));
+  }
 
-    @Test
-    void getRemoteInstanceWithSyncImportStrategyTest()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, URL );
-        SystemInstance systemInstance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
-            SyncEndpoint.EVENTS );
-        assertThat( systemInstance.getUrl(), is( EVENTS_URL_WITH_SYNC_STRATEGY ) );
-    }
+  @Test
+  void getRemoteInstanceWithSyncImportStrategyTest() {
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, URL);
+    SystemInstance systemInstance =
+        SyncUtils.getRemoteInstanceWithSyncImportStrategy(
+            systemSettingManager, SyncEndpoint.EVENTS);
+    assertThat(systemInstance.getUrl(), is(EVENTS_URL_WITH_SYNC_STRATEGY));
+  }
 }

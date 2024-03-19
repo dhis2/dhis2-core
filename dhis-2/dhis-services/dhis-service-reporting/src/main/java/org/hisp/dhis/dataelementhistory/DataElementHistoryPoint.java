@@ -32,45 +32,38 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class DataElementHistoryPoint
-{
-    private Period period;
+public class DataElementHistoryPoint {
+  private Period period;
 
-    private Double value;
+  private Double value;
 
-    private double average;
+  private double average;
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public double getAverage()
-    {
-        return average;
-    }
+  public double getAverage() {
+    return average;
+  }
 
-    public void setAverage( double average )
-    {
-        this.average = average;
-    }
+  public void setAverage(double average) {
+    this.average = average;
+  }
 
-    public Period getPeriod()
-    {
-        return period;
-    }
+  public Period getPeriod() {
+    return period;
+  }
 
-    public void setPeriod( Period period )
-    {
-        this.period = period;
-    }
+  public void setPeriod(Period period) {
+    this.period = period;
+  }
 
-    public Double getValue()
-    {
-        return value;
-    }
+  public Double getValue() {
+    return value;
+  }
 
-    public void setValue( Double value )
-    {
-        this.value = value;
-    }
+  public void setValue(Double value) {
+    this.value = value;
+  }
 }

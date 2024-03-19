@@ -35,25 +35,20 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonObjectReport extends JsonObject
-{
-    default Class<?> getKlass()
-    {
-        return getString( "klass" ).parsedClass();
-    }
+public interface JsonObjectReport extends JsonObject {
+  default Class<?> getKlass() {
+    return getString("klass").parsedClass();
+  }
 
-    default int getIndex()
-    {
-        return getNumber( "index" ).intValue();
-    }
+  default Integer getIndex() {
+    return getNumber("index").integer();
+  }
 
-    default String getUid()
-    {
-        return getString( "uid" ).string();
-    }
+  default String getUid() {
+    return getString("uid").string();
+  }
 
-    default JsonList<JsonErrorReport> getErrorReports()
-    {
-        return getList( "errorReports", JsonErrorReport.class );
-    }
+  default JsonList<JsonErrorReport> getErrorReports() {
+    return getList("errorReports", JsonErrorReport.class);
+  }
 }

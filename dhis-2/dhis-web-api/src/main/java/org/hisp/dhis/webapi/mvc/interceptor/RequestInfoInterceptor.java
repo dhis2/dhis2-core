@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.common.RequestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,34 +38,31 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * Maintains the information contained in {@code X-Request-ID} header as an
- * information that is available in the request context.
+ * Maintains the information contained in {@code X-Request-ID} header as an information that is
+ * available in the request context.
  *
  * @author Jan Bernitt
  */
 @Component
 @AllArgsConstructor
-public final class RequestInfoInterceptor implements HandlerInterceptor
-{
-    @Autowired
-    private final DefaultRequestInfoService requestInfoService;
+public final class RequestInfoInterceptor implements HandlerInterceptor {
+  @Autowired private final DefaultRequestInfoService requestInfoService;
 
-    @Override
-    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler )
-        throws Exception
-    {
-        requestInfoService.setCurrentInfo( RequestInfo.builder()
-            .headerXRequestID( request.getHeader( "X-Request-ID" ) )
-            .build() );
-        return true;
-    }
+  @Override
+  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+      throws Exception {
+    requestInfoService.setCurrentInfo(
+        RequestInfo.builder().headerXRequestID(request.getHeader("X-Request-ID")).build());
+    return true;
+  }
 
-    @Override
-    public void postHandle( HttpServletRequest request, HttpServletResponse response, Object handler,
-        ModelAndView modelAndView )
-        throws Exception
-    {
-        requestInfoService.setCurrentInfo( null );
-    }
-
+  @Override
+  public void postHandle(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      Object handler,
+      ModelAndView modelAndView)
+      throws Exception {
+    requestInfoService.setCurrentInfo(null);
+  }
 }

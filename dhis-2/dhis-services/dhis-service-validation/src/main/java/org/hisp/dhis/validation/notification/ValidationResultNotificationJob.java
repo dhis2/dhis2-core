@@ -28,7 +28,6 @@
 package org.hisp.dhis.validation.notification;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -41,21 +40,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ValidationResultNotificationJob implements Job
-{
-    private final ValidationNotificationService notificationService;
+public class ValidationResultNotificationJob implements Job {
+  private final ValidationNotificationService notificationService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.VALIDATION_RESULTS_NOTIFICATION;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.VALIDATION_RESULTS_NOTIFICATION;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        progress.startingProcess( "Validation result notification" );
-        notificationService.sendUnsentNotifications( progress );
-        progress.completedProcess( null );
-    }
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    progress.startingProcess("Validation result notification");
+    notificationService.sendUnsentNotifications(progress);
+    progress.completedProcess(null);
+  }
 }

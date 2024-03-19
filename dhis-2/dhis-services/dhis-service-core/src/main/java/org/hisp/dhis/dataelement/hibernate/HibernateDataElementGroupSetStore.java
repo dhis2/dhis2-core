@@ -27,25 +27,24 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.dataelement.DataElementGroupSetStore" )
+@Repository("org.hisp.dhis.dataelement.DataElementGroupSetStore")
 public class HibernateDataElementGroupSetStore
     extends HibernateIdentifiableObjectStore<DataElementGroupSet>
-    implements DataElementGroupSetStore
-{
-    public HibernateDataElementGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementGroupSet.class, currentUserService, aclService,
-            false );
-    }
+    implements DataElementGroupSetStore {
+  public HibernateDataElementGroupSetStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, DataElementGroupSet.class, aclService, false);
+  }
 }

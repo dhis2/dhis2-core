@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.sms.outbound;
 
-public enum OutboundSmsStatus
-{
-    OUTBOUND,
-    SENT,
-    ERROR,
-    PENDING,
-    SCHEDULED,
-    DELIVERED,
-    FAILED
+public enum OutboundSmsStatus {
+  OUTBOUND,
+  SENT,
+  ERROR,
+  PENDING,
+  SCHEDULED,
+  DELIVERED,
+  FAILED
 }

@@ -33,10 +33,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = SystemTestConfig.class )
-@ActiveProfiles( profiles = { "test-h2" } )
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = SystemTestConfig.class)
+@ActiveProfiles(profiles = {"test-h2"})
 @IntegrationH2Test
-public abstract class SystemTest
-{
-}
+public abstract class SystemTest {}

@@ -34,17 +34,15 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class UserGroupAccessSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "userGroupAccess";
+public class UserGroupAccessSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "userGroupAccess";
 
-    public static final String PLURAL = "userGroupAccesses";
+  public static final String PLURAL = "userGroupAccesses";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( UserGroupAccess.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(UserGroupAccess.class, SINGULAR, PLURAL);
+  }
 }

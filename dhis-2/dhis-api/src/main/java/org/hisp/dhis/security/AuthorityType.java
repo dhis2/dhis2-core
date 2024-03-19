@@ -30,15 +30,14 @@ package org.hisp.dhis.security;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuthorityType
-{
-    CREATE,
-    DATA_CREATE,
-    CREATE_PUBLIC,
-    CREATE_PRIVATE,
-    EXTERNALIZE,
-    READ,
-    DATA_READ,
-    UPDATE,
-    DELETE
+public enum AuthorityType {
+  CREATE,
+  DATA_CREATE,
+  CREATE_PUBLIC,
+  CREATE_PRIVATE,
+  EXTERNALIZE,
+  READ,
+  DATA_READ,
+  UPDATE,
+  DELETE
 }

@@ -33,21 +33,23 @@ import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 /**
  * @author Zubair Asghar
  */
-public class vEventStatus implements ProgramVariable
-{
-    @Override
-    public Object defaultVariableValue()
-    {
-        return "COMPLETED";
-    }
+public class vEventStatus implements ProgramVariable {
+  @Override
+  public Object defaultVariableValue() {
+    return "COMPLETED";
+  }
 
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
 
-        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            null, "psistatus", params.getReportingStartDate(), params.getReportingEndDate(),
-            params.getProgramIndicator() );
-    }
+    return visitor
+        .getStatementBuilder()
+        .getProgramIndicatorEventColumnSql(
+            null,
+            "psistatus",
+            params.getReportingStartDate(),
+            params.getReportingEndDate(),
+            params.getProgramIndicator());
+  }
 }

@@ -31,22 +31,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ValueTypeOptionsTest
-{
+class ValueTypeOptionsTest {
 
-    @Test
-    void testFileValueTypeOptions()
-    {
-        FileTypeValueOptions ftvo = new FileTypeValueOptions();
-        ftvo.setMaxFileSize( 100L );
-        ftvo.setAllowedContentTypes( Set.of( "jpg" ) );
-        assertEquals( 100L, ftvo.getMaxFileSize() );
-        assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
-    }
+  @Test
+  void testFileValueTypeOptions() {
+    FileTypeValueOptions ftvo = new FileTypeValueOptions();
+    ftvo.setMaxFileSize(100L);
+    ftvo.setAllowedContentTypes(Set.of("jpg"));
+    assertEquals(100L, ftvo.getMaxFileSize());
+    assertTrue(ftvo.getAllowedContentTypes().contains("jpg"));
+  }
 }

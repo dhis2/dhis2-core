@@ -28,20 +28,18 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.Map;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.AuthenticationLoggerListener;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator;
-import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
+import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -56,90 +54,83 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@Order( 910 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Order(910)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
 @EnableWebSecurity
-public class AuthenticationProviderConfig
-{
-    @Autowired
-    private DhisConfigurationProvider configurationProvider;
+public class AuthenticationProviderConfig {
+  @Autowired private DhisConfigurationProvider configurationProvider;
 
-    @Autowired
-    TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+  @Autowired
+  @Qualifier("ldapUserDetailsService")
+  UserDetailsService ldapUserDetailsService;
 
-    @Autowired
-    @Qualifier( "ldapUserDetailsService" )
-    UserDetailsService ldapUserDetailsService;
+  @Bean
+  public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource() {
+    return new TwoFactorWebAuthenticationDetailsSource();
+  }
 
-    @Bean
-    public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
-    {
-        return new TwoFactorWebAuthenticationDetailsSource();
-    }
+  @Bean(name = "customLdapAuthenticationProvider")
+  CustomLdapAuthenticationProvider customLdapAuthenticationProvider(UserStore userStore) {
+    return new CustomLdapAuthenticationProvider(
+        dhisBindAuthenticator(userStore),
+        ldapUserDetailsService,
+        userDetailsServiceLdapAuthoritiesPopulator(ldapUserDetailsService),
+        configurationProvider);
+  }
 
-    @Bean( name = "customLdapAuthenticationProvider" )
-    CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
-    {
-        return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
-            userDetailsServiceLdapAuthoritiesPopulator( ldapUserDetailsService ),
-            configurationProvider );
-    }
+  @Bean
+  public DefaultSpringSecurityContextSource defaultSpringSecurityContextSource() {
+    DefaultSpringSecurityContextSource defaultSpringSecurityContextSource =
+        new DefaultSpringSecurityContextSource(
+            configurationProvider.getProperty(ConfigurationKey.LDAP_URL));
+    defaultSpringSecurityContextSource.setUserDn(
+        configurationProvider.getProperty(ConfigurationKey.LDAP_MANAGER_DN));
+    defaultSpringSecurityContextSource.setPassword(
+        configurationProvider.getProperty(ConfigurationKey.LDAP_MANAGER_PASSWORD));
 
-    @Bean
-    public DefaultSpringSecurityContextSource defaultSpringSecurityContextSource()
-    {
-        DefaultSpringSecurityContextSource defaultSpringSecurityContextSource = new DefaultSpringSecurityContextSource(
-            configurationProvider.getProperty( ConfigurationKey.LDAP_URL ) );
-        defaultSpringSecurityContextSource
-            .setUserDn( configurationProvider.getProperty( ConfigurationKey.LDAP_MANAGER_DN ) );
-        defaultSpringSecurityContextSource
-            .setPassword( configurationProvider.getProperty( ConfigurationKey.LDAP_MANAGER_PASSWORD ) );
+    return defaultSpringSecurityContextSource;
+  }
 
-        return defaultSpringSecurityContextSource;
-    }
+  @Bean
+  public FilterBasedLdapUserSearch filterBasedLdapUserSearch() {
+    return new FilterBasedLdapUserSearch(
+        configurationProvider.getProperty(ConfigurationKey.LDAP_SEARCH_BASE),
+        configurationProvider.getProperty(ConfigurationKey.LDAP_SEARCH_FILTER),
+        defaultSpringSecurityContextSource());
+  }
 
-    @Bean
-    public FilterBasedLdapUserSearch filterBasedLdapUserSearch()
-    {
-        return new FilterBasedLdapUserSearch( configurationProvider.getProperty( ConfigurationKey.LDAP_SEARCH_BASE ),
-            configurationProvider.getProperty( ConfigurationKey.LDAP_SEARCH_FILTER ),
-            defaultSpringSecurityContextSource() );
-    }
+  @Bean
+  public DhisBindAuthenticator dhisBindAuthenticator(UserStore userStore) {
+    DhisBindAuthenticator dhisBindAuthenticator =
+        new DhisBindAuthenticator(defaultSpringSecurityContextSource(), userStore);
 
-    @Bean
-    @DependsOn( "org.hisp.dhis.user.UserService" )
-    public DhisBindAuthenticator dhisBindAuthenticator()
-    {
-        DhisBindAuthenticator dhisBindAuthenticator = new DhisBindAuthenticator( defaultSpringSecurityContextSource() );
-        dhisBindAuthenticator.setUserSearch( filterBasedLdapUserSearch() );
-        return dhisBindAuthenticator;
-    }
+    dhisBindAuthenticator.setUserSearch(filterBasedLdapUserSearch());
+    return dhisBindAuthenticator;
+  }
 
-    @Bean
-    public UserDetailsServiceLdapAuthoritiesPopulator userDetailsServiceLdapAuthoritiesPopulator(
-        UserDetailsService userDetailsService )
-    {
-        return new UserDetailsServiceLdapAuthoritiesPopulator( userDetailsService );
-    }
+  @Bean
+  public UserDetailsServiceLdapAuthoritiesPopulator userDetailsServiceLdapAuthoritiesPopulator(
+      UserDetailsService userDetailsService) {
+    return new UserDetailsServiceLdapAuthoritiesPopulator(userDetailsService);
+  }
 
-    @Bean
-    public DefaultAuthenticationEventPublisher authenticationEventPublisher()
-    {
-        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
-        defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
-            Map.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
-        return defaultAuthenticationEventPublisher;
-    }
+  @Bean
+  public DefaultAuthenticationEventPublisher authenticationEventPublisher() {
+    DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher =
+        new DefaultAuthenticationEventPublisher();
+    defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
+        Map.of(
+            OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class));
+    return defaultAuthenticationEventPublisher;
+  }
 
-    @Bean
-    public AuthenticationLoggerListener authenticationLoggerListener()
-    {
-        return new AuthenticationLoggerListener();
-    }
+  @Bean
+  public AuthenticationLoggerListener authenticationLoggerListener() {
+    return new AuthenticationLoggerListener();
+  }
 
-    @Bean
-    public AuthenticationListener authenticationListener()
-    {
-        return new AuthenticationListener();
-    }
+  @Bean
+  public AuthenticationListener authenticationListener() {
+    return new AuthenticationListener();
+  }
 }

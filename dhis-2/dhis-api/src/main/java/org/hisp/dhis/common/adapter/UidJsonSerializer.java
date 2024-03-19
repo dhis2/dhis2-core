@@ -27,26 +27,21 @@
  */
 package org.hisp.dhis.common.adapter;
 
-import java.io.IOException;
-
-import org.hisp.dhis.common.IdentifiableObject;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class UidJsonSerializer
-    extends JsonSerializer<IdentifiableObject>
-{
-    @Override
-    public void serialize( IdentifiableObject value, JsonGenerator gen, SerializerProvider serializers )
-        throws IOException
-    {
-        gen.writeStartObject();
-        gen.writeObjectField( "id", value.getUid() );
-        gen.writeEndObject();
-    }
+public class UidJsonSerializer extends JsonSerializer<IdentifiableObject> {
+  @Override
+  public void serialize(IdentifiableObject value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException {
+    gen.writeStartObject();
+    gen.writeObjectField("id", value.getUid());
+    gen.writeEndObject();
+  }
 }

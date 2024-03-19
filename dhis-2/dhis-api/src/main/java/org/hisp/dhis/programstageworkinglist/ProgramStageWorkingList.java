@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.programstageworkinglist;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -37,68 +39,51 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.translation.Translatable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@JacksonXmlRootElement( localName = "programStageWorkingList", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageWorkingList extends BaseIdentifiableObject
-    implements MetadataObject
-{
+@EqualsAndHashCode(callSuper = true)
+@JacksonXmlRootElement(localName = "programStageWorkingList", namespace = DxfNamespaces.DXF_2_0)
+public class ProgramStageWorkingList extends BaseIdentifiableObject implements MetadataObject {
 
-    /**
-     * Property indicating the program of the working list
-     */
-    private Program program;
+  /** Property indicating the program of the working list */
+  private Program program;
 
-    /**
-     * Property indicating the program stage of the working list
-     */
-    private ProgramStage programStage;
+  /** Property indicating the program stage of the working list */
+  private ProgramStage programStage;
 
-    /**
-     * Property indicating the description of the working list
-     */
-    private String description;
+  /** Property indicating the description of the working list */
+  private String description;
 
-    /**
-     * Criteria object representing selected projections, filtering and sorting
-     * criteria in program stages
-     */
-    private ProgramStageQueryCriteria programStageQueryCriteria = new ProgramStageQueryCriteria();
+  /**
+   * Criteria object representing selected projections, filtering and sorting criteria in program
+   * stages
+   */
+  private ProgramStageQueryCriteria programStageQueryCriteria = new ProgramStageQueryCriteria();
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Program getProgram()
-    {
-        return program;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Program getProgram() {
+    return program;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public ProgramStage getProgramStage()
-    {
-        return programStage;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public ProgramStage getProgramStage() {
+    return programStage;
+  }
 
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  public String getDescription() {
+    return description;
+  }
 
-    @JsonProperty
-    @Translatable( propertyName = "description", key = "DESCRIPTION" )
-    public String getDisplayDescription()
-    {
-        return getTranslation( "DESCRIPTION", getDescription() );
-    }
+  @JsonProperty
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return getTranslation("DESCRIPTION", getDescription());
+  }
 
-    @JsonProperty
-    public ProgramStageQueryCriteria getProgramStageQueryCriteria()
-    {
-        return programStageQueryCriteria;
-    }
+  @JsonProperty
+  public ProgramStageQueryCriteria getProgramStageQueryCriteria() {
+    return programStageQueryCriteria;
+  }
 }

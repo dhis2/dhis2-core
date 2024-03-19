@@ -4,7 +4,7 @@
       "basemap": "osmLight",
       "mapViews": [
         {
-          "id" : "zyFOjTfzLws",
+          "id": "zyFOjTfzLws",
           "columns": [
             {
               "dimension": "dx",

@@ -30,28 +30,27 @@ package org.hisp.dhis.eventvisualization;
 /**
  * Representation of the event visualizations type available.
  *
- * NOTE: The BUBBLE type is there for backward compatibility reasons. This is
- * not implemented at the moment.
+ * <p>NOTE: The BUBBLE type is there for backward compatibility reasons. This is not implemented at
+ * the moment.
  *
  * @author maikel arabori
  */
-public enum EventVisualizationType
-{
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    LINE_LIST,
-    AREA,
-    STACKED_AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE,
-    PIVOT_TABLE,
-    SCATTER,
-    BUBBLE
+public enum EventVisualizationType {
+  COLUMN,
+  STACKED_COLUMN,
+  BAR,
+  STACKED_BAR,
+  LINE,
+  LINE_LIST,
+  AREA,
+  STACKED_AREA,
+  PIE,
+  RADAR,
+  GAUGE,
+  YEAR_OVER_YEAR_LINE,
+  YEAR_OVER_YEAR_COLUMN,
+  SINGLE_VALUE,
+  PIVOT_TABLE,
+  SCATTER,
+  BUBBLE
 }

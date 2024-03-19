@@ -32,17 +32,16 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface AuditRepository
-{
-    long save( Audit audit );
+public interface AuditRepository {
+  long save(Audit audit);
 
-    void save( List<Audit> audits );
+  void save(List<Audit> audits);
 
-    void delete( Audit audit );
+  void delete(Audit audit);
 
-    void delete( AuditQuery query );
+  void delete(AuditQuery query);
 
-    int count( AuditQuery query );
+  int count(AuditQuery query);
 
-    List<Audit> query( AuditQuery query );
+  List<Audit> query(AuditQuery query);
 }

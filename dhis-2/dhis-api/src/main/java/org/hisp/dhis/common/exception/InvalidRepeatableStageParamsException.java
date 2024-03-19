@@ -27,6 +27,4 @@
  */
 package org.hisp.dhis.common.exception;
 
-public class InvalidRepeatableStageParamsException extends Exception
-{
-}
+public class InvalidRepeatableStageParamsException extends Exception {}

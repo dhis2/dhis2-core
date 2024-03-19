@@ -28,7 +28,6 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,40 +37,35 @@ import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataValueAuditDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataValueAudit.class );
+public class DataValueAuditDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataValueAudit.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "select 1 from datavalueaudit where dataelementid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
-    }
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql = "select 1 from datavalueaudit where dataelementid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        String sql = "select 1 from datavalueaudit where periodid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", period.getId() ) );
-    }
+  private DeletionVeto allowDeletePeriod(Period period) {
+    String sql = "select 1 from datavalueaudit where periodid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", period.getId()));
+  }
 
-    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
-    {
-        String sql = "select 1 from datavalueaudit where organisationunitid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", unit.getId() ) );
-    }
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    String sql = "select 1 from datavalueaudit where organisationunitid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select 1 from datavalueaudit where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "select 1 from datavalueaudit where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
+  }
 }

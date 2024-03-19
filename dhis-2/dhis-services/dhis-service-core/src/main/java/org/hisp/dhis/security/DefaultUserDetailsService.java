@@ -28,11 +28,10 @@
 package org.hisp.dhis.security;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserStore;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -41,25 +40,24 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Torgeir Lorange Ostby
  */
-@Service( "userDetailsService" )
+@Service("userDetailsService")
 @RequiredArgsConstructor
-public class DefaultUserDetailsService
-    implements UserDetailsService
-{
-    private final UserService userService;
+public class DefaultUserDetailsService implements UserDetailsService {
 
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
-    {
-        User user = userService.getUserByUsername( username );
-        if ( user == null )
-        {
-            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
-        }
+  private final UserStore userStore;
+  private final UserService userService;
 
-        return userService.createUserDetails( user );
+  @Override
+  @Transactional(readOnly = true)
+  public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(
+      String username) throws UsernameNotFoundException, DataAccessException {
+
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      throw new UsernameNotFoundException(
+          String.format("User with username '%s' not found", username));
     }
+
+    return userService.createUserDetails(user);
+  }
 }

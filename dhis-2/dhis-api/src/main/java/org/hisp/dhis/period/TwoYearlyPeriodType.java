@@ -31,191 +31,165 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.calendar.DateTimeUnit;
 
 /**
- * PeriodType for two-yearly Periods. A valid two-yearly Period has startDate
- * set to January 1st on an even year (2000, 2002, 2004, etc), and endDate set
- * to the last day of the next year.
+ * PeriodType for two-yearly Periods. A valid two-yearly Period has startDate set to January 1st on
+ * an even year (2000, 2002, 2004, etc), and endDate set to the last day of the next year.
  *
  * @author Torgeir Lorange Ostby
  */
-public class TwoYearlyPeriodType
-    extends CalendarPeriodType
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 5813755542990991810L;
+public class TwoYearlyPeriodType extends CalendarPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 5813755542990991810L;
 
-    private static final String ISO8601_DURATION = "P2Y";
+  private static final String ISO8601_DURATION = "P2Y";
 
-    public static final int FREQUENCY_ORDER = 730;
+  public static final int FREQUENCY_ORDER = 730;
 
-    public static final String SQL_INTERVAL = "2 years";
+  public static final String SQL_INTERVAL = "2 years";
 
-    // -------------------------------------------------------------------------
-    // PeriodType functionality
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PeriodType functionality
+  // -------------------------------------------------------------------------
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.TWO_YEARLY;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.TWO_YEARLY;
+  }
+
+  @Override
+  public Period createPeriod(Calendar cal) {
+    // TODO: use local calendar instead of hard coded Gregorian
+    cal.set(Calendar.YEAR, cal.get(Calendar.YEAR) - cal.get(Calendar.YEAR) % 2);
+    cal.set(Calendar.DAY_OF_YEAR, 1);
+
+    Date startDate = cal.getTime();
+
+    cal.add(Calendar.YEAR, 1);
+    cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
+
+    return new Period(this, startDate, cal.getTime());
+  }
+
+  @Override
+  public Period createPeriod(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return createPeriod(createCalendarInstance(dateTimeUnit.toJdkDate()));
+  }
+
+  @Override
+  public int getFrequencyOrder() {
+    return FREQUENCY_ORDER;
+  }
+
+  @Override
+  public String getSqlInterval() {
+    return SQL_INTERVAL;
+  }
+
+  // -------------------------------------------------------------------------
+  // CalendarPeriodType functionality
+  // -------------------------------------------------------------------------
+
+  @Override
+  public DateTimeUnit getDateWithOffset(
+      DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar) {
+    dateTimeUnit.setYear(dateTimeUnit.getYear() - dateTimeUnit.getYear() % 2 + (2 * offset));
+
+    return dateTimeUnit;
+  }
+
+  /** Generates two-yearly Periods for the last 10, current and next 10 years. */
+  @Override
+  public List<Period> generatePeriods(Date date) {
+    // TODO: use local calendar instead of hard coded Gregorian
+    Calendar cal = createCalendarInstance(date);
+    cal.add(Calendar.YEAR, cal.get(Calendar.YEAR) % 2 == 0 ? -10 : -9);
+    cal.set(Calendar.DAY_OF_YEAR, 1);
+
+    ArrayList<Period> twoYears = new ArrayList<>();
+
+    for (int i = 0; i < 11; ++i) {
+      Date startDate = cal.getTime();
+      cal.add(Calendar.YEAR, 1);
+      cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
+      twoYears.add(new Period(this, startDate, cal.getTime()));
+      cal.add(Calendar.DAY_OF_YEAR, 1);
     }
 
-    @Override
-    public Period createPeriod( Calendar cal )
-    {
-        // TODO: use local calendar instead of hard coded Gregorian
-        cal.set( Calendar.YEAR, cal.get( Calendar.YEAR ) - cal.get( Calendar.YEAR ) % 2 );
-        cal.set( Calendar.DAY_OF_YEAR, 1 );
+    return twoYears;
+  }
 
-        Date startDate = cal.getTime();
+  @Override
+  public List<Period> generatePeriods(DateTimeUnit dateTimeUnit) {
+    return null; // TODO
+  }
 
-        cal.add( Calendar.YEAR, 1 );
-        cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
+  @Override
+  public List<Period> generateRollingPeriods(Date date) {
+    return generateLast5Years(date);
+  }
 
-        return new Period( this, startDate, cal.getTime() );
+  @Override
+  public List<Period> generateRollingPeriods(
+      DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return generateLast5Years(calendar.toIso(dateTimeUnit).toJdkDate());
+  }
+
+  @Override
+  public List<Period> generateLast5Years(Date date) {
+    // TODO: use local calendar instead of hard coded Gregorian
+    Calendar cal = createCalendarInstance(date);
+    cal.add(Calendar.YEAR, cal.get(Calendar.YEAR) % 2 == 0 ? -10 : -9);
+    cal.set(Calendar.DAY_OF_YEAR, 1);
+
+    ArrayList<Period> twoYears = new ArrayList<>();
+
+    for (int i = 0; i < 5; ++i) {
+      Date startDate = cal.getTime();
+      cal.add(Calendar.YEAR, 1);
+      cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
+      twoYears.add(new Period(this, startDate, cal.getTime()));
+      cal.add(Calendar.DAY_OF_YEAR, 1);
     }
 
-    @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        return createPeriod( createCalendarInstance( dateTimeUnit.toJdkDate() ) );
-    }
+    return twoYears;
+  }
 
-    @Override
-    public int getFrequencyOrder()
-    {
-        return FREQUENCY_ORDER;
-    }
+  @Override
+  public String getIsoDate(Period period) {
+    return null; // TODO
+  }
 
-    @Override
-    public String getSqlInterval()
-    {
-        return SQL_INTERVAL;
-    }
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return null; // TODO
+  }
 
-    // -------------------------------------------------------------------------
-    // CalendarPeriodType functionality
-    // -------------------------------------------------------------------------
+  @Override
+  public Period createPeriod(String isoDate) {
+    return null; // TODO
+  }
 
-    @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset,
-        org.hisp.dhis.calendar.Calendar calendar )
-    {
-        dateTimeUnit.setYear( dateTimeUnit.getYear() - dateTimeUnit.getYear() % 2 + (2 * offset) );
+  @Override
+  public String getIsoFormat() {
+    return null; // TODO
+  }
 
-        return dateTimeUnit;
-    }
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
+  }
 
-    /**
-     * Generates two-yearly Periods for the last 10, current and next 10 years.
-     */
-    @Override
-    public List<Period> generatePeriods( Date date )
-    {
-        // TODO: use local calendar instead of hard coded Gregorian
-        Calendar cal = createCalendarInstance( date );
-        cal.add( Calendar.YEAR, cal.get( Calendar.YEAR ) % 2 == 0 ? -10 : -9 );
-        cal.set( Calendar.DAY_OF_YEAR, 1 );
+  @Override
+  public Date getRewindedDate(Date date, Integer rewindedPeriods) {
+    date = date != null ? date : new Date();
+    rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
-        ArrayList<Period> twoYears = new ArrayList<>();
+    // TODO: use local calendar instead of hard coded Gregorian
+    Calendar cal = createCalendarInstance(date);
+    cal.add(Calendar.YEAR, (rewindedPeriods * -2));
 
-        for ( int i = 0; i < 11; ++i )
-        {
-            Date startDate = cal.getTime();
-            cal.add( Calendar.YEAR, 1 );
-            cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
-            twoYears.add( new Period( this, startDate, cal.getTime() ) );
-            cal.add( Calendar.DAY_OF_YEAR, 1 );
-        }
-
-        return twoYears;
-    }
-
-    @Override
-    public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
-    {
-        return null; // TODO
-    }
-
-    @Override
-    public List<Period> generateRollingPeriods( Date date )
-    {
-        return generateLast5Years( date );
-    }
-
-    @Override
-    public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
-    }
-
-    @Override
-    public List<Period> generateLast5Years( Date date )
-    {
-        // TODO: use local calendar instead of hard coded Gregorian
-        Calendar cal = createCalendarInstance( date );
-        cal.add( Calendar.YEAR, cal.get( Calendar.YEAR ) % 2 == 0 ? -10 : -9 );
-        cal.set( Calendar.DAY_OF_YEAR, 1 );
-
-        ArrayList<Period> twoYears = new ArrayList<>();
-
-        for ( int i = 0; i < 5; ++i )
-        {
-            Date startDate = cal.getTime();
-            cal.add( Calendar.YEAR, 1 );
-            cal.set( Calendar.DAY_OF_YEAR, cal.getActualMaximum( Calendar.DAY_OF_YEAR ) );
-            twoYears.add( new Period( this, startDate, cal.getTime() ) );
-            cal.add( Calendar.DAY_OF_YEAR, 1 );
-        }
-
-        return twoYears;
-    }
-
-    @Override
-    public String getIsoDate( Period period )
-    {
-        return null; // TODO
-    }
-
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        return null; // TODO
-    }
-
-    @Override
-    public Period createPeriod( String isoDate )
-    {
-        return null; // TODO
-    }
-
-    @Override
-    public String getIsoFormat()
-    {
-        return null; // TODO
-    }
-
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
-
-    @Override
-    public Date getRewindedDate( Date date, Integer rewindedPeriods )
-    {
-        date = date != null ? date : new Date();
-        rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
-
-        // TODO: use local calendar instead of hard coded Gregorian
-        Calendar cal = createCalendarInstance( date );
-        cal.add( Calendar.YEAR, (rewindedPeriods * -2) );
-
-        return cal.getTime();
-    }
+    return cal.getTime();
+  }
 }

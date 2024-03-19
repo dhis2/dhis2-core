@@ -29,13 +29,11 @@ name: datasets_empty
 description: Datasets with no data elements.
 section: Data sets
 section_order: 1
-summary_uid: sLnHsNHH6ha
 summary_sql: >-
   select count(*) as value,
   100*count(*) / NULLIF( (select count(*) from dataset),0) as percent
   from dataset where datasetid NOT IN (
   SELECT datasetid from datasetelement);
-details_uid: ISwQ9oYQBmp
 details_sql: >-
   SELECT uid,name from dataset WHERE
   datasetid NOT IN (SELECT datasetid from datasetelement);

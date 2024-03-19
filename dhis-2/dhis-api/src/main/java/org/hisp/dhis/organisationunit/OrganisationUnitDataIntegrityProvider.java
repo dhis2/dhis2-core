@@ -31,38 +31,29 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A number of data integrity tests are solely related to
- * {@link OrganisationUnit}s. They are contained in this interface to avoid
- * duplication.
+ * A number of data integrity tests are solely related to {@link OrganisationUnit}s. They are
+ * contained in this interface to avoid duplication.
  *
  * @author Jan Bernitt
  */
-public interface OrganisationUnitDataIntegrityProvider
-{
+public interface OrganisationUnitDataIntegrityProvider {
 
-    /**
-     * Gets all organisation units which are related to each other in a cyclic
-     * reference.
-     */
-    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
+  /** Gets all organisation units which are related to each other in a cyclic reference. */
+  Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
 
-    /**
-     * Gets all organisation units with no parents or children.
-     */
-    List<OrganisationUnit> getOrphanedOrganisationUnits();
+  /** Gets all organisation units with no parents or children. */
+  List<OrganisationUnit> getOrphanedOrganisationUnits();
 
-    /**
-     * Returns all OrganisationUnits which are not a member of any
-     * OrganisationUnitGroups.
-     *
-     * @return all OrganisationUnits which are not a member of any
-     *         OrganisationUnitGroups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+  /**
+   * Returns all OrganisationUnits which are not a member of any OrganisationUnitGroups.
+   *
+   * @return all OrganisationUnits which are not a member of any OrganisationUnitGroups.
+   */
+  List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 
-    /**
-     * Gets all organisation units which are members of more than one group
-     * which enter into an exclusive group set.
-     */
-    List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets();
+  /**
+   * Gets all organisation units which are members of more than one group which enter into an
+   * exclusive group set.
+   */
+  List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets();
 }

@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: rqwvuIzZcs9
 name: options_sets_empty
 description: Empty option sets
 section: Option sets
@@ -41,7 +40,6 @@ summary_sql: >-
     COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM optionset), 0) as percent
     from options_sets_empty;
-details_uid: wjIQ26nrXT8
 details_sql: >-
     SELECT uid,name from
     optionset where optionsetid

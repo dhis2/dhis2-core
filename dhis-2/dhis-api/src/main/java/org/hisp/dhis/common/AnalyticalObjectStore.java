@@ -28,7 +28,6 @@
 package org.hisp.dhis.common;
 
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -41,50 +40,59 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AnalyticalObjectStore<T extends AnalyticalObject>
-    extends IdentifiableObjectStore<T>
-{
-    List<T> getAnalyticalObjects( ExpressionDimensionItem expressionDimensionItem );
+    extends IdentifiableObjectStore<T> {
+  List<T> getAnalyticalObjects(ExpressionDimensionItem expressionDimensionItem);
 
-    List<T> getAnalyticalObjects( Indicator indicator );
+  List<T> getAnalyticalObjects(Indicator indicator);
 
-    List<T> getAnalyticalObjects( DataElement dataElement );
+  List<T> getAnalyticalObjects(DataElement dataElement);
 
-    List<T> getAnalyticalObjectsByDataDimension( DataElement dataElement );
+  List<T> getAnalyticalObjectsByDataDimension(DataElement dataElement);
 
-    List<T> getAnalyticalObjectsByDataDimension( TrackedEntityAttribute attribute );
+  List<T> getAnalyticalObjectsByDataDimension(TrackedEntityAttribute attribute);
 
-    List<T> getAnalyticalObjects( DataSet dataSet );
+  List<T> getAnalyticalObjects(DataSet dataSet);
 
-    List<T> getAnalyticalObjects( ProgramIndicator programIndicator );
+  List<T> getAnalyticalObjects(ProgramIndicator programIndicator);
 
-    List<T> getAnalyticalObjects( Period period );
+  List<T> getAnalyticalObjects(Period period);
 
-    List<T> getAnalyticalObjects( OrganisationUnit organisationUnit );
+  List<T> getAnalyticalObjects(OrganisationUnit organisationUnit);
 
-    List<T> getAnalyticalObjects( OrganisationUnitGroup organisationUnitGroup );
+  List<T> getAnalyticalObjects(OrganisationUnitGroup organisationUnitGroup);
 
-    List<T> getAnalyticalObjects( OrganisationUnitGroupSet organisationUnitGroupSet );
+  List<T> getAnalyticalObjects(OrganisationUnitGroupSet organisationUnitGroupSet);
 
-    List<T> getAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
+  List<T> getAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
 
-    List<T> getAnalyticalObjects( LegendSet legendSet );
+  List<T> getAnalyticalObjects(LegendSet legendSet);
 
-    long countAnalyticalObjects( Indicator indicator );
+  /**
+   * Method that gets all {@link Visualization}s where its {@link org.hisp.dhis.analytics.Sorting}
+   * column (jsonb) contains any of the supplied {@link Indicator} references.
+   *
+   * @param indicators references to search for
+   * @return matching {@link Visualization}s
+   */
+  List<T> getVisualizationsBySortingIndicator(List<String> indicators);
 
-    long countAnalyticalObjects( DataElement dataElement );
+  long countAnalyticalObjects(Indicator indicator);
 
-    long countAnalyticalObjects( DataSet dataSet );
+  long countAnalyticalObjects(DataElement dataElement);
 
-    long countAnalyticalObjects( ProgramIndicator programIndicator );
+  long countAnalyticalObjects(DataSet dataSet);
 
-    long countAnalyticalObjects( Period period );
+  long countAnalyticalObjects(ProgramIndicator programIndicator);
 
-    long countAnalyticalObjects( OrganisationUnit organisationUnit );
+  long countAnalyticalObjects(Period period);
 
-    long countAnalyticalObjects( CategoryOptionGroup categoryOptionGroup );
+  long countAnalyticalObjects(OrganisationUnit organisationUnit);
+
+  long countAnalyticalObjects(CategoryOptionGroup categoryOptionGroup);
 }

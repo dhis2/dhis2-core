@@ -28,9 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.HashSet;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -39,24 +37,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole>
-{
-    private final UserService userService;
+public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
+  private final UserService userService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( User.class, this::deleteUser );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(User.class, this::deleteUser);
+  }
+
+  private void deleteUser(User user) {
+    for (UserRole role : user.getUserRoles()) {
+      role.getMembers().remove(user);
+      userService.updateUserRole(role);
     }
 
-    private void deleteUser( User user )
-    {
-        for ( UserRole role : user.getUserRoles() )
-        {
-            role.getMembers().remove( user );
-            userService.updateUserRole( role );
-        }
-
-        user.setUserRoles( new HashSet<>() );
-    }
+    user.setUserRoles(new HashSet<>());
+  }
 }

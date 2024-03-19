@@ -27,26 +27,22 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
-public abstract class JsonPatchValueOperation extends JsonPatchOperation
-{
-    @JsonProperty
-    protected final JsonNode value;
+public abstract class JsonPatchValueOperation extends JsonPatchOperation {
+  @JsonProperty protected final JsonNode value;
 
-    @JsonCreator
-    protected JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
-    {
-        super( op, path );
-        this.value = value.deepCopy();
-    }
+  @JsonCreator
+  protected JsonPatchValueOperation(String op, JsonPointer path, JsonNode value) {
+    super(op, path);
+    this.value = value.deepCopy();
+  }
 }

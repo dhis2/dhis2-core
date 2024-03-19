@@ -29,7 +29,6 @@ name: category_option_group_sets_scarce
 description: Category option groups should have at least two members.
 section: Group size
 section_order: 8
-summary_uid: So63EA8N4BX
 summary_sql: >-
   WITH group_size as (
   SELECT uid,name,  COALESCE(x.count,0) as count from
@@ -42,7 +41,6 @@ summary_sql: >-
   SELECT COUNT(*) as value,
    100*COUNT(*) / NULLIF( ( select COUNT(*) from categoryoptiongroupset), 0) as percent
   from group_size where count < 2;
-details_uid: sChquZNGbUJ
 details_sql: >-
   WITH group_size as (
   SELECT uid,name,  COALESCE(x.count,0) as count from

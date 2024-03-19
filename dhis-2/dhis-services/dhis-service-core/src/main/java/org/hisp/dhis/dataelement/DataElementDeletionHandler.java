@@ -31,9 +31,7 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 import java.util.Iterator;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
@@ -49,77 +47,63 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DataElementDeletionHandler extends IdObjectDeletionHandler<DataElement>
-{
-    private final CategoryService categoryService;
+public class DataElementDeletionHandler extends IdObjectDeletionHandler<DataElement> {
+  private final CategoryService categoryService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( DataElementGroup.class, this::deleteDataElementGroup );
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-        whenVetoing( OptionSet.class, this::allowDeleteOptionSet );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(DataElementGroup.class, this::deleteDataElementGroup);
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+    whenVetoing(OptionSet.class, this::allowDeleteOptionSet);
+  }
+
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    CategoryCombo defaultCategoryCombo =
+        categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
+
+    for (DataElement dataElement : idObjectManager.getAllNoAcl(DataElement.class)) {
+      if (dataElement != null && dataElement.getCategoryCombo().equals(categoryCombo)) {
+        dataElement.setCategoryCombo(defaultCategoryCombo);
+
+        idObjectManager.updateNoAcl(dataElement);
+      }
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        CategoryCombo defaultCategoryCombo = categoryService
-            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+  private void deleteDataSet(DataSet dataSet) {
+    Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
 
-        for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
-        {
-            if ( dataElement != null && dataElement.getCategoryCombo().equals( categoryCombo ) )
-            {
-                dataElement.setCategoryCombo( defaultCategoryCombo );
+    while (elements.hasNext()) {
+      DataSetElement element = elements.next();
+      elements.remove();
 
-                idObjectManager.updateNoAcl( dataElement );
-            }
+      dataSet.removeDataSetElement(element);
+      idObjectManager.updateNoAcl(element.getDataElement());
+    }
+  }
+
+  private void deleteDataElementGroup(DataElementGroup group) {
+    for (DataElement element : group.getMembers()) {
+      element.getGroups().remove(group);
+      idObjectManager.updateNoAcl(element);
+    }
+  }
+
+  private void deleteLegendSet(LegendSet legendSet) {
+    for (DataElement element : idObjectManager.getAllNoAcl(DataElement.class)) {
+      for (LegendSet ls : element.getLegendSets()) {
+        if (legendSet.equals(ls)) {
+          element.getLegendSets().remove(ls);
+          idObjectManager.updateNoAcl(element);
         }
+      }
     }
+  }
 
-    private void deleteDataSet( DataSet dataSet )
-    {
-        Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
-
-        while ( elements.hasNext() )
-        {
-            DataSetElement element = elements.next();
-            elements.remove();
-
-            dataSet.removeDataSetElement( element );
-            idObjectManager.updateNoAcl( element.getDataElement() );
-        }
-    }
-
-    private void deleteDataElementGroup( DataElementGroup group )
-    {
-        for ( DataElement element : group.getMembers() )
-        {
-            element.getGroups().remove( group );
-            idObjectManager.updateNoAcl( element );
-        }
-    }
-
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        for ( DataElement element : idObjectManager.getAllNoAcl( DataElement.class ) )
-        {
-            for ( LegendSet ls : element.getLegendSets() )
-            {
-                if ( legendSet.equals( ls ) )
-                {
-                    element.getLegendSets().remove( ls );
-                    idObjectManager.updateNoAcl( element );
-                }
-            }
-        }
-    }
-
-    private DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
-    {
-        String sql = "select 1 from dataelement where optionsetid = :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionSet.getId() ) );
-    }
+  private DeletionVeto allowDeleteOptionSet(OptionSet optionSet) {
+    String sql = "select 1 from dataelement where optionsetid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionSet.getId()));
+  }
 }

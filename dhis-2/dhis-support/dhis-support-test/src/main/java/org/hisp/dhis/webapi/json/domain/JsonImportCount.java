@@ -34,25 +34,20 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonImportCount extends JsonObject
-{
-    default int getImported()
-    {
-        return getNumber( "imported" ).intValue();
-    }
+public interface JsonImportCount extends JsonObject {
+  default int getImported() {
+    return getNumber("imported").intValue();
+  }
 
-    default int getUpdated()
-    {
-        return getNumber( "updated" ).intValue();
-    }
+  default int getUpdated() {
+    return getNumber("updated").intValue();
+  }
 
-    default int getIgnored()
-    {
-        return getNumber( "ignored" ).intValue();
-    }
+  default int getIgnored() {
+    return getNumber("ignored").intValue();
+  }
 
-    default int getDeleted()
-    {
-        return getNumber( "deleted" ).intValue();
-    }
+  default int getDeleted() {
+    return getNumber("deleted").intValue();
+  }
 }

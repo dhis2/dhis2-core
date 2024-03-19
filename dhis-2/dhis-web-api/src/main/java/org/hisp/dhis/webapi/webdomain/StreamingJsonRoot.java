@@ -27,26 +27,23 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-
-import com.fasterxml.jackson.annotation.JsonRootName;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
 @RequiredArgsConstructor
-@JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
-public class StreamingJsonRoot<T>
-{
-    private final Pager pager;
+@JsonRootName(value = "root", namespace = DxfNamespaces.DXF_2_0)
+public class StreamingJsonRoot<T> {
+  private final Pager pager;
 
-    private final String wrapperName;
+  private final String wrapperName;
 
-    private final FieldFilterParams<T> params;
+  private final FieldFilterParams<T> params;
 }

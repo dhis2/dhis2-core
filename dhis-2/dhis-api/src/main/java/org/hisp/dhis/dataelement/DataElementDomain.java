@@ -27,41 +27,34 @@
  */
 package org.hisp.dhis.dataelement;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement( localName = "dataElementDomain", namespace = DxfNamespaces.DXF_2_0 )
-public enum DataElementDomain
-{
-    AGGREGATE( "aggregate" ),
-    TRACKER( "tracker" );
+@JacksonXmlRootElement(localName = "dataElementDomain", namespace = DxfNamespaces.DXF_2_0)
+public enum DataElementDomain {
+  AGGREGATE("aggregate"),
+  TRACKER("tracker");
 
-    private final String value;
+  private final String value;
 
-    DataElementDomain( String value )
-    {
-        this.value = value;
+  DataElementDomain(String value) {
+    this.value = value;
+  }
+
+  public static DataElementDomain fromValue(String value) {
+    for (DataElementDomain domainType : DataElementDomain.values()) {
+      if (domainType.value.equalsIgnoreCase(value)) {
+        return domainType;
+      }
     }
 
-    public static DataElementDomain fromValue( String value )
-    {
-        for ( DataElementDomain domainType : DataElementDomain.values() )
-        {
-            if ( domainType.value.equalsIgnoreCase( value ) )
-            {
-                return domainType;
-            }
-        }
+    return null;
+  }
 
-        return null;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

@@ -29,23 +29,16 @@ package org.hisp.dhis.preheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated only REFERENCE mode is now allowed, all other modes will use
- *             REFERENCE, keeping enum for backward compatibility
+ * @deprecated only REFERENCE mode is now allowed, all other modes will use REFERENCE, keeping enum
+ *     for backward compatibility
  */
-public enum PreheatMode
-{
-    /**
-     * Scan objects for references.
-     */
-    REFERENCE,
+public enum PreheatMode {
+  /** Scan objects for references. */
+  REFERENCE,
 
-    /**
-     * Load inn all object of given types.
-     */
-    ALL,
+  /** Load inn all object of given types. */
+  ALL,
 
-    /**
-     * Preheating is disabled.
-     */
-    NONE
+  /** Preheating is disabled. */
+  NONE
 }

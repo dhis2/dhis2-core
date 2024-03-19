@@ -37,10 +37,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Mark Polak
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramIndicatorGroupSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = ProgramIndicatorGroupSchemaDescriptor.API_ENDPOINT)
 public class ProgramIndicatorGroupController
-    extends AbstractCrudController<ProgramIndicatorGroup>
-{
-}
+    extends AbstractCrudController<ProgramIndicatorGroup> {}

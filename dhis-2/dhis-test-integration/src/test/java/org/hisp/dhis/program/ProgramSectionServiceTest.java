@@ -35,63 +35,68 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author viet@dhis2.org
  */
-class ProgramSectionServiceTest
-    extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private IdentifiableObjectManager manager;
+class ProgramSectionServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private CategoryService _categoryService;
+  @Autowired private CategoryService _categoryService;
 
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
-        categoryService = _categoryService;
-    }
+  //  @Override
+  //  public void setUpTest() {
+  //    userService = _userService;
+  //    categoryService = _categoryService;
+  //  }
 
-    @Test
-    void testUpdateWithAuthority()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+    categoryService = _categoryService;
 
-        ProgramSection programSection = createProgramSection( 'A', program );
+    preCreateInjectAdminUser();
 
-        manager.save( programSection );
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User currentUser = userService.getUserByUsername(currentUsername);
+    injectSecurityContextUser(currentUser);
+  }
 
-        User userA = createUserWithAuth( "A", "F_PROGRAM_PUBLIC_ADD" );
-        assertTrue( aclService.canUpdate( userA, programSection ) );
+  @Test
+  void testUpdateWithAuthority() {
+    Program program = createProgram('A');
+    manager.save(program);
 
-        User userB = createUserWithAuth( "B" );
-        assertFalse( aclService.canUpdate( userB, programSection ) );
-    }
+    ProgramSection programSection = createProgramSection('A', program);
 
-    @Test
-    void testSaveWithoutAuthority()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
+    manager.save(programSection);
 
-        createUserAndInjectSecurityContext( false );
-        ProgramSection programSection = createProgramSection( 'A', program );
-        manager.save( programSection );
+    User userA = createUserWithAuth("A", "F_PROGRAM_PUBLIC_ADD");
+    assertTrue(aclService.canUpdate(userA, programSection));
 
-        assertNotNull( manager.get( ProgramSection.class, programSection.getId() ) );
-    }
+    User userB = createUserWithAuth("B");
+    assertFalse(aclService.canUpdate(userB, programSection));
+  }
+
+  @Test
+  void testSaveWithoutAuthority() {
+    Program program = createProgram('A');
+    manager.save(program);
+
+    createUserAndInjectSecurityContext(false);
+    ProgramSection programSection = createProgramSection('A', program);
+    manager.save(programSection);
+
+    assertNotNull(manager.get(ProgramSection.class, programSection.getId()));
+  }
 }

@@ -28,79 +28,75 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public interface AggregateAccessManager
-{
-    /**
-     * Check if given User has DATA_READ access for given DataValue
-     *
-     * @param user a {@link User} to check permission for
-     * @param dataValue a {@link DataValue} object
-     * @return List of errors
-     */
-    List<String> canRead( User user, DataValue dataValue );
+public interface AggregateAccessManager {
+  /**
+   * Check if given User has DATA_READ access for given DataValue
+   *
+   * @param userDetails to check permission for
+   * @param dataValue a {@link DataValue} object
+   * @return List of errors
+   */
+  List<String> canRead(UserDetails userDetails, DataValue dataValue);
 
-    /**
-     * Check if given user has DATA_WRITE
-     *
-     * @param user a {@link User} to check permission for
-     * @param dataSet a {@link DataSet} object
-     * @return List of errors
-     */
-    List<String> canWrite( User user, DataSet dataSet );
+  /**
+   * Check if given user has DATA_WRITE
+   *
+   * @param userDetails to check permission for
+   * @param dataSet a {@link DataSet} object
+   * @return List of errors
+   */
+  List<String> canWrite(UserDetails userDetails, DataSet dataSet);
 
-    /**
-     * Check if given User has DATA_READ access for given DataSet
-     *
-     * @param user a {@link User} to check permission for
-     * @param dataSet a {@link DataValue} object
-     * @return List of errors
-     */
-    List<String> canRead( User user, DataSet dataSet );
+  /**
+   * Check if given User has DATA_READ access for given DataSet
+   *
+   * @param userDetails to check permission for
+   * @param dataSet a {@link DataValue} object
+   * @return List of errors
+   */
+  List<String> canRead(UserDetails userDetails, DataSet dataSet);
 
-    /**
-     * Check if given User has DATA_WRITE access for given CategoryOptionCombo
-     *
-     * @param user a {@link User} to check permission for
-     * @param categoryOption a {@link CategoryOptionCombo} object
-     * @return List of errors
-     */
-    List<String> canWrite( User user, CategoryOptionCombo categoryOption );
+  /**
+   * Check if given User has DATA_WRITE access for given CategoryOptionCombo
+   *
+   * @param userDetails to check permission for
+   * @param categoryOption a {@link CategoryOptionCombo} object
+   * @return List of errors
+   */
+  List<String> canWrite(UserDetails userDetails, CategoryOptionCombo categoryOption);
 
-    /**
-     * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
-     * result is cached.
-     *
-     * @param user a {@link User} to check permission for
-     * @param categoryOptionCombo a {@link CategoryOptionCombo} object
-     * @return List of errors
-     */
-    List<String> canWriteCached( User user, CategoryOptionCombo categoryOptionCombo );
+  /**
+   * Check if given User has DATA_WRITE access for given CategoryOptionCombo, result is cached.
+   *
+   * @param userDetails to check permission for
+   * @param categoryOptionCombo a {@link CategoryOptionCombo} object
+   * @return List of errors
+   */
+  List<String> canWriteCached(UserDetails userDetails, CategoryOptionCombo categoryOptionCombo);
 
-    /**
-     * Check if given User has DATA_READ access for given CategoryOptionCombo
-     *
-     * @param user a {@link User} to check permission for
-     * @param categoryOption a {@link CategoryOptionCombo} object
-     * @return List of errors
-     */
-    List<String> canRead( User user, CategoryOptionCombo categoryOption );
+  /**
+   * Check if given User has DATA_READ access for given CategoryOptionCombo
+   *
+   * @param userDetails to check permission for
+   * @param categoryOption a {@link CategoryOptionCombo} object
+   * @return List of errors
+   */
+  List<String> canRead(UserDetails userDetails, CategoryOptionCombo categoryOption);
 
-    /**
-     * Check if given User has DATA_WRITE access for give DataElementOperand
-     *
-     * @param user a {@link User} to check permission for
-     * @param dataElementOperand a {@link DataElementOperand} object
-     * @return List of errors
-     */
-    List<String> canWrite( User user, DataElementOperand dataElementOperand );
-
+  /**
+   * Check if given User has DATA_WRITE access for give DataElementOperand
+   *
+   * @param userDetails to check permission for
+   * @param dataElementOperand a {@link DataElementOperand} object
+   * @return List of errors
+   */
+  List<String> canWrite(UserDetails userDetails, DataElementOperand dataElementOperand);
 }

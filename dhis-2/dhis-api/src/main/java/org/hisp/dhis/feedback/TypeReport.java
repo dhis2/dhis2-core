@@ -27,16 +27,6 @@
  */
 package org.hisp.dhis.feedback;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,199 +34,181 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-public class TypeReport implements ErrorReportContainer
-{
-    private static final Map<Class<?>, TypeReport> EMPTY_BY_TYPE = new ConcurrentHashMap<>();
+@JacksonXmlRootElement(localName = "typeReport", namespace = DxfNamespaces.DXF_2_0)
+public class TypeReport implements ErrorReportContainer {
+  private static final Map<Class<?>, TypeReport> EMPTY_BY_TYPE = new ConcurrentHashMap<>();
 
-    private final Class<?> klass;
+  private final Class<?> klass;
 
-    private final boolean empty;
+  private final boolean empty;
 
-    private final Stats stats = new Stats();
+  private final Stats stats = new Stats();
 
-    private final Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
+  private final Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
 
-    public static TypeReport empty( Class<?> klass )
-    {
-        return EMPTY_BY_TYPE.computeIfAbsent( klass, type -> new TypeReport( type, true ) );
+  public static TypeReport empty(Class<?> klass) {
+    return EMPTY_BY_TYPE.computeIfAbsent(klass, type -> new TypeReport(type, true));
+  }
+
+  @JsonCreator
+  public TypeReport(@JsonProperty("klass") Class<?> klass) {
+    this(klass, false);
+  }
+
+  private TypeReport(Class<?> klass, boolean empty) {
+    this.klass = klass;
+    this.empty = empty;
+  }
+
+  public final boolean isEmptySingleton() {
+    return empty;
+  }
+
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
+
+  public TypeReport mergeAllowEmpty(TypeReport other) {
+    if (isEmptySingleton()) {
+      return other;
     }
-
-    @JsonCreator
-    public TypeReport( @JsonProperty( "klass" ) Class<?> klass )
-    {
-        this( klass, false );
+    if (other.isEmptySingleton()) {
+      return this;
     }
+    merge(other);
+    return this;
+  }
 
-    private TypeReport( Class<?> klass, boolean empty )
-    {
-        this.klass = klass;
-        this.empty = empty;
+  public void merge(TypeReport other) {
+    if (empty) {
+      throw new IllegalStateException("Empty report cannot be changed.");
     }
-
-    public final boolean isEmptySingleton()
-    {
-        return empty;
+    if (other.empty) {
+      return; // done: nothing to merge with
     }
+    stats.merge(other.getStats());
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
-
-    public TypeReport mergeAllowEmpty( TypeReport other )
-    {
-        if ( isEmptySingleton() )
-        {
-            return other;
-        }
-        if ( other.isEmptySingleton() )
-        {
-            return this;
-        }
-        merge( other );
-        return this;
-    }
-
-    public void merge( TypeReport other )
-    {
-        if ( empty )
-        {
-            throw new IllegalStateException( "Empty report cannot be changed." );
-        }
-        if ( other.empty )
-        {
-            return; // done: nothing to merge with
-        }
-        stats.merge( other.getStats() );
-
-        other.objectReportMap.forEach(
-            ( index, objectReport ) -> objectReportMap.compute( index, ( key, value ) -> {
-                if ( value == null )
-                {
+    other.objectReportMap.forEach(
+        (index, objectReport) ->
+            objectReportMap.compute(
+                index,
+                (key, value) -> {
+                  if (value == null) {
                     return objectReport;
-                }
-                objectReport.forEachErrorReport( value::addErrorReport );
-                return value;
-            } ) );
+                  }
+                  objectReport.forEachErrorReport(value::addErrorReport);
+                  return value;
+                }));
+  }
+
+  /** Removes entries where the {@link ObjectReport} has no {@link ErrorReport}s. */
+  public void clean() {
+    objectReportMap.entrySet().removeIf(entry -> !entry.getValue().hasErrorReports());
+  }
+
+  public void addObjectReport(ObjectReport report) {
+    objectReportMap.compute(
+        report.getIndex(), (key, value) -> value == null ? report : value.merge(report));
+  }
+
+  // -----------------------------------------------------------------------------------
+  // Getters and Setters
+  // -----------------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Class<?> getKlass() {
+    return klass;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Stats getStats() {
+    return stats;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "objectReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "objectReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<ObjectReport> getObjectReports() {
+    return new ArrayList<>(objectReportMap.values());
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "objectReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "objectReport", namespace = DxfNamespaces.DXF_2_0)
+  public void setObjectReports(List<ObjectReport> objectReports) {
+    objectReportMap.clear();
+    if (objectReports != null) {
+      objectReports.forEach(or -> objectReportMap.put(or.getIndex(), or));
     }
+  }
 
-    /**
-     * Removes entries where the {@link ObjectReport} has no
-     * {@link ErrorReport}s.
-     */
-    public void clean()
-    {
-        objectReportMap.entrySet().removeIf( entry -> !entry.getValue().hasErrorReports() );
-    }
+  @JsonIgnore
+  public int getObjectReportsCount() {
+    return objectReportMap.size();
+  }
 
-    public void addObjectReport( ObjectReport report )
-    {
-        objectReportMap.compute( report.getIndex(),
-            ( key, value ) -> value == null ? report : value.merge( report ) );
-    }
+  public boolean hasObjectReports() {
+    return !objectReportMap.isEmpty();
+  }
 
-    // -----------------------------------------------------------------------------------
-    // Getters and Setters
-    // -----------------------------------------------------------------------------------
+  public ObjectReport getFirstObjectReport() {
+    return objectReportMap.isEmpty() ? null : objectReportMap.values().iterator().next();
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Class<?> getKlass()
-    {
-        return klass;
-    }
+  public void forEachObjectReport(Consumer<ObjectReport> reportConsumer) {
+    objectReportMap.values().forEach(reportConsumer);
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Stats getStats()
-    {
-        return stats;
-    }
+  @JsonIgnore
+  @Override
+  public int getErrorReportsCount() {
+    return objectReportMap.values().stream().mapToInt(ObjectReport::getErrorReportsCount).sum();
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ObjectReport> getObjectReports()
-    {
-        return new ArrayList<>( objectReportMap.values() );
-    }
+  @Override
+  public int getErrorReportsCount(ErrorCode errorCode) {
+    return objectReportMap.values().stream()
+        .mapToInt(report -> report.getErrorReportsCount(errorCode))
+        .sum();
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
-    public void setObjectReports( List<ObjectReport> objectReports )
-    {
-        objectReportMap.clear();
-        if ( objectReports != null )
-        {
-            objectReports.forEach( or -> objectReportMap.put( or.getIndex(), or ) );
-        }
-    }
+  @Override
+  public boolean hasErrorReports() {
+    return objectReportMap.values().stream().anyMatch(ObjectReport::hasErrorReports);
+  }
 
-    @JsonIgnore
-    public int getObjectReportsCount()
-    {
-        return objectReportMap.size();
-    }
+  @Override
+  public boolean hasErrorReport(Predicate<ErrorReport> test) {
+    return objectReportMap.values().stream().anyMatch(report -> report.hasErrorReport(test));
+  }
 
-    public boolean hasObjectReports()
-    {
-        return !objectReportMap.isEmpty();
-    }
+  @Override
+  public void forEachErrorReport(Consumer<ErrorReport> reportConsumer) {
+    objectReportMap
+        .values()
+        .forEach(objectReport -> objectReport.forEachErrorReport(reportConsumer));
+  }
 
-    public ObjectReport getFirstObjectReport()
-    {
-        return objectReportMap.isEmpty() ? null : objectReportMap.values().iterator().next();
-    }
-
-    public void forEachObjectReport( Consumer<ObjectReport> reportConsumer )
-    {
-        objectReportMap.values().forEach( reportConsumer );
-    }
-
-    @JsonIgnore
-    @Override
-    public int getErrorReportsCount()
-    {
-        return objectReportMap.values().stream().mapToInt( ObjectReport::getErrorReportsCount ).sum();
-    }
-
-    @Override
-    public int getErrorReportsCount( ErrorCode errorCode )
-    {
-        return objectReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
-    }
-
-    @Override
-    public boolean hasErrorReports()
-    {
-        return objectReportMap.values().stream().anyMatch( ObjectReport::hasErrorReports );
-    }
-
-    @Override
-    public boolean hasErrorReport( Predicate<ErrorReport> test )
-    {
-        return objectReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
-    }
-
-    @Override
-    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
-    {
-        objectReportMap.values().forEach( objectReport -> objectReport.forEachErrorReport( reportConsumer ) );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "klass", klass )
-            .add( "stats", stats )
-            .add( "objectReports", getObjectReports() )
-            .toString();
-    }
-
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("klass", klass)
+        .add("stats", stats)
+        .add("objectReports", getObjectReports())
+        .toString();
+  }
 }

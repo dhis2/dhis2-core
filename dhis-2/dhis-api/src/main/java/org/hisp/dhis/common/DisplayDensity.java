@@ -30,10 +30,9 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public enum DisplayDensity
-{
-    COMFORTABLE,
-    NORMAL,
-    COMPACT,
-    NONE
+public enum DisplayDensity {
+  COMFORTABLE,
+  NORMAL,
+  COMPACT,
+  NONE
 }

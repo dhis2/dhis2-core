@@ -39,9 +39,7 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -55,97 +53,91 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 /**
  * @author Morten Olav Hansen
  */
-public class MetadataExportParamsMessageConverter extends AbstractHttpMessageConverter<MetadataExportParams>
-{
-    private final MetadataExportService metadataExportService;
+public class MetadataExportParamsMessageConverter
+    extends AbstractHttpMessageConverter<MetadataExportParams> {
+  private final MetadataExportService metadataExportService;
 
-    private final Compression compression;
+  private final Compression compression;
 
-    public MetadataExportParamsMessageConverter( MetadataExportService metadataExportService, Compression compression )
-    {
-        this.metadataExportService = metadataExportService;
-        this.compression = compression;
+  public MetadataExportParamsMessageConverter(
+      MetadataExportService metadataExportService, Compression compression) {
+    this.metadataExportService = metadataExportService;
+    this.compression = compression;
 
-        switch ( compression )
-        {
-        case NONE:
-            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+    switch (compression) {
+      case NONE:
+        setSupportedMediaTypes(JSON_SUPPORTED_MEDIA_TYPES);
+        break;
+      case GZIP:
+        setSupportedMediaTypes(JSON_GZIP_SUPPORTED_MEDIA_TYPES);
+        break;
+      case ZIP:
+        setSupportedMediaTypes(JSON_ZIP_SUPPORTED_MEDIA_TYPES);
     }
+  }
 
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        return MetadataExportParams.class.equals( clazz );
+  @Override
+  protected boolean supports(Class<?> clazz) {
+    return MetadataExportParams.class.equals(clazz);
+  }
+
+  @Override
+  protected MetadataExportParams readInternal(
+      Class<? extends MetadataExportParams> clazz, HttpInputMessage inputMessage)
+      throws IOException, HttpMessageNotReadableException {
+    return null;
+  }
+
+  @Override
+  protected void writeInternal(
+      @Nonnull MetadataExportParams params, HttpOutputMessage outputMessage)
+      throws IOException, HttpMessageNotWritableException {
+    final String contentDisposition =
+        MessageConverterUtils.getContentDisposition(outputMessage, params.isDownload());
+    final boolean attachment = isAttachment(contentDisposition);
+    final String extensibleAttachmentFilename =
+        getExtensibleAttachmentFilename(contentDisposition, List.of("metadata"));
+
+    if (Compression.GZIP == compression) {
+      if (!attachment || (extensibleAttachmentFilename != null)) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, "gz"));
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      }
+
+      GZIPOutputStream outputStream = new GZIPOutputStream(outputMessage.getBody());
+      metadataExportService.getMetadataAsObjectNodeStream(params, outputStream);
+      outputStream.close();
+    } else if (Compression.ZIP == compression) {
+      if (!attachment || (extensibleAttachmentFilename != null)) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, "zip"));
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      }
+
+      ZipOutputStream outputStream = new ZipOutputStream(outputMessage.getBody());
+      outputStream.putNextEntry(new ZipEntry("metadata.json"));
+      metadataExportService.getMetadataAsObjectNodeStream(params, outputStream);
+      outputStream.close();
+    } else {
+      if (extensibleAttachmentFilename != null) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, null));
+      } else {
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_DISPOSITION, contentDisposition);
+      }
+
+      metadataExportService.getMetadataAsObjectNodeStream(params, outputMessage.getBody());
+      outputMessage.getBody().close();
     }
-
-    @Override
-    protected MetadataExportParams readInternal( Class<? extends MetadataExportParams> clazz,
-        HttpInputMessage inputMessage )
-        throws IOException,
-        HttpMessageNotReadableException
-    {
-        return null;
-    }
-
-    @Override
-    protected void writeInternal( @Nonnull MetadataExportParams params, HttpOutputMessage outputMessage )
-        throws IOException,
-        HttpMessageNotWritableException
-    {
-        final String contentDisposition = MessageConverterUtils.getContentDisposition( outputMessage,
-            params.isDownload() );
-        final boolean attachment = isAttachment( contentDisposition );
-        final String extensibleAttachmentFilename = getExtensibleAttachmentFilename(
-            contentDisposition, List.of( "metadata" ) );
-
-        if ( Compression.GZIP == compression )
-        {
-            if ( !attachment || (extensibleAttachmentFilename != null) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "gz" ) );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            metadataExportService.getMetadataAsObjectNodeStream( params, outputStream );
-            outputStream.close();
-        }
-        else if ( Compression.ZIP == compression )
-        {
-            if ( !attachment || (extensibleAttachmentFilename != null) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
-            metadataExportService.getMetadataAsObjectNodeStream( params, outputStream );
-            outputStream.close();
-        }
-        else
-        {
-            if ( extensibleAttachmentFilename != null )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
-            }
-            else
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, contentDisposition );
-            }
-
-            metadataExportService.getMetadataAsObjectNodeStream( params, outputMessage.getBody() );
-            outputMessage.getBody().close();
-        }
-    }
+  }
 }

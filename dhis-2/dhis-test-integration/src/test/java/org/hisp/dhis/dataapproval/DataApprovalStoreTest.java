@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,182 +49,198 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Jim Grace
  */
-class DataApprovalStoreTest extends SingleSetupIntegrationTestBase
-{
+class DataApprovalStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private DataApprovalStore dataApprovalStore;
+  @Autowired private DataApprovalStore dataApprovalStore;
 
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
+  @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
-    private DataApprovalService dataApprovalService;
+  @Autowired private DataApprovalService dataApprovalService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    // -------------------------------------------------------------------------
-    // Supporting data
-    // -------------------------------------------------------------------------
-    private DataApprovalLevel level1;
+  // -------------------------------------------------------------------------
+  // Supporting data
+  // -------------------------------------------------------------------------
+  private DataApprovalLevel level1;
 
-    private DataApprovalLevel level2;
+  private DataApprovalLevel level2;
 
-    private DataApprovalWorkflow workflowA1;
+  private DataApprovalWorkflow workflowA1;
 
-    private DataApprovalWorkflow workflowA12;
+  private DataApprovalWorkflow workflowA12;
 
-    private DataApprovalWorkflow workflowB12;
+  private DataApprovalWorkflow workflowB12;
 
-    private Period periodA;
+  private Period periodA;
 
-    private Period periodB;
+  private Period periodB;
 
-    private OrganisationUnit sourceA;
+  private OrganisationUnit sourceA;
 
-    private OrganisationUnit sourceB;
+  private OrganisationUnit sourceB;
 
-    private OrganisationUnit sourceC;
+  private OrganisationUnit sourceC;
 
-    private OrganisationUnit sourceD;
+  private OrganisationUnit sourceD;
 
-    private User userA;
+  private User userA;
 
-    private User userB;
+  private User userB;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    // -------------------------------------------------------------------------
-    // Set up/tear down
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        // ---------------------------------------------------------------------
-        // Add supporting data
-        // ---------------------------------------------------------------------
-        level1 = new DataApprovalLevel( "01", 1, null );
-        level2 = new DataApprovalLevel( "02", 2, null );
-        dataApprovalLevelService.addDataApprovalLevel( level1 );
-        dataApprovalLevelService.addDataApprovalLevel( level2 );
-        PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
-        workflowA1 = new DataApprovalWorkflow( "workflowA1", periodType, newHashSet( level1 ) );
-        workflowA12 = new DataApprovalWorkflow( "workflowA12", periodType, newHashSet( level1, level2 ) );
-        workflowB12 = new DataApprovalWorkflow( "workflowB12", periodType, newHashSet( level1, level2 ) );
-        dataApprovalService.addWorkflow( workflowA1 );
-        dataApprovalService.addWorkflow( workflowA12 );
-        dataApprovalService.addWorkflow( workflowB12 );
-        periodA = createPeriod( getDay( 5 ), getDay( 6 ) );
-        periodB = createPeriod( getDay( 6 ), getDay( 7 ) );
-        periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );
-        sourceA = createOrganisationUnit( 'A' );
-        sourceB = createOrganisationUnit( 'B', sourceA );
-        sourceC = createOrganisationUnit( 'C', sourceB );
-        sourceD = createOrganisationUnit( 'D', sourceC );
-        organisationUnitService.addOrganisationUnit( sourceA );
-        organisationUnitService.addOrganisationUnit( sourceB );
-        organisationUnitService.addOrganisationUnit( sourceC );
-        organisationUnitService.addOrganisationUnit( sourceD );
-        userA = makeUser( "A" );
-        userB = makeUser( "B" );
-        userService.addUser( userA );
-        userService.addUser( userB );
-        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-    }
+  // -------------------------------------------------------------------------
+  // Set up/tear down
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() throws Exception {
+    // ---------------------------------------------------------------------
+    // Add supporting data
+    // ---------------------------------------------------------------------
+    level1 = new DataApprovalLevel("01", 1, null);
+    level2 = new DataApprovalLevel("02", 2, null);
+    dataApprovalLevelService.addDataApprovalLevel(level1);
+    dataApprovalLevelService.addDataApprovalLevel(level2);
+    PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
+    workflowA1 = new DataApprovalWorkflow("workflowA1", periodType, newHashSet(level1));
+    workflowA12 = new DataApprovalWorkflow("workflowA12", periodType, newHashSet(level1, level2));
+    workflowB12 = new DataApprovalWorkflow("workflowB12", periodType, newHashSet(level1, level2));
+    dataApprovalService.addWorkflow(workflowA1);
+    dataApprovalService.addWorkflow(workflowA12);
+    dataApprovalService.addWorkflow(workflowB12);
+    periodA = createPeriod(getDay(5), getDay(6));
+    periodB = createPeriod(getDay(6), getDay(7));
+    periodService.addPeriod(periodA);
+    periodService.addPeriod(periodB);
+    sourceA = createOrganisationUnit('A');
+    sourceB = createOrganisationUnit('B', sourceA);
+    sourceC = createOrganisationUnit('C', sourceB);
+    sourceD = createOrganisationUnit('D', sourceC);
+    organisationUnitService.addOrganisationUnit(sourceA);
+    organisationUnitService.addOrganisationUnit(sourceB);
+    organisationUnitService.addOrganisationUnit(sourceC);
+    organisationUnitService.addOrganisationUnit(sourceD);
+    userA = makeUser("A");
+    userB = makeUser("B");
+    userService.addUser(userA);
+    userService.addUser(userB);
+    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+  }
 
-    // -------------------------------------------------------------------------
-    // Basic DataApproval
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddAndGetDataApproval()
-    {
-        Date date = new Date();
-        DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo,
-            false, date, userA );
-        DataApproval dataApprovalB = new DataApproval( level2, workflowA12, periodA, sourceB, categoryOptionCombo,
-            false, date, userA );
-        DataApproval dataApprovalC = new DataApproval( level1, workflowA12, periodB, sourceA, categoryOptionCombo,
-            false, date, userA );
-        DataApproval dataApprovalD = new DataApproval( level1, workflowB12, periodA, sourceA, categoryOptionCombo,
-            false, date, userA );
-        DataApproval dataApprovalE = null;
-        dataApprovalStore.addDataApproval( dataApprovalA );
-        dataApprovalStore.addDataApproval( dataApprovalB );
-        dataApprovalStore.addDataApproval( dataApprovalC );
-        dataApprovalStore.addDataApproval( dataApprovalD );
-        dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
-        assertNotNull( dataApprovalA );
-        assertEquals( level1.getId(), dataApprovalA.getDataApprovalLevel().getId() );
-        assertEquals( workflowA12.getId(), dataApprovalA.getWorkflow().getId() );
-        assertEquals( periodA, dataApprovalA.getPeriod() );
-        assertEquals( sourceA.getId(), dataApprovalA.getOrganisationUnit().getId() );
-        assertEquals( date, dataApprovalA.getCreated() );
-        assertEquals( userA.getId(), dataApprovalA.getCreator().getId() );
-        dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowA12, periodA, sourceB, categoryOptionCombo );
-        assertNotNull( dataApprovalB );
-        assertEquals( level2.getId(), dataApprovalB.getDataApprovalLevel().getId() );
-        assertEquals( workflowA12.getId(), dataApprovalB.getWorkflow().getId() );
-        assertEquals( periodA, dataApprovalB.getPeriod() );
-        assertEquals( sourceB.getId(), dataApprovalB.getOrganisationUnit().getId() );
-        assertEquals( date, dataApprovalB.getCreated() );
-        assertEquals( userA.getId(), dataApprovalB.getCreator().getId() );
-        dataApprovalC = dataApprovalStore.getDataApproval( level1, workflowA12, periodB, sourceA, categoryOptionCombo );
-        assertNotNull( dataApprovalC );
-        assertEquals( level1.getId(), dataApprovalC.getDataApprovalLevel().getId() );
-        assertEquals( workflowA12.getId(), dataApprovalC.getWorkflow().getId() );
-        assertEquals( periodB, dataApprovalC.getPeriod() );
-        assertEquals( sourceA.getId(), dataApprovalC.getOrganisationUnit().getId() );
-        assertEquals( date, dataApprovalC.getCreated() );
-        assertEquals( userA.getId(), dataApprovalC.getCreator().getId() );
-        dataApprovalD = dataApprovalStore.getDataApproval( level1, workflowB12, periodA, sourceA, categoryOptionCombo );
-        assertNotNull( dataApprovalD );
-        assertEquals( level1.getId(), dataApprovalD.getDataApprovalLevel().getId() );
-        assertEquals( workflowB12.getId(), dataApprovalD.getWorkflow().getId() );
-        assertEquals( periodA, dataApprovalD.getPeriod() );
-        assertEquals( sourceA.getId(), dataApprovalD.getOrganisationUnit().getId() );
-        assertEquals( date, dataApprovalD.getCreated() );
-        assertEquals( userA.getId(), dataApprovalD.getCreator().getId() );
-        dataApprovalE = dataApprovalStore.getDataApproval( level1, workflowB12, periodB, sourceB, categoryOptionCombo );
-        assertNull( dataApprovalE );
-    }
+  // -------------------------------------------------------------------------
+  // Basic DataApproval
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddAndGetDataApproval() {
+    Date date = new Date();
+    DataApproval dataApprovalA =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+    DataApproval dataApprovalB =
+        new DataApproval(
+            level2, workflowA12, periodA, sourceB, categoryOptionCombo, false, date, userA);
+    DataApproval dataApprovalC =
+        new DataApproval(
+            level1, workflowA12, periodB, sourceA, categoryOptionCombo, false, date, userA);
+    DataApproval dataApprovalD =
+        new DataApproval(
+            level1, workflowB12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+    DataApproval dataApprovalE = null;
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
+    dataApprovalStore.addDataApproval(dataApprovalC);
+    dataApprovalStore.addDataApproval(dataApprovalD);
+    dataApprovalA =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+    assertNotNull(dataApprovalA);
+    assertEquals(level1.getId(), dataApprovalA.getDataApprovalLevel().getId());
+    assertEquals(workflowA12.getId(), dataApprovalA.getWorkflow().getId());
+    assertEquals(periodA, dataApprovalA.getPeriod());
+    assertEquals(sourceA.getId(), dataApprovalA.getOrganisationUnit().getId());
+    assertEquals(date, dataApprovalA.getCreated());
+    assertEquals(userA.getId(), dataApprovalA.getCreator().getId());
+    dataApprovalB =
+        dataApprovalStore.getDataApproval(
+            level2, workflowA12, periodA, sourceB, categoryOptionCombo);
+    assertNotNull(dataApprovalB);
+    assertEquals(level2.getId(), dataApprovalB.getDataApprovalLevel().getId());
+    assertEquals(workflowA12.getId(), dataApprovalB.getWorkflow().getId());
+    assertEquals(periodA, dataApprovalB.getPeriod());
+    assertEquals(sourceB.getId(), dataApprovalB.getOrganisationUnit().getId());
+    assertEquals(date, dataApprovalB.getCreated());
+    assertEquals(userA.getId(), dataApprovalB.getCreator().getId());
+    dataApprovalC =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodB, sourceA, categoryOptionCombo);
+    assertNotNull(dataApprovalC);
+    assertEquals(level1.getId(), dataApprovalC.getDataApprovalLevel().getId());
+    assertEquals(workflowA12.getId(), dataApprovalC.getWorkflow().getId());
+    assertEquals(periodB, dataApprovalC.getPeriod());
+    assertEquals(sourceA.getId(), dataApprovalC.getOrganisationUnit().getId());
+    assertEquals(date, dataApprovalC.getCreated());
+    assertEquals(userA.getId(), dataApprovalC.getCreator().getId());
+    dataApprovalD =
+        dataApprovalStore.getDataApproval(
+            level1, workflowB12, periodA, sourceA, categoryOptionCombo);
+    assertNotNull(dataApprovalD);
+    assertEquals(level1.getId(), dataApprovalD.getDataApprovalLevel().getId());
+    assertEquals(workflowB12.getId(), dataApprovalD.getWorkflow().getId());
+    assertEquals(periodA, dataApprovalD.getPeriod());
+    assertEquals(sourceA.getId(), dataApprovalD.getOrganisationUnit().getId());
+    assertEquals(date, dataApprovalD.getCreated());
+    assertEquals(userA.getId(), dataApprovalD.getCreator().getId());
+    dataApprovalE =
+        dataApprovalStore.getDataApproval(
+            level1, workflowB12, periodB, sourceB, categoryOptionCombo);
+    assertNull(dataApprovalE);
+  }
 
-    @Test
-    void testDeleteDataApproval()
-    {
-        dataApprovalLevelService.addDataApprovalLevel( level1 );
-        dataApprovalLevelService.addDataApprovalLevel( level2 );
-        Date date = new Date();
-        DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo,
-            false, date, userA );
-        DataApproval dataApprovalB = new DataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo,
-            false, date, userB );
-        dataApprovalStore.addDataApproval( dataApprovalA );
-        dataApprovalStore.addDataApproval( dataApprovalB );
-        dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
-        assertNotNull( dataApprovalA );
-        dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
-        assertNotNull( dataApprovalB );
-        dataApprovalStore.deleteDataApproval( dataApprovalA );
-        dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
-        assertNull( dataApprovalA );
-        dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
-        assertNotNull( dataApprovalB );
-        dataApprovalStore.deleteDataApproval( dataApprovalB );
-        dataApprovalA = dataApprovalStore.getDataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo );
-        assertNull( dataApprovalA );
-        dataApprovalB = dataApprovalStore.getDataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo );
-        assertNull( dataApprovalB );
-    }
+  @Test
+  void testDeleteDataApproval() {
+    dataApprovalLevelService.addDataApprovalLevel(level1);
+    dataApprovalLevelService.addDataApprovalLevel(level2);
+    Date date = new Date();
+    DataApproval dataApprovalA =
+        new DataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA);
+    DataApproval dataApprovalB =
+        new DataApproval(
+            level2, workflowB12, periodB, sourceB, categoryOptionCombo, false, date, userB);
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
+    dataApprovalA =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+    assertNotNull(dataApprovalA);
+    dataApprovalB =
+        dataApprovalStore.getDataApproval(
+            level2, workflowB12, periodB, sourceB, categoryOptionCombo);
+    assertNotNull(dataApprovalB);
+    dataApprovalStore.deleteDataApproval(dataApprovalA);
+    dataApprovalA =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+    assertNull(dataApprovalA);
+    dataApprovalB =
+        dataApprovalStore.getDataApproval(
+            level2, workflowB12, periodB, sourceB, categoryOptionCombo);
+    assertNotNull(dataApprovalB);
+    dataApprovalStore.deleteDataApproval(dataApprovalB);
+    dataApprovalA =
+        dataApprovalStore.getDataApproval(
+            level1, workflowA12, periodA, sourceA, categoryOptionCombo);
+    assertNull(dataApprovalA);
+    dataApprovalB =
+        dataApprovalStore.getDataApproval(
+            level2, workflowB12, periodB, sourceB, categoryOptionCombo);
+    assertNull(dataApprovalB);
+  }
 }

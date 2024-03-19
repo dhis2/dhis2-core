@@ -27,36 +27,60 @@
  */
 package org.hisp.dhis.system;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link SystemInfo}.
- *
- * @author Volker Schmidt
- */
-class SystemInfoTest
-{
+/** Unit tests for {@link SystemInfo}. */
+class SystemInfoTest {
 
-    private DatabaseInfo databaseInfo;
+  @Test
+  void testWithoutSensitiveInfo() {
+    SystemInfo info =
+        SystemInfo.builder()
+            .jasperReportsVersion("x")
+            .environmentVariable("x")
+            .fileStoreProvider("x")
+            .readOnlyMode("x")
+            .nodeId("x")
+            .javaVersion("x")
+            .javaVendor("x")
+            .javaOpts("x")
+            .osName("x")
+            .osArchitecture("x")
+            .externalDirectory("x")
+            .readReplicaCount(-1)
+            .memoryInfo("x")
+            .cpuCores(-1)
+            .systemMonitoringUrl("x")
+            .encryption(true)
+            .redisEnabled(true)
+            .redisHostname("x")
+            .databaseInfo(DatabaseInfo.builder().name("x").build())
+            .build();
 
-    private SystemInfo systemInfo;
+    info = info.withoutSensitiveInfo();
 
-    @BeforeEach
-    void setUp()
-    {
-        databaseInfo = new DatabaseInfo();
-        systemInfo = new SystemInfo();
-        systemInfo.setDatabaseInfo( databaseInfo );
-    }
-
-    @Test
-    void instance()
-    {
-        final SystemInfo si = systemInfo.instance();
-        Assertions.assertNotSame( systemInfo, si );
-        Assertions.assertNotSame( systemInfo.getDatabaseInfo(), si.getDatabaseInfo() );
-    }
+    assertNull(info.getJasperReportsVersion());
+    assertNull(info.getEnvironmentVariable());
+    assertNull(info.getFileStoreProvider());
+    assertNull(info.getReadOnlyMode());
+    assertNull(info.getNodeId());
+    assertNull(info.getJavaVersion());
+    assertNull(info.getJavaVendor());
+    assertNull(info.getJavaOpts());
+    assertNull(info.getOsName());
+    assertNull(info.getOsArchitecture());
+    assertNull(info.getExternalDirectory());
+    assertNull(info.getReadReplicaCount());
+    assertNull(info.getMemoryInfo());
+    assertNull(info.getCpuCores());
+    assertNull(info.getSystemMonitoringUrl());
+    assertNull(info.getRedisHostname());
+    assertFalse(info.isRedisEnabled());
+    assertFalse(info.isEncryption());
+    assertNull(info.getDatabaseInfo().getName());
+  }
 }

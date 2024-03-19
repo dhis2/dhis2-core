@@ -35,62 +35,53 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ValueGeneratorService
-{
-    private final SequentialNumberCounterStore sequentialNumberCounterStore;
+public class ValueGeneratorService {
+  private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    public List<String> generateValues( TextPatternSegment segment, TextPattern textPattern, String key,
-        int numberOfValues )
-        throws ReserveValueException
-    {
-        switch ( segment.getMethod() )
-        {
-        case SEQUENTIAL:
-            return generateSequentialValues( segment, textPattern, key, numberOfValues );
-        case RANDOM:
-            return generateRandomValues( segment, numberOfValues );
-        default:
-            return List.of();
-        }
+  public List<String> generateValues(
+      TextPatternSegment segment, TextPattern textPattern, String key, int numberOfValues)
+      throws ReserveValueException {
+    switch (segment.getMethod()) {
+      case SEQUENTIAL:
+        return generateSequentialValues(segment, textPattern, key, numberOfValues);
+      case RANDOM:
+        return generateRandomValues(segment, numberOfValues);
+      default:
+        return List.of();
+    }
+  }
+
+  private List<String> generateSequentialValues(
+      TextPatternSegment segment, TextPattern textPattern, String key, int numberOfValues)
+      throws ReserveValueException {
+    BigInteger maxValue = BigInteger.TEN.pow(segment.getParameter().length());
+    List<Integer> generatedNumbers =
+        sequentialNumberCounterStore.getNextValues(textPattern.getOwnerUid(), key, numberOfValues);
+
+    boolean outOfValues = generatedNumbers.stream().anyMatch(n -> maxValue.intValue() <= n);
+
+    if (outOfValues) {
+      throw new ReserveValueException("Unable to reserve value, no new values available.");
     }
 
-    private List<String> generateSequentialValues( TextPatternSegment segment, TextPattern textPattern, String key,
-        int numberOfValues )
-        throws ReserveValueException
-    {
-        BigInteger maxValue = BigInteger.TEN.pow( segment.getParameter().length() );
-        List<Integer> generatedNumbers = sequentialNumberCounterStore
-            .getNextValues( textPattern.getOwnerUid(), key, numberOfValues );
+    return generatedNumbers.stream()
+        .map(n -> String.format("%0" + segment.getParameter().length() + "d", n))
+        .collect(Collectors.toList());
+  }
 
-        boolean outOfValues = generatedNumbers.stream()
-            .anyMatch( n -> maxValue.intValue() <= n );
-
-        if ( outOfValues )
-        {
-            throw new ReserveValueException( "Unable to reserve value, no new values available." );
-        }
-
-        return generatedNumbers
-            .stream()
-            .map( n -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<String> generateRandomValues( TextPatternSegment segment, int numberOfValues )
-    {
-        String pattern = segment.getParameter();
-        return IntStream.range( 0, numberOfValues )
-            .mapToObj( i -> RandomPatternValueGenerator.generateRandomValues( pattern, RANDOM_GENERATION_CHUNK ) )
-            .flatMap( Collection::stream )
-            .collect( toUnmodifiableList() );
-    }
+  private List<String> generateRandomValues(TextPatternSegment segment, int numberOfValues) {
+    String pattern = segment.getParameter();
+    return IntStream.range(0, numberOfValues)
+        .mapToObj(
+            i -> RandomPatternValueGenerator.generateRandomValues(pattern, RANDOM_GENERATION_CHUNK))
+        .flatMap(Collection::stream)
+        .collect(toUnmodifiableList());
+  }
 }

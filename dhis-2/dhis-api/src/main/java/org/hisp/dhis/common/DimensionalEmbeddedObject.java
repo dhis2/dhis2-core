@@ -32,12 +32,10 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface DimensionalEmbeddedObject
-    extends EmbeddedObject
-{
-    int getId();
+public interface DimensionalEmbeddedObject extends EmbeddedObject {
+  int getId();
 
-    DimensionalObject getDimension();
+  DimensionalObject getDimension();
 
-    List<? extends DimensionalItemObject> getItems();
+  List<? extends DimensionalItemObject> getItems();
 }

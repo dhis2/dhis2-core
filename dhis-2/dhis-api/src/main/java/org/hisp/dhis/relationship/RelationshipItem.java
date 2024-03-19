@@ -27,96 +27,81 @@
  */
 package org.hisp.dhis.relationship;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Stian Sandvold
  */
-public class RelationshipItem implements EmbeddedObject
-{
-    private int id;
+public class RelationshipItem implements EmbeddedObject {
+  private int id;
 
-    private Relationship relationship;
+  private Relationship relationship;
 
-    private TrackedEntityInstance trackedEntityInstance;
+  private TrackedEntity trackedEntity;
 
-    private ProgramInstance programInstance;
+  private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+  private Event event;
 
-    public RelationshipItem()
-    {
+  public RelationshipItem() {}
 
-    }
+  public int getId() {
+    return id;
+  }
 
-    public int getId()
-    {
-        return id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Relationship getRelationship() {
+    return relationship;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Relationship getRelationship()
-    {
-        return relationship;
-    }
+  public void setRelationship(Relationship relationship) {
+    this.relationship = relationship;
+  }
 
-    public void setRelationship( Relationship relationship )
-    {
-        this.relationship = relationship;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public TrackedEntity getTrackedEntity() {
+    return trackedEntity;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public TrackedEntityInstance getTrackedEntityInstance()
-    {
-        return trackedEntityInstance;
-    }
+  public void setTrackedEntity(TrackedEntity trackedEntity) {
+    this.trackedEntity = trackedEntity;
+  }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
-    {
-        this.trackedEntityInstance = trackedEntityInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Enrollment getEnrollment() {
+    return enrollment;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
+  public void setEnrollment(Enrollment enrollment) {
+    this.enrollment = enrollment;
+  }
 
-    public void setProgramInstance( ProgramInstance programInstance )
-    {
-        this.programInstance = programInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Event getEvent() {
+    return event;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
-
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        this.programStageInstance = programStageInstance;
-    }
+  public void setEvent(Event event) {
+    this.event = event;
+  }
 }

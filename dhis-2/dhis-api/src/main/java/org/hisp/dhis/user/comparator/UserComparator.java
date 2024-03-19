@@ -28,37 +28,30 @@
 package org.hisp.dhis.user.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.user.User;
 
 /**
  * @author mortenoh
  */
-public class UserComparator
-    implements Comparator<User>
-{
-    public static final UserComparator INSTANCE = new UserComparator();
+public class UserComparator implements Comparator<User> {
+  public static final UserComparator INSTANCE = new UserComparator();
 
-    @Override
-    public int compare( User u0, User u1 )
-    {
-        if ( u0 == null )
-        {
-            return 1;
-        }
-
-        if ( u1 == null )
-        {
-            return -1;
-        }
-
-        int compare = u0.getSurname().compareTo( u1.getSurname() );
-
-        if ( compare != 0 )
-        {
-            return compare;
-        }
-
-        return u0.getFirstName().compareTo( u1.getFirstName() );
+  @Override
+  public int compare(User u0, User u1) {
+    if (u0 == null) {
+      return 1;
     }
+
+    if (u1 == null) {
+      return -1;
+    }
+
+    int compare = u0.getSurname().compareTo(u1.getSurname());
+
+    if (compare != 0) {
+      return compare;
+    }
+
+    return u0.getFirstName().compareTo(u1.getFirstName());
+  }
 }

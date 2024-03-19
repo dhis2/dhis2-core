@@ -27,35 +27,28 @@
  */
 package org.hisp.dhis.common.adapter;
 
-import java.io.IOException;
-
-import org.hisp.dhis.period.Period;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import org.hisp.dhis.period.Period;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JacksonPeriodSerializer
-    extends JsonSerializer<Period>
-{
-    @Override
-    public void serialize( Period value, JsonGenerator jgen, SerializerProvider provider )
-        throws IOException
-    {
-        if ( value != null && value.getIsoDate() != null )
-        {
-            jgen.writeStartObject();
-            jgen.writeStringField( "id", value.getIsoDate() );
+public class JacksonPeriodSerializer extends JsonSerializer<Period> {
+  @Override
+  public void serialize(Period value, JsonGenerator jgen, SerializerProvider provider)
+      throws IOException {
+    if (value != null && value.getIsoDate() != null) {
+      jgen.writeStartObject();
+      jgen.writeStringField("id", value.getIsoDate());
 
-            if ( value.getName() != null )
-            {
-                jgen.writeStringField( "name", value.getName() );
-            }
+      if (value.getName() != null) {
+        jgen.writeStringField("name", value.getName());
+      }
 
-            jgen.writeEndObject();
-        }
+      jgen.writeEndObject();
     }
+  }
 }

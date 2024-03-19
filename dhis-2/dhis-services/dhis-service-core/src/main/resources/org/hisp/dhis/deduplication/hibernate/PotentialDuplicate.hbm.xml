@@ -29,9 +29,9 @@
         <property name="lastUpdatedByUserName" column="lastupdatebyusername" not-null="true" />
 
         <property name="createdByUserName" column="createdbyusername" not-null="true" />
-        <property name="original" column="teiA" length="11" not-null="true" />
+        <property name="original" column="original" length="11" not-null="true" />
 
-        <property name="duplicate" column="teiB" length="11" not-null="true" />
+        <property name="duplicate" column="duplicate" length="11" not-null="true" />
 
         <property name="status" column="status">
             <type name="org.hibernate.type.EnumType">

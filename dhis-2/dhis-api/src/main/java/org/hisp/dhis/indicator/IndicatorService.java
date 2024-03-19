@@ -28,79 +28,101 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Lars Helge Overland
  */
-public interface IndicatorService
-{
-    // -------------------------------------------------------------------------
-    // Indicator
-    // -------------------------------------------------------------------------
+public interface IndicatorService {
+  // -------------------------------------------------------------------------
+  // Indicator
+  // -------------------------------------------------------------------------
 
-    long addIndicator( Indicator indicator );
+  long addIndicator(Indicator indicator);
 
-    void updateIndicator( Indicator indicator );
+  void updateIndicator(Indicator indicator);
 
-    void deleteIndicator( Indicator indicator );
+  void deleteIndicator(Indicator indicator);
 
-    Indicator getIndicator( long id );
+  Indicator getIndicator(long id);
 
-    Indicator getIndicator( String uid );
+  Indicator getIndicator(String uid);
 
-    List<Indicator> getAllIndicators();
+  List<Indicator> getAllIndicators();
 
-    List<Indicator> getIndicatorsWithGroupSets();
+  List<Indicator> getIndicatorsWithGroupSets();
 
-    List<Indicator> getIndicatorsWithoutGroups();
+  List<Indicator> getIndicatorsWithoutGroups();
 
-    List<Indicator> getIndicatorsWithDataSets();
+  List<Indicator> getIndicatorsWithDataSets();
 
-    // -------------------------------------------------------------------------
-    // IndicatorType
-    // -------------------------------------------------------------------------
+  List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes);
 
-    long addIndicatorType( IndicatorType indicatorType );
+  List<Indicator> getIndicatorsByUid(List<String> uids);
 
-    void updateIndicatorType( IndicatorType indicatorType );
+  /**
+   * Get all {@link Indicator}s that have the uid contained in its numerator
+   *
+   * @param uid to search
+   * @return matching {@link Indicator}s
+   */
+  List<Indicator> getIndicatorsWithNumeratorContaining(UID uid);
 
-    void deleteIndicatorType( IndicatorType indicatorType );
+  /**
+   * Get all {@link Indicator}s that have the uid contained in its denominator
+   *
+   * @param uid to search
+   * @return matching {@link Indicator}s
+   */
+  List<Indicator> getIndicatorsWithDenominatorContaining(UID uid);
 
-    IndicatorType getIndicatorType( long id );
+  // -------------------------------------------------------------------------
+  // IndicatorType
+  // -------------------------------------------------------------------------
 
-    IndicatorType getIndicatorType( String uid );
+  long addIndicatorType(IndicatorType indicatorType);
 
-    List<IndicatorType> getAllIndicatorTypes();
+  void updateIndicatorType(IndicatorType indicatorType);
 
-    // -------------------------------------------------------------------------
-    // IndicatorGroup
-    // -------------------------------------------------------------------------
+  void deleteIndicatorType(IndicatorType indicatorType);
 
-    long addIndicatorGroup( IndicatorGroup indicatorGroup );
+  IndicatorType getIndicatorType(long id);
 
-    void updateIndicatorGroup( IndicatorGroup indicatorGroup );
+  IndicatorType getIndicatorType(String uid);
 
-    void deleteIndicatorGroup( IndicatorGroup indicatorGroup );
+  List<IndicatorType> getAllIndicatorTypes();
 
-    IndicatorGroup getIndicatorGroup( long id );
+  List<IndicatorType> getIndicatorTypesByUid(List<String> uids);
 
-    IndicatorGroup getIndicatorGroup( String uid );
+  // -------------------------------------------------------------------------
+  // IndicatorGroup
+  // -------------------------------------------------------------------------
 
-    List<IndicatorGroup> getAllIndicatorGroups();
+  long addIndicatorGroup(IndicatorGroup indicatorGroup);
 
-    // -------------------------------------------------------------------------
-    // IndicatorGroupSet
-    // -------------------------------------------------------------------------
+  void updateIndicatorGroup(IndicatorGroup indicatorGroup);
 
-    long addIndicatorGroupSet( IndicatorGroupSet groupSet );
+  void deleteIndicatorGroup(IndicatorGroup indicatorGroup);
 
-    void updateIndicatorGroupSet( IndicatorGroupSet groupSet );
+  IndicatorGroup getIndicatorGroup(long id);
 
-    void deleteIndicatorGroupSet( IndicatorGroupSet groupSet );
+  IndicatorGroup getIndicatorGroup(String uid);
 
-    IndicatorGroupSet getIndicatorGroupSet( long id );
+  List<IndicatorGroup> getAllIndicatorGroups();
 
-    IndicatorGroupSet getIndicatorGroupSet( String uid );
+  // -------------------------------------------------------------------------
+  // IndicatorGroupSet
+  // -------------------------------------------------------------------------
 
-    List<IndicatorGroupSet> getAllIndicatorGroupSets();
+  long addIndicatorGroupSet(IndicatorGroupSet groupSet);
+
+  void updateIndicatorGroupSet(IndicatorGroupSet groupSet);
+
+  void deleteIndicatorGroupSet(IndicatorGroupSet groupSet);
+
+  IndicatorGroupSet getIndicatorGroupSet(long id);
+
+  IndicatorGroupSet getIndicatorGroupSet(String uid);
+
+  List<IndicatorGroupSet> getAllIndicatorGroupSets();
 }

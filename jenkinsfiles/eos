@@ -4,7 +4,7 @@
 
 pipeline {
     agent {
-        label 'ec2-jdk11'
+        label 'ec2-jdk17'
     }
 
     triggers {

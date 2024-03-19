@@ -33,8 +33,6 @@ import org.hisp.dhis.user.User;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public interface DocumentStore
-    extends IdentifiableObjectStore<Document>
-{
-    long getCountByUser( User user );
+public interface DocumentStore extends IdentifiableObjectStore<Document> {
+  long getCountByUser(User user);
 }

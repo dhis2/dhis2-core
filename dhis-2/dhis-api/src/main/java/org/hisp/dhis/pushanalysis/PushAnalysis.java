@@ -27,162 +27,128 @@
  */
 package org.hisp.dhis.pushanalysis;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.user.UserGroup;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-
 /**
- * PushAnalysis generates reports based on a Dashboard, and sends them to
- * UserGroups at given Intervals.
+ * PushAnalysis generates reports based on a Dashboard, and sends them to UserGroups at given
+ * Intervals.
  *
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
-public class PushAnalysis
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    /**
-     * PushAnalysis uses a dashboard to base it's reports on
-     */
-    private Dashboard dashboard;
+@JacksonXmlRootElement(localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0)
+public class PushAnalysis extends BaseIdentifiableObject implements MetadataObject {
+  /** PushAnalysis uses a dashboard to base it's reports on */
+  private Dashboard dashboard;
 
-    /**
-     * Title of the report. Will be at the top of each report
-     */
-    private String title;
+  /** Title of the report. Will be at the top of each report */
+  private String title;
 
-    /**
-     * The message will be written in the report. Used to explain or describe
-     * reports to users
-     */
-    private String message;
+  /** The message will be written in the report. Used to explain or describe reports to users */
+  private String message;
 
-    /**
-     * PushAnalysis reports are sent to one or more userGroups
-     */
-    private Set<UserGroup> recipientUserGroups = new HashSet<>();
+  /** PushAnalysis reports are sent to one or more userGroups */
+  private Set<UserGroup> recipientUserGroups = new HashSet<>();
 
-    private boolean enabled;
+  private boolean enabled;
 
-    private Integer schedulingDayOfFrequency;
+  private Integer schedulingDayOfFrequency;
 
-    private SchedulingFrequency schedulingFrequency;
+  private SchedulingFrequency schedulingFrequency;
 
-    public PushAnalysis()
-    {
-    }
+  public PushAnalysis() {}
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Dashboard getDashboard()
-    {
-        return dashboard;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Dashboard getDashboard() {
+    return dashboard;
+  }
 
-    public void setDashboard( Dashboard dashboard )
-    {
-        this.dashboard = dashboard;
-    }
+  public void setDashboard(Dashboard dashboard) {
+    this.dashboard = dashboard;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroup> getRecipientUserGroups()
-    {
-        return recipientUserGroups;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<UserGroup> getRecipientUserGroups() {
+    return recipientUserGroups;
+  }
 
-    public void setRecipientUserGroups( Set<UserGroup> recipientUserGroups )
-    {
-        this.recipientUserGroups = recipientUserGroups;
-    }
+  public void setRecipientUserGroups(Set<UserGroup> recipientUserGroups) {
+    this.recipientUserGroups = recipientUserGroups;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getName() {
+    return name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessage()
-    {
-        return message;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getMessage() {
+    return message;
+  }
 
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTitle()
-    {
-        return title;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getTitle() {
+    return title;
+  }
 
-    public void setTitle( String title )
-    {
-        this.title = title;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "dashboard", dashboard )
-            .add( "title", title )
-            .add( "message", message )
-            .add( "recipientUserGroups", recipientUserGroups )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("dashboard", dashboard)
+        .add("title", title)
+        .add("message", message)
+        .add("recipientUserGroups", recipientUserGroups)
+        .toString();
+  }
 
-    // Deprecated since 2.29
-    public SchedulingFrequency getSchedulingFrequency()
-    {
-        return schedulingFrequency;
-    }
+  // Deprecated since 2.29
+  public SchedulingFrequency getSchedulingFrequency() {
+    return schedulingFrequency;
+  }
 
-    public void setSchedulingFrequency( SchedulingFrequency schedulingFrequency )
-    {
-        this.schedulingFrequency = schedulingFrequency;
-    }
+  public void setSchedulingFrequency(SchedulingFrequency schedulingFrequency) {
+    this.schedulingFrequency = schedulingFrequency;
+  }
 
-    public Integer getSchedulingDayOfFrequency()
-    {
-        return schedulingDayOfFrequency;
-    }
+  public Integer getSchedulingDayOfFrequency() {
+    return schedulingDayOfFrequency;
+  }
 
-    public void setSchedulingDayOfFrequency( Integer schedulingDayOfFrequency )
-    {
-        this.schedulingDayOfFrequency = schedulingDayOfFrequency;
-    }
+  public void setSchedulingDayOfFrequency(Integer schedulingDayOfFrequency) {
+    this.schedulingDayOfFrequency = schedulingDayOfFrequency;
+  }
 
-    public boolean getEnabled()
-    {
-        return enabled;
-    }
+  public boolean getEnabled() {
+    return enabled;
+  }
 
-    public void setEnabled( boolean enabled )
-    {
-        this.enabled = enabled;
-    }
-
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 }

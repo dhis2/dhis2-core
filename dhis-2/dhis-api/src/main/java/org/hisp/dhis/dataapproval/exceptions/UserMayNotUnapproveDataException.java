@@ -30,11 +30,8 @@ package org.hisp.dhis.dataapproval.exceptions;
 /**
  * @author Jim Grace
  */
-public class UserMayNotUnapproveDataException
-    extends DataApprovalException
-{
-    public UserMayNotUnapproveDataException()
-    {
-        super();
-    }
+public class UserMayNotUnapproveDataException extends DataApprovalException {
+  public UserMayNotUnapproveDataException() {
+    super();
+  }
 }

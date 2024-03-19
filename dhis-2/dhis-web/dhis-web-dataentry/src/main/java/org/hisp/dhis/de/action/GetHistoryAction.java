@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.de.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,273 +54,247 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Torgeir Lorange Ostby
  * @author Halvdan Hoem Grelland
  */
-public class GetHistoryAction
-    implements Action
-{
-    private static final int HISTORY_LENGTH = 13;
+public class GetHistoryAction implements Action {
+  private static final int HISTORY_LENGTH = 13;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private HistoryRetriever historyRetriever;
+  private HistoryRetriever historyRetriever;
 
-    public void setHistoryRetriever( HistoryRetriever historyRetriever )
-    {
-        this.historyRetriever = historyRetriever;
+  public void setHistoryRetriever(HistoryRetriever historyRetriever) {
+    this.historyRetriever = historyRetriever;
+  }
+
+  private DataElementService dataElementService;
+
+  public void setDataElementService(DataElementService dataElementService) {
+    this.dataElementService = dataElementService;
+  }
+
+  private DataValueService dataValueService;
+
+  public void setDataValueService(DataValueService dataValueService) {
+    this.dataValueService = dataValueService;
+  }
+
+  private CategoryService categoryService;
+
+  public void setCategoryService(CategoryService categoryService) {
+    this.categoryService = categoryService;
+  }
+
+  private DataValueAuditService dataValueAuditService;
+
+  public void setDataValueAuditService(DataValueAuditService dataValueAuditService) {
+    this.dataValueAuditService = dataValueAuditService;
+  }
+
+  private OrganisationUnitService organisationUnitService;
+
+  public void setOrganisationUnitService(OrganisationUnitService organisationUnitService) {
+    this.organisationUnitService = organisationUnitService;
+  }
+
+  private UserService userService;
+
+  public void setUserService(UserService userService) {
+    this.userService = userService;
+  }
+
+  private FileResourceService fileResourceService;
+
+  public void setFileResourceService(FileResourceService fileResourceService) {
+    this.fileResourceService = fileResourceService;
+  }
+
+  @Autowired private InputUtils inputUtils;
+
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
+
+  private String dataElementId;
+
+  public String getDataElementId() {
+    return dataElementId;
+  }
+
+  public void setDataElementId(String dataElementId) {
+    this.dataElementId = dataElementId;
+  }
+
+  private String optionComboId;
+
+  public String getOptionComboId() {
+    return optionComboId;
+  }
+
+  public void setOptionComboId(String optionComboId) {
+    this.optionComboId = optionComboId;
+  }
+
+  private String periodId;
+
+  public String getPeriodId() {
+    return periodId;
+  }
+
+  public void setPeriodId(String periodId) {
+    this.periodId = periodId;
+  }
+
+  private String organisationUnitId;
+
+  public void setOrganisationUnitId(String organisationUnitId) {
+    this.organisationUnitId = organisationUnitId;
+  }
+
+  private String cc;
+
+  public void setCc(String cc) {
+    this.cc = cc;
+  }
+
+  private String cp;
+
+  public void setCp(String cp) {
+    this.cp = cp;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private DataElementHistory dataElementHistory;
+
+  public DataElementHistory getDataElementHistory() {
+    return dataElementHistory;
+  }
+
+  private boolean historyInvalid;
+
+  public boolean isHistoryInvalid() {
+    return historyInvalid;
+  }
+
+  private boolean minMaxInvalid;
+
+  public boolean isMinMaxInvalid() {
+    return minMaxInvalid;
+  }
+
+  private DataValue dataValue;
+
+  public DataValue getDataValue() {
+    return dataValue;
+  }
+
+  private Collection<DataValueAudit> dataValueAudits;
+
+  public Collection<DataValueAudit> getDataValueAudits() {
+    return dataValueAudits;
+  }
+
+  private String storedBy;
+
+  public String getStoredBy() {
+    return storedBy;
+  }
+
+  private OptionSet commentOptionSet;
+
+  public OptionSet getCommentOptionSet() {
+    return commentOptionSet;
+  }
+
+  private Map<String, String> fileNames;
+
+  public Map<String, String> getFileNames() {
+    return fileNames;
+  }
+
+  private String attributeOptionComboId;
+
+  public String getAttributeOptionComboId() {
+    return attributeOptionComboId;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    DataElement dataElement = dataElementService.getDataElement(dataElementId);
+
+    CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo(optionComboId);
+
+    if (categoryOptionCombo == null) {
+      categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
-    private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
+    if (dataElement == null) {
+      throw new IllegalArgumentException("DataElement doesn't exist: " + dataElementId);
     }
 
-    private DataValueService dataValueService;
+    Period period = PeriodType.getPeriodFromIsoString(periodId);
 
-    public void setDataValueService( DataValueService dataValueService )
-    {
-        this.dataValueService = dataValueService;
+    OrganisationUnit organisationUnit =
+        organisationUnitService.getOrganisationUnit(organisationUnitId);
+
+    CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(cc, cp, false);
+
+    dataElementHistory =
+        historyRetriever.getHistory(
+            dataElement,
+            categoryOptionCombo,
+            attributeOptionCombo,
+            organisationUnit,
+            period,
+            HISTORY_LENGTH);
+
+    dataValueAudits =
+        dataValueAuditService.getDataValueAudits(
+            new DataValueAuditQueryParams()
+                .setDataElements(List.of(dataElement))
+                .setPeriods(List.of(period))
+                .setOrgUnits(List.of(organisationUnit))
+                .setCategoryOptionCombo(categoryOptionCombo)
+                .setAttributeOptionCombo(attributeOptionCombo));
+
+    dataValue =
+        dataValueService.getDataValue(
+            dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
+
+    if (dataValue != null) {
+      User credentials = userService.getUserByUsername(dataValue.getStoredBy());
+      storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
     }
 
-    private CategoryService categoryService;
-
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
+    if (dataElement.isFileType()) {
+      fileNames = new HashMap<>();
+      dataValueAudits.removeIf(
+          audit -> fileResourceService.getFileResource(audit.getValue()) == null);
+      dataValueAudits.stream()
+          .filter(audit -> audit != null)
+          .map(audit -> fileResourceService.getFileResource(audit.getValue()))
+          .forEach(fr -> fileNames.put(fr.getUid(), fr.getName()));
     }
 
-    private DataValueAuditService dataValueAuditService;
+    historyInvalid = dataElementHistory == null;
 
-    public void setDataValueAuditService( DataValueAuditService dataValueAuditService )
-    {
-        this.dataValueAuditService = dataValueAuditService;
-    }
+    minMaxInvalid = !dataElement.getValueType().isNumeric();
 
-    private OrganisationUnitService organisationUnitService;
+    commentOptionSet = dataElement.getCommentOptionSet();
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
+    attributeOptionComboId = attributeOptionCombo.getUid();
 
-    private UserService userService;
-
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
-
-    private FileResourceService fileResourceService;
-
-    public void setFileResourceService( FileResourceService fileResourceService )
-    {
-        this.fileResourceService = fileResourceService;
-    }
-
-    @Autowired
-    private InputUtils inputUtils;
-
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
-
-    private String dataElementId;
-
-    public String getDataElementId()
-    {
-        return dataElementId;
-    }
-
-    public void setDataElementId( String dataElementId )
-    {
-        this.dataElementId = dataElementId;
-    }
-
-    private String optionComboId;
-
-    public String getOptionComboId()
-    {
-        return optionComboId;
-    }
-
-    public void setOptionComboId( String optionComboId )
-    {
-        this.optionComboId = optionComboId;
-    }
-
-    private String periodId;
-
-    public String getPeriodId()
-    {
-        return periodId;
-    }
-
-    public void setPeriodId( String periodId )
-    {
-        this.periodId = periodId;
-    }
-
-    private String organisationUnitId;
-
-    public void setOrganisationUnitId( String organisationUnitId )
-    {
-        this.organisationUnitId = organisationUnitId;
-    }
-
-    private String cc;
-
-    public void setCc( String cc )
-    {
-        this.cc = cc;
-    }
-
-    private String cp;
-
-    public void setCp( String cp )
-    {
-        this.cp = cp;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private DataElementHistory dataElementHistory;
-
-    public DataElementHistory getDataElementHistory()
-    {
-        return dataElementHistory;
-    }
-
-    private boolean historyInvalid;
-
-    public boolean isHistoryInvalid()
-    {
-        return historyInvalid;
-    }
-
-    private boolean minMaxInvalid;
-
-    public boolean isMinMaxInvalid()
-    {
-        return minMaxInvalid;
-    }
-
-    private DataValue dataValue;
-
-    public DataValue getDataValue()
-    {
-        return dataValue;
-    }
-
-    private Collection<DataValueAudit> dataValueAudits;
-
-    public Collection<DataValueAudit> getDataValueAudits()
-    {
-        return dataValueAudits;
-    }
-
-    private String storedBy;
-
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    private OptionSet commentOptionSet;
-
-    public OptionSet getCommentOptionSet()
-    {
-        return commentOptionSet;
-    }
-
-    private Map<String, String> fileNames;
-
-    public Map<String, String> getFileNames()
-    {
-        return fileNames;
-    }
-
-    private String attributeOptionComboId;
-
-    public String getAttributeOptionComboId()
-    {
-        return attributeOptionComboId;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        DataElement dataElement = dataElementService.getDataElement( dataElementId );
-
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( optionComboId );
-
-        if ( categoryOptionCombo == null )
-        {
-            categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        }
-
-        if ( dataElement == null )
-        {
-            throw new IllegalArgumentException( "DataElement doesn't exist: " + dataElementId );
-        }
-
-        Period period = PeriodType.getPeriodFromIsoString( periodId );
-
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
-
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
-
-        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo,
-            organisationUnit, period, HISTORY_LENGTH );
-
-        dataValueAudits = dataValueAuditService.getDataValueAudits( new DataValueAuditQueryParams()
-            .setDataElements( List.of( dataElement ) )
-            .setPeriods( List.of( period ) )
-            .setOrgUnits( List.of( organisationUnit ) )
-            .setCategoryOptionCombo( categoryOptionCombo )
-            .setAttributeOptionCombo( attributeOptionCombo ) );
-
-        dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo,
-            attributeOptionCombo );
-
-        if ( dataValue != null )
-        {
-            User credentials = userService.getUserByUsername( dataValue.getStoredBy() );
-            storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
-        }
-
-        if ( dataElement.isFileType() )
-        {
-            fileNames = new HashMap<>();
-            dataValueAudits.removeIf( audit -> fileResourceService.getFileResource( audit.getValue() ) == null );
-            dataValueAudits.stream()
-                .filter( audit -> audit != null )
-                .map( audit -> fileResourceService.getFileResource( audit.getValue() ) )
-                .forEach( fr -> fileNames.put( fr.getUid(), fr.getName() ) );
-        }
-
-        historyInvalid = dataElementHistory == null;
-
-        minMaxInvalid = !dataElement.getValueType().isNumeric();
-
-        commentOptionSet = dataElement.getCommentOptionSet();
-
-        attributeOptionComboId = attributeOptionCombo.getUid();
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

@@ -30,278 +30,266 @@ package org.hisp.dhis.period;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * @author Kristian Nordal
  */
-public interface PeriodService
-{
-    // -------------------------------------------------------------------------
-    // Period
-    // -------------------------------------------------------------------------
+public interface PeriodService {
+  // -------------------------------------------------------------------------
+  // Period
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds a Period.
-     *
-     * @param period the Period to add.
-     * @return a generated unique id of the added Period.
-     */
-    long addPeriod( Period period );
+  /**
+   * Adds a Period.
+   *
+   * @param period the Period to add.
+   * @return a generated unique id of the added Period.
+   */
+  long addPeriod(Period period);
 
-    /**
-     * Deletes a Period.
-     *
-     * @param period the Period to delete.
-     */
-    void deletePeriod( Period period );
+  /**
+   * Deletes a Period.
+   *
+   * @param period the Period to delete.
+   */
+  void deletePeriod(Period period);
 
-    /**
-     * Returns a Period.
-     *
-     * @param id the id of the Period to return.
-     * @return the Period with the given id, or null if no match.
-     */
-    Period getPeriod( long id );
+  /**
+   * Returns a Period.
+   *
+   * @param id the id of the Period to return.
+   * @return the Period with the given id, or null if no match.
+   */
+  Period getPeriod(long id);
 
-    /**
-     * Gets the Period with the given ISO period identifier.
-     *
-     * @param isoPeriod the ISO period identifier.
-     * @return the Period with the given ISO period identifier.
-     */
-    Period getPeriod( String isoPeriod );
+  /**
+   * Gets the Period with the given ISO period identifier.
+   *
+   * @param isoPeriod the ISO period identifier.
+   * @return the Period with the given ISO period identifier.
+   */
+  Period getPeriod(String isoPeriod);
 
-    /**
-     * Returns a Period.
-     *
-     * @param startDate the start date of the Period.
-     * @param endDate the end date of the Period.
-     * @param periodType the PeriodType of the Period
-     * @return the Period matching the dates and periodtype, or null if no
-     *         match.
-     */
-    Period getPeriod( Date startDate, Date endDate, PeriodType periodType );
+  /**
+   * Returns a Period.
+   *
+   * @param startDate the start date of the Period.
+   * @param endDate the end date of the Period.
+   * @param periodType the PeriodType of the Period
+   * @return the Period matching the dates and periodtype, or null if no match.
+   */
+  Period getPeriod(Date startDate, Date endDate, PeriodType periodType);
 
-    /**
-     * Returns a Period.
-     *
-     * @param startDate the start date of the Period.
-     * @param endDate the end date of the Period.
-     * @param periodType the PeriodType of the Period
-     * @return the Period matching the dates and periodtype, or null if no
-     *         match.
-     */
-    Period getPeriodFromDates( Date startDate, Date endDate, PeriodType periodType );
+  /**
+   * Returns a Period.
+   *
+   * @param startDate the start date of the Period.
+   * @param endDate the end date of the Period.
+   * @param periodType the PeriodType of the Period
+   * @return the Period matching the dates and periodtype, or null if no match.
+   */
+  Period getPeriodFromDates(Date startDate, Date endDate, PeriodType periodType);
 
-    /**
-     * Returns all persisted Periods.
-     *
-     * @return all persisted Periods.
-     */
-    List<Period> getAllPeriods();
+  /**
+   * Returns all persisted Periods.
+   *
+   * @return all persisted Periods.
+   */
+  List<Period> getAllPeriods();
 
-    /**
-     * Returns all Periods with start date after or equal the specified start
-     * date and end date before or equal the specified end date.
-     *
-     * @param startDate the ultimate start date.
-     * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty list if no Periods match.
-     */
-    List<Period> getPeriodsBetweenDates( Date startDate, Date endDate );
+  /**
+   * Returns all Periods with start date after or equal the specified start date and end date before
+   * or equal the specified end date.
+   *
+   * @param startDate the ultimate start date.
+   * @param endDate the ultimate end date.
+   * @return a list of all Periods with start date after or equal the specified start date and end
+   *     date before or equal the specified end date, or an empty list if no Periods match.
+   */
+  List<Period> getPeriodsBetweenDates(Date startDate, Date endDate);
 
-    /**
-     * Returns all Periods of the specified PeriodType with start date after or
-     * equal the specified start date and end date before or equal the specified
-     * end date.
-     *
-     * @param periodType the PeriodType.
-     * @param startDate the ultimate start date.
-     * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty list if no Periods match.
-     */
-    List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate );
+  /**
+   * Returns all Periods of the specified PeriodType with start date after or equal the specified
+   * start date and end date before or equal the specified end date.
+   *
+   * @param periodType the PeriodType.
+   * @param startDate the ultimate start date.
+   * @param endDate the ultimate end date.
+   * @return a list of all Periods with start date after or equal the specified start date and end
+   *     date before or equal the specified end date, or an empty list if no Periods match.
+   */
+  List<Period> getPeriodsBetweenDates(PeriodType periodType, Date startDate, Date endDate);
 
-    /**
-     * Returns all Periods with either i) start and end date between the given
-     * start and end date or ii) start date before the given start date and end
-     * date after the given end date.
-     *
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return a list of Periods.
-     */
-    List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate );
+  /**
+   * Returns all Periods with either i) start and end date between the given start and end date or
+   * ii) start date before the given start date and end date after the given end date.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return a list of Periods.
+   */
+  List<Period> getPeriodsBetweenOrSpanningDates(Date startDate, Date endDate);
 
-    /**
-     * Returns Periods where at least one its days are between the given start
-     * date and end date.
-     *
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return Periods where at least one its days are between the given start
-     *         date and end date.
-     */
-    List<Period> getIntersectingPeriods( Date startDate, Date endDate );
+  /**
+   * Returns Periods where at least one its days are between the given start date and end date.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return Periods where at least one its days are between the given start date and end date.
+   */
+  List<Period> getIntersectingPeriods(Date startDate, Date endDate);
 
-    /**
-     * Returns Periods where at least one its days are between each of the
-     * Periods start date and end date in the given collection.
-     *
-     * @param periods the collection of Periods.
-     * @return a list of Periods.
-     */
-    List<Period> getIntersectionPeriods( Collection<Period> periods );
+  /**
+   * Returns Periods where at least one its days are between each of the Periods start date and end
+   * date in the given collection.
+   *
+   * @param periods the collection of Periods.
+   * @return a list of Periods.
+   */
+  List<Period> getIntersectionPeriods(Collection<Period> periods);
 
-    /**
-     * Returns all Periods from the given collection of Periods which are
-     * completely within the span of the of the given Period.
-     *
-     * @param period the base Period.
-     * @param periods the collection of Periods.
-     * @return all Periods from the given collection of Periods which are
-     *         completely within the span of the of the given Period.
-     */
-    List<Period> getInclusivePeriods( Period period, Collection<Period> periods );
+  /**
+   * Returns all Periods from the given collection of Periods which are completely within the span
+   * of the of the given Period.
+   *
+   * @param period the base Period.
+   * @param periods the collection of Periods.
+   * @return all Periods from the given collection of Periods which are completely within the span
+   *     of the of the given Period.
+   */
+  List<Period> getInclusivePeriods(Period period, Collection<Period> periods);
 
-    /**
-     * Returns all Periods with a given PeriodType.
-     *
-     * @param periodType the PeriodType of the Periods to return.
-     * @return all Periods with the given PeriodType, or an empty list if no
-     *         Periods match.
-     */
-    List<Period> getPeriodsByPeriodType( PeriodType periodType );
+  /**
+   * Returns all Periods with a given PeriodType.
+   *
+   * @param periodType the PeriodType of the Periods to return.
+   * @return all Periods with the given PeriodType, or an empty list if no Periods match.
+   */
+  List<Period> getPeriodsByPeriodType(PeriodType periodType);
 
-    /**
-     * Enforces that each Period in the given collection is loaded in the
-     * current session. Persists the Period if it does not exist.
-     *
-     * @param periods the collection of Periods.
-     * @return the list of Periods.
-     */
-    List<Period> reloadPeriods( Collection<Period> periods );
+  /**
+   * Enforces that each Period in the given collection is loaded in the current session. Persists
+   * the Period if it does not exist.
+   *
+   * @param periods the collection of Periods.
+   * @return the list of Periods.
+   */
+  List<Period> reloadPeriods(Collection<Period> periods);
 
-    /**
-     * Returns a list of the given number of previous periods in ascending
-     * order. The given last period appears last in the returned list.
-     *
-     * @param lastPeriod the last period.
-     * @param previousPeriods the number of previous periods.
-     * @return a list of {@link Period}.
-     */
-    List<Period> getPeriods( Period lastPeriod, int previousPeriods );
+  /**
+   * Returns a list of the given number of previous periods in ascending order. The given last
+   * period appears last in the returned list.
+   *
+   * @param lastPeriod the last period.
+   * @param previousPeriods the number of previous periods.
+   * @return a list of {@link Period}.
+   */
+  List<Period> getPeriods(Period lastPeriod, int previousPeriods);
 
-    /**
-     * Populates the name property of Period with the formatted name for the
-     * Periods in the given collection.
-     *
-     * @param periods the collection of Periods.
-     * @param format the I18nFormat.
-     * @return a collection of Periods.
-     */
-    Collection<Period> namePeriods( Collection<Period> periods, I18nFormat format );
+  /**
+   * Populates the name property of Period with the formatted name for the Periods in the given
+   * collection.
+   *
+   * @param periods the collection of Periods.
+   * @param format the I18nFormat.
+   * @return a collection of Periods.
+   */
+  Collection<Period> namePeriods(Collection<Period> periods, I18nFormat format);
 
-    /**
-     * Checks if the given Period is associated with the current session. If
-     * not, replaces the Period with a Period associated with the current
-     * session. Persists the Period if not already persisted.
-     *
-     * @param period the Period to reload.
-     * @return a Period.
-     */
-    Period reloadPeriod( Period period );
+  /**
+   * Checks if the given Period is associated with the current session. If not, replaces the Period
+   * with a Period associated with the current session. Persists the Period if not already
+   * persisted.
+   *
+   * @param period the Period to reload.
+   * @return a Period.
+   */
+  Period reloadPeriod(Period period);
 
-    Period reloadIsoPeriodInStatelessSession( String isoPeriod );
+  Period reloadIsoPeriodInStatelessSession(String isoPeriod);
 
-    /**
-     * Retrieves the period with the given ISO period identifier. Reloads the
-     * period in the session if found.
-     *
-     * @param isoPeriod the ISO period identifier.
-     * @return a Period.
-     */
-    Period reloadIsoPeriod( String isoPeriod );
+  /**
+   * Retrieves the period with the given ISO period identifier. Reloads the period in the session if
+   * found.
+   *
+   * @param isoPeriod the ISO period identifier.
+   * @return a Period.
+   */
+  Period reloadIsoPeriod(String isoPeriod);
 
-    /**
-     * Retrieves the period with the given ISO period identifiers. Reloads the
-     * periods in the session if found.
-     *
-     * @param isoPeriods the list of ISO period identifiers.
-     * @return a list of Periods.
-     */
-    List<Period> reloadIsoPeriods( List<String> isoPeriods );
+  /**
+   * Retrieves the period with the given ISO period identifiers. Reloads the periods in the session
+   * if found.
+   *
+   * @param isoPeriods the list of ISO period identifiers.
+   * @return a list of Periods.
+   */
+  List<Period> reloadIsoPeriods(List<String> isoPeriods);
 
-    /**
-     * Returns a PeriodHierarchy instance.
-     *
-     * @param periods the Periods to include in the PeriodHierarchy.
-     * @return a PeriodHierarchy instance.
-     */
-    PeriodHierarchy getPeriodHierarchy( Collection<Period> periods );
+  /**
+   * Returns a PeriodHierarchy instance.
+   *
+   * @param periods the Periods to include in the PeriodHierarchy.
+   * @return a PeriodHierarchy instance.
+   */
+  PeriodHierarchy getPeriodHierarchy(Collection<Period> periods);
 
-    /**
-     * Returns how many days into period date is. If date is before
-     * period.startDate, returns 0. If date is after period.endDate, return last
-     * day of period.
-     *
-     * @param period the period.
-     * @param date the date.
-     * @return the day in period.
-     */
-    int getDayInPeriod( Period period, Date date );
+  /**
+   * Returns how many days into period date is. If date is before period.startDate, returns 0. If
+   * date is after period.endDate, return last day of period.
+   *
+   * @param period the period.
+   * @param date the date.
+   * @return the day in period.
+   */
+  int getDayInPeriod(Period period, Date date);
 
-    // -------------------------------------------------------------------------
-    // PeriodType
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PeriodType
+  // -------------------------------------------------------------------------
 
-    /**
-     * Returns a persisted PeriodType.
-     *
-     * @param id the id of the PeriodType to return.
-     * @return the PeriodType with the given id, or null if no match.
-     */
-    PeriodType getPeriodType( int id );
+  /**
+   * Returns a persisted PeriodType.
+   *
+   * @param id the id of the PeriodType to return.
+   * @return the PeriodType with the given id, or null if no match.
+   */
+  PeriodType getPeriodType(int id);
 
-    /**
-     * Returns a PeriodType with a given name.
-     *
-     * @param name the name of the PeriodType to return.
-     * @return the PeriodType with the given name, or null if no match.
-     */
-    PeriodType getPeriodTypeByName( String name );
+  /**
+   * Returns a PeriodType with a given name.
+   *
+   * @param name the name of the PeriodType to return.
+   * @return the PeriodType with the given name, or null if no match.
+   */
+  PeriodType getPeriodTypeByName(String name);
 
-    /**
-     * Returns a persisted PeriodType represented by the given Class.
-     *
-     * @param periodType the Class type of the PeriodType.
-     * @return a PeriodType instance.
-     */
-    PeriodType getPeriodTypeByClass( Class<? extends PeriodType> periodType );
+  /**
+   * Returns a persisted PeriodType represented by the given Class.
+   *
+   * @param periodType the Class type of the PeriodType.
+   * @return a PeriodType instance.
+   */
+  PeriodType getPeriodTypeByClass(Class<? extends PeriodType> periodType);
 
-    /**
-     * Checks if the given periodType is associated with the current session and
-     * loads it if not. Null is returned if the period does not exist.
-     *
-     * @param periodType the Period to reload.
-     * @return a Period.
-     */
-    PeriodType reloadPeriodType( PeriodType periodType );
+  /**
+   * Checks if the given periodType is associated with the current session and loads it if not. Null
+   * is returned if the period does not exist.
+   *
+   * @param periodType the Period to reload.
+   * @return a Period.
+   */
+  PeriodType reloadPeriodType(PeriodType periodType);
 
-    // -------------------------------------------------------------------------
-    // RelativePeriods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // RelativePeriods
+  // -------------------------------------------------------------------------
 
-    /**
-     * Deletes a RelativePeriods instance.
-     *
-     * @param relativePeriods the RelativePeriods instance.
-     */
-    void deleteRelativePeriods( RelativePeriods relativePeriods );
+  /**
+   * Deletes a RelativePeriods instance.
+   *
+   * @param relativePeriods the RelativePeriods instance.
+   */
+  void deleteRelativePeriods(RelativePeriods relativePeriods);
 }

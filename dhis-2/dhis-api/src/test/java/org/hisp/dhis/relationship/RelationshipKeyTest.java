@@ -31,45 +31,41 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-class RelationshipKeyTest
-{
+class RelationshipKeyTest {
 
-    @Test
-    void asStringForRelationshipTeiToTei()
-    {
+  @Test
+  void asStringForRelationshipTeiToTei() {
 
-        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
-            RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( "Ea0rRdBPAIp" ).build(),
-            RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( "G1afLIEKt8A" ).build() );
+    RelationshipKey key =
+        RelationshipKey.of(
+            "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder().trackedEntity("Ea0rRdBPAIp").build(),
+            RelationshipKey.RelationshipItemKey.builder().trackedEntity("G1afLIEKt8A").build());
 
-        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
-    }
+    assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
+  }
 
-    @Test
-    void asStringForRelationshipTeiToEnrollment()
-    {
+  @Test
+  void asStringForRelationshipTeiToEnrollment() {
 
-        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
-            RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( "Ea0rRdBPAIp" ).build(),
-            RelationshipKey.RelationshipItemKey.builder()
-                .enrollment( "G1afLIEKt8A" ).build() );
+    RelationshipKey key =
+        RelationshipKey.of(
+            "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder().trackedEntity("Ea0rRdBPAIp").build(),
+            RelationshipKey.RelationshipItemKey.builder().enrollment("G1afLIEKt8A").build());
 
-        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
-    }
+    assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
+  }
 
-    @Test
-    void asStringForRelationshipTeiToEvent()
-    {
+  @Test
+  void asStringForRelationshipTeiToEvent() {
 
-        RelationshipKey key = RelationshipKey.of( "dDrh5UyCyvQ",
-            RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( "Ea0rRdBPAIp" ).build(),
-            RelationshipKey.RelationshipItemKey.builder()
-                .event( "G1afLIEKt8A" ).build() );
+    RelationshipKey key =
+        RelationshipKey.of(
+            "dDrh5UyCyvQ",
+            RelationshipKey.RelationshipItemKey.builder().trackedEntity("Ea0rRdBPAIp").build(),
+            RelationshipKey.RelationshipItemKey.builder().event("G1afLIEKt8A").build());
 
-        assertEquals( "dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString() );
-    }
+    assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
+  }
 }

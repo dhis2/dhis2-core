@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
-
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.common.TableInfoReader;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -47,96 +47,116 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Preconditions;
-
 /**
- * Job for continuous update of analytics tables. Performs analytics table
- * update on a schedule where the full analytics table update is done once per
- * day, and the latest analytics partition update is done with a fixed delay.
- * <p>
- * When to run the full update is determined by
- * {@link ContinuousAnalyticsJobParameters#getHourOfDay()}, which specifies the
- * hour of day to run the full update. The next scheduled full analytics table
- * update time is persisted using a system setting. A full analytics table
- * update is performed when the current time is after the next scheduled full
- * update time. Otherwise, a partial update of the latest analytics partition
- * table is performed.
+ * Job for continuous update of analytics tables. Performs analytics table update on a schedule
+ * where the full analytics table update is done once per day, and the latest analytics partition
+ * update is done with a fixed delay.
+ *
+ * <p>When to run the full update is determined by {@link
+ * ContinuousAnalyticsJobParameters#getHourOfDay()}, which specifies the hour of day to run the full
+ * update. The next scheduled full analytics table update time is persisted using a system setting.
+ * A full analytics table update is performed when the current time is after the next scheduled full
+ * update time. Otherwise, a partial update of the latest analytics partition table is performed.
  *
  * @author Lars Helge Overland
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ContinuousAnalyticsTableJob implements Job
-{
-    private static final int DEFAULT_HOUR_OF_DAY = 0;
+public class ContinuousAnalyticsTableJob implements Job {
+  private static final int DEFAULT_HOUR_OF_DAY = 0;
 
-    private final AnalyticsTableGenerator analyticsTableGenerator;
+  private final AnalyticsTableGenerator analyticsTableGenerator;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.CONTINUOUS_ANALYTICS_TABLE;
+  private final TableInfoReader tableInfoReader;
+
+  @Override
+  public JobType getJobType() {
+    return JobType.CONTINUOUS_ANALYTICS_TABLE;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    ContinuousAnalyticsJobParameters parameters =
+        (ContinuousAnalyticsJobParameters) jobConfiguration.getJobParameters();
+
+    if (!checkJobOutliersConsistency(parameters)) {
+      log.info(
+          "Updating analytics table is currently not feasible, job parameters not aligned with existing outlier data");
+      return;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration
-            .getJobParameters();
+    final int fullUpdateHourOfDay =
+        firstNonNull(parameters.getFullUpdateHourOfDay(), DEFAULT_HOUR_OF_DAY);
+    final Date startTime = new Date();
 
-        Integer fullUpdateHourOfDay = ObjectUtils.firstNonNull( parameters.getFullUpdateHourOfDay(),
-            DEFAULT_HOUR_OF_DAY );
+    log.info(
+        "Starting continuous analytics table update, current time: '{}'", toLongDate(startTime));
 
-        Date now = new Date();
-        Date defaultNextFullUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
-        Date nextFullUpdate = systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
-            defaultNextFullUpdate );
+    if (runFullUpdate(startTime)) {
+      log.info("Performing full analytics table update");
 
-        log.info(
-            "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
-            getLongDateString( now ), getLongDateString( defaultNextFullUpdate ), getLongDateString( nextFullUpdate ) );
+      AnalyticsTableUpdateParams params =
+          AnalyticsTableUpdateParams.newBuilder()
+              .withLastYears(parameters.getLastYears())
+              .withSkipResourceTables(false)
+              .withSkipOutliers(parameters.getSkipOutliers())
+              .withSkipTableTypes(parameters.getSkipTableTypes())
+              .withJobId(jobConfiguration)
+              .withStartTime(startTime)
+              .build();
 
-        Preconditions.checkNotNull( nextFullUpdate );
+      try {
+        analyticsTableGenerator.generateTables(params, progress);
+      } finally {
+        Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
+        systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
+        log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
+      }
+    } else {
+      log.info("Performing latest analytics table partition update");
 
-        if ( now.after( nextFullUpdate ) )
-        {
-            log.info( "Performing full analytics table update" );
+      AnalyticsTableUpdateParams params =
+          AnalyticsTableUpdateParams.newBuilder()
+              .withLatestPartition()
+              .withSkipResourceTables(true)
+              .withSkipOutliers(parameters.getSkipOutliers())
+              .withSkipTableTypes(parameters.getSkipTableTypes())
+              .withJobId(jobConfiguration)
+              .withStartTime(startTime)
+              .build();
 
-            AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-                .withLastYears( parameters.getLastYears() )
-                .withSkipResourceTables( false )
-                .withSkipTableTypes( parameters.getSkipTableTypes() )
-                .withJobId( jobConfiguration )
-                .withStartTime( now )
-                .build();
-
-            try
-            {
-                analyticsTableGenerator.generateTables( params, progress );
-            }
-            finally
-            {
-                Date nextUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
-                systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate );
-                log.info( "Next full analytics table update: '{}'", getLongDateString( nextUpdate ) );
-            }
-        }
-        else
-        {
-            log.info( "Performing latest analytics table partition update" );
-
-            AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-                .withLatestPartition()
-                .withSkipResourceTables( true )
-                .withSkipTableTypes( parameters.getSkipTableTypes() )
-                .withJobId( jobConfiguration )
-                .withStartTime( now )
-                .build();
-
-            analyticsTableGenerator.generateTables( params, progress );
-        }
+      analyticsTableGenerator.generateTables(params, progress);
     }
+  }
+
+  /**
+   * Indicates whether a full table update should be run. If the next full update time is not set,
+   * it indicates that a full update has never been run for this job, and a full update should be
+   * run immediately. Otherwise, a full update is run if the job start time argument is after the
+   * next full update time.
+   *
+   * @param startTime the job start time.
+   * @return true if a full table update should be run.
+   */
+  boolean runFullUpdate(Date startTime) {
+    Objects.requireNonNull(startTime);
+
+    Date nextFullUpdate =
+        systemSettingManager.getSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, Date.class);
+
+    return nextFullUpdate == null || startTime.after(nextFullUpdate);
+  }
+
+  private boolean checkJobOutliersConsistency(ContinuousAnalyticsJobParameters parameters) {
+    boolean analyticsTableWithOutliers =
+        tableInfoReader.getInfo("analytics").getColumns().stream()
+            .anyMatch("sourceid"::equalsIgnoreCase);
+    boolean outliersRequired = !parameters.getSkipOutliers();
+
+    return outliersRequired && analyticsTableWithOutliers
+        || !outliersRequired && !analyticsTableWithOutliers;
+  }
 }

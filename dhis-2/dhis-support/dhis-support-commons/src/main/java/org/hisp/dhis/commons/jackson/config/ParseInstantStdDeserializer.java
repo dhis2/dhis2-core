@@ -27,50 +27,40 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
-import java.io.IOException;
-import java.time.Instant;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.util.DateUtils;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import java.io.IOException;
+import java.time.Instant;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.util.DateUtils;
 
-public class ParseInstantStdDeserializer extends StdDeserializer<Instant>
-{
-    public ParseInstantStdDeserializer()
-    {
-        super( Instant.class );
-    }
+public class ParseInstantStdDeserializer extends StdDeserializer<Instant> {
+  public ParseInstantStdDeserializer() {
+    super(Instant.class);
+  }
 
-    @Override
-    public Instant deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
-    {
-        String valueAsString = parser.getText();
+  @Override
+  public Instant deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    String valueAsString = parser.getText();
 
-        if ( StringUtils.isNotBlank( valueAsString ) )
-        {
-            try
-            {
-                return DateUtils.instantFromDateAsString( valueAsString );
-            }
-            catch ( Exception e )
-            {
-                if ( StringUtils.isNumeric( valueAsString ) )
-                {
-                    return DateUtils.instantFromEpoch( Long.valueOf( valueAsString ) );
-                }
-                throw new JsonParseException( parser,
-                    String.format(
-                        "Invalid date format '%s', only '" + DateUtils.ISO8601_NO_TZ_PATTERN
-                            + "' format end epoch milliseconds are supported.",
-                        valueAsString ) );
-            }
+    if (StringUtils.isNotBlank(valueAsString)) {
+      try {
+        return DateUtils.instantFromDateAsString(valueAsString);
+      } catch (Exception e) {
+        if (StringUtils.isNumeric(valueAsString)) {
+          return DateUtils.instantFromEpoch(Long.valueOf(valueAsString));
         }
-        return null;
+        throw new JsonParseException(
+            parser,
+            String.format(
+                "Invalid date format '%s', only '"
+                    + DateUtils.ISO8601_NO_TZ_PATTERN
+                    + "' format end epoch milliseconds are supported.",
+                valueAsString));
+      }
     }
-
+    return null;
+  }
 }

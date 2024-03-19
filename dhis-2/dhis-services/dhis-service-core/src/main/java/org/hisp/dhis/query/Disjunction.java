@@ -32,16 +32,13 @@ import org.hisp.dhis.schema.Schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public final class Disjunction extends Junction
-{
-    public Disjunction( Schema schema )
-    {
-        super( schema, Type.OR );
-    }
+public final class Disjunction extends Junction {
+  public Disjunction(Schema schema) {
+    super(schema, Type.OR);
+  }
 
-    @Override
-    public String toString()
-    {
-        return "OR[" + criterions + "]";
-    }
+  @Override
+  public String toString() {
+    return "OR[" + criterions + "]";
+  }
 }

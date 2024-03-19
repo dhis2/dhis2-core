@@ -27,22 +27,17 @@
  */
 package org.hisp.dhis.outlierdetection;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
 @Data
-public class OutlierDetectionResponse
-{
-    @JsonProperty
-    private OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
+public class OutlierDetectionResponse {
+  @JsonProperty private OutlierDetectionMetadata metadata = new OutlierDetectionMetadata();
 
-    @JsonProperty
-    private List<OutlierValue> outlierValues = new ArrayList<>();
+  @JsonProperty private List<OutlierValue> outlierValues = new ArrayList<>();
 }

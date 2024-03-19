@@ -27,62 +27,46 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.hisp.dhis.util.DateUtils;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import java.io.IOException;
+import java.util.Date;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ParseDateStdDeserializer
-    extends JsonDeserializer<Date>
-{
-    @Override
-    public Date deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
-    {
-        JsonToken currentToken = parser.getCurrentToken();
-        if ( currentToken == JsonToken.VALUE_STRING )
-        {
-            String dateString = parser.getValueAsString();
-            try
-            {
-                return DateUtils.parseDate( dateString );
-            }
-            catch ( Exception ignored )
-            {
-                if ( dateString.matches( "[0-9]+" ) && dateString.length() > 12 )
-                {
-                    return new Date( parser.getValueAsLong() );
-                }
-                throw createInvalidDateException( parser );
-            }
+public class ParseDateStdDeserializer extends JsonDeserializer<Date> {
+  @Override
+  public Date deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+    JsonToken currentToken = parser.getCurrentToken();
+    if (currentToken == JsonToken.VALUE_STRING) {
+      String dateString = parser.getValueAsString();
+      try {
+        return DateUtils.parseDate(dateString);
+      } catch (Exception ignored) {
+        if (dateString.matches("[0-9]+") && dateString.length() > 12) {
+          return new Date(parser.getValueAsLong());
         }
-        if ( currentToken == JsonToken.VALUE_NUMBER_INT )
-        {
-            try
-            {
-                return new Date( parser.getValueAsLong() );
-            }
-            catch ( Exception ignored )
-            {
-                throw createInvalidDateException( parser );
-            }
-        }
-        throw createInvalidDateException( parser );
+        throw createInvalidDateException(parser);
+      }
     }
+    if (currentToken == JsonToken.VALUE_NUMBER_INT) {
+      try {
+        return new Date(parser.getValueAsLong());
+      } catch (Exception ignored) {
+        throw createInvalidDateException(parser);
+      }
+    }
+    throw createInvalidDateException(parser);
+  }
 
-    private IOException createInvalidDateException( JsonParser parser )
-        throws IOException
-    {
-        return new IOException(
-            String.format( "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
-                parser.getValueAsString() ) );
-    }
+  private IOException createInvalidDateException(JsonParser parser) throws IOException {
+    return new IOException(
+        String.format(
+            "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
+            parser.getValueAsString()));
+  }
 }

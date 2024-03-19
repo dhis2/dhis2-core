@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
@@ -47,64 +46,56 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class JsonBinaryTypeTest
-{
+class JsonBinaryTypeTest {
 
-    private JsonBinaryType jsonBinaryType;
+  private JsonBinaryType jsonBinaryType;
 
-    private Translation translation1;
+  private Translation translation1;
 
-    @BeforeEach
-    void setUp()
-    {
-        translation1 = new Translation();
-        translation1.setLocale( "en" );
-        translation1.setValue( "English Test 1" );
-        jsonBinaryType = new JsonBinaryType();
-        jsonBinaryType.init( Translation.class );
-    }
+  @BeforeEach
+  void setUp() {
+    translation1 = new Translation();
+    translation1.setLocale("en");
+    translation1.setValue("English Test 1");
+    jsonBinaryType = new JsonBinaryType();
+    jsonBinaryType.init(Translation.class);
+  }
 
-    @Test
-    void deepCopy()
-    {
-        final Translation result = (Translation) jsonBinaryType.deepCopy( translation1 );
-        Assertions.assertNotSame( translation1, result );
-        Assertions.assertEquals( translation1, result );
-    }
+  @Test
+  void deepCopy() {
+    final Translation result = (Translation) jsonBinaryType.deepCopy(translation1);
+    Assertions.assertNotSame(translation1, result);
+    Assertions.assertEquals(translation1, result);
+  }
 
-    @Test
-    void deepCopyNull()
-    {
-        Assertions.assertNull( jsonBinaryType.deepCopy( null ) );
-    }
+  @Test
+  void deepCopyNull() {
+    Assertions.assertNull(jsonBinaryType.deepCopy(null));
+  }
 
-    @Test
-    void testEquals()
-    {
-        DeviceRenderTypeMap<ValueTypeRenderingObject> objOne = getDeviceRenderTypeAs(
-            this::getValueTypeRenderingObject );
-        DeviceRenderTypeMap<Map<String, Object>> objTwo = getDeviceRenderTypeAs( this::getMap );
-        assertTrue( jsonBinaryType.equals( objOne, objTwo ) );
-    }
+  @Test
+  void testEquals() {
+    DeviceRenderTypeMap<ValueTypeRenderingObject> objOne =
+        getDeviceRenderTypeAs(this::getValueTypeRenderingObject);
+    DeviceRenderTypeMap<Map<String, Object>> objTwo = getDeviceRenderTypeAs(this::getMap);
+    assertTrue(jsonBinaryType.equals(objOne, objTwo));
+  }
 
-    private <T> DeviceRenderTypeMap<T> getDeviceRenderTypeAs( Supplier<T> genericInstanceSupplier )
-    {
-        DeviceRenderTypeMap<T> objectDeviceRenderTypeMap = new DeviceRenderTypeMap<>();
-        objectDeviceRenderTypeMap.put( RenderDevice.MOBILE, genericInstanceSupplier.get() );
-        return objectDeviceRenderTypeMap;
-    }
+  private <T> DeviceRenderTypeMap<T> getDeviceRenderTypeAs(Supplier<T> genericInstanceSupplier) {
+    DeviceRenderTypeMap<T> objectDeviceRenderTypeMap = new DeviceRenderTypeMap<>();
+    objectDeviceRenderTypeMap.put(RenderDevice.MOBILE, genericInstanceSupplier.get());
+    return objectDeviceRenderTypeMap;
+  }
 
-    private ValueTypeRenderingObject getValueTypeRenderingObject()
-    {
-        ValueTypeRenderingObject valueTypeRenderingObject = new ValueTypeRenderingObject();
-        valueTypeRenderingObject.setType( BAR_CODE );
-        return valueTypeRenderingObject;
-    }
+  private ValueTypeRenderingObject getValueTypeRenderingObject() {
+    ValueTypeRenderingObject valueTypeRenderingObject = new ValueTypeRenderingObject();
+    valueTypeRenderingObject.setType(BAR_CODE);
+    return valueTypeRenderingObject;
+  }
 
-    private Map<String, Object> getMap()
-    {
-        Map<String, Object> map = new HashMap<>();
-        map.put( "type", BAR_CODE.name() );
-        return map;
-    }
+  private Map<String, Object> getMap() {
+    Map<String, Object> map = new HashMap<>();
+    map.put("type", BAR_CODE.name());
+    return map;
+  }
 }

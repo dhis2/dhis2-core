@@ -47,80 +47,78 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataOrgUnitSplitHandlerTest
-{
+@ExtendWith(MockitoExtension.class)
+class MetadataOrgUnitSplitHandlerTest {
 
-    private MetadataOrgUnitSplitHandler handler;
+  private MetadataOrgUnitSplitHandler handler;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    @BeforeEach
-    public void setUp()
-    {
-        handler = new MetadataOrgUnitSplitHandler(
-            mock( UserService.class ), mock( ConfigurationService.class ) );
+  @BeforeEach
+  public void setUp() {
+    handler =
+        new MetadataOrgUnitSplitHandler(mock(UserService.class), mock(ConfigurationService.class));
 
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-    }
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+  }
 
-    @Test
-    void testSplitDataSets()
-    {
-        DataSet dsA = createDataSet( 'A' );
-        dsA.addOrganisationUnit( ouA );
+  @Test
+  void testSplitDataSets() {
+    DataSet dsA = createDataSet('A');
+    dsA.addOrganisationUnit(ouA);
 
-        DataSet dsB = createDataSet( 'B' );
-        dsB.addOrganisationUnit( ouA );
+    DataSet dsB = createDataSet('B');
+    dsB.addOrganisationUnit(ouA);
 
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
-            .withSource( ouA )
-            .addTarget( ouB )
-            .addTarget( ouC )
-            .withPrimaryTarget( ouB )
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouB)
             .build();
 
-        assertEquals( 2, ouA.getDataSets().size() );
-        assertEquals( 0, ouB.getDataSets().size() );
-        assertEquals( 0, ouC.getDataSets().size() );
+    assertEquals(2, ouA.getDataSets().size());
+    assertEquals(0, ouB.getDataSets().size());
+    assertEquals(0, ouC.getDataSets().size());
 
-        handler.splitDataSets( request );
+    handler.splitDataSets(request);
 
-        assertEquals( 0, ouA.getDataSets().size() );
-        assertEquals( 2, ouB.getDataSets().size() );
-        assertEquals( 2, ouC.getDataSets().size() );
-    }
+    assertEquals(0, ouA.getDataSets().size());
+    assertEquals(2, ouB.getDataSets().size());
+    assertEquals(2, ouC.getDataSets().size());
+  }
 
-    @Test
-    void testSplitPrograms()
-    {
-        Program prA = createProgram( 'A' );
-        prA.addOrganisationUnit( ouA );
+  @Test
+  void testSplitPrograms() {
+    Program prA = createProgram('A');
+    prA.addOrganisationUnit(ouA);
 
-        Program prB = createProgram( 'B' );
-        prB.addOrganisationUnit( ouA );
+    Program prB = createProgram('B');
+    prB.addOrganisationUnit(ouA);
 
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
-            .withSource( ouA )
-            .addTarget( ouB )
-            .addTarget( ouC )
-            .withPrimaryTarget( ouB )
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouB)
             .build();
 
-        assertEquals( 2, ouA.getPrograms().size() );
-        assertEquals( 0, ouB.getPrograms().size() );
-        assertEquals( 0, ouC.getPrograms().size() );
+    assertEquals(2, ouA.getPrograms().size());
+    assertEquals(0, ouB.getPrograms().size());
+    assertEquals(0, ouC.getPrograms().size());
 
-        handler.splitPrograms( request );
+    handler.splitPrograms(request);
 
-        assertEquals( 0, ouA.getPrograms().size() );
-        assertEquals( 2, ouB.getPrograms().size() );
-        assertEquals( 2, ouC.getPrograms().size() );
-    }
+    assertEquals(0, ouA.getPrograms().size());
+    assertEquals(2, ouB.getPrograms().size());
+    assertEquals(2, ouC.getPrograms().size());
+  }
 }

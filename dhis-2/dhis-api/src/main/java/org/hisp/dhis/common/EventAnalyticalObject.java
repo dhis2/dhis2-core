@@ -29,7 +29,6 @@ package org.hisp.dhis.common;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventRepetition;
@@ -41,34 +40,28 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 /**
  * @author Lars Helge Overland
  */
-public interface EventAnalyticalObject
-    extends AnalyticalObject
-{
-    Program getProgram();
+public interface EventAnalyticalObject extends AnalyticalObject {
+  Program getProgram();
 
-    ProgramStage getProgramStage();
+  ProgramStage getProgramStage();
 
-    Date getStartDate();
+  Date getStartDate();
 
-    Date getEndDate();
+  Date getEndDate();
 
-    List<SimpleDimension> getSimpleDimensions();
+  List<SimpleDimension> getSimpleDimensions();
 
-    List<EventRepetition> getEventRepetitions();
+  List<EventRepetition> getEventRepetitions();
 
-    EventOutputType getOutputType();
+  EventOutputType getOutputType();
 
-    DimensionalItemObject getValue();
+  DimensionalItemObject getValue();
 
-    // -------------------------------------------------------------------------
-    // Base class emulation methods with default implementations
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Base class emulation methods with default implementations
+  // -------------------------------------------------------------------------
 
-    default void setDataElementValueDimension( DataElement dataElementValueDimension )
-    {
-    }
+  default void setDataElementValueDimension(DataElement dataElementValueDimension) {}
 
-    default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
-    {
-    }
+  default void setAttributeValueDimension(TrackedEntityAttribute attributeValueDimension) {}
 }

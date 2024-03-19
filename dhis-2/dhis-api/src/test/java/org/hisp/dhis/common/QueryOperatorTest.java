@@ -32,19 +32,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class QueryOperatorTest
-{
-    @Test
-    void testIsType()
-    {
-        assertTrue( QueryOperator.LIKE.isLike() );
-        assertTrue( QueryOperator.NLIKE.isLike() );
-        assertTrue( QueryOperator.EQ.isEqualTo() );
-        assertTrue( QueryOperator.IEQ.isEqualTo() );
+class QueryOperatorTest {
+  @Test
+  void testIsType() {
+    assertTrue(QueryOperator.LIKE.isLike());
+    assertTrue(QueryOperator.NLIKE.isLike());
+    assertTrue(QueryOperator.EQ.isEqualTo());
+    assertTrue(QueryOperator.IEQ.isEqualTo());
 
-        assertFalse( QueryOperator.LIKE.isEqualTo() );
-        assertFalse( QueryOperator.GT.isEqualTo() );
-        assertFalse( QueryOperator.LT.isLike() );
-        assertFalse( QueryOperator.EQ.isLike() );
-    }
+    assertFalse(QueryOperator.LIKE.isEqualTo());
+    assertFalse(QueryOperator.GT.isEqualTo());
+    assertFalse(QueryOperator.LT.isLike());
+    assertFalse(QueryOperator.EQ.isLike());
+  }
 }

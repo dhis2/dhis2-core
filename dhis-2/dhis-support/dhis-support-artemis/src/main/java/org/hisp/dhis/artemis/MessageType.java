@@ -30,11 +30,10 @@ package org.hisp.dhis.artemis;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MessageType
-{
-    AUDIT,
+public enum MessageType {
+  AUDIT,
 
-    TRACKER_JOB,
+  TRACKER_JOB,
 
-    TRACKER_SIDE_EFFECT
+  TRACKER_SIDE_EFFECT
 }

@@ -28,11 +28,11 @@
 package org.hisp.dhis.webapi.dimension.mappers;
 
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -41,31 +41,34 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
-{
+public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper {
 
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramIndicator.class,
-        TrackedEntityAttribute.class );
+  @Getter
+  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+      Set.of(ProgramIndicator.class, TrackedEntityAttribute.class);
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
-        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
-            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
-        if ( dimension instanceof ValueTypedDimensionalItemObject )
-        {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
-            return responseWithDimensionType
-                .withValueType( valueTypedDimensionalItemObject.getValueType().name() )
-                .withOptionSet( valueTypedDimensionalItemObject.getOptionSet() != null
-                    ? valueTypedDimensionalItemObject.getOptionSet().getUid()
-                    : null );
-        }
+  /**
+   * adds dimensionType on top of base mapper and, if the dimension is ValueTyped it also adds
+   * valueType and OptionSet (if present)
+   */
+  @Override
+  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
+    DimensionItemType dimensionItemType =
+        ((BaseDimensionalItemObject) prefixedDimension.getItem()).getDimensionItemType();
 
-        return responseWithDimensionType;
+    DimensionResponse responseWithDimensionType =
+        super.map(prefixedDimension, prefix)
+            .withDimensionType(dimensionTypeOrElse(prefixedDimension, dimensionItemType.name()));
+    if (prefixedDimension.getItem()
+        instanceof ValueTypedDimensionalItemObject valueTypedDimensionalItemObject) {
+      return responseWithDimensionType
+          .withValueType(valueTypedDimensionalItemObject.getValueType().name())
+          .withOptionSet(
+              valueTypedDimensionalItemObject.getOptionSet() != null
+                  ? valueTypedDimensionalItemObject.getOptionSet().getUid()
+                  : null);
     }
 
+    return responseWithDimensionType;
+  }
 }

@@ -29,50 +29,44 @@ package org.hisp.dhis.system.deletion;
 
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-public abstract class JdbcDeletionHandler extends DeletionHandler
-{
-    private NamedParameterJdbcTemplate npTemplate;
+public abstract class JdbcDeletionHandler extends DeletionHandler {
+  private NamedParameterJdbcTemplate npTemplate;
 
-    @Autowired
-    public void setNamedParameterJdbcTemplate( NamedParameterJdbcTemplate npTemplate )
-    {
-        this.npTemplate = npTemplate;
-    }
+  @Autowired
+  public void setNamedParameterJdbcTemplate(NamedParameterJdbcTemplate npTemplate) {
+    this.npTemplate = npTemplate;
+  }
 
-    protected final int count( String sql, Map<String, Object> parameters )
-    {
-        // OBS! Need to use queryForList to allow no result rows
-        List<Integer> count = npTemplate.queryForList( sql, new MapSqlParameterSource( parameters ), Integer.class );
-        return count.isEmpty() ? 0 : count.get( 0 );
-    }
+  protected final int count(String sql, Map<String, Object> parameters) {
+    // OBS! Need to use queryForList to allow no result rows
+    List<Integer> count =
+        npTemplate.queryForList(sql, new MapSqlParameterSource(parameters), Integer.class);
+    return count.isEmpty() ? 0 : count.get(0);
+  }
 
-    protected final boolean exists( String sql, Map<String, Object> parameters )
-    {
-        return count( sql, parameters ) > 0;
-    }
+  protected final boolean exists(String sql, Map<String, Object> parameters) {
+    return count(sql, parameters) > 0;
+  }
 
-    protected final DeletionVeto vetoIfExists( DeletionVeto veto, String sql, Map<String, Object> parameters )
-    {
-        return exists( sql, parameters ) ? veto : DeletionVeto.ACCEPT;
-    }
+  protected final DeletionVeto vetoIfExists(
+      DeletionVeto veto, String sql, Map<String, Object> parameters) {
+    return exists(sql, parameters) ? veto : DeletionVeto.ACCEPT;
+  }
 
-    protected final int delete( String sql, Map<String, Object> parameters )
-    {
-        return npTemplate.update( sql, parameters );
-    }
+  protected final int delete(String sql, Map<String, Object> parameters) {
+    return npTemplate.update(sql, parameters);
+  }
 
-    protected final String firstMatch( String sql, Map<String, Object> parameters )
-    {
-        if ( !sql.toLowerCase().contains( "limit 1" ) )
-        {
-            sql = sql + " limit 1";
-        }
-        List<String> names = npTemplate.queryForList( sql, new MapSqlParameterSource( parameters ), String.class );
-        return names.isEmpty() ? null : names.get( 0 );
+  protected final String firstMatch(String sql, Map<String, Object> parameters) {
+    if (!sql.toLowerCase().contains("limit 1")) {
+      sql = sql + " limit 1";
     }
+    List<String> names =
+        npTemplate.queryForList(sql, new MapSqlParameterSource(parameters), String.class);
+    return names.isEmpty() ? null : names.get(0);
+  }
 }

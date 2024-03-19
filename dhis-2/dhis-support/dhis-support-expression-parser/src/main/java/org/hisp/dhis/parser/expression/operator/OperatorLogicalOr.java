@@ -57,37 +57,27 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorLogicalOr
-    extends AntlrOperatorLogicalOr
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean value = visitor.castBooleanVisit( ctx.expr( 0 ) );
-        Boolean value1 = visitor.castBooleanVisit( ctx.expr( 1 ) );
+public class OperatorLogicalOr extends AntlrOperatorLogicalOr implements ExpressionItem {
+  @Override
+  public Object evaluateAllPaths(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Boolean value = visitor.castBooleanVisit(ctx.expr(0));
+    Boolean value1 = visitor.castBooleanVisit(ctx.expr(1));
 
-        if ( value == null )
-        {
-            value = value1;
+    if (value == null) {
+      value = value1;
 
-            if ( value != null && !value )
-            {
-                value = null;
-            }
-        }
-        else if ( !value )
-        {
-            value = value1;
-        }
-
-        return value;
+      if (value != null && !value) {
+        value = null;
+      }
+    } else if (!value) {
+      value = value1;
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.castStringVisit( ctx.expr( 0 ) )
-            + " or " + visitor.castStringVisit( ctx.expr( 1 ) );
-    }
+    return value;
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitor.castStringVisit(ctx.expr(0)) + " or " + visitor.castStringVisit(ctx.expr(1));
+  }
 }

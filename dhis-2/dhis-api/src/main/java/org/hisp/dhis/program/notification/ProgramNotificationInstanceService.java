@@ -32,20 +32,19 @@ import java.util.List;
 /**
  * @author Zubair Asghar
  */
-public interface ProgramNotificationInstanceService
-{
-    void save( ProgramNotificationInstance programNotificationInstance );
+public interface ProgramNotificationInstanceService {
+  void save(ProgramNotificationInstance programNotificationInstance);
 
-    void update( ProgramNotificationInstance programNotificationInstance );
+  void update(ProgramNotificationInstance programNotificationInstance);
 
-    void delete( ProgramNotificationInstance programNotificationInstance );
+  void delete(ProgramNotificationInstance programNotificationInstance);
 
-    ProgramNotificationInstance get( long programNotificationInstance );
+  ProgramNotificationInstance get(long programNotificationInstance);
 
-    List<ProgramNotificationInstance> getProgramNotificationInstances(
-        ProgramNotificationInstanceParam programNotificationInstanceParam );
+  List<ProgramNotificationInstance> getProgramNotificationInstances(
+      ProgramNotificationInstanceParam programNotificationInstanceParam);
 
-    Long countProgramNotificationInstances( ProgramNotificationInstanceParam params );
+  Long countProgramNotificationInstances(ProgramNotificationInstanceParam params);
 
-    void validateQueryParameters( ProgramNotificationInstanceParam param );
+  void validateQueryParameters(ProgramNotificationInstanceParam param);
 }

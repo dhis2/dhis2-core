@@ -35,33 +35,28 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 /**
  * @author Dusan Bernat
  */
+public class RepeatableProgramStageOffset implements ExpressionItem {
+  @Override
+  public Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    return next(ctx, visitor);
+  }
 
-public class RepeatableProgramStageOffset implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return next( ctx, visitor );
-    }
+  @Override
+  public Object getSql(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    return next(ctx, visitor);
+  }
 
-    @Override
-    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return next( ctx, visitor );
-    }
+  private Object next(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    ExpressionState state = visitor.getState();
 
-    private Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ExpressionState state = visitor.getState();
+    int oldStageOffset = state.getStageOffset();
 
-        int oldStageOffset = state.getStageOffset();
+    state.setStageOffset(Integer.parseInt(ctx.stage.getText()));
 
-        state.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
+    Object ret = visitor.visit(ctx.expr(0));
 
-        Object ret = visitor.visit( ctx.expr( 0 ) );
+    state.setStageOffset(oldStageOffset);
 
-        state.setStageOffset( oldStageOffset );
-
-        return ret;
-    }
+    return ret;
+  }
 }

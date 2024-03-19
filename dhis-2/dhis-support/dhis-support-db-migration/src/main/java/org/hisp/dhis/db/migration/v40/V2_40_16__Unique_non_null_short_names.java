@@ -33,31 +33,34 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
 /**
- * Initialises the {@code shortname} column with a unique name based on the
- * {@code name} column for
+ * Initialises the {@code shortname} column with a unique name based on the {@code name} column for
+ *
  * <ul>
- * <li>{@link org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup}</li>
- * <li>{@link org.hisp.dhis.dataset.DataSet}</li>
- * <li>{@link org.hisp.dhis.organisationunit.OrganisationUnitGroup}</li>
- * <li>{@link org.hisp.dhis.category.CategoryOption}</li>
- * <li>{@link org.hisp.dhis.constant.Constant}</li>
- * <li>{@link org.hisp.dhis.dataelement.DataElementGroup}</li>
+ *   <li>{@link org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup}
+ *   <li>{@link org.hisp.dhis.dataset.DataSet}
+ *   <li>{@link org.hisp.dhis.organisationunit.OrganisationUnitGroup}
+ *   <li>{@link org.hisp.dhis.category.CategoryOption}
+ *   <li>{@link org.hisp.dhis.constant.Constant}
+ *   <li>{@link org.hisp.dhis.dataelement.DataElementGroup}
  * </ul>
  *
  * @author Jan Bernitt
  */
-public class V2_40_16__Unique_non_null_short_names extends BaseJavaMigration
-{
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        copyUniqueValue( context, "program_attribute_group", "programtrackedentityattributegroupid", "name",
-            "shortname", 50 );
-        copyUniqueValue( context, "dataset", "datasetid", "name", "shortname", 50 );
-        copyUniqueValue( context, "orgunitgroup", "orgunitgroupid", "name", "shortname", 50 );
-        copyUniqueValue( context, "dataelementcategoryoption", "categoryoptionid", "name", "shortname", 50 );
-        copyUniqueValue( context, "constant", "constantid", "name", "shortname", 50 );
-        copyUniqueValue( context, "dataelementgroup", "dataelementgroupid", "name", "shortname", 50 );
-    }
+public class V2_40_16__Unique_non_null_short_names extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {
+    copyUniqueValue(
+        context,
+        "program_attribute_group",
+        "programtrackedentityattributegroupid",
+        "name",
+        "shortname",
+        50);
+    copyUniqueValue(context, "dataset", "datasetid", "name", "shortname", 50);
+    copyUniqueValue(context, "orgunitgroup", "orgunitgroupid", "name", "shortname", 50);
+    copyUniqueValue(
+        context, "dataelementcategoryoption", "categoryoptionid", "name", "shortname", 50);
+    copyUniqueValue(context, "constant", "constantid", "name", "shortname", 50);
+    copyUniqueValue(context, "dataelementgroup", "dataelementgroupid", "name", "shortname", 50);
+  }
 }

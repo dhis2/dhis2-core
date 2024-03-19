@@ -32,10 +32,8 @@ import org.springframework.security.access.AccessDeniedException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ReadAccessDeniedException extends AccessDeniedException
-{
-    public ReadAccessDeniedException( String msg )
-    {
-        super( msg );
-    }
+public class ReadAccessDeniedException extends AccessDeniedException {
+  public ReadAccessDeniedException(String msg) {
+    super(msg);
+  }
 }

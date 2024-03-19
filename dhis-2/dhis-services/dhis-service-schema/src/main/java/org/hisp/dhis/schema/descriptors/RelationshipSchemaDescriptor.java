@@ -31,22 +31,18 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
-public class RelationshipSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "relationship";
+public class RelationshipSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "relationship";
 
-    public static final String PLURAL = "relationships";
+  public static final String PLURAL = "relationships";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Relationship.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Relationship.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
-
+    return schema;
+  }
 }

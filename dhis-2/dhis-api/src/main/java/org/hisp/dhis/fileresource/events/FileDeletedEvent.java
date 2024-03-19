@@ -27,38 +27,18 @@
  */
 package org.hisp.dhis.fileresource.events;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 
 /**
  * @Author Zubair Asghar.
  */
-public class FileDeletedEvent
-{
-    private String storageKey;
+@Getter
+@RequiredArgsConstructor
+public class FileDeletedEvent {
 
-    private String contentType;
-
-    private FileResourceDomain domain;
-
-    public FileDeletedEvent( String storageKey, String contentType, FileResourceDomain domain )
-    {
-        this.storageKey = storageKey;
-        this.contentType = contentType;
-        this.domain = domain;
-    }
-
-    public String getStorageKey()
-    {
-        return storageKey;
-    }
-
-    public String getContentType()
-    {
-        return contentType;
-    }
-
-    public FileResourceDomain getDomain()
-    {
-        return domain;
-    }
+  private final String storageKey;
+  private final String contentType;
+  private final FileResourceDomain domain;
 }

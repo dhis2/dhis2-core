@@ -32,8 +32,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Lars Helge Overland
  */
-public interface MapStore
-    extends IdentifiableObjectStore<Map>
-{
-    int countMapViewMaps( MapView mapView );
+public interface MapStore extends IdentifiableObjectStore<Map> {
+  int countMapViewMaps(MapView mapView);
 }

@@ -38,14 +38,11 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionYearToDate
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().yearToDate( true ).build();
+public class FunctionYearToDate implements ExpressionItem {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().yearToDate(true).build();
 
-        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
-    }
+    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
+  }
 }

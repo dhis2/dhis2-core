@@ -34,33 +34,31 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
 /**
- * Contains validation method that can be added to
- * {@link org.hisp.dhis.jsonpatch.BulkPatchParameters}
- * <p>
- * which then will be used in {@link org.hisp.dhis.jsonpatch.BulkPatchManager}
+ * Contains validation method that can be added to {@link
+ * org.hisp.dhis.jsonpatch.BulkPatchParameters}
+ *
+ * <p>which then will be used in {@link org.hisp.dhis.jsonpatch.BulkPatchManager}
  */
 @FunctionalInterface
-public interface SchemaCheck extends Function<Schema, List<ErrorReport>>
-{
-    SchemaCheck empty = $ -> Collections.emptyList();
+public interface SchemaCheck extends Function<Schema, List<ErrorReport>> {
+  SchemaCheck empty = $ -> Collections.emptyList();
 
-    SchemaCheck isExist = rule( Objects::nonNull, ErrorCode.E6002 );
+  SchemaCheck isExist = rule(Objects::nonNull, ErrorCode.E6002);
 
-    /**
-     * Validate if given schema is shareable.
-     */
-    SchemaCheck isShareable = rule( Schema::isShareable, ErrorCode.E3019 );
+  /** Validate if given schema is shareable. */
+  SchemaCheck isShareable = rule(Schema::isShareable, ErrorCode.E3019);
 
-    static SchemaCheck rule( final Predicate<Schema> predicate, ErrorCode errorCode )
-    {
-        return schema -> !predicate.test( schema ) ? Collections
-            .singletonList( new ErrorReport( JsonPatchException.class, errorCode, schema.getName() ) ) : emptyList();
-    }
+  static SchemaCheck rule(final Predicate<Schema> predicate, ErrorCode errorCode) {
+    return schema ->
+        !predicate.test(schema)
+            ? Collections.singletonList(
+                new ErrorReport(JsonPatchException.class, errorCode, schema.getName()))
+            : emptyList();
+  }
 }

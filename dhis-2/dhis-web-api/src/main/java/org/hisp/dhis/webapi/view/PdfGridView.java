@@ -28,9 +28,8 @@
 package org.hisp.dhis.webapi.view;
 
 import java.util.List;
-
+import java.util.Locale;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -38,17 +37,16 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PdfGridView extends AbstractGridView
-{
-    public PdfGridView()
-    {
-        setContentType( ContextUtils.CONTENT_TYPE_PDF );
-    }
+public class PdfGridView extends AbstractGridView {
+  private Locale locale;
 
-    @Override
-    protected void renderGrids( List<Grid> grids, HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toPdf( grids, response.getOutputStream() );
-    }
+  public PdfGridView(Locale locale) {
+    setContentType(ContextUtils.CONTENT_TYPE_PDF);
+    this.locale = locale;
+  }
+
+  @Override
+  protected void renderGrids(List<Grid> grids, HttpServletResponse response) throws Exception {
+    GridUtils.toPdf(locale, grids, response.getOutputStream());
+  }
 }

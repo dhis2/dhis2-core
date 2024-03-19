@@ -33,47 +33,39 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 @Getter
-@Accessors( chain = true )
-@OpenApi.Response( status = BAD_REQUEST, value = WebMessageResponse.class )
-@SuppressWarnings( { "java:S1165", "java:S1948" } )
-public final class BadRequestException extends Exception implements Error
-{
-    public static <E extends RuntimeException, V> V on( Class<E> type, Supplier<V> operation )
-        throws BadRequestException
-    {
-        return Error.rethrow( type, BadRequestException::new, operation );
-    }
+@Accessors(chain = true)
+@OpenApi.Response(status = BAD_REQUEST, value = WebMessageResponse.class)
+@SuppressWarnings({"java:S1165", "java:S1948"})
+public final class BadRequestException extends Exception implements Error {
+  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
+      throws BadRequestException {
+    return Error.rethrow(type, BadRequestException::new, operation);
+  }
 
-    public static <E extends RuntimeException, V> V on( Class<E> type, Function<E, BadRequestException> map,
-        Supplier<V> operation )
-        throws BadRequestException
-    {
-        return Error.rethrowMapped( type, map, operation );
-    }
+  public static <E extends RuntimeException, V> V on(
+      Class<E> type, Function<E, BadRequestException> map, Supplier<V> operation)
+      throws BadRequestException {
+    return Error.rethrowMapped(type, map, operation);
+  }
 
-    private final ErrorCode code;
+  private final ErrorCode code;
 
-    @Setter
-    private List<ErrorReport> errorReports = List.of();
+  @Setter private List<ErrorReport> errorReports = List.of();
 
-    public BadRequestException( String message )
-    {
-        super( message );
-        this.code = ErrorCode.E1003;
-    }
+  public BadRequestException(String message) {
+    super(message);
+    this.code = ErrorCode.E1003;
+  }
 
-    public BadRequestException( ErrorCode code, Object... args )
-    {
-        super( MessageFormat.format( code.getMessage(), args ) );
-        this.code = code;
-    }
+  public BadRequestException(ErrorCode code, Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+  }
 }

@@ -28,10 +28,8 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -45,30 +43,28 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 /**
  * @author Zubair Asghar
  */
-
 @Data
 @Builder
-public class ProgramRuleActionValidationContext
-{
-    private Program program;
+public class ProgramRuleActionValidationContext {
+  private Program program;
 
-    private ProgramRule programRule;
+  private ProgramRule programRule;
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private TrackedEntityAttribute trackedEntityAttribute;
+  private TrackedEntityAttribute trackedEntityAttribute;
 
-    private ProgramStageSection programStageSection;
+  private ProgramStageSection programStageSection;
 
-    private ProgramStage programStage;
+  private ProgramStage programStage;
 
-    private Option option;
+  private Option option;
 
-    private OptionGroup optionGroup;
+  private OptionGroup optionGroup;
 
-    private ProgramNotificationTemplate notificationTemplate;
+  private ProgramNotificationTemplate notificationTemplate;
 
-    private ProgramRuleActionValidationService programRuleActionValidationService;
+  private ProgramRuleActionValidationService programRuleActionValidationService;
 
-    private List<ProgramStage> programStages;
+  private List<ProgramStage> programStages;
 }

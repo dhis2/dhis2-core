@@ -30,79 +30,73 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Jan Henrik Overland
  */
 public class GetOrganisationUnitGroupSetsAction
-    extends ActionPagingSupport<OrganisationUnitGroupSet>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    extends ActionPagingSupport<OrganisationUnitGroupSet> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitGroupService organisationUnitGroupService;
+  private OrganisationUnitGroupService organisationUnitGroupService;
 
-    public void setOrganisationUnitGroupService( OrganisationUnitGroupService organisationUnitGroupService )
-    {
-        this.organisationUnitGroupService = organisationUnitGroupService;
+  public void setOrganisationUnitGroupService(
+      OrganisationUnitGroupService organisationUnitGroupService) {
+    this.organisationUnitGroupService = organisationUnitGroupService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private String key;
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  private List<OrganisationUnitGroupSet> organisationUnitGroupSets;
+
+  public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSets() {
+    return organisationUnitGroupSets;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(OrganisationUnitGroupSet.class);
+
+    organisationUnitGroupSets =
+        new ArrayList<>(organisationUnitGroupService.getAllOrganisationUnitGroupSets());
+
+    if (key != null) {
+      organisationUnitGroupSets =
+          IdentifiableObjectUtils.filterNameByKey(organisationUnitGroupSets, key, true);
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    Collections.sort(organisationUnitGroupSets);
 
-    private String key;
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    organisationUnitGroupSets.forEach(instance -> canReadInstance(instance, currentUserDetails));
 
-    public void setKey( String key )
-    {
-        this.key = key;
+    if (usePaging) {
+      this.paging = createPaging(organisationUnitGroupSets.size());
+
+      organisationUnitGroupSets =
+          organisationUnitGroupSets.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    private List<OrganisationUnitGroupSet> organisationUnitGroupSets;
-
-    public List<OrganisationUnitGroupSet> getOrganisationUnitGroupSets()
-    {
-        return organisationUnitGroupSets;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( OrganisationUnitGroupSet.class );
-
-        organisationUnitGroupSets = new ArrayList<>(
-            organisationUnitGroupService.getAllOrganisationUnitGroupSets() );
-
-        if ( key != null )
-        {
-            organisationUnitGroupSets = IdentifiableObjectUtils.filterNameByKey( organisationUnitGroupSets, key, true );
-        }
-
-        Collections.sort( organisationUnitGroupSets );
-
-        User currentUser = currentUserService.getCurrentUser();
-        organisationUnitGroupSets.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( organisationUnitGroupSets.size() );
-
-            organisationUnitGroupSets = organisationUnitGroupSets.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
-
+    return SUCCESS;
+  }
 }

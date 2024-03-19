@@ -31,14 +31,13 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 /**
- * DimensionItemObject data as found with organisation unit, period, attribute
- * option combination, and a value.
+ * DimensionItemObject data as found with organisation unit, period, attribute option combination,
+ * and a value.
  *
  * @author Jim Grace
  */
@@ -46,15 +45,14 @@ import org.hisp.dhis.period.Period;
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor
-public class FoundDimensionItemValue
-{
-    private final OrganisationUnit organisationUnit;
+public class FoundDimensionItemValue {
+  private final OrganisationUnit organisationUnit;
 
-    private final Period period;
+  private final Period period;
 
-    private final CategoryOptionCombo attributeOptionCombo;
+  private final CategoryOptionCombo attributeOptionCombo;
 
-    private final DimensionalItemObject dimensionalItemObject;
+  private final DimensionalItemObject dimensionalItemObject;
 
-    private final Object value;
+  private final Object value;
 }

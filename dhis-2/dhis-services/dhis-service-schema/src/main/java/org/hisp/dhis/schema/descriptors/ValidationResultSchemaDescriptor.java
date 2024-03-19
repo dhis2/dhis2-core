@@ -34,21 +34,19 @@ import org.hisp.dhis.validation.ValidationResult;
 /**
  * @author Stian Sandvold
  */
-public class ValidationResultSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "validationResult";
+public class ValidationResultSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "validationResult";
 
-    public static final String PLURAL = "validationResults";
+  public static final String PLURAL = "validationResults";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ValidationResult.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 2000 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ValidationResult.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(2000);
 
-        return schema;
-    }
+    return schema;
+  }
 }

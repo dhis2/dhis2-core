@@ -32,59 +32,55 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.when;
 
+import com.google.common.net.HttpHeaders;
 import javax.servlet.http.HttpServletRequest;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.net.HttpHeaders;
+@ExtendWith(MockitoExtension.class)
+class ResponseEntityUtilsTest {
+  @Mock private HttpServletRequest request;
 
-@ExtendWith( MockitoExtension.class )
-class ResponseEntityUtilsTest
-{
-    @Mock
-    private HttpServletRequest request;
+  @Test
+  void testcheckNotModifiedEtag() {
+    when(request.getHeader(matches(HttpHeaders.IF_NONE_MATCH)))
+        .thenReturn("aa9108b4a9b5553cdd160526cdc");
 
-    @Test
-    void testcheckNotModifiedEtag()
-    {
-        when( request.getHeader( matches( HttpHeaders.IF_NONE_MATCH ) ) )
-            .thenReturn( "aa9108b4a9b5553cdd160526cdc" );
+    assertTrue(ResponseEntityUtils.checkNotModified("aa9108b4a9b5553cdd160526cdc", request));
+    assertTrue(ResponseEntityUtils.checkNotModified("\"aa9108b4a9b5553cdd160526cdc\"", request));
+    assertTrue(ResponseEntityUtils.checkNotModified("W/\"aa9108b4a9b5553cdd160526cdc\"", request));
+    assertTrue(ResponseEntityUtils.checkNotModified("W/aa9108b4a9b5553cdd160526cdc", request));
+    assertTrue(
+        ResponseEntityUtils.checkNotModified("  W/\"aa9108b4a9b5553cdd160526cdc\"", request));
+    assertTrue(ResponseEntityUtils.checkNotModified("  aa9108b4a9b5553cdd160526cdc", request));
+    assertTrue(ResponseEntityUtils.checkNotModified("  W/aa9108b4a9b5553cdd160526cdc", request));
+    assertTrue(ResponseEntityUtils.checkNotModified(" aa9108b4a9b5553cdd160526cdc  ", request));
+    assertTrue(ResponseEntityUtils.checkNotModified(" \"aa9108b4a9b5553cdd160526cdc\"  ", request));
 
-        assertTrue( ResponseEntityUtils.checkNotModified( "aa9108b4a9b5553cdd160526cdc", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "\"aa9108b4a9b5553cdd160526cdc\"", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "W/\"aa9108b4a9b5553cdd160526cdc\"", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "W/aa9108b4a9b5553cdd160526cdc", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "  W/\"aa9108b4a9b5553cdd160526cdc\"", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "  aa9108b4a9b5553cdd160526cdc", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( "  W/aa9108b4a9b5553cdd160526cdc", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( " aa9108b4a9b5553cdd160526cdc  ", request ) );
-        assertTrue( ResponseEntityUtils.checkNotModified( " \"aa9108b4a9b5553cdd160526cdc\"  ", request ) );
+    assertFalse(ResponseEntityUtils.checkNotModified("b56ygt9ikj68764419gkh73k9g2", request));
+    assertFalse(ResponseEntityUtils.checkNotModified("Wb56ygt9ikj68764419gkh73k9g2", request));
+    assertFalse(
+        ResponseEntityUtils.checkNotModified("W/   \"aa9108b4a9b5553cdd160526cdc\"", request));
+  }
 
-        assertFalse( ResponseEntityUtils.checkNotModified( "b56ygt9ikj68764419gkh73k9g2", request ) );
-        assertFalse( ResponseEntityUtils.checkNotModified( "Wb56ygt9ikj68764419gkh73k9g2", request ) );
-        assertFalse( ResponseEntityUtils.checkNotModified( "W/   \"aa9108b4a9b5553cdd160526cdc\"", request ) );
-    }
+  @Test
+  void testcheckNotModifiedIfNoneMatch() {
+    when(request.getHeader(matches(HttpHeaders.IF_NONE_MATCH)))
+        .thenReturn("b56ygt9ikj68764419gkh73k9g2");
+    assertTrue(ResponseEntityUtils.checkNotModified("b56ygt9ikj68764419gkh73k9g2", request));
 
-    @Test
-    void testcheckNotModifiedIfNoneMatch()
-    {
-        when( request.getHeader( matches( HttpHeaders.IF_NONE_MATCH ) ) )
-            .thenReturn( "b56ygt9ikj68764419gkh73k9g2" );
-        assertTrue( ResponseEntityUtils.checkNotModified( "b56ygt9ikj68764419gkh73k9g2", request ) );
+    when(request.getHeader(matches(HttpHeaders.IF_NONE_MATCH)))
+        .thenReturn("W/b56ygt9ikj68764419gkh73k9g2");
+    assertTrue(ResponseEntityUtils.checkNotModified("b56ygt9ikj68764419gkh73k9g2", request));
 
-        when( request.getHeader( matches( HttpHeaders.IF_NONE_MATCH ) ) )
-            .thenReturn( "W/b56ygt9ikj68764419gkh73k9g2" );
-        assertTrue( ResponseEntityUtils.checkNotModified( "b56ygt9ikj68764419gkh73k9g2", request ) );
+    when(request.getHeader(matches(HttpHeaders.IF_NONE_MATCH)))
+        .thenReturn("cht61hgy3m9sjg6whg135jt5jqw");
+    assertFalse(ResponseEntityUtils.checkNotModified("b56ygt9ikj68764419gkh73k9g2", request));
 
-        when( request.getHeader( matches( HttpHeaders.IF_NONE_MATCH ) ) )
-            .thenReturn( "cht61hgy3m9sjg6whg135jt5jqw" );
-        assertFalse( ResponseEntityUtils.checkNotModified( "b56ygt9ikj68764419gkh73k9g2", request ) );
-
-        when( request.getHeader( matches( HttpHeaders.IF_NONE_MATCH ) ) )
-            .thenReturn( "W/  b56ygt9ikj68764419gkh73k9g2" );
-        assertFalse( ResponseEntityUtils.checkNotModified( "b56ygt9ikj68764419gkh73k9g2", request ) );
-    }
+    when(request.getHeader(matches(HttpHeaders.IF_NONE_MATCH)))
+        .thenReturn("W/  b56ygt9ikj68764419gkh73k9g2");
+    assertFalse(ResponseEntityUtils.checkNotModified("b56ygt9ikj68764419gkh73k9g2", request));
+  }
 }

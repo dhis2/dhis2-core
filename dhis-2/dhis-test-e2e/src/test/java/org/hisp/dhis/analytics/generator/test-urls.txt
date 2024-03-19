@@ -1,0 +1,7 @@
+#######################################################
+# Examples of URL definition, so it can be correctly read by the generator (note the separator '@@').
+#
+# BCG coverage last 12 months - Bo@@http://localhost:8080/dhis/api/41/analytics?relativePeriodDate=2022-01-01&dimension=dx:FnYCr2EAzWS&filter=ou:O6uvpzGd5pu&filter=pe:LAST_12_MONTHS&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false
+# Nutrition: Malnutrition indicators stacked bar@@http://localhost:8080/dhis/api/41/analytics?relativePeriodDate=2022-01-01&dimension=dx:X3taFC1HtE5;vhzPbO1eEyr;joIQbN4L1Ok;aGByu8NFs9m,ou:at6UHUQatSo;bL4ooGhyHRQ;TEQlaapDQoK;O6uvpzGd5pu;kJq2mPyFEHo;jUb8gELQApl;eIQbndfxQMb;Vth0fbpFcsO;fdc6uOvgoji;jmIPBj66vD6;ImspTQPwCqd;lc3eMKXaEfw;qhqAxPSTUXp;PMa2VCrupOd&filter=pe:2022&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=false
+# Tei test@@http://localhost:8080/dhis/api/analytics/trackedEntities/query/nEenWmSyUEp.json?program=IpHINAT79UW&desc=IpHINAT79UW.A03MvHHogjR.ouname&relativePeriodDate=2016-01-01
+#######################################################

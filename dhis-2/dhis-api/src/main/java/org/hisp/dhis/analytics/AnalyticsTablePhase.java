@@ -30,8 +30,7 @@ package org.hisp.dhis.analytics;
 /**
  * @author Lars Helge Overland
  */
-public enum AnalyticsTablePhase
-{
-    RESOURCE_TABLE_POPULATED,
-    ANALYTICS_TABLE_POPULATED
+public enum AnalyticsTablePhase {
+  RESOURCE_TABLE_POPULATED,
+  ANALYTICS_TABLE_POPULATED
 }

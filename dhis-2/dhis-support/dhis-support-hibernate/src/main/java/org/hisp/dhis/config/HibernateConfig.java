@@ -27,28 +27,41 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
+
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
-
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.SharedCacheMode;
+import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
-
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ArrayUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.cache.ehcache.internal.EhcacheRegionFactory;
+import org.hibernate.cfg.AvailableSettings;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
-import org.hisp.dhis.deletedobject.DeletedObject;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -58,73 +71,124 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 @EnableTransactionManagement
-public class HibernateConfig
-{
-    @Bean( "hibernateConfigurationProvider" )
-    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
-    {
-        DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
-        hibernateConfigurationProvider.setConfigProvider( dhisConfig );
-        return hibernateConfigurationProvider;
+@Slf4j
+public class HibernateConfig {
+
+  @Bean
+  public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+    return new PersistenceExceptionTranslationPostProcessor();
+  }
+
+  @Bean("jpaTransactionManager")
+  @DependsOn("entityManagerFactory")
+  public JpaTransactionManager jpaTransactionManager(
+      @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
+    return new JpaTransactionManager(emf);
+  }
+
+  @Bean("transactionTemplate")
+  @DependsOn("jpaTransactionManager")
+  public TransactionTemplate transactionTemplate(
+      @Qualifier("jpaTransactionManager") JpaTransactionManager transactionManager) {
+    return new TransactionTemplate(transactionManager);
+  }
+
+  @Bean
+  public DefaultHibernateCacheManager cacheManager(
+      @Qualifier("entityManagerFactory") EntityManagerFactory emf) {
+    DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
+    cacheManager.setSessionFactory(emf.unwrap(SessionFactory.class));
+
+    return cacheManager;
+  }
+
+  @Bean
+  public DbmsManager dbmsManager(
+      JdbcTemplate jdbcTemplate,
+      DefaultHibernateCacheManager cacheManager,
+      EntityManager entityManager) {
+    HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
+    hibernateDbmsManager.setCacheManager(cacheManager);
+    hibernateDbmsManager.setEntityManager(entityManager);
+    hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
+    return hibernateDbmsManager;
+  }
+
+  @Bean
+  public BeanFactoryPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
+    return new EntityManagerBeanDefinitionRegistrarPostProcessor();
+  }
+
+  @Bean("entityManagerFactory")
+  @DependsOn({"flyway"})
+  public EntityManagerFactory entityManagerFactoryBean(
+      DhisConfigurationProvider dhisConfig, DataSource dataSource) {
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+    adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    adapter.setGenerateDdl(shouldGenerateDDL(dhisConfig));
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(adapter);
+    factory.setPersistenceUnitName("dhis");
+    factory.setPersistenceProvider(new org.hibernate.jpa.HibernatePersistenceProvider());
+    factory.setDataSource(dataSource);
+    factory.setPackagesToScan("org.hisp.dhis");
+    factory.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
+    factory.setValidationMode(ValidationMode.AUTO);
+    factory.setJpaProperties(getAdditionalProperties(dhisConfig));
+    factory.setMappingResources(loadResources());
+    factory.afterPropertiesSet();
+    return factory.getObject();
+  }
+
+  /**
+   * Returns additional properties to be used by the {@link LocalContainerEntityManagerFactoryBean}
+   */
+  private Properties getAdditionalProperties(DhisConfigurationProvider dhisConfig) {
+    Properties properties = new Properties();
+    properties.put(
+        "hibernate.current_session_context_class",
+        "org.springframework.orm.hibernate5.SpringSessionContext");
+
+    if (dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE).equals("true")) {
+      properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
+      properties.put(AvailableSettings.CACHE_REGION_FACTORY, EhcacheRegionFactory.class.getName());
+      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
     }
 
-    @Bean
-    @DependsOn( "flyway" )
-    public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
-        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
-    {
-        Objects.requireNonNull( dataSource );
-        Objects.requireNonNull( hibernateConfigurationProvider );
+    // TODO: this is anti-pattern and should be turn off
+    properties.put("hibernate.allow_update_outside_transaction", "true");
 
-        Properties hibernateProperties = hibernateConfigurationProvider.getConfiguration().getProperties();
-        Objects.requireNonNull( hibernateProperties );
+    return properties;
+  }
 
-        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
-        List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
+  /**
+   * Loads all the hibernate mapping files from the classpath
+   *
+   * @return Array of Strings representing the mapping files
+   */
+  private String[] loadResources() {
+    try {
+      PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+      Resource[] resources = resolver.getResources("classpath*:org/hisp/dhis/**/*.hbm.xml");
 
-        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setDataSource( dataSource );
-        sessionFactory.setMappingJarLocations( jarResources.toArray( new Resource[0] ) );
-        sessionFactory.setMappingDirectoryLocations( directoryResources.toArray( new Resource[0] ) );
-        sessionFactory.setAnnotatedClasses( DeletedObject.class );
-        sessionFactory.setHibernateProperties( hibernateProperties );
-
-        return sessionFactory;
+      List<String> list = new ArrayList<>();
+      for (Resource resource : resources) {
+        String url = resource.getURL().toString();
+        list.add(url);
+      }
+      return list.toArray(new String[0]);
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
     }
+    return ArrayUtils.EMPTY_STRING_ARRAY;
+  }
 
-    @Bean
-    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource,
-        SessionFactory sessionFactory )
-    {
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory( sessionFactory );
-        transactionManager.setDataSource( dataSource );
-
-        return transactionManager;
-    }
-
-    @Bean
-    public TransactionTemplate transactionTemplate( HibernateTransactionManager transactionManager )
-    {
-        return new TransactionTemplate( transactionManager );
-    }
-
-    @Bean
-    public DefaultHibernateCacheManager cacheManager( SessionFactory sessionFactory )
-    {
-        DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory( sessionFactory );
-        return cacheManager;
-    }
-
-    @Bean
-    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate, SessionFactory sessionFactory,
-        DefaultHibernateCacheManager cacheManager )
-    {
-        HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-        hibernateDbmsManager.setCacheManager( cacheManager );
-        hibernateDbmsManager.setSessionFactory( sessionFactory );
-        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
-        return hibernateDbmsManager;
-    }
+  /**
+   * If return true, hibernate will generate the DDL for the database. This is used by h2-test.
+   * @param dhisConfig {@link DhisConfigurationProvider
+   * @return TRUE if connection.schema is not set to none
+   */
+  private boolean shouldGenerateDDL(DhisConfigurationProvider dhisConfig) {
+    return "update".equals(dhisConfig.getProperty(ConfigurationKey.CONNECTION_SCHEMA));
+  }
 }

@@ -1,117 +1,122 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
-  >
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.ProgramStage" table="programstage">
+    <class name="org.hisp.dhis.program.ProgramStage" table="programstage">
 
-    <cache usage="read-write" />
+        <cache usage="read-write"/>
 
-    <id name="id" column="programstageid">
-      <generator class="native" />
-    </id>
-    &identifiableProperties;
+        <id name="id" column="programstageid">
+            <generator class="native"/>
+        </id>
+        &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" length="230" />
+        <property name="name" column="name" not-null="true" length="230"/>
 
-    <property name="description" type="text" />
+        <property name="description" type="text"/>
 
-    <property name="formName" type="text" />
+        <property name="formName" type="text"/>
 
-    <property name="minDaysFromStart" column="mindaysfromstart" not-null="true" />
+        <property name="minDaysFromStart" column="mindaysfromstart" not-null="true"/>
 
-    <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
-      foreign-key="fk_programstage_program" />
+        <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
+                     foreign-key="fk_programstage_program"/>
 
-    <property name="repeatable" column="repeatable" not-null="true" />
+        <property name="repeatable" column="repeatable" not-null="true"/>
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
-      <key column="programstageid"/>
-      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement"/>
-    </set>
+        <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
+            <key column="programstageid"/>
+            <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement"/>
+        </set>
 
-    <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
-                 column="dataentryformid" foreign-key="fk_programstage_dataentryform"/>
+        <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
+                     column="dataentryformid" foreign-key="fk_programstage_dataentryform"/>
 
-    <property name="standardInterval"/>
+        <property name="standardInterval"/>
 
-    <set name="programStageSections" order-by="sortOrder" cascade="delete-orphan">
-      <key column="programstageid"/>
-      <one-to-many class="org.hisp.dhis.program.ProgramStageSection"/>
-    </set>
+        <set name="programStageSections" order-by="sortOrder" cascade="all-delete-orphan" >
+            <key column="programstageid"/>
+            <one-to-many class="org.hisp.dhis.program.ProgramStageSection"/>
+        </set>
 
-    <property name="executionDateLabel" column="executiondatelabel"/>
+        <property name="executionDateLabel" column="executiondatelabel"/>
 
-    <property name="dueDateLabel" column="duedatelabel"/>
+        <property name="dueDateLabel" column="duedatelabel"/>
 
-    <set name="notificationTemplates" cascade="all-delete-orphan">
-      <key column="programstageid"/>
-      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"/>
-    </set>
+        <property name="programStageLabel" column="programstagelabel"/>
 
-    <property name="autoGenerateEvent" />
+        <property name="eventLabel" column="eventlabel"/>
 
-    <property name="validationStrategy" column="validationstrategy" length="32">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.ValidationStrategy</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
+        <set name="notificationTemplates" cascade="all-delete-orphan">
+            <key column="programstageid"/>
+            <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"/>
+        </set>
 
-    <property name="displayGenerateEventBox" />
+        <property name="autoGenerateEvent"/>
 
-    <property name="generatedByEnrollmentDate" />
+        <property name="validationStrategy" column="validationstrategy" length="32">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.program.ValidationStrategy</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
 
-    <property name="blockEntryForm" />
+        <property name="displayGenerateEventBox"/>
 
-    <property name="remindCompleted" />
+        <property name="generatedByEnrollmentDate"/>
 
-    <property name="allowGenerateNextVisit" />
+        <property name="blockEntryForm"/>
 
-    <property name="openAfterEnrollment" />
+        <property name="remindCompleted"/>
 
-    <property name="reportDateToUse" />
+        <property name="allowGenerateNextVisit"/>
 
-    <property name="preGenerateUID" />
+        <property name="openAfterEnrollment"/>
 
-    <property name="style" type="jbObjectStyle" column="style" />
+        <property name="reportDateToUse"/>
 
-    <property name="hideDueDate" />
+        <property name="preGenerateUID"/>
 
-    <property name="sortOrder" column="sort_order" />
+        <property name="style" type="jbObjectStyle" column="style"/>
 
-    <property name="translations" type="jblTranslations"/>
+        <property name="hideDueDate"/>
 
-    <property name="featureType" column="featuretype">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
+        <property name="sortOrder" column="sort_order"/>
 
-    <property name="enableUserAssignment" column="enableuserassignment" />
+        <property name="translations" type="jblTranslations"/>
 
-    <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
-      foreign-key="fk_programstage_periodtypeid" />
+        <property name="featureType" column="featuretype">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
 
-    <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
+        <property name="enableUserAssignment" column="enableuserassignment"/>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstage_userid" />
+        <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
+                     foreign-key="fk_programstage_periodtypeid"/>
 
-    <!-- Sharing -->
-    <property name="sharing" type="jsbObjectSharing"/>
+        <!-- Dynamic attribute values -->
+        <property name="attributeValues" type="jsbAttributeValues"/>
 
-    <many-to-one name="nextScheduleDate" class="org.hisp.dhis.dataelement.DataElement" column="nextscheduledateid"
-      foreign-key="fk_programstage_nextscheduledateid" />
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                     foreign-key="fk_programstage_userid"/>
 
-    <property name="referral" column="referral" not-null="true" />
+        <!-- Sharing -->
+        <property name="sharing" type="jsbObjectSharing"/>
 
-  </class>
+        <many-to-one name="nextScheduleDate" class="org.hisp.dhis.dataelement.DataElement" column="nextscheduledateid"
+                     foreign-key="fk_programstage_nextscheduledateid"/>
+
+        <property name="referral" column="referral" not-null="true"/>
+
+    </class>
 
 </hibernate-mapping>

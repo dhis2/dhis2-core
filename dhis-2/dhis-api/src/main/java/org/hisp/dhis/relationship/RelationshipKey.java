@@ -30,77 +30,60 @@ package org.hisp.dhis.relationship;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
 import org.apache.commons.lang3.StringUtils;
 
 @Data
-@Builder( toBuilder = true )
-@AllArgsConstructor( staticName = "of" )
-public class RelationshipKey
-{
+@Builder(toBuilder = true)
+@AllArgsConstructor(staticName = "of")
+public class RelationshipKey {
 
-    private static final String RELATIONSHIP_KEY_SEPARATOR = "_";
+  private static final String RELATIONSHIP_KEY_SEPARATOR = "_";
 
-    private final String type;
+  private final String type;
 
-    private final RelationshipItemKey from;
+  private final RelationshipItemKey from;
 
-    private final RelationshipItemKey to;
+  private final RelationshipItemKey to;
 
-    public String asString()
-    {
-        return String.join( RELATIONSHIP_KEY_SEPARATOR, type, from.asString(), to.asString() );
+  public String asString() {
+    return String.join(RELATIONSHIP_KEY_SEPARATOR, type, from.asString(), to.asString());
+  }
+
+  public RelationshipKey inverseKey() {
+    return toBuilder().from(to).to(from).build();
+  }
+
+  @Data
+  @Builder
+  public static class RelationshipItemKey {
+    private final String trackedEntity;
+
+    private final String enrollment;
+
+    private final String event;
+
+    public String asString() {
+      if (isTrackedEntity()) {
+        return trackedEntity;
+      } else if (isEnrollment()) {
+        return enrollment;
+      } else if (isEvent()) {
+        return event;
+      }
+
+      return "ERROR";
     }
 
-    public RelationshipKey inverseKey()
-    {
-        return toBuilder()
-            .from( to )
-            .to( from )
-            .build();
+    public boolean isTrackedEntity() {
+      return StringUtils.isNoneBlank(trackedEntity);
     }
 
-    @Data
-    @Builder
-    public static class RelationshipItemKey
-    {
-        private final String trackedEntity;
-
-        private final String enrollment;
-
-        private final String event;
-
-        public String asString()
-        {
-            if ( isTrackedEntity() )
-            {
-                return trackedEntity;
-            }
-            else if ( isEnrollment() )
-            {
-                return enrollment;
-            }
-            else if ( isEvent() )
-            {
-                return event;
-            }
-
-            return "ERROR";
-        }
-
-        public boolean isTrackedEntity()
-        {
-            return StringUtils.isNoneBlank( trackedEntity );
-        }
-
-        public boolean isEnrollment()
-        {
-            return StringUtils.isNoneBlank( enrollment );
-        }
-
-        public boolean isEvent()
-        {
-            return StringUtils.isNoneBlank( event );
-        }
+    public boolean isEnrollment() {
+      return StringUtils.isNoneBlank(enrollment);
     }
+
+    public boolean isEvent() {
+      return StringUtils.isNoneBlank(event);
+    }
+  }
 }

@@ -31,16 +31,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode( callSuper = true )
-public class UserSnapshot extends IdentifiableObjectSnapshot
-{
-    private String name;
+@EqualsAndHashCode(callSuper = true)
+public class UserSnapshot extends IdentifiableObjectSnapshot {
+  private String name;
 
-    private String username;
+  private String username;
 
-    private String email;
+  private String email;
 
-    private String phoneNumber;
+  private String phoneNumber;
 
-    private OrganisationUnitSnapshot organisationUnit;
+  private OrganisationUnitSnapshot organisationUnit;
 }

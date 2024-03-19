@@ -28,11 +28,8 @@
 package org.hisp.dhis.dxf2.synch;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.dxf2.sync.SyncUtils;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -47,34 +44,22 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DataSynchronizationJob implements Job
-{
-    private final SynchronizationManager syncManager;
+public class DataSynchronizationJob implements Job {
+  private final DataValueSynchronization dataValueSync;
 
-    private final DataValueSynchronization dataValueSync;
+  private final CompleteDataSetRegistrationSynchronization completenessSync;
 
-    private final CompleteDataSetRegistrationSynchronization completenessSync;
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_SYNC;
+  }
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DATA_SYNC;
-    }
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    DataSynchronizationJobParameters params =
+        (DataSynchronizationJobParameters) config.getJobParameters();
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        DataSynchronizationJobParameters params = (DataSynchronizationJobParameters) config
-            .getJobParameters();
-
-        dataValueSync.synchronizeData( params.getPageSize(), progress );
-        completenessSync.synchronizeData( progress );
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return SyncUtils.validateRemoteServerAvailability( syncManager, DataSynchronizationJob.class )
-            .orElse( null );
-    }
+    dataValueSync.synchronizeData(params.getPageSize(), progress);
+    completenessSync.synchronizeData(progress);
+  }
 }

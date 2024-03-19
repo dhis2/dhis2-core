@@ -28,10 +28,8 @@
 package org.hisp.dhis.dataexchange.client.auth;
 
 import javax.annotation.Nonnull;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpHeaders;
 
 /**
@@ -41,19 +39,14 @@ import org.springframework.http.HttpHeaders;
  */
 @Getter
 @RequiredArgsConstructor
-public class BasicAuthentication
-    implements Authentication
-{
-    @Nonnull
-    private final String username;
+public class BasicAuthentication implements Authentication {
+  @Nonnull private final String username;
 
-    @Nonnull
-    private final String password;
+  @Nonnull private final String password;
 
-    @Override
-    public HttpHeaders withAuthentication( HttpHeaders headers )
-    {
-        headers.setBasicAuth( username, password );
-        return headers;
-    }
+  @Override
+  public HttpHeaders withAuthentication(HttpHeaders headers) {
+    headers.setBasicAuth(username, password);
+    return headers;
+  }
 }

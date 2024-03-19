@@ -27,63 +27,242 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 
+import com.google.common.base.Strings;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Wærstad
  */
-@Service( "org.hisp.dhis.icon.IconService" )
-public class DefaultIconService
-    implements IconService
-{
-    private static final String ICON_PATH = "SVGs";
+@RequiredArgsConstructor
+@Service("org.hisp.dhis.icon.IconService")
+public class DefaultIconService implements IconService {
 
-    private Map<String, IconData> icons = Arrays.stream( Icon.values() )
-        .map( Icon::getVariants )
-        .flatMap( Collection::stream )
-        .collect( Collectors.toMap( IconData::getKey, Function.identity() ) );
+  private static final String CUSTOM_ICON_KEY_PATTERN = "^[a-zA-Z0-9_+-]+$";
 
-    @Override
-    public Collection<IconData> getIcons()
-    {
-        return icons.values();
+  private static final Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
+
+  private static final String ICON_PATH = "SVGs";
+  private static final String MEDIA_TYPE_SVG = "image/svg+xml";
+
+  private final IconStore iconStore;
+  private final FileResourceService fileResourceService;
+  private final UserService userService;
+
+  private final Set<DefaultIcon> ignoredAfterFailure = ConcurrentHashMap.newKeySet();
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Icon> findNonExistingDefaultIcons() {
+    Set<String> existingKeys = Set.copyOf(iconStore.getAllKeys());
+    List<Icon> missingIcons = new ArrayList<>();
+    for (DefaultIcon icon : DefaultIcon.values()) {
+      if (!ignoredAfterFailure.contains(icon)
+          && icon.getVariantKeys().stream().anyMatch(key -> !existingKeys.contains(key))) {
+        for (Icon i : icon.toVariantIcons()) {
+          if (!existingKeys.contains(i.getKey())) {
+            missingIcons.add(i);
+          }
+        }
+      }
+    }
+    return missingIcons;
+  }
+
+  @Override
+  @Transactional
+  public String uploadDefaultIcon(Icon icon) throws ConflictException {
+    String fileResourceId = CodeGenerator.generateUid();
+    Resource resource = getDefaultIconResource(icon.getKey());
+    try {
+      FileResource fileResource = FileResource.ofKey(ICON, icon.getKey(), MEDIA_TYPE_SVG);
+      fileResource.setUid(fileResourceId);
+      fileResource.setAssigned(true);
+      try (InputStream image = resource.getInputStream()) {
+        fileResourceService.syncSaveFileResource(fileResource, image);
+      }
+      icon.setFileResource(fileResource);
+      return fileResourceId;
+    } catch (IOException ex) {
+      ignoredAfterFailure.add(icon.getOrigin());
+      throw new ConflictException("Failed to create default icon resource: " + ex.getMessage());
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Icon> getIcons(IconQueryParams params) {
+    return iconStore.getIcons(params);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public long count(IconQueryParams params) {
+    return iconStore.count(params);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Icon getIcon(String key) throws NotFoundException {
+    Icon icon = iconStore.getIconByKey(key);
+    if (icon == null) {
+      throw new NotFoundException(String.format("Icon not found: %s", key));
     }
 
-    @Override
-    public Collection<IconData> getIcons( Collection<String> keywords )
-    {
-        return icons.values().stream()
-            .filter( icon -> Arrays.asList( icon.getKeywords() ).containsAll( keywords ) )
-            .collect( Collectors.toList() );
+    return icon;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean iconExists(String key) {
+    return iconStore.getIconByKey(key) != null;
+  }
+
+  @Override
+  @Transactional
+  public void addIcon(@Nonnull Icon icon)
+      throws BadRequestException, NotFoundException, SQLException {
+
+    if (icon.getOrigin() == null && !icon.isCustom()) {
+      throw new BadRequestException("Not allowed to create default icon");
     }
 
-    @Override
-    public Optional<IconData> getIcon( String key )
-    {
-        return Optional.ofNullable( icons.get( key ) );
+    validateIconDoesNotExists(icon);
+    validateIconKey(icon.getKey());
+
+    if (icon.getFileResource() != null) {
+      FileResource fileResource = getFileResource(icon.getFileResource().getUid());
+      fileResource.setAssigned(true);
+      fileResourceService.updateFileResource(fileResource);
     }
 
-    @Override
-    public Optional<Resource> getIconResource( String key )
-    {
-        return Optional.ofNullable( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, Icon.SUFFIX ) ) );
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    if (currentUser != null) {
+      icon.setCreatedBy(currentUser);
     }
 
-    @Override
-    public Collection<String> getKeywords()
-    {
-        return icons.values().stream()
-            .map( IconData::getKeywords )
-            .flatMap( Arrays::stream )
-            .collect( Collectors.toSet() );
+    if (icon.getKeywords() == null) {
+      icon.setKeywords(Set.of());
     }
+
+    icon.setAutoFields();
+    iconStore.save(icon);
+  }
+
+  @Override
+  @Transactional
+  public void updateIcon(@Nonnull Icon icon) throws BadRequestException, SQLException {
+    if (!icon.isCustom()) {
+      throw new BadRequestException("Not allowed to update default icon");
+    }
+
+    validateIconKeyNotNullOrEmpty(icon.getKey());
+
+    if (icon.getKeywords() == null) {
+      icon.setKeywords(Set.of());
+    }
+
+    icon.setAutoFields();
+    iconStore.update(icon);
+  }
+
+  @Override
+  @Transactional
+  public void deleteIcon(String key) throws BadRequestException, NotFoundException {
+    Icon icon = validateIconExists(key);
+
+    if (!icon.isCustom()) {
+      throw new BadRequestException("Not allowed to delete default icon");
+    }
+
+    FileResource fileResource = getFileResource(icon.getFileResource().getUid());
+    fileResource.setAssigned(false);
+    fileResourceService.updateFileResource(fileResource);
+
+    iconStore.delete(icon);
+  }
+
+  private void validateIconKey(String key) throws BadRequestException {
+    Matcher matcher = pattern.matcher(key.trim());
+
+    if (!matcher.matches()) {
+      throw new BadRequestException(
+          String.format(
+              "Icon key %s is not valid. Alphanumeric and special characters '-' and '_' are allowed",
+              key));
+    }
+  }
+
+  private void validateIconDoesNotExists(Icon icon) throws BadRequestException {
+    if (icon == null) {
+      throw new BadRequestException("Icon cannot be null.");
+    }
+
+    validateIconDoesNotExists(icon.getKey());
+  }
+
+  private void validateIconDoesNotExists(String key) throws BadRequestException {
+    validateIconKeyNotNullOrEmpty(key);
+
+    if (iconExists(key)) {
+      throw new BadRequestException(String.format("Icon with key %s already exists.", key));
+    }
+  }
+
+  private void validateIconKeyNotNullOrEmpty(String key) throws BadRequestException {
+    if (Strings.isNullOrEmpty(key)) {
+      throw new BadRequestException("Icon key not specified.");
+    }
+
+    validateIconKey(key);
+  }
+
+  private FileResource getFileResource(String fileResourceUid)
+      throws BadRequestException, NotFoundException {
+    if (Strings.isNullOrEmpty(fileResourceUid)) {
+      throw new BadRequestException("FileResource id not specified.");
+    }
+
+    Optional<FileResource> fileResource =
+        fileResourceService.getFileResource(fileResourceUid, ICON);
+    if (fileResource.isEmpty()) {
+      throw new NotFoundException(String.format("FileResource %s does not exist", fileResourceUid));
+    }
+
+    return fileResource.get();
+  }
+
+  private Icon validateIconExists(String key) throws NotFoundException, BadRequestException {
+    validateIconKeyNotNullOrEmpty(key);
+    return getIcon(key);
+  }
+
+  private static Resource getDefaultIconResource(String key) {
+    return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
+  }
 }

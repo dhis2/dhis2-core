@@ -27,50 +27,40 @@
  */
 package org.hisp.dhis.sms.outbound;
 
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import java.util.Set;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
+/** Zubair <rajazubair.asghar@gmail.com> */
+@JacksonXmlRootElement(localName = "requestEntityClickatell")
+public class ClickatellRequestEntity {
+  private String content;
 
-@JacksonXmlRootElement( localName = "requestEntityClickatell" )
-public class ClickatellRequestEntity
-{
-    private String content;
+  private Set<String> to;
 
-    private Set<String> to;
+  @JsonProperty(value = "content")
+  @JacksonXmlProperty(localName = "content")
+  public String getContent() {
+    return content;
+  }
 
-    @JsonProperty( value = "content" )
-    @JacksonXmlProperty( localName = "content" )
-    public String getContent()
-    {
-        return content;
-    }
+  public void setContent(String content) {
+    this.content = content;
+  }
 
-    public void setContent( String content )
-    {
-        this.content = content;
-    }
+  @JsonProperty(value = "to")
+  @JacksonXmlProperty(localName = "to")
+  public Set<String> getTo() {
+    return to;
+  }
 
-    @JsonProperty( value = "to" )
-    @JacksonXmlProperty( localName = "to" )
-    public Set<String> getTo()
-    {
-        return to;
-    }
+  public void setTo(Set<String> to) {
+    this.to = to;
+  }
 
-    public void setTo( Set<String> to )
-    {
-        this.to = to;
-    }
-
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).add( "content", content ).add( "to", to ).toString();
-    }
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("content", content).add("to", to).toString();
+  }
 }

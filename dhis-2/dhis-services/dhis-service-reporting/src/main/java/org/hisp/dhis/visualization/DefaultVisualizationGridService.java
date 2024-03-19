@@ -33,9 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -43,73 +41,71 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
-public class DefaultVisualizationGridService
-    implements VisualizationGridService
-{
-    private final VisualizationService visualizationService;
+public class DefaultVisualizationGridService implements VisualizationGridService {
+  private final VisualizationService visualizationService;
 
-    private final AnalyticsService analyticsService;
+  private final AnalyticsService analyticsService;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    private final CurrentUserService currentUserService;
+  private final I18nManager i18nManager;
 
-    private final I18nManager i18nManager;
+  private final UserService userService;
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getVisualizationGrid( String uid, Date relativePeriodDate, String orgUnitUid )
-    {
-        User user = currentUserService.getCurrentUser();
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getVisualizationGrid(String uid, Date relativePeriodDate, String orgUnitUid) {
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    return getVisualizationGrid(uid, relativePeriodDate, orgUnitUid, currentUser);
+  }
 
-        return getVisualizationGrid( uid, relativePeriodDate, orgUnitUid, user );
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getVisualizationGrid(
+      String uid, Date relativePeriodDate, String organisationUnitUid, User user) {
+    Visualization visualization = visualizationService.getVisualization(uid);
+
+    Grid grid = null;
+
+    if (visualization != null) {
+      I18nFormat format = i18nManager.getI18nFormat();
+      OrganisationUnit organisationUnit =
+          organisationUnitService.getOrganisationUnit(organisationUnitUid);
+
+      List<OrganisationUnit> atLevels = new ArrayList<>();
+      List<OrganisationUnit> inGroups = new ArrayList<>();
+
+      if (visualization.hasOrganisationUnitLevels()) {
+        atLevels.addAll(
+            organisationUnitService.getOrganisationUnitsAtLevels(
+                visualization.getOrganisationUnitLevels(), visualization.getOrganisationUnits()));
+      }
+
+      if (visualization.hasItemOrganisationUnitGroups()) {
+        inGroups.addAll(
+            organisationUnitService.getOrganisationUnits(
+                visualization.getItemOrganisationUnitGroups(),
+                visualization.getOrganisationUnits()));
+      }
+
+      visualization.init(user, relativePeriodDate, organisationUnit, atLevels, inGroups, format);
+
+      Map<String, Object> valueMap = analyticsService.getAggregatedDataValueMapping(visualization);
+
+      grid = visualization.getGrid(new ListGrid(), valueMap, SHORTNAME, true);
+
+      visualization.clearTransientState();
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getVisualizationGrid( String uid, Date relativePeriodDate, String organisationUnitUid, User user )
-    {
-        Visualization visualization = visualizationService.getVisualization( uid );
-
-        Grid grid = null;
-
-        if ( visualization != null )
-        {
-            I18nFormat format = i18nManager.getI18nFormat();
-            OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitUid );
-
-            List<OrganisationUnit> atLevels = new ArrayList<>();
-            List<OrganisationUnit> inGroups = new ArrayList<>();
-
-            if ( visualization.hasOrganisationUnitLevels() )
-            {
-                atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels(
-                    visualization.getOrganisationUnitLevels(), visualization.getOrganisationUnits() ) );
-            }
-
-            if ( visualization.hasItemOrganisationUnitGroups() )
-            {
-                inGroups.addAll( organisationUnitService.getOrganisationUnits(
-                    visualization.getItemOrganisationUnitGroups(), visualization.getOrganisationUnits() ) );
-            }
-
-            visualization.init( user, relativePeriodDate, organisationUnit, atLevels, inGroups, format );
-
-            Map<String, Object> valueMap = analyticsService.getAggregatedDataValueMapping( visualization );
-
-            grid = visualization.getGrid( new ListGrid(), valueMap, SHORTNAME, true );
-
-            visualization.clearTransientState();
-        }
-
-        return ObjectUtils.firstNonNull( grid, new ListGrid() );
-    }
+    return ObjectUtils.firstNonNull(grid, new ListGrid());
+  }
 }

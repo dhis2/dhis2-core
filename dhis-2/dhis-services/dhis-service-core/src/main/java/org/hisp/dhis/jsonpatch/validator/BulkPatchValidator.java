@@ -28,7 +28,6 @@
 package org.hisp.dhis.jsonpatch.validator;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
@@ -36,10 +35,7 @@ import org.hisp.dhis.feedback.ErrorReport;
  *
  * @author viet@dhis2.org
  */
-public interface BulkPatchValidator
-{
-    /**
-     * Validate given {@link BulkPatchValidateParams}.
-     */
-    void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError );
+public interface BulkPatchValidator {
+  /** Validate given {@link BulkPatchValidateParams}. */
+  void validate(BulkPatchValidateParams params, Consumer<ErrorReport> addError);
 }

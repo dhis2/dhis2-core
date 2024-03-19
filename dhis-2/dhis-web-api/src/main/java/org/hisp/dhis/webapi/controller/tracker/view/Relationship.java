@@ -27,45 +27,45 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.relationship.RelationshipType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared(pattern = Pattern.TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship
-{
-    @JsonProperty
-    private String relationship;
+public class Relationship {
+  @OpenApi.Property({UID.class, Relationship.class})
+  @JsonProperty
+  private String relationship;
 
-    @JsonProperty
-    private String relationshipName;
+  @JsonProperty private String relationshipName;
 
-    @JsonProperty
-    private String relationshipType;
+  @OpenApi.Property({UID.class, RelationshipType.class})
+  @JsonProperty
+  private String relationshipType;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant createdAtClient;
 
-    @JsonProperty
-    private boolean bidirectional;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private RelationshipItem from;
+  @JsonProperty private boolean bidirectional;
 
-    @JsonProperty
-    private RelationshipItem to;
+  @JsonProperty private RelationshipItem from;
+
+  @JsonProperty private RelationshipItem to;
 }

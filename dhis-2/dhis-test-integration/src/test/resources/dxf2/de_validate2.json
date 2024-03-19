@@ -2,40 +2,49 @@
   "dataElements": [
     {
       "lastUpdated": "2016-01-15T15:44:11.475+0000",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "name": "Birth certificate",
       "created": "2016-01-15T11:13:32.416+0000",
       "shortName": "Birth certificate",
       "aggregationType": "SUM",
       "id": "uf3svrmp8Oj",
-      "userGroupAccesses": [ ],
-      "publicAccess": "rw------",
       "user": {
         "id": "GOLswS44mh8"
       },
       "zeroIsSignificant": false,
-      "attributeValues": [ ]
+      "attributeValues": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "GOLswS44mh8",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "aggregationType": "SUM",
-      "publicAccess": "rw------",
-      "userGroupAccesses": [ ],
       "id": "ulD2zW0TIy2",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "user": {
         "id": "GOLswS44mh8"
       },
       "zeroIsSignificant": false,
       "name": "Documentation",
       "lastUpdated": "2016-01-15T15:44:11.475+0000",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "created": "2016-01-15T11:13:00.541+0000",
       "shortName": "Documentation",
-      "domainType": "TRACKER"
+      "domainType": "TRACKER",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "GOLswS44mh8",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "id": "cNkTt6mJQyO",
-      "userGroupAccesses": [ ],
       "user": {
         "id": "GOLswS44mh8"
       },
@@ -48,13 +57,19 @@
         "id": "pQYCiuosBnZ"
       },
       "valueType": "NUMBER",
-      "publicAccess": "rw------",
       "formName": "Yebo",
       "code": "Yebo",
       "aggregationType": "SUM",
       "domainType": "TRACKER",
-      "aggregationLevels": [ ],
-      "name": "Yebo"
+      "aggregationLevels": [],
+      "name": "Yebo",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "GOLswS44mh8",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

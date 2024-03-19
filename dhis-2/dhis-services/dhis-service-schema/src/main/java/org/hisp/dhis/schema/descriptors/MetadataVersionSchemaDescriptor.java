@@ -27,34 +27,29 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
+/** Created by aamerm on 3/14/16. */
+public class MetadataVersionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "metadataVersion";
 
-/**
- * Created by aamerm on 3/14/16.
- */
-public class MetadataVersionSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "metadataVersion";
+  public static final String PLURAL = "metadataVersions";
 
-    public static final String PLURAL = "metadataVersions";
+  public static final String API_ENDPOINT = "/" + "metadata/version";
 
-    public static final String API_ENDPOINT = "/" + "metadata/version";
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(MetadataVersion.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MetadataVersion.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("ALL", "F_METADATA_MANAGE")));
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "ALL", "F_METADATA_MANAGE" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

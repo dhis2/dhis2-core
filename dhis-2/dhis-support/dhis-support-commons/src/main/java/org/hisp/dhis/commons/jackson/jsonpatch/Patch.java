@@ -33,8 +33,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
-public interface Patch
-{
-    JsonNode apply( JsonNode node )
-        throws JsonPatchException;
+public interface Patch {
+  JsonNode apply(JsonNode node) throws JsonPatchException;
 }

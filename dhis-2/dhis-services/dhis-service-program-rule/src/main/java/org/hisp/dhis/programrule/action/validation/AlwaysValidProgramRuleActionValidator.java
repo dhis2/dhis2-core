@@ -35,12 +35,10 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public class AlwaysValidProgramRuleActionValidator implements ProgramRuleActionValidator
-{
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationContext validationContext )
-    {
-        return ProgramRuleActionValidationResult.builder().valid( true ).build();
-    }
+public class AlwaysValidProgramRuleActionValidator implements ProgramRuleActionValidator {
+  @Override
+  public ProgramRuleActionValidationResult validate(
+      ProgramRuleAction programRuleAction, ProgramRuleActionValidationContext validationContext) {
+    return ProgramRuleActionValidationResult.builder().valid(true).build();
+  }
 }

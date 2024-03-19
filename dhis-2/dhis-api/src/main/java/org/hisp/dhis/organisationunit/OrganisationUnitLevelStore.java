@@ -34,21 +34,17 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface OrganisationUnitLevelStore
-    extends IdentifiableObjectStore<OrganisationUnitLevel>
-{
-    String ID = OrganisationUnitLevelStore.class.getName();
+public interface OrganisationUnitLevelStore extends IdentifiableObjectStore<OrganisationUnitLevel> {
+  String ID = OrganisationUnitLevelStore.class.getName();
 
-    /**
-     * Deletes all OrganisationUnitLevels.
-     */
-    void deleteAll();
+  /** Deletes all OrganisationUnitLevels. */
+  void deleteAll();
 
-    /**
-     * Gets the OrganisationUnitLevel at the given level.
-     *
-     * @param level the level.
-     * @return the OrganisationUnitLevel at the given level.
-     */
-    OrganisationUnitLevel getByLevel( int level );
+  /**
+   * Gets the OrganisationUnitLevel at the given level.
+   *
+   * @param level the level.
+   * @return the OrganisationUnitLevel at the given level.
+   */
+  OrganisationUnitLevel getByLevel(int level);
 }

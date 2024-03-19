@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
@@ -45,52 +44,44 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @Controller
-@RequestMapping( value = "/i18n" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class I18nController
-{
-    private final I18nManager i18nManager;
+@RequestMapping(value = "/i18n")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class I18nController {
+  private final I18nManager i18nManager;
 
-    private final ObjectMapper jsonMapper;
+  private final ObjectMapper jsonMapper;
 
-    public I18nController(
-        I18nManager i18nManager,
-        ObjectMapper jsonMapper )
-    {
-        this.i18nManager = i18nManager;
-        this.jsonMapper = jsonMapper;
+  public I18nController(I18nManager i18nManager, ObjectMapper jsonMapper) {
+    this.i18nManager = i18nManager;
+    this.jsonMapper = jsonMapper;
+  }
+
+  @PostMapping
+  public @ResponseBody I18nOutput postI18n(
+      @RequestParam(value = "package", required = false, defaultValue = "org.hisp.dhis")
+          String searchPackage,
+      HttpServletResponse response,
+      InputStream inputStream)
+      throws Exception {
+    I18n i18n = i18nManager.getI18n(searchPackage);
+    I18nOutput output = new I18nOutput();
+    I18nInput input = jsonMapper.readValue(inputStream, I18nInput.class);
+
+    for (String key : input) {
+      String value = i18n.getString(key);
+
+      if (value != null) {
+        output.getTranslations().put(key, value);
+      }
     }
 
-    @PostMapping
-    public @ResponseBody I18nOutput postI18n(
-        @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
-        HttpServletResponse response,
-        InputStream inputStream )
-        throws Exception
-    {
-        I18n i18n = i18nManager.getI18n( searchPackage );
-        I18nOutput output = new I18nOutput();
-        I18nInput input = jsonMapper.readValue( inputStream, I18nInput.class );
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        for ( String key : input )
-        {
-            String value = i18n.getString( key );
-
-            if ( value != null )
-            {
-                output.getTranslations().put( key, value );
-            }
-        }
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        return output;
-    }
+    return output;
+  }
 }

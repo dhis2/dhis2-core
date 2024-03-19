@@ -27,36 +27,38 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ValidationRuleGroupSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "validationRuleGroup";
+public class ValidationRuleGroupSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "validationRuleGroup";
 
-    public static final String PLURAL = "validationRuleGroups";
+  public static final String PLURAL = "validationRuleGroups";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ValidationRuleGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1400 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ValidationRuleGroup.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1400);
 
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_VALIDATIONRULEGROUP_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.UPDATE, Lists.newArrayList( "F_VALIDATIONRULEGROUP_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_VALIDATIONRULEGROUP_DELETE" ) ) );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE, Lists.newArrayList("F_VALIDATIONRULEGROUP_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.UPDATE, Lists.newArrayList("F_VALIDATIONRULEGROUP_PRIVATE_ADD")));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList("F_VALIDATIONRULEGROUP_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

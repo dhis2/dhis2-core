@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.41-SNAPSHOT</version>
+    <version>2.42-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-administration</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Administration Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -44,10 +46,6 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-external</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-jdbc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -96,14 +94,11 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
+      <groupId>javax.persistence</groupId>
+      <artifactId>javax.persistence-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -118,10 +113,6 @@
       <artifactId>jasperreports</artifactId>
     </dependency>
     <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -132,6 +123,21 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>1.1.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
     </dependency>
 
     <!-- Test -->
@@ -165,7 +171,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

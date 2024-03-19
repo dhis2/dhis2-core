@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.webapi.webdomain.dataentry;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents a complete data set registration.
@@ -43,22 +41,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataSetCompletionDto
-{
-    @JsonProperty
-    private String dataSet;
+public class DataSetCompletionDto {
+  @JsonProperty private String dataSet;
 
-    @JsonProperty
-    private String period;
+  @JsonProperty private String period;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryDto attribute;
 
-    @JsonProperty
-    private Boolean completed;
+  @JsonProperty private Boolean completed;
 }

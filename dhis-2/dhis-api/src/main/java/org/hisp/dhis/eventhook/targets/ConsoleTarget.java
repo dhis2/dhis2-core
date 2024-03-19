@@ -27,32 +27,28 @@
  */
 package org.hisp.dhis.eventhook.targets;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class ConsoleTarget extends Target
-{
-    public static final String TYPE = "console";
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class ConsoleTarget extends Target {
+  public static final String TYPE = "console";
 
-    @JsonProperty( required = true )
-    private String clientId = "dhis2-console-" + CodeGenerator.generateUid();
+  @JsonProperty(required = true)
+  private String clientId = "dhis2-console-" + CodeGenerator.generateUid();
 
-    public ConsoleTarget()
-    {
-        super( TYPE );
-    }
+  public ConsoleTarget() {
+    super(TYPE);
+  }
 }

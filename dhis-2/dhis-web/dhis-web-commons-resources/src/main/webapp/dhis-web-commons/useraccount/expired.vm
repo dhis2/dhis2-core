@@ -16,7 +16,7 @@
 
 <div id="accountContainer">
 
-<div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+<div id="bannerArea"><a href="https://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
 
 <div id="accountInput">
 
@@ -26,8 +26,7 @@
 
 <table>
     <tr>
-        <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
-        <td><input type="text" id="username" name="username" value="$username" disabled autocomplete}="off"></td>
+        <td><input hidden="hidden" type="text" id="username" name="username" value="$username"></td>
     </tr>
     <tr>
         <td><label id="label_oldpassword" for="oldPassword">$i18n.getString( "old_password" )</label></td>

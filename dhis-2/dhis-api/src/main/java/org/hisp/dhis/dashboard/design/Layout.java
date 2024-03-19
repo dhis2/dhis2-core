@@ -29,30 +29,26 @@ package org.hisp.dhis.dashboard.design;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-import java.util.List;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import java.util.List;
+import lombok.Data;
 
 /**
- * Represents the possible positions for a dashboard item in the context of a
- * layout.
+ * Represents the possible positions for a dashboard item in the context of a layout.
  *
  * @author maikel arabori
  */
 @Data
-public class Layout implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Spacing spacing;
+public class Layout implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Spacing spacing;
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "columns", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "column", namespace = DXF_2_0 )
-    private List<Column> columns;
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "columns", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "column", namespace = DXF_2_0)
+  private List<Column> columns;
 }

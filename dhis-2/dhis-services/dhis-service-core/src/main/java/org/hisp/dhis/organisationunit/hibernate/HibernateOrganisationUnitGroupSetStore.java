@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -40,15 +39,15 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore" )
+@Repository("org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore")
 public class HibernateOrganisationUnitGroupSetStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitGroupSet>
-    implements OrganisationUnitGroupSetStore
-{
-    public HibernateOrganisationUnitGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroupSet.class, currentUserService, aclService,
-            true );
-    }
+    implements OrganisationUnitGroupSetStore {
+  public HibernateOrganisationUnitGroupSetStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, OrganisationUnitGroupSet.class, aclService, true);
+  }
 }

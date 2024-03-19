@@ -27,243 +27,213 @@
  */
 package org.hisp.dhis.fileresource;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Optional;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.springframework.util.MimeTypeUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public class FileResource
-    extends BaseIdentifiableObject
-{
-    public static final String DEFAULT_FILENAME = "untitled";
+public class FileResource extends BaseIdentifiableObject {
+  public static final String DEFAULT_FILENAME = "untitled";
 
-    public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+  public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
-    public static final Set<String> IMAGE_CONTENT_TYPES = Set.of(
-        "image/jpg", "image/png", "image/jpeg" );
+  public static final Set<String> IMAGE_CONTENT_TYPES =
+      Set.of("image/jpg", "image/png", "image/jpeg");
 
-    /**
-     * MIME type.
-     */
-    private String contentType;
+  public static FileResource ofKey(FileResourceDomain domain, String key, String contentType) {
+    return new FileResource(
+        key, domain.getContainerName() + "_" + key, contentType, 0, null, domain);
+  }
 
-    /**
-     * Byte size of content, non negative.
-     */
-    private long contentLength;
+  /** MIME type. */
+  private String contentType;
 
-    /**
-     * MD5 digest of content.
-     */
-    private String contentMd5;
+  /** Byte size of content, non negative. */
+  private long contentLength;
 
-    /**
-     * Key used for content storage at external location.
-     */
-    private String storageKey;
+  /** MD5 digest of content. */
+  private String contentMd5;
 
-    /**
-     * Flag indicating whether the resource is assigned (e.g. to a DataValue) or
-     * not. Unassigned FileResources are generally safe to delete when reaching
-     * a certain age (unassigned objects might be in staging).
-     */
-    private boolean assigned = false;
+  /** Key used for content storage at external location. */
+  private String storageKey;
 
-    /**
-     * The domain which this FileResource belongs to.
-     */
-    private FileResourceDomain domain;
+  /**
+   * Flag indicating whether the resource is assigned (e.g. to a DataValue) or not. Unassigned
+   * FileResources are generally safe to delete when reaching a certain age (unassigned objects
+   * might be in staging).
+   */
+  private boolean assigned = false;
 
-    /**
-     * To keep track of those files which are not pre-generated and need to be
-     * processed later. Flag will be set to true for FileResource having more
-     * than one file associated with it (e.g. images)
-     */
-    private boolean hasMultipleStorageFiles;
+  /** The domain which this FileResource belongs to. */
+  private FileResourceDomain domain;
 
-    /**
-     * Current storage status of content.
-     */
-    private transient FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
+  /**
+   * To keep track of those files which are not pre-generated and need to be processed later. Flag
+   * will be set to true for FileResource having more than one file associated with it (e.g. images)
+   */
+  private boolean hasMultipleStorageFiles;
 
-    private String fileResourceOwner;
+  /** Current storage status of content. */
+  private transient FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  private String fileResourceOwner;
 
-    public FileResource()
-    {
-    }
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public FileResource( String name, String contentType, long contentLength, String contentMd5,
-        FileResourceDomain domain )
-    {
-        this.name = name;
-        this.contentType = contentType;
-        this.contentLength = contentLength;
-        this.contentMd5 = contentMd5;
-        this.domain = domain;
-        this.storageKey = FileResourceKeyUtil.makeKey( domain, Optional.empty() );
-    }
+  public FileResource() {}
 
-    public FileResource( String key, String name, String contentType, long contentLength, String contentMd5,
-        FileResourceDomain domain )
-    {
-        this.name = name;
-        this.contentType = contentType;
-        this.contentLength = contentLength;
-        this.contentMd5 = contentMd5;
-        this.domain = domain;
-        this.storageKey = FileResourceKeyUtil.makeKey( domain, Optional.of( key ) );
-    }
+  public FileResource(
+      String name,
+      String contentType,
+      long contentLength,
+      String contentMd5,
+      FileResourceDomain domain) {
+    this.name = name;
+    this.contentType = contentType;
+    this.contentLength = contentLength;
+    this.contentMd5 = contentMd5;
+    this.domain = domain;
+    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.empty());
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public FileResource(
+      String key,
+      String name,
+      String contentType,
+      long contentLength,
+      String contentMd5,
+      FileResourceDomain domain) {
+    this.name = name;
+    this.contentType = contentType;
+    this.contentLength = contentLength;
+    this.contentMd5 = contentMd5;
+    this.domain = domain;
+    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key));
+  }
 
-    /**
-     * Indicates whether the given content type is not null and a valid image
-     * content type.
-     *
-     * @param contentType the content type.
-     * @return true if the given content type is a valid image content type.
-     */
-    public static boolean isImage( String contentType )
-    {
-        return contentType != null && IMAGE_CONTENT_TYPES.contains( contentType );
-    }
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  /**
+   * Indicates whether the given content type is not null and a valid image content type.
+   *
+   * @param contentType the content type.
+   * @return true if the given content type is a valid image content type.
+   */
+  public static boolean isImage(String contentType) {
+    return contentType != null && IMAGE_CONTENT_TYPES.contains(contentType);
+  }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getName() {
+    return name;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getContentType()
-    {
-        return contentType;
-    }
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setContentType( String contentType )
-    {
-        this.contentType = contentType;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getContentType() {
+    return contentType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getContentLength()
-    {
-        return contentLength;
-    }
+  public void setContentType(String contentType) {
+    this.contentType = contentType;
+  }
 
-    public void setContentLength( long contentLength )
-    {
-        this.contentLength = contentLength;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public long getContentLength() {
+    return contentLength;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getContentMd5()
-    {
-        return contentMd5;
-    }
+  public void setContentLength(long contentLength) {
+    this.contentLength = contentLength;
+  }
 
-    public void setContentMd5( String contentMd5 )
-    {
-        this.contentMd5 = contentMd5;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getContentMd5() {
+    return contentMd5;
+  }
 
-    public String getStorageKey()
-    {
-        return storageKey;
-    }
+  public void setContentMd5(String contentMd5) {
+    this.contentMd5 = contentMd5;
+  }
 
-    public void setStorageKey( String storageKey )
-    {
-        this.storageKey = storageKey;
-    }
+  public String getStorageKey() {
+    return storageKey;
+  }
 
-    public boolean isAssigned()
-    {
-        return assigned;
-    }
+  public void setStorageKey(String storageKey) {
+    this.storageKey = storageKey;
+  }
 
-    public void setAssigned( boolean assigned )
-    {
-        this.assigned = assigned;
-    }
+  public boolean isAssigned() {
+    return assigned;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FileResourceStorageStatus getStorageStatus()
-    {
-        return storageStatus;
-    }
+  public void setAssigned(boolean assigned) {
+    this.assigned = assigned;
+  }
 
-    public void setStorageStatus( FileResourceStorageStatus storageStatus )
-    {
-        this.storageStatus = storageStatus;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FileResourceStorageStatus getStorageStatus() {
+    return storageStatus;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FileResourceDomain getDomain()
-    {
-        return domain;
-    }
+  public void setStorageStatus(FileResourceStorageStatus storageStatus) {
+    this.storageStatus = storageStatus;
+  }
 
-    public void setDomain( FileResourceDomain domain )
-    {
-        this.domain = domain;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FileResourceDomain getDomain() {
+    return domain;
+  }
 
-    public String getFormat()
-    {
-        return this.contentType.split( "[/;]" )[1];
-    }
+  public void setDomain(FileResourceDomain domain) {
+    this.domain = domain;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isHasMultipleStorageFiles()
-    {
-        return hasMultipleStorageFiles;
-    }
+  public String getFormat() {
+    return this.contentType.split("[/;]")[1];
+  }
 
-    public void setHasMultipleStorageFiles( boolean hasMultipleStorageFiles )
-    {
-        this.hasMultipleStorageFiles = hasMultipleStorageFiles;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isHasMultipleStorageFiles() {
+    return hasMultipleStorageFiles;
+  }
 
-    public String getFileResourceOwner()
-    {
-        return fileResourceOwner;
-    }
+  public void setHasMultipleStorageFiles(boolean hasMultipleStorageFiles) {
+    this.hasMultipleStorageFiles = hasMultipleStorageFiles;
+  }
 
-    public void setFileResourceOwner( String fileResourceOwner )
-    {
-        this.fileResourceOwner = fileResourceOwner;
-    }
+  public String getFileResourceOwner() {
+    return fileResourceOwner;
+  }
+
+  public void setFileResourceOwner(String fileResourceOwner) {
+    this.fileResourceOwner = fileResourceOwner;
+  }
 }

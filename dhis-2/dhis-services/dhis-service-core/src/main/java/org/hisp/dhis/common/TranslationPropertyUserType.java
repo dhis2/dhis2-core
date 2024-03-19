@@ -32,11 +32,8 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType;
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
-public class TranslationPropertyUserType
-    extends JsonSetBinaryType
-{
-    public TranslationPropertyUserType()
-    {
-        super();
-    }
+public class TranslationPropertyUserType extends JsonSetBinaryType {
+  public TranslationPropertyUserType() {
+    super();
+  }
 }

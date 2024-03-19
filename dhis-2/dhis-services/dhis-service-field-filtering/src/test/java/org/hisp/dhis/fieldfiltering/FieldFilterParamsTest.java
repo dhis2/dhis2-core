@@ -30,40 +30,36 @@ package org.hisp.dhis.fieldfiltering;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
-
 import com.google.common.collect.Lists;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen
  */
-class FieldFilterParamsTest
-{
-    @Test
-    void testBuilderWithObjectAndFilters()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) )
-            .filters( "id,name" )
+class FieldFilterParamsTest {
+  @Test
+  void testBuilderWithObjectAndFilters() {
+    FieldFilterParams<String> params =
+        FieldFilterParams.<String>builder()
+            .objects(Lists.newArrayList("A", "B", "C"))
+            .filters("id,name")
             .build();
 
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
+    assertTrue(params.getObjects().contains("A"));
+    assertTrue(params.getObjects().contains("B"));
+    assertTrue(params.getObjects().contains("C"));
+    assertTrue(params.getFilters().contains("id"));
+    assertTrue(params.getFilters().contains("name"));
+  }
 
-    @Test
-    void testBuilderWithDefault()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) )
-            .build();
+  @Test
+  void testBuilderWithDefault() {
+    FieldFilterParams<String> params =
+        FieldFilterParams.<String>builder().objects(Lists.newArrayList("A", "B", "C")).build();
 
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters() );
-    }
+    assertTrue(params.getObjects().contains("A"));
+    assertTrue(params.getObjects().contains("B"));
+    assertTrue(params.getObjects().contains("C"));
+    assertEquals("*", params.getFilters());
+  }
 }

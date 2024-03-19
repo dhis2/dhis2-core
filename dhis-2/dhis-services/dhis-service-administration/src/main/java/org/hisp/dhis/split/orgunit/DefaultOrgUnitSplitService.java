@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.split.orgunit;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -44,8 +43,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * Main class for org unit split.
  *
@@ -53,130 +50,118 @@ import com.google.common.collect.ImmutableList;
  */
 @Slf4j
 @Service
-public class DefaultOrgUnitSplitService
-    implements OrgUnitSplitService
-{
-    private final OrgUnitSplitValidator validator;
+public class DefaultOrgUnitSplitService implements OrgUnitSplitService {
+  private final OrgUnitSplitValidator validator;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final ImmutableList<OrgUnitSplitHandler> handlers;
+  private final ImmutableList<OrgUnitSplitHandler> handlers;
 
-    public DefaultOrgUnitSplitService( OrgUnitSplitValidator validator,
-        IdentifiableObjectManager idObjectManager,
-        MetadataOrgUnitSplitHandler metadataHandler,
-        AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
-        DataOrgUnitSplitHandler dataHandler )
-    {
-        this.validator = validator;
-        this.idObjectManager = idObjectManager;
-        this.handlers = getSplitHandlers( metadataHandler,
-            analyticalObjectHandler, dataHandler );
+  public DefaultOrgUnitSplitService(
+      OrgUnitSplitValidator validator,
+      IdentifiableObjectManager idObjectManager,
+      MetadataOrgUnitSplitHandler metadataHandler,
+      AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
+      DataOrgUnitSplitHandler dataHandler) {
+    this.validator = validator;
+    this.idObjectManager = idObjectManager;
+    this.handlers = getSplitHandlers(metadataHandler, analyticalObjectHandler, dataHandler);
+  }
+
+  @Override
+  @Transactional
+  public void split(OrgUnitSplitRequest request) {
+    log.info("Org unit split request: {}", request);
+
+    validator.validate(request);
+
+    handlers.forEach(handler -> handler.split(request));
+
+    // Persistence framework will inspect and update associated objects
+
+    for (OrganisationUnit target : request.getTargets()) {
+      idObjectManager.update(target);
     }
 
-    @Override
-    @Transactional
-    public void split( OrgUnitSplitRequest request )
-    {
-        log.info( "Org unit split request: {}", request );
+    handleDeleteSource(request);
 
-        validator.validate( request );
+    log.info("Org unit split operation done: {}", request);
+  }
 
-        handlers.forEach( handler -> handler.split( request ) );
+  @Override
+  public OrgUnitSplitRequest getFromQuery(OrgUnitSplitQuery query) {
+    preHandleQuery(query);
 
-        // Persistence framework will inspect and update associated objects
+    OrganisationUnit source = idObjectManager.get(OrganisationUnit.class, query.getSource());
 
-        for ( OrganisationUnit target : request.getTargets() )
-        {
-            idObjectManager.update( target );
-        }
+    Set<OrganisationUnit> targets =
+        query.getTargets().stream().map(this::getAndVerifyOrgUnit).collect(Collectors.toSet());
 
-        handleDeleteSource( request );
+    OrganisationUnit primaryTarget =
+        idObjectManager.get(OrganisationUnit.class, query.getPrimaryTarget());
 
-        log.info( "Org unit split operation done: {}", request );
+    return new OrgUnitSplitRequest.Builder()
+        .withSource(source)
+        .addTargets(targets)
+        .withPrimaryTarget(primaryTarget)
+        .withDeleteSource(query.getDeleteSource())
+        .build();
+  }
+
+  // -------------------------------------------------------------------------
+  // Private methods
+  // -------------------------------------------------------------------------
+
+  private ImmutableList<OrgUnitSplitHandler> getSplitHandlers(
+      MetadataOrgUnitSplitHandler metadataHandler,
+      AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
+      DataOrgUnitSplitHandler dataHandler) {
+    return ImmutableList.<OrgUnitSplitHandler>builder()
+        .add((r) -> metadataHandler.splitDataSets(r))
+        .add((r) -> metadataHandler.splitPrograms(r))
+        .add((r) -> metadataHandler.splitOrgUnitGroups(r))
+        .add((r) -> metadataHandler.splitCategoryOptions(r))
+        .add((r) -> metadataHandler.splitOrganisationUnits(r))
+        .add((r) -> metadataHandler.splitUsers(r))
+        .add((r) -> metadataHandler.splitConfiguration(r))
+        .add((r) -> analyticalObjectHandler.splitAnalyticalObjects(r))
+        .add((r) -> dataHandler.splitData(r))
+        .build();
+  }
+
+  /**
+   * Pre-handles the {@link OrgUnitSplitQuery}. If the primary target is undefined, it is set to the
+   * first target.
+   *
+   * @param query the {@link OrgUnitSplitQuery}
+   */
+  private void preHandleQuery(OrgUnitSplitQuery query) {
+    if (query.getPrimaryTarget() == null && !query.getTargets().isEmpty()) {
+      query.setPrimaryTarget(query.getTargets().get(0));
     }
+  }
 
-    @Override
-    public OrgUnitSplitRequest getFromQuery( OrgUnitSplitQuery query )
-    {
-        preHandleQuery( query );
-
-        OrganisationUnit source = idObjectManager.get( OrganisationUnit.class, query.getSource() );
-
-        Set<OrganisationUnit> targets = query.getTargets().stream()
-            .map( this::getAndVerifyOrgUnit )
-            .collect( Collectors.toSet() );
-
-        OrganisationUnit primaryTarget = idObjectManager.get( OrganisationUnit.class, query.getPrimaryTarget() );
-
-        return new OrgUnitSplitRequest.Builder()
-            .withSource( source )
-            .addTargets( targets )
-            .withPrimaryTarget( primaryTarget )
-            .withDeleteSource( query.getDeleteSource() )
-            .build();
+  /**
+   * Handles deletion of the source {@link OrganisationUnit}.
+   *
+   * @param request the {@link OrgUnitSplitRequest}.
+   */
+  private void handleDeleteSource(OrgUnitSplitRequest request) {
+    if (request.isDeleteSource()) {
+      idObjectManager.delete(request.getSource());
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Private methods
-    // -------------------------------------------------------------------------
-
-    private ImmutableList<OrgUnitSplitHandler> getSplitHandlers(
-        MetadataOrgUnitSplitHandler metadataHandler,
-        AnalyticalObjectOrgUnitSplitHandler analyticalObjectHandler,
-        DataOrgUnitSplitHandler dataHandler )
-    {
-        return ImmutableList.<OrgUnitSplitHandler> builder()
-            .add( ( r ) -> metadataHandler.splitDataSets( r ) )
-            .add( ( r ) -> metadataHandler.splitPrograms( r ) )
-            .add( ( r ) -> metadataHandler.splitOrgUnitGroups( r ) )
-            .add( ( r ) -> metadataHandler.splitCategoryOptions( r ) )
-            .add( ( r ) -> metadataHandler.splitOrganisationUnits( r ) )
-            .add( ( r ) -> metadataHandler.splitUsers( r ) )
-            .add( ( r ) -> metadataHandler.splitConfiguration( r ) )
-            .add( ( r ) -> analyticalObjectHandler.splitAnalyticalObjects( r ) )
-            .add( ( r ) -> dataHandler.splitData( r ) )
-            .build();
-    }
-
-    /**
-     * Pre-handles the {@link OrgUnitSplitQuery}. If the primary target is
-     * undefined, it is set to the first target.
-     *
-     * @param query the {@link OrgUnitSplitQuery}
-     */
-    private void preHandleQuery( OrgUnitSplitQuery query )
-    {
-        if ( query.getPrimaryTarget() == null && !query.getTargets().isEmpty() )
-        {
-            query.setPrimaryTarget( query.getTargets().get( 0 ) );
-        }
-    }
-
-    /**
-     * Handles deletion of the source {@link OrganisationUnit}.
-     *
-     * @param request the {@link OrgUnitSplitRequest}.
-     */
-    private void handleDeleteSource( OrgUnitSplitRequest request )
-    {
-        if ( request.isDeleteSource() )
-        {
-            idObjectManager.delete( request.getSource() );
-        }
-    }
-
-    /**
-     * Retrieves the org unit with the given identifier. Throws an
-     * {@link IllegalQueryException} if it does not exist.
-     *
-     * @param uid the org unit identifier.
-     * @throws IllegalQueryException if the object is null.
-     */
-    private OrganisationUnit getAndVerifyOrgUnit( String uid )
-        throws IllegalQueryException
-    {
-        return ObjectUtils.throwIfNull( idObjectManager.get( OrganisationUnit.class, uid ),
-            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E1515, uid ) ) );
-    }
+  /**
+   * Retrieves the org unit with the given identifier. Throws an {@link IllegalQueryException} if it
+   * does not exist.
+   *
+   * @param uid the org unit identifier.
+   * @throws IllegalQueryException if the object is null.
+   */
+  private OrganisationUnit getAndVerifyOrgUnit(String uid) throws IllegalQueryException {
+    return ObjectUtils.throwIfNull(
+        idObjectManager.get(OrganisationUnit.class, uid),
+        () -> new IllegalQueryException(new ErrorMessage(ErrorCode.E1515, uid)));
+  }
 }

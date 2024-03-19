@@ -38,83 +38,65 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonGrid extends JsonObject
-{
+public interface JsonGrid extends JsonObject {
 
-    default JsonList<JsonGridHeader> getHeaders()
-    {
-        return getList( "headers", JsonGridHeader.class );
+  default JsonList<JsonGridHeader> getHeaders() {
+    return getList("headers", JsonGridHeader.class);
+  }
+
+  default JsonArray getRows() {
+    return getArray("rows");
+  }
+
+  default int getWidth() {
+    return getNumber("width").intValue();
+  }
+
+  default int getHeight() {
+    return getNumber("height").intValue();
+  }
+
+  default int getHeaderWidth() {
+    return getNumber("headerWidth").intValue();
+  }
+
+  default JsonGridMetadata getMetaData() {
+    return get("metaData", JsonGridMetadata.class);
+  }
+
+  interface JsonGridHeader extends JsonObject {
+    default String getName() {
+      return getString("name").string();
     }
 
-    default JsonArray getRows()
-    {
-        return getArray( "rows" );
+    default String getColumn() {
+      return getString("column").string();
     }
 
-    default int getWidth()
-    {
-        return getNumber( "width" ).intValue();
+    default ValueType getValueType() {
+      return getString("valueType").parsed(ValueType::valueOf);
     }
 
-    default int getHeight()
-    {
-        return getNumber( "height" ).intValue();
+    default Class<?> getType() {
+      return getString("type").parsedClass();
     }
 
-    default int getHeaderWidth()
-    {
-        return getNumber( "headerWidth" ).intValue();
+    default boolean isHidden() {
+      return getBoolean("hidden").booleanValue();
     }
 
-    default JsonGridMetadata getMetaData()
-    {
-        return get( "metaData", JsonGridMetadata.class );
+    default boolean isMeta() {
+      return getBoolean("meta").booleanValue();
+    }
+  }
+
+  interface JsonGridMetadata extends JsonObject {
+    default JsonMap<JsonObject> getItems() {
+      return getMap("items", JsonObject.class);
     }
 
-    interface JsonGridHeader extends JsonObject
-    {
-        default String getName()
-        {
-            return getString( "name" ).string();
-        }
-
-        default String getColumn()
-        {
-            return getString( "column" ).string();
-        }
-
-        default ValueType getValueType()
-        {
-            return getString( "valueType" ).parsed( ValueType::valueOf );
-        }
-
-        default Class<?> getType()
-        {
-            return getString( "type" ).parsedClass();
-        }
-
-        default boolean isHidden()
-        {
-            return getBoolean( "hidden" ).booleanValue();
-        }
-
-        default boolean isMeta()
-        {
-            return getBoolean( "meta" ).booleanValue();
-        }
+    default JsonMap<JsonArray> getDimensions() {
+      return getMap("dimensions", JsonArray.class);
     }
-
-    interface JsonGridMetadata extends JsonObject
-    {
-        default JsonMap<JsonObject> getItems()
-        {
-            return getMap( "items", JsonObject.class );
-        }
-
-        default JsonMap<JsonArray> getDimensions()
-        {
-            return getMap( "dimensions", JsonArray.class );
-        }
-    }
-
+  }
 }

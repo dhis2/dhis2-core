@@ -12,16 +12,20 @@
       "name": "default",
       "id": "bjDvmb4bfuf",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
       "skipTotal": false,
-      "userGroupAccesses": [],
       "translations": [],
-      "userAccesses": [],
       "categories": [
         {
           "id": "GLevLNI9wkl"
         }
-      ]
+      ],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "trackedEntityAttributes": [
@@ -33,7 +37,6 @@
       "shortName": "Attribute_Date",
       "aggregationType": "COUNT",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -50,10 +53,15 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": []
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "lastUpdated": "2020-02-10T09:10:22.603",
@@ -63,7 +71,6 @@
       "shortName": "Attribute_Integer",
       "aggregationType": "SUM",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -80,10 +87,15 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": []
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "lastUpdated": "2020-02-10T09:10:00.847",
@@ -93,7 +105,6 @@
       "shortName": "Attribute_Text",
       "aggregationType": "COUNT",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -110,10 +121,15 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": []
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "categoryOptionCombos": [
@@ -143,13 +159,10 @@
       "lastUpdated": "2020-02-10T09:06:38.148",
       "name": "Superuser",
       "id": "yrB6vc5Ip3r",
-      "publicAccess": "--------",
       "description": "Superuser",
-      "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_ORGANISATIONUNIT_MOVE",
@@ -158,31 +171,32 @@
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
         "F_SKIP_DATA_IMPORT_AUDIT",
         "F_RUN_VALIDATION",
-        "F_IMPORT_DATA",
         "F_LOCALE_ADD",
         "F_REPLICATE_USER",
         "F_SEND_EMAIL",
         "F_INSERT_CUSTOM_JS_CSS",
         "F_ENROLLMENT_CASCADE_DELETE",
         "F_METADATA_IMPORT",
-        "F_EXPORT_EVENTS",
         "F_VIEW_EVENT_ANALYTICS",
         "F_VIEW_UNAPPROVED_DATA",
-        "F_IMPORT_EVENTS",
         "F_PERFORM_MAINTENANCE",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
         "F_METADATA_EXPORT",
         "F_TEI_CASCADE_DELETE",
         "F_EXPORT_DATA",
         "F_APPROVE_DATA",
         "F_ACCEPT_DATA_LOWER_LEVELS",
         "F_EDIT_EXPIRED",
-        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_UNCOMPLETE_EVENT"
       ],
       "translations": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "users": [
@@ -246,12 +260,16 @@
       "lastUpdated": "2020-02-10T09:05:21.667",
       "name": "default",
       "id": "xYerKDKCefk",
-      "publicAccess": "rwrw----",
-      "userGroupAccesses": [],
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
-      "organisationUnits": []
+      "organisationUnits": [],
+      "sharing": {
+        "public": "rwrw----",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "organisationUnits": [
@@ -284,17 +302,21 @@
       "shortName": "default",
       "id": "GLevLNI9wkl",
       "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
       "dataDimension": false,
-      "userGroupAccesses": [],
       "attributeValues": [],
       "translations": [],
-      "userAccesses": [],
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
         }
-      ]
+      ],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "trackedEntityTypes": [
@@ -303,7 +325,6 @@
       "lastUpdated": "2020-02-10T09:12:52.068",
       "name": "Person",
       "id": "KrYIdvLxkMb",
-      "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
       "featureType": "NONE",
@@ -315,7 +336,6 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "trackedEntityTypeAttributes": [
         {
@@ -417,7 +437,13 @@
         }
       ],
       "translations": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

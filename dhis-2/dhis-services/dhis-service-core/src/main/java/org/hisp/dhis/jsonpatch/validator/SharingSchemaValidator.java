@@ -29,26 +29,21 @@ package org.hisp.dhis.jsonpatch.validator;
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author viet@dhis2.org
  */
-public class SharingSchemaValidator
-    implements BulkPatchValidator
-{
-    @Override
-    public void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError )
-    {
-        List<ErrorReport> errors = SchemaCheck.isExist.apply( params.getSchema() );
+public class SharingSchemaValidator implements BulkPatchValidator {
+  @Override
+  public void validate(BulkPatchValidateParams params, Consumer<ErrorReport> addError) {
+    List<ErrorReport> errors = SchemaCheck.isExist.apply(params.getSchema());
 
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> addError.accept( error ) );
-            return;
-        }
-
-        SchemaCheck.isShareable.apply( params.getSchema() ).forEach( error -> addError.accept( error ) );
+    if (!errors.isEmpty()) {
+      errors.forEach(error -> addError.accept(error));
+      return;
     }
+
+    SchemaCheck.isShareable.apply(params.getSchema()).forEach(error -> addError.accept(error));
+  }
 }

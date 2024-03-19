@@ -27,22 +27,19 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen
  */
-public class JsonPointerStdSerializer extends JsonSerializer<JsonPointer>
-{
-    @Override
-    public void serialize( JsonPointer value, JsonGenerator gen, SerializerProvider serializers )
-        throws IOException
-    {
-        gen.writeString( value.toString() );
-    }
+public class JsonPointerStdSerializer extends JsonSerializer<JsonPointer> {
+  @Override
+  public void serialize(JsonPointer value, JsonGenerator gen, SerializerProvider serializers)
+      throws IOException {
+    gen.writeString(value.toString());
+  }
 }

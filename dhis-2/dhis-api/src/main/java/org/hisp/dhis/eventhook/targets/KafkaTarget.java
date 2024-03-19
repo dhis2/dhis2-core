@@ -27,44 +27,38 @@
  */
 package org.hisp.dhis.eventhook.targets;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class KafkaTarget extends Target
-{
-    public static final String TYPE = "kafka";
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class KafkaTarget extends Target {
+  public static final String TYPE = "kafka";
 
-    @JsonProperty( required = true )
-    private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
+  @JsonProperty(required = true)
+  private String clientId = "dhis2-kafka-" + CodeGenerator.generateUid();
 
-    @JsonProperty( required = true )
-    private String bootstrapServers = "localhost:9092";
+  @JsonProperty(required = true)
+  private String bootstrapServers = "localhost:9092";
 
-    @JsonProperty( required = true )
-    private String topic = "dhis2.hooks";
+  @JsonProperty(required = true)
+  private String topic = "dhis2.hooks";
 
-    @JsonProperty
-    private String username;
+  @JsonProperty private String username;
 
-    @JsonProperty
-    private String password;
+  @JsonProperty private String password;
 
-    public KafkaTarget()
-    {
-        super( TYPE );
-    }
+  public KafkaTarget() {
+    super(TYPE);
+  }
 }

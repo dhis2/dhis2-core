@@ -27,21 +27,18 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
-public enum ImportStatus
-{
-    SUCCESS( 1 ),
-    WARNING( 2 ),
-    ERROR( 3 );
+public enum ImportStatus {
+  SUCCESS(1),
+  WARNING(2),
+  ERROR(3);
 
-    private int order;
+  private int order;
 
-    ImportStatus( int order )
-    {
-        this.order = order;
-    }
+  ImportStatus(int order) {
+    this.order = order;
+  }
 
-    public int getOrder()
-    {
-        return order;
-    }
+  public int getOrder() {
+    return order;
+  }
 }

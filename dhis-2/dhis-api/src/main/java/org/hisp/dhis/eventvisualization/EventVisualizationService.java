@@ -28,59 +28,55 @@
 package org.hisp.dhis.eventvisualization;
 
 import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
  * @author maikel arabori
  */
-public interface EventVisualizationService
-    extends AnalyticalObjectService<EventVisualization>
-{
-    /**
-     * Saves a EventVisualization.
-     *
-     * @param eventVisualization the EventVisualization to save.
-     * @return the generated identifier.
-     */
-    long save( EventVisualization eventVisualization );
+public interface EventVisualizationService extends AnalyticalObjectService<EventVisualization> {
+  /**
+   * Saves a EventVisualization.
+   *
+   * @param eventVisualization the EventVisualization to save.
+   * @return the generated identifier.
+   */
+  long save(EventVisualization eventVisualization);
 
-    /**
-     * Retrieves the EventVisualization with the given id.
-     *
-     * @param id the id of the EventVisualization to retrieve.
-     * @return the EventVisualization.
-     */
-    EventVisualization getEventVisualization( long id );
+  /**
+   * Retrieves the EventVisualization with the given id.
+   *
+   * @param id the id of the EventVisualization to retrieve.
+   * @return the EventVisualization.
+   */
+  EventVisualization getEventVisualization(long id);
 
-    /**
-     * Retrieves the EventVisualization with the given uid.
-     *
-     * @param uid the uid of the EventVisualization to retrieve.
-     * @return the EventVisualization.
-     */
-    EventVisualization getEventVisualization( String uid );
+  /**
+   * Retrieves the EventVisualization with the given uid.
+   *
+   * @param uid the uid of the EventVisualization to retrieve.
+   * @return the EventVisualization.
+   */
+  EventVisualization getEventVisualization(String uid);
 
-    /**
-     * Deletes a EventVisualization.
-     *
-     * @param eventVisualization the EventVisualization to delete.
-     */
-    void delete( EventVisualization eventVisualization );
+  /**
+   * Deletes a EventVisualization.
+   *
+   * @param eventVisualization the EventVisualization to delete.
+   */
+  void delete(EventVisualization eventVisualization);
 
-    /**
-     * Retrieves the EventVisualization with the given uid. Bypasses the ACL
-     * system.
-     *
-     * @param uid the uid of the EventVisualization to retrieve.
-     * @return the EventVisualization found.
-     */
-    EventVisualization getVisualizationNoAcl( String uid );
+  /**
+   * Retrieves the EventVisualization with the given uid. Bypasses the ACL system.
+   *
+   * @param uid the uid of the EventVisualization to retrieve.
+   * @return the EventVisualization found.
+   */
+  EventVisualization getVisualizationNoAcl(String uid);
 
-    /**
-     * Retrieves all EventVisualizations.
-     *
-     * @return the list of EventVisualization found.
-     */
-    List<EventVisualization> getAllEventVisualizations();
+  /**
+   * Retrieves all EventVisualizations.
+   *
+   * @return the list of EventVisualization found.
+   */
+  List<EventVisualization> getAllEventVisualizations();
 }

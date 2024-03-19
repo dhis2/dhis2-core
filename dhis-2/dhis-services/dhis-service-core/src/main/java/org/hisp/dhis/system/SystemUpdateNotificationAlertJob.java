@@ -31,7 +31,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_UPDATE_NOTIFIC
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -46,30 +45,28 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class SystemUpdateNotificationAlertJob implements Job
-{
-    private final DhisConfigurationProvider dhisConfig;
+public class SystemUpdateNotificationAlertJob implements Job {
+  private final DhisConfigurationProvider dhisConfig;
 
-    private final SystemUpdateNotificationService systemUpdateService;
+  private final SystemUpdateNotificationService systemUpdateService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.SYSTEM_VERSION_UPDATE_CHECK;
+  @Override
+  public JobType getJobType() {
+    return JobType.SYSTEM_VERSION_UPDATE_CHECK;
+  }
+
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    if (!dhisConfig.isEnabled(SYSTEM_UPDATE_NOTIFICATIONS_ENABLED)) {
+      log.info(
+          String.format(
+              "%s aborted. System update alerts are disabled",
+              JobType.SYSTEM_VERSION_UPDATE_CHECK.name()));
+      return;
     }
-
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        if ( !dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED ) )
-        {
-            log.info( String.format( "%s aborted. System update alerts are disabled",
-                JobType.SYSTEM_VERSION_UPDATE_CHECK.name() ) );
-            return;
-        }
-        progress.startingProcess( "System update alert" );
-        systemUpdateService.sendMessageForEachVersion( SystemUpdateNotificationService.getLatestNewerThanCurrent(),
-            progress );
-        progress.completedProcess( null );
-    }
+    progress.startingProcess("System update alert");
+    systemUpdateService.sendMessageForEachVersion(
+        SystemUpdateNotificationService.getLatestNewerThanCurrent(), progress);
+    progress.completedProcess(null);
+  }
 }

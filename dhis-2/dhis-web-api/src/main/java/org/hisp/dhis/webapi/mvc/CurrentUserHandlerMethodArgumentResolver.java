@@ -28,11 +28,11 @@
 package org.hisp.dhis.webapi.mvc;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -48,39 +48,43 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  */
 @Component
 @AllArgsConstructor
-public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
-{
-    private final CurrentUserService currentUserService;
+public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
-    @Override
-    public boolean supportsParameter( MethodParameter parameter )
-    {
-        Class<?> type = parameter.getParameterType();
-        return parameter.getParameterAnnotation( CurrentUser.class ) != null
-            && (type == String.class
-                || User.class.isAssignableFrom( type ));
+  private final UserService userService;
+
+  @Override
+  public boolean supportsParameter(MethodParameter parameter) {
+    Class<?> type = parameter.getParameterType();
+    CurrentUser parameterAnnotation = parameter.getParameterAnnotation(CurrentUser.class);
+    if (parameterAnnotation == null) {
+      return false;
     }
 
-    @Override
-    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer,
-        NativeWebRequest webRequest, WebDataBinderFactory binderFactory )
-        throws Exception
-    {
-        Class<?> type = parameter.getParameterType();
-        if ( type == String.class )
-        {
-            return currentUserService.getCurrentUsername();
-        }
-        User user = currentUserService.getCurrentUser();
-        CurrentUser annotation = parameter.getParameterAnnotation( CurrentUser.class );
-        if ( user == null && annotation != null && annotation.required() )
-        {
-            throw new NotAuthenticatedException();
-        }
-        if ( User.class.isAssignableFrom( type ) )
-        {
-            return user;
-        }
-        throw new UnsupportedOperationException( "Not yet supported @CurrentUser type: " + type );
+    return type == String.class || type == UserDetails.class || type == User.class;
+  }
+
+  @Override
+  public Object resolveArgument(
+      MethodParameter parameter,
+      ModelAndViewContainer mavContainer,
+      NativeWebRequest webRequest,
+      WebDataBinderFactory binderFactory)
+      throws Exception {
+
+    Class<?> type = parameter.getParameterType();
+
+    if (type == String.class) {
+      return CurrentUserUtil.getCurrentUsername();
     }
+
+    if (type == UserDetails.class) {
+      return CurrentUserUtil.getCurrentUserDetails();
+    }
+
+    if (type == User.class) {
+      return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    }
+
+    throw new UnsupportedOperationException("Not supported @CurrentUser type: " + type);
+  }
 }

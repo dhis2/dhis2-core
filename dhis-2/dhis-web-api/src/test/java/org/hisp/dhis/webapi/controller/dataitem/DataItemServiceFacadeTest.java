@@ -50,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.dataitem.DataItem;
@@ -58,8 +57,9 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,135 +67,143 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Unit tests for DataItemServiceFacade.
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class DataItemServiceFacadeTest
-{
+@ExtendWith(MockitoExtension.class)
+class DataItemServiceFacadeTest {
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private UserService userService;
 
-    @Mock
-    private QueryExecutor queryExecutor;
+  @Mock private QueryExecutor queryExecutor;
 
-    private DataItemServiceFacade dataItemServiceFacade;
+  private DataItemServiceFacade dataItemServiceFacade;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, queryExecutor );
-    }
+  @BeforeEach
+  public void setUp() {
+    dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
+  }
 
-    @Test
-    void testRetrieveDataItemEntities()
-    {
-        // Given
-        final Class<? extends BaseIdentifiableObject> targetEntity = Indicator.class;
-        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = new HashSet<>(
-            asList( targetEntity ) );
-        final List<DataItem> expectedItemsFound = asList( mockDataItem( INDICATOR ), mockDataItem( INDICATOR ) );
-        final Set<String> anyFilters = newHashSet( "anyFilter" );
-        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
-        final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
-        final OrderParams anyOrderParams = new OrderParams( anyOrdering );
-        final User currentUser = new User();
+  @Test
+  void testRetrieveDataItemEntities() {
+    // Given
+    final Class<? extends BaseIdentifiableObject> targetEntity = Indicator.class;
+    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities =
+        new HashSet<>(asList(targetEntity));
+    final List<DataItem> expectedItemsFound =
+        asList(mockDataItem(INDICATOR), mockDataItem(INDICATOR));
+    final Set<String> anyFilters = newHashSet("anyFilter");
+    final WebOptions anyWebOptions = mockWebOptions(10, 1);
+    final Set<String> anyOrdering = new HashSet<>(asList("name:desc"));
+    final OrderParams anyOrderParams = new OrderParams(anyOrdering);
+    final User currentUser = new User();
+    currentUser.setUsername("anyUser");
 
-        // When
-        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
-        when( queryExecutor.find( anySet(), any( MapSqlParameterSource.class ) ) )
-            .thenReturn( expectedItemsFound );
-        final List<DataItem> actualDimensionalItems = dataItemServiceFacade
-            .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
+    // When
+    when(userService.getUserByUsername(currentUser.getUsername())).thenReturn(currentUser);
+    injectSecurityContext(UserDetails.fromUser(currentUser));
 
-        // Then
-        assertThat( actualDimensionalItems, hasSize( 2 ) );
-        assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR ) );
-        assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR ) );
-    }
+    when(queryExecutor.find(anySet(), any(MapSqlParameterSource.class)))
+        .thenReturn(expectedItemsFound);
+    final List<DataItem> actualDimensionalItems =
+        dataItemServiceFacade.retrieveDataItemEntities(
+            anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams);
 
-    @Test
-    void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty()
-    {
-        // Given
-        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = emptySet();
-        final Set<String> anyFilters = newHashSet( "anyFilter" );
-        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
-        final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
-        final OrderParams anyOrderParams = new OrderParams( anyOrdering );
+    // Then
+    assertThat(actualDimensionalItems, hasSize(2));
+    assertThat(actualDimensionalItems.get(0).getDimensionItemType(), is(INDICATOR));
+    assertThat(actualDimensionalItems.get(1).getDimensionItemType(), is(INDICATOR));
+  }
 
-        // When
-        final List<DataItem> actualDimensionalItems = dataItemServiceFacade
-            .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
+  public static void injectSecurityContext(UserDetails currentUserDetails) {
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            currentUserDetails, "", currentUserDetails.getAuthorities());
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+  }
 
-        // Then
-        assertThat( actualDimensionalItems, is( empty() ) );
-    }
+  @Test
+  void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty() {
+    // Given
+    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = emptySet();
+    final Set<String> anyFilters = newHashSet("anyFilter");
+    final WebOptions anyWebOptions = mockWebOptions(10, 1);
+    final Set<String> anyOrdering = new HashSet<>(asList("name:desc"));
+    final OrderParams anyOrderParams = new OrderParams(anyOrdering);
 
-    @Test
-    void testExtractTargetEntitiesUsingEqualsFilter()
-    {
-        // Given
-        final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final Set<String> theFilters = newHashSet( "dimensionItemType:eq:INDICATOR" );
+    // When
+    final List<DataItem> actualDimensionalItems =
+        dataItemServiceFacade.retrieveDataItemEntities(
+            anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams);
 
-        // When
-        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
-            .extractTargetEntities( theFilters );
+    // Then
+    assertThat(actualDimensionalItems, is(empty()));
+  }
 
-        // Then
-        assertThat( actualTargetEntities, containsInAnyOrder( expectedTargetEntities.toArray() ) );
-    }
+  @Test
+  void testExtractTargetEntitiesUsingEqualsFilter() {
+    // Given
+    final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities =
+        new HashSet<>(asList(Indicator.class));
+    final Set<String> theFilters = newHashSet("dimensionItemType:eq:INDICATOR");
 
-    @Test
-    void testExtractTargetEntitiesUsingInFilter()
-    {
-        // Given
-        final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
-            asList( Indicator.class, DataSet.class ) );
-        final Set<String> theFilters = newHashSet( "dimensionItemType:in:[INDICATOR, DATA_SET]" );
+    // When
+    final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities =
+        dataItemServiceFacade.extractTargetEntities(theFilters);
 
-        // When
-        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
-            .extractTargetEntities( theFilters );
+    // Then
+    assertThat(actualTargetEntities, containsInAnyOrder(expectedTargetEntities.toArray()));
+  }
 
-        // Then
-        assertThat( actualTargetEntities, containsInAnyOrder( expectedTargetEntities.toArray() ) );
-    }
+  @Test
+  void testExtractTargetEntitiesUsingInFilter() {
+    // Given
+    final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities =
+        new HashSet<>(asList(Indicator.class, DataSet.class));
+    final Set<String> theFilters = newHashSet("dimensionItemType:in:[INDICATOR, DATA_SET]");
 
-    @Test
-    void testExtractTargetEntitiesWhenThereIsNoExplicitTargetSet()
-    {
-        // Given
-        final Set<String> noTargetEntitiesFilters = emptySet();
+    // When
+    final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities =
+        dataItemServiceFacade.extractTargetEntities(theFilters);
 
-        // When
-        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
-            .extractTargetEntities( noTargetEntitiesFilters );
+    // Then
+    assertThat(actualTargetEntities, containsInAnyOrder(expectedTargetEntities.toArray()));
+  }
 
-        // Then
-        assertThat( actualTargetEntities, containsInAnyOrder( getEntities().toArray() ) );
-    }
+  @Test
+  void testExtractTargetEntitiesWhenThereIsNoExplicitTargetSet() {
+    // Given
+    final Set<String> noTargetEntitiesFilters = emptySet();
 
-    private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGE_SIZE, valueOf( pageSize ) );
-        options.put( PAGE, valueOf( pageNumber ) );
-        options.put( PAGING, "true" );
+    // When
+    final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities =
+        dataItemServiceFacade.extractTargetEntities(noTargetEntitiesFilters);
 
-        return new WebOptions( options );
-    }
+    // Then
+    assertThat(actualTargetEntities, containsInAnyOrder(getEntities().toArray()));
+  }
 
-    private DataItem mockDataItem( final DimensionItemType dimensionItemType )
-    {
-        final DataItem dataItem = DataItem.builder().dimensionItemType( dimensionItemType ).build();
+  private WebOptions mockWebOptions(final int pageSize, final int pageNumber) {
+    final Map<String, String> options = new HashMap<>(0);
+    options.put(PAGE_SIZE, valueOf(pageSize));
+    options.put(PAGE, valueOf(pageNumber));
+    options.put(PAGING, "true");
 
-        return dataItem;
-    }
+    return new WebOptions(options);
+  }
+
+  private DataItem mockDataItem(final DimensionItemType dimensionItemType) {
+    final DataItem dataItem = DataItem.builder().dimensionItemType(dimensionItemType).build();
+
+    return dataItem;
+  }
 }

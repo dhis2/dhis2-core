@@ -35,22 +35,19 @@ import org.joda.time.Years;
 /**
  * @author Kristian Wærstad
  */
-public enum FileResourceRetentionStrategy
-{
-    NONE( Seconds.ZERO.toPeriod() ),
-    THREE_MONTHS( Months.THREE.toPeriod() ),
-    ONE_YEAR( Years.ONE.toPeriod() ),
-    FOREVER( null );
+public enum FileResourceRetentionStrategy {
+  NONE(Seconds.ZERO.toPeriod()),
+  THREE_MONTHS(Months.THREE.toPeriod()),
+  ONE_YEAR(Years.ONE.toPeriod()),
+  FOREVER(null);
 
-    private Period retentionTime;
+  private Period retentionTime;
 
-    FileResourceRetentionStrategy( Period retentionTime )
-    {
-        this.retentionTime = retentionTime;
-    }
+  FileResourceRetentionStrategy(Period retentionTime) {
+    this.retentionTime = retentionTime;
+  }
 
-    public Period getRetentionTime()
-    {
-        return retentionTime;
-    }
+  public Period getRetentionTime() {
+    return retentionTime;
+  }
 }

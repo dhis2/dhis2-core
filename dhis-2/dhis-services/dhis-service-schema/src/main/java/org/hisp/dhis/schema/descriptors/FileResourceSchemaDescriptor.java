@@ -34,21 +34,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class FileResourceSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "fileResource";
+public class FileResourceSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "fileResource";
 
-    public static final String PLURAL = "fileResources";
+  public static final String PLURAL = "fileResources";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( FileResource.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(FileResource.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

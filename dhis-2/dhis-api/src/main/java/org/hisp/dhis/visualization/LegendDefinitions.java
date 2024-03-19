@@ -29,17 +29,14 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import lombok.Data;
-
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import lombok.Data;
+import org.hisp.dhis.legend.LegendDisplayStrategy;
+import org.hisp.dhis.legend.LegendDisplayStyle;
+import org.hisp.dhis.legend.LegendSet;
 
 /**
  * This class holds the legend definitions and related attributes.
@@ -47,22 +44,21 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author maikel arabori
  */
 @Data
-@JacksonXmlRootElement( localName = "legend", namespace = DXF_2_0 )
-public class LegendDefinitions implements Serializable
-{
-    @JsonProperty( "style" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendDisplayStyle legendDisplayStyle;
+@JacksonXmlRootElement(localName = "legend", namespace = DXF_2_0)
+public class LegendDefinitions implements Serializable {
+  @JsonProperty("style")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private LegendDisplayStyle legendDisplayStyle;
 
-    @JsonProperty( "set" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendSet legendSet;
+  @JsonProperty("set")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private LegendSet legendSet;
 
-    @JsonProperty( "strategy" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private LegendDisplayStrategy legendDisplayStrategy;
+  @JsonProperty("strategy")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private LegendDisplayStrategy legendDisplayStrategy;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean showKey;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private boolean showKey;
 }

@@ -27,138 +27,106 @@
  */
 package org.hisp.dhis.programstagefilter;
 
-import java.io.Serializable;
-import java.util.Date;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.period.RelativePeriodEnum;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import java.util.Date;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.period.RelativePeriodEnum;
 
 /**
  * Filtering parameters for date type.
  *
  * @author Ameen Mohamed <ameen@dhis2.com>
- *
  */
-public class DateFilterPeriod implements Serializable
-{
-    private static final long serialVersionUID = 1L;
+public class DateFilterPeriod implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * An integer referring to relative startDate based on the current date.
-     */
-    private int startBuffer;
+  /** An integer referring to relative startDate based on the current date. */
+  private int startBuffer;
 
-    /**
-     * An integer referring to relative startDate based on the current date.
-     */
-    private int endBuffer;
+  /** An integer referring to relative startDate based on the current date. */
+  private int endBuffer;
 
-    /**
-     * An absolute start date
-     */
-    private Date startDate;
+  /** An absolute start date */
+  private Date startDate;
 
-    /**
-     * An absolute end date
-     */
-    private Date endDate;
+  /** An absolute end date */
+  private Date endDate;
 
-    /**
-     * Relative period.
-     */
-    private RelativePeriodEnum period;
+  /** Relative period. */
+  private RelativePeriodEnum period;
 
-    /**
-     * Enum indicating whether this date filter is absolute or relative
-     */
-    private DatePeriodType type;
+  /** Enum indicating whether this date filter is absolute or relative */
+  private DatePeriodType type;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DateFilterPeriod()
-    {
+  public DateFilterPeriod() {}
 
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getEndBuffer() {
+    return endBuffer;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getEndBuffer()
-    {
-        return endBuffer;
-    }
+  public void setEndBuffer(int to) {
+    this.endBuffer = to;
+  }
 
-    public void setEndBuffer( int to )
-    {
-        this.endBuffer = to;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RelativePeriodEnum getPeriod() {
+    return period;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelativePeriodEnum getPeriod()
-    {
-        return period;
-    }
+  public void setPeriod(RelativePeriodEnum relativePeriod) {
+    this.period = relativePeriod;
+  }
 
-    public void setPeriod( RelativePeriodEnum relativePeriod )
-    {
-        this.period = relativePeriod;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getStartBuffer() {
+    return startBuffer;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getStartBuffer()
-    {
-        return startBuffer;
-    }
+  public void setStartBuffer(int startBuffer) {
+    this.startBuffer = startBuffer;
+  }
 
-    public void setStartBuffer( int startBuffer )
-    {
-        this.startBuffer = startBuffer;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getStartDate() {
+    return startDate;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getStartDate()
-    {
-        return startDate;
-    }
+  public void setStartDate(Date startDate) {
+    this.startDate = startDate;
+  }
 
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getEndDate() {
+    return endDate;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getEndDate()
-    {
-        return endDate;
-    }
+  public void setEndDate(Date endDate) {
+    this.endDate = endDate;
+  }
 
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DatePeriodType getType() {
+    return type;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DatePeriodType getType()
-    {
-        return type;
-    }
-
-    public void setType( DatePeriodType type )
-    {
-        this.type = type;
-    }
-
+  public void setType(DatePeriodType type) {
+    this.type = type;
+  }
 }

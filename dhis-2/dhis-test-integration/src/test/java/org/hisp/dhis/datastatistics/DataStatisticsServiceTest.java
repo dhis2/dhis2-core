@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
-
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.joda.time.DateTime;
@@ -45,70 +44,62 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-class DataStatisticsServiceTest extends SingleSetupIntegrationTestBase
-{
+class DataStatisticsServiceTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private DataStatisticsService dataStatisticsService;
+  @Autowired private DataStatisticsService dataStatisticsService;
 
-    @Autowired
-    private DataStatisticsStore hibernateDataStatisticsStore;
+  @Autowired private DataStatisticsStore hibernateDataStatisticsStore;
 
-    private DataStatisticsEvent dse1;
+  private DataStatisticsEvent dse1;
 
-    private DataStatisticsEvent dse2;
+  private DataStatisticsEvent dse2;
 
-    private long snapId1;
+  private long snapId1;
 
-    private DateTimeFormatter fmt;
+  private DateTimeFormatter fmt;
 
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        DateTime formatdate;
-        fmt = DateTimeFormat.forPattern( "yyyy-mm-dd" );
-        formatdate = fmt.parseDateTime( "2016-03-22" );
-        Date now = formatdate.toDate();
-        dse1 = new DataStatisticsEvent();
-        dse2 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser" );
-        DataStatistics ds = new DataStatistics( 1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0, 13.0,
-            20.0, 14.0, 17.0, 11.0, 10, 18 );
-        hibernateDataStatisticsStore.save( ds );
-        snapId1 = ds.getId();
-    }
+  @Override
+  public void setUpTest() throws Exception {
+    DateTime formatdate;
+    fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
+    formatdate = fmt.parseDateTime("2016-03-22");
+    Date now = formatdate.toDate();
+    dse1 = new DataStatisticsEvent();
+    dse2 = new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser");
+    DataStatistics ds =
+        new DataStatistics(
+            1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0, 13.0, 20.0, 14.0, 17.0,
+            11.0, 10, 18);
+    hibernateDataStatisticsStore.save(ds);
+    snapId1 = ds.getId();
+  }
 
-    @Test
-    void testAddEvent()
-        throws Exception
-    {
-        int id = dataStatisticsService.addEvent( dse1 );
-        assertNotEquals( 0, id );
-    }
+  @Test
+  void testAddEvent() throws Exception {
+    int id = dataStatisticsService.addEvent(dse1);
+    assertNotEquals(0, id);
+  }
 
-    @Test
-    void testAddEventWithParams()
-        throws Exception
-    {
-        int id = dataStatisticsService.addEvent( dse2 );
-        assertNotEquals( 0, id );
-    }
+  @Test
+  void testAddEventWithParams() throws Exception {
+    int id = dataStatisticsService.addEvent(dse2);
+    assertNotEquals(0, id);
+  }
 
-    @Test
-    void testSaveSnapshot()
-        throws Exception
-    {
-        Calendar c = Calendar.getInstance();
-        DateTime formatdate;
-        fmt = DateTimeFormat.forPattern( "yyyy-mm-dd" );
-        c.add( Calendar.DAY_OF_MONTH, -2 );
-        formatdate = fmt.parseDateTime( "2016-03-21" );
-        Date startDate = formatdate.toDate();
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser" );
-        dataStatisticsService.addEvent( dse1 );
-        dataStatisticsService.addEvent( dse2 );
-        long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot( NoopJobProgress.INSTANCE );
-        assertTrue( snapId2 != 0 );
-        assertTrue( snapId1 != snapId2 );
-    }
+  @Test
+  void testSaveSnapshot() throws Exception {
+    Calendar c = Calendar.getInstance();
+    DateTime formatdate;
+    fmt = DateTimeFormat.forPattern("yyyy-mm-dd");
+    c.add(Calendar.DAY_OF_MONTH, -2);
+    formatdate = fmt.parseDateTime("2016-03-21");
+    Date startDate = formatdate.toDate();
+    dse1 =
+        new DataStatisticsEvent(DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser");
+    dataStatisticsService.addEvent(dse1);
+    dataStatisticsService.addEvent(dse2);
+    long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot(NoopJobProgress.INSTANCE);
+    assertTrue(snapId2 != 0);
+    assertTrue(snapId1 != snapId2);
+  }
 }

@@ -29,35 +29,28 @@ package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.jsontree.JsonList;
 
-public interface JsonIndicator extends JsonIdentifiableObject
-{
-    default String getNumerator()
-    {
-        return getString( "numerator" ).string();
-    }
+public interface JsonIndicator extends JsonIdentifiableObject {
+  default String getNumerator() {
+    return getString("numerator").string();
+  }
 
-    default String getNumeratorDescription()
-    {
-        return getString( "numeratorDescription" ).string();
-    }
+  default String getNumeratorDescription() {
+    return getString("numeratorDescription").string();
+  }
 
-    default String getDenominator()
-    {
-        return getString( "denominator" ).string();
-    }
+  default String getDenominator() {
+    return getString("denominator").string();
+  }
 
-    default String getDenominatorDescription()
-    {
-        return getString( "denominatorDescription" ).string();
-    }
+  default String getDenominatorDescription() {
+    return getString("denominatorDescription").string();
+  }
 
-    default Boolean isAnnualized()
-    {
-        return Boolean.valueOf( getString( "annualized" ).string() );
-    }
+  default Boolean isAnnualized() {
+    return Boolean.valueOf(getString("annualized").string());
+  }
 
-    default JsonList<JsonIndicatorGroup> getIndicatorGroups()
-    {
-        return getList( "indicatorGroups", JsonIndicatorGroup.class );
-    }
+  default JsonList<JsonIndicatorGroup> getIndicatorGroups() {
+    return getList("indicatorGroups", JsonIndicatorGroup.class);
+  }
 }

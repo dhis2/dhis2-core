@@ -30,75 +30,87 @@ package org.hisp.dhis.message;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
+import javax.annotation.Nonnull;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Lars Helge Overland
  */
-public interface MessageService
-{
-    String META_USER_AGENT = "User-agent: ";
+public interface MessageService {
+  String META_USER_AGENT = "User-agent: ";
 
-    long sendTicketMessage( String subject, String text, String metaData );
+  long sendTicketMessage(String subject, String text, String metaData);
 
-    long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData,
-        Set<FileResource> attachments );
+  long sendPrivateMessage(
+      Set<User> recipients,
+      String subject,
+      String text,
+      String metaData,
+      Set<FileResource> attachments);
 
-    long sendSystemMessage( Set<User> recipients, String subject, String text );
+  long sendSystemMessage(Set<User> recipients, String subject, String text);
 
-    long sendValidationMessage( Set<User> recipients, String subject, String text,
-        MessageConversationPriority priority );
+  long sendValidationMessage(
+      Set<User> recipients, String subject, String text, MessageConversationPriority priority);
 
-    long sendMessage( MessageConversationParams params );
+  long sendMessage(MessageConversationParams params);
 
-    long sendSystemErrorNotification( String subject, Throwable t );
+  long sendMessage(MessageConversationParams params, UserDetails actingUser);
 
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal,
-        Set<FileResource> attachments );
+  void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t);
 
-    long saveMessageConversation( MessageConversation conversation );
+  void sendReply(
+      MessageConversation conversation,
+      String text,
+      String metaData,
+      boolean internal,
+      Set<FileResource> attachments);
 
-    void updateMessageConversation( MessageConversation conversation );
+  long saveMessageConversation(MessageConversation conversation);
 
-    long sendCompletenessMessage( CompleteDataSetRegistration registration );
+  long saveMessageConversation(MessageConversation conversation, UserDetails actingUser);
 
-    MessageConversation getMessageConversation( long id );
+  void updateMessageConversation(MessageConversation conversation);
 
-    MessageConversation getMessageConversation( String uid );
+  long sendCompletenessMessage(CompleteDataSetRegistration registration);
 
-    long getUnreadMessageConversationCount();
+  MessageConversation getMessageConversation(long id);
 
-    long getUnreadMessageConversationCount( User user );
+  MessageConversation getMessageConversation(String uid);
 
-    /**
-     * Get all MessageConversations for the current user.
-     *
-     * @return a list of all message conversations for the current user.
-     */
-    List<MessageConversation> getMessageConversations();
+  long getUnreadMessageConversationCount();
 
-    List<MessageConversation> getMessageConversations( int first, int max );
+  long getUnreadMessageConversationCount(User user);
 
-    List<MessageConversation> getMatchingExtId( String extId );
+  /**
+   * Get all MessageConversations for the current user.
+   *
+   * @return a list of all message conversations for the current user.
+   */
+  List<MessageConversation> getMessageConversations();
 
-    List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
+  List<MessageConversation> getMessageConversations(int first, int max);
 
-    void deleteMessages( User sender );
+  List<MessageConversation> getMatchingExtId(String extId);
 
-    List<UserMessage> getLastRecipients( int first, int max );
+  List<MessageConversation> getMessageConversations(User user, Collection<String> uids);
 
-    /**
-     * Returns true if user is part of the feedback recipients group.
-     *
-     * @param user user to check
-     * @return true if user is part of the feedback recipients group.
-     */
-    boolean hasAccessToManageFeedbackMessages( User user );
+  void deleteMessages(User sender);
 
-    Set<User> getFeedbackRecipients();
+  List<UserMessage> getLastRecipients(int first, int max);
 
-    Set<User> getSystemUpdateNotificationRecipients();
+  /**
+   * Returns true if user is part of the feedback recipients group.
+   *
+   * @param userDetails user to check
+   * @return true if user is part of the feedback recipients group.
+   */
+  boolean hasAccessToManageFeedbackMessages(UserDetails userDetails);
+
+  Set<User> getFeedbackRecipients();
+
+  Set<User> getSystemUpdateNotificationRecipients();
 }

@@ -32,38 +32,31 @@ import static java.util.Arrays.stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.schema.Klass;
 
 /**
- * Simple class for checking if an object is one of several allowed classes,
- * mainly used in Operator where a parameter can be type constrained.
+ * Simple class for checking if an object is one of several allowed classes, mainly used in Operator
+ * where a parameter can be type constrained.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class Typed
-{
-    private final Class<?>[] klasses;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class Typed {
+  private final Class<?>[] klasses;
 
-    public boolean isValid( Klass klass )
-    {
-        return klass == null || isValid( klass.getKlass() );
+  public boolean isValid(Klass klass) {
+    return klass == null || isValid(klass.getKlass());
+  }
+
+  public boolean isValid(Class<?> klass) {
+    if (klasses.length == 0 || klass == null) {
+      return true;
     }
+    return stream(klasses).anyMatch(k -> k != null && k.isAssignableFrom(klass));
+  }
 
-    public boolean isValid( Class<?> klass )
-    {
-        if ( klasses.length == 0 || klass == null )
-        {
-            return true;
-        }
-        return stream( klasses ).anyMatch( k -> k != null && k.isAssignableFrom( klass ) );
-    }
-
-    public static Typed from( Class<?>... klasses )
-    {
-        return new Typed( klasses );
-    }
-
+  public static Typed from(Class<?>... klasses) {
+    return new Typed(klasses);
+  }
 }

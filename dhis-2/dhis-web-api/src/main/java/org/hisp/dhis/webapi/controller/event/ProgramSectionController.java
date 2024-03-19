@@ -37,10 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Henning Håkonsen
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramSectionSchemaDescriptor.API_ENDPOINT )
-public class ProgramSectionController
-    extends AbstractCrudController<ProgramSection>
-{
-}
+@RequestMapping(value = ProgramSectionSchemaDescriptor.API_ENDPOINT)
+public class ProgramSectionController extends AbstractCrudController<ProgramSection> {}

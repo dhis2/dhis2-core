@@ -27,62 +27,49 @@
  */
 package org.hisp.dhis.datasource;
 
+import com.google.common.collect.Iterators;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.sql.DataSource;
-
 import org.springframework.jdbc.datasource.AbstractDataSource;
 
-import com.google.common.collect.Iterators;
-
 /**
- * Data source implementation which routes to the configured target data sources
- * in a circular fashion.
+ * Data source implementation which routes to the configured target data sources in a circular
+ * fashion.
  *
  * @author Lars Helge Overland
  */
-public class CircularRoutingDataSource
-    extends AbstractDataSource
-{
-    private Iterator<DataSource> dataSourceIterator;
+public class CircularRoutingDataSource extends AbstractDataSource {
+  private Iterator<DataSource> dataSourceIterator;
 
-    public CircularRoutingDataSource()
-    {
-    }
+  public CircularRoutingDataSource() {}
 
-    public CircularRoutingDataSource( List<DataSource> targetDataSources )
-    {
-        this.dataSourceIterator = Iterators.cycle( Collections.synchronizedList( targetDataSources ) );
-    }
+  public CircularRoutingDataSource(List<DataSource> targetDataSources) {
+    this.dataSourceIterator = Iterators.cycle(Collections.synchronizedList(targetDataSources));
+  }
 
-    // -------------------------------------------------------------------------
-    // AbstractDataSource implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // AbstractDataSource implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public Connection getConnection()
-        throws SQLException
-    {
-        return getDataSource().getConnection();
-    }
+  @Override
+  public Connection getConnection() throws SQLException {
+    return getDataSource().getConnection();
+  }
 
-    @Override
-    public Connection getConnection( String username, String password )
-        throws SQLException
-    {
-        return getDataSource().getConnection( username, password );
-    }
+  @Override
+  public Connection getConnection(String username, String password) throws SQLException {
+    return getDataSource().getConnection(username, password);
+  }
 
-    // -------------------------------------------------------------------------
-    // Private methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Private methods
+  // -------------------------------------------------------------------------
 
-    private synchronized DataSource getDataSource()
-    {
-        return dataSourceIterator.next();
-    }
+  private synchronized DataSource getDataSource() {
+    return dataSourceIterator.next();
+  }
 }

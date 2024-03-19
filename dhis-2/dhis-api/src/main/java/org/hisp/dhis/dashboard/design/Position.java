@@ -28,13 +28,11 @@
 package org.hisp.dhis.dashboard.design;
 
 /**
- * Represents the possible positions for a dashboard item in the context of a
- * layout.
+ * Represents the possible positions for a dashboard item in the context of a layout.
  *
  * @author maikel arabori
  */
-public enum Position
-{
-    START,
-    END
+public enum Position {
+  START,
+  END
 }

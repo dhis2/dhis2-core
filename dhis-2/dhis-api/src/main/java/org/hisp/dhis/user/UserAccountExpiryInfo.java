@@ -28,7 +28,6 @@
 package org.hisp.dhis.user;
 
 import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -39,11 +38,10 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public final class UserAccountExpiryInfo
-{
-    private final String username;
+public final class UserAccountExpiryInfo {
+  private final String username;
 
-    private final String email;
+  private final String email;
 
-    private final Date accountExpiry;
+  private final Date accountExpiry;
 }

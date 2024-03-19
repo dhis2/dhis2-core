@@ -38,21 +38,19 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionLog
-    extends AntlrFunctionLog
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+public class FunctionLog extends AntlrFunctionLog implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (ctx.expr().size() == 1) // natural log base e
     {
-        if ( ctx.expr().size() == 1 ) // natural log base e
-        {
-            return "ln(" + visitor.castStringVisit( ctx.expr( 0 ) ) + ")";
-        }
-        else // log with specified base
-        {
-            return "log(" + visitor.castStringVisit( ctx.expr( 1 ) )
-                + "," + visitor.castStringVisit( ctx.expr( 0 ) ) + ")";
-        }
+      return "ln(" + visitor.castStringVisit(ctx.expr(0)) + ")";
+    } else // log with specified base
+    {
+      return "log("
+          + visitor.castStringVisit(ctx.expr(1))
+          + ","
+          + visitor.castStringVisit(ctx.expr(0))
+          + ")";
     }
+  }
 }

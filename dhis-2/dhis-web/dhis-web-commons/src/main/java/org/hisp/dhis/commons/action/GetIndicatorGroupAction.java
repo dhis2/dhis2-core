@@ -27,70 +27,62 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
-
-import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-public class GetIndicatorGroupAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetIndicatorGroupAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private IndicatorService indicatorService;
+  private IndicatorService indicatorService;
 
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
-        this.indicatorService = indicatorService;
+  public void setIndicatorService(IndicatorService indicatorService) {
+    this.indicatorService = indicatorService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & output
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  private IndicatorGroup indicatorGroup;
+
+  public IndicatorGroup getIndicatorGroup() {
+    return indicatorGroup;
+  }
+
+  private int memberCount;
+
+  public int getMemberCount() {
+    return memberCount;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(IndicatorGroup.class);
+
+    if (id != null) {
+      indicatorGroup = indicatorService.getIndicatorGroup(id);
+      memberCount = indicatorGroup.getMembers().size();
     }
 
-    // -------------------------------------------------------------------------
-    // Input & output
-    // -------------------------------------------------------------------------
+    canReadInstance(indicatorGroup, CurrentUserUtil.getCurrentUserDetails());
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    private IndicatorGroup indicatorGroup;
-
-    public IndicatorGroup getIndicatorGroup()
-    {
-        return indicatorGroup;
-    }
-
-    private int memberCount;
-
-    public int getMemberCount()
-    {
-        return memberCount;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( IndicatorGroup.class );
-
-        if ( id != null )
-        {
-            indicatorGroup = indicatorService.getIndicatorGroup( id );
-            memberCount = indicatorGroup.getMembers().size();
-        }
-
-        canReadInstance( indicatorGroup, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

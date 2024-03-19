@@ -28,83 +28,80 @@
 package org.hisp.dhis.mapping;
 
 import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
 /**
  * @author Jan Henrik Overland
  */
-public interface MappingService
-    extends AnalyticalObjectService<MapView>
-{
-    String GEOJSON_DIR = "geojson";
+public interface MappingService extends AnalyticalObjectService<MapView> {
+  String GEOJSON_DIR = "geojson";
 
-    String MAP_LEGEND_SYMBOLIZER_COLOR = "color";
+  String MAP_LEGEND_SYMBOLIZER_COLOR = "color";
 
-    String MAP_LEGEND_SYMBOLIZER_IMAGE = "image";
+  String MAP_LEGEND_SYMBOLIZER_IMAGE = "image";
 
-    String KEY_MAP_DATE_TYPE = "dateType";
+  String KEY_MAP_DATE_TYPE = "dateType";
 
-    String MAP_DATE_TYPE_FIXED = "fixed";
+  String MAP_DATE_TYPE_FIXED = "fixed";
 
-    String MAP_DATE_TYPE_START_END = "start-end";
+  String MAP_DATE_TYPE_START_END = "start-end";
 
-    String ORGANISATION_UNIT_SELECTION_TYPE_PARENT = "parent";
+  String ORGANISATION_UNIT_SELECTION_TYPE_PARENT = "parent";
 
-    String ORGANISATION_UNIT_SELECTION_TYPE_LEVEL = "level";
+  String ORGANISATION_UNIT_SELECTION_TYPE_LEVEL = "level";
 
-    String MAP_LAYER_TYPE_BASELAYER = "baselayer";
+  String MAP_LAYER_TYPE_BASELAYER = "baselayer";
 
-    String MAP_LAYER_TYPE_OVERLAY = "overlay";
+  String MAP_LAYER_TYPE_OVERLAY = "overlay";
 
-    // -------------------------------------------------------------------------
-    // Map
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Map
+  // -------------------------------------------------------------------------
 
-    long addMap( Map map );
+  long addMap(Map map);
 
-    void updateMap( Map map );
+  void updateMap(Map map);
 
-    Map getMap( long id );
+  Map getMap(long id);
 
-    Map getMap( String uid );
+  Map getMap(String uid);
 
-    Map getMapNoAcl( String uid );
+  Map getMapNoAcl(String uid);
 
-    void deleteMap( Map map );
+  void deleteMap(Map map);
 
-    // -------------------------------------------------------------------------
-    // MapView
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // MapView
+  // -------------------------------------------------------------------------
 
-    long addMapView( MapView mapView );
+  long addMapView(MapView mapView);
 
-    void updateMapView( MapView mapView );
+  void updateMapView(MapView mapView);
 
-    void deleteMapView( MapView view );
+  void deleteMapView(MapView view);
 
-    MapView getMapView( long id );
+  MapView getMapView(long id);
 
-    MapView getMapView( String uid );
+  MapView getMapView(String uid);
 
-    MapView getIndicatorLastYearMapView( String indicatorUid, String organisationUnitUid, int level );
+  MapView getIndicatorLastYearMapView(String indicatorUid, String organisationUnitUid, int level);
 
-    List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet );
+  List<MapView> getMapViewsByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet);
 
-    int countMapViewMaps( MapView mapView );
+  int countMapViewMaps(MapView mapView);
 
-    // -------------------------------------------------------------------------
-    // ExternalMapLayer
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ExternalMapLayer
+  // -------------------------------------------------------------------------
 
-    long addExternalMapLayer( ExternalMapLayer mapLayer );
+  long addExternalMapLayer(ExternalMapLayer mapLayer);
 
-    void updateExternalMapLayer( ExternalMapLayer mapLayer );
+  void updateExternalMapLayer(ExternalMapLayer mapLayer);
 
-    void deleteExternalMapLayer( ExternalMapLayer mapLayer );
+  void deleteExternalMapLayer(ExternalMapLayer mapLayer);
 
-    ExternalMapLayer getExternalMapLayer( long id );
+  ExternalMapLayer getExternalMapLayer(long id);
 
-    ExternalMapLayer getExternalMapLayer( String uid );
+  ExternalMapLayer getExternalMapLayer(String uid);
 }

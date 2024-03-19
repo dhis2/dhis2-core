@@ -27,51 +27,43 @@
  */
 package org.hisp.dhis.ouwt.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.Collection;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author mortenoh
  */
-public class GetSelectedOrganisationUnitsAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetSelectedOrganisationUnitsAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitSelectionManager selectionManager;
+  private OrganisationUnitSelectionManager selectionManager;
 
-    public void setSelectionManager( OrganisationUnitSelectionManager selectionManager )
-    {
-        this.selectionManager = selectionManager;
-    }
+  public void setSelectionManager(OrganisationUnitSelectionManager selectionManager) {
+    this.selectionManager = selectionManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Input/output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input/output
+  // -------------------------------------------------------------------------
 
-    private Collection<OrganisationUnit> selectedUnits;
+  private Collection<OrganisationUnit> selectedUnits;
 
-    public Collection<OrganisationUnit> getSelectedUnits()
-    {
-        return selectedUnits;
-    }
+  public Collection<OrganisationUnit> getSelectedUnits() {
+    return selectedUnits;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-        throws Exception
-    {
-        selectedUnits = selectionManager.getSelectedOrganisationUnits();
+  @Override
+  public String execute() throws Exception {
+    selectedUnits = selectionManager.getSelectedOrganisationUnits();
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

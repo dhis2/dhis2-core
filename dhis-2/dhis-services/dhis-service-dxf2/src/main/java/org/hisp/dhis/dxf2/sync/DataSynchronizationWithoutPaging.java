@@ -28,36 +28,32 @@
 package org.hisp.dhis.dxf2.sync;
 
 import java.util.Date;
-
 import lombok.Getter;
-
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public interface DataSynchronizationWithoutPaging
-{
-    @Getter
-    class DataSynchronizationContext
-    {
-        private final Date startTime;
+public interface DataSynchronizationWithoutPaging {
+  @Getter
+  class DataSynchronizationContext {
+    private final Date startTime;
 
-        private final Date skipChangedBefore;
+    private final Date skipChangedBefore;
 
-        private final int objectsToSynchronize;
+    private final int objectsToSynchronize;
 
-        private final SystemInstance instance;
+    private final SystemInstance instance;
 
-        public DataSynchronizationContext( Date skipChangedBefore, int objectsToSynchronize, SystemInstance instance )
-        {
-            this.startTime = new Date();
-            this.skipChangedBefore = skipChangedBefore;
-            this.objectsToSynchronize = objectsToSynchronize;
-            this.instance = instance;
-        }
+    public DataSynchronizationContext(
+        Date skipChangedBefore, int objectsToSynchronize, SystemInstance instance) {
+      this.startTime = new Date();
+      this.skipChangedBefore = skipChangedBefore;
+      this.objectsToSynchronize = objectsToSynchronize;
+      this.instance = instance;
     }
+  }
 
-    SynchronizationResult synchronizeData( JobProgress progress );
+  SynchronizationResult synchronizeData(JobProgress progress);
 }

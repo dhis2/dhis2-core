@@ -30,50 +30,44 @@ package org.hisp.dhis.predictor;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.QueryModifiers;
 
 /**
  * @author Jim Grace
  */
-public class PredictionDataFilter
-{
-    private PredictionDataFilter()
-    {
-        throw new UnsupportedOperationException( "util" );
-    }
+public class PredictionDataFilter {
+  private PredictionDataFilter() {
+    throw new UnsupportedOperationException("util");
+  }
 
-    /**
-     * Filters prediction data by minDate/maxDate if specified.
-     *
-     * @param data data to be filtered
-     * @return data that passes minDate/maxDate checks
-     */
-    public static PredictionData filter( PredictionData data )
-    {
-        return (data == null)
-            ? null
-            : new PredictionData( data.getOrgUnit(), filterValues( data.getValues() ), data.getOldPredictions() );
-    }
+  /**
+   * Filters prediction data by minDate/maxDate if specified.
+   *
+   * @param data data to be filtered
+   * @return data that passes minDate/maxDate checks
+   */
+  public static PredictionData filter(PredictionData data) {
+    return (data == null)
+        ? null
+        : new PredictionData(
+            data.getOrgUnit(), filterValues(data.getValues()), data.getOldPredictions());
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive Methods
+  // -------------------------------------------------------------------------
 
-    private static List<FoundDimensionItemValue> filterValues( List<FoundDimensionItemValue> values )
-    {
-        return values.stream()
-            .filter( PredictionDataFilter::isValid )
-            .collect( toList() );
-    }
+  private static List<FoundDimensionItemValue> filterValues(List<FoundDimensionItemValue> values) {
+    return values.stream().filter(PredictionDataFilter::isValid).collect(toList());
+  }
 
-    private static boolean isValid( FoundDimensionItemValue item )
-    {
-        QueryModifiers mods = item.getDimensionalItemObject().getQueryMods();
+  private static boolean isValid(FoundDimensionItemValue item) {
+    QueryModifiers mods = item.getDimensionalItemObject().getQueryMods();
 
-        return mods == null
-            || (mods.getMinDate() == null || !mods.getMinDate().after( item.getPeriod().getStartDate() ))
-                && (mods.getMaxDate() == null || !mods.getMaxDate().before( item.getPeriod().getEndDate() ));
-    }
+    return mods == null
+        || (mods.getMinDate() == null || !mods.getMinDate().after(item.getPeriod().getStartDate()))
+            && (mods.getMaxDate() == null
+                || !mods.getMaxDate().before(item.getPeriod().getEndDate()));
+  }
 }

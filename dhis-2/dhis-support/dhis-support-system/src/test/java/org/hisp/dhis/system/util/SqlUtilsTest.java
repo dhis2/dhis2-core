@@ -34,28 +34,43 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class SqlUtilsTest
-{
+class SqlUtilsTest {
 
-    @Test
-    void testQuote()
-    {
-        assertEquals( "\"Some \"\"special\"\" value\"", SqlUtils.quote( "Some \"special\" value" ) );
-        assertEquals( "\"Data element\"", SqlUtils.quote( "Data element" ) );
-    }
+  @Test
+  void testQuote() {
+    assertEquals("\"Some \"\"special\"\" value\"", SqlUtils.quote("Some \"special\" value"));
+    assertEquals("\"Data element\"", SqlUtils.quote("Data element"));
+    assertEquals(
+        "\"Prescribed drug \"\"rx01\"\" to 'John White'\"",
+        SqlUtils.quote("Prescribed drug \"rx01\" to 'John White'"));
+  }
 
-    @Test
-    void testQuoteWithAlias()
-    {
-        assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
-        assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
-    }
+  @Test
+  void testQuoteWithAlias() {
+    assertEquals("ougs.\"Short name\"", SqlUtils.quote("ougs", "Short name"));
+    assertEquals("ous.\"uid\"", SqlUtils.quote("ous", "uid"));
+  }
 
-    @Test
-    void testSingleQuote()
-    {
-        assertEquals( "'jkhYg65ThbF'", SqlUtils.singleQuote( "jkhYg65ThbF" ) );
-        assertEquals( "'Some ''special'' value'", SqlUtils.singleQuote( "Some 'special' value" ) );
-        assertEquals( "'Another \"strange\" value'", SqlUtils.singleQuote( "Another \"strange\" value" ) );
-    }
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", SqlUtils.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Some ''special'' value'", SqlUtils.singleQuote("Some 'special' value"));
+    assertEquals("'Another \"strange\" value'", SqlUtils.singleQuote("Another \"strange\" value"));
+    assertEquals("'John White'", SqlUtils.singleQuote("John White"));
+    assertEquals(
+        "'Main St 1\\\\nSmallwille\\\\n'", SqlUtils.singleQuote("Main St 1\\nSmallwille\\n"));
+    assertEquals(
+        "'Provided ''Rx01'' to patient'", SqlUtils.singleQuote("Provided 'Rx01' to patient"));
+  }
+
+  @Test
+  void testEscape() {
+    assertEquals("John White", SqlUtils.escape("John White"));
+    assertEquals("Main St 1\\\\nSmallwille\\\\n", SqlUtils.escape("Main St 1\\nSmallwille\\n"));
+    assertEquals("Provided ''Rx01'' to patient", SqlUtils.escape("Provided 'Rx01' to patient"));
+    assertEquals("Some ''special'' value", SqlUtils.escape("Some 'special' value"));
+    assertEquals("Prescribed ''rx82''", SqlUtils.escape("Prescribed 'rx82'"));
+    assertEquals("Some regular value", SqlUtils.escape("Some regular value"));
+    assertEquals("C:\\\\Downloads\\\\Temp", SqlUtils.escape("C:\\Downloads\\Temp"));
+  }
 }

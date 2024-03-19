@@ -29,36 +29,30 @@ package org.hisp.dhis.eventvisualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.annotation.Description;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * This class is just a wrapper class to provide a simplified summary view of
- * the EventVisualization object. It will only contains the
- * BaseIdentifiableObject attributes plus a minimum amount of attributes from
- * EventVisualization.
+ * This class is just a wrapper class to provide a simplified summary view of the EventVisualization
+ * object. It will only contains the BaseIdentifiableObject attributes plus a minimum amount of
+ * attributes from EventVisualization.
  *
  * @author maikel arabori
  */
-public class SimpleEventVisualizationView
-    extends
-    BaseIdentifiableObject
-{
-    private EventVisualizationType type;
+public class SimpleEventVisualizationView extends BaseIdentifiableObject {
+  private EventVisualizationType type;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @Description( "The type of the EventVisualization object. Only used for EventVisualization objects." )
-    public EventVisualizationType getType()
-    {
-        return type;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @Description(
+      "The type of the EventVisualization object. Only used for EventVisualization objects.")
+  public EventVisualizationType getType() {
+    return type;
+  }
 
-    public void setType( final EventVisualizationType type )
-    {
-        this.type = type;
-    }
+  public void setType(final EventVisualizationType type) {
+    this.type = type;
+  }
 }

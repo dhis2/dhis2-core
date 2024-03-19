@@ -27,116 +27,123 @@
  */
 package org.hisp.dhis.system.util;
 
+import com.google.common.collect.Sets;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.Assert;
-
-import com.google.common.collect.Sets;
+import org.hisp.dhis.common.CodeGenerator;
 
 /**
- * Utilities for SQL operations, compatible with PostgreSQL and H2 database
- * platforms.
+ * Utilities for SQL operations, compatible with PostgreSQL and H2 database platforms.
  *
  * @author Lars Helge Overland
  */
-public class SqlUtils
-{
-    public static final String QUOTE = "\"";
+public class SqlUtils {
+  public static final String QUOTE = "\"";
 
-    public static final String SINGLE_QUOTE = "'";
+  public static final String SINGLE_QUOTE = "'";
 
-    public static final String SEPARATOR = ".";
+  public static final String SEPARATOR = ".";
 
-    public static final String OPTION_SEP = ".";
+  public static final String OPTION_SEP = ".";
 
-    /**
-     * Quotes the given relation (typically a column). Quotes part of the given
-     * relation are encoded (replaced by double quotes that is).
-     *
-     * @param relation the relation (typically a column).
-     * @return the quoted relation.
-     */
-    public static String quote( String relation )
-    {
-        String rel = relation.replaceAll( QUOTE, (QUOTE + QUOTE) );
+  private static final String BACKSLASH = "\\";
 
-        return QUOTE + rel + QUOTE;
-    }
+  /**
+   * Double quotes the given relation (typically a column). Quotes part of the given relation are
+   * escaped (replaced by two double quotes).
+   *
+   * @param relation the relation (typically a column).
+   * @return the quoted relation.
+   */
+  public static String quote(String relation) {
+    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
 
-    /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
-     * The column name is qualified by the given alias.
-     *
-     * @param relation the relation (typically a column).
-     * @param alias the alias.
-     * @return the quoted relation.
-     */
-    public static String quote( String alias, String relation )
-    {
-        Assert.notNull( alias, "Alias must be specified" );
+    return QUOTE + rel + QUOTE;
+  }
 
-        return alias + SEPARATOR + quote( relation );
-    }
+  /**
+   * Double quotes and qualifies the given relation (typically a column). Quotes part of the given
+   * relation are escaped (replaced by double quotes). The column name is qualified by the given
+   * alias.
+   *
+   * @param relation the relation (typically a column).
+   * @param alias the alias.
+   * @return the quoted relation.
+   */
+  public static String quote(String alias, String relation) {
+    Objects.requireNonNull(alias);
 
-    /**
-     * Single-quotes the given relation (typically a value). Single-quotes part
-     * of the given relation are encoded (replaced by double single-quotes that
-     * is).
-     *
-     * @param relation the relation (typically a column).
-     * @return the single-quoted relation.
-     */
-    public static String singleQuote( String relation )
-    {
-        String rel = relation.replaceAll( SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE) );
+    return alias + SEPARATOR + quote(relation);
+  }
 
-        return SINGLE_QUOTE + rel + SINGLE_QUOTE;
-    }
+  /**
+   * Single quotes the given relation (typically a value). Escapes characters including single quote
+   * and backslash.
+   *
+   * @param value the value.
+   * @return the single quoted relation.
+   */
+  public static String singleQuote(String value) {
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
+  }
 
-    /**
-     * Returns a string set for the given result set and column. Assumes that
-     * the SQL type is an array of text values.
-     *
-     * @param rs the result set.
-     * @param columnLabel the column label.
-     * @return a string set.
-     */
-    public static Set<String> getArrayAsSet( ResultSet rs, String columnLabel )
-        throws SQLException
-    {
-        Array sqlArray = rs.getArray( columnLabel );
-        String[] array = (String[]) sqlArray.getArray();
-        return Sets.newHashSet( array );
-    }
+  /**
+   * Escapes the given value. Replaces single quotes with two single quotes. Replaces backslash with
+   * two backslashes.
+   *
+   * @param value the value to escape.
+   * @return the escaped value.
+   */
+  public static String escape(String value) {
+    return value
+        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
+  }
 
-    /**
-     * Cast the given value to numeric (cast(X as numeric).
-     *
-     * @param value the value.
-     * @return a string with the numeric cast statement.
-     */
-    public static String castToNumber( String value )
-    {
-        return "cast (" + value + " as numeric)";
-    }
+  /**
+   * Appends an underscore and five character random suffix to the given relation.
+   *
+   * @param relation the relation.
+   * @return the appended relation.
+   */
+  public static String appendRandom(String relation) {
+    return String.format("%s_%s", relation, CodeGenerator.generateCode(5));
+  }
 
-    public static String lower( String value )
-    {
-        return "lower(" + value + ")";
-    }
+  /**
+   * Returns a string set for the given result set and column. Assumes that the SQL type is an array
+   * of text values.
+   *
+   * @param rs the result set.
+   * @param columnLabel the column label.
+   * @return a string set.
+   */
+  public static Set<String> getArrayAsSet(ResultSet rs, String columnLabel) throws SQLException {
+    Array sqlArray = rs.getArray(columnLabel);
+    String[] array = (String[]) sqlArray.getArray();
+    return Sets.newHashSet(array);
+  }
 
-    public static String escapeSql( String str )
-    {
-        if ( str == null )
-        {
-            return null;
-        }
-        return StringUtils.replace( str, "'", "''" );
-    }
+  /**
+   * Cast the given value to numeric (cast(X as numeric).
+   *
+   * @param value the value.
+   * @return a string with the numeric cast statement.
+   */
+  public static String castToNumber(String value) {
+    return "cast (" + value + " as numeric)";
+  }
 
+  /**
+   * Lowers the given value.
+   *
+   * @param value the value.
+   * @return a string with the lower function.
+   */
+  public static String lower(String value) {
+    return "lower(" + value + ")";
+  }
 }

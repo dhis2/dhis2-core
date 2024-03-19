@@ -28,37 +28,30 @@
 package org.hisp.dhis.program.variable;
 
 import java.util.Set;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Program indicator variable: value count
  *
  * @author Jim Grace
  */
-public class vValueCount
-    extends ProgramDoubleVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        Set<String> uids = visitor.getProgParams().getDataElementAndAttributeIdentifiers();
+public class vValueCount extends ProgramDoubleVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    Set<String> uids = visitor.getProgParams().getDataElementAndAttributeIdentifiers();
 
-        if ( uids.isEmpty() )
-        {
-            return "0";
-        }
-
-        String sql = "nullif(cast((";
-
-        for ( String uid : uids )
-        {
-            sql += "case when " + visitor.getStatementBuilder().columnQuote( uid )
-                + " is not null then 1 else 0 end + ";
-        }
-
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType()
-            + "),0)";
+    if (uids.isEmpty()) {
+      return "0";
     }
+
+    String sql = "nullif(cast((";
+
+    for (String uid : uids) {
+      sql += "case when " + SqlUtils.quote(uid) + " is not null then 1 else 0 end + ";
+    }
+
+    return TextUtils.removeLast(sql, "+").trim() + ") as double precision),0)";
+  }
 }

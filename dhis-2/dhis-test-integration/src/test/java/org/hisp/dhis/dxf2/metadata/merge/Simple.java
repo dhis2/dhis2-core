@@ -27,111 +27,94 @@
  */
 package org.hisp.dhis.dxf2.metadata.merge;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Simple
-{
-    private String string;
+public class Simple {
+  private String string;
 
-    private Integer integer;
+  private Integer integer;
 
-    private Date date;
+  private Date date;
 
-    private Boolean bool;
+  private Boolean bool;
 
-    private int anInt;
+  private int anInt;
 
-    private float aFloat;
+  private float aFloat;
 
-    public Simple()
-    {
-    }
+  public Simple() {}
 
-    public Simple( String string, Integer integer, Date date, Boolean bool, int anInt, float aFloat )
-    {
-        this.string = string;
-        this.integer = integer;
-        this.date = date;
-        this.bool = bool;
-        this.anInt = anInt;
-        this.aFloat = aFloat;
-    }
+  public Simple(String string, Integer integer, Date date, Boolean bool, int anInt, float aFloat) {
+    this.string = string;
+    this.integer = integer;
+    this.date = date;
+    this.bool = bool;
+    this.anInt = anInt;
+    this.aFloat = aFloat;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public String getString()
-    {
-        return string;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public String getString() {
+    return string;
+  }
 
-    public void setString( String string )
-    {
-        this.string = string;
-    }
+  public void setString(String string) {
+    this.string = string;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public Integer getInteger()
-    {
-        return integer;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public Integer getInteger() {
+    return integer;
+  }
 
-    public void setInteger( Integer integer )
-    {
-        this.integer = integer;
-    }
+  public void setInteger(Integer integer) {
+    this.integer = integer;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public Date getDate()
-    {
-        return date;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public Date getDate() {
+    return date;
+  }
 
-    public void setDate( Date date )
-    {
-        this.date = date;
-    }
+  public void setDate(Date date) {
+    this.date = date;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public Boolean getBool()
-    {
-        return bool;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public Boolean getBool() {
+    return bool;
+  }
 
-    public void setBool( Boolean bool )
-    {
-        this.bool = bool;
-    }
+  public void setBool(Boolean bool) {
+    this.bool = bool;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public int getAnInt()
-    {
-        return anInt;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public int getAnInt() {
+    return anInt;
+  }
 
-    public void setAnInt( int anInt )
-    {
-        this.anInt = anInt;
-    }
+  public void setAnInt(int anInt) {
+    this.anInt = anInt;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty
-    public float getaFloat()
-    {
-        return aFloat;
-    }
+  @JsonProperty
+  @JacksonXmlProperty
+  public float getaFloat() {
+    return aFloat;
+  }
 
-    public void setaFloat( float aFloat )
-    {
-        this.aFloat = aFloat;
-    }
+  public void setaFloat(float aFloat) {
+    this.aFloat = aFloat;
+  }
 }

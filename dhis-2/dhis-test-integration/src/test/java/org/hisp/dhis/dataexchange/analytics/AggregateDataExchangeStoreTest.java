@@ -32,50 +32,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private AggregateDataExchangeStore store;
+class AggregateDataExchangeStoreTest extends TransactionalIntegrationTest {
+  @Autowired private AggregateDataExchangeStore store;
 
-    @Test
-    void testSaveGet()
-    {
-        AggregateDataExchange deA = getAggregateDataExchange( 'A' );
-        AggregateDataExchange deB = getAggregateDataExchange( 'B' );
+  @Test
+  void testSaveGet() {
+    AggregateDataExchange deA = getAggregateDataExchange('A');
+    AggregateDataExchange deB = getAggregateDataExchange('B');
 
-        store.save( deA );
-        store.save( deB );
+    store.save(deA);
+    store.save(deB);
 
-        assertNotNull( store.get( deA.getId() ) );
-        assertNotNull( store.get( deB.getId() ) );
-    }
+    assertNotNull(store.get(deA.getId()));
+    assertNotNull(store.get(deB.getId()));
+  }
 
-    @Test
-    void testUpdate()
-    {
-        AggregateDataExchange de = getAggregateDataExchange( 'A' );
+  @Test
+  void testUpdate() {
+    AggregateDataExchange de = getAggregateDataExchange('A');
 
-        store.save( de );
+    store.save(de);
 
-        assertNotNull( de.getSource().getRequests().get( 0 ) );
+    assertNotNull(de.getSource().getRequests().get(0));
 
-        de.setName( "DataExchangeUpdated" );
-        de.getSource().getRequests().get( 0 ).getDx().add( "NhSFzklRD55" );
-        de.getTarget().getApi().setUrl( "https://play.dhis2.org/dev" );
+    de.setName("DataExchangeUpdated");
+    de.getSource().getRequests().get(0).getDx().add("NhSFzklRD55");
+    de.getTarget().getApi().setUrl("https://play.dhis2.org/dev");
 
-        store.update( de );
+    store.update(de);
 
-        assertEquals( "DataExchangeUpdated", de.getName() );
-        assertEquals( 3, de.getSource().getRequests().get( 0 ).getDx().size() );
-        assertContainsOnly( List.of( "LrDpG50RAU9", "uR5HCiJhQ1w", "NhSFzklRD55" ),
-            de.getSource().getRequests().get( 0 ).getDx() );
-        assertEquals( "https://play.dhis2.org/dev", de.getTarget().getApi().getUrl() );
-    }
+    assertEquals("DataExchangeUpdated", de.getName());
+    assertEquals(3, de.getSource().getRequests().get(0).getDx().size());
+    assertContainsOnly(
+        List.of("LrDpG50RAU9", "uR5HCiJhQ1w", "NhSFzklRD55"),
+        de.getSource().getRequests().get(0).getDx());
+    assertEquals("https://play.dhis2.org/dev", de.getTarget().getApi().getUrl());
+  }
 }

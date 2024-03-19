@@ -30,10 +30,8 @@ package org.hisp.dhis.webapi.json.domain;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface JsonApiToken extends JsonIdentifiableObject
-{
-    default String getKey()
-    {
-        return getString( "key" ).string();
-    }
+public interface JsonApiToken extends JsonIdentifiableObject {
+  default String getKey() {
+    return getString("key").string();
+  }
 }

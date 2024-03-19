@@ -38,26 +38,22 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class D2CountIfValue
-    extends ProgramCountFunction
-{
-    @Override
-    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Object programStageElement = getProgramStageElementDescription( ctx, visitor );
+public class D2CountIfValue extends ProgramCountFunction {
+  @Override
+  public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Object programStageElement = getProgramStageElementDescription(ctx, visitor);
 
-        Object value = visitor.visit( ctx.expr( 0 ) );
+    Object value = visitor.visit(ctx.expr(0));
 
-        castClass( programStageElement.getClass(), value ); // Check that we are
-                                                           // comparing same
-                                                           // data types.
+    castClass(programStageElement.getClass(), value); // Check that we are
+    // comparing same
+    // data types.
 
-        return DEFAULT_DOUBLE_VALUE;
-    }
+    return DEFAULT_DOUBLE_VALUE;
+  }
 
-    @Override
-    public String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return " = " + visitor.visit( ctx.expr( 0 ) );
-    }
+  @Override
+  public String getConditionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return " = " + visitor.visit(ctx.expr(0));
+  }
 }

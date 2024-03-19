@@ -27,31 +27,26 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * DTO which represents the context, such as data value audit records and data
- * value history, for a single data value.
+ * DTO which represents the context, such as data value audit records and data value history, for a
+ * single data value.
  *
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataValueContextDto
-{
-    @JsonProperty
-    private List<DataValueAuditDto> audits = new ArrayList<>();
+public class DataValueContextDto {
+  @JsonProperty private List<DataValueAuditDto> audits = new ArrayList<>();
 
-    @JsonProperty
-    private List<DataValueDto> history = new ArrayList<>();
+  @JsonProperty private List<DataValueDto> history = new ArrayList<>();
 }

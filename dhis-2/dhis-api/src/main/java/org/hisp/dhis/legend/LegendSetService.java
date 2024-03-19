@@ -32,17 +32,16 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface LegendSetService
-{
-    long addLegendSet( LegendSet legend );
+public interface LegendSetService {
+  long addLegendSet(LegendSet legend);
 
-    void updateLegendSet( LegendSet legend );
+  void updateLegendSet(LegendSet legend);
 
-    LegendSet getLegendSet( long id );
+  LegendSet getLegendSet(long id);
 
-    LegendSet getLegendSet( String uid );
+  LegendSet getLegendSet(String uid);
 
-    void deleteLegendSet( LegendSet legendSet );
+  void deleteLegendSet(LegendSet legendSet);
 
-    List<LegendSet> getAllLegendSets();
+  List<LegendSet> getAllLegendSets();
 }

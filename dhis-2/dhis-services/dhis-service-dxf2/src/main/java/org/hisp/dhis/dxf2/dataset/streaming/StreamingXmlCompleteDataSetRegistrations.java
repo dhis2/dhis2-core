@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.dataset.streaming;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
 import org.hisp.staxwax.reader.XMLReader;
@@ -38,188 +37,162 @@ import org.hisp.staxwax.writer.XMLWriter;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class StreamingXmlCompleteDataSetRegistrations
-    extends CompleteDataSetRegistrations
-{
-    private static final String XMLNS = "xmlns";
+public class StreamingXmlCompleteDataSetRegistrations extends CompleteDataSetRegistrations {
+  private static final String XMLNS = "xmlns";
 
-    private static final String NS = "http://dhis2.org/schema/dxf/2.0";
+  private static final String NS = "http://dhis2.org/schema/dxf/2.0";
 
-    // --------------------------------------------------------------------------
-    // Properties
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Properties
+  // --------------------------------------------------------------------------
 
-    private XMLWriter writer;
+  private XMLWriter writer;
 
-    private XMLReader reader;
+  private XMLReader reader;
 
-    // --------------------------------------------------------------------------
-    // Constructor
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Constructor
+  // --------------------------------------------------------------------------
 
-    public StreamingXmlCompleteDataSetRegistrations( XMLWriter writer )
-    {
-        this.writer = writer;
+  public StreamingXmlCompleteDataSetRegistrations(XMLWriter writer) {
+    this.writer = writer;
+  }
+
+  public StreamingXmlCompleteDataSetRegistrations(XMLReader reader) {
+    this.reader = reader;
+  }
+
+  // --------------------------------------------------------------------------
+  // Logic
+  // --------------------------------------------------------------------------
+
+  @Override
+  protected void open() {
+    if (isWriteMode()) {
+      writer.openDocument();
+      writer.openElement(FIELD_COMPLETE_DATA_SET_REGISTRATIONS);
+      writer.writeAttribute(XMLNS, NS);
+    } else {
+      reader.moveToStartElement(FIELD_COMPLETE_DATA_SET_REGISTRATIONS);
+    }
+  }
+
+  @Override
+  protected void close() {
+    if (isWriteMode()) {
+      writer.closeElement();
+      writer.closeDocument();
+    } else {
+      reader.closeReader();
+    }
+  }
+
+  @Override
+  public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance() {
+    return new StreamingXmlCompleteDataSetRegistration(writer);
+  }
+
+  @Override
+  protected void writeField(String fieldName, String value) {
+    writer.writeAttribute(fieldName, value);
+  }
+
+  // --------------------------------------------------------------------------
+  // Getters and setters
+  // --------------------------------------------------------------------------
+
+  @Override
+  public String getIdScheme() {
+    return get(FIELD_ID_SCHEME, super::getIdScheme, super::setIdScheme);
+  }
+
+  @Override
+  public void setIdScheme(String idScheme) {
+    writeField(FIELD_ID_SCHEME, idScheme);
+  }
+
+  @Override
+  public String getDataSetIdScheme() {
+    return get(FIELD_DATA_SET_ID_SCHEME, super::getDataSetIdScheme, super::setDataSetIdScheme);
+  }
+
+  @Override
+  public void setDataSetIdScheme(String dataSetIdScheme) {
+    writeField(FIELD_DATA_SET_ID_SCHEME, dataSetIdScheme);
+  }
+
+  @Override
+  public String getOrgUnitIdScheme() {
+    return get(FIELD_ORG_UNIT_ID_SCHEME, super::getOrgUnitIdScheme, super::setOrgUnitIdScheme);
+  }
+
+  @Override
+  public void setOrgUnitIdScheme(String orgUnitIdScheme) {
+    writeField(FIELD_ORG_UNIT_ID_SCHEME, orgUnitIdScheme);
+  }
+
+  @Override
+  public String getAttributeOptionComboIdScheme() {
+    return get(
+        FIELD_ATTR_OPT_COMBO_ID_SCHEME,
+        super::getAttributeOptionComboIdScheme,
+        super::setAttributeOptionComboIdScheme);
+  }
+
+  @Override
+  public void setAttributeOptionComboIdScheme(String attributeOptionComboIdScheme) {
+    writeField(FIELD_ATTR_OPT_COMBO_ID_SCHEME, attributeOptionComboIdScheme);
+  }
+
+  @Override
+  public Boolean getDryRun() {
+    return get(
+        FIELD_DRY_RUN,
+        super::getDryRun,
+        v -> super.setDryRun(Boolean.parseBoolean(v) ? Boolean.TRUE : null));
+  }
+
+  @Override
+  public void setDryRun(Boolean dryRun) {
+    writeField(FIELD_DRY_RUN, dryRun == null ? null : dryRun.toString());
+  }
+
+  @Override
+  public String getStrategy() {
+    return get(FIELD_IMPORT_STRATEGY, super::getStrategy, super::setStrategy);
+  }
+
+  @Override
+  public void setStrategy(String strategy) {
+    writeField(FIELD_IMPORT_STRATEGY, strategy);
+  }
+
+  @Override
+  public boolean hasNextCompleteDataSetRegistration() {
+    return reader.moveToStartElement(
+        FIELD_COMPLETE_DATA_SET_REGISTRATION, FIELD_COMPLETE_DATA_SET_REGISTRATIONS);
+  }
+
+  @Override
+  public CompleteDataSetRegistration getNextCompleteDataSetRegistration() {
+    return new StreamingXmlCompleteDataSetRegistration(reader);
+  }
+
+  // --------------------------------------------------------------------------
+  // Supportive methods
+  // --------------------------------------------------------------------------
+
+  private <T> T get(String fieldName, Supplier<T> getter, Consumer<String> setter) {
+    T prop = getter.get();
+
+    if (prop == null) {
+      setter.accept(reader.getAttributeValue(fieldName));
     }
 
-    public StreamingXmlCompleteDataSetRegistrations( XMLReader reader )
-    {
-        this.reader = reader;
-    }
+    return prop;
+  }
 
-    // --------------------------------------------------------------------------
-    // Logic
-    // --------------------------------------------------------------------------
-
-    @Override
-    protected void open()
-    {
-        if ( isWriteMode() )
-        {
-            writer.openDocument();
-            writer.openElement( FIELD_COMPLETE_DATA_SET_REGISTRATIONS );
-            writer.writeAttribute( XMLNS, NS );
-        }
-        else
-        {
-            reader.moveToStartElement( FIELD_COMPLETE_DATA_SET_REGISTRATIONS );
-        }
-    }
-
-    @Override
-    protected void close()
-    {
-        if ( isWriteMode() )
-        {
-            writer.closeElement();
-            writer.closeDocument();
-        }
-        else
-        {
-            reader.closeReader();
-        }
-    }
-
-    @Override
-    public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance()
-    {
-        return new StreamingXmlCompleteDataSetRegistration( writer );
-    }
-
-    @Override
-    protected void writeField( String fieldName, String value )
-    {
-        writer.writeAttribute( fieldName, value );
-    }
-
-    // --------------------------------------------------------------------------
-    // Getters and setters
-    // --------------------------------------------------------------------------
-
-    @Override
-    public String getIdScheme()
-    {
-        return get( FIELD_ID_SCHEME, super::getIdScheme, super::setIdScheme );
-    }
-
-    @Override
-    public void setIdScheme( String idScheme )
-    {
-        writeField( FIELD_ID_SCHEME, idScheme );
-    }
-
-    @Override
-    public String getDataSetIdScheme()
-    {
-        return get( FIELD_DATA_SET_ID_SCHEME, super::getDataSetIdScheme, super::setDataSetIdScheme );
-    }
-
-    @Override
-    public void setDataSetIdScheme( String dataSetIdScheme )
-    {
-        writeField( FIELD_DATA_SET_ID_SCHEME, dataSetIdScheme );
-    }
-
-    @Override
-    public String getOrgUnitIdScheme()
-    {
-        return get( FIELD_ORG_UNIT_ID_SCHEME, super::getOrgUnitIdScheme, super::setOrgUnitIdScheme );
-    }
-
-    @Override
-    public void setOrgUnitIdScheme( String orgUnitIdScheme )
-    {
-        writeField( FIELD_ORG_UNIT_ID_SCHEME, orgUnitIdScheme );
-    }
-
-    @Override
-    public String getAttributeOptionComboIdScheme()
-    {
-        return get( FIELD_ATTR_OPT_COMBO_ID_SCHEME, super::getAttributeOptionComboIdScheme,
-            super::setAttributeOptionComboIdScheme );
-    }
-
-    @Override
-    public void setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
-    {
-        writeField( FIELD_ATTR_OPT_COMBO_ID_SCHEME, attributeOptionComboIdScheme );
-    }
-
-    @Override
-    public Boolean getDryRun()
-    {
-        return get( FIELD_DRY_RUN, super::getDryRun,
-            v -> super.setDryRun( Boolean.parseBoolean( v ) ? Boolean.TRUE : null ) );
-    }
-
-    @Override
-    public void setDryRun( Boolean dryRun )
-    {
-        writeField( FIELD_DRY_RUN, dryRun == null ? null : dryRun.toString() );
-    }
-
-    @Override
-    public String getStrategy()
-    {
-        return get( FIELD_IMPORT_STRATEGY, super::getStrategy, super::setStrategy );
-    }
-
-    @Override
-    public void setStrategy( String strategy )
-    {
-        writeField( FIELD_IMPORT_STRATEGY, strategy );
-    }
-
-    @Override
-    public boolean hasNextCompleteDataSetRegistration()
-    {
-        return reader.moveToStartElement( FIELD_COMPLETE_DATA_SET_REGISTRATION, FIELD_COMPLETE_DATA_SET_REGISTRATIONS );
-    }
-
-    @Override
-    public CompleteDataSetRegistration getNextCompleteDataSetRegistration()
-    {
-        return new StreamingXmlCompleteDataSetRegistration( reader );
-    }
-
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
-
-    private <T> T get( String fieldName, Supplier<T> getter, Consumer<String> setter )
-    {
-        T prop = getter.get();
-
-        if ( prop == null )
-        {
-            setter.accept( reader.getAttributeValue( fieldName ) );
-        }
-
-        return prop;
-    }
-
-    private boolean isWriteMode()
-    {
-        return writer != null;
-    }
+  private boolean isWriteMode() {
+    return writer != null;
+  }
 }

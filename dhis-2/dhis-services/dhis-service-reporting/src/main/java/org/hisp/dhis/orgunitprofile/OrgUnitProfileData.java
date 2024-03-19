@@ -27,32 +27,23 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Org unit profile data DTO object.
- */
+/** Org unit profile data DTO object. */
 @Getter
 @Setter
 @NoArgsConstructor
-public class OrgUnitProfileData
-{
-    @JsonProperty
-    private OrgUnitInfo info;
+public class OrgUnitProfileData {
+  @JsonProperty private OrgUnitInfo info;
 
-    @JsonProperty
-    private List<ProfileItem> attributes = new ArrayList<>();
+  @JsonProperty private List<ProfileItem> attributes = new ArrayList<>();
 
-    @JsonProperty
-    private List<ProfileItem> groupSets = new ArrayList<>();
+  @JsonProperty private List<ProfileItem> groupSets = new ArrayList<>();
 
-    @JsonProperty
-    private List<ProfileItem> dataItems = new ArrayList<>();
+  @JsonProperty private List<ProfileItem> dataItems = new ArrayList<>();
 }

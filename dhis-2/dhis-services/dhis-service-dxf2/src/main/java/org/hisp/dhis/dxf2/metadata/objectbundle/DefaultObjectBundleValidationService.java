@@ -31,10 +31,8 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -51,95 +49,86 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" )
-public class DefaultObjectBundleValidationService
-    implements ObjectBundleValidationService
-{
-    private final ValidationFactory validationFactory;
+@Service("org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService")
+public class DefaultObjectBundleValidationService implements ObjectBundleValidationService {
+  private final ValidationFactory validationFactory;
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    @Override
-    @Transactional( readOnly = true )
-    public ObjectBundleValidationReport validate( ObjectBundle bundle )
-    {
-        Timer timer = new SystemTimer().start();
+  @Override
+  @Transactional(readOnly = true)
+  public ObjectBundleValidationReport validate(ObjectBundle bundle) {
+    Timer timer = new SystemTimer().start();
 
-        ObjectBundleValidationReport validation = new ObjectBundleValidationReport();
+    ObjectBundleValidationReport validation = new ObjectBundleValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
-        {
-            log.warn( "Skipping validation for metadata import by user '" +
-                bundle.getUsername() + "'. Not recommended." );
-            return validation;
-        }
-
-        List<Class<? extends IdentifiableObject>> klasses = getSortedClasses( bundle );
-
-        for ( Class<? extends IdentifiableObject> klass : klasses )
-        {
-            validateObjectType( bundle, validation, klass );
-        }
-
-        validateAtomicity( bundle, validation );
-        bundle.setObjectBundleStatus( ObjectBundleStatus.VALIDATED );
-
-        log.info( "(" + bundle.getUsername() + ") Import:Validation took " + timer.toString() );
-
-        return validation;
+    if ((bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation()) {
+      log.warn(
+          "Skipping validation for metadata import by user '"
+              + bundle.getUsername()
+              + "'. Not recommended.");
+      return validation;
     }
 
-    private <T extends IdentifiableObject> void validateObjectType( ObjectBundle bundle,
-        ObjectBundleValidationReport validation, Class<T> klass )
-    {
-        List<T> nonPersistedObjects = bundle.getObjects( klass, false );
-        List<T> persistedObjects = bundle.getObjects( klass, true );
+    List<Class<? extends IdentifiableObject>> klasses = getSortedClasses(bundle);
 
-        cleanDefaults( bundle.getPreheat(), nonPersistedObjects );
-        cleanDefaults( bundle.getPreheat(), persistedObjects );
-
-        // Validate the bundle by running the validation checks chain
-        validation
-            .addTypeReport( validationFactory.validateBundle( bundle, klass, persistedObjects, nonPersistedObjects ) );
+    for (Class<? extends IdentifiableObject> klass : klasses) {
+      validateObjectType(bundle, validation, klass);
     }
 
-    private void cleanDefaults( Preheat preheat, List<? extends IdentifiableObject> objects )
-    {
-        objects.removeIf( preheat::isDefault );
+    validateAtomicity(bundle, validation);
+    bundle.setObjectBundleStatus(ObjectBundleStatus.VALIDATED);
+
+    log.info("(" + bundle.getUsername() + ") Import:Validation took " + timer.toString());
+
+    return validation;
+  }
+
+  private <T extends IdentifiableObject> void validateObjectType(
+      ObjectBundle bundle, ObjectBundleValidationReport validation, Class<T> klass) {
+    List<T> nonPersistedObjects = bundle.getObjects(klass, false);
+    List<T> persistedObjects = bundle.getObjects(klass, true);
+
+    cleanDefaults(bundle.getPreheat(), nonPersistedObjects);
+    cleanDefaults(bundle.getPreheat(), persistedObjects);
+
+    // Validate the bundle by running the validation checks chain
+    validation.addTypeReport(
+        validationFactory.validateBundle(bundle, klass, persistedObjects, nonPersistedObjects));
+  }
+
+  private void cleanDefaults(Preheat preheat, List<? extends IdentifiableObject> objects) {
+    objects.removeIf(preheat::isDefault);
+  }
+
+  // ----------------------------------------------------------------------------------------------------
+  // Helpers
+  // ----------------------------------------------------------------------------------------------------
+
+  private void validateAtomicity(ObjectBundle bundle, ObjectBundleValidationReport validation) {
+    if (AtomicMode.NONE == bundle.getAtomicMode()) {
+      return;
     }
 
-    // ----------------------------------------------------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------------------------------------------------
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> nonPersistedObjects =
+        bundle.getObjects(false);
 
-    private void validateAtomicity( ObjectBundle bundle, ObjectBundleValidationReport validation )
-    {
-        if ( AtomicMode.NONE == bundle.getAtomicMode() )
-        {
-            return;
-        }
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> persistedObjects =
+        bundle.getObjects(true);
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> nonPersistedObjects = bundle
-            .getObjects( false );
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> persistedObjects = bundle.getObjects( true );
-
-        if ( AtomicMode.ALL == bundle.getAtomicMode() )
-        {
-            if ( validation.hasErrorReports() )
-            {
-                nonPersistedObjects.clear();
-                persistedObjects.clear();
-            }
-        }
+    if (AtomicMode.ALL == bundle.getAtomicMode()) {
+      if (validation.hasErrorReports()) {
+        nonPersistedObjects.clear();
+        persistedObjects.clear();
+      }
     }
+  }
 
-    @SuppressWarnings( "unchecked" )
-    private List<Class<? extends IdentifiableObject>> getSortedClasses( ObjectBundle bundle )
-    {
-        return schemaService.getMetadataSchemas().stream()
-            .map( schema -> (Class<? extends IdentifiableObject>) schema.getKlass() )
-            .filter( bundle::hasObjects )
-            .collect( toList() );
-    }
+  @SuppressWarnings("unchecked")
+  private List<Class<? extends IdentifiableObject>> getSortedClasses(ObjectBundle bundle) {
+    return schemaService.getMetadataSchemas().stream()
+        .map(schema -> (Class<? extends IdentifiableObject>) schema.getKlass())
+        .filter(bundle::hasObjects)
+        .collect(toList());
+  }
 }

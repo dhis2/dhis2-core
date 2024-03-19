@@ -36,48 +36,41 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
  * Function orgUnit.ancestor
- * <p>
- * Is current orgUnit a descendant of one of the ancestors?
+ *
+ * <p>Is current orgUnit a descendant of one of the ancestors?
  *
  * @author Jim Grace
  */
-public class FunctionOrgUnitAncestor
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        for ( TerminalNode uid : ctx.UID() )
-        {
-            OrganisationUnit orgUnit = visitor.getIdObjectManager().get( OrganisationUnit.class, uid.getText() );
+public class FunctionOrgUnitAncestor implements ExpressionItem {
+  @Override
+  public Object getDescription(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    for (TerminalNode uid : ctx.UID()) {
+      OrganisationUnit orgUnit =
+          visitor.getIdObjectManager().get(OrganisationUnit.class, uid.getText());
 
-            if ( orgUnit == null )
-            {
-                throw new ParserExceptionWithoutContext( "No organization unit defined for " + uid.getText() );
-            }
+      if (orgUnit == null) {
+        throw new ParserExceptionWithoutContext(
+            "No organization unit defined for " + uid.getText());
+      }
 
-            visitor.getItemDescriptions().put( uid.getText(), orgUnit.getDisplayName() );
-        }
-
-        return false;
+      visitor.getItemDescriptions().put(uid.getText(), orgUnit.getDisplayName());
     }
 
-    @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        OrganisationUnit orgUnit = visitor.getParams().getOrgUnit();
+    return false;
+  }
 
-        if ( orgUnit != null )
-        {
-            for ( TerminalNode uid : ctx.UID() )
-            {
-                if ( orgUnit.getPath().contains( uid.getText() + "/" ) )
-                {
-                    return true;
-                }
-            }
+  @Override
+  public Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    OrganisationUnit orgUnit = visitor.getParams().getOrgUnit();
+
+    if (orgUnit != null) {
+      for (TerminalNode uid : ctx.UID()) {
+        if (orgUnit.getPath().contains(uid.getText() + "/")) {
+          return true;
         }
-
-        return false;
+      }
     }
+
+    return false;
+  }
 }

@@ -29,10 +29,8 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.Collections;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.user.User;
 
 /**
@@ -40,54 +38,39 @@ import org.hisp.dhis.user.User;
  */
 @Data
 @Builder
-public class FieldFilterParams<T>
-{
-    /**
-     * Objects to apply filters on.
-     */
-    private final List<T> objects;
+public class FieldFilterParams<T> {
+  /** Objects to apply filters on. */
+  private final List<T> objects;
 
-    private final String filters;
+  private final String filters;
 
-    private User user;
+  private User user;
 
-    /**
-     * Do not include sharing properties (user, sharing, publicAccess, etc).
-     */
-    private final boolean skipSharing;
+  /** Do not include sharing properties (user, sharing, publicAccess, etc). */
+  private final boolean skipSharing;
 
-    public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
-    {
-        return FieldFilterParams
-            .<O> builder()
-            .objects( objects )
-            .filters( filters )
-            .build();
+  public static <O> FieldFilterParams<O> of(List<O> objects, List<String> filters) {
+    return FieldFilterParams.<O>builder().objects(objects).filters(filters).build();
+  }
+
+  public static <O> FieldFilterParams<O> of(O object, List<String> filters) {
+    return FieldFilterParams.<O>builder()
+        .objects(Collections.singletonList(object))
+        .filters(filters)
+        .build();
+  }
+
+  public static class FieldFilterParamsBuilder<T> {
+    private String filters = "*";
+
+    public FieldFilterParamsBuilder<T> filters(String filters) {
+      this.filters = filters;
+      return this;
     }
 
-    public static <O> FieldFilterParams<O> of( O object, List<String> filters )
-    {
-        return FieldFilterParams
-            .<O> builder()
-            .objects( Collections.singletonList( object ) )
-            .filters( filters )
-            .build();
+    public FieldFilterParamsBuilder<T> filters(List<String> filters) {
+      this.filters = String.join(",", filters);
+      return this;
     }
-
-    public static class FieldFilterParamsBuilder<T>
-    {
-        private String filters = "*";
-
-        public FieldFilterParamsBuilder<T> filters( String filters )
-        {
-            this.filters = filters;
-            return this;
-        }
-
-        public FieldFilterParamsBuilder<T> filters( List<String> filters )
-        {
-            this.filters = String.join( ",", filters );
-            return this;
-        }
-    }
+  }
 }

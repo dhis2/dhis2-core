@@ -27,34 +27,32 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
+public class EventChartSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "eventChart";
 
-public class EventChartSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "eventChart";
+  public static final String PLURAL = "eventCharts";
 
-    public static final String PLURAL = "eventCharts";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(EventChart.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1540);
+    schema.setImplicitPrivateAuthority(true);
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( EventChart.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1540 );
-        schema.setImplicitPrivateAuthority( true );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_EVENTCHART_PUBLIC_ADD")));
+    schema.add(
+        new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_EVENTCHART_EXTERNAL")));
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_EVENTCHART_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_EVENTCHART_EXTERNAL" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

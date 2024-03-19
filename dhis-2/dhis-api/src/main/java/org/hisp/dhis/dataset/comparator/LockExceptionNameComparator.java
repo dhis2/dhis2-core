@@ -28,18 +28,14 @@
 package org.hisp.dhis.dataset.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.dataset.LockException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LockExceptionNameComparator
-    implements Comparator<LockException>
-{
-    @Override
-    public int compare( LockException e, LockException e1 )
-    {
-        return e.getName().compareTo( e1.getName() );
-    }
+public class LockExceptionNameComparator implements Comparator<LockException> {
+  @Override
+  public int compare(LockException e, LockException e1) {
+    return e.getName().compareTo(e1.getName());
+  }
 }

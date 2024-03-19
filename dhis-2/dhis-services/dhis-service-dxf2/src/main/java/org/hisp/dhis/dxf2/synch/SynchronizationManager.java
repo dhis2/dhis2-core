@@ -35,28 +35,26 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 /**
  * @author Lars Helge Overland
  */
-public interface SynchronizationManager
-{
-    /**
-     * Executes data value push to remote server.
-     *
-     * @return an {@link ImportSummary}.
-     */
-    ImportConflicts executeDataValuePush()
-        throws WebMessageParseException;
+public interface SynchronizationManager {
+  /**
+   * Executes data value push to remote server.
+   *
+   * @return an {@link ImportSummary}.
+   */
+  ImportConflicts executeDataValuePush() throws WebMessageParseException;
 
-    /**
-     * Executes a meta data pull operation from remote server.
-     *
-     * @param url the URL to the remote server.
-     * @return an {@link ImportReport}.
-     */
-    ImportReport executeMetadataPull( String url );
+  /**
+   * Executes a meta data pull operation from remote server.
+   *
+   * @param url the URL to the remote server.
+   * @return an {@link ImportReport}.
+   */
+  ImportReport executeMetadataPull(String url);
 
-    /**
-     * Indicates the availability status of the remote server.
-     *
-     * @return the {@link AvailabilityStatus} of the remote server.
-     */
-    AvailabilityStatus isRemoteServerAvailable();
+  /**
+   * Indicates the availability status of the remote server.
+   *
+   * @return the {@link AvailabilityStatus} of the remote server.
+   */
+  AvailabilityStatus isRemoteServerAvailable();
 }

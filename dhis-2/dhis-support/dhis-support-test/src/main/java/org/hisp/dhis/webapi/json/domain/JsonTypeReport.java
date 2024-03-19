@@ -35,26 +35,21 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonTypeReport extends JsonObject
-{
+public interface JsonTypeReport extends JsonObject {
 
-    default JsonStats getStats()
-    {
-        return get( "stats", JsonStats.class );
-    }
+  default JsonStats getStats() {
+    return get("stats", JsonStats.class);
+  }
 
-    default JsonList<JsonObjectReport> getObjectReports()
-    {
-        return getList( "objectReports", JsonObjectReport.class );
-    }
+  default JsonList<JsonObjectReport> getObjectReports() {
+    return getList("objectReports", JsonObjectReport.class);
+  }
 
-    default JsonList<JsonErrorReport> getErrorReports()
-    {
-        return getList( "errorReports", JsonErrorReport.class );
-    }
+  default JsonList<JsonErrorReport> getErrorReports() {
+    return getList("errorReports", JsonErrorReport.class);
+  }
 
-    default JsonList<JsonImportSummary> getImportSummaries()
-    {
-        return getList( "importSummaries", JsonImportSummary.class );
-    }
+  default JsonList<JsonImportSummary> getImportSummaries() {
+    return getList("importSummaries", JsonImportSummary.class);
+  }
 }

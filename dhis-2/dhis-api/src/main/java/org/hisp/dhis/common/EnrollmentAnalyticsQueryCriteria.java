@@ -29,11 +29,9 @@ package org.hisp.dhis.common;
 
 import java.util.Date;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -43,84 +41,84 @@ import org.hisp.dhis.program.ProgramStatus;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
-{
-    private Date startDate;
+public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    /**
-     * Date interval for enrollment date;
-     */
-    private String enrollmentDate;
+  /** Date interval for enrollment date; */
+  private String enrollmentDate;
 
-    /**
-     * Time interval for incident date;
-     */
-    private String incidentDate;
+  /** Time interval for incident date; */
+  private String incidentDate;
 
-    /**
-     * Time interval for last updated date;
-     */
-    private String lastUpdated;
+  /** Time interval for last updated date; */
+  private String lastUpdated;
 
-    private String timeField;
+  private String timeField;
 
-    private Set<String> dimension;
+  private Set<String> dimension;
 
-    private Set<String> filter;
+  private Set<String> filter;
 
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
+  /**
+   * This parameter selects the headers to be returned as part of the response. The implementation
+   * for this Set will be LinkedHashSet as the ordering is important.
+   */
+  private Set<String> headers;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private Set<String> asc;
+  private Set<String> asc;
 
-    private Set<String> desc;
+  private Set<String> desc;
 
-    private boolean skipMeta;
+  private boolean skipMeta;
 
-    private boolean skipData;
+  private boolean skipData;
 
-    private boolean completedOnly;
+  private boolean skipRounding;
 
-    private boolean hierarchyMeta;
+  private boolean completedOnly;
 
-    private boolean showHierarchy;
+  private boolean hierarchyMeta;
 
-    private boolean coordinatesOnly;
+  private boolean showHierarchy;
 
-    private boolean includeMetadataDetails;
+  private boolean coordinatesOnly;
 
-    private IdScheme dataIdScheme;
+  private boolean includeMetadataDetails;
 
-    /**
-     * Identifier scheme to use for metadata items the query response, can be
-     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
-     */
-    private IdScheme outputIdScheme;
+  private IdScheme dataIdScheme;
 
-    private Set<ProgramStatus> programStatus;
+  /**
+   * Identifier scheme to use for metadata items the query response, can be identifier, code or
+   * attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+   */
+  private IdScheme outputIdScheme;
 
-    private DisplayProperty displayProperty;
+  private Set<ProgramStatus> programStatus;
 
-    private Date relativePeriodDate;
+  private DisplayProperty displayProperty;
 
-    private String userOrgUnit;
+  private Date relativePeriodDate;
 
-    private String coordinateField;
+  private String userOrgUnit;
 
-    private SortOrder sortOrder;
+  private String coordinateField;
 
-    private boolean totalPages;
+  private SortOrder sortOrder;
 
-    /**
-     * flag to enable enhanced OR conditions on queryItem dimensions/filters
-     */
-    private boolean enhancedConditions;
+  private boolean totalPages;
+
+  /** flag to enable enhanced OR conditions on queryItem dimensions/filters */
+  private boolean enhancedConditions;
+
+  /** flag to enable row context in grid response */
+  private boolean rowContext;
+
+  /** Returns true when parameters are incoming from analytics enrollments/aggregate endpoint. */
+  public boolean isAggregatedEnrollments() {
+    return isAggregateEndpoint() && isEnrollmentEndpointItem();
+  }
 }

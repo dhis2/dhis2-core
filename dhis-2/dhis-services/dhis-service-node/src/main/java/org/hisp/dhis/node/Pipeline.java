@@ -30,7 +30,6 @@ package org.hisp.dhis.node;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Pipeline<T>
-{
-    T process( T object );
+public interface Pipeline<T> {
+  T process(T object);
 }

@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.sms.incoming;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-public interface SmsConsumerService
-{
-    void startSmsConsumer();
+/** Zubair <rajazubair.asghar@gmail.com> */
+public interface SmsConsumerService {
+  void startSmsConsumer();
 
-    void stopSmsConsumer();
+  void stopSmsConsumer();
 }

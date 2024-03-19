@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -37,39 +36,35 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author Lars Helge Overland
  */
-public interface QueryValidator
-{
-    /**
-     * Validates the given query. Throws an IllegalQueryException if the query
-     * is not valid with a descriptive message. Returns normally if the query is
-     * valid.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validate( DataQueryParams params )
-        throws IllegalQueryException;
+public interface QueryValidator {
+  /**
+   * Validates the given query. Throws an IllegalQueryException if the query is not valid with a
+   * descriptive message. Returns normally if the query is valid.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @throws IllegalQueryException if the query is invalid.
+   */
+  void validate(DataQueryParams params) throws IllegalQueryException;
 
-    /**
-     * Validates the given query. Returns null if the query is valid, or an
-     * {@link ErrorMessage} describing the validation violation if the query is
-     * invalid.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return null if valid or {@link ErrorMessage} if invalid.
-     */
-    ErrorMessage validateForErrorMessage( DataQueryParams params );
+  /**
+   * Validates the given query. Returns null if the query is valid, or an {@link ErrorMessage}
+   * describing the validation violation if the query is invalid.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @return null if valid or {@link ErrorMessage} if invalid.
+   */
+  ErrorMessage validateForErrorMessage(DataQueryParams params);
 
-    /**
-     * Validates whether the given table layout is valid for the given query.
-     * Throws an IllegalQueryException if the query is not valid with a
-     * descriptive message. Returns normally if the query is valid.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param columns the column dimension identifiers.
-     * @param rows the row dimension identifiers.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    void validateTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
-        throws IllegalQueryException;
+  /**
+   * Validates whether the given table layout is valid for the given query. Throws an
+   * IllegalQueryException if the query is not valid with a descriptive message. Returns normally if
+   * the query is valid.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param columns the column dimension identifiers.
+   * @param rows the row dimension identifiers.
+   * @throws IllegalQueryException if the query is invalid.
+   */
+  void validateTableLayout(DataQueryParams params, List<String> columns, List<String> rows)
+      throws IllegalQueryException;
 }

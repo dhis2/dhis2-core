@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.program.message;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
-@JacksonXmlRootElement( localName = "programMessageCatagory", namespace = DxfNamespaces.DXF_2_0 )
-public enum ProgramMessageCategory
-{
-    INCOMING,
-    OUTGOING
+@JacksonXmlRootElement(localName = "programMessageCatagory", namespace = DxfNamespaces.DXF_2_0)
+public enum ProgramMessageCategory {
+  INCOMING,
+  OUTGOING
 }

@@ -27,27 +27,26 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen
  */
-@JacksonXmlRootElement( localName = "codes", namespace = DxfNamespaces.DXF_2_0 )
-public class CodeList
-{
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "code", namespace = DxfNamespaces.DXF_2_0, useWrapping = false )
-    private final List<String> codes = new ArrayList<>();
+@JacksonXmlRootElement(localName = "codes", namespace = DxfNamespaces.DXF_2_0)
+public class CodeList {
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "code",
+      namespace = DxfNamespaces.DXF_2_0,
+      useWrapping = false)
+  private final List<String> codes = new ArrayList<>();
 
-    public List<String> getCodes()
-    {
-        return codes;
-    }
+  public List<String> getCodes() {
+    return codes;
+  }
 }

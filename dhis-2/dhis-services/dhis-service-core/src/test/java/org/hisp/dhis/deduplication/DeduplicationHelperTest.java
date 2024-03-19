@@ -35,26 +35,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,552 +65,533 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Lists;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith({MockitoExtension.class})
+class DeduplicationHelperTest extends DhisConvenienceTest {
+  @InjectMocks private DeduplicationHelper deduplicationHelper;
+  @Mock private AclService aclService;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( { MockitoExtension.class } )
-class DeduplicationHelperTest extends DhisConvenienceTest
-{
-    @InjectMocks
-    private DeduplicationHelper deduplicationHelper;
+  @Mock private RelationshipService relationshipService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private EnrollmentService enrollmentService;
+  @Mock private UserService userService;
 
-    @Mock
-    private RelationshipService relationshipService;
+  private OrganisationUnit organisationUnitA;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  private OrganisationUnit organisationUnitB;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  private TrackedEntityType trackedEntityTypeA;
 
-    private OrganisationUnit organisationUnitA;
+  private TrackedEntityType trackedEntityTypeB;
 
-    private OrganisationUnit organisationUnitB;
+  private RelationshipType relationshipType;
 
-    private TrackedEntityType trackedEntityTypeA;
+  private RelationshipType relationshipTypeBidirectional;
 
-    private TrackedEntityType trackedEntityTypeB;
+  private TrackedEntityAttribute attribute;
 
-    private RelationshipType relationshipType;
+  private Enrollment enrollment;
 
-    private RelationshipType relationshipTypeBidirectional;
+  private MergeObject mergeObject;
 
-    private TrackedEntityAttribute attribute;
+  private User user;
 
-    private ProgramInstance programInstance;
+  private UserDetails currentUserDetails;
 
-    private MergeObject mergeObject;
+  @BeforeEach
+  public void setUp() {
+    List<String> relationshipUids = Lists.newArrayList("REL_A", "REL_B");
+    List<String> attributeUids = Lists.newArrayList("ATTR_A", "ATTR_B");
+    List<String> enrollmentUids = Lists.newArrayList("PI_A", "PI_B");
 
-    private User user;
-
-    @BeforeEach
-    public void setUp()
-    {
-        List<String> relationshipUids = Lists.newArrayList( "REL_A", "REL_B" );
-        List<String> attributeUids = Lists.newArrayList( "ATTR_A", "ATTR_B" );
-        List<String> enrollmentUids = Lists.newArrayList( "PI_A", "PI_B" );
-
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        trackedEntityTypeA = createTrackedEntityType( 'A' );
-        trackedEntityTypeB = createTrackedEntityType( 'B' );
-        relationshipType = createRelationshipType( 'A' );
-        relationshipTypeBidirectional = createRelationshipType( 'B' );
-        attribute = createTrackedEntityAttribute( 'A' );
-        programInstance = createProgramInstance( createProgram( 'A' ), getTeiA(), organisationUnitA );
-        mergeObject = MergeObject.builder()
-            .relationships( relationshipUids )
-            .trackedEntityAttributes( attributeUids )
-            .enrollments( enrollmentUids )
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitB = createOrganisationUnit('B');
+    trackedEntityTypeA = createTrackedEntityType('A');
+    trackedEntityTypeB = createTrackedEntityType('B');
+    relationshipType = createRelationshipType('A');
+    relationshipTypeBidirectional = createRelationshipType('B');
+    attribute = createTrackedEntityAttribute('A');
+    enrollment = createEnrollment(createProgram('A'), getTeiA(), organisationUnitA);
+    mergeObject =
+        MergeObject.builder()
+            .relationships(relationshipUids)
+            .trackedEntityAttributes(attributeUids)
+            .enrollments(enrollmentUids)
             .build();
-        user = makeUser( "A", Lists.newArrayList( "F_TRACKED_ENTITY_MERGE" ) );
-        relationshipType.setBidirectional( false );
-        relationshipTypeBidirectional.setBidirectional( true );
-
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( true );
-        when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
-        when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( true );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( true );
-    }
-
-    @Test
-    void shouldHasUserAccess()
-    {
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNull( hasUserAccess );
-    }
-
-    @Test
-    void shouldNotHasUserAccessWhenUserIsNull()
-    {
-        when( currentUserService.getCurrentUser() ).thenReturn( null );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing required authority for merging tracked entities.", hasUserAccess );
-    }
-
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoMergeRoles()
-    {
-        when( currentUserService.getCurrentUser() ).thenReturn( getNoMergeAuthsUser() );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing required authority for merging tracked entities.", hasUserAccess );
-    }
-
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEIType()
-    {
-        when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( false );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing data write access to Tracked Entity Type.", hasUserAccess );
-    }
-
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEIType()
-    {
-        when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( false );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing data write access to Tracked Entity Type.", hasUserAccess );
-    }
-
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoAccessToRelationshipType()
-    {
-        when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( false );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing data write access to one or more Relationship Types.", hasUserAccess );
-    }
-
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
-    {
-        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( false );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing data write access to one or more Programs.", hasUserAccess );
-    }
+    user = makeUser("A", Lists.newArrayList("F_TRACKED_ENTITY_MERGE"));
 
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToOriginalOrgUnit()
-    {
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( false );
+    UserDetails currentUserDetails = UserDetails.fromUser(user);
+    injectSecurityContext(currentUserDetails);
 
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
+    this.currentUserDetails = currentUserDetails;
 
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing access to organisation unit of one or both entities.", hasUserAccess );
-    }
+    relationshipType.setBidirectional(false);
+    relationshipTypeBidirectional.setBidirectional(true);
 
-    @Test
-    void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToDuplicateOrgUnit()
-    {
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( false );
+    when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeA)).thenReturn(true);
+    when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeB)).thenReturn(true);
+    when(aclService.canDataWrite(currentUserDetails, relationshipType)).thenReturn(true);
+    when(aclService.canDataWrite(currentUserDetails, enrollment.getProgram())).thenReturn(true);
 
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
+    when(relationshipService.getRelationships(relationshipUids)).thenReturn(getRelationships());
+    when(enrollmentService.getEnrollments(enrollmentUids)).thenReturn(getEnrollments());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitA)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitB)).thenReturn(true);
+  }
 
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing access to organisation unit of one or both entities.", hasUserAccess );
-    }
+  @Test
+  void shouldHasUserAccess() {
+    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
-    @Test
-    void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
-    {
-        assertThrows( PotentialDuplicateForbiddenException.class,
-            () -> deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() ) );
-    }
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-    @Test
-    void shouldFailGenerateMergeObjectConflictingValue()
-    {
-        TrackedEntityInstance original = getTeiA();
+    assertNull(hasUserAccess);
+  }
 
-        TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
-        attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
-        attributeValueOriginal.setValue( "Attribute-Original" );
+  @Test
+  void shouldNotHasUserAccessWhenUserIsNull() {
+    clearSecurityContext();
 
-        original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        TrackedEntityInstance duplicate = getTeiA();
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing required authority for merging tracked entities.", hasUserAccess);
+  }
 
-        TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
-        attributeValueDuplicate.setAttribute( attribute );
-        attributeValueDuplicate.setEntityInstance( duplicate );
-        attributeValueDuplicate.setValue( "Attribute-Duplicate" );
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoMergeRoles() {
+    injectSecurityContext(UserDetails.fromUser(getNoMergeAuthsUser()));
 
-        duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
-    }
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing required authority for merging tracked entities.", hasUserAccess);
+  }
 
-    @Test
-    void shoudGenerateMergeObjectForAttribute()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
-    {
-        TrackedEntityInstance original = getTeiA();
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEIType() {
+    when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeA)).thenReturn(false);
 
-        TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
-        attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
-        attributeValueOriginal.setValue( "Attribute-Original" );
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing data write access to Tracked Entity Type.", hasUserAccess);
+  }
 
-        TrackedEntityInstance duplicate = getTeiA();
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEIType() {
 
-        TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
-        TrackedEntityAttribute duplicateAttribute = createTrackedEntityAttribute( 'B' );
-        attributeValueDuplicate.setAttribute( duplicateAttribute );
-        attributeValueDuplicate.setEntityInstance( duplicate );
-        attributeValueDuplicate.setValue( "Attribute-Duplicate" );
+    when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeB)).thenReturn(false);
+    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
-        duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing data write access to Tracked Entity Type.", hasUserAccess);
+  }
 
-        assertFalse( mergeObject.getTrackedEntityAttributes().isEmpty() );
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoAccessToRelationshipType() {
+    when(aclService.canDataWrite(currentUserDetails, relationshipType)).thenReturn(false);
 
-        mergeObject.getTrackedEntityAttributes().forEach( a -> assertEquals( duplicateAttribute.getUid(), a ) );
-    }
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-    @Test
-    void testMergeObjectRelationship()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
-    {
-        TrackedEntityInstance original = getTeiA();
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing data write access to one or more Relationship Types.", hasUserAccess);
+  }
 
-        TrackedEntityInstance another = getTeiA();
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoAccessToEnrollment() {
+    when(aclService.canDataWrite(currentUserDetails, enrollment.getProgram())).thenReturn(false);
 
-        TrackedEntityInstance duplicate = getTeiA();
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        Relationship anotherBaseRelationship = getRelationship();
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing data write access to one or more Programs.", hasUserAccess);
+  }
 
-        RelationshipItem relationshipItemAnotherTo = getRelationshipItem( anotherBaseRelationship, another );
-        RelationshipItem relationshipItemAnotherFrom = getRelationshipItem( anotherBaseRelationship, duplicate );
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToOriginalOrgUnit() {
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitA))
+        .thenReturn(false);
 
-        Relationship anotherRelationship = getRelationship( relationshipItemAnotherTo, relationshipItemAnotherFrom );
-        RelationshipItem anotherRelationshipItem = getRelationshipItem( anotherRelationship, duplicate );
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        duplicate.getRelationshipItems().add( anotherRelationshipItem );
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing access to organisation unit of one or both entities.", hasUserAccess);
+  }
 
-        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+  @Test
+  void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToDuplicateOrgUnit() {
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitB))
+        .thenReturn(false);
 
-        assertTrue( mergeObject.getTrackedEntityAttributes().isEmpty() );
+    when(userService.getUserByUsername(user.getUsername())).thenReturn(user);
 
-        assertFalse( mergeObject.getRelationships().isEmpty() );
+    String hasUserAccess =
+        deduplicationHelper.getUserAccessErrors(getTeiA(), getTeiB(), mergeObject);
 
-        mergeObject.getRelationships().forEach( r -> assertEquals( anotherRelationship.getUid(), r ) );
+    assertNotNull(hasUserAccess);
+    assertEquals("Missing access to organisation unit of one or both entities.", hasUserAccess);
+  }
 
-        Relationship baseRelationship = getRelationship();
+  @Test
+  void shouldFailGenerateMergeObjectDifferentTrackedEntityType() {
+    assertThrows(
+        PotentialDuplicateForbiddenException.class,
+        () -> deduplicationHelper.generateMergeObject(getTeiA(), getTeiB()));
+  }
 
-        RelationshipItem relationshipItemTo = getRelationshipItem( baseRelationship, original );
-        RelationshipItem relationshipItemFrom = getRelationshipItem( baseRelationship, duplicate );
+  @Test
+  void shouldFailGenerateMergeObjectConflictingValue() {
+    TrackedEntity original = getTeiA();
 
-        Relationship relationship = getRelationship( relationshipItemTo, relationshipItemFrom );
-        RelationshipItem relationshipItem = getRelationshipItem( relationship, duplicate );
+    TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
+    attributeValueOriginal.setAttribute(attribute);
+    attributeValueOriginal.setTrackedEntity(original);
+    attributeValueOriginal.setValue("Attribute-Original");
 
-        duplicate.getRelationshipItems().add( relationshipItem );
+    original.getTrackedEntityAttributeValues().add(attributeValueOriginal);
 
-        mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+    TrackedEntity duplicate = getTeiA();
 
-        assertEquals( 1, mergeObject.getRelationships().size() );
+    TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
+    attributeValueDuplicate.setAttribute(attribute);
+    attributeValueDuplicate.setTrackedEntity(duplicate);
+    attributeValueDuplicate.setValue("Attribute-Duplicate");
 
-    }
+    duplicate.getTrackedEntityAttributeValues().add(attributeValueDuplicate);
 
-    @Test
-    void shouldGenerateMergeObjectWIthEnrollments()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
-    {
-        TrackedEntityInstance original = getTeiA();
-        Program programA = createProgram( 'A' );
-        ProgramInstance programInstanceA = createProgramInstance( programA, original, organisationUnitA );
-        programInstanceA.setUid( "programInstanceA" );
-        original.getProgramInstances().add( programInstanceA );
+    assertThrows(
+        PotentialDuplicateConflictException.class,
+        () -> deduplicationHelper.generateMergeObject(original, duplicate));
+  }
 
-        TrackedEntityInstance duplicate = getTeiA();
-        Program programB = createProgram( 'B' );
-        ProgramInstance programInstanceB = createProgramInstance( programB, duplicate, organisationUnitA );
-        programInstanceB.setUid( "programInstanceB" );
-        duplicate.getProgramInstances().add( programInstanceB );
+  @Test
+  void shoudGenerateMergeObjectForAttribute()
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+    TrackedEntity original = getTeiA();
 
-        MergeObject generatedMergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+    TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
+    attributeValueOriginal.setAttribute(attribute);
+    attributeValueOriginal.setTrackedEntity(original);
+    attributeValueOriginal.setValue("Attribute-Original");
 
-        assertEquals( "programInstanceB", generatedMergeObject.getEnrollments().get( 0 ) );
-    }
+    original.getTrackedEntityAttributeValues().add(attributeValueOriginal);
 
-    @Test
-    void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
-    {
-        TrackedEntityInstance original = getTeiA();
+    TrackedEntity duplicate = getTeiA();
 
-        Program program = createProgram( 'A' );
-        ProgramInstance programInstanceA = createProgramInstance( program, original, organisationUnitA );
-        original.getProgramInstances().add( programInstanceA );
+    TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
+    TrackedEntityAttribute duplicateAttribute = createTrackedEntityAttribute('B');
+    attributeValueDuplicate.setAttribute(duplicateAttribute);
+    attributeValueDuplicate.setTrackedEntity(duplicate);
+    attributeValueDuplicate.setValue("Attribute-Duplicate");
 
-        TrackedEntityInstance duplicate = getTeiA();
-        ProgramInstance programInstanceB = createProgramInstance( program, duplicate, organisationUnitA );
-        duplicate.getProgramInstances().add( programInstanceB );
+    duplicate.getTrackedEntityAttributeValues().add(attributeValueDuplicate);
 
-        assertThrows( PotentialDuplicateConflictException.class,
-            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
-    }
+    MergeObject mergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-    @Test
-    void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeis()
-    {
-        TrackedEntityInstance teiA = getTeiA();
-        TrackedEntityInstance teiB = getTeiB();
-        TrackedEntityInstance teiC = getTeiC();
+    assertFalse(mergeObject.getTrackedEntityAttributes().isEmpty());
 
-        // A->C, B->C
-        RelationshipItem fromA = new RelationshipItem();
-        RelationshipItem toA = new RelationshipItem();
-        RelationshipItem fromB = new RelationshipItem();
-        RelationshipItem toB = new RelationshipItem();
+    mergeObject
+        .getTrackedEntityAttributes()
+        .forEach(a -> assertEquals(duplicateAttribute.getUid(), a));
+  }
 
-        fromA.setTrackedEntityInstance( teiA );
-        toA.setTrackedEntityInstance( teiC );
-        fromB.setTrackedEntityInstance( teiB );
-        toB.setTrackedEntityInstance( teiC );
+  @Test
+  void testMergeObjectRelationship()
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+    TrackedEntity original = getTeiA();
 
-        Relationship relA = new Relationship();
-        Relationship relB = new Relationship();
+    TrackedEntity another = getTeiA();
 
-        relA.setAutoFields();
-        relB.setAutoFields();
+    TrackedEntity duplicate = getTeiA();
 
-        relA.setRelationshipType( relationshipType );
-        relB.setRelationshipType( relationshipType );
+    Relationship anotherBaseRelationship = getRelationship();
 
-        relA.setFrom( fromA );
-        relA.setTo( toA );
-        relB.setFrom( fromB );
-        relB.setTo( toB );
+    RelationshipItem relationshipItemAnotherTo =
+        getRelationshipItem(anotherBaseRelationship, another);
+    RelationshipItem relationshipItemAnotherFrom =
+        getRelationshipItem(anotherBaseRelationship, duplicate);
 
-        fromA.setRelationship( relA );
-        toA.setRelationship( relA );
+    Relationship anotherRelationship =
+        getRelationship(relationshipItemAnotherTo, relationshipItemAnotherFrom);
+    RelationshipItem anotherRelationshipItem = getRelationshipItem(anotherRelationship, duplicate);
 
-        fromB.setRelationship( relB );
-        toB.setRelationship( relB );
+    duplicate.getRelationshipItems().add(anotherRelationshipItem);
 
-        teiA.getRelationshipItems().add( fromA );
-        teiB.getRelationshipItems().add( fromB );
+    MergeObject mergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA,
-            teiB.getRelationshipItems().stream().map( RelationshipItem::getRelationship )
-                .collect( Collectors.toSet() ) ) );
-    }
+    assertTrue(mergeObject.getTrackedEntityAttributes().isEmpty());
 
-    @Test
-    void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeisBidirectional()
-    {
-        TrackedEntityInstance teiA = getTeiA();
-        TrackedEntityInstance teiB = getTeiB();
-        TrackedEntityInstance teiC = getTeiC();
+    assertFalse(mergeObject.getRelationships().isEmpty());
 
-        // A->C, B->C
-        RelationshipItem fromA = new RelationshipItem();
-        RelationshipItem toA = new RelationshipItem();
-        RelationshipItem fromB = new RelationshipItem();
-        RelationshipItem toB = new RelationshipItem();
+    mergeObject.getRelationships().forEach(r -> assertEquals(anotherRelationship.getUid(), r));
 
-        fromA.setTrackedEntityInstance( teiC );
-        toA.setTrackedEntityInstance( teiA );
-        fromB.setTrackedEntityInstance( teiB );
-        toB.setTrackedEntityInstance( teiC );
+    Relationship baseRelationship = getRelationship();
 
-        Relationship relA = new Relationship();
-        Relationship relB = new Relationship();
+    RelationshipItem relationshipItemTo = getRelationshipItem(baseRelationship, original);
+    RelationshipItem relationshipItemFrom = getRelationshipItem(baseRelationship, duplicate);
 
-        relA.setAutoFields();
-        relB.setAutoFields();
+    Relationship relationship = getRelationship(relationshipItemTo, relationshipItemFrom);
+    RelationshipItem relationshipItem = getRelationshipItem(relationship, duplicate);
 
-        relA.setRelationshipType( relationshipTypeBidirectional );
-        relB.setRelationshipType( relationshipTypeBidirectional );
+    duplicate.getRelationshipItems().add(relationshipItem);
 
-        relA.setFrom( fromA );
-        relA.setTo( toA );
-        relB.setFrom( fromB );
-        relB.setTo( toB );
+    mergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-        fromA.setRelationship( relA );
-        toA.setRelationship( relA );
+    assertEquals(1, mergeObject.getRelationships().size());
+  }
 
-        fromB.setRelationship( relB );
-        toB.setRelationship( relB );
+  @Test
+  void shouldGenerateMergeObjectWIthEnrollments()
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
+    TrackedEntity original = getTeiA();
+    Program programA = createProgram('A');
+    Enrollment enrollmentA = createEnrollment(programA, original, organisationUnitA);
+    enrollmentA.setUid("enrollmentA");
+    original.getEnrollments().add(enrollmentA);
 
-        teiA.getRelationshipItems().add( fromA );
-        teiB.getRelationshipItems().add( fromB );
+    TrackedEntity duplicate = getTeiA();
+    Program programB = createProgram('B');
+    Enrollment enrollmentB = createEnrollment(programB, duplicate, organisationUnitA);
+    enrollmentB.setUid("enrollmentB");
+    duplicate.getEnrollments().add(enrollmentB);
 
-        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA,
-            teiB.getRelationshipItems().stream().map( RelationshipItem::getRelationship )
-                .collect( Collectors.toSet() ) ) );
-    }
+    MergeObject generatedMergeObject = deduplicationHelper.generateMergeObject(original, duplicate);
 
-    @Test
-    void shouldNotFailGetDuplicateRelationshipError()
-    {
-        TrackedEntityInstance teiA = getTeiA();
-        TrackedEntityInstance teiB = getTeiB();
-        TrackedEntityInstance teiC = getTeiC();
+    assertEquals("enrollmentB", generatedMergeObject.getEnrollments().get(0));
+  }
 
-        // A->C, C->B
-        RelationshipItem fromA = new RelationshipItem();
-        RelationshipItem toA = new RelationshipItem();
-        RelationshipItem fromB = new RelationshipItem();
-        RelationshipItem toB = new RelationshipItem();
+  @Test
+  void shouldFailGenerateMergeObjectEnrollmentsSameProgram() {
+    TrackedEntity original = getTeiA();
 
-        fromA.setTrackedEntityInstance( teiA );
-        toA.setTrackedEntityInstance( teiC );
-        fromB.setTrackedEntityInstance( teiB );
-        toB.setTrackedEntityInstance( teiC );
+    Program program = createProgram('A');
+    Enrollment enrollmentA = createEnrollment(program, original, organisationUnitA);
+    original.getEnrollments().add(enrollmentA);
 
-        Relationship relA = new Relationship();
-        Relationship relB = new Relationship();
+    TrackedEntity duplicate = getTeiA();
+    Enrollment enrollmentB = createEnrollment(program, duplicate, organisationUnitA);
+    duplicate.getEnrollments().add(enrollmentB);
 
-        relA.setAutoFields();
-        relB.setAutoFields();
+    assertThrows(
+        PotentialDuplicateConflictException.class,
+        () -> deduplicationHelper.generateMergeObject(original, duplicate));
+  }
 
-        relA.setRelationshipType( relationshipType );
-        relB.setRelationshipType( relationshipType );
+  @Test
+  void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeis() {
+    TrackedEntity teiA = getTeiA();
+    TrackedEntity teiB = getTeiB();
+    TrackedEntity teiC = getTeiC();
 
-        relA.setFrom( fromA );
-        relA.setTo( toA );
-        relB.setFrom( fromB );
-        relB.setTo( toB );
+    // A->C, B->C
+    RelationshipItem fromA = new RelationshipItem();
+    RelationshipItem toA = new RelationshipItem();
+    RelationshipItem fromB = new RelationshipItem();
+    RelationshipItem toB = new RelationshipItem();
 
-        fromA.setRelationship( relA );
-        toA.setRelationship( relA );
+    fromA.setTrackedEntity(teiA);
+    toA.setTrackedEntity(teiC);
+    fromB.setTrackedEntity(teiB);
+    toB.setTrackedEntity(teiC);
 
-        fromB.setRelationship( relB );
-        toB.setRelationship( relB );
+    Relationship relA = new Relationship();
+    Relationship relB = new Relationship();
 
-        teiA.getRelationshipItems().add( fromA );
-        teiB.getRelationshipItems().add( fromB );
+    relA.setAutoFields();
+    relB.setAutoFields();
 
-        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA,
-            teiB.getRelationshipItems().stream().map( RelationshipItem::getRelationship )
-                .collect( Collectors.toSet() ) ) );
-    }
+    relA.setRelationshipType(relationshipType);
+    relB.setRelationshipType(relationshipType);
 
-    private List<Relationship> getRelationships()
-    {
-        Relationship relationshipA = new Relationship();
-        relationshipA.setRelationshipType( relationshipType );
+    relA.setFrom(fromA);
+    relA.setTo(toA);
+    relB.setFrom(fromB);
+    relB.setTo(toB);
 
-        return Lists.newArrayList( relationshipA );
-    }
+    fromA.setRelationship(relA);
+    toA.setRelationship(relA);
 
-    private List<ProgramInstance> getEnrollments()
-    {
-        return Lists.newArrayList( programInstance );
-    }
+    fromB.setRelationship(relB);
+    toB.setRelationship(relB);
 
-    private TrackedEntityInstance getTeiA()
-    {
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitA );
-        tei.setTrackedEntityType( trackedEntityTypeA );
+    teiA.getRelationshipItems().add(fromA);
+    teiB.getRelationshipItems().add(fromB);
 
-        return tei;
-    }
+    assertNotNull(
+        deduplicationHelper.getDuplicateRelationshipError(
+            teiA,
+            teiB.getRelationshipItems().stream()
+                .map(RelationshipItem::getRelationship)
+                .collect(Collectors.toSet())));
+  }
 
-    private TrackedEntityInstance getTeiB()
-    {
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitB );
-        tei.setTrackedEntityType( trackedEntityTypeB );
+  @Test
+  void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeisBidirectional() {
+    TrackedEntity teiA = getTeiA();
+    TrackedEntity teiB = getTeiB();
+    TrackedEntity teiC = getTeiC();
 
-        return tei;
-    }
+    // A->C, B->C
+    RelationshipItem fromA = new RelationshipItem();
+    RelationshipItem toA = new RelationshipItem();
+    RelationshipItem fromB = new RelationshipItem();
+    RelationshipItem toB = new RelationshipItem();
 
-    private TrackedEntityInstance getTeiC()
-    {
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitB );
-        tei.setTrackedEntityType( trackedEntityTypeB );
+    fromA.setTrackedEntity(teiC);
+    toA.setTrackedEntity(teiA);
+    fromB.setTrackedEntity(teiB);
+    toB.setTrackedEntity(teiC);
 
-        return tei;
-    }
+    Relationship relA = new Relationship();
+    Relationship relB = new Relationship();
 
-    private User getNoMergeAuthsUser()
-    {
-        return makeUser( "A", Lists.newArrayList( "USELESS_AUTH" ) );
-    }
+    relA.setAutoFields();
+    relB.setAutoFields();
 
-    private Relationship getRelationship()
-    {
-        Relationship relationship = new Relationship();
-        relationship.setAutoFields();
-        relationship.setRelationshipType( relationshipType );
+    relA.setRelationshipType(relationshipTypeBidirectional);
+    relB.setRelationshipType(relationshipTypeBidirectional);
 
-        return relationship;
-    }
+    relA.setFrom(fromA);
+    relA.setTo(toA);
+    relB.setFrom(fromB);
+    relB.setTo(toB);
 
-    private Relationship getRelationship( RelationshipItem to, RelationshipItem from )
-    {
-        Relationship relationship = getRelationship();
-        relationship.setTo( to );
-        relationship.setFrom( from );
+    fromA.setRelationship(relA);
+    toA.setRelationship(relA);
 
-        return relationship;
-    }
+    fromB.setRelationship(relB);
+    toB.setRelationship(relB);
 
-    private RelationshipItem getRelationshipItem( Relationship relationship,
-        TrackedEntityInstance trackedEntityInstance )
-    {
-        RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setRelationship( relationship );
-        relationshipItem.setTrackedEntityInstance( trackedEntityInstance );
+    teiA.getRelationshipItems().add(fromA);
+    teiB.getRelationshipItems().add(fromB);
 
-        return relationshipItem;
-    }
+    assertNotNull(
+        deduplicationHelper.getDuplicateRelationshipError(
+            teiA,
+            teiB.getRelationshipItems().stream()
+                .map(RelationshipItem::getRelationship)
+                .collect(Collectors.toSet())));
+  }
 
+  @Test
+  void shouldNotFailGetDuplicateRelationshipError() {
+    TrackedEntity teiA = getTeiA();
+    TrackedEntity teiB = getTeiB();
+    TrackedEntity teiC = getTeiC();
+
+    // A->C, C->B
+    RelationshipItem fromA = new RelationshipItem();
+    RelationshipItem toA = new RelationshipItem();
+    RelationshipItem fromB = new RelationshipItem();
+    RelationshipItem toB = new RelationshipItem();
+
+    fromA.setTrackedEntity(teiA);
+    toA.setTrackedEntity(teiC);
+    fromB.setTrackedEntity(teiB);
+    toB.setTrackedEntity(teiC);
+
+    Relationship relA = new Relationship();
+    Relationship relB = new Relationship();
+
+    relA.setAutoFields();
+    relB.setAutoFields();
+
+    relA.setRelationshipType(relationshipType);
+    relB.setRelationshipType(relationshipType);
+
+    relA.setFrom(fromA);
+    relA.setTo(toA);
+    relB.setFrom(fromB);
+    relB.setTo(toB);
+
+    fromA.setRelationship(relA);
+    toA.setRelationship(relA);
+
+    fromB.setRelationship(relB);
+    toB.setRelationship(relB);
+
+    teiA.getRelationshipItems().add(fromA);
+    teiB.getRelationshipItems().add(fromB);
+
+    assertNotNull(
+        deduplicationHelper.getDuplicateRelationshipError(
+            teiA,
+            teiB.getRelationshipItems().stream()
+                .map(RelationshipItem::getRelationship)
+                .collect(Collectors.toSet())));
+  }
+
+  private List<Relationship> getRelationships() {
+    Relationship relationshipA = new Relationship();
+    relationshipA.setRelationshipType(relationshipType);
+
+    return Lists.newArrayList(relationshipA);
+  }
+
+  private List<Enrollment> getEnrollments() {
+    return Lists.newArrayList(enrollment);
+  }
+
+  private TrackedEntity getTeiA() {
+    TrackedEntity tei = createTrackedEntity(organisationUnitA);
+    tei.setTrackedEntityType(trackedEntityTypeA);
+
+    return tei;
+  }
+
+  private TrackedEntity getTeiB() {
+    TrackedEntity tei = createTrackedEntity(organisationUnitB);
+    tei.setTrackedEntityType(trackedEntityTypeB);
+
+    return tei;
+  }
+
+  private TrackedEntity getTeiC() {
+    TrackedEntity tei = createTrackedEntity(organisationUnitB);
+    tei.setTrackedEntityType(trackedEntityTypeB);
+
+    return tei;
+  }
+
+  private User getNoMergeAuthsUser() {
+    return makeUser("A", Lists.newArrayList("USELESS_AUTH"));
+  }
+
+  private Relationship getRelationship() {
+    Relationship relationship = new Relationship();
+    relationship.setAutoFields();
+    relationship.setRelationshipType(relationshipType);
+
+    return relationship;
+  }
+
+  private Relationship getRelationship(RelationshipItem to, RelationshipItem from) {
+    Relationship relationship = getRelationship();
+    relationship.setTo(to);
+    relationship.setFrom(from);
+
+    return relationship;
+  }
+
+  private RelationshipItem getRelationshipItem(
+      Relationship relationship, TrackedEntity trackedEntity) {
+    RelationshipItem relationshipItem = new RelationshipItem();
+    relationshipItem.setRelationship(relationship);
+    relationshipItem.setTrackedEntity(trackedEntity);
+
+    return relationshipItem;
+  }
 }

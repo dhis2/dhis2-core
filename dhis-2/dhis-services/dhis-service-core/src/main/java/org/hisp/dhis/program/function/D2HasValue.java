@@ -38,28 +38,24 @@ import org.hisp.dhis.program.ProgramExpressionItem;
  *
  * @author Jim Grace
  */
-public class D2HasValue
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        getProgramArgType( ctx ).getDescription( ctx, visitor );
+public class D2HasValue extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    getProgramArgType(ctx).getDescription(ctx, visitor);
 
-        return DEFAULT_BOOLEAN_VALUE;
-    }
+    return DEFAULT_BOOLEAN_VALUE;
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        boolean savedReplaceNulls = visitor.getState().isReplaceNulls();
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    boolean savedReplaceNulls = visitor.getState().isReplaceNulls();
 
-        visitor.getState().setReplaceNulls( false );
+    visitor.getState().setReplaceNulls(false);
 
-        String argSql = (String) getProgramArgType( ctx ).getSql( ctx, visitor );
+    String argSql = (String) getProgramArgType(ctx).getSql(ctx, visitor);
 
-        visitor.getState().setReplaceNulls( savedReplaceNulls );
+    visitor.getState().setReplaceNulls(savedReplaceNulls);
 
-        return "(" + argSql + " is not null)";
-    }
+    return "(" + argSql + " is not null)";
+  }
 }

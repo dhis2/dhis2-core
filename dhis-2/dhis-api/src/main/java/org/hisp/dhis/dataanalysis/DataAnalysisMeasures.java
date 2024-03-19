@@ -28,56 +28,49 @@
 package org.hisp.dhis.dataanalysis;
 
 /**
- * DataAnalysisMeasures contains the average and standard deviation measures of
- * data for a given combination of organisation unit and category option combo.
- * (The data element is fixed.)
+ * DataAnalysisMeasures contains the average and standard deviation measures of data for a given
+ * combination of organisation unit and category option combo. (The data element is fixed.)
  *
  * @author Jim Grace
  */
-public class DataAnalysisMeasures
-{
-    private long orgUnitId;
+public class DataAnalysisMeasures {
+  private long orgUnitId;
 
-    private long categoryOptionComboId;
+  private long categoryOptionComboId;
 
-    private double average;
+  private double average;
 
-    private double standardDeviation;
+  private double standardDeviation;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    public DataAnalysisMeasures( int orgUnitId, int categoryOptionComboId,
-        double average, double standardDeviation )
-    {
-        this.orgUnitId = orgUnitId;
-        this.categoryOptionComboId = categoryOptionComboId;
-        this.average = average;
-        this.standardDeviation = standardDeviation;
-    }
+  public DataAnalysisMeasures(
+      int orgUnitId, int categoryOptionComboId, double average, double standardDeviation) {
+    this.orgUnitId = orgUnitId;
+    this.categoryOptionComboId = categoryOptionComboId;
+    this.average = average;
+    this.standardDeviation = standardDeviation;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters
+  // -------------------------------------------------------------------------
 
-    public long getOrgUnitId()
-    {
-        return orgUnitId;
-    }
+  public long getOrgUnitId() {
+    return orgUnitId;
+  }
 
-    public long getCategoryOptionComboId()
-    {
-        return categoryOptionComboId;
-    }
+  public long getCategoryOptionComboId() {
+    return categoryOptionComboId;
+  }
 
-    public double getAverage()
-    {
-        return average;
-    }
+  public double getAverage() {
+    return average;
+  }
 
-    public double getStandardDeviation()
-    {
-        return standardDeviation;
-    }
+  public double getStandardDeviation() {
+    return standardDeviation;
+  }
 }

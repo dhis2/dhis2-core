@@ -30,25 +30,21 @@ package org.hisp.dhis.dataset;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum FormType
-{
-    DEFAULT,
-    CUSTOM,
-    SECTION,
-    SECTION_MULTIORG;
+public enum FormType {
+  DEFAULT,
+  CUSTOM,
+  SECTION,
+  SECTION_MULTIORG;
 
-    public boolean isDefault()
-    {
-        return this == DEFAULT;
-    }
+  public boolean isDefault() {
+    return this == DEFAULT;
+  }
 
-    public boolean isCustom()
-    {
-        return this == CUSTOM;
-    }
+  public boolean isCustom() {
+    return this == CUSTOM;
+  }
 
-    public boolean isSection()
-    {
-        return this == SECTION || this == SECTION_MULTIORG;
-    }
+  public boolean isSection() {
+    return this == SECTION || this == SECTION_MULTIORG;
+  }
 }

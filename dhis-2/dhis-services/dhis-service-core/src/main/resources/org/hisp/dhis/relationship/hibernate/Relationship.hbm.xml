@@ -43,5 +43,6 @@
 
         <property name="deleted" column="deleted"/>
 
+        <property name="createdAtClient" type="timestamp" />
     </class>
 </hibernate-mapping>

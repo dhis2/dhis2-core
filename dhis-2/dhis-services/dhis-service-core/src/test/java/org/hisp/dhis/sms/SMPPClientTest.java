@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
@@ -42,80 +43,69 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 /**
- * To run this test, make sure that the SMSC is running on:
- * host:     localhost
- * port:     2775
- * user:     smppclient1
- * password: password
+ * To run this test, make sure that the SMSC is running on: host: localhost port: 2775 user:
+ * smppclient1 password: password
  */
 
 /**
  * @Author Zubair Asghar.
  */
+@Disabled("Test to run manually")
+@ExtendWith(MockitoExtension.class)
+class SMPPClientTest {
+  private static final String SYSTEM_ID = "smppclient1";
 
-@Disabled( "Test to run manually" )
-@ExtendWith( MockitoExtension.class )
-class SMPPClientTest
-{
-    private static final String SYSTEM_ID = "smppclient1";
+  private static final String SYSTEM_TYPE = "cp";
 
-    private static final String SYSTEM_TYPE = "cp";
+  private static final String HOST = "localhost";
 
-    private static final String HOST = "localhost";
+  private static final String PASSWORD = "password";
 
-    private static final String PASSWORD = "password";
+  private static final String RECIPIENT = "47XXXXXX";
 
-    private static final String RECIPIENT = "47XXXXXX";
+  private static final String TEXT = "text through smpp";
 
-    private static final String TEXT = "text through smpp";
+  private static final int PORT = 2775;
 
-    private static final int PORT = 2775;
+  private SMPPClient subject;
 
-    private SMPPClient subject;
+  @BeforeEach
+  public void init() {
+    subject = new SMPPClient();
+  }
 
-    @BeforeEach
-    public void init()
-    {
-        subject = new SMPPClient();
-    }
+  @Test
+  void testSuccessMessage() {
+    SMPPGatewayConfig config = getSMPPConfigurations();
 
-    @Test
-    void testSuccessMessage()
-    {
-        SMPPGatewayConfig config = getSMPPConfigurations();
+    OutboundMessageResponse response = subject.send(TEXT, Sets.newHashSet(RECIPIENT), config);
 
-        OutboundMessageResponse response = subject.send( TEXT, Sets.newHashSet( RECIPIENT ), config );
+    assertTrue(response.isOk());
+    assertNotNull(response.getDescription());
+    assertEquals(GatewayResponse.RESULT_CODE_0, response.getResponseObject());
+  }
 
-        assertTrue( response.isOk() );
-        assertNotNull( response.getDescription() );
-        assertEquals( GatewayResponse.RESULT_CODE_0, response.getResponseObject() );
-    }
+  @Test
+  void testFailedMessage() {
+    SMPPGatewayConfig config = getSMPPConfigurations();
+    config.setPassword("123");
 
-    @Test
-    void testFailedMessage()
-    {
-        SMPPGatewayConfig config = getSMPPConfigurations();
-        config.setPassword( "123" );
+    OutboundMessageResponse response = subject.send(TEXT, Sets.newHashSet(RECIPIENT), config);
 
-        OutboundMessageResponse response = subject.send( TEXT, Sets.newHashSet( RECIPIENT ), config );
+    assertFalse(response.isOk());
+    assertEquals("SMPP Session cannot be null", response.getDescription());
+    assertEquals(GatewayResponse.SMPP_SESSION_FAILURE, response.getResponseObject());
+  }
 
-        assertFalse( response.isOk() );
-        assertEquals( "SMPP Session cannot be null", response.getDescription() );
-        assertEquals( GatewayResponse.SMPP_SESSION_FAILURE, response.getResponseObject() );
-    }
+  private SMPPGatewayConfig getSMPPConfigurations() {
+    SMPPGatewayConfig config = new SMPPGatewayConfig();
+    config.setUrlTemplate(HOST);
+    config.setPort(PORT);
+    config.setPassword(PASSWORD);
+    config.setSystemType(SYSTEM_TYPE);
+    config.setUsername(SYSTEM_ID);
 
-    private SMPPGatewayConfig getSMPPConfigurations()
-    {
-        SMPPGatewayConfig config = new SMPPGatewayConfig();
-        config.setUrlTemplate( HOST );
-        config.setPort( PORT );
-        config.setPassword( PASSWORD );
-        config.setSystemType( SYSTEM_TYPE );
-        config.setUsername( SYSTEM_ID );
-
-        return config;
-    }
+    return config;
+  }
 }

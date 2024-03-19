@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,82 +44,73 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase
-{
+class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private ProgramStageSectionStore programStageSectionStore;
+  @Autowired private ProgramStageSectionStore programStageSectionStore;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private ProgramStage stageA;
+  private ProgramStage stageA;
 
-    private ProgramStage stageB;
+  private ProgramStage stageB;
 
-    private ProgramStageSection sectionA;
+  private ProgramStageSection sectionA;
 
-    private ProgramStageSection sectionB;
+  private ProgramStageSection sectionB;
 
-    private List<DataElement> dataElements;
+  private List<DataElement> dataElements;
 
-    @Override
-    public void setUpTest()
-    {
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( program );
-        stageA = createProgramStage( 'A', program );
-        programStageService.saveProgramStage( stageA );
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        ProgramStageDataElement stageDeA = createProgramStageDataElement( stageA, dataElementA, 1 );
-        ProgramStageDataElement stageDeB = createProgramStageDataElement( stageA, dataElementB, 2 );
-        programStageDataElementService.addProgramStageDataElement( stageDeA );
-        programStageDataElementService.addProgramStageDataElement( stageDeB );
-        dataElements = new ArrayList<>();
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        stageB = new ProgramStage( "B", program );
-        programStageService.saveProgramStage( stageB );
-        Set<ProgramStage> programStages = new HashSet<>();
-        programStages.add( stageA );
-        programStages.add( stageB );
-        program.setProgramStages( programStages );
-        programService.updateProgram( program );
-        sectionA = createProgramStageSection( 'A', 1 );
-        sectionA.setDataElements( dataElements );
-        sectionB = createProgramStageSection( 'B', 2 );
-        Set<ProgramStageSection> sections = new HashSet<>();
-        sections.add( sectionA );
-        sections.add( sectionB );
-        stageA.setProgramStageSections( sections );
-    }
+  @Override
+  public void setUpTest() {
+    organisationUnit = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+    Program program = createProgram('A', new HashSet<>(), organisationUnit);
+    programService.addProgram(program);
+    stageA = createProgramStage('A', program);
+    programStageService.saveProgramStage(stageA);
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    ProgramStageDataElement stageDeA = createProgramStageDataElement(stageA, dataElementA, 1);
+    ProgramStageDataElement stageDeB = createProgramStageDataElement(stageA, dataElementB, 2);
+    programStageDataElementService.addProgramStageDataElement(stageDeA);
+    programStageDataElementService.addProgramStageDataElement(stageDeB);
+    dataElements = new ArrayList<>();
+    dataElements.add(dataElementA);
+    dataElements.add(dataElementB);
+    stageB = new ProgramStage("B", program);
+    programStageService.saveProgramStage(stageB);
+    Set<ProgramStage> programStages = new HashSet<>();
+    programStages.add(stageA);
+    programStages.add(stageB);
+    program.setProgramStages(programStages);
+    programService.updateProgram(program);
+    sectionA = createProgramStageSection('A', 1);
+    sectionA.setDataElements(dataElements);
+    sectionB = createProgramStageSection('B', 2);
+    Set<ProgramStageSection> sections = new HashSet<>();
+    sections.add(sectionA);
+    sections.add(sectionB);
+    stageA.setProgramStageSections(sections);
+  }
 
-    @Test
-    void testAddGet()
-    {
-        ProgramStageSection sectionA = createProgramStageSection( 'A', 1 );
-        sectionA.setDataElements( dataElements );
-        programStageSectionStore.save( sectionA );
-        long idA = sectionA.getId();
-        assertEquals( sectionA, programStageSectionStore.get( idA ) );
-    }
+  @Test
+  void testAddGet() {
+    ProgramStageSection sectionA = createProgramStageSection('A', 1);
+    sectionA.setDataElements(dataElements);
+    programStageSectionStore.save(sectionA);
+    long idA = sectionA.getId();
+    assertEquals(sectionA, programStageSectionStore.get(idA));
+  }
 }

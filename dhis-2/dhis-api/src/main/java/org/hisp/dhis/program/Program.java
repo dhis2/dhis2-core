@@ -27,14 +27,23 @@
  */
 package org.hisp.dhis.program;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.util.ObjectUtils.copyOf;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -58,850 +67,927 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserRole;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew
  */
-@JacksonXmlRootElement( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
-public class Program
-    extends BaseNameableObject
-    implements VersionedObject, MetadataObject
-{
-    private String formName;
+@JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
+public class Program extends BaseNameableObject implements VersionedObject, MetadataObject {
+  static final String DEFAULT_PREFIX = "Copy of ";
 
-    private int version;
+  static final String PREFIX_KEY = "prefix";
 
-    private String enrollmentDateLabel;
+  private String formName;
 
-    private String incidentDateLabel;
+  private int version;
 
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private String enrollmentDateLabel;
 
-    private Set<ProgramStage> programStages = new HashSet<>();
+  private String incidentDateLabel;
 
-    private Set<ProgramSection> programSections = new HashSet<>();
+  private String enrollmentLabel;
 
-    private ProgramType programType;
+  private String followUpLabel;
 
-    private Boolean displayIncidentDate = true;
+  private String orgUnitLabel;
 
-    private Boolean ignoreOverdueEvents = false;
+  private String relationshipLabel;
 
-    private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
+  private String noteLabel;
 
-    private Set<UserRole> userRoles = new HashSet<>();
+  private String trackedEntityAttributeLabel;
 
-    private Set<ProgramIndicator> programIndicators = new HashSet<>();
+  private String programStageLabel;
 
-    private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
+  private String eventLabel;
 
-    private Boolean onlyEnrollOnce = false;
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
+  private Set<ProgramStage> programStages = new HashSet<>();
 
-    private Boolean selectEnrollmentDatesInFuture = false;
+  private Set<ProgramSection> programSections = new HashSet<>();
 
-    private Boolean selectIncidentDatesInFuture = false;
+  private ProgramType programType;
 
-    private Program relatedProgram;
+  private Boolean displayIncidentDate = true;
 
-    private TrackedEntityType trackedEntityType;
+  private Boolean ignoreOverdueEvents = false;
 
-    private DataEntryForm dataEntryForm;
+  private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
 
-    private ObjectStyle style;
+  private Set<UserRole> userRoles = new HashSet<>();
 
-    /**
-     * The CategoryCombo used for data attributes.
-     */
-    private CategoryCombo categoryCombo;
+  private Set<ProgramIndicator> programIndicators = new HashSet<>();
 
-    /**
-     * Property indicating whether offline storage is enabled for this program
-     * or not
-     */
-    private boolean skipOffline;
+  private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
-    /**
-     * Property indicating whether a list of tracked entity instances should be
-     * displayed, or whether a query must be made.
-     */
-    private Boolean displayFrontPageList = false;
+  private Boolean onlyEnrollOnce = false;
 
-    /**
-     * Property indicating whether first stage can appear for data entry on the
-     * same page with registration
-     */
-    private Boolean useFirstStageDuringRegistration = false;
+  private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
-    /**
-     * Property indicating type of feature - none, point, symbol, polygon or
-     * multipolygon - to capture for program.
-     */
-    private FeatureType featureType;
+  private Boolean selectEnrollmentDatesInFuture = false;
 
-    /**
-     * How many days after period is over will this program block creation and
-     * modification of events
-     */
-    private int expiryDays;
+  private Boolean selectIncidentDatesInFuture = false;
 
-    /**
-     * The PeriodType indicating the frequency that this program will use to
-     * decide on expiration. This relates to the {@link Program#expiryDays}
-     * property. The end date of the relevant period is used as basis for the
-     * number of expiration days.
-     */
-    private PeriodType expiryPeriodType;
+  private Program relatedProgram;
 
-    /**
-     * How many days after an event is completed will this program block
-     * modification of the event
-     */
-    private int completeEventsExpiryDays;
+  private TrackedEntityType trackedEntityType;
 
-    /**
-     * Number of days to open for data capture that are after the category
-     * option's end date.
-     */
-    private int openDaysAfterCoEndDate;
+  private DataEntryForm dataEntryForm;
 
-    /**
-     * Property indicating minimum number of attributes required to fill before
-     * search is triggered
-     */
-    private int minAttributesRequiredToSearch = 1;
+  private ObjectStyle style;
 
-    /**
-     * Property indicating maximum number of TEI to return after search
-     */
-    private int maxTeiCountToReturn = 0;
+  /** The CategoryCombo used for data attributes. */
+  private CategoryCombo categoryCombo;
 
-    /**
-     * Property indicating level of access
-     */
-    private AccessLevel accessLevel = AccessLevel.OPEN;
+  /** Property indicating whether offline storage is enabled for this program or not */
+  private boolean skipOffline;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  /**
+   * Property indicating whether a list of tracked entity instances should be displayed, or whether
+   * a query must be made.
+   */
+  private Boolean displayFrontPageList = false;
 
-    public Program()
-    {
+  /**
+   * Property indicating whether first stage can appear for data entry on the same page with
+   * registration
+   */
+  private Boolean useFirstStageDuringRegistration = false;
+
+  /**
+   * Property indicating type of feature - none, point, symbol, polygon or multipolygon - to capture
+   * for program.
+   */
+  private FeatureType featureType;
+
+  /**
+   * How many days after period is over will this program block creation and modification of events
+   */
+  private int expiryDays;
+
+  /**
+   * The PeriodType indicating the frequency that this program will use to decide on expiration.
+   * This relates to the {@link Program#expiryDays} property. The end date of the relevant period is
+   * used as basis for the number of expiration days.
+   */
+  private PeriodType expiryPeriodType;
+
+  /** How many days after an event is completed will this program block modification of the event */
+  private int completeEventsExpiryDays;
+
+  /** Number of days to open for data capture that are after the category option's end date. */
+  private int openDaysAfterCoEndDate;
+
+  /**
+   * Property indicating minimum number of attributes required to fill before search is triggered
+   */
+  private int minAttributesRequiredToSearch = 1;
+
+  /** Property indicating maximum number of TE to return after search */
+  private int maxTeiCountToReturn = 0;
+
+  /** Property indicating level of access */
+  private AccessLevel accessLevel = AccessLevel.OPEN;
+
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
+
+  public Program() {}
+
+  public Program(String name) {
+    this.name = name;
+  }
+
+  public Program(String name, String description) {
+    this.name = name;
+    this.description = description;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
+
+  public void addOrganisationUnit(OrganisationUnit organisationUnit) {
+    organisationUnits.add(organisationUnit);
+    organisationUnit.getPrograms().add(this);
+  }
+
+  public void addOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    organisationUnits.forEach(this::addOrganisationUnit);
+  }
+
+  public boolean removeOrganisationUnit(OrganisationUnit organisationUnit) {
+    organisationUnits.remove(organisationUnit);
+    return organisationUnit.getPrograms().remove(this);
+  }
+
+  public void removeOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    organisationUnits.forEach(this::removeOrganisationUnit);
+  }
+
+  /** Returns IDs of searchable TrackedEntityAttributes. */
+  public List<String> getSearchableAttributeIds() {
+    return programAttributes.stream()
+        .filter(pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable())
+        .map(ProgramTrackedEntityAttribute::getAttribute)
+        .map(TrackedEntityAttribute::getUid)
+        .collect(Collectors.toList());
+  }
+
+  /** Returns display in list TrackedEntityAttributes */
+  public List<TrackedEntityAttribute> getDisplayInListAttributes() {
+    return programAttributes.stream()
+        .filter(pa -> pa.isDisplayInList())
+        .map(ProgramTrackedEntityAttribute::getAttribute)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns the ProgramTrackedEntityAttribute of this Program which contains the given
+   * TrackedEntityAttribute.
+   */
+  public ProgramTrackedEntityAttribute getAttribute(TrackedEntityAttribute attribute) {
+    for (ProgramTrackedEntityAttribute programAttribute : programAttributes) {
+      if (programAttribute != null && programAttribute.getAttribute().equals(attribute)) {
+        return programAttribute;
+      }
     }
 
-    public Program( String name )
-    {
-        this.name = name;
-    }
+    return null;
+  }
 
-    public Program( String name, String description )
-    {
-        this.name = name;
-        this.description = description;
-    }
+  /** Returns all data elements which are part of the stages of this program. */
+  public Set<DataElement> getDataElements() {
+    return programStages.stream().flatMap(ps -> ps.getDataElements().stream()).collect(toSet());
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic methods
-    // -------------------------------------------------------------------------
+  /**
+   * Returns all data elements which are part of the stages of this program and is not skipped in
+   * analytics.
+   */
+  public Set<DataElement> getAnalyticsDataElements() {
+    return programStages.stream()
+        .map(ProgramStage::getProgramStageDataElements)
+        .flatMap(Collection::stream)
+        .filter(Objects::nonNull)
+        .filter(psde -> !psde.getSkipAnalytics())
+        .map(ProgramStageDataElement::getDataElement)
+        .collect(toSet());
+  }
 
-    public void addOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.add( organisationUnit );
-        organisationUnit.getPrograms().add( this );
-    }
+  /**
+   * Returns data elements which are part of the stages of this program which have a legend set and
+   * is of numeric value type.
+   */
+  public Set<DataElement> getAnalyticsDataElementsWithLegendSet() {
+    return getAnalyticsDataElements().stream()
+        .filter(de -> de.hasLegendSet() && de.isNumericType())
+        .collect(toSet());
+  }
 
-    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        organisationUnits.forEach( this::addOrganisationUnit );
-    }
+  /**
+   * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use getAttributes() to
+   * access the persisted attribute list.
+   */
+  public List<TrackedEntityAttribute> getTrackedEntityAttributes() {
+    return programAttributes.stream()
+        .map(ProgramTrackedEntityAttribute::getAttribute)
+        .collect(Collectors.toList());
+  }
 
-    public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.remove( organisationUnit );
-        return organisationUnit.getPrograms().remove( this );
-    }
+  /**
+   * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
+   * getAttributes() to access the persisted attribute list.
+   */
+  public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes() {
+    return getTrackedEntityAttributes().stream()
+        .filter(a -> !a.isConfidentialBool())
+        .collect(Collectors.toList());
+  }
 
-    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        organisationUnits.forEach( this::removeOrganisationUnit );
-    }
+  /**
+   * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and
+   * is of numeric value type.
+   */
+  public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet() {
+    return getTrackedEntityAttributes().stream()
+        .filter(a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType())
+        .collect(Collectors.toList());
+  }
 
-    /**
-     * Returns IDs of searchable TrackedEntityAttributes.
-     */
-    public List<String> getSearchableAttributeIds()
-    {
-        return programAttributes.stream()
-            .filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() )
-            .map( ProgramTrackedEntityAttribute::getAttribute )
-            .map( TrackedEntityAttribute::getUid )
-            .collect( Collectors.toList() );
-    }
-
-    /**
-     * Returns display in list TrackedEntityAttributes
-     */
-    public List<TrackedEntityAttribute> getDisplayInListAttributes()
-    {
-        return programAttributes.stream()
-            .filter( pa -> pa.isDisplayInList() )
-            .map( ProgramTrackedEntityAttribute::getAttribute )
-            .collect( Collectors.toList() );
-    }
-
-    /**
-     * Returns the ProgramTrackedEntityAttribute of this Program which contains
-     * the given TrackedEntityAttribute.
-     */
-    public ProgramTrackedEntityAttribute getAttribute( TrackedEntityAttribute attribute )
-    {
-        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
-        {
-            if ( programAttribute != null && programAttribute.getAttribute().equals( attribute ) )
-            {
-                return programAttribute;
-            }
+  /** Indicates whether this program contains the given data element. */
+  public boolean containsDataElement(DataElement dataElement) {
+    for (ProgramStage stage : programStages) {
+      for (ProgramStageDataElement element : stage.getProgramStageDataElements()) {
+        if (dataElement.getUid().equals(element.getDataElement().getUid())) {
+          return true;
         }
-
-        return null;
-    }
-
-    /**
-     * Returns all data elements which are part of the stages of this program.
-     */
-    public Set<DataElement> getDataElements()
-    {
-        return programStages.stream()
-            .flatMap( ps -> ps.getDataElements().stream() )
-            .collect( Collectors.toSet() );
-    }
-
-    /**
-     * Returns all data elements which are part of the stages of this program
-     * and is not skipped in analytics.
-     */
-    public Set<DataElement> getAnalyticsDataElements()
-    {
-        return programStages.stream()
-            .map( ProgramStage::getProgramStageDataElements )
-            .flatMap( Collection::stream )
-            .filter( Objects::nonNull )
-            .filter( psde -> !psde.getSkipAnalytics() )
-            .map( ProgramStageDataElement::getDataElement )
-            .collect( Collectors.toSet() );
-    }
-
-    /**
-     * Returns data elements which are part of the stages of this program which
-     * have a legend set and is of numeric value type.
-     */
-    public Set<DataElement> getAnalyticsDataElementsWithLegendSet()
-    {
-        return getAnalyticsDataElements().stream()
-            .filter( de -> de.hasLegendSet() && de.isNumericType() )
-            .collect( Collectors.toSet() );
-    }
-
-    /**
-     * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-     * getAttributes() to access the persisted attribute list.
-     */
-    public List<TrackedEntityAttribute> getTrackedEntityAttributes()
-    {
-        return programAttributes.stream()
-            .map( ProgramTrackedEntityAttribute::getAttribute )
-            .collect( Collectors.toList() );
-    }
-
-    /**
-     * Returns non-confidential TrackedEntityAttributes from
-     * ProgramTrackedEntityAttributes. Use getAttributes() to access the
-     * persisted attribute list.
-     */
-    public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes()
-    {
-        return getTrackedEntityAttributes().stream()
-            .filter( a -> !a.isConfidentialBool() )
-            .collect( Collectors.toList() );
-    }
-
-    /**
-     * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which
-     * have a legend set and is of numeric value type.
-     */
-    public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet()
-    {
-        return getTrackedEntityAttributes().stream()
-            .filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() )
-            .collect( Collectors.toList() );
-    }
-
-    /**
-     * Indicates whether this program contains the given data element.
-     */
-    public boolean containsDataElement( DataElement dataElement )
-    {
-        for ( ProgramStage stage : programStages )
-        {
-            for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
-            {
-                if ( dataElement.getUid().equals( element.getDataElement().getUid() ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Indicates whether this program contains the given tracked entity
-     * attribute.
-     */
-    public boolean containsAttribute( TrackedEntityAttribute attribute )
-    {
-        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
-        {
-            if ( attribute.equals( programAttribute.getAttribute() ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public ProgramStage getProgramStageByStage( int stage )
-    {
-        int count = 1;
-
-        for ( ProgramStage programStage : programStages )
-        {
-            if ( count == stage )
-            {
-                return programStage;
-            }
-
-            count++;
-        }
-
-        return null;
-    }
-
-    public boolean isSingleProgramStage()
-    {
-        return programStages != null && programStages.size() == 1;
-    }
-
-    @Override
-    public int increaseVersion()
-    {
-        return ++version;
-    }
-
-    public boolean isOpen()
-    {
-        return this.accessLevel == AccessLevel.OPEN;
-    }
-
-    public boolean isAudited()
-    {
-        return this.accessLevel == AccessLevel.AUDITED;
-    }
-
-    public boolean isProtected()
-    {
-        return this.accessLevel == AccessLevel.PROTECTED;
-    }
-
-    public boolean isClosed()
-    {
-        return this.accessLevel == AccessLevel.CLOSED;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getVersion()
-    {
-        return version;
-    }
-
-    @Override
-    public void setVersion( int version )
-    {
-        this.version = version;
-    }
-
-    @JsonProperty( "organisationUnits" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
-    }
-
-    @JsonProperty( "programStages" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programStages", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramStage> getProgramStages()
-    {
-        return programStages;
-    }
-
-    public void setProgramStages( Set<ProgramStage> programStages )
-    {
-        this.programStages = programStages;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getEnrollmentDateLabel()
-    {
-        return enrollmentDateLabel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "enrollmentDateLabel", key = "ENROLLMENT_DATE_LABEL" )
-    public String getDisplayEnrollmentDateLabel()
-    {
-        return getTranslation( "ENROLLMENT_DATE_LABEL", getEnrollmentDateLabel() );
-    }
-
-    public void setEnrollmentDateLabel( String enrollmentDateLabel )
-    {
-        this.enrollmentDateLabel = enrollmentDateLabel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getIncidentDateLabel()
-    {
-        return incidentDateLabel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "incidentDateLabel", key = "INCIDENT_DATE_LABEL" )
-    public String getDisplayIncidentDateLabel()
-    {
-        return getTranslation( "INCIDENT_DATE_LABEL", getIncidentDateLabel() );
-    }
-
-    public void setIncidentDateLabel( String incidentDateLabel )
-    {
-        this.incidentDateLabel = incidentDateLabel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramType getProgramType()
-    {
-        return programType;
-    }
-
-    public void setProgramType( ProgramType programType )
-    {
-        this.programType = programType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDisplayIncidentDate()
-    {
-        return displayIncidentDate;
-    }
-
-    public void setDisplayIncidentDate( Boolean displayIncidentDate )
-    {
-        this.displayIncidentDate = displayIncidentDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getIgnoreOverdueEvents()
-    {
-        return ignoreOverdueEvents;
-    }
-
-    public void setIgnoreOverdueEvents( Boolean ignoreOverdueEvents )
-    {
-        this.ignoreOverdueEvents = ignoreOverdueEvents;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRegistration()
-    {
-        return programType == ProgramType.WITH_REGISTRATION;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isWithoutRegistration()
-    {
-        return programType == ProgramType.WITHOUT_REGISTRATION;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "userRoles", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserRole> getUserRoles()
-    {
-        return userRoles;
-    }
-
-    public void setUserRoles( Set<UserRole> userRoles )
-    {
-        this.userRoles = userRoles;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programIndicators", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramIndicator> getProgramIndicators()
-    {
-        return programIndicators;
-    }
-
-    public void setProgramIndicators( Set<ProgramIndicator> programIndicators )
-    {
-        this.programIndicators = programIndicators;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRuleVariable> getProgramRuleVariables()
-    {
-        return programRuleVariables;
-    }
-
-    public void setProgramRuleVariables( Set<ProgramRuleVariable> programRuleVariables )
-    {
-        this.programRuleVariables = programRuleVariables;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getOnlyEnrollOnce()
-    {
-        return onlyEnrollOnce;
-    }
-
-    public void setOnlyEnrollOnce( Boolean onlyEnrollOnce )
-    {
-        this.onlyEnrollOnce = onlyEnrollOnce;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramNotificationTemplate> getNotificationTemplates()
-    {
-        return notificationTemplates;
-    }
-
-    public void setNotificationTemplates( Set<ProgramNotificationTemplate> notificationTemplates )
-    {
-        this.notificationTemplates = notificationTemplates;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getSelectEnrollmentDatesInFuture()
-    {
-        return selectEnrollmentDatesInFuture;
-    }
-
-    public void setSelectEnrollmentDatesInFuture( Boolean selectEnrollmentDatesInFuture )
-    {
-        this.selectEnrollmentDatesInFuture = selectEnrollmentDatesInFuture;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getSelectIncidentDatesInFuture()
-    {
-        return selectIncidentDatesInFuture;
-    }
-
-    public void setSelectIncidentDatesInFuture( Boolean selectIncidentDatesInFuture )
-    {
-        this.selectIncidentDatesInFuture = selectIncidentDatesInFuture;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Program getRelatedProgram()
-    {
-        return relatedProgram;
-    }
-
-    public void setRelatedProgram( Program relatedProgram )
-    {
-        this.relatedProgram = relatedProgram;
-    }
-
-    @JsonProperty( "programTrackedEntityAttributes" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programTrackedEntityAttributes", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramTrackedEntityAttribute> getProgramAttributes()
-    {
-        return programAttributes;
-    }
-
-    public void setProgramAttributes( List<ProgramTrackedEntityAttribute> programAttributes )
-    {
-        this.programAttributes = programAttributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityType getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
-
-    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( localName = "dataEntryForm", namespace = DxfNamespaces.DXF_2_0 )
-    public DataEntryForm getDataEntryForm()
-    {
-        return dataEntryForm;
-    }
-
-    public void setDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        this.dataEntryForm = dataEntryForm;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getCategoryCombo()
-    {
-        return categoryCombo;
-    }
-
-    public void setCategoryCombo( CategoryCombo categoryCombo )
-    {
-        this.categoryCombo = categoryCombo;
-    }
-
-    /**
-     * Indicates whether this program has a category combination which is
-     * different from the default category combination.
-     */
-    public boolean hasNonDefaultCategoryCombo()
-    {
-        return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipOffline()
-    {
-        return skipOffline;
-    }
-
-    public void setSkipOffline( boolean skipOffline )
-    {
-        this.skipOffline = skipOffline;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getDisplayFrontPageList()
-    {
-        return displayFrontPageList;
-    }
-
-    public void setDisplayFrontPageList( Boolean displayFrontPageList )
-    {
-        this.displayFrontPageList = displayFrontPageList;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getUseFirstStageDuringRegistration()
-    {
-        return useFirstStageDuringRegistration;
-    }
-
-    public void setUseFirstStageDuringRegistration( Boolean useFirstStageDuringRegistration )
-    {
-        this.useFirstStageDuringRegistration = useFirstStageDuringRegistration;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
-    {
-        return featureType;
-    }
-
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getExpiryDays()
-    {
-        return expiryDays;
-    }
-
-    public void setExpiryDays( int expiryDays )
-    {
-        this.expiryDays = expiryDays;
-    }
-
-    @JsonProperty
-    @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
-    @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public PeriodType getExpiryPeriodType()
-    {
-        return expiryPeriodType;
-    }
-
-    public void setExpiryPeriodType( PeriodType expiryPeriodType )
-    {
-        this.expiryPeriodType = expiryPeriodType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getCompleteEventsExpiryDays()
-    {
-        return completeEventsExpiryDays;
-    }
-
-    public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
-    {
-        this.completeEventsExpiryDays = completeEventsExpiryDays;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getOpenDaysAfterCoEndDate()
-    {
-        return openDaysAfterCoEndDate;
-    }
-
-    public void setOpenDaysAfterCoEndDate( int openDaysAfterCoEndDate )
-    {
-        this.openDaysAfterCoEndDate = openDaysAfterCoEndDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getMinAttributesRequiredToSearch()
-    {
-        return minAttributesRequiredToSearch;
-    }
-
-    public void setMinAttributesRequiredToSearch( int minAttributesRequiredToSearch )
-    {
-        this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getMaxTeiCountToReturn()
-    {
-        return maxTeiCountToReturn;
-    }
-
-    public void setMaxTeiCountToReturn( int maxTeiCountToReturn )
-    {
-        this.maxTeiCountToReturn = maxTeiCountToReturn;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
-
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    @Override
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
-
-    @JsonProperty( "programSections" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programSections", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programSection", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramSection> getProgramSections()
-    {
-        return programSections;
-    }
-
-    public void setProgramSections( Set<ProgramSection> programSections )
-    {
-        this.programSections = programSections;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AccessLevel getAccessLevel()
-    {
-        return accessLevel;
-    }
-
-    public void setAccessLevel( AccessLevel accessLevel )
-    {
-        this.accessLevel = accessLevel;
-    }
+      }
+    }
+
+    return false;
+  }
+
+  /** Indicates whether this program contains the given tracked entity attribute. */
+  public boolean containsAttribute(TrackedEntityAttribute attribute) {
+    for (ProgramTrackedEntityAttribute programAttribute : programAttributes) {
+      if (attribute.equals(programAttribute.getAttribute())) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public ProgramStage getProgramStageByStage(int stage) {
+    int count = 1;
+
+    for (ProgramStage programStage : programStages) {
+      if (count == stage) {
+        return programStage;
+      }
+
+      count++;
+    }
+
+    return null;
+  }
+
+  public boolean isSingleProgramStage() {
+    return programStages != null && programStages.size() == 1;
+  }
+
+  @Override
+  public int increaseVersion() {
+    return ++version;
+  }
+
+  public boolean isOpen() {
+    return this.accessLevel == AccessLevel.OPEN;
+  }
+
+  public boolean isAudited() {
+    return this.accessLevel == AccessLevel.AUDITED;
+  }
+
+  public boolean isProtected() {
+    return this.accessLevel == AccessLevel.PROTECTED;
+  }
+
+  public boolean isClosed() {
+    return this.accessLevel == AccessLevel.CLOSED;
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getVersion() {
+    return version;
+  }
+
+  @Override
+  public void setVersion(int version) {
+    this.version = version;
+  }
+
+  @JsonProperty("organisationUnits")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
+  public Set<OrganisationUnit> getOrganisationUnits() {
+    return organisationUnits;
+  }
+
+  public void setOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    this.organisationUnits = organisationUnits;
+  }
+
+  @JsonProperty("programStages")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "programStages", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programStage", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramStage> getProgramStages() {
+    return programStages;
+  }
+
+  public void setProgramStages(Set<ProgramStage> programStages) {
+    this.programStages = programStages;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEnrollmentDateLabel() {
+    return enrollmentDateLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "enrollmentDateLabel", key = "ENROLLMENT_DATE_LABEL")
+  public String getDisplayEnrollmentDateLabel() {
+    return getTranslation("ENROLLMENT_DATE_LABEL", getEnrollmentDateLabel());
+  }
+
+  public void setEnrollmentDateLabel(String enrollmentDateLabel) {
+    this.enrollmentDateLabel = enrollmentDateLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getIncidentDateLabel() {
+    return incidentDateLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "incidentDateLabel", key = "INCIDENT_DATE_LABEL")
+  public String getDisplayIncidentDateLabel() {
+    return getTranslation("INCIDENT_DATE_LABEL", getIncidentDateLabel());
+  }
+
+  public void setIncidentDateLabel(String incidentDateLabel) {
+    this.incidentDateLabel = incidentDateLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEnrollmentLabel() {
+    return enrollmentLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "enrollmentLabel", key = "ENROLLMENT_LABEL")
+  public String getDisplayEnrollmentLabel() {
+    return getTranslation("ENROLLMENT_LABEL", getEnrollmentLabel());
+  }
+
+  public void setEnrollmentLabel(String enrollmentLabel) {
+    this.enrollmentLabel = enrollmentLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getFollowUpLabel() {
+    return followUpLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "followUpLabel", key = "FOLLOW_UP_LABEL")
+  public String getDisplayFollowUpLabel() {
+    return getTranslation("FOLLOW_UP_LABEL", getFollowUpLabel());
+  }
+
+  public void setFollowUpLabel(String followUpLabel) {
+    this.followUpLabel = followUpLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getOrgUnitLabel() {
+    return orgUnitLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "orgUnitLabel", key = "ORG_UNIT_LABEL")
+  public String getDisplayOrgUnitLabel() {
+    return getTranslation("ORG_UNIT_LABEL", getOrgUnitLabel());
+  }
+
+  public void setOrgUnitLabel(String orgUnitLabel) {
+    this.orgUnitLabel = orgUnitLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getRelationshipLabel() {
+    return relationshipLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "relationshipLabel", key = "RELATIONSHIP_LABEL")
+  public String getDisplayRelationshipLabel() {
+    return getTranslation("RELATIONSHIP_LABEL", getRelationshipLabel());
+  }
+
+  public void setRelationshipLabel(String relationshipLabel) {
+    this.relationshipLabel = relationshipLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getNoteLabel() {
+    return noteLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "noteLabel", key = "NOTE_LABEL")
+  public String getDisplayNoteLabel() {
+    return getTranslation("NOTE_LABEL", getNoteLabel());
+  }
+
+  public void setNoteLabel(String noteLabel) {
+    this.noteLabel = noteLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getTrackedEntityAttributeLabel() {
+    return trackedEntityAttributeLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(
+      propertyName = "trackedEntityAttributeLabel",
+      key = "TRACKED_ENTITY_ATTRIBUTE_LABEL")
+  public String getDisplayTrackedEntityAttributeLabel() {
+    return getTranslation("TRACKED_ENTITY_ATTRIBUTE_LABEL", getTrackedEntityAttributeLabel());
+  }
+
+  public void setTrackedEntityAttributeLabel(String trackedEntityAttributeLabel) {
+    this.trackedEntityAttributeLabel = trackedEntityAttributeLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getProgramStageLabel() {
+    return programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "programStageLabel", key = "PROGRAM_STAGE_LABEL")
+  public String getDisplayProgramStageLabel() {
+    return getTranslation("PROGRAM_STAGE_LABEL", getProgramStageLabel());
+  }
+
+  public void setProgramStageLabel(String programStageLabel) {
+    this.programStageLabel = programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventLabel() {
+    return eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventLabel", key = "EVENT_LABEL")
+  public String getDisplayEventLabel() {
+    return getTranslation("EVENT_LABEL", getEventLabel());
+  }
+
+  public void setEventLabel(String eventLabel) {
+    this.eventLabel = eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ProgramType getProgramType() {
+    return programType;
+  }
+
+  public void setProgramType(ProgramType programType) {
+    this.programType = programType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getDisplayIncidentDate() {
+    return displayIncidentDate;
+  }
+
+  public void setDisplayIncidentDate(Boolean displayIncidentDate) {
+    this.displayIncidentDate = displayIncidentDate;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getIgnoreOverdueEvents() {
+    return ignoreOverdueEvents;
+  }
+
+  public void setIgnoreOverdueEvents(Boolean ignoreOverdueEvents) {
+    this.ignoreOverdueEvents = ignoreOverdueEvents;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isRegistration() {
+    return programType == ProgramType.WITH_REGISTRATION;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isWithoutRegistration() {
+    return programType == ProgramType.WITHOUT_REGISTRATION;
+  }
+
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "userRoles", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "userRole", namespace = DxfNamespaces.DXF_2_0)
+  public Set<UserRole> getUserRoles() {
+    return userRoles;
+  }
+
+  public void setUserRoles(Set<UserRole> userRoles) {
+    this.userRoles = userRoles;
+  }
+
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "programIndicators", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramIndicator> getProgramIndicators() {
+    return programIndicators;
+  }
+
+  public void setProgramIndicators(Set<ProgramIndicator> programIndicators) {
+    this.programIndicators = programIndicators;
+  }
+
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramRuleVariable> getProgramRuleVariables() {
+    return programRuleVariables;
+  }
+
+  public void setProgramRuleVariables(Set<ProgramRuleVariable> programRuleVariables) {
+    this.programRuleVariables = programRuleVariables;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getOnlyEnrollOnce() {
+    return onlyEnrollOnce;
+  }
+
+  public void setOnlyEnrollOnce(Boolean onlyEnrollOnce) {
+    this.onlyEnrollOnce = onlyEnrollOnce;
+  }
+
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlElementWrapper(localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramNotificationTemplate> getNotificationTemplates() {
+    return notificationTemplates;
+  }
+
+  public void setNotificationTemplates(Set<ProgramNotificationTemplate> notificationTemplates) {
+    this.notificationTemplates = notificationTemplates;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getSelectEnrollmentDatesInFuture() {
+    return selectEnrollmentDatesInFuture;
+  }
+
+  public void setSelectEnrollmentDatesInFuture(Boolean selectEnrollmentDatesInFuture) {
+    this.selectEnrollmentDatesInFuture = selectEnrollmentDatesInFuture;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getSelectIncidentDatesInFuture() {
+    return selectIncidentDatesInFuture;
+  }
+
+  public void setSelectIncidentDatesInFuture(Boolean selectIncidentDatesInFuture) {
+    this.selectIncidentDatesInFuture = selectIncidentDatesInFuture;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Program getRelatedProgram() {
+    return relatedProgram;
+  }
+
+  public void setRelatedProgram(Program relatedProgram) {
+    this.relatedProgram = relatedProgram;
+  }
+
+  @JsonProperty("programTrackedEntityAttributes")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(
+      localName = "programTrackedEntityAttributes",
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(
+      localName = "programTrackedEntityAttribute",
+      namespace = DxfNamespaces.DXF_2_0)
+  public List<ProgramTrackedEntityAttribute> getProgramAttributes() {
+    return programAttributes;
+  }
+
+  public void setProgramAttributes(List<ProgramTrackedEntityAttribute> programAttributes) {
+    this.programAttributes = programAttributes;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0)
+  public TrackedEntityType getTrackedEntityType() {
+    return trackedEntityType;
+  }
+
+  public void setTrackedEntityType(TrackedEntityType trackedEntityType) {
+    this.trackedEntityType = trackedEntityType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(localName = "dataEntryForm", namespace = DxfNamespaces.DXF_2_0)
+  public DataEntryForm getDataEntryForm() {
+    return dataEntryForm;
+  }
+
+  public void setDataEntryForm(DataEntryForm dataEntryForm) {
+    this.dataEntryForm = dataEntryForm;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getCategoryCombo() {
+    return categoryCombo;
+  }
+
+  public void setCategoryCombo(CategoryCombo categoryCombo) {
+    this.categoryCombo = categoryCombo;
+  }
+
+  /**
+   * Indicates whether this program has a category combination which is different from the default
+   * category combination.
+   */
+  public boolean hasNonDefaultCategoryCombo() {
+    return categoryCombo != null
+        && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals(categoryCombo.getName());
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSkipOffline() {
+    return skipOffline;
+  }
+
+  public void setSkipOffline(boolean skipOffline) {
+    this.skipOffline = skipOffline;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getDisplayFrontPageList() {
+    return displayFrontPageList;
+  }
+
+  public void setDisplayFrontPageList(Boolean displayFrontPageList) {
+    this.displayFrontPageList = displayFrontPageList;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getUseFirstStageDuringRegistration() {
+    return useFirstStageDuringRegistration;
+  }
+
+  public void setUseFirstStageDuringRegistration(Boolean useFirstStageDuringRegistration) {
+    this.useFirstStageDuringRegistration = useFirstStageDuringRegistration;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FeatureType getFeatureType() {
+    return featureType;
+  }
+
+  public void setFeatureType(FeatureType featureType) {
+    this.featureType = featureType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getExpiryDays() {
+    return expiryDays;
+  }
+
+  public void setExpiryDays(int expiryDays) {
+    this.expiryDays = expiryDays;
+  }
+
+  @JsonProperty
+  @JsonSerialize(using = JacksonPeriodTypeSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodTypeDeserializer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public PeriodType getExpiryPeriodType() {
+    return expiryPeriodType;
+  }
+
+  public void setExpiryPeriodType(PeriodType expiryPeriodType) {
+    this.expiryPeriodType = expiryPeriodType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getCompleteEventsExpiryDays() {
+    return completeEventsExpiryDays;
+  }
+
+  public void setCompleteEventsExpiryDays(int completeEventsExpiryDays) {
+    this.completeEventsExpiryDays = completeEventsExpiryDays;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getOpenDaysAfterCoEndDate() {
+    return openDaysAfterCoEndDate;
+  }
+
+  public void setOpenDaysAfterCoEndDate(int openDaysAfterCoEndDate) {
+    this.openDaysAfterCoEndDate = openDaysAfterCoEndDate;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getMinAttributesRequiredToSearch() {
+    return minAttributesRequiredToSearch;
+  }
+
+  public void setMinAttributesRequiredToSearch(int minAttributesRequiredToSearch) {
+    this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getMaxTeiCountToReturn() {
+    return maxTeiCountToReturn;
+  }
+
+  public void setMaxTeiCountToReturn(int maxTeiCountToReturn) {
+    this.maxTeiCountToReturn = maxTeiCountToReturn;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ObjectStyle getStyle() {
+    return style;
+  }
+
+  public void setStyle(ObjectStyle style) {
+    this.style = style;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFormName() {
+    return formName;
+  }
+
+  @Override
+  public void setFormName(String formName) {
+    this.formName = formName;
+  }
+
+  @JsonProperty("programSections")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "programSections", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programSection", namespace = DxfNamespaces.DXF_2_0)
+  public Set<ProgramSection> getProgramSections() {
+    return programSections;
+  }
+
+  public void setProgramSections(Set<ProgramSection> programSections) {
+    this.programSections = programSections;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AccessLevel getAccessLevel() {
+    return accessLevel;
+  }
+
+  public void setAccessLevel(AccessLevel accessLevel) {
+    this.accessLevel = accessLevel;
+  }
+
+  public static Program shallowCopy(Program original, Map<String, String> options) {
+    Program copy = new Program();
+    copy.setAutoFields();
+    setShallowCopyValues(copy, original, options);
+    return copy;
+  }
+
+  private static void setShallowCopyValues(
+      Program copy, Program original, Map<String, String> options) {
+    String prefix = options.getOrDefault(PREFIX_KEY, DEFAULT_PREFIX);
+    copy.setAccessLevel(original.getAccessLevel());
+    copy.setProgramAttributes(new ArrayList<>());
+    copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setCompleteEventsExpiryDays(original.getCompleteEventsExpiryDays());
+    copy.setDataEntryForm(original.getDataEntryForm());
+    copy.setDescription(original.getDescription());
+    copy.setDisplayIncidentDate(original.getDisplayIncidentDate());
+    copy.setDisplayFrontPageList(original.getDisplayFrontPageList());
+    copy.setEnrollmentDateLabel(original.getEnrollmentDateLabel());
+    copy.setExpiryDays(original.getExpiryDays());
+    copy.setExpiryPeriodType(original.getExpiryPeriodType());
+    copy.setFeatureType(original.getFeatureType());
+    copy.setFormName(original.getFormName());
+    copy.setIgnoreOverdueEvents(original.getIgnoreOverdueEvents());
+    copy.setIncidentDateLabel(original.getIncidentDateLabel());
+    copy.setMaxTeiCountToReturn(original.getMaxTeiCountToReturn());
+    copy.setMinAttributesRequiredToSearch(original.getMinAttributesRequiredToSearch());
+    copy.setName(prefix + original.getName());
+    copy.setNotificationTemplates(copyOf(original.getNotificationTemplates()));
+    copy.setOnlyEnrollOnce(original.getOnlyEnrollOnce());
+    copy.setOpenDaysAfterCoEndDate(original.getOpenDaysAfterCoEndDate());
+    copy.setOrganisationUnits(copyOf(original.getOrganisationUnits()));
+    copy.setProgramType(original.getProgramType());
+    copy.setPublicAccess(original.getPublicAccess());
+    copy.setRelatedProgram(original.getRelatedProgram());
+    copy.setSharing(original.getSharing());
+    copy.setShortName(original.getShortName());
+    copy.setSelectEnrollmentDatesInFuture(original.getSelectEnrollmentDatesInFuture());
+    copy.setSelectIncidentDatesInFuture(original.getSelectIncidentDatesInFuture());
+    copy.setSkipOffline(original.isSkipOffline());
+    copy.setStyle(original.getStyle());
+    copy.setTrackedEntityType(original.getTrackedEntityType());
+    copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
+    copy.setUserRoles(copyOf(original.getUserRoles()));
+    copy.setEnrollmentLabel(original.getEnrollmentLabel());
+    copy.setNoteLabel(original.getNoteLabel());
+    copy.setFollowUpLabel(original.getFollowUpLabel());
+    copy.setOrgUnitLabel(original.getOrgUnitLabel());
+    copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
+    copy.setProgramStageLabel(original.getProgramStageLabel());
+    copy.setEventLabel(original.getEventLabel());
+    copy.setRelationshipLabel(original.getRelationshipLabel());
+  }
+
+  public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {}
 }

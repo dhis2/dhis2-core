@@ -32,28 +32,23 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 
 /**
- * Converts a binary JSON to a {@link com.fasterxml.jackson.databind.JsonNode}.
- * This includes all types of nodes.
+ * Converts a binary JSON to a {@link com.fasterxml.jackson.databind.JsonNode}. This includes all
+ * types of nodes.
  *
- * The key difference is that we use
- * {@link com.fasterxml.jackson.databind.ObjectReader#readTree(Reader)} instead
- * of {@link com.fasterxml.jackson.databind.ObjectReader#readValue(String)}.
+ * <p>The key difference is that we use {@link
+ * com.fasterxml.jackson.databind.ObjectReader#readTree(Reader)} instead of {@link
+ * com.fasterxml.jackson.databind.ObjectReader#readValue(String)}.
  *
  * @author Jan Bernitt
  */
-public class JsonNodeBinaryType extends JsonBinaryType
-{
+public class JsonNodeBinaryType extends JsonBinaryType {
 
-    @Override
-    protected Object convertJsonToObject( String content )
-    {
-        try
-        {
-            return reader.readTree( content );
-        }
-        catch ( IOException e )
-        {
-            throw new UncheckedIOException( e );
-        }
+  @Override
+  protected Object convertJsonToObject(String content) {
+    try {
+      return reader.readTree(content);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
+  }
 }

@@ -1,14 +1,18 @@
 {
-  "programRules": [{
-    "name": "test_event_program_rule_assign_value",
-    "id": "tZz1oAC5i6P",
-    "condition": "!d2:hasValue(#{TAComment})",
-    "program": {
-      "id": "uHi4GZJOD3n"
-    },
-    "translations": [],
-    "programRuleActions": [{
-      "id": "mbCnp26WeKe"
-    }]
-  }]
+  "programRules": [
+    {
+      "name": "test_event_program_rule_assign_value",
+      "id": "tZz1oAC5i6P",
+      "condition": "!d2:hasValue(#{TAComment})",
+      "program": {
+        "id": "uHi4GZJOD3n"
+      },
+      "translations": [],
+      "programRuleActions": [
+        {
+          "id": "mbCnp26WeKe"
+        }
+      ]
+    }
+  ]
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.document;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -45,37 +43,31 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DocumentDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( Document.class );
+public class DocumentDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(Document.class);
 
-    private final DocumentService documentService;
+  private final DocumentService documentService;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( User.class, this::allowDeleteUser );
-        whenVetoing( FileResource.class, this::allowDeleteFileResource );
-        whenDeleting( FileResource.class, this::deleteFileResource );
+  @Override
+  protected void register() {
+    whenVetoing(User.class, this::allowDeleteUser);
+    whenVetoing(FileResource.class, this::allowDeleteFileResource);
+    whenDeleting(FileResource.class, this::deleteFileResource);
+  }
+
+  private DeletionVeto allowDeleteUser(User user) {
+    return documentService.getCountDocumentByUser(user) > 0 ? VETO : ACCEPT;
+  }
+
+  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
+    if (fileResource.getStorageStatus() != FileResourceStorageStatus.STORED) {
+      return ACCEPT;
     }
+    String sql = "select 1 from document where fileresource=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", fileResource.getId()));
+  }
 
-    private DeletionVeto allowDeleteUser( User user )
-    {
-        return documentService.getCountDocumentByUser( user ) > 0 ? VETO : ACCEPT;
-    }
-
-    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
-    {
-        if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
-        {
-            return ACCEPT;
-        }
-        String sql = "select 1 from document where fileresource=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", fileResource.getId() ) );
-    }
-
-    private void deleteFileResource( FileResource fileResource )
-    {
-        delete( "delete from document where fileresource=:id", Map.of( "id", fileResource.getId() ) );
-    }
+  private void deleteFileResource(FileResource fileResource) {
+    delete("delete from document where fileresource=:id", Map.of("id", fileResource.getId()));
+  }
 }

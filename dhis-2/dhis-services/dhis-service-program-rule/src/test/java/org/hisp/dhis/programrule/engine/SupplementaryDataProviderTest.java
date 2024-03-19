@@ -32,19 +32,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,74 +53,67 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+@ExtendWith(MockitoExtension.class)
+class SupplementaryDataProviderTest extends DhisConvenienceTest {
 
-@ExtendWith( MockitoExtension.class )
-class SupplementaryDataProviderTest extends DhisConvenienceTest
-{
+  private static final String ORG_UNIT_GROUP_UID = "OrgUnitGroupId";
 
-    private static final String ORG_UNIT_GROUP_UID = "OrgUnitGroupId";
+  private static final String NOT_NEEDED_ORG_UNIT_GROUP_UID = "NotNeededOrgUnitGroupId";
 
-    private static final String NOT_NEEDED_ORG_UNIT_GROUP_UID = "NotNeededOrgUnitGroupId";
+  @Mock private OrganisationUnitGroupService organisationUnitGroupService;
 
-    @Mock
-    private OrganisationUnitGroupService organisationUnitGroupService;
+  @Mock private UserService userService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @InjectMocks private SupplementaryDataProvider providerToTest;
 
-    @InjectMocks
-    private SupplementaryDataProvider providerToTest;
+  private OrganisationUnit orgUnitA;
 
-    private OrganisationUnit orgUnitA;
+  private OrganisationUnit orgUnitB;
 
-    private OrganisationUnit orgUnitB;
+  @BeforeEach
+  void setUp() {
+    User user = makeUser("A");
+    user.setUsername("A");
+    user.setUserRoles(getUserRoles());
 
-    @BeforeEach
-    void setUp()
-    {
-        User user = makeUser( "A" );
-        user.setUserRoles( getUserRoles() );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        orgUnitA = createOrganisationUnit( 'A' );
-        orgUnitB = createOrganisationUnit( 'B' );
-        OrganisationUnitGroup orgUnitGroup = createOrganisationUnitGroup( 'A' );
-        orgUnitGroup.setUid( ORG_UNIT_GROUP_UID );
-        orgUnitGroup.setMembers( Sets.newHashSet( orgUnitA ) );
-        OrganisationUnitGroup notNeededOrgUnitGroup = createOrganisationUnitGroup( 'B' );
-        notNeededOrgUnitGroup.setUid( NOT_NEEDED_ORG_UNIT_GROUP_UID );
-        notNeededOrgUnitGroup.setMembers( Sets.newHashSet( orgUnitB ) );
-        when( organisationUnitGroupService.getOrganisationUnitGroup( ORG_UNIT_GROUP_UID ) ).thenReturn( orgUnitGroup );
-    }
+    injectSecurityContext(UserDetails.fromUser(user));
 
-    @Test
-    void getSupplementaryData()
-    {
-        Map<String, List<String>> supplementaryData = providerToTest.getSupplementaryData( getProgramRules() );
-        assertFalse( supplementaryData.isEmpty() );
-        assertEquals( getUserRoleUids(), supplementaryData.get( "USER" ) );
-        assertFalse( supplementaryData.get( ORG_UNIT_GROUP_UID ).isEmpty() );
-        assertEquals( orgUnitA.getUid(), supplementaryData.get( ORG_UNIT_GROUP_UID ).get( 0 ) );
-        assertNull( supplementaryData.get( NOT_NEEDED_ORG_UNIT_GROUP_UID ) );
-    }
+    orgUnitA = createOrganisationUnit('A');
+    orgUnitB = createOrganisationUnit('B');
+    OrganisationUnitGroup orgUnitGroup = createOrganisationUnitGroup('A');
+    orgUnitGroup.setUid(ORG_UNIT_GROUP_UID);
+    orgUnitGroup.setMembers(Sets.newHashSet(orgUnitA));
+    OrganisationUnitGroup notNeededOrgUnitGroup = createOrganisationUnitGroup('B');
+    notNeededOrgUnitGroup.setUid(NOT_NEEDED_ORG_UNIT_GROUP_UID);
+    notNeededOrgUnitGroup.setMembers(Sets.newHashSet(orgUnitB));
+    when(organisationUnitGroupService.getOrganisationUnitGroup(ORG_UNIT_GROUP_UID))
+        .thenReturn(orgUnitGroup);
+  }
 
-    private List<ProgramRule> getProgramRules()
-    {
-        ProgramRule programRule = createProgramRule( 'A', null );
-        programRule.setCondition( "d2:inOrgUnitGroup('OrgUnitGroupId')" );
-        return Lists.newArrayList( programRule );
-    }
+  @Test
+  void getSupplementaryData() {
+    Map<String, List<String>> supplementaryData =
+        providerToTest.getSupplementaryData(getProgramRules());
+    assertFalse(supplementaryData.isEmpty());
+    assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.get("USER")));
+    assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
+    assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
+    assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
+  }
 
-    private List<String> getUserRoleUids()
-    {
-        return getUserRoles().stream().map( UserRole::getUid ).collect( Collectors.toList() );
-    }
+  private List<ProgramRule> getProgramRules() {
+    ProgramRule programRule = createProgramRule('A', null);
+    programRule.setCondition("d2:inOrgUnitGroup('OrgUnitGroupId')");
+    return Lists.newArrayList(programRule);
+  }
 
-    private Set<UserRole> getUserRoles()
-    {
-        UserRole groupA = createUserRole( 'A' );
-        UserRole groupB = createUserRole( 'B' );
-        return Sets.newHashSet( groupA, groupB );
-    }
+  private Set<String> getUserRoleUids() {
+    return Set.copyOf(getUserRoles().stream().map(UserRole::getUid).toList());
+  }
+
+  private Set<UserRole> getUserRoles() {
+    UserRole groupA = createUserRole('A');
+    UserRole groupB = createUserRole('B');
+    return Sets.newHashSet(groupA, groupB);
+  }
 }

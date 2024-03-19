@@ -28,31 +28,26 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * Validator for Metadata {@link AttributeValue}.
- * <p>
- * This will be called during the metadata import process.
+ *
+ * <p>This will be called during the metadata import process.
  *
  * @author viet
  */
-public interface AttributeValidator
-{
-    /**
-     * Validate {@link AttributeValue} based on given {@link ValueType} and
-     * value.
-     * <p>
-     * Validation error will be generated and added to {@link Consumer}
-     * addError.
-     *
-     * @param valueType Metadata Attribute {@link ValueType}.
-     * @param value the value for validating.
-     * @param addError {@link Consumer} which will accept generated
-     *        {@link ErrorReport}
-     */
-    void validate( ValueType valueType, String value, Consumer<ErrorReport> addError );
+public interface AttributeValidator {
+  /**
+   * Validate {@link AttributeValue} based on given {@link ValueType} and value.
+   *
+   * <p>Validation error will be generated and added to {@link Consumer} addError.
+   *
+   * @param valueType Metadata Attribute {@link ValueType}.
+   * @param value the value for validating.
+   * @param addError {@link Consumer} which will accept generated {@link ErrorReport}
+   */
+  void validate(ValueType valueType, String value, Consumer<ErrorReport> addError);
 }

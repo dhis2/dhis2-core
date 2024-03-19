@@ -35,10 +35,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
@@ -47,8 +45,9 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,106 +58,102 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author viet@dhis2.org
  */
-@ExtendWith( MockitoExtension.class )
-class GeoFeatureServiceMockTest
-{
-    @InjectMocks
-    private GeoFeatureService geoFeatureService;
+@ExtendWith(MockitoExtension.class)
+class GeoFeatureServiceMockTest {
+  @InjectMocks private GeoFeatureService geoFeatureService;
 
-    @Mock
-    private DefaultDataQueryService dataQueryService;
+  @Mock private DefaultDataQueryService dataQueryService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private UserService userService;
+  @Mock private AttributeService attributeService;
 
-    @Mock
-    private AttributeService attributeService;
+  private static final String POINT =
+      "{"
+          + "\"type\": \"Point\","
+          + "\"coordinates\": ["
+          + "51.17431641,"
+          + "15.53705282"
+          + "]"
+          + "}";
 
-    private final static String POINT = "{" +
-        "\"type\": \"Point\"," +
-        "\"coordinates\": [" +
-        "51.17431641," +
-        "15.53705282" +
-        "]" +
-        "}";
+  private final BeanRandomizer rnd =
+      BeanRandomizer.create(OrganisationUnit.class, "parent", "geometry");
 
-    private final BeanRandomizer rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
+  @Test
+  void verifyGeoFeaturesReturnsOuData() throws Exception {
+    OrganisationUnit ouA = createOrgUnitWithCoordinates();
+    OrganisationUnit ouB = createOrgUnitWithCoordinates();
+    OrganisationUnit ouC = createOrgUnitWithCoordinates();
+    // This ou should be filtered out since it has no Coordinates
+    OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
 
-    @Test
-    void verifyGeoFeaturesReturnsOuData()
-        throws Exception
-    {
-        OrganisationUnit ouA = createOrgUnitWithCoordinates();
-        OrganisationUnit ouB = createOrgUnitWithCoordinates();
-        OrganisationUnit ouC = createOrgUnitWithCoordinates();
-        // This ou should be filtered out since it has no Coordinates
-        OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
+    User user = rnd.nextObject(User.class);
+    DataQueryParams params =
+        DataQueryParams.newBuilder().withOrganisationUnits(getList(ouA, ouB, ouC, ouD)).build();
 
-        User user = rnd.nextObject( User.class );
-        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
-            .build();
+    when(dataQueryService.getFromRequest(any())).thenReturn(params);
+    //    when(getCurrentUser()).thenReturn(user);
 
-        when( dataQueryService.getFromRequest( any() ) ).thenReturn( params );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        HttpServletRequest request = mock( HttpServletRequest.class );
-        HttpServletResponse response = mock( HttpServletResponse.class );
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
 
-        List<GeoFeature> features = geoFeatureService.getGeoFeatures( GeoFeatureService.Parameters.builder()
-            .request( request )
-            .response( response )
-            .organisationUnit( "ou:LEVEL-2;LEVEL-3" )
-            .build() );
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
 
-        assertEquals( 3, features.size() );
-    }
+    List<GeoFeature> features =
+        geoFeatureService.getGeoFeatures(
+            GeoFeatureService.Parameters.builder()
+                .request(request)
+                .response(response)
+                .organisationUnit("ou:LEVEL-2;LEVEL-3")
+                .build());
 
-    /**
-     * GET Request has "coordinateField" parameter.
-     * <p>
-     * OrganisationUnit has coordinates from geometry property but not GeoJson
-     * Attribute.
-     * <p>
-     * Expected: only return GeoFeature which has the coordinateField value.
-     */
-    @Test
-    void testGeoJsonAttributeWithNoValue()
-        throws IOException
-    {
-        OrganisationUnit ouA = createOrgUnitWithCoordinates();
-        User user = rnd.nextObject( User.class );
-        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA ) )
-            .build();
+    assertEquals(3, features.size());
+  }
 
-        when( dataQueryService.getFromRequest( any() ) ).thenReturn( params );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        HttpServletRequest request = mock( HttpServletRequest.class );
-        HttpServletResponse response = mock( HttpServletResponse.class );
+  /**
+   * GET Request has "coordinateField" parameter.
+   *
+   * <p>OrganisationUnit has coordinates from geometry property but not GeoJson Attribute.
+   *
+   * <p>Expected: only return GeoFeature which has the coordinateField value.
+   */
+  @Test
+  void testGeoJsonAttributeWithNoValue() throws IOException {
+    OrganisationUnit ouA = createOrgUnitWithCoordinates();
+    User user = rnd.nextObject(User.class);
+    DataQueryParams params =
+        DataQueryParams.newBuilder().withOrganisationUnits(getList(ouA)).build();
 
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.GEOJSON );
-        attribute.setOrganisationUnitAttribute( true );
-        when( attributeService.getAttribute( "GeoJSON_Attribute_ID" ) ).thenReturn( attribute );
+    when(dataQueryService.getFromRequest(any())).thenReturn(params);
+    //    when(getCurrentUser()).thenReturn(user);
+    when(userService.getUserByUsername(CurrentUserUtil.getCurrentUsername())).thenReturn(user);
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    HttpServletResponse response = mock(HttpServletResponse.class);
 
-        List<GeoFeature> features = geoFeatureService.getGeoFeatures( GeoFeatureService.Parameters.builder()
-            .request( request )
-            .response( response )
-            .coordinateField( "GeoJSON_Attribute_ID" )
-            .organisationUnit( "ou:LEVEL-2;LEVEL-3" )
-            .build() );
+    Attribute attribute = new Attribute();
+    attribute.setValueType(ValueType.GEOJSON);
+    attribute.setOrganisationUnitAttribute(true);
+    when(attributeService.getAttribute("GeoJSON_Attribute_ID")).thenReturn(attribute);
 
-        assertEquals( 0, features.size() );
-    }
+    List<GeoFeature> features =
+        geoFeatureService.getGeoFeatures(
+            GeoFeatureService.Parameters.builder()
+                .request(request)
+                .response(response)
+                .coordinateField("GeoJSON_Attribute_ID")
+                .organisationUnit("ou:LEVEL-2;LEVEL-3")
+                .build());
 
-    private OrganisationUnit createOrgUnitWithoutCoordinates()
-    {
-        return rnd.nextObject( OrganisationUnit.class );
-    }
+    assertEquals(0, features.size());
+  }
 
-    private OrganisationUnit createOrgUnitWithCoordinates()
-        throws IOException
-    {
-        OrganisationUnit ou = createOrgUnitWithoutCoordinates();
-        ou.setGeometry( new GeometryJSON().read( POINT ) );
-        return ou;
-    }
+  private OrganisationUnit createOrgUnitWithoutCoordinates() {
+    return rnd.nextObject(OrganisationUnit.class);
+  }
+
+  private OrganisationUnit createOrgUnitWithCoordinates() throws IOException {
+    OrganisationUnit ou = createOrgUnitWithoutCoordinates();
+    ou.setGeometry(new GeometryJSON().read(POINT));
+    return ou;
+  }
 }

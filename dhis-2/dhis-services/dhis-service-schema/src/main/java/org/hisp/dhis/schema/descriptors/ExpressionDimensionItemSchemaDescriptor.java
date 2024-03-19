@@ -30,38 +30,24 @@ package org.hisp.dhis.schema.descriptors;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Dusan Bernat
  */
-public class ExpressionDimensionItemSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "expressionDimensionItem";
+public class ExpressionDimensionItemSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "expressionDimensionItem";
 
-    public static final String PLURAL = "expressionDimensionItems";
+  public static final String PLURAL = "expressionDimensionItems";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ExpressionDimensionItem.class, SINGULAR, PLURAL );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ExpressionDimensionItem.class, SINGULAR, PLURAL);
 
-        schema.setOrder( 1000 );
+    schema.setOrder(1000);
+    schema.setDefaultPrivate(true);
 
-        schema.setDefaultPrivate( true );
-
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
-            Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
-            Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXPRESSION_DIMENSION_ITEM_DELETE" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

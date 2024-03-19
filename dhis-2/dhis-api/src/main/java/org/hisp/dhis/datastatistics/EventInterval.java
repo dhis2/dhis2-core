@@ -33,10 +33,9 @@ package org.hisp.dhis.datastatistics;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public enum EventInterval
-{
-    DAY,
-    WEEK,
-    MONTH,
-    YEAR
+public enum EventInterval {
+  DAY,
+  WEEK,
+  MONTH,
+  YEAR
 }

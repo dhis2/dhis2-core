@@ -30,11 +30,8 @@ package org.hisp.dhis.reservedvalue;
 /**
  * @author Stian Sandvold
  */
-public class ReserveValueException
-    extends Exception
-{
-    ReserveValueException( String message )
-    {
-        super( "Could not reserve value: " + message );
-    }
+public class ReserveValueException extends Exception {
+  ReserveValueException(String message) {
+    super("Could not reserve value: " + message);
+  }
 }

@@ -30,20 +30,13 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public interface VersionedObject
-{
-    /**
-     * Returns the current version.
-     */
-    int getVersion();
+public interface VersionedObject {
+  /** Returns the current version. */
+  int getVersion();
 
-    /**
-     * Sets the version.
-     */
-    void setVersion( int version );
+  /** Sets the version. */
+  void setVersion(int version);
 
-    /**
-     * Increases the version and returns its new version.
-     */
-    int increaseVersion();
+  /** Increases the version and returns its new version. */
+  int increaseVersion();
 }

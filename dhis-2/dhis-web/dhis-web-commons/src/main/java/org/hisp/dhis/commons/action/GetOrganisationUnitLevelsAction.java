@@ -29,64 +29,57 @@ package org.hisp.dhis.commons.action;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Tran Thanh Tri
  */
-public class GetOrganisationUnitLevelsAction
-    extends ActionPagingSupport<OrganisationUnitLevel>
-{
+public class GetOrganisationUnitLevelsAction extends ActionPagingSupport<OrganisationUnitLevel> {
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+  private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
+  public void setOrganisationUnitService(OrganisationUnitService organisationUnitService) {
+    this.organisationUnitService = organisationUnitService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private List<OrganisationUnitLevel> organisationUnitLevels;
+
+  public List<OrganisationUnitLevel> getOrganisationUnitLevels() {
+    return organisationUnitLevels;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(OrganisationUnitLevel.class);
+
+    organisationUnitLevels = new ArrayList<>(organisationUnitService.getOrganisationUnitLevels());
+
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    organisationUnitLevels.forEach(instance -> canReadInstance(instance, currentUserDetails));
+
+    if (usePaging) {
+      this.paging = createPaging(organisationUnitLevels.size());
+
+      organisationUnitLevels =
+          organisationUnitLevels.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private List<OrganisationUnitLevel> organisationUnitLevels;
-
-    public List<OrganisationUnitLevel> getOrganisationUnitLevels()
-    {
-        return organisationUnitLevels;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( OrganisationUnitLevel.class );
-
-        organisationUnitLevels = new ArrayList<>(
-            organisationUnitService.getOrganisationUnitLevels() );
-
-        User currentUser = currentUserService.getCurrentUser();
-        organisationUnitLevels.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( organisationUnitLevels.size() );
-
-            organisationUnitLevels = organisationUnitLevels.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

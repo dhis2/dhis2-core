@@ -29,111 +29,109 @@ package org.hisp.dhis.dataanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ValidationRulesAnalysisParams
-{
-    private String vrg;
+public class ValidationRulesAnalysisParams {
+  private String vrg;
 
-    private String ou;
+  private String ou;
 
-    private String startDate;
+  private String startDate;
 
-    private String endDate;
+  private String endDate;
 
-    private boolean persist;
+  private boolean persist;
 
-    private boolean notification;
+  private boolean notification;
 
-    public ValidationRulesAnalysisParams()
-    {
-    }
+  public ValidationRulesAnalysisParams() {}
 
-    public ValidationRulesAnalysisParams( String validationRuleGroupId, String organisationUnitId, String startDate,
-        String endDate, boolean persist, boolean notification )
-    {
-        this.vrg = validationRuleGroupId;
-        this.ou = organisationUnitId;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.persist = persist;
-        this.notification = notification;
-    }
+  public ValidationRulesAnalysisParams(
+      String validationRuleGroupId,
+      String organisationUnitId,
+      String startDate,
+      String endDate,
+      boolean persist,
+      boolean notification) {
+    this.vrg = validationRuleGroupId;
+    this.ou = organisationUnitId;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.persist = persist;
+    this.notification = notification;
+  }
 
-    @JsonProperty
-    public String getVrg()
-    {
-        return vrg;
-    }
+  @JsonProperty
+  public String getVrg() {
+    return vrg;
+  }
 
-    public void setVrg( String vrg )
-    {
-        this.vrg = vrg;
-    }
+  public void setVrg(String vrg) {
+    this.vrg = vrg;
+  }
 
-    @JsonProperty
-    public String getOu()
-    {
-        return ou;
-    }
+  @JsonProperty
+  public String getOu() {
+    return ou;
+  }
 
-    public void setOu( String ou )
-    {
-        this.ou = ou;
-    }
+  public void setOu(String ou) {
+    this.ou = ou;
+  }
 
-    @JsonProperty
-    public String getStartDate()
-    {
-        return startDate;
-    }
+  @JsonProperty
+  public String getStartDate() {
+    return startDate;
+  }
 
-    public void setStartDate( String startDate )
-    {
-        this.startDate = startDate;
-    }
+  public void setStartDate(String startDate) {
+    this.startDate = startDate;
+  }
 
-    @JsonProperty
-    public String getEndDate()
-    {
-        return endDate;
-    }
+  @JsonProperty
+  public String getEndDate() {
+    return endDate;
+  }
 
-    public void setEndDate( String endDate )
-    {
-        this.endDate = endDate;
-    }
+  public void setEndDate(String endDate) {
+    this.endDate = endDate;
+  }
 
-    @JsonProperty
-    public boolean isPersist()
-    {
-        return persist;
-    }
+  @JsonProperty
+  public boolean isPersist() {
+    return persist;
+  }
 
-    public void setPersist( boolean persist )
-    {
-        this.persist = persist;
-    }
+  public void setPersist(boolean persist) {
+    this.persist = persist;
+  }
 
-    @JsonProperty
-    public boolean isNotification()
-    {
-        return notification;
-    }
+  @JsonProperty
+  public boolean isNotification() {
+    return notification;
+  }
 
-    public void setNotification( boolean notification )
-    {
-        this.notification = notification;
-    }
+  public void setNotification(boolean notification) {
+    this.notification = notification;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "ValidationRulesAnalysisParams{" +
-            "validationRuleGroupId='" + vrg + '\'' +
-            ", organisationUnitId='" + ou + '\'' +
-            ", startDate='" + startDate + '\'' +
-            ", endDate='" + endDate + '\'' +
-            ", persist=" + persist +
-            ", notification=" + notification +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "ValidationRulesAnalysisParams{"
+        + "validationRuleGroupId='"
+        + vrg
+        + '\''
+        + ", organisationUnitId='"
+        + ou
+        + '\''
+        + ", startDate='"
+        + startDate
+        + '\''
+        + ", endDate='"
+        + endDate
+        + '\''
+        + ", persist="
+        + persist
+        + ", notification="
+        + notification
+        + '}';
+  }
 }

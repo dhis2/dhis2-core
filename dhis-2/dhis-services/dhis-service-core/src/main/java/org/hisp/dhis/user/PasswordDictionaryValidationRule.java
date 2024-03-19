@@ -33,24 +33,19 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_RESER
 
 import java.util.List;
 
-/**
- * Created by zubair on 16.03.17.
- */
-public class PasswordDictionaryValidationRule implements PasswordValidationRule
-{
-    private static final List<String> DICTIONARY = asList( "user", "admin", "system", "administrator",
-        "username", "password", "login", "manager" );
+/** Created by zubair on 16.03.17. */
+public class PasswordDictionaryValidationRule implements PasswordValidationRule {
+  private static final List<String> DICTIONARY =
+      asList(
+          "user", "admin", "system", "administrator", "username", "password", "login", "manager");
 
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentials )
-    {
-        for ( String reserved : DICTIONARY )
-        {
-            if ( containsIgnoreCase( credentials.getPassword(), reserved ) )
-            {
-                return new PasswordValidationResult( PASSWORD_CONTAINS_RESERVED_WORD );
-            }
-        }
-        return PasswordValidationResult.VALID;
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentials) {
+    for (String reserved : DICTIONARY) {
+      if (containsIgnoreCase(credentials.getPassword(), reserved)) {
+        return new PasswordValidationResult(PASSWORD_CONTAINS_RESERVED_WORD);
+      }
     }
+    return PasswordValidationResult.VALID;
+  }
 }

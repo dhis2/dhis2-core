@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -46,68 +45,64 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class ObjectBundleTest
-{
+class ObjectBundleTest {
 
-    private ObjectBundle objectBundle;
+  private ObjectBundle objectBundle;
 
-    private ObjectBundleParams objectBundleParams;
+  private ObjectBundleParams objectBundleParams;
 
-    private Preheat preheat;
+  private Preheat preheat;
 
-    private Attribute attribute1 = new Attribute();
+  private Attribute attribute1 = new Attribute();
 
-    private Attribute attribute2 = new Attribute();
+  private Attribute attribute2 = new Attribute();
 
-    private Attribute attribute3 = new Attribute();
+  private Attribute attribute3 = new Attribute();
 
-    private Category category1 = new Category();
+  private Category category1 = new Category();
 
-    private Category category2 = new Category();
+  private Category category2 = new Category();
 
-    @BeforeEach
-    void setUp()
-    {
-        attribute1.setUid( "u1" );
-        attribute2.setUid( "u2" );
-        attribute2.setUid( "u3" );
-        category1.setUid( "u7" );
-        category2.setUid( "u8" );
-        objectBundleParams = new ObjectBundleParams();
-        preheat = new Preheat();
-        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
-        objectMap.put( Attribute.class, new ArrayList<>() );
-        objectMap.put( Category.class, new ArrayList<>() );
-        objectMap.get( Attribute.class ).add( attribute1 );
-        objectMap.get( Attribute.class ).add( attribute2 );
-        objectMap.get( Attribute.class ).add( attribute3 );
-        objectMap.get( Category.class ).add( category1 );
-        objectMap.get( Category.class ).add( category2 );
-        preheat.put( PreheatIdentifier.UID, attribute1 );
-        preheat.put( PreheatIdentifier.UID, attribute3 );
-        preheat.put( PreheatIdentifier.UID, category1 );
-        objectBundle = new ObjectBundle( objectBundleParams, preheat, objectMap );
-    }
+  @BeforeEach
+  void setUp() {
+    attribute1.setUid("u1");
+    attribute2.setUid("u2");
+    attribute2.setUid("u3");
+    category1.setUid("u7");
+    category2.setUid("u8");
+    objectBundleParams = new ObjectBundleParams();
+    preheat = new Preheat();
+    final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap =
+        new HashMap<>();
+    objectMap.put(Attribute.class, new ArrayList<>());
+    objectMap.put(Category.class, new ArrayList<>());
+    objectMap.get(Attribute.class).add(attribute1);
+    objectMap.get(Attribute.class).add(attribute2);
+    objectMap.get(Attribute.class).add(attribute3);
+    objectMap.get(Category.class).add(category1);
+    objectMap.get(Category.class).add(category2);
+    preheat.put(PreheatIdentifier.UID, attribute1);
+    preheat.put(PreheatIdentifier.UID, attribute3);
+    preheat.put(PreheatIdentifier.UID, category1);
+    objectBundle = new ObjectBundle(objectBundleParams, preheat, objectMap);
+  }
 
-    @Test
-    void objectIndex()
-    {
-        Assertions.assertEquals( (Integer) 2, objectBundle.mergeObjectIndex( attribute3 ) );
-        Assertions.assertEquals( (Integer) 0, objectBundle.mergeObjectIndex( attribute1 ) );
-        Assertions.assertEquals( (Integer) 1, objectBundle.mergeObjectIndex( attribute2 ) );
-        Assertions.assertEquals( (Integer) 1, objectBundle.mergeObjectIndex( category2 ) );
-        Assertions.assertEquals( (Integer) 0, objectBundle.mergeObjectIndex( category1 ) );
-    }
+  @Test
+  void objectIndex() {
+    Assertions.assertEquals((Integer) 2, objectBundle.mergeObjectIndex(attribute3));
+    Assertions.assertEquals((Integer) 0, objectBundle.mergeObjectIndex(attribute1));
+    Assertions.assertEquals((Integer) 1, objectBundle.mergeObjectIndex(attribute2));
+    Assertions.assertEquals((Integer) 1, objectBundle.mergeObjectIndex(category2));
+    Assertions.assertEquals((Integer) 0, objectBundle.mergeObjectIndex(category1));
+  }
 
-    @Test
-    void containsObject()
-    {
-        Assertions.assertTrue( objectBundle.containsObject( attribute2 ) );
-    }
+  @Test
+  void containsObject() {
+    Assertions.assertTrue(objectBundle.containsObject(attribute2));
+  }
 
-    @Test
-    void containsObjectNot()
-    {
-        Assertions.assertFalse( objectBundle.containsObject( new Attribute() ) );
-    }
+  @Test
+  void containsObjectNot() {
+    Assertions.assertFalse(objectBundle.containsObject(new Attribute()));
+  }
 }

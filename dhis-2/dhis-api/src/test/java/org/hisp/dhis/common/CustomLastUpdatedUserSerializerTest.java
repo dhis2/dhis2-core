@@ -29,64 +29,56 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.StringWriter;
-import java.io.Writer;
-
-import javax.xml.namespace.QName;
-
-import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import java.io.StringWriter;
+import java.io.Writer;
+import javax.xml.namespace.QName;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link CustomLastUpdatedUserSerializer}.
  *
  * @author Volker Schmidt
  */
-class CustomLastUpdatedUserSerializerTest
-{
+class CustomLastUpdatedUserSerializerTest {
 
-    private User user;
+  private User user;
 
-    @BeforeEach
-    void setUp()
-    {
-        user = new User();
-        user.setUid( "jshfdkd323" );
-        user.setFirstName( "Peter" );
-        user.setSurname( "Brown" );
-    }
+  @BeforeEach
+  void setUp() {
+    user = new User();
+    user.setUid("jshfdkd323");
+    user.setFirstName("Peter");
+    user.setSurname("Brown");
+  }
 
-    @Test
-    void serializeXml()
-        throws Exception
-    {
-        Writer jsonWriter = new StringWriter();
-        ToXmlGenerator jsonGenerator = new XmlFactory().createGenerator( jsonWriter );
-        SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
-        jsonGenerator.setNextName( new QName( "urn:test", "lastUpdatedBy" ) );
-        new CustomLastUpdatedUserSerializer().serialize( user, jsonGenerator, serializerProvider );
-        jsonGenerator.flush();
-        assertEquals( "<wstxns1:lastUpdatedBy xmlns:wstxns1=\"urn:test\" id=\"jshfdkd323\" name=\"Peter Brown\"/>",
-            jsonWriter.toString() );
-    }
+  @Test
+  void serializeXml() throws Exception {
+    Writer jsonWriter = new StringWriter();
+    ToXmlGenerator jsonGenerator = new XmlFactory().createGenerator(jsonWriter);
+    SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
+    jsonGenerator.setNextName(new QName("urn:test", "lastUpdatedBy"));
+    new CustomLastUpdatedUserSerializer().serialize(user, jsonGenerator, serializerProvider);
+    jsonGenerator.flush();
+    assertEquals(
+        "<wstxns1:lastUpdatedBy xmlns:wstxns1=\"urn:test\" id=\"jshfdkd323\" name=\"Peter Brown\"/>",
+        jsonWriter.toString());
+  }
 
-    @Test
-    void serializeJson()
-        throws Exception
-    {
-        Writer jsonWriter = new StringWriter();
-        JsonGenerator jsonGenerator = new JsonFactory().createGenerator( jsonWriter );
-        SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
-        new CustomLastUpdatedUserSerializer().serialize( user, jsonGenerator, serializerProvider );
-        jsonGenerator.flush();
-        assertEquals( "{\"id\":\"jshfdkd323\",\"name\":\"Peter Brown\"}", jsonWriter.toString() );
-    }
+  @Test
+  void serializeJson() throws Exception {
+    Writer jsonWriter = new StringWriter();
+    JsonGenerator jsonGenerator = new JsonFactory().createGenerator(jsonWriter);
+    SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
+    new CustomLastUpdatedUserSerializer().serialize(user, jsonGenerator, serializerProvider);
+    jsonGenerator.flush();
+    assertEquals("{\"id\":\"jshfdkd323\",\"name\":\"Peter Brown\"}", jsonWriter.toString());
+  }
 }

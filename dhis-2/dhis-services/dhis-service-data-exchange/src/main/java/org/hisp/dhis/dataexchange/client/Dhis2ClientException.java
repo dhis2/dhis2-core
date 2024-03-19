@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataexchange.client;
 
 import javax.annotation.Nonnull;
-
 import lombok.Getter;
-
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.springframework.http.HttpStatus;
@@ -41,15 +39,11 @@ import org.springframework.http.HttpStatus;
  * @author Lars Helge Overland
  */
 @Getter
-public class Dhis2ClientException
-    extends ErrorCodeException
-{
-    @Nonnull
-    private final HttpStatus httpStatus;
+public class Dhis2ClientException extends ErrorCodeException {
+  @Nonnull private final HttpStatus httpStatus;
 
-    public Dhis2ClientException( HttpStatus httpStatus )
-    {
-        super( ErrorCode.E6300, httpStatus.value(), httpStatus.getReasonPhrase() );
-        this.httpStatus = httpStatus;
-    }
+  public Dhis2ClientException(HttpStatus httpStatus) {
+    super(ErrorCode.E6300, httpStatus.value(), httpStatus.getReasonPhrase());
+    this.httpStatus = httpStatus;
+  }
 }

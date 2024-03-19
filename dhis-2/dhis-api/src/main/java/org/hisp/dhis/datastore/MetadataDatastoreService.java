@@ -30,55 +30,53 @@ package org.hisp.dhis.datastore;
 import java.util.List;
 
 /**
- * The {@link MetadataDatastoreService} gives direct access to
- * {@link DatastoreEntry}s in the {@link #METADATA_STORE_NS} namespace.
- * <p>
- * In contract to the generic {@link DatastoreService} this service is not
- * restricted by {@link DatastoreNamespaceProtection} rules. It is therefore
- * only meant for internal use and should never be exposed in a REST API.
+ * The {@link MetadataDatastoreService} gives direct access to {@link DatastoreEntry}s in the {@link
+ * #METADATA_STORE_NS} namespace.
+ *
+ * <p>In contract to the generic {@link DatastoreService} this service is not restricted by {@link
+ * DatastoreNamespaceProtection} rules. It is therefore only meant for internal use and should never
+ * be exposed in a REST API.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface MetadataDatastoreService
-{
-    /**
-     * Name of the namespace used for {@link DatastoreEntry} entries belonging
-     * to metadata entries.
-     */
-    String METADATA_STORE_NS = "METADATASTORE";
+public interface MetadataDatastoreService {
+  /**
+   * Name of the namespace used for {@link DatastoreEntry} entries belonging to metadata entries.
+   */
+  String METADATA_STORE_NS = "METADATASTORE";
 
-    /**
-     * The authority required to read/write entries in the
-     * {@link MetadataDatastoreService#METADATA_STORE_NS}
-     */
-    String METADATA_SYNC_AUTHORITY = "F_METADATA_MANAGE";
+  /**
+   * The authority required to read/write entries in the {@link
+   * MetadataDatastoreService#METADATA_STORE_NS}
+   */
+  String METADATA_SYNC_AUTHORITY = "F_METADATA_MANAGE";
 
-    /**
-     * Retrieves an entry based key and {@link #METADATA_STORE_NS} namespace.
-     *
-     * @param key the key referencing the value.
-     * @return the entry matching the key or {@code null}
-     */
-    DatastoreEntry getMetaDataVersion( String key );
+  /**
+   * Retrieves an entry based key and {@link #METADATA_STORE_NS} namespace.
+   *
+   * @param key the key referencing the value.
+   * @return the entry matching the key or {@code null}
+   */
+  DatastoreEntry getMetaDataVersion(String key);
 
-    /**
-     * Deletes a entry.
-     *
-     * @param entry the KeyJsonValue to be deleted.
-     * @throws IllegalArgumentException when the entry given does not use the
-     *         {@link #METADATA_STORE_NS} namespace.
-     */
-    void deleteMetaEntry( DatastoreEntry entry );
+  /**
+   * Deletes a entry.
+   *
+   * @param entry the KeyJsonValue to be deleted.
+   * @throws IllegalArgumentException when the entry given does not use the {@link
+   *     #METADATA_STORE_NS} namespace.
+   */
+  void deleteMetaEntry(DatastoreEntry entry);
 
-    /**
-     * Adds a new entry.
-     *
-     * @param entry the KeyJsonValue to be stored.
-     * @return the id of the KeyJsonValue stored.
-     * @throws IllegalArgumentException when the entry given does not use the
-     *         {@link #METADATA_STORE_NS} namespace.
-     */
-    long addMetaEntry( DatastoreEntry entry );
+  /**
+   * Adds a new entry.
+   *
+   * @param entry the KeyJsonValue to be stored.
+   * @return the id of the KeyJsonValue stored.
+   * @throws IllegalArgumentException when the entry given does not use the {@link
+   *     #METADATA_STORE_NS} namespace.
+   */
+  long addMetaEntry(DatastoreEntry entry);
 
-    List<String> getAllVersions();
+  List<String> getAllVersions();
 }

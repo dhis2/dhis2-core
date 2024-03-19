@@ -29,7 +29,6 @@ name: data_elements_aggregate_no_data
 description: Aggregate data elements with NO data values.
 section: Data elements (aggregate)
 section_order: 6
-summary_uid: yc9MsMnAGCj
 summary_sql: >-
     WITH dataelements_no_data AS (
     SELECT uid,name from dataelement where dataelementid in (
@@ -42,7 +41,6 @@ summary_sql: >-
     100*COUNT(*)/ NULLIF( ( select count(*) from dataelement
     where domaintype = 'AGGREGATE'), 0) as percent
     from dataelements_no_data;
-details_uid: MzPQlUsApVO
 details_sql: >-
     SELECT uid,name from dataelement where dataelementid in (
     SELECT dataelementid from  dataelement 

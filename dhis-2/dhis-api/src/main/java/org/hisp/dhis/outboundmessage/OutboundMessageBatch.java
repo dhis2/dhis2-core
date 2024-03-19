@@ -29,47 +29,38 @@ package org.hisp.dhis.outboundmessage;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.DeliveryChannel;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+public class OutboundMessageBatch {
+  private List<OutboundMessage> messages = new ArrayList<>();
 
-public class OutboundMessageBatch
-{
-    private List<OutboundMessage> messages = new ArrayList<>();
+  private final DeliveryChannel deliveryChannel;
 
-    private final DeliveryChannel deliveryChannel;
+  public OutboundMessageBatch(List<OutboundMessage> messages, DeliveryChannel deliveryChannel) {
+    this.messages = messages;
+    this.deliveryChannel = deliveryChannel;
+  }
 
-    public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
-    {
-        this.messages = messages;
-        this.deliveryChannel = deliveryChannel;
-    }
+  public OutboundMessageBatch(DeliveryChannel deliveryChannel) {
+    this.deliveryChannel = deliveryChannel;
+  }
 
-    public OutboundMessageBatch( DeliveryChannel deliveryChannel )
-    {
-        this.deliveryChannel = deliveryChannel;
-    }
+  public List<OutboundMessage> getMessages() {
+    return messages;
+  }
 
-    public List<OutboundMessage> getMessages()
-    {
-        return messages;
-    }
+  public DeliveryChannel getDeliveryChannel() {
+    return deliveryChannel;
+  }
 
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return deliveryChannel;
-    }
+  public void setMessages(List<OutboundMessage> messages) {
+    this.messages = messages;
+  }
 
-    public void setMessages( List<OutboundMessage> messages )
-    {
-        this.messages = messages;
-    }
-
-    public int size()
-    {
-        return messages.size();
-    }
+  public int size() {
+    return messages.size();
+  }
 }

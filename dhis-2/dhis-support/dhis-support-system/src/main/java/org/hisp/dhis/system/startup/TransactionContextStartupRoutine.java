@@ -35,28 +35,21 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * @author Lars Helge Overland
  */
-public abstract class TransactionContextStartupRoutine
-    extends AbstractStartupRoutine
-{
-    @Autowired
-    private TransactionTemplate transactionTemplate;
+public abstract class TransactionContextStartupRoutine extends AbstractStartupRoutine {
+  @Autowired private TransactionTemplate transactionTemplate;
 
-    /**
-     * Work performed in this method will run inside a transaction context.
-     */
-    public abstract void executeInTransaction();
+  /** Work performed in this method will run inside a transaction context. */
+  public abstract void executeInTransaction();
 
-    @Override
-    public final void execute()
-    {
-        transactionTemplate.execute( new TransactionCallback<Object>()
-        {
-            @Override
-            public Object doInTransaction( TransactionStatus status )
-            {
-                executeInTransaction();
-                return null;
-            }
-        } );
-    }
+  @Override
+  public final void execute() {
+    transactionTemplate.execute(
+        new TransactionCallback<Object>() {
+          @Override
+          public Object doInTransaction(TransactionStatus status) {
+            executeInTransaction();
+            return null;
+          }
+        });
+  }
 }

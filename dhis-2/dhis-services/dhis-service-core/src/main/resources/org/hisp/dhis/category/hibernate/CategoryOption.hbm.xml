@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.category.CategoryOption" table="dataelementcategoryoption">
+  <class name="org.hisp.dhis.category.CategoryOption" table="categoryoption">
 
     <cache usage="read-write" />
 

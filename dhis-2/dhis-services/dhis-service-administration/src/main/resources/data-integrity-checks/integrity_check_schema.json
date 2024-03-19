@@ -1,5 +1,5 @@
 {
-  "$schema":"http://json-schema.org/draft-04/schema#",
+  "$schema":"http://json-schema.org/draft/2020-12/schema",
   "$id": "https://dhis2.org/metadata-assessment.schema.json",
   "title": "Metadata Assessment",
   "description": "A DHIS2 metadata assessment object",
@@ -7,6 +7,10 @@
   "properties": {
     "name": {
       "description": "A short and unique name which will represent the name of the set of queries in DHIS2",
+      "type": "string"
+    },
+    "description": {
+      "description": "A description giving information about the data integrity check",
       "type": "string"
     },
     "section" : {
@@ -18,18 +22,9 @@
       "type": "integer",
       "minimum": 1
     },
-    "summary_uid": {
-      "type": "string",
-      "description": "A DHIS2 uid used to identify the summary query"
-    },
     "summary_sql": {
       "description": "An SQL query which should return a single line and consist of four character fields: indicator,value,percent and description",
       "type": "string"
-    },
-    "details_uid":{
-      "description": "A DHIS2 uid used to identify the details query",
-      "type": "string"
-
     },
     "details_sql": {
       "type" : "string",
@@ -50,7 +45,6 @@
     "introduction": {
       "description": "This should field describe the issue the queries are seeking to identify.",
       "type": "string"
-
     },
     "recommendation": {
       "description": "This field should describe the procedure to rectify the problems",
@@ -68,16 +62,15 @@
     }
   },
   "required": [
+    "description",
+    "details_id_type",
+    "details_sql",
+    "introduction",
     "name",
+    "recommendation",
     "section",
     "section_order",
-    "summary_uid",
-    "summary_sql",
-    "details_uid",
-    "details_sql",
-    "details_id_type",
     "severity",
-    "introduction",
-    "recommendation"
+    "summary_sql"
   ]
 }

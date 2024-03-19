@@ -31,129 +31,124 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
-public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMigration
-{
-    @Override
-    public void migrate( final Context context )
-        throws SQLException
-    {
-        // Select all Visualizations that matches "type" equals
-        // 'YEAR_OVER_YEAR_COLUMN'
-        // or 'YEAR_OVER_YEAR_LINE' and "dimension" equals 'dx'.
-        final String sql = "SELECT visualizationid, dimension, sort_order "
+public class V2_35_17__Visualization_Move_Columns_To_Filters extends BaseJavaMigration {
+  @Override
+  public void migrate(final Context context) throws SQLException {
+    // Select all Visualizations that matches "type" equals
+    // 'YEAR_OVER_YEAR_COLUMN'
+    // or 'YEAR_OVER_YEAR_LINE' and "dimension" equals 'dx'.
+    final String sql =
+        "SELECT visualizationid, dimension, sort_order "
             + "FROM visualization_columns WHERE visualizationid IN "
             + "(SELECT v.visualizationid FROM visualization v "
             + "WHERE UPPER(COALESCE(v.type, '')) = 'YEAR_OVER_YEAR_COLUMN' "
             + "OR UPPER(COALESCE(v.type, '')) = 'YEAR_OVER_YEAR_LINE') AND LOWER(COALESCE(dimension)) = 'dx'";
 
-        try ( final Statement stmt = context.getConnection().createStatement();
-            final ResultSet rs = stmt.executeQuery( sql ) )
-        {
-            while ( rs.next() )
-            {
-                final long visualizationId = rs.getLong( "visualizationid" );
-                final String dimension = rs.getString( "dimension" );
-                final int sortOrder = rs.getInt( "sort_order" );
+    try (final Statement stmt = context.getConnection().createStatement();
+        final ResultSet rs = stmt.executeQuery(sql)) {
+      while (rs.next()) {
+        final long visualizationId = rs.getLong("visualizationid");
+        final String dimension = rs.getString("dimension");
+        final int sortOrder = rs.getInt("sort_order");
 
-                // Get the greater sort_order, in filters table, for the current
-                // Visualization
-                // id.
-                int greatVisualizationSortOrder = greaterSortOrderInFiltersTableFor( context,
-                    rs.getLong( "visualizationid" ) );
+        // Get the greater sort_order, in filters table, for the current
+        // Visualization
+        // id.
+        int greatVisualizationSortOrder =
+            greaterSortOrderInFiltersTableFor(context, rs.getLong("visualizationid"));
 
-                // Increment the sort order so it can be inserted in the correct
-                // position.
-                greatVisualizationSortOrder++;
+        // Increment the sort order so it can be inserted in the correct
+        // position.
+        greatVisualizationSortOrder++;
 
-                // Before inserting the current column into filters table, check
-                // if this column
-                // isn't already present in filters table.
-                if ( !filtersTableContains( context, visualizationId, dimension ) )
-                {
-                    // Insert the current column into filters table.
-                    insertIntoFilterTable( context, visualizationId, dimension, greatVisualizationSortOrder );
+        // Before inserting the current column into filters table, check
+        // if this column
+        // isn't already present in filters table.
+        if (!filtersTableContains(context, visualizationId, dimension)) {
+          // Insert the current column into filters table.
+          insertIntoFilterTable(context, visualizationId, dimension, greatVisualizationSortOrder);
 
-                    // Once the columns is copied into filters, remove it from
-                    // columns table. The
-                    // "moving" process is concluded for this visualization
-                    // column.
-                    deleteFromColumnsTable( context, visualizationId, dimension, sortOrder );
-                }
-            }
+          // Once the columns is copied into filters, remove it from
+          // columns table. The
+          // "moving" process is concluded for this visualization
+          // column.
+          deleteFromColumnsTable(context, visualizationId, dimension, sortOrder);
         }
+      }
     }
+  }
 
-    private int greaterSortOrderInFiltersTableFor( final Context context, final long visualizationId )
-        throws SQLException
-    {
-        final String sql = "SELECT MAX(sort_order) AS greater_sort_order FROM visualization_filters WHERE visualizationid = ?";
+  private int greaterSortOrderInFiltersTableFor(final Context context, final long visualizationId)
+      throws SQLException {
+    final String sql =
+        "SELECT MAX(sort_order) AS greater_sort_order FROM visualization_filters WHERE visualizationid = ?";
 
-        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
-        {
-            ps.setLong( 1, visualizationId );
+    try (final PreparedStatement ps = context.getConnection().prepareStatement(sql)) {
+      ps.setLong(1, visualizationId);
 
-            try ( final ResultSet rs = ps.executeQuery() )
-            {
-                rs.next();
-                return rs.getInt( "greater_sort_order" );
-            }
-        }
+      try (final ResultSet rs = ps.executeQuery()) {
+        rs.next();
+        return rs.getInt("greater_sort_order");
+      }
     }
+  }
 
-    private boolean filtersTableContains( final Context context, final long visualizationId, final String dimension )
-        throws SQLException
-    {
-        final String sql = "SELECT count(visualizationid) AS vis_counter FROM visualization_filters "
+  private boolean filtersTableContains(
+      final Context context, final long visualizationId, final String dimension)
+      throws SQLException {
+    final String sql =
+        "SELECT count(visualizationid) AS vis_counter FROM visualization_filters "
             + "WHERE visualizationid = ? AND LOWER(dimension) = LOWER(?)";
 
-        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
-        {
-            ps.setLong( 1, visualizationId );
-            ps.setString( 2, dimension );
+    try (final PreparedStatement ps = context.getConnection().prepareStatement(sql)) {
+      ps.setLong(1, visualizationId);
+      ps.setString(2, dimension);
 
-            try ( final ResultSet rs = ps.executeQuery() )
-            {
-                rs.next();
-                return rs.getInt( "vis_counter" ) > 0;
-            }
-        }
+      try (final ResultSet rs = ps.executeQuery()) {
+        rs.next();
+        return rs.getInt("vis_counter") > 0;
+      }
     }
+  }
 
-    private void insertIntoFilterTable( final Context context, final long visualizationId, final String dimension,
-        final int sortOrder )
-        throws SQLException
-    {
-        final String sql = "INSERT INTO visualization_filters (visualizationid, dimension, sort_order) " +
-            "VALUES (?, LOWER(?), ? )";
+  private void insertIntoFilterTable(
+      final Context context,
+      final long visualizationId,
+      final String dimension,
+      final int sortOrder)
+      throws SQLException {
+    final String sql =
+        "INSERT INTO visualization_filters (visualizationid, dimension, sort_order) "
+            + "VALUES (?, LOWER(?), ? )";
 
-        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
-        {
-            ps.setLong( 1, visualizationId );
-            ps.setString( 2, dimension );
-            ps.setInt( 3, sortOrder );
+    try (final PreparedStatement ps = context.getConnection().prepareStatement(sql)) {
+      ps.setLong(1, visualizationId);
+      ps.setString(2, dimension);
+      ps.setInt(3, sortOrder);
 
-            ps.executeUpdate();
-        }
+      ps.executeUpdate();
     }
+  }
 
-    private void deleteFromColumnsTable( final Context context, final long visualizationId, final String dimension,
-        final int sortOrder )
-        throws SQLException
-    {
-        final String sql = "DELETE FROM visualization_columns WHERE visualizationid = ? " +
-            "AND LOWER(COALESCE(dimension, '')) = LOWER(?) AND sort_order = ?";
+  private void deleteFromColumnsTable(
+      final Context context,
+      final long visualizationId,
+      final String dimension,
+      final int sortOrder)
+      throws SQLException {
+    final String sql =
+        "DELETE FROM visualization_columns WHERE visualizationid = ? "
+            + "AND LOWER(COALESCE(dimension, '')) = LOWER(?) AND sort_order = ?";
 
-        try ( final PreparedStatement ps = context.getConnection().prepareStatement( sql ) )
-        {
-            ps.setLong( 1, visualizationId );
-            ps.setString( 2, dimension );
-            ps.setInt( 3, sortOrder );
+    try (final PreparedStatement ps = context.getConnection().prepareStatement(sql)) {
+      ps.setLong(1, visualizationId);
+      ps.setString(2, dimension);
+      ps.setInt(3, sortOrder);
 
-            ps.executeUpdate();
-        }
+      ps.executeUpdate();
     }
+  }
 }

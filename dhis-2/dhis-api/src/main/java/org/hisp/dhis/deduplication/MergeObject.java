@@ -27,33 +27,24 @@
  */
 package org.hisp.dhis.deduplication;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
 @Data
 @Builder
-@JsonDeserialize( builder = MergeObject.MergeObjectBuilder.class )
+@JsonDeserialize(builder = MergeObject.MergeObjectBuilder.class)
 @NoArgsConstructor
 @AllArgsConstructor
-public class MergeObject
-{
-    @Builder.Default
-    @JsonProperty
-    private List<String> trackedEntityAttributes = new ArrayList<>();
+public class MergeObject {
+  @Builder.Default @JsonProperty private List<String> trackedEntityAttributes = new ArrayList<>();
 
-    @Builder.Default
-    @JsonProperty
-    private List<String> relationships = new ArrayList<>();
+  @Builder.Default @JsonProperty private List<String> relationships = new ArrayList<>();
 
-    @Builder.Default
-    @JsonProperty
-    private List<String> enrollments = new ArrayList<>();
+  @Builder.Default @JsonProperty private List<String> enrollments = new ArrayList<>();
 }

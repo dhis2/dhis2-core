@@ -27,66 +27,71 @@
  */
 package org.hisp.dhis.query.planner;
 
-import java.util.Arrays;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import org.hisp.dhis.schema.Property;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
+import java.util.Arrays;
+import java.util.Locale;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@AllArgsConstructor
-public class QueryPath
-{
-    private final Property property;
+@RequiredArgsConstructor
+public class QueryPath {
+  private final Property property;
 
-    private final boolean persisted;
+  private final boolean persisted;
 
-    private final String[] alias;
+  private final String[] alias;
 
-    private static final Joiner PATH_JOINER = Joiner.on( "." );
+  private static final Joiner PATH_JOINER = Joiner.on(".");
 
-    public QueryPath( Property property, boolean persisted )
-    {
-        this( property, persisted, new String[0] );
+  /**
+   * If this locale is not null then the query must use the translations jsonb column instead of
+   * default properties.
+   */
+  private Locale locale;
+
+  public QueryPath(Property property, boolean persisted) {
+    this(property, persisted, new String[0]);
+  }
+
+  public String getPath() {
+    String fieldName = property.getFieldName();
+
+    if (fieldName == null) {
+      fieldName = property.getName();
     }
 
-    public String getPath()
-    {
-        String fieldName = property.getFieldName();
+    return haveAlias() ? PATH_JOINER.join(alias) + "." + fieldName : fieldName;
+  }
 
-        if ( fieldName == null )
-        {
-            fieldName = property.getName();
-        }
+  public boolean haveAlias() {
+    return haveAlias(0);
+  }
 
-        return haveAlias() ? PATH_JOINER.join( alias ) + "." + fieldName : fieldName;
-    }
+  public boolean haveAlias(int n) {
+    return alias != null && alias.length > n;
+  }
 
-    public boolean haveAlias()
-    {
-        return haveAlias( 0 );
-    }
+  public void setLocale(Locale locale) {
+    this.locale = locale;
+  }
 
-    public boolean haveAlias( int n )
-    {
-        return alias != null && alias.length > n;
-    }
+  public Locale getLocale() {
+    return locale;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "name", property.getName() )
-            .add( "path", getPath() )
-            .add( "persisted", persisted )
-            .add( "alias", Arrays.toString( alias ) )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("name", property.getName())
+        .add("path", getPath())
+        .add("persisted", persisted)
+        .add("alias", Arrays.toString(alias))
+        .toString();
+  }
 }

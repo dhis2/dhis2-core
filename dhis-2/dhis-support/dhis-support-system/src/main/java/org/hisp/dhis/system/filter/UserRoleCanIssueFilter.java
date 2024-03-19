@@ -34,29 +34,22 @@ import org.hisp.dhis.user.UserRole;
 /**
  * @author Lars Helge Overland
  */
-public class UserRoleCanIssueFilter
-    implements Filter<UserRole>
-{
-    private User user;
+public class UserRoleCanIssueFilter implements Filter<UserRole> {
+  private User user;
 
-    private boolean canGrantOwnUserRoles = false;
+  private boolean canGrantOwnUserRoles = false;
 
-    protected UserRoleCanIssueFilter()
-    {
+  protected UserRoleCanIssueFilter() {}
+
+  public UserRoleCanIssueFilter(User user, boolean canGrantOwnUserRoles) {
+    if (user != null) {
+      this.user = user;
+      this.canGrantOwnUserRoles = canGrantOwnUserRoles;
     }
+  }
 
-    public UserRoleCanIssueFilter( User user, boolean canGrantOwnUserRoles )
-    {
-        if ( user != null )
-        {
-            this.user = user;
-            this.canGrantOwnUserRoles = canGrantOwnUserRoles;
-        }
-    }
-
-    @Override
-    public boolean retain( UserRole group )
-    {
-        return user != null && user.canIssueUserRole( group, canGrantOwnUserRoles );
-    }
+  @Override
+  public boolean retain(UserRole group) {
+    return user != null && user.canIssueUserRole(group, canGrantOwnUserRoles);
+  }
 }

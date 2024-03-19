@@ -1,0 +1,28 @@
+{
+  "dashboards": [
+    {
+      "name": "dashboard import test",
+      "translations": [],
+      "layout":{
+        "spacing": {
+          "column": 1,
+          "row": 1
+        },
+        "columns":[
+          {
+            "index":1,
+            "span":1
+          },
+          {
+            "index":2,
+            "span":2
+          }
+        ]
+      },
+      "restrictFilters": false,
+      "allowedFilters": [],
+      "id": "nghVC4wty32",
+      "dashboardItems": []
+    }
+  ]
+}

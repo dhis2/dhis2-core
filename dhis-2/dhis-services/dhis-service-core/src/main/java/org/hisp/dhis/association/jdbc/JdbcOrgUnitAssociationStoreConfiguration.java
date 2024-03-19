@@ -28,47 +28,49 @@
 package org.hisp.dhis.association.jdbc;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.DataSetOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 @RequiredArgsConstructor
-public class JdbcOrgUnitAssociationStoreConfiguration
-{
-    private final CacheProvider cacheProvider;
+public class JdbcOrgUnitAssociationStoreConfiguration {
+  private final CacheProvider cacheProvider;
 
-    @Bean( "jdbcProgramOrgUnitAssociationsStore" )
-    public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
-    {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createProgramOrgUnitAssociationCache() );
-    }
+  private final UserService userService;
 
-    @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
-    public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore(
-        CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
-    {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createCatOptOrgUnitAssociationCache() );
-    }
+  @Bean("jdbcProgramOrgUnitAssociationsStore")
+  public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore(
+      JdbcTemplate jdbcTemplate) {
+    return new JdbcOrgUnitAssociationsStore(
+        jdbcTemplate,
+        new ProgramOrganisationUnitAssociationsQueryBuilder(),
+        cacheProvider.createProgramOrgUnitAssociationCache(),
+        userService);
+  }
 
-    @Bean( "jdbcDataSetOrgUnitAssociationsStore" )
-    public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
-    {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new DataSetOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createDataSetOrgUnitAssociationCache() );
-    }
+  @Bean("jdbcCategoryOptionOrgUnitAssociationsStore")
+  public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore(
+      JdbcTemplate jdbcTemplate) {
+    return new JdbcOrgUnitAssociationsStore(
+        jdbcTemplate,
+        new CategoryOptionOrganisationUnitAssociationsQueryBuilder(),
+        cacheProvider.createCatOptOrgUnitAssociationCache(),
+        userService);
+  }
+
+  @Bean("jdbcDataSetOrgUnitAssociationsStore")
+  public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore(
+      JdbcTemplate jdbcTemplate) {
+    return new JdbcOrgUnitAssociationsStore(
+        jdbcTemplate,
+        new DataSetOrganisationUnitAssociationsQueryBuilder(),
+        cacheProvider.createDataSetOrgUnitAssociationCache(),
+        userService);
+  }
 }

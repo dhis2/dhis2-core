@@ -27,61 +27,48 @@
  */
 package org.hisp.dhis.webportal.interceptor;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.user.CurrentUserService;
-
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
+import java.util.HashMap;
+import java.util.Map;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-public class XWorkPortalUserInterceptor
-    implements Interceptor
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 2809606672626282043L;
+public class XWorkPortalUserInterceptor implements Interceptor {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 2809606672626282043L;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  private UserService userService;
 
-    private CurrentUserService currentUserService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
+  }
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
+  @Override
+  public void destroy() {}
+
+  @Override
+  public void init() {}
+
+  @Override
+  public String intercept(ActionInvocation invocation) throws Exception {
+    Map<String, Object> map = new HashMap<>(3);
+
+    if (!CurrentUserUtil.hasCurrentUser()) {
+      map.put("currentUsername", "no user");
+      map.put("currentUser", null);
+    } else {
+      map.put("currentUsername", CurrentUserUtil.getCurrentUsername());
+      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      map.put("currentUser", currentUser);
     }
 
-    // -------------------------------------------------------------------------
-    // Interceptor implementation
-    // -------------------------------------------------------------------------
+    invocation.getStack().push(map);
 
-    @Override
-    public void destroy()
-    {
-    }
-
-    @Override
-    public void init()
-    {
-    }
-
-    @Override
-    public String intercept( ActionInvocation invocation )
-        throws Exception
-    {
-        Map<String, Object> map = new HashMap<>( 3 );
-
-        map.put( "currentUsername", currentUserService.getCurrentUsername() );
-        map.put( "currentUser", currentUserService.getCurrentUser() );
-
-        invocation.getStack().push( map );
-
-        return invocation.invoke();
-    }
+    return invocation.invoke();
+  }
 }

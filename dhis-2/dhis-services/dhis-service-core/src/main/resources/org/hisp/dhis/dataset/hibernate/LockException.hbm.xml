@@ -10,6 +10,8 @@
       <generator class="native" />
     </id>
 
+    <property name="created" type="timestamp" not-null="true" />
+
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
         foreign-key="fk_lockexception_organisationunitid" column="organisationunitid" />
 

@@ -27,32 +27,29 @@
  */
 package org.hisp.dhis.common;
 
-import java.io.IOException;
-
-import org.hisp.dhis.indicator.IndicatorType;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import org.hisp.dhis.indicator.IndicatorType;
 
 /**
- * Specific serializer to output only the minimum scope of attributes related to
- * IndicatorType.
+ * Specific serializer to output only the minimum scope of attributes related to IndicatorType.
  *
  * @author maikel arabori
  */
-public class IndicatorTypeSerializer extends JsonSerializer<IndicatorType>
-{
-    @Override
-    public void serialize( final IndicatorType indicatorType, final JsonGenerator jsonGenerator,
-        final SerializerProvider provider )
-        throws IOException
-    {
-        jsonGenerator.writeStartObject();
-        jsonGenerator.writeStringField( "name", indicatorType.getName() );
-        jsonGenerator.writeStringField( "displayName", indicatorType.getDisplayName() );
-        jsonGenerator.writeNumberField( "factor", indicatorType.getFactor() );
-        jsonGenerator.writeBooleanField( "number", indicatorType.isNumber() );
-        jsonGenerator.writeEndObject();
-    }
+public class IndicatorTypeSerializer extends JsonSerializer<IndicatorType> {
+  @Override
+  public void serialize(
+      final IndicatorType indicatorType,
+      final JsonGenerator jsonGenerator,
+      final SerializerProvider provider)
+      throws IOException {
+    jsonGenerator.writeStartObject();
+    jsonGenerator.writeStringField("name", indicatorType.getName());
+    jsonGenerator.writeStringField("displayName", indicatorType.getDisplayName());
+    jsonGenerator.writeNumberField("factor", indicatorType.getFactor());
+    jsonGenerator.writeBooleanField("number", indicatorType.isNumber());
+    jsonGenerator.writeEndObject();
+  }
 }

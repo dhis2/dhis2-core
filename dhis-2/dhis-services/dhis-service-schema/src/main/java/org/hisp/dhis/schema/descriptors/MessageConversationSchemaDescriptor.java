@@ -34,20 +34,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MessageConversationSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "messageConversation";
+public class MessageConversationSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "messageConversation";
 
-    public static final String PLURAL = "messageConversations";
+  public static final String PLURAL = "messageConversations";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MessageConversation.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(MessageConversation.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

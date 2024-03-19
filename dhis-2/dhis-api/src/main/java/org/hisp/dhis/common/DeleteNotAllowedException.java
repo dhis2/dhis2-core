@@ -32,11 +32,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 /**
  * @author Lars Helge Overland
  */
-public class DeleteNotAllowedException
-    extends ErrorCodeException
-{
-    public DeleteNotAllowedException( ErrorMessage errorMessage )
-    {
-        super( errorMessage );
-    }
+public class DeleteNotAllowedException extends ErrorCodeException {
+  public DeleteNotAllowedException(ErrorMessage errorMessage) {
+    super(errorMessage);
+  }
 }

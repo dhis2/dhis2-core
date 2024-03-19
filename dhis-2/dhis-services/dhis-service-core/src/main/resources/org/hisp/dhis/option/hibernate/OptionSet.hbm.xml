@@ -31,12 +31,11 @@
 
     <property name="version" />
 
-    <list name="options" cascade="all">
+    <bag name="options" cascade="all" order-by="sort_order">
       <cache usage="read-write" />
       <key column="optionsetid" foreign-key="fk_optionsetmembers_optionsetid" />
-      <list-index column="sort_order" base="1" />
       <one-to-many class="org.hisp.dhis.option.Option" />
-    </list>
+    </bag>
 
     <!-- Dynamic attribute values -->
     <property name="attributeValues" type="jsbAttributeValues"/>

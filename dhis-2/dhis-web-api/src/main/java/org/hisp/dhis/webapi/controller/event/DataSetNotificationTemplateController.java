@@ -36,14 +36,10 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * Created by zubair on 02.07.17.
- */
-@OpenApi.Tags( "tracker" )
+/** Created by zubair on 02.07.17. */
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = DataSetNotificationTemplateSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetNotificationTemplateController extends
-    AbstractCrudController<DataSetNotificationTemplate>
-{
-}
+@RequestMapping(value = DataSetNotificationTemplateSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSetNotificationTemplateController
+    extends AbstractCrudController<DataSetNotificationTemplate> {}

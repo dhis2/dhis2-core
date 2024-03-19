@@ -28,12 +28,15 @@
 package org.hisp.dhis.test.integration;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.IntegrationBaseConfig;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,35 +44,43 @@ import org.springframework.transaction.annotation.Transactional;
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ContextConfiguration(classes = {IntegrationBaseConfig.class, TestContainerPostgresConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
+@ActiveProfiles(profiles = {"test-postgres"})
 @Transactional
 @Slf4j
-public abstract class TransactionalIntegrationTest extends BaseSpringTest
-{
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        integrationTestBefore();
+public abstract class TransactionalIntegrationTest extends BaseSpringTest {
+
+  @Autowired private UserService _userService;
+
+  private User adminUser;
+
+  @BeforeEach
+  public final void before() throws Exception {
+    userService = _userService;
+    adminUser = preCreateInjectAdminUser();
+
+    integrationTestBeforeEach();
+  }
+
+  public User getAdminUser() {
+    return adminUser;
+  }
+
+  public void reLoginAdminUser() {
+    injectSecurityContextUser(getAdminUser());
+  }
+
+  @AfterEach
+  public final void after() throws Exception {
+    clearSecurityContext();
+
+    tearDownTest();
+
+    try {
+      dbmsManager.clearSession();
+    } catch (Exception e) {
+      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
     }
-
-    @AfterEach
-    public final void after()
-        throws Exception
-    {
-        clearSecurityContext();
-
-        tearDownTest();
-
-        try
-        {
-            dbmsManager.clearSession();
-        }
-        catch ( Exception e )
-        {
-            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
-        }
-    }
+  }
 }

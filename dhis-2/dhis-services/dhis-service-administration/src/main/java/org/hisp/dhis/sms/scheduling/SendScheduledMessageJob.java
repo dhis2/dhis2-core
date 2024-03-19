@@ -32,11 +32,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 
 import java.util.Date;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -49,61 +45,57 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
-@Component( "sendScheduledMessageJob" )
-public class SendScheduledMessageJob implements Job
-{
-    private final OutboundSmsService outboundSmsService;
+@Component("sendScheduledMessageJob")
+public class SendScheduledMessageJob implements Job {
+  private final OutboundSmsService outboundSmsService;
 
-    @Qualifier( "smsMessageSender" )
-    private final MessageSender smsSender;
+  @Qualifier("smsMessageSender")
+  private final MessageSender smsSender;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.SEND_SCHEDULED_MESSAGE;
+  @Override
+  public JobType getJobType() {
+    return JobType.SEND_SCHEDULED_MESSAGE;
+  }
+
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    progress.startingProcess("Starting to send outbound messages");
+    progress.startingStage("Validating environment setup");
+    if (!smsSender.isConfigured()) {
+      progress.failedStage("SMS gateway configuration does not exist, job aborted");
+      return;
     }
+    progress.completedStage(null);
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        progress.startingProcess( "Starting to send messages in outbound" );
-        sendMessages( progress );
-        progress.completedProcess( "Sending messages in outbound completed" );
-    }
+    sendMessages(progress);
+    progress.completedProcess("Sending outbound messages completed");
+  }
 
-    @Override
-    public ErrorReport validate()
-    {
-        if ( !smsSender.isConfigured() )
-        {
-            return new ErrorReport( SendScheduledMessageJob.class, ErrorCode.E7010,
-                "SMS gateway configuration does not exist" );
-        }
-        return Job.super.validate();
-    }
-
-    private void sendMessages( JobProgress progress )
-    {
-        progress.startingStage( "Finding outbound SMS messages" );
-        List<OutboundSms> outboundSmsList = progress.runStage( List.of(),
+  private void sendMessages(JobProgress progress) {
+    progress.startingStage("Finding outbound SMS messages");
+    List<OutboundSms> outboundSmsList =
+        progress.runStage(
+            List.of(),
             list -> "found " + list.size() + " outbound SMS",
-            () -> outboundSmsService.get( OutboundSmsStatus.OUTBOUND ) );
+            () -> outboundSmsService.get(OutboundSmsStatus.OUTBOUND));
 
-        if ( outboundSmsList != null && !outboundSmsList.isEmpty() )
-        {
-            progress.startingStage( "Sending SMS messages", outboundSmsList.size(), SKIP_ITEM_OUTLIER );
-            progress.runStage( outboundSmsList,
-                outboundSms -> format( "Sending message `%1.20s...` to %d recipients",
-                    outboundSms.getMessage(), outboundSms.getRecipients().size() ),
-                outboundSms -> {
-                    outboundSms.setDate( new Date() );
-                    outboundSms.setStatus( OutboundSmsStatus.SENT );
-                    smsSender.sendMessage( null, outboundSms.getMessage(), outboundSms.getRecipients() );
-                } );
-        }
+    if (outboundSmsList != null && !outboundSmsList.isEmpty()) {
+      progress.startingStage("Sending SMS messages", outboundSmsList.size(), SKIP_ITEM_OUTLIER);
+      progress.runStage(
+          outboundSmsList,
+          outboundSms ->
+              format(
+                  "Sending message `%1.20s...` to %d recipients",
+                  outboundSms.getMessage(), outboundSms.getRecipients().size()),
+          outboundSms -> {
+            outboundSms.setDate(new Date());
+            outboundSms.setStatus(OutboundSmsStatus.SENT);
+            smsSender.sendMessage(null, outboundSms.getMessage(), outboundSms.getRecipients());
+          });
     }
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.jdbc.batchhandler;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
@@ -38,100 +37,83 @@ import org.hisp.quick.batchhandler.AbstractBatchHandler;
 /**
  * @author Lars Helge Overland
  */
-public class MinMaxDataElementBatchHandler
-    extends AbstractBatchHandler<MinMaxDataElement>
-{
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+public class MinMaxDataElementBatchHandler extends AbstractBatchHandler<MinMaxDataElement> {
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    public MinMaxDataElementBatchHandler( JdbcConfiguration config )
-    {
-        super( config );
-    }
+  public MinMaxDataElementBatchHandler(JdbcConfiguration config) {
+    super(config);
+  }
 
-    @Override
-    public String getTableName()
-    {
-        return "minmaxdataelement";
-    }
+  @Override
+  public String getTableName() {
+    return "minmaxdataelement";
+  }
 
-    @Override
-    public String getAutoIncrementColumn()
-    {
-        return "minmaxdataelementid";
-    }
+  @Override
+  public String getAutoIncrementColumn() {
+    return "minmaxdataelementid";
+  }
 
-    @Override
-    public boolean isInclusiveUniqueColumns()
-    {
-        return true;
-    }
+  @Override
+  public boolean isInclusiveUniqueColumns() {
+    return true;
+  }
 
-    @Override
-    public List<String> getIdentifierColumns()
-    {
-        return getStringList( "minmaxdataelementid" );
-    }
+  @Override
+  public List<String> getIdentifierColumns() {
+    return getStringList("minmaxdataelementid");
+  }
 
-    @Override
-    public List<Object> getIdentifierValues( MinMaxDataElement dataElement )
-    {
-        return getObjectList( dataElement.getId() );
-    }
+  @Override
+  public List<Object> getIdentifierValues(MinMaxDataElement dataElement) {
+    return getObjectList(dataElement.getId());
+  }
 
-    @Override
-    public List<String> getUniqueColumns()
-    {
-        return getStringList(
-            "sourceid",
-            "dataelementid",
-            "categoryoptioncomboid" );
-    }
+  @Override
+  public List<String> getUniqueColumns() {
+    return getStringList("sourceid", "dataelementid", "categoryoptioncomboid");
+  }
 
-    @Override
-    public List<Object> getUniqueValues( MinMaxDataElement dataElement )
-    {
-        return getObjectList(
-            dataElement.getSource().getId(),
-            dataElement.getDataElement().getId(),
-            dataElement.getOptionCombo().getId() );
-    }
+  @Override
+  public List<Object> getUniqueValues(MinMaxDataElement dataElement) {
+    return getObjectList(
+        dataElement.getSource().getId(),
+        dataElement.getDataElement().getId(),
+        dataElement.getOptionCombo().getId());
+  }
 
-    @Override
-    public List<String> getColumns()
-    {
-        return getStringList(
-            "sourceid",
-            "dataelementid",
-            "categoryoptioncomboid",
-            "minimumvalue",
-            "maximumvalue",
-            "generatedvalue" );
-    }
+  @Override
+  public List<String> getColumns() {
+    return getStringList(
+        "sourceid",
+        "dataelementid",
+        "categoryoptioncomboid",
+        "minimumvalue",
+        "maximumvalue",
+        "generatedvalue");
+  }
 
-    @Override
-    public List<Object> getValues( MinMaxDataElement dataElement )
-    {
-        return getObjectList(
-            dataElement.getSource().getId(),
-            dataElement.getDataElement().getId(),
-            dataElement.getOptionCombo().getId(),
-            dataElement.getMin(),
-            dataElement.getMax(),
-            dataElement.isGenerated() );
-    }
+  @Override
+  public List<Object> getValues(MinMaxDataElement dataElement) {
+    return getObjectList(
+        dataElement.getSource().getId(),
+        dataElement.getDataElement().getId(),
+        dataElement.getOptionCombo().getId(),
+        dataElement.getMin(),
+        dataElement.getMax(),
+        dataElement.isGenerated());
+  }
 
-    @Override
-    public MinMaxDataElement mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        MinMaxDataElement mde = new MinMaxDataElement();
+  @Override
+  public MinMaxDataElement mapRow(ResultSet resultSet) throws SQLException {
+    MinMaxDataElement mde = new MinMaxDataElement();
 
-        mde.setMin( resultSet.getInt( "minimumvalue" ) );
-        mde.setMax( resultSet.getInt( "maximumvalue" ) );
-        mde.setGenerated( resultSet.getBoolean( "generatedvalue" ) );
+    mde.setMin(resultSet.getInt("minimumvalue"));
+    mde.setMax(resultSet.getInt("maximumvalue"));
+    mde.setGenerated(resultSet.getBoolean("generatedvalue"));
 
-        return mde;
-    }
+    return mde;
+  }
 }

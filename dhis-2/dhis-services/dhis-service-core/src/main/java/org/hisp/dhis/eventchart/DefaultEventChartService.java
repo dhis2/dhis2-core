@@ -28,9 +28,7 @@
 package org.hisp.dhis.eventchart;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
@@ -42,64 +40,55 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.eventchart.EventChartService" )
-public class DefaultEventChartService
-    extends GenericAnalyticalObjectService<EventChart>
-    implements EventChartService
-{
-    @Qualifier( "org.hisp.dhis.eventchart.EventChartStore" )
-    private final HibernateAnalyticalObjectStore<EventChart> eventChartStore;
+@Service("org.hisp.dhis.eventchart.EventChartService")
+public class DefaultEventChartService extends GenericAnalyticalObjectService<EventChart>
+    implements EventChartService {
+  @Qualifier("org.hisp.dhis.eventchart.EventChartStore")
+  private final HibernateAnalyticalObjectStore<EventChart> eventChartStore;
 
-    // -------------------------------------------------------------------------
-    // EventReportService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // EventReportService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    protected AnalyticalObjectStore<EventChart> getAnalyticalObjectStore()
-    {
-        return eventChartStore;
-    }
+  @Override
+  protected AnalyticalObjectStore<EventChart> getAnalyticalObjectStore() {
+    return eventChartStore;
+  }
 
-    @Override
-    public long saveEventChart( EventChart eventChart )
-    {
-        eventChartStore.save( eventChart );
+  @Override
+  public long saveEventChart(EventChart eventChart) {
+    eventChartStore.save(eventChart);
 
-        return eventChart.getId();
-    }
+    return eventChart.getId();
+  }
 
-    @Override
-    @Transactional
-    public void updateEventChart( EventChart eventChart )
-    {
-        eventChartStore.update( eventChart );
-    }
+  @Override
+  @Transactional
+  public void updateEventChart(EventChart eventChart) {
+    eventChartStore.update(eventChart);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public EventChart getEventChart( long id )
-    {
-        return eventChartStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public EventChart getEventChart(long id) {
+    return eventChartStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public EventChart getEventChart( String uid )
-    {
-        return eventChartStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public EventChart getEventChart(String uid) {
+    return eventChartStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional
-    public void deleteEventChart( EventChart eventChart )
-    {
-        eventChartStore.delete( eventChart );
-    }
+  @Override
+  @Transactional
+  public void deleteEventChart(EventChart eventChart) {
+    eventChartStore.delete(eventChart);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<EventChart> getAllEventCharts()
-    {
-        return eventChartStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<EventChart> getAllEventCharts() {
+    return eventChartStore.getAll();
+  }
 }

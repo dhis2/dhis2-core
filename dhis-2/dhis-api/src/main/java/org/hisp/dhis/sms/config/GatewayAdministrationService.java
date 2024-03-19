@@ -27,26 +27,29 @@
  */
 package org.hisp.dhis.sms.config;
 
+import javax.annotation.CheckForNull;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
- *
  */
-public interface GatewayAdministrationService
-{
-    void setDefaultGateway( SmsGatewayConfig config );
+public interface GatewayAdministrationService {
+  void setDefaultGateway(SmsGatewayConfig config);
 
-    boolean removeGatewayByUid( String uid );
+  boolean removeGatewayByUid(String uid);
 
-    boolean hasGateways();
+  boolean hasGateways();
 
-    SmsGatewayConfig getDefaultGateway();
+  SmsGatewayConfig getDefaultGateway();
 
-    boolean hasDefaultGateway();
+  boolean hasDefaultGateway();
 
-    SmsGatewayConfig getByUid( String uid );
+  SmsGatewayConfig getByUid(String uid);
 
-    boolean addGateway( SmsGatewayConfig config );
+  boolean addGateway(SmsGatewayConfig config);
 
-    void updateGateway( SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig );
-
+  void updateGateway(
+      @CheckForNull SmsGatewayConfig persisted, @CheckForNull SmsGatewayConfig updatedConfig)
+      throws NotFoundException, ConflictException;
 }

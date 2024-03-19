@@ -34,15 +34,13 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EventRepetitionSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "eventRepetition";
+public class EventRepetitionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "eventRepetition";
 
-    public static final String PLURAL = "eventRepetitions";
+  public static final String PLURAL = "eventRepetitions";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( EventRepetition.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(EventRepetition.class, SINGULAR, PLURAL);
+  }
 }

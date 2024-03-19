@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.security.oauth2.hibernate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.security.oauth2.OAuth2ClientStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -42,24 +40,22 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.security.oauth2.OAuth2ClientStore" )
-public class HibernateOAuth2ClientStore
-    extends HibernateIdentifiableObjectStore<OAuth2Client>
-    implements OAuth2ClientStore
-{
-    public HibernateOAuth2ClientStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OAuth2Client.class, currentUserService, aclService,
-            true );
-    }
+@Repository("org.hisp.dhis.security.oauth2.OAuth2ClientStore")
+public class HibernateOAuth2ClientStore extends HibernateIdentifiableObjectStore<OAuth2Client>
+    implements OAuth2ClientStore {
+  public HibernateOAuth2ClientStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, OAuth2Client.class, aclService, true);
+  }
 
-    @Override
-    public OAuth2Client getByClientId( String cid )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public OAuth2Client getByClientId(String cid) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("cid"), cid)));
+  }
 }

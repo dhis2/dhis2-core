@@ -33,22 +33,19 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-class FileResourceKeyUtilTest
-{
+class FileResourceKeyUtilTest {
 
-    @Test
-    void verifyBuildKey()
-    {
-        String key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.empty() );
-        assertThat( key, startsWith( "document/" ) );
-        assertEquals( 36, key.substring( "document/".length() ).length() );
-        key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.of( "myKey" ) );
-        assertThat( key, is( "document/myKey" ) );
-    }
+  @Test
+  void verifyBuildKey() {
+    String key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, Optional.empty());
+    assertThat(key, startsWith("document/"));
+    assertEquals(36, key.substring("document/".length()).length());
+    key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, Optional.of("myKey"));
+    assertThat(key, is("document/myKey"));
+  }
 }

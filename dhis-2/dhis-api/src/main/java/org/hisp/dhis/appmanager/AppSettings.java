@@ -27,34 +27,28 @@
  */
 package org.hisp.dhis.appmanager;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Jim Grace
  */
-@JacksonXmlRootElement( localName = "appSettings", namespace = DxfNamespaces.DXF_2_0 )
-public class AppSettings
-    implements Serializable
-{
-    private static final long serialVersionUID = 8800206452082390209L;
+@JacksonXmlRootElement(localName = "appSettings", namespace = DxfNamespaces.DXF_2_0)
+public class AppSettings implements Serializable {
+  private static final long serialVersionUID = 8800206452082390209L;
 
-    private DashboardWidgetAppSettings dashboardWidget;
+  private DashboardWidgetAppSettings dashboardWidget;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DashboardWidgetAppSettings getDashboardWidget()
-    {
-        return dashboardWidget;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DashboardWidgetAppSettings getDashboardWidget() {
+    return dashboardWidget;
+  }
 
-    public void setDashboardWidget( DashboardWidgetAppSettings dashboardWidget )
-    {
-        this.dashboardWidget = dashboardWidget;
-    }
+  public void setDashboardWidget(DashboardWidgetAppSettings dashboardWidget) {
+    this.dashboardWidget = dashboardWidget;
+  }
 }

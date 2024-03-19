@@ -41,7 +41,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
-
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -50,6 +51,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -57,245 +59,289 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class AggregateDataExchangeServiceTest
-{
-    @Mock
-    private AnalyticsService analyticsService;
+@ExtendWith(MockitoExtension.class)
+class AggregateDataExchangeServiceTest {
+  @Mock private AnalyticsService analyticsService;
 
-    @Mock
-    private AggregateDataExchangeStore aggregateDataExchangeStore;
+  @Mock private AggregateDataExchangeStore aggregateDataExchangeStore;
 
-    @Mock
-    private DataQueryService dataQueryService;
+  @Mock private DataQueryService dataQueryService;
 
-    @Mock
-    private DataValueSetService dataValueSetService;
+  @Mock private AclService aclService;
 
-    @InjectMocks
-    private AggregateDataExchangeService service;
+  @Mock private DataValueSetService dataValueSetService;
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    void testExchangeData()
-    {
-        when( analyticsService.getAggregatedDataValueSet( any( DataQueryParams.class ) ) )
-            .thenReturn( new DataValueSet() );
-        when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
-                .thenReturn( new BaseDimensionalObject(
-                    DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
-        when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
-                .thenReturn( new BaseDimensionalObject(
-                    DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
-        when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
-                .thenReturn( new BaseDimensionalObject(
-                    DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
-        when( dataValueSetService.importDataValueSet( any( DataValueSet.class ), any( ImportOptions.class ) ) )
-            .thenReturn( new ImportSummary( ImportStatus.SUCCESS ) );
+  @InjectMocks private AggregateDataExchangeService service;
 
-        SourceRequest sourceRequest = new SourceRequest()
-            .setName( "SourceRequestA" )
-            .setDx( List.of( "Vz0C3i4Wy3M", "ToaOToReol6" ) )
-            .setPe( List.of( "202101", "202102" ) )
-            .setOu( List.of( "lGgJFgRkZui", "pvINfKxtqyN" ) );
-        Source source = new Source()
-            .setRequests( List.of( sourceRequest ) );
-        TargetRequest request = new TargetRequest()
-            .setDataElementIdScheme( "code" )
-            .setOrgUnitIdScheme( "code" )
-            .setIdScheme( "uid" );
-        Target target = new Target()
-            .setType( TargetType.INTERNAL )
-            .setApi( new Api() )
-            .setRequest( request );
-        AggregateDataExchange exchange = new AggregateDataExchange()
-            .setSource( source )
-            .setTarget( target );
+  @Test
+  @SuppressWarnings("unchecked")
+  void testExchangeData() {
+    when(analyticsService.getAggregatedDataValueSet(any(DataQueryParams.class)))
+        .thenReturn(new DataValueSet());
+    when(dataQueryService.getDimension(
+            eq(DimensionalObject.DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+    when(dataQueryService.getDimension(
+            eq(DimensionalObject.PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(DimensionalObject.ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+    when(dataValueSetService.importDataValueSet(any(DataValueSet.class), any(ImportOptions.class)))
+        .thenReturn(new ImportSummary(ImportStatus.SUCCESS));
+    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(true);
 
-        ImportSummaries summaries = service.exchangeData( exchange, NoopJobProgress.INSTANCE );
+    SourceRequest sourceRequest =
+        new SourceRequest()
+            .setName("SourceRequestA")
+            .setDx(List.of("Vz0C3i4Wy3M", "ToaOToReol6"))
+            .setPe(List.of("202101", "202102"))
+            .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN"));
+    Source source = new Source().setRequests(List.of(sourceRequest));
+    TargetRequest request =
+        new TargetRequest()
+            .setDataElementIdScheme("code")
+            .setOrgUnitIdScheme("code")
+            .setIdScheme("uid");
+    Target target = new Target().setType(TargetType.INTERNAL).setApi(new Api()).setRequest(request);
+    AggregateDataExchange exchange =
+        new AggregateDataExchange().setSource(source).setTarget(target);
 
-        assertNotNull( summaries );
-        assertEquals( 1, summaries.getImportSummaries().size() );
+    ImportSummaries summaries =
+        service.exchangeData(UserDetails.fromUser(new User()), exchange, NoopJobProgress.INSTANCE);
 
-        ImportSummary summary = summaries.getImportSummaries().get( 0 );
+    assertNotNull(summaries);
+    assertEquals(1, summaries.getImportSummaries().size());
 
-        assertNotNull( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
-    }
+    ImportSummary summary = summaries.getImportSummaries().get(0);
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    void testToDataQueryParams()
-    {
-        when( dataQueryService.getDimension( eq( DimensionalObject.DATA_X_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
-                .thenReturn( new BaseDimensionalObject(
-                    DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of() ) );
-        when( dataQueryService.getDimension( eq( DimensionalObject.PERIOD_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
-                .thenReturn( new BaseDimensionalObject(
-                    DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of() ) );
-        when( dataQueryService.getDimension( eq( DimensionalObject.ORGUNIT_DIM_ID ), any(), any( Date.class ),
-            nullable( List.class ), anyBoolean(), nullable( DisplayProperty.class ), nullable( IdScheme.class ) ) )
-                .thenReturn( new BaseDimensionalObject(
-                    DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of() ) );
+    assertNotNull(summary);
+    assertEquals(ImportStatus.SUCCESS, summary.getStatus());
+  }
 
-        SourceRequest sourceRequest = new SourceRequest()
-            .setName( "SourceRequestA" )
-            .setDx( List.of( "Vz0C3i4Wy3M", "ToaOToReol6" ) )
-            .setPe( List.of( "202101", "202102" ) )
-            .setOu( List.of( "lGgJFgRkZui", "pvINfKxtqyN", "VOyqQ54TehY" ) )
-            .setOutputDataElementIdScheme( IdScheme.UID.name() )
-            .setOutputOrgUnitIdScheme( IdScheme.CODE.name() )
-            .setOutputIdScheme( IdScheme.CODE.name() );
+  @Test
+  @SuppressWarnings("unchecked")
+  void testToDataQueryParams() {
+    when(dataQueryService.getDimension(
+            eq(DimensionalObject.DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, List.of()));
+    when(dataQueryService.getDimension(
+            eq(DimensionalObject.PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(DimensionalObject.ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(
+                DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
 
-        DataQueryParams query = service.toDataQueryParams( sourceRequest, new SourceDataQueryParams() );
+    SourceRequest sourceRequest =
+        new SourceRequest()
+            .setName("SourceRequestA")
+            .setDx(List.of("Vz0C3i4Wy3M", "ToaOToReol6"))
+            .setPe(List.of("202101", "202102"))
+            .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN", "VOyqQ54TehY"))
+            .setAggregationType(AggregationType.COUNT)
+            .setOutputDataElementIdScheme(IdScheme.UID.name())
+            .setOutputOrgUnitIdScheme(IdScheme.CODE.name())
+            .setOutputDataItemIdScheme(IdScheme.NAME.name())
+            .setOutputIdScheme(IdScheme.CODE.name());
 
-        assertTrue( query.hasDimension( DimensionalObject.DATA_X_DIM_ID ) );
-        assertTrue( query.hasDimension( DimensionalObject.PERIOD_DIM_ID ) );
-        assertTrue( query.hasDimension( DimensionalObject.ORGUNIT_DIM_ID ) );
-        assertEquals( IdScheme.UID, query.getOutputDataElementIdScheme() );
-        assertEquals( IdScheme.CODE, query.getOutputOrgUnitIdScheme() );
-        assertEquals( IdScheme.CODE, query.getOutputIdScheme() );
+    DataQueryParams query = service.toDataQueryParams(sourceRequest, new SourceDataQueryParams());
 
-        SourceDataQueryParams params = new SourceDataQueryParams()
-            .setOutputIdScheme( IdScheme.CODE.name() );
+    assertTrue(query.hasDimension(DimensionalObject.DATA_X_DIM_ID));
+    assertTrue(query.hasDimension(DimensionalObject.PERIOD_DIM_ID));
+    assertTrue(query.hasDimension(DimensionalObject.ORGUNIT_DIM_ID));
+    assertEquals(
+        new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
+        query.getAggregationType());
+    assertEquals(IdScheme.UID, query.getOutputDataElementIdScheme());
+    assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
+    assertEquals(IdScheme.NAME, query.getOutputDataItemIdScheme());
+    assertEquals(IdScheme.CODE, query.getOutputIdScheme());
 
-        query = service.toDataQueryParams( sourceRequest, params );
+    SourceDataQueryParams params =
+        new SourceDataQueryParams().setOutputIdScheme(IdScheme.CODE.name());
 
-        assertEquals( IdScheme.CODE, query.getOutputDataElementIdScheme() );
-        assertEquals( IdScheme.CODE, query.getOutputOrgUnitIdScheme() );
-        assertEquals( IdScheme.CODE, query.getOutputIdScheme() );
-    }
+    query = service.toDataQueryParams(sourceRequest, params);
 
-    @Test
-    void testToImportOptionsA()
-    {
-        TargetRequest request = new TargetRequest()
-            .setDataElementIdScheme( "code" )
-            .setOrgUnitIdScheme( "code" )
-            .setIdScheme( "uid" );
-        Target target = new Target()
-            .setType( TargetType.EXTERNAL )
-            .setApi( new Api() )
-            .setRequest( request );
-        AggregateDataExchange exchange = new AggregateDataExchange()
-            .setTarget( target );
+    assertEquals(IdScheme.CODE, query.getOutputDataElementIdScheme());
+    assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
+    assertEquals(IdScheme.CODE, query.getOutputDataItemIdScheme());
+    assertEquals(IdScheme.CODE, query.getOutputIdScheme());
+  }
 
-        ImportOptions options = service.toImportOptions( exchange );
+  @Test
+  void testToImportOptionsA() {
+    TargetRequest request =
+        new TargetRequest()
+            .setDataElementIdScheme("code")
+            .setOrgUnitIdScheme("code")
+            .setIdScheme("uid")
+            .setImportStrategy(ImportStrategy.CREATE)
+            .setSkipAudit(Boolean.TRUE)
+            .setDryRun(Boolean.TRUE);
+    Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
+    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
 
-        assertEquals( IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme() );
-        assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
-        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
-        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme() );
-        assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
-    }
+    ImportOptions options = service.toImportOptions(exchange);
 
-    @Test
-    void testToImportOptionsB()
-    {
-        TargetRequest request = new TargetRequest()
-            .setDataElementIdScheme( "uid" )
-            .setOrgUnitIdScheme( "code" );
-        Target target = new Target()
-            .setType( TargetType.EXTERNAL )
-            .setApi( new Api() )
-            .setRequest( request );
-        AggregateDataExchange exchange = new AggregateDataExchange()
-            .setTarget( target );
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getDataElementIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+    assertEquals(ImportStrategy.CREATE, options.getImportStrategy());
+    assertTrue(options.isSkipAudit());
+    assertTrue(options.isDryRun());
+  }
 
-        ImportOptions options = service.toImportOptions( exchange );
+  @Test
+  void testToImportOptionsB() {
+    TargetRequest request =
+        new TargetRequest().setDataElementIdScheme("uid").setOrgUnitIdScheme("code");
+    Target target = new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(request);
+    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
 
-        assertEquals( IdScheme.UID, options.getIdSchemes().getDataElementIdScheme() );
-        assertEquals( IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme() );
-        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme() );
-        assertEquals( IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme() );
-        assertEquals( IdScheme.UID, options.getIdSchemes().getIdScheme() );
-    }
+    ImportOptions options = service.toImportOptions(exchange);
 
-    @Test
-    void testToIdScheme()
-    {
-        String undefined = null;
+    assertEquals(IdScheme.UID, options.getIdSchemes().getDataElementIdScheme());
+    assertEquals(IdScheme.CODE, options.getIdSchemes().getOrgUnitIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionComboIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getCategoryOptionIdScheme());
+    assertEquals(IdScheme.UID, options.getIdSchemes().getIdScheme());
+    assertEquals(ImportStrategy.CREATE_AND_UPDATE, options.getImportStrategy());
+    assertFalse(options.isSkipAudit());
+    assertFalse(options.isDryRun());
+  }
 
-        assertEquals( IdScheme.CODE, service.toIdScheme( "code" ) );
-        assertEquals( IdScheme.UID, service.toIdScheme( "UID" ) );
-        assertEquals( IdScheme.UID, service.toIdScheme( "uid" ) );
-        assertEquals( IdScheme.UID, service.toIdScheme( "uid" ) );
-        assertEquals( IdScheme.UID, service.toIdScheme( undefined, "uid" ) );
-        assertEquals( IdScheme.UID, service.toIdScheme( undefined, undefined, "uid" ) );
-        assertNull( service.toIdScheme( undefined ) );
-        assertNull( service.toIdScheme( undefined, undefined ) );
-    }
+  @Test
+  void testToAggregationType() {
+    assertEquals(
+        new AnalyticsAggregationType(AggregationType.COUNT, AggregationType.COUNT),
+        service.toAnalyticsAggregationType(AggregationType.COUNT));
+    assertNull(service.toAnalyticsAggregationType(null));
+  }
 
-    @Test
-    void testToIdSchemeOrDefault()
-    {
-        assertEquals( IdScheme.CODE, service.toIdSchemeOrDefault( "code" ) );
-        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "UID" ) );
-        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( "uid" ) );
-        assertEquals( IdScheme.UID, service.toIdSchemeOrDefault( null ) );
-    }
+  @Test
+  void testToIdScheme() {
+    String undefined = null;
 
-    @Test
-    void testGetDhis2Client()
-    {
-        Api api = new Api()
-            .setUrl( "https://play.dhis2.org/demo" )
-            .setUsername( "admin" )
-            .setPassword( "district" );
+    assertEquals(IdScheme.CODE, service.toIdScheme("code"));
+    assertEquals(IdScheme.UID, service.toIdScheme("UID"));
+    assertEquals(IdScheme.UID, service.toIdScheme("uid"));
+    assertEquals(IdScheme.UID, service.toIdScheme("uid"));
+    assertEquals(IdScheme.UID, service.toIdScheme(undefined, "uid"));
+    assertEquals(IdScheme.UID, service.toIdScheme(undefined, undefined, "uid"));
+    assertNull(service.toIdScheme(undefined));
+    assertNull(service.toIdScheme(undefined, undefined));
+  }
 
-        Target target = new Target()
-            .setType( TargetType.EXTERNAL )
-            .setApi( api );
+  @Test
+  void testToIdSchemeOrDefault() {
+    assertEquals(IdScheme.CODE, service.toIdSchemeOrDefault("code"));
+    assertEquals(IdScheme.UID, service.toIdSchemeOrDefault("UID"));
+    assertEquals(IdScheme.UID, service.toIdSchemeOrDefault("uid"));
+    assertEquals(IdScheme.UID, service.toIdSchemeOrDefault(null));
+  }
 
-        AggregateDataExchange exchange = new AggregateDataExchange()
-            .setTarget( target );
+  @Test
+  void testGetDhis2Client() {
+    Api api =
+        new Api()
+            .setUrl("https://play.dhis2.org/demo")
+            .setUsername("admin")
+            .setPassword("district");
 
-        Dhis2Client client = service.getDhis2Client( exchange );
+    Target target = new Target().setType(TargetType.EXTERNAL).setApi(api);
 
-        assertEquals( "https://play.dhis2.org/demo", client.getUrl() );
-    }
+    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
 
-    @Test
-    void testGetDhis2ClientIllegalState()
-    {
-        Api api = new Api()
-            .setUrl( "https://play.dhis2.org/demo" );
+    Dhis2Client client = service.getDhis2Client(exchange);
 
-        Target target = new Target()
-            .setType( TargetType.EXTERNAL )
-            .setApi( api );
+    assertEquals("https://play.dhis2.org/demo", client.getUrl());
+  }
 
-        AggregateDataExchange exchange = new AggregateDataExchange()
-            .setTarget( target );
+  @Test
+  void testGetDhis2ClientIllegalState() {
+    Api api = new Api().setUrl("https://play.dhis2.org/demo");
 
-        assertThrows( IllegalStateException.class, () -> service.getDhis2Client( exchange ) );
-    }
+    Target target = new Target().setType(TargetType.EXTERNAL).setApi(api);
 
-    @Test
-    void testIsPersisted()
-    {
-        AggregateDataExchange adeA = new AggregateDataExchange();
-        adeA.setId( 1 );
-        adeA.setAutoFields();
-        adeA.setName( "DataExchangeA" );
+    AggregateDataExchange exchange = new AggregateDataExchange().setTarget(target);
 
-        AggregateDataExchange adeB = new AggregateDataExchange();
-        adeB.setAutoFields();
-        adeB.setName( "DataExchangeB" );
+    assertThrows(IllegalStateException.class, () -> service.getDhis2Client(exchange));
+  }
 
-        assertTrue( service.isPersisted( adeA ) );
-        assertFalse( service.isPersisted( adeB ) );
-    }
+  @Test
+  void testIsPersisted() {
+    AggregateDataExchange adeA = new AggregateDataExchange();
+    adeA.setId(1);
+    adeA.setAutoFields();
+    adeA.setName("DataExchangeA");
+
+    AggregateDataExchange adeB = new AggregateDataExchange();
+    adeB.setAutoFields();
+    adeB.setName("DataExchangeB");
+
+    assertTrue(service.isPersisted(adeA));
+    assertFalse(service.isPersisted(adeB));
+  }
 }

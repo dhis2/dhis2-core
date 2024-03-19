@@ -33,177 +33,168 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class CategoryOptionServiceTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private CategoryService categoryService;
+class CategoryOptionServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired private CategoryService categoryService;
 
-    private CategoryOption categoryOptionA;
+  private CategoryOption categoryOptionA;
 
-    private CategoryOption categoryOptionB;
+  private CategoryOption categoryOptionB;
 
-    private CategoryOption categoryOptionC;
+  private CategoryOption categoryOptionC;
 
-    private Category categoryA;
+  private Category categoryA;
 
-    private Category categoryB;
+  private Category categoryB;
 
-    private Category categoryC;
+  private Category categoryC;
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddGet()
-    {
-        categoryOptionA = new CategoryOption( "CategoryOptionA" );
-        categoryOptionB = new CategoryOption( "CategoryOptionB" );
-        categoryOptionC = new CategoryOption( "CategoryOptionC" );
-        categoryOptionA.setDescription( "Test" );
-        long idA = categoryService.addCategoryOption( categoryOptionA );
-        long idB = categoryService.addCategoryOption( categoryOptionB );
-        long idC = categoryService.addCategoryOption( categoryOptionC );
-        assertEquals( categoryOptionA, categoryService.getCategoryOption( idA ) );
-        assertEquals( categoryOptionB, categoryService.getCategoryOption( idB ) );
-        assertEquals( categoryOptionC, categoryService.getCategoryOption( idC ) );
-        assertEquals( "Test", categoryService.getCategoryOption( idA ).getDescription() );
-    }
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddGet() {
+    categoryOptionA = new CategoryOption("CategoryOptionA");
+    categoryOptionB = new CategoryOption("CategoryOptionB");
+    categoryOptionC = new CategoryOption("CategoryOptionC");
+    categoryOptionA.setDescription("Test");
+    long idA = categoryService.addCategoryOption(categoryOptionA);
+    long idB = categoryService.addCategoryOption(categoryOptionB);
+    long idC = categoryService.addCategoryOption(categoryOptionC);
+    assertEquals(categoryOptionA, categoryService.getCategoryOption(idA));
+    assertEquals(categoryOptionB, categoryService.getCategoryOption(idB));
+    assertEquals(categoryOptionC, categoryService.getCategoryOption(idC));
+    assertEquals("Test", categoryService.getCategoryOption(idA).getDescription());
+  }
 
-    @Test
-    void testDelete()
-    {
-        categoryOptionA = new CategoryOption( "CategoryOptionA" );
-        categoryOptionB = new CategoryOption( "CategoryOptionB" );
-        categoryOptionC = new CategoryOption( "CategoryOptionC" );
-        long idA = categoryService.addCategoryOption( categoryOptionA );
-        long idB = categoryService.addCategoryOption( categoryOptionB );
-        long idC = categoryService.addCategoryOption( categoryOptionC );
-        assertNotNull( categoryService.getCategoryOption( idA ) );
-        assertNotNull( categoryService.getCategoryOption( idB ) );
-        assertNotNull( categoryService.getCategoryOption( idC ) );
-        categoryService.deleteCategoryOption( categoryOptionA );
-        assertNull( categoryService.getCategoryOption( idA ) );
-        assertNotNull( categoryService.getCategoryOption( idB ) );
-        assertNotNull( categoryService.getCategoryOption( idC ) );
-        categoryService.deleteCategoryOption( categoryOptionB );
-        assertNull( categoryService.getCategoryOption( idA ) );
-        assertNull( categoryService.getCategoryOption( idB ) );
-        assertNotNull( categoryService.getCategoryOption( idC ) );
-    }
+  @Test
+  void testDelete() {
+    categoryOptionA = new CategoryOption("CategoryOptionA");
+    categoryOptionB = new CategoryOption("CategoryOptionB");
+    categoryOptionC = new CategoryOption("CategoryOptionC");
+    long idA = categoryService.addCategoryOption(categoryOptionA);
+    long idB = categoryService.addCategoryOption(categoryOptionB);
+    long idC = categoryService.addCategoryOption(categoryOptionC);
+    assertNotNull(categoryService.getCategoryOption(idA));
+    assertNotNull(categoryService.getCategoryOption(idB));
+    assertNotNull(categoryService.getCategoryOption(idC));
+    categoryService.deleteCategoryOption(categoryOptionA);
+    assertNull(categoryService.getCategoryOption(idA));
+    assertNotNull(categoryService.getCategoryOption(idB));
+    assertNotNull(categoryService.getCategoryOption(idC));
+    categoryService.deleteCategoryOption(categoryOptionB);
+    assertNull(categoryService.getCategoryOption(idA));
+    assertNull(categoryService.getCategoryOption(idB));
+    assertNotNull(categoryService.getCategoryOption(idC));
+  }
 
-    @Test
-    void testDeleteCategoryOptionInCategoryOptionGroup()
-    {
-        categoryOptionA = new CategoryOption( "CategoryOptionA" );
-        categoryOptionB = new CategoryOption( "CategoryOptionB" );
-        long idA = categoryService.addCategoryOption( categoryOptionA );
-        long idB = categoryService.addCategoryOption( categoryOptionB );
-        CategoryOptionGroup categoryOptionGroup = createCategoryOptionGroup( 'A', categoryOptionA, categoryOptionB );
-        long groupId = categoryService.saveCategoryOptionGroup( categoryOptionGroup );
-        categoryOptionA.setGroups( Sets.newHashSet( categoryOptionGroup ) );
-        categoryOptionB.setGroups( Sets.newHashSet( categoryOptionGroup ) );
-        categoryService.updateCategoryOption( categoryOptionA );
-        categoryService.updateCategoryOption( categoryOptionB );
-        assertNotNull( categoryService.getCategoryOption( idA ) );
-        assertNotNull( categoryService.getCategoryOption( idB ) );
-        assertNotNull( categoryService.getCategoryOptionGroup( groupId ) );
-        categoryService.deleteCategoryOption( categoryOptionA );
-        assertNull( categoryService.getCategoryOption( idA ) );
-        assertNotNull( categoryService.getCategoryOption( idB ) );
-        assertNotNull( categoryService.getCategoryOptionGroup( groupId ) );
-        assertFalse( categoryOptionGroup.getMembers().contains( categoryOptionA ) );
-        assertTrue( categoryOptionGroup.getMembers().contains( categoryOptionB ) );
-    }
+  @Test
+  void testDeleteCategoryOptionInCategoryOptionGroup() {
+    categoryOptionA = new CategoryOption("CategoryOptionA");
+    categoryOptionB = new CategoryOption("CategoryOptionB");
+    long idA = categoryService.addCategoryOption(categoryOptionA);
+    long idB = categoryService.addCategoryOption(categoryOptionB);
+    CategoryOptionGroup categoryOptionGroup =
+        createCategoryOptionGroup('A', categoryOptionA, categoryOptionB);
+    long groupId = categoryService.saveCategoryOptionGroup(categoryOptionGroup);
+    categoryOptionA.setGroups(Sets.newHashSet(categoryOptionGroup));
+    categoryOptionB.setGroups(Sets.newHashSet(categoryOptionGroup));
+    categoryService.updateCategoryOption(categoryOptionA);
+    categoryService.updateCategoryOption(categoryOptionB);
+    assertNotNull(categoryService.getCategoryOption(idA));
+    assertNotNull(categoryService.getCategoryOption(idB));
+    assertNotNull(categoryService.getCategoryOptionGroup(groupId));
+    categoryService.deleteCategoryOption(categoryOptionA);
+    assertNull(categoryService.getCategoryOption(idA));
+    assertNotNull(categoryService.getCategoryOption(idB));
+    assertNotNull(categoryService.getCategoryOptionGroup(groupId));
+    assertFalse(categoryOptionGroup.getMembers().contains(categoryOptionA));
+    assertTrue(categoryOptionGroup.getMembers().contains(categoryOptionB));
+  }
 
-    @Test
-    void testDeleteCategoryOptionGroupInCategoryOptionGroupSet()
-    {
-        categoryOptionA = new CategoryOption( "CategoryOptionA" );
-        categoryOptionB = new CategoryOption( "CategoryOptionB" );
-        long idA = categoryService.addCategoryOption( categoryOptionA );
-        long idB = categoryService.addCategoryOption( categoryOptionB );
-        CategoryOptionGroup categoryOptionGroupA = createCategoryOptionGroup( 'A', categoryOptionA );
-        CategoryOptionGroup categoryOptionGroupB = createCategoryOptionGroup( 'B', categoryOptionB );
-        long groupIdA = categoryService.saveCategoryOptionGroup( categoryOptionGroupA );
-        long groupIdB = categoryService.saveCategoryOptionGroup( categoryOptionGroupB );
-        categoryOptionA.setGroups( Sets.newHashSet( categoryOptionGroupA ) );
-        categoryOptionB.setGroups( Sets.newHashSet( categoryOptionGroupB ) );
-        categoryService.updateCategoryOption( categoryOptionA );
-        categoryService.updateCategoryOption( categoryOptionB );
-        CategoryOptionGroupSet categoryOptionGroupSet = createCategoryOptionGroupSet( 'A', categoryOptionGroupA,
-            categoryOptionGroupB );
-        long groupSetId = categoryService.saveCategoryOptionGroupSet( categoryOptionGroupSet );
-        assertNotNull( categoryService.getCategoryOption( idA ) );
-        assertNotNull( categoryService.getCategoryOption( idB ) );
-        assertNotNull( categoryService.getCategoryOptionGroup( groupIdA ) );
-        assertNotNull( categoryService.getCategoryOptionGroup( groupIdB ) );
-        assertNotNull( categoryService.getCategoryOptionGroupSet( groupSetId ) );
-        categoryService.deleteCategoryOptionGroup( categoryOptionGroupA );
-        assertNotNull( categoryService.getCategoryOption( idA ) );
-        assertNotNull( categoryService.getCategoryOption( idB ) );
-        assertNull( categoryService.getCategoryOptionGroup( groupIdA ) );
-        assertNotNull( categoryService.getCategoryOptionGroup( groupIdB ) );
-        assertFalse( categoryOptionGroupSet.getMembers().contains( categoryOptionGroupA ) );
-        assertTrue( categoryOptionGroupSet.getMembers().contains( categoryOptionGroupB ) );
-    }
+  @Test
+  void testDeleteCategoryOptionGroupInCategoryOptionGroupSet() {
+    categoryOptionA = new CategoryOption("CategoryOptionA");
+    categoryOptionB = new CategoryOption("CategoryOptionB");
+    long idA = categoryService.addCategoryOption(categoryOptionA);
+    long idB = categoryService.addCategoryOption(categoryOptionB);
+    CategoryOptionGroup categoryOptionGroupA = createCategoryOptionGroup('A', categoryOptionA);
+    CategoryOptionGroup categoryOptionGroupB = createCategoryOptionGroup('B', categoryOptionB);
+    long groupIdA = categoryService.saveCategoryOptionGroup(categoryOptionGroupA);
+    long groupIdB = categoryService.saveCategoryOptionGroup(categoryOptionGroupB);
+    categoryOptionA.setGroups(Sets.newHashSet(categoryOptionGroupA));
+    categoryOptionB.setGroups(Sets.newHashSet(categoryOptionGroupB));
+    categoryService.updateCategoryOption(categoryOptionA);
+    categoryService.updateCategoryOption(categoryOptionB);
+    CategoryOptionGroupSet categoryOptionGroupSet =
+        createCategoryOptionGroupSet('A', categoryOptionGroupA, categoryOptionGroupB);
+    long groupSetId = categoryService.saveCategoryOptionGroupSet(categoryOptionGroupSet);
+    assertNotNull(categoryService.getCategoryOption(idA));
+    assertNotNull(categoryService.getCategoryOption(idB));
+    assertNotNull(categoryService.getCategoryOptionGroup(groupIdA));
+    assertNotNull(categoryService.getCategoryOptionGroup(groupIdB));
+    assertNotNull(categoryService.getCategoryOptionGroupSet(groupSetId));
+    categoryService.deleteCategoryOptionGroup(categoryOptionGroupA);
+    assertNotNull(categoryService.getCategoryOption(idA));
+    assertNotNull(categoryService.getCategoryOption(idB));
+    assertNull(categoryService.getCategoryOptionGroup(groupIdA));
+    assertNotNull(categoryService.getCategoryOptionGroup(groupIdB));
+    assertFalse(categoryOptionGroupSet.getMembers().contains(categoryOptionGroupA));
+    assertTrue(categoryOptionGroupSet.getMembers().contains(categoryOptionGroupB));
+  }
 
-    @Test
-    void testGetAll()
-    {
-        categoryOptionA = new CategoryOption( "CategoryOptionA" );
-        categoryOptionB = new CategoryOption( "CategoryOptionB" );
-        categoryOptionC = new CategoryOption( "CategoryOptionC" );
-        categoryService.addCategoryOption( categoryOptionA );
-        categoryService.addCategoryOption( categoryOptionB );
-        categoryService.addCategoryOption( categoryOptionC );
-        List<CategoryOption> categoryOptions = categoryService.getAllCategoryOptions();
-        // Including default
-        assertEquals( 4, categoryOptions.size() );
-        assertTrue( categoryOptions.contains( categoryOptionA ) );
-        assertTrue( categoryOptions.contains( categoryOptionB ) );
-        assertTrue( categoryOptions.contains( categoryOptionC ) );
-    }
+  @Test
+  void testGetAll() {
+    categoryOptionA = new CategoryOption("CategoryOptionA");
+    categoryOptionB = new CategoryOption("CategoryOptionB");
+    categoryOptionC = new CategoryOption("CategoryOptionC");
+    categoryService.addCategoryOption(categoryOptionA);
+    categoryService.addCategoryOption(categoryOptionB);
+    categoryService.addCategoryOption(categoryOptionC);
+    List<CategoryOption> categoryOptions = categoryService.getAllCategoryOptions();
+    // Including default
+    assertEquals(4, categoryOptions.size());
+    assertTrue(categoryOptions.contains(categoryOptionA));
+    assertTrue(categoryOptions.contains(categoryOptionB));
+    assertTrue(categoryOptions.contains(categoryOptionC));
+  }
 
-    @Test
-    void testGetByCategory()
-    {
-        categoryOptionA = new CategoryOption( "CategoryOptionA" );
-        categoryOptionB = new CategoryOption( "CategoryOptionB" );
-        categoryOptionC = new CategoryOption( "CategoryOptionC" );
-        categoryService.addCategoryOption( categoryOptionA );
-        categoryService.addCategoryOption( categoryOptionB );
-        categoryService.addCategoryOption( categoryOptionC );
-        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
-        categoryB = createCategory( 'B', categoryOptionC );
-        categoryC = createCategory( 'C' );
-        Set<Category> categoriesA = new HashSet<>();
-        Set<Category> categoriesB = new HashSet<>();
-        categoriesA.add( categoryA );
-        categoriesB.add( categoryB );
-        categoryOptionA.setCategories( categoriesA );
-        categoryOptionB.setCategories( categoriesA );
-        categoryOptionC.setCategories( categoriesB );
-        categoryService.addCategory( categoryA );
-        categoryService.addCategory( categoryB );
-        categoryService.addCategory( categoryC );
-        List<CategoryOption> categoryOptions = categoryService.getCategoryOptions( categoryA );
-        assertEquals( 2, categoryOptions.size() );
-        categoryOptions = categoryService.getCategoryOptions( categoryB );
-        assertEquals( 1, categoryOptions.size() );
-        categoryOptions = categoryService.getCategoryOptions( categoryC );
-        assertEquals( 0, categoryOptions.size() );
-    }
+  @Test
+  void testGetByCategory() {
+    categoryOptionA = new CategoryOption("CategoryOptionA");
+    categoryOptionB = new CategoryOption("CategoryOptionB");
+    categoryOptionC = new CategoryOption("CategoryOptionC");
+    categoryService.addCategoryOption(categoryOptionA);
+    categoryService.addCategoryOption(categoryOptionB);
+    categoryService.addCategoryOption(categoryOptionC);
+    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
+    categoryB = createCategory('B', categoryOptionC);
+    categoryC = createCategory('C');
+    Set<Category> categoriesA = new HashSet<>();
+    Set<Category> categoriesB = new HashSet<>();
+    categoriesA.add(categoryA);
+    categoriesB.add(categoryB);
+    categoryOptionA.setCategories(categoriesA);
+    categoryOptionB.setCategories(categoriesA);
+    categoryOptionC.setCategories(categoriesB);
+    categoryService.addCategory(categoryA);
+    categoryService.addCategory(categoryB);
+    categoryService.addCategory(categoryC);
+    List<CategoryOption> categoryOptions = categoryService.getCategoryOptions(categoryA);
+    assertEquals(2, categoryOptions.size());
+    categoryOptions = categoryService.getCategoryOptions(categoryB);
+    assertEquals(1, categoryOptions.size());
+    categoryOptions = categoryService.getCategoryOptions(categoryC);
+    assertEquals(0, categoryOptions.size());
+  }
 }

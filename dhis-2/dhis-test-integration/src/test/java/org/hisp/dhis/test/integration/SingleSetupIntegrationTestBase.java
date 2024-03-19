@@ -28,8 +28,12 @@
 package org.hisp.dhis.test.integration;
 
 import org.hisp.dhis.BaseSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.IntegrationBaseConfig;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -38,32 +42,57 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for integration tests that use a single setup for the class instead of a
- * setup for each individual test. Run with profile <code>integration</code>.
+ * Base for integration tests that use a single setup for the class instead of a setup for each
+ * individual test. Run with profile <code>integration</code>.
  *
  * @author Jim Grace
  */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ContextConfiguration(classes = {IntegrationBaseConfig.class, TestContainerPostgresConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
+@ActiveProfiles(profiles = {"test-postgres"})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-public abstract class SingleSetupIntegrationTestBase
-    extends BaseSpringTest
-{
-    @BeforeAll
-    public final void before()
-        throws Exception
-    {
-        bindSession();
+public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
 
-        integrationTestBefore();
-    }
+  public String adminUsername;
+  private UserDetails adminUserDetails;
+  private User adminUser;
 
-    @AfterAll
-    public final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
+  @BeforeAll
+  public final void before() throws Exception {
+    bindSession();
+
+    User userAdmin = DhisConvenienceTest.createRandomAdminUserWithEntityManager(entityManager);
+    adminUsername = userAdmin.getUsername();
+
+    XinjectSecurityContextUser(userAdmin);
+
+    integrationTestBeforeEach();
+  }
+
+  protected void reLoginAdminUser() {
+    injectSecurityContext(this.adminUserDetails);
+  }
+
+  public User getAdminUser() {
+    return adminUser;
+  }
+
+  protected void XinjectSecurityContextUser(User user) {
+    if (user == null) {
+      clearSecurityContext();
+      return;
     }
+    hibernateService.flushSession();
+    User user1 = entityManager.find(User.class, user.getId());
+    this.adminUser = user1;
+    UserDetails currentUserDetails = UserDetails.fromUser(user1);
+    this.adminUserDetails = currentUserDetails;
+    injectSecurityContext(currentUserDetails);
+  }
+
+  @AfterAll
+  public final void after() throws Exception {
+    nonTransactionalAfter();
+  }
 }

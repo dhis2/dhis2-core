@@ -29,129 +29,107 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * Class representing various text styling properties.
  *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "fontStyle", namespace = DXF_2_0 )
-public class FontStyle
-    implements Serializable
-{
-    private Font font;
+@JacksonXmlRootElement(localName = "fontStyle", namespace = DXF_2_0)
+public class FontStyle implements Serializable {
+  private Font font;
 
-    private Integer fontSize;
+  private Integer fontSize;
 
-    private Boolean bold;
+  private Boolean bold;
 
-    private Boolean italic;
+  private Boolean italic;
 
-    private Boolean underline;
+  private Boolean underline;
 
-    private String textColor;
+  private String textColor;
 
-    private TextAlign textAlign;
+  private TextAlign textAlign;
 
-    public FontStyle()
-    {
-    }
+  public FontStyle() {}
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Font getFont()
-    {
-        return font;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Font getFont() {
+    return font;
+  }
 
-    public void setFont( Font font )
-    {
-        this.font = font;
-    }
+  public void setFont(Font font) {
+    this.font = font;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = 1, max = 96 )
-    public Integer getFontSize()
-    {
-        return fontSize;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @PropertyRange(min = 1, max = 96)
+  public Integer getFontSize() {
+    return fontSize;
+  }
 
-    public void setFontSize( Integer fontSize )
-    {
-        this.fontSize = fontSize;
-    }
+  public void setFontSize(Integer fontSize) {
+    this.fontSize = fontSize;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Boolean getBold()
-    {
-        return bold;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Boolean getBold() {
+    return bold;
+  }
 
-    public void setBold( Boolean bold )
-    {
-        this.bold = bold;
-    }
+  public void setBold(Boolean bold) {
+    this.bold = bold;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Boolean getItalic()
-    {
-        return italic;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Boolean getItalic() {
+    return italic;
+  }
 
-    public void setItalic( Boolean italic )
-    {
-        this.italic = italic;
-    }
+  public void setItalic(Boolean italic) {
+    this.italic = italic;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Boolean getUnderline()
-    {
-        return underline;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Boolean getUnderline() {
+    return underline;
+  }
 
-    public void setUnderline( Boolean underline )
-    {
-        this.underline = underline;
-    }
+  public void setUnderline(Boolean underline) {
+    this.underline = underline;
+  }
 
-    /**
-     * Text color in hexadecimal notation, specified with {@code #RRGGBB}.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @Property( value = PropertyType.COLOR )
-    public String getTextColor()
-    {
-        return textColor;
-    }
+  /** Text color in hexadecimal notation, specified with {@code #RRGGBB}. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @Property(value = PropertyType.COLOR)
+  public String getTextColor() {
+    return textColor;
+  }
 
-    public void setTextColor( String textColor )
-    {
-        this.textColor = textColor;
-    }
+  public void setTextColor(String textColor) {
+    this.textColor = textColor;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public TextAlign getTextAlign()
-    {
-        return textAlign;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public TextAlign getTextAlign() {
+    return textAlign;
+  }
 
-    public void setTextAlign( TextAlign textAlign )
-    {
-        this.textAlign = textAlign;
-    }
+  public void setTextAlign(TextAlign textAlign) {
+    this.textAlign = textAlign;
+  }
 }

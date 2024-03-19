@@ -32,38 +32,31 @@ import java.util.List;
 /**
  * Base class to create context free reusable snippets.
  *
- * The purpose of {@link WebSnippet}s is to allow definition of sequences of
- * {@link WebClient} usage that become reusable building blocks to create more
- * complex scenarios.
+ * <p>The purpose of {@link WebSnippet}s is to allow definition of sequences of {@link WebClient}
+ * usage that become reusable building blocks to create more complex scenarios.
  *
  * @author Jan Bernitt
- *
- * @param <T> optional return type of the snippet to send information back to
- *        the caller, like IDs, or {@link org.hisp.dhis.jsontree.JsonValue}s
+ * @param <T> optional return type of the snippet to send information back to the caller, like IDs,
+ *     or {@link org.hisp.dhis.jsontree.JsonValue}s
  */
-public abstract class WebSnippet<T> implements WebClient
-{
-    private final WebClient client;
+public abstract class WebSnippet<T> implements WebClient {
+  private final WebClient client;
 
-    protected WebSnippet( WebClient client )
-    {
-        this.client = client;
-    }
+  protected WebSnippet(WebClient client) {
+    this.client = client;
+  }
 
-    @Override
-    public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, String contentType,
-        String content )
-    {
-        return client.webRequest( method, url, headers, contentType, content );
-    }
+  @Override
+  public final HttpResponse webRequest(
+      HttpMethod method, String url, List<Header> headers, String contentType, String content) {
+    return client.webRequest(method, url, headers, contentType, content);
+  }
 
-    /**
-     * Runs the snippet.
-     *
-     * @return a optional result value, like an ID or a
-     *         {@link org.hisp.dhis.jsontree.JsonValue} that can be used by the
-     *         caller to continue working with data created or used in this
-     *         snippet.
-     */
-    public abstract T run();
+  /**
+   * Runs the snippet.
+   *
+   * @return a optional result value, like an ID or a {@link org.hisp.dhis.jsontree.JsonValue} that
+   *     can be used by the caller to continue working with data created or used in this snippet.
+   */
+  public abstract T run();
 }

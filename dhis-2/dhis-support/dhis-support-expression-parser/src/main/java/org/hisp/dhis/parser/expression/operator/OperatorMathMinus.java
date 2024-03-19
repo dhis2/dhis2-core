@@ -38,21 +38,15 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorMathMinus
-    extends AntlrOperatorMathMinus
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+public class OperatorMathMinus extends AntlrOperatorMathMinus implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (ctx.expr().size() == 1) // Unary minus operator
     {
-        if ( ctx.expr().size() == 1 ) // Unary minus operator
-        {
-            return "- " + visitor.castStringVisit( ctx.expr( 0 ) );
-        }
-        else // Subtraction operator
-        {
-            return visitor.castStringVisit( ctx.expr( 0 ) ) +
-                " - " + visitor.castStringVisit( ctx.expr( 1 ) );
-        }
+      return "- " + visitor.castStringVisit(ctx.expr(0));
+    } else // Subtraction operator
+    {
+      return visitor.castStringVisit(ctx.expr(0)) + " - " + visitor.castStringVisit(ctx.expr(1));
     }
+  }
 }

@@ -29,81 +29,73 @@ package org.hisp.dhis.i18n.action;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
+import com.opensymphony.xwork2.ActionSupport;
 import java.util.Locale;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.util.TranslationUtils;
 
-import com.opensymphony.xwork2.ActionSupport;
-
 /**
  * @author Oyvind Brucker
  */
-public class GetTranslationsAction
-    extends ActionSupport
-{
-    private String className;
+public class GetTranslationsAction extends ActionSupport {
+  private String className;
 
-    private String objectUid;
+  private String objectUid;
 
-    private String loc;
+  private String loc;
 
-    private Map<String, String> translations;
+  private Map<String, String> translations;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private IdentifiableObjectManager identifiableObjectManager;
+  private IdentifiableObjectManager identifiableObjectManager;
 
-    public void setIdentifiableObjectManager( IdentifiableObjectManager identifiableObjectManager )
-    {
-        this.identifiableObjectManager = identifiableObjectManager;
-    }
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+  public void setIdentifiableObjectManager(IdentifiableObjectManager identifiableObjectManager) {
+    this.identifiableObjectManager = identifiableObjectManager;
+  }
 
-    public void setClassName( String className )
-    {
-        this.className = className;
-    }
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
 
-    public void setObjectUid( String objectUid )
-    {
-        this.objectUid = objectUid;
-    }
+  public void setClassName(String className) {
+    this.className = className;
+  }
 
-    public void setLoc( String locale )
-    {
-        this.loc = locale;
-    }
+  public void setObjectUid(String objectUid) {
+    this.objectUid = objectUid;
+  }
 
-    public Map<String, String> getTranslations()
-    {
-        return translations;
-    }
+  public void setLoc(String locale) {
+    this.loc = locale;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  public Map<String, String> getTranslations() {
+    return translations;
+  }
 
-    @Override
-    public String execute()
-        throws Exception
-    {
-        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className )
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    className =
+        className != null && CLASS_ALIAS.containsKey(className)
+            ? CLASS_ALIAS.get(className)
             : className;
 
-        Locale locale = LocaleUtils.getLocale( loc );
+    Locale locale = LocaleUtils.getLocale(loc);
 
-        IdentifiableObject object = identifiableObjectManager.getObject( objectUid, className );
+    IdentifiableObject object = identifiableObjectManager.getObject(objectUid, className);
 
-        translations = TranslationUtils.convertTranslations( object.getTranslations(), locale );
+    translations = TranslationUtils.convertTranslations(object.getTranslations(), locale);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

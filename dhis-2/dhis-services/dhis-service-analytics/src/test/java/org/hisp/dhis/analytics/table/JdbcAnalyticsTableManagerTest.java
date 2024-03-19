@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.db.model.Logged.LOGGED;
+import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,24 +41,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
-import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,128 +74,180 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Lars Helge Overland
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class JdbcAnalyticsTableManagerTest
-{
-    @Mock
-    private SystemSettingManager systemSettingManager;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class JdbcAnalyticsTableManagerTest {
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
-    @Mock
-    private PeriodDataProvider periodDataProvider;
+  @Mock private PeriodDataProvider periodDataProvider;
 
-    private AnalyticsTableManager subject;
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new JdbcAnalyticsTableManager( mock( IdentifiableObjectManager.class ),
-            mock( OrganisationUnitService.class ),
-            mock( CategoryService.class ), systemSettingManager, mock( DataApprovalLevelService.class ),
-            mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ), mock( StatementBuilder.class ),
-            mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate, analyticsExportSettings,
-            periodDataProvider );
-    }
+  private AnalyticsTableManager subject;
 
-    @Test
-    void testGetRegularAnalyticsTable()
-    {
-        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
-        List<Integer> dataYears = List.of( 2018, 2019 );
+  @BeforeEach
+  public void setUp() {
+    subject =
+        new JdbcAnalyticsTableManager(
+            mock(IdentifiableObjectManager.class),
+            mock(OrganisationUnitService.class),
+            mock(CategoryService.class),
+            systemSettingManager,
+            mock(DataApprovalLevelService.class),
+            mock(ResourceTableService.class),
+            mock(AnalyticsTableHookService.class),
+            mock(PartitionManager.class),
+            mock(DatabaseInfoProvider.class),
+            jdbcTemplate,
+            analyticsTableSettings,
+            periodDataProvider,
+            sqlBuilder);
+  }
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime( startTime )
-            .build();
+  @Test
+  void testGetRegularAnalyticsTable() {
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<Integer> dataYears = List.of(2018, 2019);
 
-        when( jdbcTemplate.queryForList( Mockito.anyString(), ArgumentMatchers.<Class<Integer>> any() ) )
-            .thenReturn( dataYears );
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
 
-        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(dataYears);
 
-        assertEquals( 1, tables.size() );
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
-        AnalyticsTable table = tables.get( 0 );
+    assertEquals(1, tables.size());
 
-        assertNotNull( table );
-        assertNotNull( table.getTablePartitions() );
-        assertEquals( 2, table.getTablePartitions().size() );
+    AnalyticsTable table = tables.get(0);
 
-        AnalyticsTablePartition partitionA = table.getTablePartitions().get( 0 );
-        AnalyticsTablePartition partitionB = table.getTablePartitions().get( 1 );
+    assertNotNull(table);
+    assertNotNull(table.getTablePartitions());
+    assertEquals(2, table.getTablePartitions().size());
 
-        assertNotNull( partitionA );
-        assertNotNull( partitionA.getStartDate() );
-        assertNotNull( partitionA.getEndDate() );
-        assertEquals( partitionA.getYear().intValue(), new DateTime( partitionA.getStartDate() ).getYear() );
+    AnalyticsTablePartition partitionA = table.getTablePartitions().get(0);
+    AnalyticsTablePartition partitionB = table.getTablePartitions().get(1);
 
-        assertNotNull( partitionB );
-        assertNotNull( partitionB.getStartDate() );
-        assertNotNull( partitionB.getEndDate() );
-        assertEquals( partitionB.getYear().intValue(), new DateTime( partitionB.getStartDate() ).getYear() );
-    }
+    assertNotNull(partitionA);
+    assertNotNull(partitionA.getStartDate());
+    assertNotNull(partitionA.getEndDate());
+    assertTrue(partitionA.isUnlogged());
+    assertEquals(
+        partitionA.getYear().intValue(), new DateTime(partitionA.getStartDate()).getYear());
 
-    @Test
-    void testGetLatestAnalyticsTable()
-    {
-        Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
-        Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
-        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
+    assertNotNull(partitionB);
+    assertNotNull(partitionB.getStartDate());
+    assertNotNull(partitionB.getEndDate());
+    assertTrue(partitionB.isUnlogged());
+    assertEquals(
+        partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
+  }
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime( startTime )
+  @Test
+  void testGetRegularAnalyticsTableLogged() {
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<Integer> dataYears = List.of(2018, 2019);
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
+
+    when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(dataYears);
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+
+    AnalyticsTable table = tables.get(0);
+
+    assertNotNull(table);
+    assertNotNull(table.getTablePartitions());
+    assertEquals(2, table.getTablePartitions().size());
+
+    AnalyticsTablePartition partitionA = table.getTablePartitions().get(0);
+    AnalyticsTablePartition partitionB = table.getTablePartitions().get(1);
+
+    assertNotNull(partitionA);
+    assertNotNull(partitionA.getStartDate());
+    assertNotNull(partitionA.getEndDate());
+    assertFalse(partitionA.isUnlogged());
+    assertEquals(
+        partitionA.getYear().intValue(), new DateTime(partitionA.getStartDate()).getYear());
+
+    assertNotNull(partitionB);
+    assertNotNull(partitionB.getStartDate());
+    assertNotNull(partitionB.getEndDate());
+    assertFalse(partitionB.isUnlogged());
+    assertEquals(
+        partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
+  }
+
+  @Test
+  void testGetLatestAnalyticsTable() {
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime(startTime)
             .withLatestPartition()
             .build();
 
-        List<Map<String, Object>> queryResp = new ArrayList<>();
-        queryResp.add( Map.of( "dataelementid", 1 ) );
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("dataelementid", 1));
 
-        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
-            .thenReturn( lastFullTableUpdate );
-        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
-            .thenReturn( lastLatestPartitionUpdate );
-        when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
+    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
+        .thenReturn(lastFullTableUpdate);
+    when(systemSettingManager.getDateSetting(
+            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+        .thenReturn(lastLatestPartitionUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
 
-        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
-        assertEquals( 1, tables.size() );
+    assertEquals(1, tables.size());
 
-        AnalyticsTable table = tables.get( 0 );
+    AnalyticsTable table = tables.get(0);
 
-        assertNotNull( table );
-        assertNotNull( table.getTablePartitions() );
-        assertEquals( 1, table.getTablePartitions().size() );
+    assertNotNull(table);
+    assertNotNull(table.getTablePartitions());
+    assertEquals(1, table.getTablePartitions().size());
 
-        AnalyticsTablePartition partition = table.getLatestPartition();
+    AnalyticsTablePartition partition = table.getLatestTablePartition();
 
-        assertNotNull( partition );
-        assertTrue( partition.isLatestPartition() );
-        assertEquals( lastFullTableUpdate, partition.getStartDate() );
-        assertEquals( startTime, partition.getEndDate() );
-    }
+    assertNotNull(partition);
+    assertTrue(partition.isLatestPartition());
+    assertEquals(lastFullTableUpdate, partition.getStartDate());
+    assertEquals(startTime, partition.getEndDate());
+    assertTrue(partition.isUnlogged());
+  }
 
-    @Test
-    void testGetLatestAnalyticsTableNoFullTableUpdate()
-    {
-        Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
-        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
+  @Test
+  void testGetLatestAnalyticsTableNoFullTableUpdate() {
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime( startTime )
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime(startTime)
             .withLatestPartition()
             .build();
 
-        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE ) )
-            .thenReturn( null );
-        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
-            .thenReturn( null );
-        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
-            .thenReturn( lastLatestPartitionUpdate );
-        assertThrows( IllegalArgumentException.class, () -> subject.getAnalyticsTables( params ) );
-    }
+    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE))
+        .thenReturn(null);
+    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
+        .thenReturn(null);
+    when(systemSettingManager.getDateSetting(
+            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+        .thenReturn(lastLatestPartitionUpdate);
+    assertThrows(IllegalArgumentException.class, () -> subject.getAnalyticsTables(params));
+  }
 }

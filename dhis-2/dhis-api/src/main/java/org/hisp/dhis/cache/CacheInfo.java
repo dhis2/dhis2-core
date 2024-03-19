@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.cache;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * REST API data structures for local cache information.
@@ -43,141 +41,108 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @AllArgsConstructor
-public final class CacheInfo
-{
+public final class CacheInfo {
+
+  @JsonProperty private final CacheCapInfo cap;
+
+  @JsonProperty private final CacheBurdenInfo burden;
+
+  @JsonProperty private final CacheGroupInfo total;
+
+  @JsonProperty private final List<CacheGroupInfo> regions;
+
+  @Getter
+  @Setter
+  @RequiredArgsConstructor
+  public static final class CacheGroupInfo {
+    @JsonProperty private final String name;
+
+    @JsonProperty private final int entries;
+
+    @JsonProperty private final long hits;
+
+    @JsonProperty private final long misses;
+
+    @JsonProperty private final long size;
+
+    @JsonProperty private final double burden;
+
+    @JsonProperty private int highBurdenEntries;
 
     @JsonProperty
-    private final CacheCapInfo cap;
+    public String getSizeHumanReadable() {
+      return humanReadableSize(size);
+    }
 
     @JsonProperty
-    private final CacheBurdenInfo burden;
+    public long getAverageEntrySize() {
+      return entries == 0 ? 0L : size / entries;
+    }
 
     @JsonProperty
-    private final CacheGroupInfo total;
+    public String getAverageEntrySizeHumanReadable() {
+      return humanReadableSize(getAverageEntrySize());
+    }
 
     @JsonProperty
-    private final List<CacheGroupInfo> regions;
+    public float getHitsMissesRatio() {
+      return misses == 0 ? Float.MAX_VALUE : hits / (float) misses;
+    }
+  }
 
-    @Getter
-    @Setter
-    @RequiredArgsConstructor
-    public static final class CacheGroupInfo
-    {
-        @JsonProperty
-        private final String name;
+  @Getter
+  @RequiredArgsConstructor
+  public static final class CacheCapInfo {
+    @JsonProperty private final int capPercentage;
 
-        @JsonProperty
-        private final int entries;
+    @JsonProperty private final int softCapPercentage;
 
-        @JsonProperty
-        private final long hits;
+    @JsonProperty private final int hardCapPercentage;
+  }
 
-        @JsonProperty
-        private final long misses;
+  @Getter
+  @RequiredArgsConstructor
+  public static final class CacheBurdenInfo {
 
-        @JsonProperty
-        private final long size;
+    @JsonProperty private final int entries;
 
-        @JsonProperty
-        private final double burden;
+    @JsonProperty private final long size;
 
-        @JsonProperty
-        private int highBurdenEntries;
+    @JsonProperty private final double threshold;
 
-        @JsonProperty
-        public String getSizeHumanReadable()
-        {
-            return humanReadableSize( size );
-        }
-
-        @JsonProperty
-        public long getAverageEntrySize()
-        {
-            return entries == 0 ? 0L : size / entries;
-        }
-
-        @JsonProperty
-        public String getAverageEntrySizeHumanReadable()
-        {
-            return humanReadableSize( getAverageEntrySize() );
-        }
-
-        @JsonProperty
-        public float getHitsMissesRatio()
-        {
-            return misses == 0 ? Float.MAX_VALUE : hits / (float) misses;
-        }
+    @JsonProperty
+    public String getSizeHumanReadable() {
+      return humanReadableSize(size);
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static final class CacheCapInfo
-    {
-        @JsonProperty
-        private final int capPercentage;
-
-        @JsonProperty
-        private final int softCapPercentage;
-
-        @JsonProperty
-        private final int hardCapPercentage;
+    @JsonProperty
+    public long getAverageEntrySize() {
+      return entries == 0 ? 0L : size / entries;
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static final class CacheBurdenInfo
-    {
-
-        @JsonProperty
-        private final int entries;
-
-        @JsonProperty
-        private final long size;
-
-        @JsonProperty
-        private final double threshold;
-
-        @JsonProperty
-        public String getSizeHumanReadable()
-        {
-            return humanReadableSize( size );
-        }
-
-        @JsonProperty
-        public long getAverageEntrySize()
-        {
-            return entries == 0 ? 0L : size / entries;
-        }
-
-        @JsonProperty
-        public String getAverageEntrySizeHumanReadable()
-        {
-            return humanReadableSize( getAverageEntrySize() );
-        }
+    @JsonProperty
+    public String getAverageEntrySizeHumanReadable() {
+      return humanReadableSize(getAverageEntrySize());
     }
+  }
 
-    /**
-     * Returns a human readable form of the passed size in bytes. As this is
-     * used in the context of estimated sizes the returned human readable form
-     * is also giving a approximation.
-     *
-     * @param size number of bytes
-     * @return a human readable form of the passed size in bytes.
-     */
-    public static String humanReadableSize( long size )
-    {
-        if ( size == 0L )
-        {
-            return "0";
-        }
-        if ( size > 1024L * 1024L )
-        {
-            return String.format( "~%.1fMB", (size / 1024L / 1024d) );
-        }
-        if ( size > 1024L )
-        {
-            return String.format( "~%.1fkB", (size / 1024d) );
-        }
-        return "< 1kB";
+  /**
+   * Returns a human readable form of the passed size in bytes. As this is used in the context of
+   * estimated sizes the returned human readable form is also giving a approximation.
+   *
+   * @param size number of bytes
+   * @return a human readable form of the passed size in bytes.
+   */
+  public static String humanReadableSize(long size) {
+    if (size == 0L) {
+      return "0";
     }
+    if (size > 1024L * 1024L) {
+      return String.format("~%.1fMB", (size / 1024L / 1024d));
+    }
+    if (size > 1024L) {
+      return String.format("~%.1fkB", (size / 1024d));
+    }
+    return "< 1kB";
+  }
 }

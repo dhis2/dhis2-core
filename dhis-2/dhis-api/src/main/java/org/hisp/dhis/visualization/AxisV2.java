@@ -30,15 +30,12 @@ package org.hisp.dhis.visualization;
 import static java.lang.Integer.MAX_VALUE;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import lombok.Data;
-
-import org.hisp.dhis.schema.annotation.PropertyRange;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import lombok.Data;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * Represents the respective Visualization axis definition.
@@ -46,48 +43,47 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author maikel arabori
  */
 @Data
-@JacksonXmlRootElement( localName = "axis", namespace = DXF_2_0 )
-public class AxisV2 implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Integer index;
+@JacksonXmlRootElement(localName = "axis", namespace = DXF_2_0)
+public class AxisV2 implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Integer index;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private AxisType type;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private AxisType type;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject label;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private StyledObject label;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject title;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private StyledObject title;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Integer decimals;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Integer decimals;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = -MAX_VALUE )
-    private Double maxValue;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @PropertyRange(min = -MAX_VALUE)
+  private Double maxValue;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @PropertyRange( min = -MAX_VALUE )
-    private Double minValue;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @PropertyRange(min = -MAX_VALUE)
+  private Double minValue;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Integer steps;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Integer steps;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Line baseLine;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Line baseLine;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Line targetLine;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Line targetLine;
 }

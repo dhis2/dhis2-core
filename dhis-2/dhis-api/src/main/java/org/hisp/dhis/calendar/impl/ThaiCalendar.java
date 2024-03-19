@@ -37,23 +37,19 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class ThaiCalendar extends ChronologyBasedCalendar
-{
-    private static final Calendar SELF = new ThaiCalendar();
+public class ThaiCalendar extends ChronologyBasedCalendar {
+  private static final Calendar SELF = new ThaiCalendar();
 
-    public static Calendar getInstance()
-    {
-        return SELF;
-    }
+  public static Calendar getInstance() {
+    return SELF;
+  }
 
-    protected ThaiCalendar()
-    {
-        super( BuddhistChronology.getInstance( DateTimeZone.getDefault() ) );
-    }
+  protected ThaiCalendar() {
+    super(BuddhistChronology.getInstance(DateTimeZone.getDefault()));
+  }
 
-    @Override
-    public String name()
-    {
-        return "thai";
-    }
+  @Override
+  public String name() {
+    return "thai";
+  }
 }

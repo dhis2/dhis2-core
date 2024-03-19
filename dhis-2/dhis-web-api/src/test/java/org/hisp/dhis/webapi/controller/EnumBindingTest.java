@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.common.ValueType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,78 +43,64 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-class EnumBindingTest
-{
-    private final static String ENDPOINT = "/enum";
+class EnumBindingTest {
+  private static final String ENDPOINT = "/enum";
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    public void setUp()
-    {
-        mockMvc = MockMvcBuilders.standaloneSetup( new EnumController() ).build();
+  @BeforeEach
+  public void setUp() {
+    mockMvc = MockMvcBuilders.standaloneSetup(new EnumController()).build();
+  }
+
+  @Test
+  void verifyValidUpperCaseParameterReturnsOk() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT).param("valueType", "TEXT"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("TEXT"));
+  }
+
+  @Test
+  void verifyValidLowerCaseParameterReturnsOk() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT).param("valueType", "text"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("TEXT"));
+  }
+
+  @Test
+  void verifyValidUpperCaseCriteriaReturnsOk() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("valueTypeInCriteria", "TEXT"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("TEXT"));
+  }
+
+  @Test
+  void verifyValidLowerCaseCriteriaReturnsOk() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("valueTypeInCriteria", "text"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("TEXT"));
+  }
+
+  @Controller
+  private class EnumController extends CrudControllerAdvice {
+    @GetMapping(value = ENDPOINT)
+    public @ResponseBody String getEnumValue(@RequestParam ValueType valueType) {
+      return valueType.name();
     }
 
-    @Test
-    void verifyValidUpperCaseParameterReturnsOk()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT )
-            .param( "valueType", "TEXT" ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( "TEXT" ) );
+    @GetMapping(value = ENDPOINT + "/criteria")
+    public @ResponseBody String getEnumValue(ValueTypeCriteria valueTypeCriteria) {
+      return valueTypeCriteria.getValueTypeInCriteria().name();
     }
+  }
 
-    @Test
-    void verifyValidLowerCaseParameterReturnsOk()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT )
-            .param( "valueType", "text" ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( "TEXT" ) );
-    }
-
-    @Test
-    void verifyValidUpperCaseCriteriaReturnsOk()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "valueTypeInCriteria", "TEXT" ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( "TEXT" ) );
-    }
-
-    @Test
-    void verifyValidLowerCaseCriteriaReturnsOk()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "valueTypeInCriteria", "text" ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( "TEXT" ) );
-    }
-
-    @Controller
-    private class EnumController extends CrudControllerAdvice
-    {
-        @GetMapping( value = ENDPOINT )
-        public @ResponseBody String getEnumValue( @RequestParam ValueType valueType )
-        {
-            return valueType.name();
-        }
-
-        @GetMapping( value = ENDPOINT + "/criteria" )
-        public @ResponseBody String getEnumValue( ValueTypeCriteria valueTypeCriteria )
-        {
-            return valueTypeCriteria.getValueTypeInCriteria().name();
-        }
-    }
-
-    @AllArgsConstructor
-    @Getter
-    private class ValueTypeCriteria
-    {
-        private final ValueType valueTypeInCriteria;
-    }
+  @AllArgsConstructor
+  @Getter
+  private class ValueTypeCriteria {
+    private final ValueType valueTypeInCriteria;
+  }
 }

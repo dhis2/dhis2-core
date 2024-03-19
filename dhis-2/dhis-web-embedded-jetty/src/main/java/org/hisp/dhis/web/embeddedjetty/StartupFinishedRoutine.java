@@ -28,20 +28,19 @@
 package org.hisp.dhis.web.embeddedjetty;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class StartupFinishedRoutine extends AbstractStartupRoutine
-{
-    @Override
-    public void execute()
-        throws Exception
-    {
-        log.info( String.format( "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
-            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000), System.getProperty( "jetty.http.port" ) ) );
-    }
+public class StartupFinishedRoutine extends AbstractStartupRoutine {
+  @Override
+  public void execute() throws Exception {
+    log.info(
+        String.format(
+            "DHIS2 API Server Startup Finished In %s Seconds! Running on port: %s",
+            (JettyEmbeddedCoreWeb.getElapsedMsSinceStart() / 1000),
+            System.getProperty("jetty.http.port")));
+  }
 }

@@ -35,30 +35,24 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class CategoryOptionDeletionHandler extends IdObjectDeletionHandler<CategoryOption>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Category.class, this::deleteCategory );
-        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
-    }
+public class CategoryOptionDeletionHandler extends IdObjectDeletionHandler<CategoryOption> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Category.class, this::deleteCategory);
+    whenDeleting(OrganisationUnit.class, this::deleteOrgUnit);
+  }
 
-    private void deleteOrgUnit( OrganisationUnit unit )
-    {
-        for ( CategoryOption option : unit.getCategoryOptions() )
-        {
-            option.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( option );
-        }
+  private void deleteOrgUnit(OrganisationUnit unit) {
+    for (CategoryOption option : unit.getCategoryOptions()) {
+      option.getOrganisationUnits().remove(unit);
+      idObjectManager.updateNoAcl(option);
     }
+  }
 
-    private void deleteCategory( Category category )
-    {
-        for ( CategoryOption option : category.getCategoryOptions() )
-        {
-            option.getCategories().remove( category );
-            idObjectManager.updateNoAcl( option );
-        }
+  private void deleteCategory(Category category) {
+    for (CategoryOption option : category.getCategoryOptions()) {
+      option.getCategories().remove(category);
+      idObjectManager.updateNoAcl(option);
     }
+  }
 }

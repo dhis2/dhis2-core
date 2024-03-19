@@ -33,101 +33,87 @@ import org.joda.time.DateTimeConstants;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class SixMonthlyNovemberPeriodType
-    extends SixMonthlyAbstractPeriodType
-{
-    private static final long serialVersionUID = 234137239008575913L;
+public class SixMonthlyNovemberPeriodType extends SixMonthlyAbstractPeriodType {
+  private static final long serialVersionUID = 234137239008575913L;
 
-    private static final String ISO_FORMAT = "yyyyNovSn";
+  private static final String ISO_FORMAT = "yyyyNovSn";
 
-    private static final String ISO8601_DURATION = "P6M";
+  private static final String ISO8601_DURATION = "P6M";
 
-    private static final int BASE_MONTH = DateTimeConstants.NOVEMBER;
+  private static final int BASE_MONTH = DateTimeConstants.NOVEMBER;
 
-    // -------------------------------------------------------------------------
-    // PeriodType functionality
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PeriodType functionality
+  // -------------------------------------------------------------------------
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.SIX_MONTHLY_NOV;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.SIX_MONTHLY_NOV;
+  }
+
+  @Override
+  public int getBaseMonth() {
+    return BASE_MONTH;
+  }
+
+  @Override
+  public Period createPeriod(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    DateTimeUnit start = new DateTimeUnit(dateTimeUnit);
+
+    int baseMonth = getBaseMonth();
+    int year = start.getYear();
+    int month = baseMonth;
+
+    if (start.getMonth() < 5) {
+      month = baseMonth;
+      year = year - 1;
     }
 
-    @Override
-    public int getBaseMonth()
-    {
-        return BASE_MONTH;
+    if (start.getMonth() >= 5 && start.getMonth() <= 10) {
+      month = baseMonth - 6;
     }
 
-    @Override
-    public Period createPeriod( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        DateTimeUnit start = new DateTimeUnit( dateTimeUnit );
+    start.setYear(year);
+    start.setMonth(month);
+    start.setDay(1);
 
-        int baseMonth = getBaseMonth();
-        int year = start.getYear();
-        int month = baseMonth;
+    DateTimeUnit end = new DateTimeUnit(start);
+    end = calendar.plusMonths(end, 5);
+    end.setDay(calendar.daysInMonth(end.getYear(), end.getMonth()));
 
-        if ( start.getMonth() < 5 )
-        {
-            month = baseMonth;
-            year = year - 1;
-        }
+    return toIsoPeriod(start, end, calendar);
+  }
 
-        if ( start.getMonth() >= 5 && start.getMonth() <= 10 )
-        {
-            month = baseMonth - 6;
-        }
+  // -------------------------------------------------------------------------
+  // CalendarPeriodType functionality
+  // -------------------------------------------------------------------------
 
-        start.setYear( year );
-        start.setMonth( month );
-        start.setDay( 1 );
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, Calendar calendar) {
+    int month = dateTimeUnit.getMonth();
 
-        DateTimeUnit end = new DateTimeUnit( start );
-        end = calendar.plusMonths( end, 5 );
-        end.setDay( calendar.daysInMonth( end.getYear(), end.getMonth() ) );
-
-        return toIsoPeriod( start, end, calendar );
+    if (dateTimeUnit.isIso8601()) {
+      month = calendar.fromIso(dateTimeUnit).getMonth();
     }
 
-    // -------------------------------------------------------------------------
-    // CalendarPeriodType functionality
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, Calendar calendar )
-    {
-        int month = dateTimeUnit.getMonth();
-
-        if ( dateTimeUnit.isIso8601() )
-        {
-            month = calendar.fromIso( dateTimeUnit ).getMonth();
-        }
-
-        switch ( month )
-        {
-        case 11:
-            return dateTimeUnit.getYear() + 1 + "NovS1";
-        case 5:
-            return dateTimeUnit.getYear() + "NovS2";
-        default:
-            throw new IllegalArgumentException( "Month not valid [11,5]" );
-        }
+    switch (month) {
+      case 11:
+        return dateTimeUnit.getYear() + 1 + "NovS1";
+      case 5:
+        return dateTimeUnit.getYear() + "NovS2";
+      default:
+        throw new IllegalArgumentException("Month not valid [11,5]");
     }
+  }
 
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
-    }
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
 
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
-
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
+  }
 }

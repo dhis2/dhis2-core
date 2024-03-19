@@ -35,11 +35,9 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 /**
  * @author Morten Olav Hansen
  */
-@OpenApi.Response( status = BAD_REQUEST, value = WebMessageResponse.class )
-public class JsonPatchException extends Exception
-{
-    public JsonPatchException( String message )
-    {
-        super( message );
-    }
+@OpenApi.Response(status = BAD_REQUEST, value = WebMessageResponse.class)
+public class JsonPatchException extends Exception {
+  public JsonPatchException(String message) {
+    super(message);
+  }
 }

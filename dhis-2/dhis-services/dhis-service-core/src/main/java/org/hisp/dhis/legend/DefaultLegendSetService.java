@@ -28,9 +28,7 @@
 package org.hisp.dhis.legend;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -40,58 +38,50 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.legend.LegendService" )
-public class DefaultLegendSetService
-    implements LegendSetService
-{
-    @Qualifier( "org.hisp.dhis.legend.LegendSetStore" )
-    private final IdentifiableObjectStore<LegendSet> legendSetStore;
+@Service("org.hisp.dhis.legend.LegendService")
+public class DefaultLegendSetService implements LegendSetService {
+  @Qualifier("org.hisp.dhis.legend.LegendSetStore")
+  private final IdentifiableObjectStore<LegendSet> legendSetStore;
 
-    // -------------------------------------------------------------------------
-    // LegendSet
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // LegendSet
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addLegendSet( LegendSet legend )
-    {
-        legendSetStore.save( legend );
+  @Override
+  @Transactional
+  public long addLegendSet(LegendSet legend) {
+    legendSetStore.save(legend);
 
-        return legend.getId();
-    }
+    return legend.getId();
+  }
 
-    @Override
-    @Transactional
-    public void updateLegendSet( LegendSet legend )
-    {
-        legendSetStore.update( legend );
-    }
+  @Override
+  @Transactional
+  public void updateLegendSet(LegendSet legend) {
+    legendSetStore.update(legend);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public LegendSet getLegendSet( long id )
-    {
-        return legendSetStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public LegendSet getLegendSet(long id) {
+    return legendSetStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public LegendSet getLegendSet( String uid )
-    {
-        return legendSetStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public LegendSet getLegendSet(String uid) {
+    return legendSetStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional
-    public void deleteLegendSet( LegendSet legendSet )
-    {
-        legendSetStore.delete( legendSet );
-    }
+  @Override
+  @Transactional
+  public void deleteLegendSet(LegendSet legendSet) {
+    legendSetStore.delete(legendSet);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<LegendSet> getAllLegendSets()
-    {
-        return legendSetStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<LegendSet> getAllLegendSets() {
+    return legendSetStore.getAll();
+  }
 }

@@ -27,32 +27,26 @@
  */
 package org.hisp.dhis.appmanager;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Jim Grace
  */
-public class DashboardWidgetAppSettings
-    implements Serializable
-{
-    private static final long serialVersionUID = 3276714841481308629L;
+public class DashboardWidgetAppSettings implements Serializable {
+  private static final long serialVersionUID = 3276714841481308629L;
 
-    private Boolean hideTitle;
+  private Boolean hideTitle;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getHideTitle()
-    {
-        return hideTitle;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getHideTitle() {
+    return hideTitle;
+  }
 
-    public void setHideTitle( Boolean hideTitle )
-    {
-        this.hideTitle = hideTitle;
-    }
+  public void setHideTitle(Boolean hideTitle) {
+    this.hideTitle = hideTitle;
+  }
 }

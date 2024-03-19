@@ -32,9 +32,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -49,45 +49,54 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component( "org.hisp.dhis.sms.listener.DeleteEventSMSListener" )
+@Component("org.hisp.dhis.sms.listener.DeleteEventSMSListener")
 @Transactional
-public class DeleteEventSMSListener extends CompressionSMSListener
-{
-    public DeleteEventSMSListener( IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
-        ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        IdentifiableObjectManager identifiableObjectManager )
-    {
-        super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+public class DeleteEventSMSListener extends CompressionSMSListener {
+  public DeleteEventSMSListener(
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      UserService userService,
+      TrackedEntityTypeService trackedEntityTypeService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      ProgramService programService,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      DataElementService dataElementService,
+      EventService eventService,
+      IdentifiableObjectManager identifiableObjectManager) {
+    super(
+        incomingSmsService,
+        smsSender,
+        userService,
+        trackedEntityTypeService,
+        trackedEntityAttributeService,
+        programService,
+        organisationUnitService,
+        categoryService,
+        dataElementService,
+        eventService,
+        identifiableObjectManager);
+  }
+
+  @Override
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+      throws SMSProcessingException {
+    DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
+
+    Uid eventid = subm.getEvent();
+    Event event = eventService.getEvent(eventid.getUid());
+
+    if (event == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(eventid));
     }
 
-    @Override
-    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
-        throws SMSProcessingException
-    {
-        DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
+    eventService.deleteEvent(event);
 
-        Uid eventid = subm.getEvent();
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUid() );
+    return SmsResponse.SUCCESS;
+  }
 
-        if ( psi == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( eventid ) );
-        }
-
-        programStageInstanceService.deleteProgramStageInstance( psi );
-
-        return SmsResponse.SUCCESS;
-    }
-
-    @Override
-    protected boolean handlesType( SubmissionType type )
-    {
-        return (type == SubmissionType.DELETE);
-    }
-
+  @Override
+  protected boolean handlesType(SubmissionType type) {
+    return (type == SubmissionType.DELETE);
+  }
 }

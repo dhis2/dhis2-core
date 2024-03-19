@@ -29,9 +29,7 @@ package org.hisp.dhis.db.migration.v33;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import javax.annotation.Nonnull;
-
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.common.DisplayProperty;
@@ -44,80 +42,103 @@ import org.springframework.util.SerializationUtils;
 /**
  * @author Volker Schmidt
  */
-public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends BaseJavaMigration
-{
-    private static final Logger log = LoggerFactory
-        .getLogger( V2_33_13__Migrate_text_based_system_settings_to_use_enums.class );
+public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends BaseJavaMigration {
+  private static final Logger log =
+      LoggerFactory.getLogger(V2_33_13__Migrate_text_based_system_settings_to_use_enums.class);
 
-    @Override
-    public void migrate( final Context context )
-        throws Exception
-    {
-        update( context, "systemsetting", "systemsettingid", "keyCacheStrategy", CacheStrategy.class );
-        update( context, "systemsetting", "systemsettingid", "keyAnalysisDisplayProperty", DisplayProperty.class );
-        update( context, "systemsetting", "systemsettingid", "keyAnalysisRelativePeriod", RelativePeriodEnum.class );
-        update( context, "usersetting", "userinfoid", "keyAnalysisDisplayProperty", DisplayProperty.class );
-    }
+  @Override
+  public void migrate(final Context context) throws Exception {
+    update(context, "systemsetting", "systemsettingid", "keyCacheStrategy", CacheStrategy.class);
+    update(
+        context,
+        "systemsetting",
+        "systemsettingid",
+        "keyAnalysisDisplayProperty",
+        DisplayProperty.class);
+    update(
+        context,
+        "systemsetting",
+        "systemsettingid",
+        "keyAnalysisRelativePeriod",
+        RelativePeriodEnum.class);
+    update(
+        context, "usersetting", "userinfoid", "keyAnalysisDisplayProperty", DisplayProperty.class);
+  }
 
-    @SuppressWarnings( "unchecked" )
-    protected void update( @Nonnull Context context, @Nonnull String tableName, @Nonnull String primaryKeyColumnName,
-        @Nonnull String settingName, @Nonnull Class<? extends Enum> enumClass )
-        throws Exception
-    {
-        try ( final Statement stmt = context.getConnection().createStatement( ResultSet.TYPE_FORWARD_ONLY,
-            ResultSet.CONCUR_UPDATABLE ) )
-        {
-            final String query = "SELECT " + primaryKeyColumnName + ",name,value FROM " + tableName + " WHERE name='"
-                + settingName + "'";
-            try ( final ResultSet rs = stmt.executeQuery( query ) )
-            {
-                while ( rs.next() )
-                {
-                    final String id = rs.getString( 1 );
-                    final String name = rs.getString( 2 );
-                    final byte[] value = rs.getBytes( 3 );
-                    Object valueObject;
-                    Enum<?> convertedValue;
+  @SuppressWarnings("unchecked")
+  protected void update(
+      @Nonnull Context context,
+      @Nonnull String tableName,
+      @Nonnull String primaryKeyColumnName,
+      @Nonnull String settingName,
+      @Nonnull Class<? extends Enum> enumClass)
+      throws Exception {
+    try (final Statement stmt =
+        context
+            .getConnection()
+            .createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+      final String query =
+          "SELECT "
+              + primaryKeyColumnName
+              + ",name,value FROM "
+              + tableName
+              + " WHERE name='"
+              + settingName
+              + "'";
+      try (final ResultSet rs = stmt.executeQuery(query)) {
+        while (rs.next()) {
+          final String id = rs.getString(1);
+          final String name = rs.getString(2);
+          final byte[] value = rs.getBytes(3);
+          Object valueObject;
+          Enum<?> convertedValue;
 
-                    if ( value == null )
-                    {
-                        continue;
-                    }
+          if (value == null) {
+            continue;
+          }
 
-                    try
-                    {
-                        valueObject = SerializationUtils.deserialize( value );
-                    }
-                    catch ( IllegalArgumentException | IllegalStateException e )
-                    {
-                        log.error( "Setting contains invalid value and will be ignored: " + id, e );
+          try {
+            valueObject = SerializationUtils.deserialize(value);
+          } catch (IllegalArgumentException | IllegalStateException e) {
+            log.error("Setting contains invalid value and will be ignored: " + id, e);
 
-                        continue;
-                    }
+            continue;
+          }
 
-                    try
-                    {
-                        convertedValue = Enum.valueOf( enumClass,
-                            valueObject.toString().trim().replace( ' ', '_' ).toUpperCase() );
-                    }
-                    catch ( IllegalArgumentException e )
-                    {
-                        convertedValue = null;
+          try {
+            convertedValue =
+                Enum.valueOf(
+                    enumClass, valueObject.toString().trim().replace(' ', '_').toUpperCase());
+          } catch (IllegalArgumentException e) {
+            convertedValue = null;
 
-                        rs.deleteRow();
-                        log.error(
-                            "Could not convert setting '" + valueObject + "' of id '" + id + " (record deleted)." );
-                    }
+            rs.deleteRow();
+            log.error(
+                "Could not convert setting '"
+                    + valueObject
+                    + "' of id '"
+                    + id
+                    + " (record deleted).");
+          }
 
-                    if ( convertedValue != null )
-                    {
-                        rs.updateBytes( 3, SerializationUtils.serialize( convertedValue ) );
-                        rs.updateRow();
-                        log.info( "Migrated " + tableName + " value of type " + name + " (id=" + id + ") from '"
-                            + valueObject + "' to '" + convertedValue + "'" );
-                    }
-                }
-            }
+          if (convertedValue != null) {
+            rs.updateBytes(3, SerializationUtils.serialize(convertedValue));
+            rs.updateRow();
+            log.info(
+                "Migrated "
+                    + tableName
+                    + " value of type "
+                    + name
+                    + " (id="
+                    + id
+                    + ") from '"
+                    + valueObject
+                    + "' to '"
+                    + convertedValue
+                    + "'");
+          }
         }
+      }
     }
+  }
 }

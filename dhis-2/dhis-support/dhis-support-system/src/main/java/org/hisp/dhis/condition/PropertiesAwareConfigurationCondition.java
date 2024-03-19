@@ -37,39 +37,33 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
 
 /**
- * Loads the DHIS2 configuration provider within the context of a Spring
- * Configuration condition. This is required, since the
- * {@link DefaultDhisConfigurationProvider} is not available as Spring Bean when
- * the condition is evaluated.
+ * Loads the DHIS2 configuration provider within the context of a Spring Configuration condition.
+ * This is required, since the {@link DefaultDhisConfigurationProvider} is not available as Spring
+ * Bean when the condition is evaluated.
  *
  * @author Luciano Fiandesio
  */
-public abstract class PropertiesAwareConfigurationCondition
-    implements ConfigurationCondition
-{
-    protected DhisConfigurationProvider getConfiguration()
-    {
-        DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
-        locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider = new DefaultDhisConfigurationProvider(
-            locationManager );
-        dhisConfigurationProvider.init();
+public abstract class PropertiesAwareConfigurationCondition implements ConfigurationCondition {
+  protected DhisConfigurationProvider getConfiguration() {
+    DefaultLocationManager locationManager =
+        (DefaultLocationManager) new ServiceConfig().locationManager();
+    locationManager.init();
+    DefaultDhisConfigurationProvider dhisConfigurationProvider =
+        new DefaultDhisConfigurationProvider(locationManager);
+    dhisConfigurationProvider.init();
 
-        return dhisConfigurationProvider;
-    }
+    return dhisConfigurationProvider;
+  }
 
-    protected boolean isTestRun( ConditionContext context )
-    {
-        return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
-    }
+  protected boolean isTestRun(ConditionContext context) {
+    return SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles());
+  }
 
-    protected boolean isAuditTest( ConditionContext context )
-    {
-        return SystemUtils.isAuditTest( context.getEnvironment().getActiveProfiles() );
-    }
+  protected boolean isAuditTest(ConditionContext context) {
+    return SystemUtils.isAuditTest(context.getEnvironment().getActiveProfiles());
+  }
 
-    protected boolean getBooleanValue( ConfigurationKey key )
-    {
-        return getConfiguration().isEnabled( key );
-    }
+  protected boolean getBooleanValue(ConfigurationKey key) {
+    return getConfiguration().isEnabled(key);
+  }
 }

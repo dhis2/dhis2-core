@@ -30,10 +30,8 @@ package org.hisp.dhis.query;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class QueryException extends RuntimeException
-{
-    public QueryException( String message )
-    {
-        super( message );
-    }
+public class QueryException extends RuntimeException {
+  public QueryException(String message) {
+    super(message);
+  }
 }

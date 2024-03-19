@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.apphub.AppHubUtils;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -40,75 +40,65 @@ import org.springframework.http.MediaType;
 /**
  * @author Lars Helge Overland
  */
-class AppHubUtilsTest
-{
+class AppHubUtilsTest {
 
-    @Test
-    void testValidateQuery()
-    {
-        AppHubUtils.validateQuery( "apps" );
-    }
+  @Test
+  void testValidateQuery() throws ConflictException {
+    AppHubUtils.validateQuery("apps");
+  }
 
-    @Test
-    void testValidateInvalidQueryA()
-    {
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "apps/../../evil/endpoint" ) );
-    }
+  @Test
+  void testValidateInvalidQueryA() {
+    assertThrows(
+        ConflictException.class, () -> AppHubUtils.validateQuery("apps/../../evil/endpoint"));
+  }
 
-    @Test
-    void testValidateInvalidQueryB()
-    {
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "http://evildomain" ) );
-    }
+  @Test
+  void testValidateInvalidQueryB() {
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateQuery("http://evildomain"));
+  }
 
-    @Test
-    void testValidateInvalidQueryC()
-    {
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "" ) );
-    }
+  @Test
+  void testValidateInvalidQueryC() {
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateQuery(""));
+  }
 
-    @Test
-    void testValidateInvalidQueryD()
-    {
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( null ) );
-    }
+  @Test
+  void testValidateInvalidQueryD() {
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateQuery(null));
+  }
 
-    @Test
-    void testValidateApiVersionA()
-    {
-        AppHubUtils.validateApiVersion( "v2" );
-    }
+  @Test
+  void testValidateApiVersionA() throws ConflictException {
+    AppHubUtils.validateApiVersion("v2");
+  }
 
-    @Test
-    void testValidateApiVersionB()
-    {
-        AppHubUtils.validateApiVersion( "v146" );
-    }
+  @Test
+  void testValidateApiVersionB() throws ConflictException {
+    AppHubUtils.validateApiVersion("v146");
+  }
 
-    @Test
-    void testValidateInvalidApiVersionA()
-    {
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateApiVersion( "25" ) );
-    }
+  @Test
+  void testValidateInvalidApiVersionA() {
+    assertThrows(ConflictException.class, () -> AppHubUtils.validateApiVersion("25"));
+  }
 
-    @Test
-    void testValidateInvalidApiVersionB()
-    {
-        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateApiVersion( "malicious_script.js" ) );
-    }
+  @Test
+  void testValidateInvalidApiVersionB() {
+    assertThrows(
+        ConflictException.class, () -> AppHubUtils.validateApiVersion("malicious_script.js"));
+  }
 
-    @Test
-    void testSanitizeQuery()
-    {
-        assertEquals( "apps", AppHubUtils.sanitizeQuery( "apps" ) );
-        assertEquals( "apps", AppHubUtils.sanitizeQuery( "/apps" ) );
-        assertEquals( "apps", AppHubUtils.sanitizeQuery( "//apps" ) );
-    }
+  @Test
+  void testSanitizeQuery() {
+    assertEquals("apps", AppHubUtils.sanitizeQuery("apps"));
+    assertEquals("apps", AppHubUtils.sanitizeQuery("/apps"));
+    assertEquals("apps", AppHubUtils.sanitizeQuery("//apps"));
+  }
 
-    @Test
-    void testGetJsonRequestEntity()
-    {
-        HttpEntity<String> entity = AppHubUtils.getJsonRequestEntity();
-        assertTrue( entity.getHeaders().getAccept().contains( MediaType.APPLICATION_JSON ) );
-    }
+  @Test
+  void testGetJsonRequestEntity() {
+    HttpEntity<String> entity = AppHubUtils.getJsonRequestEntity();
+    assertTrue(entity.getHeaders().getAccept().contains(MediaType.APPLICATION_JSON));
+  }
 }

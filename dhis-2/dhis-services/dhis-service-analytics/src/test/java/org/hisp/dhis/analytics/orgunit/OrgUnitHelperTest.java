@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -42,69 +41,65 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class OrgUnitHelperTest
-{
-    @Test
-    void getActiveOrganisationUnits_returns_only_active_units()
-    {
-        // Given
-        List<OrganisationUnit> rqOrgUnit = new ArrayList<>();
+@ExtendWith(MockitoExtension.class)
+class OrgUnitHelperTest {
+  @Test
+  void getActiveOrganisationUnits_returns_only_active_units() {
+    // Given
+    List<OrganisationUnit> rqOrgUnit = new ArrayList<>();
 
-        rqOrgUnit.add( new OrganisationUnit( "name1" ) );
-        rqOrgUnit.add( new OrganisationUnit( "name2" ) );
-        rqOrgUnit.add( new OrganisationUnit( "name3" ) );
+    rqOrgUnit.add(new OrganisationUnit("name1"));
+    rqOrgUnit.add(new OrganisationUnit("name2"));
+    rqOrgUnit.add(new OrganisationUnit("name3"));
 
-        rqOrgUnit.get( 0 ).setUid( CodeGenerator.generateUid() );
-        rqOrgUnit.get( 1 ).setUid( CodeGenerator.generateUid() );
-        String target = CodeGenerator.generateUid();
-        rqOrgUnit.get( 2 ).setUid( target );
+    rqOrgUnit.get(0).setUid(CodeGenerator.generateUid());
+    rqOrgUnit.get(1).setUid(CodeGenerator.generateUid());
+    String target = CodeGenerator.generateUid();
+    rqOrgUnit.get(2).setUid(target);
 
-        GridHeader gridHeader = new GridHeader( "ou" );
+    GridHeader gridHeader = new GridHeader("ou");
 
-        Grid grid = new ListGrid();
-        grid.addHeader( gridHeader );
-        grid.addRow().addColumn( List.of( target ) );
+    Grid grid = new ListGrid();
+    grid.addHeader(gridHeader);
+    grid.addRow().addColumn(List.of(target));
 
-        // When
-        List<OrganisationUnit> rsOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, rqOrgUnit );
+    // When
+    List<OrganisationUnit> rsOrgUnits = OrgUnitHelper.getActiveOrganisationUnits(grid, rqOrgUnit);
 
-        // Then
-        assertEquals( 1, rsOrgUnits.size() );
-    }
+    // Then
+    assertEquals(1, rsOrgUnits.size());
+  }
 
-    @Test
-    void getActiveOrganisationUnits_returns_same_units()
-    {
-        // Given
-        List<OrganisationUnit> rqOrgUnit = new ArrayList<>();
+  @Test
+  void getActiveOrganisationUnits_returns_same_units() {
+    // Given
+    List<OrganisationUnit> rqOrgUnit = new ArrayList<>();
 
-        rqOrgUnit.add( new OrganisationUnit( "name1" ) );
-        rqOrgUnit.add( new OrganisationUnit( "name2" ) );
-        rqOrgUnit.add( new OrganisationUnit( "name3" ) );
+    rqOrgUnit.add(new OrganisationUnit("name1"));
+    rqOrgUnit.add(new OrganisationUnit("name2"));
+    rqOrgUnit.add(new OrganisationUnit("name3"));
 
-        rqOrgUnit.get( 0 ).setUid( CodeGenerator.generateUid() );
-        rqOrgUnit.get( 1 ).setUid( CodeGenerator.generateUid() );
-        String target = CodeGenerator.generateUid();
-        rqOrgUnit.get( 2 ).setUid( target );
+    rqOrgUnit.get(0).setUid(CodeGenerator.generateUid());
+    rqOrgUnit.get(1).setUid(CodeGenerator.generateUid());
+    String target = CodeGenerator.generateUid();
+    rqOrgUnit.get(2).setUid(target);
 
-        GridHeader gridHeader = new GridHeader( "ou" );
+    GridHeader gridHeader = new GridHeader("ou");
 
-        Grid grid = new ListGrid();
-        grid.addHeader( gridHeader );
+    Grid grid = new ListGrid();
+    grid.addHeader(gridHeader);
 
-        // When
-        List<OrganisationUnit> rsOrgUnits = OrgUnitHelper.getActiveOrganisationUnits( grid, rqOrgUnit );
+    // When
+    List<OrganisationUnit> rsOrgUnits = OrgUnitHelper.getActiveOrganisationUnits(grid, rqOrgUnit);
 
-        // Then
-        assertEquals( 3, rsOrgUnits.size() );
-    }
+    // Then
+    assertEquals(3, rsOrgUnits.size());
+  }
 
-    @Test
-    void getActiveOrganisationUnits_returns_null_when_called_with_null_param()
-    {
-        // Given, When, Then
-        assertNull( OrgUnitHelper.getActiveOrganisationUnits( null, null ) );
-        assertNull( OrgUnitHelper.getActiveOrganisationUnits( new ListGrid(), null ) );
-    }
+  @Test
+  void getActiveOrganisationUnits_returns_null_when_called_with_null_param() {
+    // Given, When, Then
+    assertNull(OrgUnitHelper.getActiveOrganisationUnits(null, null));
+    assertNull(OrgUnitHelper.getActiveOrganisationUnits(new ListGrid(), null));
+  }
 }

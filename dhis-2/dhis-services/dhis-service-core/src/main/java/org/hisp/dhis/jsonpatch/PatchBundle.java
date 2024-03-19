@@ -30,49 +30,40 @@ package org.hisp.dhis.jsonpatch;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 
 /**
  * @author viet@dhis2.org
  */
-public class PatchBundle
-{
-    /**
-     * Map contains validated entities for patching. Key is entity ID.
-     */
-    private final Map<String, IdentifiableObject> mapEntities = new HashMap<>();
+public class PatchBundle {
+  /** Map contains validated entities for patching. Key is entity ID. */
+  private final Map<String, IdentifiableObject> mapEntities = new HashMap<>();
 
-    /**
-     * Map contains validated JsonPatch for patching. Key is entity ID that the
-     * patch will be applied to.
-     */
-    private final Map<String, JsonPatch> mapPatches = new HashMap<>();
+  /**
+   * Map contains validated JsonPatch for patching. Key is entity ID that the patch will be applied
+   * to.
+   */
+  private final Map<String, JsonPatch> mapPatches = new HashMap<>();
 
-    public void addEntity( String id, IdentifiableObject entity, JsonPatch patch )
-    {
-        mapEntities.put( id, entity );
-        mapPatches.put( id, patch );
-    }
+  public void addEntity(String id, IdentifiableObject entity, JsonPatch patch) {
+    mapEntities.put(id, entity);
+    mapPatches.put(id, patch);
+  }
 
-    public boolean isEmpty()
-    {
-        return mapEntities.isEmpty();
-    }
+  public boolean isEmpty() {
+    return mapEntities.isEmpty();
+  }
 
-    public Set<String> getIds()
-    {
-        return mapEntities.keySet();
-    }
+  public Set<String> getIds() {
+    return mapEntities.keySet();
+  }
 
-    public IdentifiableObject getEntity( String id )
-    {
-        return mapEntities.get( id );
-    }
+  public IdentifiableObject getEntity(String id) {
+    return mapEntities.get(id);
+  }
 
-    public JsonPatch getJsonPatch( String id )
-    {
-        return mapPatches.get( id );
-    }
+  public JsonPatch getJsonPatch(String id) {
+    return mapPatches.get(id);
+  }
 }

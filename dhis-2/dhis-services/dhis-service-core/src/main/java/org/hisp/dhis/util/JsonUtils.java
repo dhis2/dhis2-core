@@ -27,55 +27,46 @@
  */
 package org.hisp.dhis.util;
 
-import java.util.function.Function;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Helper methods to deserialise JSON back to POJOs using jackson's
- * {@link com.fasterxml.jackson.databind.ObjectMapper}.
+ * Helper methods to deserialise JSON back to POJOs using jackson's {@link
+ * com.fasterxml.jackson.databind.ObjectMapper}.
  *
  * @author Jan Bernitt
  */
 @Slf4j
-public class JsonUtils
-{
-    private JsonUtils()
-    {
-        throw new UnsupportedOperationException( "util" );
-    }
+public class JsonUtils {
+  private JsonUtils() {
+    throw new UnsupportedOperationException("util");
+  }
 
-    public static <T, E extends Exception> T jsonToObject( JsonNode value, Class<T> type, ObjectMapper mapper,
-        Function<JsonProcessingException, E> handler )
-        throws E
-    {
-        try
-        {
-            return mapper.treeToValue( value, type );
-        }
-        catch ( JsonProcessingException ex )
-        {
-            throw handler.apply( ex );
-        }
+  public static <T, E extends Exception> T jsonToObject(
+      JsonNode value,
+      Class<T> type,
+      ObjectMapper mapper,
+      Function<JsonProcessingException, E> handler)
+      throws E {
+    try {
+      return mapper.treeToValue(value, type);
+    } catch (JsonProcessingException ex) {
+      throw handler.apply(ex);
     }
+  }
 
-    public static <T> T jsonToObject( JsonNode value, Class<T> type, T defaultValue, ObjectMapper mapper )
-    {
-        try
-        {
-            return mapper.treeToValue( value, type );
-        }
-        catch ( JsonProcessingException ex )
-        {
-            if ( log.isDebugEnabled() )
-            {
-                log.debug( ex.getMessage() );
-            }
-            return defaultValue;
-        }
+  public static <T> T jsonToObject(
+      JsonNode value, Class<T> type, T defaultValue, ObjectMapper mapper) {
+    try {
+      return mapper.treeToValue(value, type);
+    } catch (JsonProcessingException ex) {
+      if (log.isDebugEnabled()) {
+        log.debug(ex.getMessage());
+      }
+      return defaultValue;
     }
+  }
 }

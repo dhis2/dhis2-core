@@ -27,72 +27,57 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author David Katuscak
  */
-@JacksonXmlRootElement( localName = "metadataPayload", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataWrapper
-{
-    private String metadata;
+@JacksonXmlRootElement(localName = "metadataPayload", namespace = DxfNamespaces.DXF_2_0)
+public class MetadataWrapper {
+  private String metadata;
 
-    public MetadataWrapper()
-    {
+  public MetadataWrapper() {}
+
+  public MetadataWrapper(String metadata) {
+    this.metadata = metadata;
+  }
+
+  @JsonProperty("metadata")
+  @JacksonXmlProperty(localName = "metadata", namespace = DxfNamespaces.DXF_2_0)
+  public String getMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(String metadata) {
+    this.metadata = metadata;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public MetadataWrapper( String metadata )
-    {
-        this.metadata = metadata;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @JsonProperty( "metadata" )
-    @JacksonXmlProperty( localName = "metadata", namespace = DxfNamespaces.DXF_2_0 )
-    public String getMetadata()
-    {
-        return metadata;
-    }
+    MetadataWrapper temp = (MetadataWrapper) o;
 
-    public void setMetadata( String metadata )
-    {
-        this.metadata = metadata;
-    }
+    return Objects.equals(temp.getMetadata(), this.getMetadata());
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
+  @Override
+  public int hashCode() {
+    return metadata != null ? metadata.hashCode() : 0;
+  }
 
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        MetadataWrapper temp = (MetadataWrapper) o;
-
-        return Objects.equals( temp.getMetadata(), this.getMetadata() );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return metadata != null ? metadata.hashCode() : 0;
-    }
-
-    @Override
-    public java.lang.String toString()
-    {
-        return "MetadataWrapper{" +
-            "metadata=" + metadata +
-            '}';
-    }
+  @Override
+  public java.lang.String toString() {
+    return "MetadataWrapper{" + "metadata=" + metadata + '}';
+  }
 }

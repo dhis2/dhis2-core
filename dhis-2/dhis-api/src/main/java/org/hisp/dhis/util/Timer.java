@@ -30,68 +30,58 @@ package org.hisp.dhis.util;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class Timer
-{
-    private long startTime;
+public class Timer {
+  private long startTime;
 
-    private boolean printDisabled;
+  private boolean printDisabled;
 
-    public Timer disablePrint()
-    {
-        this.printDisabled = true;
-        return this;
+  public Timer disablePrint() {
+    this.printDisabled = true;
+    return this;
+  }
+
+  public Timer start() {
+    startTime = System.nanoTime();
+    return this;
+  }
+
+  public long getSplitTime() {
+    return getSplitTime("Split");
+  }
+
+  public long getSplitTime(String msg) {
+    long endTime = System.nanoTime();
+
+    long time = (endTime - startTime) / 1000;
+
+    if (!printDisabled) {
+      log.info("Time: " + time + " micros: " + msg);
     }
 
-    public Timer start()
-    {
-        startTime = System.nanoTime();
-        return this;
-    }
+    return time;
+  }
 
-    public long getSplitTime()
-    {
-        return getSplitTime( "Split" );
-    }
+  public long getTimeInMs() {
+    long endTime = System.nanoTime();
+    long time = (endTime - startTime) / 1000000;
+    return time;
+  }
 
-    public long getSplitTime( String msg )
-    {
-        long endTime = System.nanoTime();
+  public long getTimeInS() {
+    long endTime = System.nanoTime();
+    long time = (endTime - startTime) / 1000000000;
+    return time;
+  }
 
-        long time = (endTime - startTime) / 1000;
+  public long getTime(String msg) {
+    long time = getSplitTime(msg);
 
-        if ( !printDisabled )
-        {
-            log.info( "Time: " + time + " micros: " + msg );
-        }
+    start();
 
-        return time;
-    }
+    return time;
+  }
 
-    public long getTimeInMs()
-    {
-        long endTime = System.nanoTime();
-        long time = (endTime - startTime) / 1000000;
-        return time;
-    }
-
-    public long getTimeInS()
-    {
-        long endTime = System.nanoTime();
-        long time = (endTime - startTime) / 1000000000;
-        return time;
-    }
-
-    public long getTime( String msg )
-    {
-        long time = getSplitTime( msg );
-
-        start();
-
-        return time;
-    }
-
-    public long getTime()
-    {
-        return getTime( "Time" );
-    }
+  public long getTime() {
+    return getTime("Time");
+  }
 }

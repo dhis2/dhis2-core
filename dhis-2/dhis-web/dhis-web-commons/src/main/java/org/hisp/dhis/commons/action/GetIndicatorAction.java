@@ -27,66 +27,59 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
-
-import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Lars Helge Overland
  */
-public class GetIndicatorAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetIndicatorAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private IndicatorService indicatorService;
+  private IndicatorService indicatorService;
 
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
-        this.indicatorService = indicatorService;
+  public void setIndicatorService(IndicatorService indicatorService) {
+    this.indicatorService = indicatorService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private Indicator indicator;
+
+  public Indicator getIndicator() {
+    return indicator;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(Indicator.class);
+
+    if (id != null) {
+      indicator = indicatorService.getIndicator(id);
     }
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+    canReadInstance(indicator, CurrentUserUtil.getCurrentUserDetails());
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private Indicator indicator;
-
-    public Indicator getIndicator()
-    {
-        return indicator;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( Indicator.class );
-
-        if ( id != null )
-        {
-            indicator = indicatorService.getIndicator( id );
-        }
-
-        canReadInstance( indicator, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

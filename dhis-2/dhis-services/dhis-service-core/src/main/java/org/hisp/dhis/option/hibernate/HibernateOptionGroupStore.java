@@ -28,17 +28,14 @@
 package org.hisp.dhis.option.hibernate;
 
 import java.util.List;
-
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -46,44 +43,48 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Repository( "org.hisp.dhis.option.OptionGroupStore" )
-public class HibernateOptionGroupStore
-    extends HibernateIdentifiableObjectStore<OptionGroup>
-    implements OptionGroupStore
-{
-    public HibernateOptionGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OptionGroup.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.option.OptionGroupStore")
+public class HibernateOptionGroupStore extends HibernateIdentifiableObjectStore<OptionGroup>
+    implements OptionGroupStore {
+  public HibernateOptionGroupStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, OptionGroup.class, aclService, true);
+  }
 
-    @Override
-    public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<OptionGroup> getOptionGroups(OptionGroupSet groupSet) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "groupSet" ), groupSet ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicates(getSharingPredicates(builder))
+            .addPredicate(root -> builder.equal(root.get("groupSet"), groupSet)));
+  }
 
-    @Override
-    public List<OptionGroup> getOptionGroupsByOptionId( String optionId )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<OptionGroup> getOptionGroupsByOptionId(String optionId) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.join( "members" ).get( "uid" ), optionId ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicates(getSharingPredicates(builder))
+            .addPredicate(root -> builder.equal(root.join("members").get("uid"), optionId)));
+  }
 
-    @Override
-    public List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<OptionGroup> getOptionGroupsNoAcl(
+      DataDimensionType dataDimensionType, boolean dataDimension) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimension ) )
-            .addPredicate( root -> builder.equal( root.get( "dataDimension" ), dataDimension ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimension))
+            .addPredicate(root -> builder.equal(root.get("dataDimension"), dataDimension)));
+  }
 }

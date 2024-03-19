@@ -30,6 +30,4 @@ package org.hisp.dhis.node;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface NodePipeline extends Pipeline<Node>
-{
-}
+public interface NodePipeline extends Pipeline<Node> {}

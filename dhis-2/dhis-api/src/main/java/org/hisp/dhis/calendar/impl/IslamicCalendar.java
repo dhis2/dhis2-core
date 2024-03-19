@@ -37,23 +37,19 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class IslamicCalendar extends ChronologyBasedCalendar
-{
-    private static final Calendar SELF = new IslamicCalendar();
+public class IslamicCalendar extends ChronologyBasedCalendar {
+  private static final Calendar SELF = new IslamicCalendar();
 
-    public static Calendar getInstance()
-    {
-        return SELF;
-    }
+  public static Calendar getInstance() {
+    return SELF;
+  }
 
-    protected IslamicCalendar()
-    {
-        super( IslamicChronology.getInstance( DateTimeZone.getDefault() ) );
-    }
+  protected IslamicCalendar() {
+    super(IslamicChronology.getInstance(DateTimeZone.getDefault()));
+  }
 
-    @Override
-    public String name()
-    {
-        return "islamic";
-    }
+  @Override
+  public String name() {
+    return "islamic";
+  }
 }

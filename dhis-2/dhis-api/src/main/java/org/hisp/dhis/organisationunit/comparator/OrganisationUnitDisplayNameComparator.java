@@ -28,17 +28,14 @@
 package org.hisp.dhis.organisationunit.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public class OrganisationUnitDisplayNameComparator
-    implements Comparator<OrganisationUnit>
-{
-    public static final Comparator<OrganisationUnit> INSTANCE = new OrganisationUnitDisplayNameComparator();
+public class OrganisationUnitDisplayNameComparator implements Comparator<OrganisationUnit> {
+  public static final Comparator<OrganisationUnit> INSTANCE =
+      new OrganisationUnitDisplayNameComparator();
 
-    @Override
-    public int compare( OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2 )
-    {
-        return organisationUnit1.getDisplayName().compareTo( organisationUnit2.getDisplayName() );
-    }
+  @Override
+  public int compare(OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2) {
+    return organisationUnit1.getDisplayName().compareTo(organisationUnit2.getDisplayName());
+  }
 }

@@ -32,38 +32,34 @@ package org.hisp.dhis.analytics;
  *
  * @author Lars Helge Overland
  */
-public enum MeasureFilter
-{
-    EQ,
-    GT,
-    GE,
-    LT,
-    LE;
+public enum MeasureFilter {
+  EQ,
+  GT,
+  GE,
+  LT,
+  LE;
 
-    /**
-     * Tests whether the measureFilter is valid for x and y as the values for
-     * comparison.
-     *
-     * @param x The first double value to be compared.
-     * @param y The second double value to be compared.
-     * @return true if the constraint/filter is valid when x is compared with y.
-     */
-    public boolean measureIsValid( Double x, Double y )
-    {
-        switch ( this )
-        {
-        case EQ:
-            return Double.compare( x, y ) == 0;
-        case GT:
-            return Double.compare( x, y ) > 0;
-        case GE:
-            return Double.compare( x, y ) >= 0;
-        case LT:
-            return Double.compare( x, y ) < 0;
-        case LE:
-            return Double.compare( x, y ) <= 0;
-        default:
-            return false;
-        }
+  /**
+   * Tests whether the measureFilter is valid for x and y as the values for comparison.
+   *
+   * @param x The first double value to be compared.
+   * @param y The second double value to be compared.
+   * @return true if the constraint/filter is valid when x is compared with y.
+   */
+  public boolean measureIsValid(Double x, Double y) {
+    switch (this) {
+      case EQ:
+        return Double.compare(x, y) == 0;
+      case GT:
+        return Double.compare(x, y) > 0;
+      case GE:
+        return Double.compare(x, y) >= 0;
+      case LT:
+        return Double.compare(x, y) < 0;
+      case LE:
+        return Double.compare(x, y) <= 0;
+      default:
+        return false;
     }
+  }
 }

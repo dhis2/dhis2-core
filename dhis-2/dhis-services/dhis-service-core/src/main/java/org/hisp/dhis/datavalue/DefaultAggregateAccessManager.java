@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
@@ -42,189 +41,167 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Service( "org.hisp.dhis.datavalue.DataAccessManager" )
-public class DefaultAggregateAccessManager
-    implements AggregateAccessManager
-{
-    private final Cache<List<String>> canDataWriteCocCache;
+@Service("org.hisp.dhis.datavalue.DataAccessManager")
+public class DefaultAggregateAccessManager implements AggregateAccessManager {
+  private final Cache<List<String>> canDataWriteCocCache;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    public DefaultAggregateAccessManager( AclService aclService, CacheProvider cacheProvider )
-    {
-        checkNotNull( aclService );
-        checkNotNull( cacheProvider );
+  public DefaultAggregateAccessManager(AclService aclService, CacheProvider cacheProvider) {
+    checkNotNull(aclService);
+    checkNotNull(cacheProvider);
 
-        this.aclService = aclService;
-        this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
+    this.aclService = aclService;
+    this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
+  }
+
+  // ---------------------------------------------------------------------
+  // AggregateAccessManager implementation
+  // ---------------------------------------------------------------------
+
+  @Override
+  public List<String> canRead(UserDetails currentUser, DataValue dataValue) {
+    List<String> errors = new ArrayList<>();
+
+    if (currentUser == null || currentUser.isSuper()) {
+      return errors;
     }
 
-    // ---------------------------------------------------------------------
-    // AggregateAccessManager implementation
-    // ---------------------------------------------------------------------
+    Set<CategoryOption> options = new HashSet<>();
 
-    @Override
-    public List<String> canRead( User user, DataValue dataValue )
-    {
-        List<String> errors = new ArrayList<>();
+    CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
 
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        Set<CategoryOption> options = new HashSet<>();
-
-        CategoryOptionCombo categoryOptionCombo = dataValue.getCategoryOptionCombo();
-
-        if ( categoryOptionCombo != null )
-        {
-            options.addAll( categoryOptionCombo.getCategoryOptions() );
-        }
-
-        CategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
-        {
-            options.addAll( attributeOptionCombo.getCategoryOptions() );
-        }
-
-        options.forEach( option -> {
-
-            if ( !aclService.canDataRead( user, option ) )
-            {
-                errors.add( "User has no data read access for CategoryOption: " + option.getUid() );
-            }
-        } );
-
-        return errors;
+    if (categoryOptionCombo != null) {
+      options.addAll(categoryOptionCombo.getCategoryOptions());
     }
 
-    @Override
-    public List<String> canWrite( User user, DataSet dataSet )
-    {
-        List<String> errors = new ArrayList<>();
+    CategoryOptionCombo attributeOptionCombo = dataValue.getAttributeOptionCombo();
 
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        if ( !aclService.canDataWrite( user, dataSet ) )
-        {
-            errors.add( "User does not have write access for DataSet: " + dataSet.getUid() );
-        }
-
-        return errors;
+    if (attributeOptionCombo != null) {
+      options.addAll(attributeOptionCombo.getCategoryOptions());
     }
 
-    @Override
-    public List<String> canRead( User user, DataSet dataSet )
-    {
-        List<String> errors = new ArrayList<>();
+    options.forEach(
+        option -> {
+          if (!aclService.canDataRead(currentUser, option)) {
+            errors.add("User has no data read access for CategoryOption: " + option.getUid());
+          }
+        });
 
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
+    return errors;
+  }
 
-        if ( !aclService.canDataRead( user, dataSet ) )
-        {
-            errors.add( "User does not have read access for DataSet: " + dataSet.getUid() );
-        }
+  @Override
+  public List<String> canWrite(UserDetails userDetails, DataSet dataSet) {
+    List<String> errors = new ArrayList<>();
 
-        return errors;
+    if (userDetails == null || userDetails.isSuper()) {
+      return errors;
     }
 
-    @Override
-    public List<String> canWrite( User user, CategoryOptionCombo optionCombo )
-    {
-        if ( user == null || user.isSuper() )
-        {
-            return emptyList();
-        }
-
-        Set<CategoryOption> options = optionCombo.getCategoryOptions();
-        List<String> errors = new ArrayList<>();
-        options.forEach( attrOption -> {
-            if ( !aclService.canDataWrite( user, attrOption ) )
-            {
-                errors.add( "User has no data write access for CategoryOption: " + attrOption.getUid() );
-            }
-        } );
-
-        return errors;
+    if (!aclService.canDataWrite(userDetails, dataSet)) {
+      errors.add("User does not have write access for DataSet: " + dataSet.getUid());
     }
 
-    @Override
-    public List<String> canWriteCached( User user, CategoryOptionCombo optionCombo )
-    {
-        String cacheKey = user.getUid() + "-" + optionCombo.getUid();
+    return errors;
+  }
 
-        return canDataWriteCocCache.get( cacheKey, key -> canWrite( user, optionCombo ) );
+  @Override
+  public List<String> canRead(UserDetails currentUser, DataSet dataSet) {
+    List<String> errors = new ArrayList<>();
+
+    if (currentUser == null || currentUser.isSuper()) {
+      return errors;
     }
 
-    @Override
-    public List<String> canRead( User user, CategoryOptionCombo optionCombo )
-    {
-        List<String> errors = new ArrayList<>();
-
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        Set<CategoryOption> options = optionCombo.getCategoryOptions();
-
-        options.forEach( attrOption -> {
-            if ( !aclService.canDataRead( user, attrOption ) )
-            {
-                errors.add( "User has no data read access for CategoryOption: " + attrOption.getUid() );
-            }
-        } );
-
-        return errors;
+    if (!aclService.canDataRead(currentUser, dataSet)) {
+      errors.add("User does not have read access for DataSet: " + dataSet.getUid());
     }
 
-    @Override
-    public List<String> canWrite( User user, DataElementOperand dataElementOperand )
-    {
-        List<String> errors = new ArrayList<>();
+    return errors;
+  }
 
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        Set<CategoryOption> options = new HashSet<>();
-
-        CategoryOptionCombo categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
-
-        if ( categoryOptionCombo != null )
-        {
-            options.addAll( categoryOptionCombo.getCategoryOptions() );
-        }
-
-        CategoryOptionCombo attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
-        {
-            options.addAll( attributeOptionCombo.getCategoryOptions() );
-        }
-
-        options.forEach( option -> {
-            if ( !aclService.canDataWrite( user, option ) )
-            {
-                errors.add( "User has no data write access for CategoryOption: " + option.getUid() );
-            }
-        } );
-
-        return errors;
+  @Override
+  public List<String> canWrite(UserDetails userDetails, CategoryOptionCombo optionCombo) {
+    if (userDetails == null || userDetails.isSuper()) {
+      return emptyList();
     }
+
+    Set<CategoryOption> options = optionCombo.getCategoryOptions();
+    List<String> errors = new ArrayList<>();
+    options.forEach(
+        attrOption -> {
+          if (!aclService.canDataWrite(userDetails, attrOption)) {
+            errors.add("User has no data write access for CategoryOption: " + attrOption.getUid());
+          }
+        });
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canWriteCached(UserDetails currentUser, CategoryOptionCombo optionCombo) {
+    String cacheKey = CurrentUserUtil.getCurrentUserDetails().getUid() + "-" + optionCombo.getUid();
+
+    return canDataWriteCocCache.get(cacheKey, key -> canWrite(currentUser, optionCombo));
+  }
+
+  @Override
+  public List<String> canRead(UserDetails currentUser, CategoryOptionCombo optionCombo) {
+    List<String> errors = new ArrayList<>();
+
+    if (currentUser == null || currentUser.isSuper()) {
+      return errors;
+    }
+
+    Set<CategoryOption> options = optionCombo.getCategoryOptions();
+
+    options.forEach(
+        attrOption -> {
+          if (!aclService.canDataRead(currentUser, attrOption)) {
+            errors.add("User has no data read access for CategoryOption: " + attrOption.getUid());
+          }
+        });
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canWrite(UserDetails currentUser, DataElementOperand dataElementOperand) {
+    List<String> errors = new ArrayList<>();
+
+    if (currentUser == null || currentUser.isSuper()) {
+      return errors;
+    }
+
+    Set<CategoryOption> options = new HashSet<>();
+
+    CategoryOptionCombo categoryOptionCombo = dataElementOperand.getCategoryOptionCombo();
+
+    if (categoryOptionCombo != null) {
+      options.addAll(categoryOptionCombo.getCategoryOptions());
+    }
+
+    CategoryOptionCombo attributeOptionCombo = dataElementOperand.getAttributeOptionCombo();
+
+    if (attributeOptionCombo != null) {
+      options.addAll(attributeOptionCombo.getCategoryOptions());
+    }
+
+    options.forEach(
+        option -> {
+          if (!aclService.canDataWrite(currentUser, option)) {
+            errors.add("User has no data write access for CategoryOption: " + option.getUid());
+          }
+        });
+
+    return errors;
+  }
 }

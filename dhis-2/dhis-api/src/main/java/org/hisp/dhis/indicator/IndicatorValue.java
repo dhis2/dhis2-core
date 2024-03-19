@@ -28,90 +28,72 @@
 package org.hisp.dhis.indicator;
 
 /**
- * Non-persisted class for representing the various components of an aggregated
- * indicator value.
+ * Non-persisted class for representing the various components of an aggregated indicator value.
  *
  * @author Lars Helge Overland
  */
-public class IndicatorValue
-{
-    private double numeratorValue;
+public class IndicatorValue {
+  private double numeratorValue;
 
-    private double denominatorValue;
+  private double denominatorValue;
 
-    private int multiplier;
+  private int multiplier;
 
-    private int divisor;
+  private int divisor;
 
-    public IndicatorValue()
-    {
-    }
+  public IndicatorValue() {}
 
-    // -------------------------------------------------------------------------
-    // Logic methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
 
-    /**
-     * Returns the calculated indicator value.
-     */
-    public double getValue()
-    {
-        return (numeratorValue * multiplier) / (denominatorValue * divisor);
-    }
+  /** Returns the calculated indicator value. */
+  public double getValue() {
+    return (numeratorValue * multiplier) / (denominatorValue * divisor);
+  }
 
-    /**
-     * Returns the ratio of the multiplier and divisor.
-     */
-    public double getFactor()
-    {
-        return ((double) multiplier) / ((double) divisor);
-    }
+  /** Returns the ratio of the multiplier and divisor. */
+  public double getFactor() {
+    return ((double) multiplier) / ((double) divisor);
+  }
 
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Get and set methods
+  // -------------------------------------------------------------------------
 
-    public double getNumeratorValue()
-    {
-        return numeratorValue;
-    }
+  public double getNumeratorValue() {
+    return numeratorValue;
+  }
 
-    public IndicatorValue setNumeratorValue( double numeratorValue )
-    {
-        this.numeratorValue = numeratorValue;
-        return this;
-    }
+  public IndicatorValue setNumeratorValue(double numeratorValue) {
+    this.numeratorValue = numeratorValue;
+    return this;
+  }
 
-    public double getDenominatorValue()
-    {
-        return denominatorValue;
-    }
+  public double getDenominatorValue() {
+    return denominatorValue;
+  }
 
-    public IndicatorValue setDenominatorValue( double denominatorValue )
-    {
-        this.denominatorValue = denominatorValue;
-        return this;
-    }
+  public IndicatorValue setDenominatorValue(double denominatorValue) {
+    this.denominatorValue = denominatorValue;
+    return this;
+  }
 
-    public int getMultiplier()
-    {
-        return multiplier;
-    }
+  public int getMultiplier() {
+    return multiplier;
+  }
 
-    public IndicatorValue setMultiplier( int multiplier )
-    {
-        this.multiplier = multiplier;
-        return this;
-    }
+  public IndicatorValue setMultiplier(int multiplier) {
+    this.multiplier = multiplier;
+    return this;
+  }
 
-    public int getDivisor()
-    {
-        return divisor;
-    }
+  public int getDivisor() {
+    return divisor;
+  }
 
-    public IndicatorValue setDivisor( int divisor )
-    {
-        this.divisor = divisor;
-        return this;
-    }
+  public IndicatorValue setDivisor(int divisor) {
+    this.divisor = divisor;
+    return this;
+  }
 }

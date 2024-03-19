@@ -36,28 +36,24 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 
-public class EventVisualizationSchemaDescriptor
-    implements
-    SchemaDescriptor
-{
-    public static final String SINGULAR = "eventVisualization";
+public class EventVisualizationSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "eventVisualization";
 
-    public static final String PLURAL = "eventVisualizations";
+  public static final String PLURAL = "eventVisualizations";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( EventVisualization.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setImplicitPrivateAuthority( true );
-        schema.setOrder( 2000 );
-        schema.setShareable( true );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(EventVisualization.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setImplicitPrivateAuthority(true);
+    schema.setOrder(2000);
+    schema.setShareable(true);
 
-        schema.add( new Authority( CREATE_PUBLIC, newArrayList( "F_EVENT_VISUALIZATION_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( EXTERNALIZE, newArrayList( "F_EVENT_VISUALIZATION_EXTERNAL" ) ) );
+    schema.add(new Authority(CREATE_PUBLIC, newArrayList("F_EVENT_VISUALIZATION_PUBLIC_ADD")));
+    schema.add(new Authority(EXTERNALIZE, newArrayList("F_EVENT_VISUALIZATION_EXTERNAL")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

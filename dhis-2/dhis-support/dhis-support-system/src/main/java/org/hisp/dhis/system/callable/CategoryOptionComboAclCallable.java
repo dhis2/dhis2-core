@@ -28,39 +28,34 @@
 package org.hisp.dhis.system.callable;
 
 import java.util.concurrent.ExecutionException;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
+ * Retrieves the category option combination with the given identifier and id scheme. Checks that
+ * the current user has {@code data write} access.
  *
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboAclCallable
-    extends IdentifiableObjectCallable<CategoryOptionCombo>
-{
-    private CategoryService categoryService;
+    extends IdentifiableObjectCallable<CategoryOptionCombo> {
+  private CategoryService categoryService;
 
-    public CategoryOptionComboAclCallable( CategoryService categoryService, IdScheme idScheme, String id )
-    {
-        super( null, CategoryOptionCombo.class, idScheme, id );
-        this.categoryService = categoryService;
-    }
+  public CategoryOptionComboAclCallable(
+      CategoryService categoryService, IdScheme idScheme, String id) {
+    super(null, CategoryOptionCombo.class, idScheme, id);
+    this.categoryService = categoryService;
+  }
 
-    @Override
-    public CategoryOptionCombo call()
-        throws ExecutionException
-    {
-        return categoryService.getCategoryOptionComboAcl( idScheme, id );
-    }
+  @Override
+  public CategoryOptionCombo call() throws ExecutionException {
+    return categoryService.getCategoryOptionComboAcl(idScheme, id);
+  }
 
-    @Override
-    public CategoryOptionComboAclCallable setId( String id )
-    {
-        this.id = id;
-        return this;
-    }
+  @Override
+  public CategoryOptionComboAclCallable setId(String id) {
+    this.id = id;
+    return this;
+  }
 }

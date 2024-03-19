@@ -27,37 +27,39 @@
  */
 package org.hisp.dhis.program;
 
+import lombok.Getter;
+
 /**
  * @author Chau Thu Tran
  */
-public enum ProgramType
-{
-    WITH_REGISTRATION( "with_registration" ),
-    WITHOUT_REGISTRATION( "without_registration" );
+@Getter
+public enum ProgramType {
+  /** Aka tracker program */
+  WITH_REGISTRATION("with_registration"),
+  /** Aka event program */
+  WITHOUT_REGISTRATION("without_registration");
 
-    private final String value;
+  private final String value;
 
-    ProgramType( String value )
-    {
-        this.value = value;
+  ProgramType(String value) {
+    this.value = value;
+  }
+
+  public static ProgramType fromValue(String value) {
+    for (ProgramType programType : ProgramType.values()) {
+      if (programType.value.equalsIgnoreCase(value)) {
+        return programType;
+      }
     }
 
-    public static ProgramType fromValue( String value )
-    {
-        for ( ProgramType programType : ProgramType.values() )
-        {
-            if ( programType.value.equalsIgnoreCase( value ) )
-            {
-                return programType;
-            }
-        }
+    return null;
+  }
 
-        return null;
-    }
+  public boolean isTrackerProgram() {
+    return this == WITH_REGISTRATION;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
-
+  public boolean isEventProgram() {
+    return this == WITHOUT_REGISTRATION;
+  }
 }

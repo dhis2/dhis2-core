@@ -37,23 +37,18 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class VectorAvg
-    extends VectorFunctionDoubleArray
-{
-    @Override
-    public Object aggregate( double[] values )
-    {
-        if ( values.length == 0 )
-        {
-            return null;
-        }
-
-        return mean( values );
+public class VectorAvg extends VectorFunctionDoubleArray {
+  @Override
+  public Object aggregate(double[] values) {
+    if (values.length == 0) {
+      return null;
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "avg(" + visitor.visit( ctx.expr( 0 ) ) + ")";
-    }
+    return mean(values);
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "avg(" + visitor.visit(ctx.expr(0)) + ")";
+  }
 }

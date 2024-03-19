@@ -33,13 +33,9 @@ import org.jeasy.random.api.Randomizer;
 /**
  * @author Luciano Fiandesio
  */
-public class UidRandomizer
-    implements
-    Randomizer<String>
-{
-    @Override
-    public String getRandomValue()
-    {
-        return CodeGenerator.generateUid();
-    }
+public class UidRandomizer implements Randomizer<String> {
+  @Override
+  public String getRandomValue() {
+    return CodeGenerator.generateUid();
+  }
 }

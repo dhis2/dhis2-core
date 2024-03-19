@@ -30,24 +30,18 @@ package org.hisp.dhis.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
- *
  * @author Jason Pickering
  */
-public interface JsonCategoryOptionCombo extends JsonIdentifiableObject
-{
-    default JsonCategoryCombo getCategoryCombo()
-    {
-        return get( "categoryCombo", JsonCategoryCombo.class );
-    }
+public interface JsonCategoryOptionCombo extends JsonIdentifiableObject {
+  default JsonCategoryCombo getCategoryCombo() {
+    return get("categoryCombo", JsonCategoryCombo.class);
+  }
 
-    default JsonList<JsonCategoryOption> getCategoryOptions()
-    {
-        return getList( "categoryOptions", JsonCategoryOption.class );
+  default JsonList<JsonCategoryOption> getCategoryOptions() {
+    return getList("categoryOptions", JsonCategoryOption.class);
+  }
 
-    }
-
-    default Boolean getIgnoreApproval()
-    {
-        return getBoolean( "ignoreApproval" ).bool();
-    }
+  default Boolean getIgnoreApproval() {
+    return getBoolean("ignoreApproval").bool();
+  }
 }

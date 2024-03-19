@@ -28,19 +28,16 @@
 package org.hisp.dhis.category;
 
 import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CategoryStore
-    extends GenericDimensionalObjectStore<Category>
-{
-    List<Category> getCategoriesByDimensionType( DataDimensionType dataDimensionType );
+public interface CategoryStore extends GenericDimensionalObjectStore<Category> {
+  List<Category> getCategoriesByDimensionType(DataDimensionType dataDimensionType);
 
-    List<Category> getCategories( DataDimensionType dataDimensionType, boolean dataDimension );
+  List<Category> getCategories(DataDimensionType dataDimensionType, boolean dataDimension);
 
-    List<Category> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
+  List<Category> getCategoriesNoAcl(DataDimensionType dataDimensionType, boolean dataDimension);
 }

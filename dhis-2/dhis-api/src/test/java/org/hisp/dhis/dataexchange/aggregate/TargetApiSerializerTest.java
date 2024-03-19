@@ -30,65 +30,63 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.junit.jupiter.api.Test;
 
-class TargetApiSerializerTest
-{
-    /**
-     * Asserts that the sensitive {@code accessToken} and {@code password}
-     * properties are not serialized for {@link Api}.
-     */
-    @Test
-    void testSerializeTargetApiWithCustomSerializer()
-        throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addSerializer( Api.class, new ApiSerializer() );
-        mapper.registerModule( module );
+class TargetApiSerializerTest {
+  /**
+   * Asserts that the sensitive {@code accessToken} and {@code password} properties are not
+   * serialized for {@link Api}.
+   */
+  @Test
+  void testSerializeTargetApiWithCustomSerializer() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    SimpleModule module = new SimpleModule();
+    module.addSerializer(Api.class, new ApiSerializer());
+    mapper.registerModule(module);
 
-        Target target = new Target()
-            .setType( TargetType.EXTERNAL )
-            .setApi( new Api()
-                .setUrl( "https://myserver.org" )
-                .setAccessToken( "d2pat_abc123" )
-                .setUsername( "admin" )
-                .setPassword( "district" ) );
+    Target target =
+        new Target()
+            .setType(TargetType.EXTERNAL)
+            .setApi(
+                new Api()
+                    .setUrl("https://myserver.org")
+                    .setAccessToken("d2pat_abc123")
+                    .setUsername("admin")
+                    .setPassword("district"));
 
-        String json = mapper.writeValueAsString( target );
+    String json = mapper.writeValueAsString(target);
 
-        assertTrue( json.contains( "https://myserver.org" ) );
-        assertTrue( json.contains( "admin" ) );
-        assertFalse( json.contains( "d2pat_abc123" ) );
-        assertFalse( json.contains( "district" ) );
-    }
+    assertTrue(json.contains("https://myserver.org"));
+    assertTrue(json.contains("admin"));
+    assertFalse(json.contains("d2pat_abc123"));
+    assertFalse(json.contains("district"));
+  }
 
-    /**
-     * Asserts that the sensitive {@code accessToken} and {@code password}
-     * properties are serialized for {@link Api}.
-     */
-    @Test
-    void testSerializeTargetApiWithoutCustomSerializer()
-        throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
+  /**
+   * Asserts that the sensitive {@code accessToken} and {@code password} properties are serialized
+   * for {@link Api}.
+   */
+  @Test
+  void testSerializeTargetApiWithoutCustomSerializer() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
 
-        Target target = new Target()
-            .setType( TargetType.EXTERNAL )
-            .setApi( new Api()
-                .setUrl( "https://myserver.org" )
-                .setAccessToken( "d2pat_abc123" )
-                .setUsername( "admin" )
-                .setPassword( "district" ) );
+    Target target =
+        new Target()
+            .setType(TargetType.EXTERNAL)
+            .setApi(
+                new Api()
+                    .setUrl("https://myserver.org")
+                    .setAccessToken("d2pat_abc123")
+                    .setUsername("admin")
+                    .setPassword("district"));
 
-        String json = mapper.writeValueAsString( target );
+    String json = mapper.writeValueAsString(target);
 
-        assertTrue( json.contains( "https://myserver.org" ) );
-        assertTrue( json.contains( "admin" ) );
-        assertTrue( json.contains( "d2pat_abc123" ) );
-        assertTrue( json.contains( "district" ) );
-    }
+    assertTrue(json.contains("https://myserver.org"));
+    assertTrue(json.contains("admin"));
+    assertTrue(json.contains("d2pat_abc123"));
+    assertTrue(json.contains("district"));
+  }
 }

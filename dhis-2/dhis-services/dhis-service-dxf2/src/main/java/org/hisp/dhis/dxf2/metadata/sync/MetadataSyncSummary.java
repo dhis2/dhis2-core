@@ -27,73 +27,67 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * Defines the structure of metadata sync summary
  *
  * @author vanyas
  */
-@JacksonXmlRootElement( localName = "metadataSyncSummary", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataSyncSummary implements WebMessageResponse
-{
-    private ImportReport importReport;
+@JacksonXmlRootElement(localName = "metadataSyncSummary", namespace = DxfNamespaces.DXF_2_0)
+public class MetadataSyncSummary implements WebMessageResponse {
+  private ImportReport importReport;
 
-    private ImportSummary importSummary;
+  private ImportSummary importSummary;
 
-    private MetadataVersion metadataVersion;
+  private MetadataVersion metadataVersion;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MetadataVersion getMetadataVersion()
-    {
-        return metadataVersion;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public MetadataVersion getMetadataVersion() {
+    return metadataVersion;
+  }
 
-    public void setMetadataVersion( MetadataVersion metadataVersion )
-    {
-        this.metadataVersion = metadataVersion;
-    }
+  public void setMetadataVersion(MetadataVersion metadataVersion) {
+    this.metadataVersion = metadataVersion;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportSummary getImportSummary()
-    {
-        return importSummary;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImportSummary getImportSummary() {
+    return importSummary;
+  }
 
-    public void setImportSummary( ImportSummary importSummary )
-    {
-        this.importSummary = importSummary;
-    }
+  public void setImportSummary(ImportSummary importSummary) {
+    this.importSummary = importSummary;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ImportReport getImportReport()
-    {
-        return importReport;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ImportReport getImportReport() {
+    return importReport;
+  }
 
-    public void setImportReport( ImportReport importReport )
-    {
-        this.importReport = importReport;
-    }
+  public void setImportReport(ImportReport importReport) {
+    this.importReport = importReport;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "MetadataSyncSummary{" +
-            "importReport=" + importReport +
-            ", importSummary=" + importSummary +
-            ", metadataVersion=" + metadataVersion +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "MetadataSyncSummary{"
+        + "importReport="
+        + importReport
+        + ", importSummary="
+        + importSummary
+        + ", metadataVersion="
+        + metadataVersion
+        + '}';
+  }
 }

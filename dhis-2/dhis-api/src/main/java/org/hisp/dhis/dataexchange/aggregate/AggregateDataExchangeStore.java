@@ -30,6 +30,4 @@ package org.hisp.dhis.dataexchange.aggregate;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 public interface AggregateDataExchangeStore
-    extends IdentifiableObjectStore<AggregateDataExchange>
-{
-}
+    extends IdentifiableObjectStore<AggregateDataExchange> {}

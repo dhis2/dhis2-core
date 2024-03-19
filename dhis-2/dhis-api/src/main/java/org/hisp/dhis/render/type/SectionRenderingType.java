@@ -31,22 +31,18 @@ package org.hisp.dhis.render.type;
  * This class represents the different ways to render a Section (ProgramSection,
  * ProgramStageSection)
  */
-public enum SectionRenderingType
-{
-    LISTING,
-    SEQUENTIAL,
-    MATRIX;
+public enum SectionRenderingType {
+  LISTING,
+  SEQUENTIAL,
+  MATRIX;
 
-    public static SectionRenderingType fromValue( String value )
-    {
-        for ( SectionRenderingType renderingType : SectionRenderingType.values() )
-        {
-            if ( renderingType.name().equalsIgnoreCase( value ) )
-            {
-                return renderingType;
-            }
-        }
-
-        return null;
+  public static SectionRenderingType fromValue(String value) {
+    for (SectionRenderingType renderingType : SectionRenderingType.values()) {
+      if (renderingType.name().equalsIgnoreCase(value)) {
+        return renderingType;
+      }
     }
+
+    return null;
+  }
 }

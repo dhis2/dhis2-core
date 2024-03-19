@@ -32,66 +32,56 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.Section;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @Component
-public class SectionUtils
-{
-    public Map<String, Collection<DataElement>> getOrderedDataElementsMap( Section section )
-    {
-        Map<String, Collection<DataElement>> orderedDataElementsMap = new LinkedHashMap<>();
+public class SectionUtils {
+  public Map<String, Collection<DataElement>> getOrderedDataElementsMap(Section section) {
+    Map<String, Collection<DataElement>> orderedDataElementsMap = new LinkedHashMap<>();
 
-        if ( section == null )
-        {
-            return orderedDataElementsMap;
-        }
-
-        long currentCategoryCombo = -1;
-
-        List<DataElement> groups = new ArrayList<>();
-
-        int counter = 0;
-
-        for ( DataElement dataElement : section.getDataElements() )
-        {
-            if ( currentCategoryCombo == -1 )
-            {
-                currentCategoryCombo = dataElement.getCategoryCombo().getId();
-            }
-
-            if ( currentCategoryCombo == dataElement.getCategoryCombo().getId() )
-            {
-                groups.add( dataElement );
-            }
-            else
-            {
-                orderedDataElementsMap.put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
-                    new ArrayList<>( groups ) );
-
-                currentCategoryCombo = dataElement.getCategoryCombo().getId();
-
-                groups = new ArrayList<>();
-
-                groups.add( dataElement );
-
-                counter++;
-            }
-        }
-
-        if ( !orderedDataElementsMap.keySet()
-            .contains( section.getId() + "-" + currentCategoryCombo + "-" + counter ) )
-        {
-            orderedDataElementsMap.put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
-                new ArrayList<>( groups ) );
-        }
-
-        return orderedDataElementsMap;
+    if (section == null) {
+      return orderedDataElementsMap;
     }
+
+    long currentCategoryCombo = -1;
+
+    List<DataElement> groups = new ArrayList<>();
+
+    int counter = 0;
+
+    for (DataElement dataElement : section.getDataElements()) {
+      if (currentCategoryCombo == -1) {
+        currentCategoryCombo = dataElement.getCategoryCombo().getId();
+      }
+
+      if (currentCategoryCombo == dataElement.getCategoryCombo().getId()) {
+        groups.add(dataElement);
+      } else {
+        orderedDataElementsMap.put(
+            section.getId() + "-" + currentCategoryCombo + "-" + counter, new ArrayList<>(groups));
+
+        currentCategoryCombo = dataElement.getCategoryCombo().getId();
+
+        groups = new ArrayList<>();
+
+        groups.add(dataElement);
+
+        counter++;
+      }
+    }
+
+    if (!orderedDataElementsMap
+        .keySet()
+        .contains(section.getId() + "-" + currentCategoryCombo + "-" + counter)) {
+      orderedDataElementsMap.put(
+          section.getId() + "-" + currentCategoryCombo + "-" + counter, new ArrayList<>(groups));
+    }
+
+    return orderedDataElementsMap;
+  }
 }

@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.sms.outbound;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-public enum SubmissionType
-{
-    SINGLE,
-    BATCH
+/** Zubair <rajazubair.asghar@gmail.com> */
+public enum SubmissionType {
+  SINGLE,
+  BATCH
 }

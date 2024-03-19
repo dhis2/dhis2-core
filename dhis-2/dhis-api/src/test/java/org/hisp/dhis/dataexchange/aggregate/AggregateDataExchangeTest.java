@@ -32,35 +32,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class AggregateDataExchangeTest
-{
-    @Test
-    void testApiAuth()
-    {
-        Api api = new Api();
-        api.setAccessToken( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
+class AggregateDataExchangeTest {
+  @Test
+  void testApiAuth() {
+    Api api = new Api();
+    api.setAccessToken("d2pat_5xVA12xyUbWNedQxy4ohH77WlxR");
 
-        assertTrue( api.isAccessTokenAuth() );
-        assertFalse( api.isBasicAuth() );
+    assertTrue(api.isAccessTokenAuth());
+    assertFalse(api.isBasicAuth());
 
-        api = new Api();
-        api.setUsername( "admin" );
-        api.setPassword( "district" );
+    api = new Api();
+    api.setUsername("admin");
+    api.setPassword("district");
 
-        assertTrue( api.isBasicAuth() );
-        assertFalse( api.isAccessTokenAuth() );
+    assertTrue(api.isBasicAuth());
+    assertFalse(api.isAccessTokenAuth());
 
-        api = new Api();
-        api.setAccessToken( "d2pat_5xVA12xyUbWNedQxy4ohH77WlxR" );
-        api.setUsername( "admin" );
-        api.setPassword( "district" );
+    api = new Api();
+    api.setAccessToken("d2pat_5xVA12xyUbWNedQxy4ohH77WlxR");
+    api.setUsername("admin");
+    api.setPassword("district");
 
-        assertTrue( api.isAccessTokenAuth() );
+    assertTrue(api.isAccessTokenAuth());
 
-        api = new Api();
-        api.setUsername( "admin" );
+    api = new Api();
+    api.setUsername("admin");
 
-        assertFalse( api.isBasicAuth() );
-        assertFalse( api.isAccessTokenAuth() );
-    }
+    assertFalse(api.isBasicAuth());
+    assertFalse(api.isAccessTokenAuth());
+  }
 }

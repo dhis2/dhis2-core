@@ -34,9 +34,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,107 +50,88 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class IndicatorDeletionHandler extends IdObjectDeletionHandler<Indicator>
-{
-    private final IndicatorService indicatorService;
+public class IndicatorDeletionHandler extends IdObjectDeletionHandler<Indicator> {
+  private final IndicatorService indicatorService;
 
-    private final ExpressionService expressionService;
+  private final ExpressionService expressionService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenVetoing( IndicatorType.class, this::allowDeleteIndicatorType );
-        whenDeleting( IndicatorGroup.class, this::deleteIndicatorGroup );
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( CategoryCombo.class, this::allowDeleteCategoryCombo );
+  @Override
+  protected void registerHandler() {
+    whenVetoing(IndicatorType.class, this::allowDeleteIndicatorType);
+    whenDeleting(IndicatorGroup.class, this::deleteIndicatorGroup);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(CategoryCombo.class, this::allowDeleteCategoryCombo);
+  }
+
+  private DeletionVeto allowDeleteIndicatorType(IndicatorType indicatorType) {
+    for (Indicator indicator : indicatorService.getAllIndicators()) {
+      if (indicator.getIndicatorType().equals(indicatorType)) {
+        return new DeletionVeto(Indicator.class, indicator.getName());
+      }
     }
 
-    private DeletionVeto allowDeleteIndicatorType( IndicatorType indicatorType )
-    {
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            if ( indicator.getIndicatorType().equals( indicatorType ) )
-            {
-                return new DeletionVeto( Indicator.class, indicator.getName() );
-            }
+    return ACCEPT;
+  }
+
+  private void deleteIndicatorGroup(IndicatorGroup group) {
+    for (Indicator indicator : group.getMembers()) {
+      indicator.getGroups().remove(group);
+      indicatorService.updateIndicator(indicator);
+    }
+  }
+
+  private void deleteDataSet(DataSet dataSet) {
+    for (Indicator indicator : dataSet.getIndicators()) {
+      indicator.getDataSets().remove(dataSet);
+      indicatorService.updateIndicator(indicator);
+    }
+  }
+
+  private void deleteLegendSet(LegendSet legendSet) {
+    for (Indicator indicator : indicatorService.getAllIndicators()) {
+      for (Iterator<LegendSet> itr = indicator.getLegendSets().iterator(); itr.hasNext(); ) {
+        if (legendSet.equals(itr.next())) {
+          itr.remove();
+          indicatorService.updateIndicator(indicator);
         }
+      }
+    }
+  }
 
-        return ACCEPT;
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    for (Indicator indicator : indicatorService.getAllIndicators()) {
+      if (getElementIds(indicator.getNumerator()).contains(dataElement.getUid())
+          || getElementIds(indicator.getDenominator()).contains(dataElement.getUid())) {
+        return new DeletionVeto(Indicator.class, indicator.getName());
+      }
     }
 
-    private void deleteIndicatorGroup( IndicatorGroup group )
-    {
-        for ( Indicator indicator : group.getMembers() )
-        {
-            indicator.getGroups().remove( group );
-            indicatorService.updateIndicator( indicator );
-        }
+    return ACCEPT;
+  }
+
+  private Set<String> getElementIds(String expression) {
+    return expressionService.getExpressionDataElementIds(expression, INDICATOR_EXPRESSION);
+  }
+
+  private DeletionVeto allowDeleteCategoryCombo(CategoryCombo categoryCombo) {
+    Set<String> optionComboIds =
+        categoryCombo.getOptionCombos().stream()
+            .map(CategoryOptionCombo::getUid)
+            .collect(Collectors.toSet());
+
+    for (Indicator indicator : indicatorService.getAllIndicators()) {
+      if (containsAny(getOptionComboIds(indicator.getNumerator()), optionComboIds)
+          || containsAny(getOptionComboIds(indicator.getDenominator()), optionComboIds)) {
+        return new DeletionVeto(Indicator.class, indicator.getName());
+      }
     }
 
-    private void deleteDataSet( DataSet dataSet )
-    {
-        for ( Indicator indicator : dataSet.getIndicators() )
-        {
-            indicator.getDataSets().remove( dataSet );
-            indicatorService.updateIndicator( indicator );
-        }
-    }
+    return ACCEPT;
+  }
 
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            for ( Iterator<LegendSet> itr = indicator.getLegendSets().iterator(); itr.hasNext(); )
-            {
-                if ( legendSet.equals( itr.next() ) )
-                {
-                    itr.remove();
-                    indicatorService.updateIndicator( indicator );
-                }
-            }
-        }
-    }
-
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            if ( getElementIds( indicator.getNumerator() ).contains( dataElement.getUid() ) ||
-                getElementIds( indicator.getDenominator() ).contains( dataElement.getUid() ) )
-            {
-                return new DeletionVeto( Indicator.class, indicator.getName() );
-            }
-        }
-
-        return ACCEPT;
-    }
-
-    private Set<String> getElementIds( String expression )
-    {
-        return expressionService.getExpressionDataElementIds( expression, INDICATOR_EXPRESSION );
-    }
-
-    private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        Set<String> optionComboIds = categoryCombo.getOptionCombos().stream()
-            .map( CategoryOptionCombo::getUid ).collect( Collectors.toSet() );
-
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            if ( containsAny( getOptionComboIds( indicator.getNumerator() ), optionComboIds ) ||
-                containsAny( getOptionComboIds( indicator.getDenominator() ), optionComboIds ) )
-            {
-                return new DeletionVeto( Indicator.class, indicator.getName() );
-            }
-        }
-
-        return ACCEPT;
-    }
-
-    private Set<String> getOptionComboIds( String expression )
-    {
-        return expressionService.getExpressionOptionComboIds( expression, INDICATOR_EXPRESSION );
-    }
+  private Set<String> getOptionComboIds(String expression) {
+    return expressionService.getExpressionOptionComboIds(expression, INDICATOR_EXPRESSION);
+  }
 }

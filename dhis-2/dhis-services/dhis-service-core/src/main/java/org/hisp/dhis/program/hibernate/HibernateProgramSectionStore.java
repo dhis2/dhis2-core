@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.program.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramSectionStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -40,14 +39,14 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Henning Håkonsen
  */
-@Repository( "org.hisp.dhis.program.ProgramSectionStore" )
-public class HibernateProgramSectionStore
-    extends HibernateIdentifiableObjectStore<ProgramSection>
-    implements ProgramSectionStore
-{
-    public HibernateProgramSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramSection.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.program.ProgramSectionStore")
+public class HibernateProgramSectionStore extends HibernateIdentifiableObjectStore<ProgramSection>
+    implements ProgramSectionStore {
+  public HibernateProgramSectionStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, ProgramSection.class, aclService, true);
+  }
 }

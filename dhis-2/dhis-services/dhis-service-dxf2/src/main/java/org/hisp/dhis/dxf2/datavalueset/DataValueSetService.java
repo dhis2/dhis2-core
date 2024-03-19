@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -45,72 +44,77 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 /**
  * @author Lars Helge Overland
  */
-public interface DataValueSetService
-{
-    /**
-     * Returns a {@link DataExportParams} based on the given
-     * {@link DataValueSetQueryParams}.
-     *
-     * @param params the {@link DataValueSetQueryParams}.
-     * @return a {@link DataExportParams}.
-     */
-    DataExportParams getFromUrl( DataValueSetQueryParams params );
+public interface DataValueSetService {
+  /**
+   * Returns a {@link DataExportParams} based on the given {@link DataValueSetQueryParams}.
+   *
+   * @param params the {@link DataValueSetQueryParams}.
+   * @return a {@link DataExportParams}.
+   */
+  DataExportParams getFromUrl(DataValueSetQueryParams params);
 
-    void validate( DataExportParams params );
+  void validate(DataExportParams params);
 
-    void decideAccess( DataExportParams params );
+  void decideAccess(DataExportParams params);
 
-    void exportDataValueSetXml( DataExportParams params, OutputStream out );
+  void exportDataValueSetXml(DataExportParams params, OutputStream out);
 
-    void exportDataValueSetJson( DataExportParams params, OutputStream out );
+  void exportDataValueSetJson(DataExportParams params, OutputStream out);
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+  /**
+   * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+   *
+   * @param lastUpdated specifies the date to filter complete data sets last updated after
+   * @param outputStream the stream to write to
+   * @param idSchemes idSchemes
+   */
+  void exportDataValueSetJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes);
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
+  /**
+   * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+   *
+   * @param lastUpdated specifies the date to filter complete data sets last updated after
+   * @param outputStream the stream to write to
+   * @param idSchemes idSchemes
+   * @param pageSize pageSize
+   * @param page page
+   */
+  void exportDataValueSetJson(
+      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page);
 
-    void exportDataValueSetCsv( DataExportParams params, Writer writer );
+  void exportDataValueSetCsv(DataExportParams params, Writer writer);
 
-    RootNode getDataValueSetTemplate( DataSet dataSet, Period period, List<String> orgUnits, boolean writeComments,
-        String ouScheme, String deScheme );
+  RootNode getDataValueSetTemplate(
+      DataSet dataSet,
+      Period period,
+      List<String> orgUnits,
+      boolean writeComments,
+      String ouScheme,
+      String deScheme);
 
-    ImportSummary importDataValueSetXml( InputStream in );
+  ImportSummary importDataValueSetXml(InputStream in);
 
-    ImportSummary importDataValueSetJson( InputStream in );
+  ImportSummary importDataValueSetJson(InputStream in);
 
-    ImportSummary importDataValueSetXml( InputStream in, ImportOptions importOptions );
+  ImportSummary importDataValueSetXml(InputStream in, ImportOptions importOptions);
 
-    ImportSummary importDataValueSetJson( InputStream in, ImportOptions importOptions );
+  ImportSummary importDataValueSetJson(InputStream in, ImportOptions importOptions);
 
-    ImportSummary importDataValueSetCsv( InputStream in, ImportOptions importOptions );
+  ImportSummary importDataValueSetCsv(InputStream in, ImportOptions importOptions);
 
-    ImportSummary importDataValueSetPdf( InputStream in, ImportOptions importOptions );
+  ImportSummary importDataValueSetPdf(InputStream in, ImportOptions importOptions);
 
-    ImportSummary importDataValueSet( DataValueSet dataValueSet, ImportOptions importOptions );
+  ImportSummary importDataValueSet(DataValueSet dataValueSet, ImportOptions importOptions);
 
-    ImportSummary importDataValueSetXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
+  ImportSummary importDataValueSetXml(
+      InputStream in, ImportOptions importOptions, JobConfiguration jobId);
 
-    ImportSummary importDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
+  ImportSummary importDataValueSetJson(
+      InputStream in, ImportOptions importOptions, JobConfiguration jobId);
 
-    ImportSummary importDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id );
+  ImportSummary importDataValueSetCsv(
+      InputStream in, ImportOptions importOptions, JobConfiguration id);
 
-    ImportSummary importDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id );
+  ImportSummary importDataValueSetPdf(
+      InputStream in, ImportOptions importOptions, JobConfiguration id);
 }

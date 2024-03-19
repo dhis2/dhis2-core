@@ -27,45 +27,36 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
-import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@Order( 100 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Profile( "embeddedJetty" )
-public class SpringConfiguration
-{
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
-    {
-        return new org.springframework.security.core.session.SessionRegistryImpl();
-    }
+@Order(100)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+@Profile("embeddedJetty")
+public class SpringConfiguration {
 
-    @Primary
-    @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
-    public SystemAuthoritiesProvider systemAuthoritiesProvider()
-    {
-        return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
-    }
+  @Primary
+  @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
+  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
+    return Authorities::getAllAuthorities;
+  }
 
-    @Bean( "org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine" )
-    public StartupFinishedRoutine startupFinishedRoutine()
-    {
-        StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
-        startupRoutine.setName( "StartupFinishedRoutine" );
-        startupRoutine.setRunlevel( 42 );
-        startupRoutine.setSkipInTests( true );
-        return startupRoutine;
-    }
+  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
+  public StartupFinishedRoutine startupFinishedRoutine() {
+    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+    startupRoutine.setName("StartupFinishedRoutine");
+    startupRoutine.setRunlevel(42);
+    startupRoutine.setSkipInTests(true);
+    return startupRoutine;
+  }
 }

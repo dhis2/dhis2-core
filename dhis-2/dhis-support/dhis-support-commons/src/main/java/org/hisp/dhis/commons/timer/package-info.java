@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.

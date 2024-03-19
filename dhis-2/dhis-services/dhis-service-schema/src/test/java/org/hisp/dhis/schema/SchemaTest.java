@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
-
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.security.Authority;
@@ -53,157 +52,139 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class SchemaTest
-{
+class SchemaTest {
 
-    private List<Authority> authorities;
+  private List<Authority> authorities;
 
-    @BeforeEach
-    void setUp()
-    {
-        authorities = new ArrayList<>();
-        authorities.add( new Authority( AuthorityType.CREATE, Arrays.asList( "x1", "x2" ) ) );
-        authorities.add( new Authority( AuthorityType.CREATE, Arrays.asList( "y1", "y2" ) ) );
-        authorities.add( new Authority( AuthorityType.DELETE, Arrays.asList( "z1", "z2" ) ) );
-    }
+  @BeforeEach
+  void setUp() {
+    authorities = new ArrayList<>();
+    authorities.add(new Authority(AuthorityType.CREATE, Arrays.asList("x1", "x2")));
+    authorities.add(new Authority(AuthorityType.CREATE, Arrays.asList("y1", "y2")));
+    authorities.add(new Authority(AuthorityType.DELETE, Arrays.asList("z1", "z2")));
+  }
 
-    @Test
-    void isSecondaryMetadataObject()
-    {
-        assertTrue( new Schema( SecondaryMetadata.class, "singular", "plural" ).isSecondaryMetadata() );
-    }
+  @Test
+  void isSecondaryMetadataObject() {
+    assertTrue(new Schema(SecondaryMetadata.class, "singular", "plural").isSecondaryMetadata());
+  }
 
-    @Test
-    void isSecondaryMetadataObjectMetadata()
-    {
-        assertTrue( new Schema( SecondaryMetadata.class, "singular", "plural" ).isMetadata() );
-    }
+  @Test
+  void isSecondaryMetadataObjectMetadata() {
+    assertTrue(new Schema(SecondaryMetadata.class, "singular", "plural").isMetadata());
+  }
 
-    @Test
-    void isSecondaryMetadataObjectNot()
-    {
-        assertFalse( new Schema( Metadata.class, "singular", "plural" ).isSecondaryMetadata() );
-    }
+  @Test
+  void isSecondaryMetadataObjectNot() {
+    assertFalse(new Schema(Metadata.class, "singular", "plural").isSecondaryMetadata());
+  }
 
-    @Test
-    void testAuthorityByType()
-    {
-        final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        authorities.forEach( schema::add );
-        List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
-        assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
-        List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
-        assertThat( list2, contains( "x1", "x2", "y1", "y2" ) );
-        assertSame( list1, list2 );
-    }
+  @Test
+  void testAuthorityByType() {
+    final Schema schema = new Schema(SecondaryMetadata.class, "singular", "plural");
+    authorities.forEach(schema::add);
+    List<String> list1 = schema.getAuthorityByType(AuthorityType.CREATE);
+    assertThat(list1, contains("x1", "x2", "y1", "y2"));
+    List<String> list2 = schema.getAuthorityByType(AuthorityType.CREATE);
+    assertThat(list2, contains("x1", "x2", "y1", "y2"));
+    assertSame(list1, list2);
+  }
 
-    @Test
-    void testAuthorityByTypeDifferent()
-    {
-        final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        authorities.forEach( schema::add );
-        List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
-        assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
-        List<String> list3 = schema.getAuthorityByType( AuthorityType.DELETE );
-        assertThat( list3, contains( "z1", "z2" ) );
-        List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
-        assertThat( list2, contains( "x1", "x2", "y1", "y2" ) );
-        assertSame( list1, list2 );
-    }
+  @Test
+  void testAuthorityByTypeDifferent() {
+    final Schema schema = new Schema(SecondaryMetadata.class, "singular", "plural");
+    authorities.forEach(schema::add);
+    List<String> list1 = schema.getAuthorityByType(AuthorityType.CREATE);
+    assertThat(list1, contains("x1", "x2", "y1", "y2"));
+    List<String> list3 = schema.getAuthorityByType(AuthorityType.DELETE);
+    assertThat(list3, contains("z1", "z2"));
+    List<String> list2 = schema.getAuthorityByType(AuthorityType.CREATE);
+    assertThat(list2, contains("x1", "x2", "y1", "y2"));
+    assertSame(list1, list2);
+  }
 
-    @Test
-    void testAuthorityByTypeNotFound()
-    {
-        final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        authorities.forEach( schema::add );
-        List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE );
-        assertTrue( list1.isEmpty() );
-        List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE );
-        assertTrue( list2.isEmpty() );
-        assertSame( list1, list2 );
-    }
+  @Test
+  void testAuthorityByTypeNotFound() {
+    final Schema schema = new Schema(SecondaryMetadata.class, "singular", "plural");
+    authorities.forEach(schema::add);
+    List<String> list1 = schema.getAuthorityByType(AuthorityType.CREATE_PRIVATE);
+    assertTrue(list1.isEmpty());
+    List<String> list2 = schema.getAuthorityByType(AuthorityType.CREATE_PRIVATE);
+    assertTrue(list2.isEmpty());
+    assertSame(list1, list2);
+  }
 
-    @Test
-    void testAuthorityByTypeReset()
-    {
-        final Schema schema = new Schema( SecondaryMetadata.class, "singular", "plural" );
-        authorities.forEach( schema::add );
-        List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
-        assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
-        schema.add( new Authority( AuthorityType.CREATE, Arrays.asList( "a1", "a2" ) ) );
-        List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
-        assertThat( list2, contains( "x1", "x2", "y1", "y2", "a1", "a2" ) );
-        assertNotSame( list1, list2 );
-    }
+  @Test
+  void testAuthorityByTypeReset() {
+    final Schema schema = new Schema(SecondaryMetadata.class, "singular", "plural");
+    authorities.forEach(schema::add);
+    List<String> list1 = schema.getAuthorityByType(AuthorityType.CREATE);
+    assertThat(list1, contains("x1", "x2", "y1", "y2"));
+    schema.add(new Authority(AuthorityType.CREATE, Arrays.asList("a1", "a2")));
+    List<String> list2 = schema.getAuthorityByType(AuthorityType.CREATE);
+    assertThat(list2, contains("x1", "x2", "y1", "y2", "a1", "a2"));
+    assertNotSame(list1, list2);
+  }
 
-    @Test
-    void testGetEmbeddedObjectProperties()
-    {
-        Schema schema = new Schema( Metadata.class, "singular", "plural" );
-        Property a = createProperty( 'A', Property::setEmbeddedObject, true );
-        Property b = createProperty( 'B', Property::setEmbeddedObject, false );
-        schema.addProperty( a );
-        schema.addProperty( b );
-        assertEquals( singletonMap( "PropertyA", a ), schema.getEmbeddedObjectProperties() );
-    }
+  @Test
+  void testGetEmbeddedObjectProperties() {
+    Schema schema = new Schema(Metadata.class, "singular", "plural");
+    Property a = createProperty('A', Property::setEmbeddedObject, true);
+    Property b = createProperty('B', Property::setEmbeddedObject, false);
+    schema.addProperty(a);
+    schema.addProperty(b);
+    assertEquals(singletonMap("PropertyA", a), schema.getEmbeddedObjectProperties());
+  }
 
-    @Test
-    void testGetAnalyticalObjectProperties()
-    {
-        Schema schema = new Schema( Metadata.class, "singular", "plural" );
-        Property a = createProperty( 'A', Property::setAnalyticalObject, true );
-        Property b = createProperty( 'B', Property::setAnalyticalObject, false );
-        schema.addProperty( a );
-        schema.addProperty( b );
-        assertEquals( singletonMap( "PropertyA", a ), schema.getAnalyticalObjectProperties() );
-    }
+  @Test
+  void testGetAnalyticalObjectProperties() {
+    Schema schema = new Schema(Metadata.class, "singular", "plural");
+    Property a = createProperty('A', Property::setAnalyticalObject, true);
+    Property b = createProperty('B', Property::setAnalyticalObject, false);
+    schema.addProperty(a);
+    schema.addProperty(b);
+    assertEquals(singletonMap("PropertyA", a), schema.getAnalyticalObjectProperties());
+  }
 
-    @Test
-    void testGetNonPersistedProperties()
-    {
-        Schema schema = new Schema( Metadata.class, "singular", "plural" );
-        Property a = createProperty( 'A', Property::setPersisted, true );
-        Property b = createProperty( 'B', Property::setPersisted, false );
-        schema.addProperty( a );
-        schema.addProperty( b );
-        assertEquals( singletonMap( "PropertyB", b ), schema.getNonPersistedProperties() );
-    }
+  @Test
+  void testGetNonPersistedProperties() {
+    Schema schema = new Schema(Metadata.class, "singular", "plural");
+    Property a = createProperty('A', Property::setPersisted, true);
+    Property b = createProperty('B', Property::setPersisted, false);
+    schema.addProperty(a);
+    schema.addProperty(b);
+    assertEquals(singletonMap("PropertyB", b), schema.getNonPersistedProperties());
+  }
 
-    @Test
-    void testGetPersistedProperties()
-    {
-        Schema schema = new Schema( Metadata.class, "singular", "plural" );
-        Property a = createProperty( 'A', Property::setPersisted, true );
-        Property b = createProperty( 'B', Property::setPersisted, false );
-        schema.addProperty( a );
-        schema.addProperty( b );
-        assertEquals( singletonMap( "PropertyA", a ), schema.getPersistedProperties() );
-    }
+  @Test
+  void testGetPersistedProperties() {
+    Schema schema = new Schema(Metadata.class, "singular", "plural");
+    Property a = createProperty('A', Property::setPersisted, true);
+    Property b = createProperty('B', Property::setPersisted, false);
+    schema.addProperty(a);
+    schema.addProperty(b);
+    assertEquals(singletonMap("PropertyA", a), schema.getPersistedProperties());
+  }
 
-    @Test
-    void testGetReadableProperties()
-    {
-        Schema schema = new Schema( Metadata.class, "singular", "plural" );
-        Property a = createProperty( 'A', Property::setReadable, true );
-        Property b = createProperty( 'B', Property::setReadable, false );
-        schema.addProperty( a );
-        schema.addProperty( b );
-        assertEquals( singletonMap( "PropertyA", a ), schema.getReadableProperties() );
-    }
+  @Test
+  void testGetReadableProperties() {
+    Schema schema = new Schema(Metadata.class, "singular", "plural");
+    Property a = createProperty('A', Property::setReadable, true);
+    Property b = createProperty('B', Property::setReadable, false);
+    schema.addProperty(a);
+    schema.addProperty(b);
+    assertEquals(singletonMap("PropertyA", a), schema.getReadableProperties());
+  }
 
-    private static <T> Property createProperty( char uniqueCharacter, BiConsumer<Property, T> setter, T value )
-    {
-        Property p = new Property();
-        p.setName( "Property" + uniqueCharacter );
-        setter.accept( p, value );
-        return p;
-    }
+  private static <T> Property createProperty(
+      char uniqueCharacter, BiConsumer<Property, T> setter, T value) {
+    Property p = new Property();
+    p.setName("Property" + uniqueCharacter);
+    setter.accept(p, value);
+    return p;
+  }
 
-    private static class SecondaryMetadata implements SecondaryMetadataObject
-    {
-    }
+  private static class SecondaryMetadata implements SecondaryMetadataObject {}
 
-    private static class Metadata implements MetadataObject
-    {
-    }
+  private static class Metadata implements MetadataObject {}
 }

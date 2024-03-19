@@ -28,10 +28,8 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import javax.annotation.Nonnull;
-
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramService;
@@ -45,33 +43,23 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
 @Getter
 @Builder
-@Component( "org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService" )
-public class ProgramRuleActionValidationService
-{
-    @Nonnull
-    private final ProgramStageService programStageService;
+@Component("org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService")
+public class ProgramRuleActionValidationService {
+  @Nonnull private final ProgramStageService programStageService;
 
-    @Nonnull
-    private final ProgramService programService;
+  @Nonnull private final ProgramService programService;
 
-    @Nonnull
-    private final ProgramStageSectionService sectionService;
+  @Nonnull private final ProgramStageSectionService sectionService;
 
-    @Nonnull
-    private final ProgramStageDataElementService stageDataElementService;
+  @Nonnull private final ProgramStageDataElementService stageDataElementService;
 
-    @Nonnull
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
+  @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Nonnull
-    private final DataElementService dataElementService;
+  @Nonnull private final DataElementService dataElementService;
 
-    @Nonnull
-    private final OptionService optionService;
+  @Nonnull private final OptionService optionService;
 
-    @Nonnull
-    private final ProgramNotificationTemplateService notificationTemplateService;
+  @Nonnull private final ProgramNotificationTemplateService notificationTemplateService;
 }

@@ -1,0 +1,538 @@
+{
+  "categories": [
+    {
+      "name": "ageGroup",
+      "id": "IjOK1aXkjVO",
+      "code": "ageGroup",
+      "shortName": "ageGroup",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "BT49qinT8J7"
+        },
+        {
+          "id": "ihP2RNzP0fm"
+        },
+        {
+          "id": "N3B2jlgiRHX"
+        },
+        {
+          "id": "GKQoNeejjdU"
+        },
+        {
+          "id": "bByb9n23vPv"
+        },
+        {
+          "id": "CMBqeoNZCY8"
+        },
+        {
+          "id": "yWAJBUx0X7L"
+        },
+        {
+          "id": "Wb44TJgaIr7"
+        }
+      ]
+    },
+    {
+      "name": "sex",
+      "id": "Tv9b9dYOHMG",
+      "code": "sex",
+      "shortName": "sex",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "j8ft17oIEID"
+        },
+        {
+          "id": "paLPcwxxBRs"
+        }
+      ]
+    },
+    {
+      "name": "payment_status",
+      "id": "D6kthOINtaj",
+      "code": "payment_status",
+      "shortName": "payment_status",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "rX1JDBLwBiA"
+        },
+        {
+          "id": "C8KH26bjs7Q"
+        },
+        {
+          "id": "XmyWM5dAZox"
+        }
+      ]
+    },
+    {
+      "name": "payment_state",
+      "id": "YNcYTPXdB6r",
+      "code": "payment_state",
+      "shortName": "payment_state",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "xgxX1kA2tBt"
+        },
+        {
+          "id": "rQTOPbaZ6uJ"
+        }
+      ]
+    },
+    {
+      "name": "product",
+      "id": "VowiWrbnWr3",
+      "code": "product",
+      "shortName": "product",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "n6G8e1Bou9l"
+        }
+      ]
+    },
+    {
+      "name": "item_status",
+      "id": "CmKkpIAtKiZ",
+      "code": "item_status",
+      "shortName": "item_status",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "pm3cAUuPSoI"
+        },
+        {
+          "id": "RhMtzZxNr6r"
+        }
+      ]
+    },
+    {
+      "name": "item_type",
+      "id": "QY8oxETWP5x",
+      "code": "item_type",
+      "shortName": "item_type",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "u5ttdA70HEl"
+        },
+        {
+          "id": "rogTXSuXf1m"
+        },
+        {
+          "id": "k5hHXh6KrOo"
+        }
+      ]
+    }
+  ],
+  "categoryOptions": [
+    {
+      "name": "0-5",
+      "id": "BT49qinT8J7",
+      "code": "0-5",
+      "shortName": "0-5"
+    },
+    {
+      "name": "6-12",
+      "id": "ihP2RNzP0fm",
+      "code": "6-12",
+      "shortName": "6-12"
+    },
+    {
+      "name": "13-18",
+      "id": "N3B2jlgiRHX",
+      "code": "13-18",
+      "shortName": "13-18"
+    },
+    {
+      "name": "19-25",
+      "id": "GKQoNeejjdU",
+      "code": "19-25",
+      "shortName": "19-25"
+    },
+    {
+      "name": "26-35",
+      "id": "bByb9n23vPv",
+      "code": "26-35",
+      "shortName": "26-35"
+    },
+    {
+      "name": "36-55",
+      "id": "CMBqeoNZCY8",
+      "code": "36-55",
+      "shortName": "36-55"
+    },
+    {
+      "name": "56-75",
+      "id": "yWAJBUx0X7L",
+      "code": "56-75",
+      "shortName": "56-75"
+    },
+    {
+      "name": "76p",
+      "id": "Wb44TJgaIr7",
+      "code": "76p",
+      "shortName": "76p"
+    },
+    {
+      "name": "Male3",
+      "id": "j8ft17oIEID",
+      "code": "M",
+      "shortName": "M"
+    },
+    {
+      "name": "Female3",
+      "id": "paLPcwxxBRs",
+      "code": "F",
+      "shortName": "F"
+    },
+    {
+      "name": "Paid",
+      "id": "rX1JDBLwBiA",
+      "code": "paid",
+      "shortName": "paid"
+    },
+    {
+      "name": "Partialy paid",
+      "id": "C8KH26bjs7Q",
+      "code": "partialy-paid",
+      "shortName": "partialy-paid"
+    },
+    {
+      "name": "Not paid",
+      "id": "XmyWM5dAZox",
+      "code": "not-paid",
+      "shortName": "not-paid"
+    },
+    {
+      "name": "New",
+      "id": "xgxX1kA2tBt",
+      "code": "new",
+      "shortName": "new"
+    },
+    {
+      "name": "Renew",
+      "id": "rQTOPbaZ6uJ",
+      "code": "renew",
+      "shortName": "renew"
+    },
+    {
+      "name": "Sarh",
+      "id": "n6G8e1Bou9l",
+      "code": "TEST",
+      "shortName": "TEST"
+    },
+    {
+      "name": "Approved",
+      "id": "pm3cAUuPSoI",
+      "code": "approved",
+      "shortName": "approved"
+    },
+    {
+      "name": "Rejected",
+      "id": "RhMtzZxNr6r",
+      "code": "rejected",
+      "shortName": "rejected"
+    },
+    {
+      "name": "Emergency",
+      "id": "u5ttdA70HEl",
+      "code": "Emergency",
+      "shortName": "Emergency"
+    },
+    {
+      "name": "Referrals",
+      "id": "rogTXSuXf1m",
+      "code": "Referrals",
+      "shortName": "Referrals"
+    },
+    {
+      "name": "Other",
+      "id": "k5hHXh6KrOo",
+      "code": "Other",
+      "shortName": "Other"
+    }
+  ],
+  "categoryCombos": [
+    {
+      "name": "ageGroup_sex",
+      "id": "UBCZTtKoxWg",
+      "code": "age_sex",
+      "shortName": "age_sex",
+      "categories": [
+        {
+          "id": "IjOK1aXkjVO"
+        },
+        {
+          "id": "Tv9b9dYOHMG"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    },
+    {
+      "name": "ageGroup_payment_state_payment_status_sex",
+      "id": "TIAbMD7ETV6",
+      "code": "age_pay_pay_sex",
+      "shortName": "age_pay_pay_sex",
+      "categories": [
+        {
+          "id": "IjOK1aXkjVO"
+        },
+        {
+          "id": "Tv9b9dYOHMG"
+        },
+        {
+          "id": "D6kthOINtaj"
+        },
+        {
+          "id": "YNcYTPXdB6r"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    },
+    {
+      "name": "product",
+      "id": "BqWRQtkDcxa",
+      "code": "pro",
+      "shortName": "pro",
+      "categories": [
+        {
+          "id": "VowiWrbnWr3"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    },
+    {
+      "name": "ageGroup_item_status_item_type_product_sex",
+      "id": "QVfLQguTOO1",
+      "code": "age_ite_ite_pro_sex",
+      "shortName": "age_ite_ite_pro_sex",
+      "categories": [
+        {
+          "id": "VowiWrbnWr3"
+        },
+        {
+          "id": "CmKkpIAtKiZ"
+        },
+        {
+          "id": "QY8oxETWP5x"
+        },
+        {
+          "id": "Tv9b9dYOHMG"
+        },
+        {
+          "id": "IjOK1aXkjVO"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    },
+    {
+      "name": "ageGroup_claim_status_item_type_product_sex",
+      "id": "FEs7WKVk9B1",
+      "code": "age_cla_ite_pro_sex",
+      "shortName": "age_cla_ite_pro_sex",
+      "categories": [
+        {
+          "id": "VowiWrbnWr3"
+        },
+        {
+          "id": "CmKkpIAtKiZ"
+        },
+        {
+          "id": "QY8oxETWP5x"
+        },
+        {
+          "id": "Tv9b9dYOHMG"
+        },
+        {
+          "id": "IjOK1aXkjVO"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION"
+    }
+  ],
+  "dataElements": [
+    {
+      "name": "NB_INSUREES",
+      "id": "IjXDFHSWw8n",
+      "code": "NB_INSUREES",
+      "shortName": "NB_INSUREES",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "UBCZTtKoxWg"
+      }
+    },
+    {
+      "name": "NB_FAMILY",
+      "id": "bPjbBbjECI1",
+      "code": "NB_FAMILY",
+      "shortName": "NB_FAMILY",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "TIAbMD7ETV6"
+      }
+    },
+    {
+      "name": "SUM_CONTRIBUTIONS",
+      "id": "eUHBJXdKBr8",
+      "code": "SUM_CONTRIBUTIONS",
+      "shortName": "SUM_CONTRIBUTIONS",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "BqWRQtkDcxa"
+      }
+    },
+    {
+      "name": "NB_CLAIM",
+      "id": "AYFt457XLmN",
+      "code": "NB_CLAIM",
+      "shortName": "NB_CLAIM",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "QVfLQguTOO1"
+      }
+    },
+    {
+      "name": "NB_CLAIM_ITEM",
+      "id": "cYBrQuKsAUS",
+      "code": "NB_CLAIM_ITEM",
+      "shortName": "NB_CLAIM_ITEM",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "FEs7WKVk9B1"
+      }
+    },
+    {
+      "name": "NB_CLAIM_SERVICE",
+      "id": "gdwnsTlNDVr",
+      "code": "NB_CLAIM_SERVICE",
+      "shortName": "NB_CLAIM_SERVICE",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "FEs7WKVk9B1"
+      }
+    },
+    {
+      "name": "NB_BENEFIT",
+      "id": "U3z5QNFJEkC",
+      "code": "NB_BENEFIT",
+      "shortName": "NB_BENEFIT",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "FEs7WKVk9B1"
+      }
+    },
+    {
+      "name": "SUM_ASKED_BENEFIT",
+      "id": "Gz0LtxKeRfQ",
+      "code": "SUM_ASKED_BENEFIT",
+      "shortName": "SUM_ASKED_BENEFIT",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "valueType": "NUMBER",
+      "categoryCombo": {
+        "id": "FEs7WKVk9B1"
+      }
+    }
+  ],
+  "dataSets": [
+    {
+      "name": "Enrolment",
+      "id": "tS4D4c2HiTk",
+      "code": "Enrolment",
+      "shortName": "Enrolment",
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "IjXDFHSWw8n"
+          },
+          "dataSet": {
+            "id": "tS4D4c2HiTk"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "bPjbBbjECI1"
+          },
+          "dataSet": {
+            "id": "tS4D4c2HiTk"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "eUHBJXdKBr8"
+          },
+          "dataSet": {
+            "id": "tS4D4c2HiTk"
+          }
+        }
+      ],
+      "periodType": "Monthly"
+    },
+    {
+      "name": "PROCESSED_CLAIM",
+      "id": "xPaW8A6hAAE",
+      "code": "PROCESSED_CLAIM",
+      "shortName": "PROCESSED_CLAIM",
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "AYFt457XLmN"
+          },
+          "dataSet": {
+            "id": "xPaW8A6hAAE"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "cYBrQuKsAUS"
+          },
+          "dataSet": {
+            "id": "xPaW8A6hAAE"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "gdwnsTlNDVr"
+          },
+          "dataSet": {
+            "id": "xPaW8A6hAAE"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "U3z5QNFJEkC"
+          },
+          "dataSet": {
+            "id": "xPaW8A6hAAE"
+          }
+        },
+        {
+          "dataElement": {
+            "id": "Gz0LtxKeRfQ"
+          },
+          "dataSet": {
+            "id": "xPaW8A6hAAE"
+          }
+        }
+      ],
+      "periodType": "Monthly"
+    }
+  ]
+}

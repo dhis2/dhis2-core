@@ -32,13 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.junit.jupiter.api.Test;
 
-class DateUnitTypeTest
-{
-    @Test
-    void testGetName()
-    {
-        assertEquals( PeriodTypeEnum.MONTHLY.getName(), DateUnitType.MONTHLY.getName() );
-        assertEquals( PeriodTypeEnum.QUARTERLY.getName(), DateUnitType.QUARTERLY.getName() );
-        assertEquals( PeriodTypeEnum.YEARLY.getName(), DateUnitType.YEARLY.getName() );
-    }
+class DateUnitTypeTest {
+  @Test
+  void testGetName() {
+    assertEquals(PeriodTypeEnum.MONTHLY.getName(), DateUnitType.MONTHLY.getName());
+    assertEquals(PeriodTypeEnum.QUARTERLY.getName(), DateUnitType.QUARTERLY.getName());
+    assertEquals(PeriodTypeEnum.YEARLY.getName(), DateUnitType.YEARLY.getName());
+  }
 }

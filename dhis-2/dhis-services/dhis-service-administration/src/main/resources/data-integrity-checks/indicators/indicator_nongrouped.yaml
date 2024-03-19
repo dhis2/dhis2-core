@@ -29,13 +29,11 @@ name: indicators_not_grouped
 description: Indicators not in any groups.
 section: Indicators
 section_order: 2
-summary_uid: yh9JEFsml2C
 summary_sql: >-
     select count(*) as value,
     100*count(*)/ NULLIF( (select count(*) from indicator), 0) as percent
     from indicator where indicatorid
     not in (select indicatorid from indicatorgroupmembers);
-details_uid: Is7g6eFibfG
 details_sql: >-
     SELECT uid,name
     FROM indicator

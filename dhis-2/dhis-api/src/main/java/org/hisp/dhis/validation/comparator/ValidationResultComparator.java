@@ -28,7 +28,6 @@
 package org.hisp.dhis.validation.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.validation.ValidationResult;
 
 /**
@@ -36,25 +35,17 @@ import org.hisp.dhis.validation.ValidationResult;
  *
  * @author Lars Helge Overland
  */
-public class ValidationResultComparator
-    implements Comparator<ValidationResult>
-{
-    @Override
-    public int compare( ValidationResult result1, ValidationResult result2 )
-    {
-        if ( result1.getPeriod() == null && result2.getPeriod() == null )
-        {
-            return 0;
-        }
-        else if ( result1.getPeriod() == null )
-        {
-            return 1;
-        }
-        else if ( result2.getPeriod() == null )
-        {
-            return -1;
-        }
-
-        return result1.getPeriod().getStartDate().compareTo( result2.getPeriod().getStartDate() );
+public class ValidationResultComparator implements Comparator<ValidationResult> {
+  @Override
+  public int compare(ValidationResult result1, ValidationResult result2) {
+    if (result1.getPeriod() == null && result2.getPeriod() == null) {
+      return 0;
+    } else if (result1.getPeriod() == null) {
+      return 1;
+    } else if (result2.getPeriod() == null) {
+      return -1;
     }
+
+    return result1.getPeriod().getStartDate().compareTo(result2.getPeriod().getStartDate());
+  }
 }

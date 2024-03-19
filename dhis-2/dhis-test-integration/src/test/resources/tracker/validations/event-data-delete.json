@@ -43,7 +43,6 @@
         "idScheme": "UID"
       },
       "relationships": [],
-      "followup": false,
       "deleted": false,
       "attributeOptionCombo": {
         "idScheme": "UID"

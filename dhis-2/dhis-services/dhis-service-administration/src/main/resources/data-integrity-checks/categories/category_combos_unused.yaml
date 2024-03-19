@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: yJ73aZmXuz1
   name: category_combos_unused
   description:  Category combinations not used by other metadata objects
   section: Categories
@@ -49,7 +48,6 @@
     SELECT COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM categorycombo), 0) as percent
     FROM unused_category_combo where type IS NULL;
-  details_uid: mG05UTfKZVz
   details_sql: >-
     WITH unused_category_combo as (
     SELECT a.uid, a.name, a.created, b.type FROM categorycombo a

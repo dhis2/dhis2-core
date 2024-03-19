@@ -27,47 +27,42 @@
  */
 package org.hisp.dhis.dataset;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "completeDataSetRegistrations", namespace = DxfNamespaces.DXF_2_0 )
-public class CompleteDataSetRegistrations
-{
-    private List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
+@JacksonXmlRootElement(
+    localName = "completeDataSetRegistrations",
+    namespace = DxfNamespaces.DXF_2_0)
+public class CompleteDataSetRegistrations {
+  private List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
 
-    public CompleteDataSetRegistrations()
-    {
-    }
+  public CompleteDataSetRegistrations() {}
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations()
-    {
-        return completeDataSetRegistrations;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(useWrapping = false, namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0)
+  public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations() {
+    return completeDataSetRegistrations;
+  }
 
-    public void setCompleteDataSetRegistrations( List<CompleteDataSetRegistration> completeDataSetRegistrations )
-    {
-        this.completeDataSetRegistrations = completeDataSetRegistrations;
-    }
+  public void setCompleteDataSetRegistrations(
+      List<CompleteDataSetRegistration> completeDataSetRegistrations) {
+    this.completeDataSetRegistrations = completeDataSetRegistrations;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "completeDataSetRegistrations", completeDataSetRegistrations )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("completeDataSetRegistrations", completeDataSetRegistrations)
+        .toString();
+  }
 }

@@ -27,33 +27,33 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
+public class DataApprovalWorkflowSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataApprovalWorkflow";
 
-public class DataApprovalWorkflowSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataApprovalWorkflow";
+  public static final String PLURAL = "dataApprovalWorkflows";
 
-    public static final String PLURAL = "dataApprovalWorkflows";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DataApprovalWorkflow.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1380);
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DataApprovalWorkflow.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1380 );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_DATA_APPROVAL_WORKFLOW")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_DATA_APPROVAL_WORKFLOW")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_DATA_APPROVAL_WORKFLOW")));
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATA_APPROVAL_WORKFLOW" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_DATA_APPROVAL_WORKFLOW" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATA_APPROVAL_WORKFLOW" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

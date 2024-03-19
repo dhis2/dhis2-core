@@ -30,13 +30,11 @@ package org.hisp.dhis.user;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -45,156 +43,120 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
-@ToString( onlyExplicitlyIncluded = true )
+@Accessors(chain = true)
+@ToString(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
-public class UserQueryParams
-{
-    /**
-     * The user query string.
-     */
-    @ToString.Include
-    private String query;
+public class UserQueryParams {
+  /** The user query string. */
+  @ToString.Include private String query;
 
-    @ToString.Include
-    private String phoneNumber;
+  @ToString.Include private String phoneNumber;
 
-    /**
-     * The current user in the context of the user query.
-     */
-    private User user;
+  /** The current user in the context of the user query. */
+  private User user;
 
-    @ToString.Include
-    private boolean canManage;
+  @ToString.Include private boolean canManage;
 
-    @ToString.Include
-    private boolean authSubset;
+  @ToString.Include private boolean authSubset;
 
-    @ToString.Include
-    private boolean disjointRoles;
+  @ToString.Include private boolean disjointRoles;
 
-    @ToString.Include
-    private Date lastLogin;
+  @ToString.Include private Date lastLogin;
 
-    @ToString.Include
-    private Date inactiveSince;
+  @ToString.Include private Date inactiveSince;
 
-    @ToString.Include
-    private Date passwordLastUpdated;
+  @ToString.Include private Date passwordLastUpdated;
 
-    @ToString.Include
-    private Integer inactiveMonths;
+  @ToString.Include private Integer inactiveMonths;
 
-    @ToString.Include
-    private boolean selfRegistered;
+  @ToString.Include private boolean selfRegistered;
 
-    @ToString.Include
-    private boolean isNot2FA;
+  @ToString.Include private boolean isNot2FA;
 
-    @ToString.Include
-    private UserInvitationStatus invitationStatus;
+  @ToString.Include private UserInvitationStatus invitationStatus;
 
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private Set<UserGroup> userGroups = new HashSet<>();
+  private Set<UserGroup> userGroups = new HashSet<>();
 
-    @ToString.Include
-    private Integer first;
+  @ToString.Include private Integer first;
 
-    @ToString.Include
-    private Integer max;
+  @ToString.Include private Integer max;
 
-    @ToString.Include
-    private boolean userOrgUnits;
+  @ToString.Include private boolean userOrgUnits;
 
-    @ToString.Include
-    private UserOrgUnitType orgUnitBoundary;
+  @ToString.Include private UserOrgUnitType orgUnitBoundary;
 
-    @ToString.Include
-    private boolean includeOrgUnitChildren;
+  @ToString.Include private boolean includeOrgUnitChildren;
 
-    @ToString.Include
-    private boolean prefetchUserGroups;
+  @ToString.Include private boolean prefetchUserGroups;
 
-    @ToString.Include
-    private Boolean disabled;
+  @ToString.Include private Boolean disabled;
 
-    /**
-     * Indicates whether users should be able to see users which have the same
-     * user roles. This setting is for internal use only, and will override the
-     * {@link SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS} system setting.
-     * Should not be exposed in the API.
-     */
-    @ToString.Include
-    private boolean canSeeOwnRoles = false;
+  /**
+   * Indicates whether users should be able to see users which have the same user roles. This
+   * setting is for internal use only, and will override the {@link
+   * SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS} system setting. Should not be exposed in the
+   * API.
+   */
+  @ToString.Include private boolean canSeeOwnRoles = false;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public UserQueryParams( User user )
-    {
-        this.user = user;
+  public UserQueryParams(User user) {
+    this.user = user;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public UserQueryParams addOrganisationUnit(OrganisationUnit unit) {
+    this.organisationUnits.add(unit);
+    setOrgUnitBoundary(UserOrgUnitType.DATA_CAPTURE);
+    return this;
+  }
+
+  public UserQueryParams addDataViewOrganisationUnit(OrganisationUnit unit) {
+
+    this.organisationUnits.add(unit);
+    setOrgUnitBoundary(UserOrgUnitType.DATA_OUTPUT);
+    return this;
+  }
+
+  public UserQueryParams addTeiSearchOrganisationUnit(OrganisationUnit unit) {
+    this.organisationUnits.add(unit);
+    setOrgUnitBoundary(UserOrgUnitType.TEI_SEARCH);
+    return this;
+  }
+
+  public UserQueryParams setOrganisationUnits(Set<OrganisationUnit> units) {
+    this.organisationUnits = units;
+    if (orgUnitBoundary == null) {
+      this.orgUnitBoundary = UserOrgUnitType.DATA_CAPTURE;
     }
+    return this;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public UserQueryParams setDataViewOrganisationUnits(Set<OrganisationUnit> units) {
+    this.organisationUnits = units;
+    this.orgUnitBoundary = UserOrgUnitType.DATA_OUTPUT;
+    return this;
+  }
 
-    public UserQueryParams addOrganisationUnit( OrganisationUnit unit )
-    {
-        this.organisationUnits.add( unit );
-        setOrgUnitBoundary( UserOrgUnitType.DATA_CAPTURE );
-        return this;
-    }
+  public UserQueryParams setTeiSearchOrganisationUnits(Set<OrganisationUnit> units) {
+    this.organisationUnits = units;
+    this.orgUnitBoundary = UserOrgUnitType.TEI_SEARCH;
+    return this;
+  }
 
-    public UserQueryParams addDataViewOrganisationUnit( OrganisationUnit unit )
-    {
+  public boolean hasUserGroups() {
+    return !userGroups.isEmpty();
+  }
 
-        this.organisationUnits.add( unit );
-        setOrgUnitBoundary( UserOrgUnitType.DATA_OUTPUT );
-        return this;
-    }
-
-    public UserQueryParams addTeiSearchOrganisationUnit( OrganisationUnit unit )
-    {
-        this.organisationUnits.add( unit );
-        setOrgUnitBoundary( UserOrgUnitType.TEI_SEARCH );
-        return this;
-    }
-
-    public UserQueryParams setOrganisationUnits( Set<OrganisationUnit> units )
-    {
-        this.organisationUnits = units;
-        if ( orgUnitBoundary == null )
-        {
-            this.orgUnitBoundary = UserOrgUnitType.DATA_CAPTURE;
-        }
-        return this;
-    }
-
-    public UserQueryParams setDataViewOrganisationUnits( Set<OrganisationUnit> units )
-    {
-        this.organisationUnits = units;
-        this.orgUnitBoundary = UserOrgUnitType.DATA_OUTPUT;
-        return this;
-    }
-
-    public UserQueryParams setTeiSearchOrganisationUnits( Set<OrganisationUnit> units )
-    {
-        this.organisationUnits = units;
-        this.orgUnitBoundary = UserOrgUnitType.TEI_SEARCH;
-        return this;
-    }
-
-    public boolean hasUserGroups()
-    {
-        return !userGroups.isEmpty();
-    }
-
-    public boolean hasUser()
-    {
-        return user != null;
-    }
-
+  public boolean hasUser() {
+    return user != null;
+  }
 }

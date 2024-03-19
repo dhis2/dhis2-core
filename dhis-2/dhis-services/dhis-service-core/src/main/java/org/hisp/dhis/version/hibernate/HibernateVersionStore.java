@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.version.hibernate;
 
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionStore;
@@ -37,23 +36,18 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.version.VersionStore" )
-public class HibernateVersionStore
-    extends HibernateGenericStore<Version>
-    implements VersionStore
-{
-    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Version.class, true );
-    }
+@Repository("org.hisp.dhis.version.VersionStore")
+public class HibernateVersionStore extends HibernateGenericStore<Version> implements VersionStore {
+  public HibernateVersionStore(
+      EntityManager entityManager, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher) {
+    super(entityManager, jdbcTemplate, publisher, Version.class, true);
+  }
 
-    @Override
-    public Version getVersionByKey( String key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public Version getVersionByKey(String key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("key"), key)));
+  }
 }

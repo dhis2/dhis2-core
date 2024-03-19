@@ -29,7 +29,6 @@ package org.hisp.dhis.validation;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -38,19 +37,20 @@ import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 /**
  * @author Stian Sandvold
  */
-public interface ValidationResultStore
-    extends GenericStore<ValidationResult>
-{
-    List<ValidationResult> getAllUnreportedValidationResults();
+public interface ValidationResultStore extends GenericStore<ValidationResult> {
+  List<ValidationResult> getAllUnreportedValidationResults();
 
-    ValidationResult getById( long id );
+  ValidationResult getById(long id);
 
-    List<ValidationResult> query( ValidationResultQuery query );
+  List<ValidationResult> query(ValidationResultQuery query);
 
-    int count( ValidationResultQuery query );
+  int count(ValidationResultQuery query);
 
-    List<ValidationResult> getValidationResults( OrganisationUnit orgUnit,
-        boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods );
+  List<ValidationResult> getValidationResults(
+      OrganisationUnit orgUnit,
+      boolean includeOrgUnitDescendants,
+      Collection<ValidationRule> validationRules,
+      Collection<Period> periods);
 
-    void delete( ValidationResultsDeletionRequest request );
+  void delete(ValidationResultsDeletionRequest request);
 }

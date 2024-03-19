@@ -32,90 +32,78 @@ import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.apache.commons.lang3.StringUtils.strip;
 import static org.apache.commons.lang3.StringUtils.trim;
 
+import com.google.common.net.HttpHeaders;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
-import com.google.common.net.HttpHeaders;
 
 /**
  * Utilities for {@link ResponseEntity}.
  *
  * @author Lars Helge Overland
  */
-public class ResponseEntityUtils
-{
-    ResponseEntityUtils()
-    {
+public class ResponseEntityUtils {
+  ResponseEntityUtils() {}
+
+  /**
+   * Returns a {@link ResponseEntity} for which ETag caching is handled. If the given request and
+   * ETag indicates that the requested resource has not been modified, a response entity indicating
+   * {@code 304 Not Modified} is returned, otherwise, a response entity indicating {@code 200 OK} is
+   * returned. In both cases, the {@code Cache-Control} header is set to no cache, and the {@code
+   * ETag} header is set to the given ETag value.
+   *
+   * @param <T>
+   * @param etag the ETag value.
+   * @param request the {@link HttpServletRequest}.
+   * @param bodySupplier the supplier of the response body.
+   * @return a {@link ResponseEntity}.
+   */
+  public static <T> ResponseEntity<T> withEtagCaching(
+      String etag, HttpServletRequest request, Supplier<T> bodySupplier) {
+    if (checkNotModified(etag, request)) {
+      return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+          .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
+          .eTag(etag)
+          .build();
     }
 
-    /**
-     * Returns a {@link ResponseEntity} for which ETag caching is handled. If
-     * the given request and ETag indicates that the requested resource has not
-     * been modified, a response entity indicating {@code 304 Not Modified} is
-     * returned, otherwise, a response entity indicating {@code 200 OK} is
-     * returned. In both cases, the {@code Cache-Control} header is set to no
-     * cache, and the {@code ETag} header is set to the given ETag value.
-     *
-     * @param <T>
-     * @param etag the ETag value.
-     * @param request the {@link HttpServletRequest}.
-     * @param bodySupplier the supplier of the response body.
-     * @return a {@link ResponseEntity}.
-     */
-    public static <T> ResponseEntity<T> withEtagCaching( String etag,
-        HttpServletRequest request, Supplier<T> bodySupplier )
-    {
-        if ( checkNotModified( etag, request ) )
-        {
-            return ResponseEntity.status( HttpStatus.NOT_MODIFIED )
-                .cacheControl( CacheControl.maxAge( 0, TimeUnit.SECONDS ).cachePrivate().mustRevalidate() )
-                .eTag( etag )
-                .build();
-        }
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
+        .eTag(etag)
+        .body(bodySupplier.get());
+  }
 
-        return ResponseEntity.ok()
-            .cacheControl( CacheControl.maxAge( 0, TimeUnit.SECONDS ).cachePrivate().mustRevalidate() )
-            .eTag( etag )
-            .body( bodySupplier.get() );
+  /**
+   * Checks whether the given ETag matches the {@code If-None-Match} header value, indicating that
+   * the requested resource has not been modified.
+   *
+   * @param etag the ETag.
+   * @param request the {@link HttpServletRequest}.
+   * @return true if the requested resource has not been not modified.
+   */
+  public static boolean checkNotModified(String etag, HttpServletRequest request) {
+    String ifNoneMatch = request.getHeader(HttpHeaders.IF_NONE_MATCH);
+
+    if (isBlank(etag) || isBlank(ifNoneMatch)) {
+      return false;
     }
 
-    /**
-     * Checks whether the given ETag matches the {@code If-None-Match} header
-     * value, indicating that the requested resource has not been modified.
-     *
-     * @param etag the ETag.
-     * @param request the {@link HttpServletRequest}.
-     * @return true if the requested resource has not been not modified.
-     */
-    public static boolean checkNotModified( String etag, HttpServletRequest request )
-    {
-        String ifNoneMatch = request.getHeader( HttpHeaders.IF_NONE_MATCH );
+    return stripHeaderValue(etag).equals(stripHeaderValue(ifNoneMatch));
+  }
 
-        if ( isBlank( etag ) || isBlank( ifNoneMatch ) )
-        {
-            return false;
-        }
-
-        return stripHeaderValue( etag ).equals( stripHeaderValue( ifNoneMatch ) );
-    }
-
-    /**
-     * Strips the given header value. Removes leading {@code W/} which indicates
-     * weak validation, and leading and trailing spaces and quotes.
-     *
-     * @param value the header value.
-     * @return a stripped value.
-     */
-    private static String stripHeaderValue( String value )
-    {
-        value = removeStart( trim( value ), "W/" );
-        value = strip( value, "\"" );
-        return value;
-    }
+  /**
+   * Strips the given header value. Removes leading {@code W/} which indicates weak validation, and
+   * leading and trailing spaces and quotes.
+   *
+   * @param value the header value.
+   * @return a stripped value.
+   */
+  private static String stripHeaderValue(String value) {
+    value = removeStart(trim(value), "W/");
+    value = strip(value, "\"");
+    return value;
+  }
 }

@@ -35,20 +35,16 @@ import org.hisp.dhis.jsontree.JsonValue;
  *
  * @author Jan Bernitt
  */
-public interface JsonDatastoreValue extends JsonIdentifiableObject
-{
-    default String getNamespace()
-    {
-        return getString( "namespace" ).string();
-    }
+public interface JsonDatastoreValue extends JsonIdentifiableObject {
+  default String getNamespace() {
+    return getString("namespace").string();
+  }
 
-    default String getKey()
-    {
-        return getString( "key" ).string();
-    }
+  default String getKey() {
+    return getString("key").string();
+  }
 
-    default JsonValue getValue()
-    {
-        return get( "value" );
-    }
+  default JsonValue getValue() {
+    return get("value");
+  }
 }

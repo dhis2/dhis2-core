@@ -30,32 +30,30 @@ package org.hisp.dhis.security.utils;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class CspConstants
-{
-    private CspConstants()
-    {
-    }
+public class CspConstants {
+  private CspConstants() {}
 
-    public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
+  public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-    public static final Pattern P_1 = Pattern.compile( "^.+/events/files$" );
+  public static final Pattern P_1 = Pattern.compile("^.+/events/files$");
 
-    public static final Pattern P_2 = Pattern.compile( "^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$" );
+  public static final Pattern P_2 =
+      Pattern.compile("^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$");
 
-    public static final Pattern P_3 = Pattern.compile( "^.+/dataValues/files$" );
+  public static final Pattern P_3 = Pattern.compile("^.+/dataValues/files$");
 
-    public static final Pattern P_4 = Pattern.compile(
-        "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$" );
+  public static final Pattern P_4 =
+      Pattern.compile(
+          "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$");
 
-    public static final Pattern P_5 = Pattern.compile( "^.+fileResources/[a-zA-Z\\d]+/data$" );
+  public static final Pattern P_5 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
 
-    public static final Pattern P_6 = Pattern.compile( "^.+audits/files/[a-zA-Z\\d]+$" );
+  public static final Pattern P_6 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
 
-    public static final Pattern P_7 = Pattern.compile( "^.+externalFileResources/[a-zA-Z\\d]+$" );
+  public static final Pattern P_7 = Pattern.compile("^.+externalFileResources/[a-zA-Z\\d]+$");
 
-    public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS = List.of( P_1, P_2, P_3, P_4, P_5, P_6,
-        P_7 );
+  public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
+      List.of(P_1, P_2, P_3, P_4, P_5, P_6, P_7);
 
-    public static final Pattern LOGIN_PATTERN = Pattern.compile( "^.+/dhis-web-commons/security/.+$" );
-
+  public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
 }

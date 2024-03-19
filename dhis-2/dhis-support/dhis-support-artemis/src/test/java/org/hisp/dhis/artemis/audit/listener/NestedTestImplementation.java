@@ -32,16 +32,12 @@ import org.hisp.dhis.audit.AuditAttribute;
 /**
  * @author Luciano Fiandesio
  */
-
 public class NestedTestImplementation
-    extends
-    org.hisp.dhis.artemis.audit.listener.TestImplementation
-{
-    private String testAttribute3;
+    extends org.hisp.dhis.artemis.audit.listener.TestImplementation {
+  private String testAttribute3;
 
-    @AuditAttribute
-    public String getTestAttribute3()
-    {
-        return testAttribute3;
-    }
+  @AuditAttribute
+  public String getTestAttribute3() {
+    return testAttribute3;
+  }
 }

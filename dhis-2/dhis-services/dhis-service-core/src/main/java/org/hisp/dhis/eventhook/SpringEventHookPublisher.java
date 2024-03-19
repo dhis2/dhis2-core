@@ -28,7 +28,6 @@
 package org.hisp.dhis.eventhook;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.ApplicationEventPublisher;
@@ -39,24 +38,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class SpringEventHookPublisher implements EventHookPublisher
-{
-    private final DhisConfigurationProvider dhisConfig;
+public class SpringEventHookPublisher implements EventHookPublisher {
+  private final DhisConfigurationProvider dhisConfig;
 
-    private final ApplicationEventPublisher publisher;
+  private final ApplicationEventPublisher publisher;
 
-    @Override
-    public void publishEvent( Event event )
-    {
-        if ( event == null || event.getObject() == null )
-        {
-            return;
-        }
-
-        if ( dhisConfig.isEnabled( ConfigurationKey.EVENT_HOOKS_ENABLED )
-            && !BLOCKLIST.contains( event.getObject().getClass() ) )
-        {
-            publisher.publishEvent( event );
-        }
+  @Override
+  public void publishEvent(Event event) {
+    if (event == null || event.getObject() == null) {
+      return;
     }
+
+    if (dhisConfig.isEnabled(ConfigurationKey.EVENT_HOOKS_ENABLED)
+        && !BLOCKLIST.contains(event.getObject().getClass())) {
+      publisher.publishEvent(event);
+    }
+  }
 }

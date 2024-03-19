@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.gist;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.query.Junction;
 
 /**
@@ -39,40 +40,57 @@ import org.hisp.dhis.query.Junction;
  */
 @Data
 @OpenApi.Shared
-public final class GistParams
-{
-    String locale = "";
+public final class GistParams {
+  String locale = "";
 
-    GistAutoType auto;
+  GistAutoType auto;
 
-    int page = 1;
+  int page = 1;
 
-    int pageSize = 50;
+  int pageSize = 50;
 
-    boolean translate = true;
+  /**
+   * The name of the property in the response object that holds the list of response objects when a
+   * paged response is used.
+   */
+  String pageListName;
 
-    boolean inverse = false;
+  boolean translate = true;
 
-    boolean total = false;
+  boolean inverse = false;
 
-    boolean absoluteUrls = false;
+  @Deprecated(since = "2.41", forRemoval = true)
+  Boolean total;
 
-    boolean headless = false;
+  Boolean totalPages;
 
-    boolean describe = false;
+  boolean absoluteUrls = false;
 
-    boolean references = true;
+  boolean headless;
 
-    Junction.Type rootJunction = Junction.Type.AND;
+  boolean describe = false;
 
-    String fields;
+  boolean references = true;
 
-    String filter;
+  Junction.Type rootJunction = Junction.Type.AND;
 
-    String order;
+  String fields;
 
-    public GistAutoType getAuto( GistAutoType defaultValue )
-    {
-        return auto == null ? defaultValue : auto;
-    }
+  String filter;
+
+  String order;
+
+  public GistAutoType getAuto(GistAutoType defaultValue) {
+    return auto == null ? defaultValue : auto;
+  }
+
+  @JsonIgnore
+  public boolean isCountTotalPages() throws BadRequestException {
+    if (totalPages != null && total != null && totalPages != total)
+      throw new BadRequestException(
+          "totalPages and total request parameters are contradicting each other");
+    if (totalPages != null) return totalPages;
+    if (total != null) return total;
+    return false;
+  }
 }

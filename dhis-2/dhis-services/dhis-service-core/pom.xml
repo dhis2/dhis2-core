@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.41-SNAPSHOT</version>
+    <version>2.42-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Core API Implementations</name>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -78,16 +71,16 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-artemis</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-cache-invalidation</artifactId>
-    </dependency>
 
     <!-- Other -->
 
     <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>json-tree</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -124,6 +117,11 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.vladmihalcea</groupId>
+      <artifactId>hibernate-types-52</artifactId>
+      <version>${hibernate-types.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -200,6 +198,10 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
     </dependency>
 
     <!-- Apache JClouds -->
@@ -351,6 +353,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
       <scope>test</scope>
@@ -371,7 +378,13 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>

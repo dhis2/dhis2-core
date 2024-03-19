@@ -30,7 +30,6 @@ package org.hisp.dhis.jdbc.batchhandler;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
@@ -38,93 +37,82 @@ import org.hisp.quick.batchhandler.AbstractBatchHandler;
 /**
  * @author Stian Sandvold
  */
-public class ReservedValueBatchHandler
-    extends AbstractBatchHandler<ReservedValue>
-{
-    public ReservedValueBatchHandler( JdbcConfiguration configuration )
-    {
-        super( configuration );
-    }
+public class ReservedValueBatchHandler extends AbstractBatchHandler<ReservedValue> {
+  public ReservedValueBatchHandler(JdbcConfiguration configuration) {
+    super(configuration);
+  }
 
-    @Override
-    public String getTableName()
-    {
-        return "reservedvalue";
-    }
+  @Override
+  public String getTableName() {
+    return "reservedvalue";
+  }
 
-    @Override
-    public String getAutoIncrementColumn()
-    {
-        return "reservedvalueid";
-    }
+  @Override
+  public String getAutoIncrementColumn() {
+    return "reservedvalueid";
+  }
 
-    @Override
-    public boolean isInclusiveUniqueColumns()
-    {
-        return true;
-    }
+  @Override
+  public boolean isInclusiveUniqueColumns() {
+    return true;
+  }
 
-    @Override
-    public List<String> getIdentifierColumns()
-    {
-        return getStringList( "reservedvalueid" );
-    }
+  @Override
+  public List<String> getIdentifierColumns() {
+    return getStringList("reservedvalueid");
+  }
 
-    @Override
-    public List<Object> getIdentifierValues( ReservedValue object )
-    {
-        return getObjectList( object.getId() );
-    }
+  @Override
+  public List<Object> getIdentifierValues(ReservedValue object) {
+    return getObjectList(object.getId());
+  }
 
-    @Override
-    public List<String> getUniqueColumns()
-    {
-        return getStringList( "reservedvalueid", "ownerobject", "owneruid", "key", "value" );
-    }
+  @Override
+  public List<String> getUniqueColumns() {
+    return getStringList("reservedvalueid", "ownerobject", "owneruid", "key", "value");
+  }
 
-    @Override
-    public List<Object> getUniqueValues( ReservedValue object )
-    {
-        return getObjectList(
-            object.getId(),
-            object.getOwnerObject(),
-            object.getOwnerUid(),
-            object.getKey(),
-            object.getValue() );
-    }
+  @Override
+  public List<Object> getUniqueValues(ReservedValue object) {
+    return getObjectList(
+        object.getId(),
+        object.getOwnerObject(),
+        object.getOwnerUid(),
+        object.getKey(),
+        object.getValue());
+  }
 
-    @Override
-    public List<String> getColumns()
-    {
-        return getStringList( "ownerobject", "owneruid", "key", "value", "expirydate", "created" );
-    }
+  @Override
+  public List<String> getColumns() {
+    return getStringList("ownerobject", "owneruid", "key", "value", "expirydate", "created");
+  }
 
-    @Override
-    public List<Object> getValues( ReservedValue object )
-    {
-        return getObjectList(
-            object.getOwnerObject(),
-            object.getOwnerUid(),
-            object.getKey(),
-            object.getValue(),
-            object.getExpiryDate(),
-            object.getCreated() );
-    }
+  @Override
+  public List<Object> getValues(ReservedValue object) {
+    return getObjectList(
+        object.getOwnerObject(),
+        object.getOwnerUid(),
+        object.getKey(),
+        object.getValue(),
+        object.getExpiryDate(),
+        object.getCreated());
+  }
 
-    @Override
-    public ReservedValue mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        return ReservedValue.builder().id( resultSet.getInt( "reservedvalueid" ) )
-            .ownerObject( resultSet.getString( "ownerobject" ) ).ownerUid( resultSet.getString( "ownerUid" ) )
-            .key( resultSet.getString( "key" ) ).value( resultSet.getString( "value" ) )
-            .expiryDate( resultSet.getDate( "expirydate" ) )
-            .created( resultSet.getDate( "created" ) ).build();
-    }
+  @Override
+  public ReservedValue mapRow(ResultSet resultSet) throws SQLException {
+    return ReservedValue.builder()
+        .id(resultSet.getInt("reservedvalueid"))
+        .ownerObject(resultSet.getString("ownerobject"))
+        .ownerUid(resultSet.getString("ownerUid"))
+        .key(resultSet.getString("key"))
+        .value(resultSet.getString("value"))
+        .expiryDate(resultSet.getDate("expirydate"))
+        .created(resultSet.getDate("created"))
+        .build();
+  }
 
-    @Override
-    public String getIdSequenceName()
-    {
-        return "reservedvalue_sequence";
-    }
+  @Override
+  public String getIdSequenceName() {
+    return "reservedvalue_sequence";
+  }
 }

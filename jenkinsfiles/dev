@@ -4,7 +4,7 @@
 
 pipeline {
     agent {
-        label 'ec2-jdk11'
+        label 'ec2-jdk17'
     }
 
     triggers {
@@ -20,13 +20,10 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
-        AWX_TEMPLATE = 37
-        HOST = 'play.dhis2.org'
-        INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11"
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre17"
     }
 
     stages {
@@ -77,7 +74,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jre11', '8.5-jre11'
+                        values '9.0-jre17', '8.5-jre17'
                     }
                 }
 
@@ -103,7 +100,7 @@ pipeline {
                     stage('Run tests') {
                         steps {
                             script {
-                                dir("dhis-2/dhis-e2e-test") {
+                                dir("dhis-2/dhis-test-e2e") {
                                     sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
                                     sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
@@ -113,7 +110,7 @@ pipeline {
                         post {
                             always {
                                 script {
-                                    dir("dhis-2/dhis-e2e-test") {
+                                    dir("dhis-2/dhis-test-e2e") {
                                         archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
                                     }
                                 }
@@ -121,7 +118,7 @@ pipeline {
 
                             failure {
                                 script {
-                                    dir("dhis-2/dhis-e2e-test") {
+                                    dir("dhis-2/dhis-test-e2e") {
                                         sh "docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} logs web > ${DOCKER_IMAGE_TAG_BASE}_logs.txt"
                                         archiveArtifacts artifacts: "${DOCKER_IMAGE_TAG_BASE}_logs.txt"
                                     }
@@ -149,7 +146,12 @@ pipeline {
             }
         }
 
-        stage('Publish images') {
+        stage('Publish image') {
+            environment {
+                BASE_IMAGE = "$DOCKER_IMAGE_NAME_PUBLISH_SOURCE"
+                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
+            }
+
             steps {
                 script {
                     withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
@@ -160,73 +162,61 @@ pipeline {
                         }
 
                         withMaven(options: [artifactsPublisher(disabled: true)]) {
-                            sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
-                                -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag} \
-                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+                            sh "./dhis-2/build-docker-image.sh -t ${tag} -d"
                         }
                     }
                 }
             }
         }
 
-        stage ('Update Play Instance') {
-            steps {
-                implementIoBuildStarted(buildEnvironment: "TEST", buildName: "${STAGE_NAME}")
-                echo 'Updating Play Instance ...'
-                script {
-                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
-                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE")
-                    }
-                }
-            }
-
-            post {
-                always {
-                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
-                }
-            }
-        }
-
-        stage('Update IM Play dev instance') {
+        stage('Update IM Play instance') {
             environment {
                 HTTP = "http --check-status"
-                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
-                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
+                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
+                IM_HOST = "https://api.im.dhis2.org"
+                INSTANCE_URL = "https://play.im.dhis2.org/dev"
                 IMAGE_REPOSITORY = "core-dev"
-                IMAGE_TAG = "latest"
                 IMAGE_PULL_POLICY = "Always"
                 FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
                 INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+                MIN_READY_SECONDS = "240"
             }
+
             steps {
                 script {
-                    if (env.GIT_BRANCH == 'master') {
-                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                            dir('im-db-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                        dir('im-manager') {
+                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
 
-                                dir('scripts') {
+                            echo 'Creating DHIS2 instance on IM...'
+                            def branch = ""
+                            if (env.GIT_BRANCH == 'master') {
+                                env.IMAGE_TAG = "latest"
+                                env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
+                            } else {
+                                env.IMAGE_TAG = env.GIT_BRANCH
+                                branch = "-${env.GIT_BRANCH.replace(".", "-")}"
+
+                                dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
                                     ).trim()
-
-                                    sh '[ -n "$DATABASE_ID" ]'
-                                    echo "DATABASE_ID is ${env.DATABASE_ID}"
                                 }
                             }
 
-                            dir('im-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+                            sh '[ -n "$DATABASE_ID" ]'
+                            echo "Database: ${env.DATABASE_ID}"
 
-                                dir('scripts') {
-                                    echo 'Creating DHIS2 instance on IM...'
-                                    sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
-                                    timeout(5) {
-                                        waitFor.statusOk("${env.INSTANCE_URL}")
-                                    }
+                            dir('scripts/instances') {
+                                description = "DHIS 2 development branch ${env.GIT_BRANCH}"
+                                sh "./findByName.sh play dev${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play dev${branch} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play dev${branch} ${description}"
+                                timeout(5) {
+                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }
                             }
                         }

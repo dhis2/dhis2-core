@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.visualization;
 
-/**
- * Holds the method type for OutlierAnalysis.
- */
-public enum OutlierMethod
-{
-    IQR,
-    STANDARD_Z_SCORE,
-    MODIFIED_Z_SCORE
+/** Holds the method type for OutlierAnalysis. */
+public enum OutlierMethod {
+  IQR,
+  STANDARD_Z_SCORE,
+  MODIFIED_Z_SCORE
 }

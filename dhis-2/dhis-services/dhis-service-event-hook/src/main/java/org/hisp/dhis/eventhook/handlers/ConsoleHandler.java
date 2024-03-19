@@ -28,7 +28,6 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.eventhook.Event;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
@@ -38,16 +37,11 @@ import org.hisp.dhis.eventhook.targets.ConsoleTarget;
  * @author Morten Olav Hansen
  */
 @Slf4j
-public class ConsoleHandler implements Handler
-{
-    public ConsoleHandler( ConsoleTarget target )
-    {
+public class ConsoleHandler implements Handler {
+  public ConsoleHandler(ConsoleTarget target) {}
 
-    }
-
-    @Override
-    public void run( EventHook eventHook, Event event, String payload )
-    {
-        log.info( payload );
-    }
+  @Override
+  public void run(EventHook eventHook, Event event, String payload) {
+    log.info(payload);
+  }
 }

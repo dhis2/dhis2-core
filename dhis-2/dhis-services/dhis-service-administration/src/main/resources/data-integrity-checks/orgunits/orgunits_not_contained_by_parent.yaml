@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: IfsKI6Tdz1X
 name: orgunits_not_contained_by_parent
 description: Organisation units with point coordinates should be contained by their parent.
 section: Organisation units
@@ -44,7 +43,6 @@ summary_sql: >-
   100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) 
   FROM organisationunit WHERE ST_GeometryType(geometry) = 'ST_Point'), 0) as percent
   FROM parent_contains_point;
-details_uid: QC6yuqSTQXa
 details_sql: >-
   SELECT a.uid,a.name from organisationunit a
   INNER JOIN organisationunit b on a.parentid = b.organisationunitid

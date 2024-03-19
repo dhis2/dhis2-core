@@ -32,26 +32,20 @@ package org.hisp.dhis.dataintegrity;
  *
  * @author Jan Bernitt
  */
-public enum DataIntegritySeverity
-{
-    /**
-     * Indicates that this is for information only.
-     */
-    INFO,
-    /**
-     * A warning indicates that this may be a problem, but not necessarily an
-     * error. It is however recommended triaging these issues.
-     */
-    WARNING,
-    /**
-     * An error which should be fixed, but which may not necessarily lead to the
-     * system not functioning.
-     */
-    SEVERE,
+public enum DataIntegritySeverity {
+  /** Indicates that this is for information only. */
+  INFO,
+  /**
+   * A warning indicates that this may be a problem, but not necessarily an error. It is however
+   * recommended triaging these issues.
+   */
+  WARNING,
+  /**
+   * An error which should be fixed, but which may not necessarily lead to the system not
+   * functioning.
+   */
+  SEVERE,
 
-    /**
-     * An error which must be fixed, and which may lead to end-user error or
-     * system crashes.
-     */
-    CRITICAL
+  /** An error which must be fixed, and which may lead to end-user error or system crashes. */
+  CRITICAL
 }

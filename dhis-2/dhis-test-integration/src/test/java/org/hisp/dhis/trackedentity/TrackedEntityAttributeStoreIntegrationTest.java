@@ -30,20 +30,24 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,166 +55,215 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Ameen
  */
-class TrackedEntityAttributeStoreIntegrationTest
-    extends
-    IntegrationTestBase
-{
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
+class TrackedEntityAttributeStoreIntegrationTest extends IntegrationTestBase {
+  @Autowired private TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
+  @Autowired private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    private final static int A = 65;
+  @Autowired private TrackedEntityService trackedEntityService;
 
-    private final static int T = 85;
+  @Autowired private TrackedEntityAttributeValueService entityAttributeValueService;
 
-    private Program programB;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    private TrackedEntityAttribute attributeW;
+  private static final int A = 65;
 
-    private TrackedEntityAttribute attributeY;
+  private static final int T = 85;
 
-    private TrackedEntityAttribute attributeZ;
+  private Program programB;
 
-    @Override
-    public void setUpTest()
-    {
+  private TrackedEntityAttribute attributeW;
 
-        attributeW = createTrackedEntityAttribute( 'W' );
-        attributeW.setUnique( true );
-        attributeY = createTrackedEntityAttribute( 'Y' );
-        attributeY.setUnique( true );
-        attributeZ = createTrackedEntityAttribute( 'Z', ValueType.NUMBER );
+  private TrackedEntityAttribute attributeY;
 
-        Program program = createProgram( 'A' );
-        programService.addProgram( program );
+  private TrackedEntityAttribute attributeZ;
 
-        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
-        trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+  @Override
+  public void setUpTest() {
 
-        TrackedEntityType trackedEntityTypeB = createTrackedEntityType( 'B' );
-        trackedEntityTypeB.setPublicAccess( AccessStringHelper.FULL );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeB );
+    attributeW = createTrackedEntityAttribute('W');
+    attributeW.setUnique(true);
+    attributeY = createTrackedEntityAttribute('Y');
+    attributeY.setUnique(true);
+    attributeZ = createTrackedEntityAttribute('Z', ValueType.NUMBER);
 
-        // Create 20 Tracked Entity Attributes (named A .. O)
-        IntStream.range( A, T ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
-            .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
+    Program program = createProgram('A');
+    programService.addProgram(program);
 
-        // Transform the Tracked Entity Attributes into a List of
-        // TrackedEntityTypeAttribute
-        List<TrackedEntityTypeAttribute> teatList = IntStream.range( A, T )
-            .mapToObj( i -> Character.toString( (char) i ) )
-            .map( s -> new TrackedEntityTypeAttribute( trackedEntityTypeA,
-                attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
-            .collect( Collectors.toList() );
+    TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
+    trackedEntityTypeA.setPublicAccess(AccessStringHelper.FULL);
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeA);
 
-        // Setting searchable to true for 5 random tracked entity type
-        // attributes
-        TrackedEntityTypeAttribute teta = teatList.get( 0 );
-        teta.setSearchable( true );
-        teta = teatList.get( 4 );
-        teta.setSearchable( true );
-        teta = teatList.get( 9 );
-        teta.setSearchable( true );
-        teta = teatList.get( 14 );
-        teta.setSearchable( true );
-        teta = teatList.get( 19 );
-        teta.setSearchable( true );
+    TrackedEntityType trackedEntityTypeB = createTrackedEntityType('B');
+    trackedEntityTypeB.setPublicAccess(AccessStringHelper.FULL);
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeB);
 
-        // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
-        trackedEntityTypeA.getTrackedEntityTypeAttributes().addAll( teatList.subList( 0, 10 ) );
-        trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
+    // Create 20 Tracked Entity Attributes (named A .. O)
+    IntStream.range(A, T)
+        .mapToObj(i -> Character.toString((char) i))
+        .forEach(
+            c ->
+                attributeService.addTrackedEntityAttribute(
+                    createTrackedEntityAttribute(c.charAt(0), ValueType.TEXT)));
 
-        // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type B
-        trackedEntityTypeB.getTrackedEntityTypeAttributes().addAll( teatList.subList( 10, 20 ) );
-        trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeB );
+    // Transform the Tracked Entity Attributes into a List of
+    // TrackedEntityTypeAttribute
+    List<TrackedEntityTypeAttribute> teatList =
+        IntStream.range(A, T)
+            .mapToObj(i -> Character.toString((char) i))
+            .map(
+                s ->
+                    new TrackedEntityTypeAttribute(
+                        trackedEntityTypeA,
+                        attributeService.getTrackedEntityAttributeByName("Attribute" + s)))
+            .collect(Collectors.toList());
 
-        programB = createProgram( 'B' );
-        programService.addProgram( programB );
+    // Setting searchable to true for 5 random tracked entity type
+    // attributes
+    TrackedEntityTypeAttribute teta = teatList.get(0);
+    teta.setSearchable(true);
+    teta = teatList.get(4);
+    teta.setSearchable(true);
+    teta = teatList.get(9);
+    teta.setSearchable(true);
+    teta = teatList.get(14);
+    teta.setSearchable(true);
+    teta = teatList.get(19);
+    teta.setSearchable(true);
 
-        List<ProgramTrackedEntityAttribute> pteaList = IntStream.range( A, T )
-            .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programB,
-                attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
-            .collect( Collectors.toList() );
+    // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
+    trackedEntityTypeA.getTrackedEntityTypeAttributes().addAll(teatList.subList(0, 10));
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityTypeA);
 
-        // Setting searchable to true for 5 random program tracked entity
-        // attributes
-        ProgramTrackedEntityAttribute ptea = pteaList.get( 0 );
-        ptea.setSearchable( true );
-        ptea = pteaList.get( 4 );
-        ptea.setSearchable( true );
-        ptea = pteaList.get( 9 );
-        ptea.setSearchable( true );
-        ptea = pteaList.get( 13 );
-        ptea.setSearchable( true );
-        ptea = pteaList.get( 18 );
-        ptea.setSearchable( true );
+    // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type B
+    trackedEntityTypeB.getTrackedEntityTypeAttributes().addAll(teatList.subList(10, 20));
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityTypeB);
 
-        programB.getProgramAttributes().addAll( pteaList );
-        programService.updateProgram( programB );
+    programB = createProgram('B');
+    programService.addProgram(programB);
 
-    }
+    List<ProgramTrackedEntityAttribute> pteaList =
+        IntStream.range(A, T)
+            .mapToObj(i -> Character.toString((char) i))
+            .map(
+                s ->
+                    new ProgramTrackedEntityAttribute(
+                        programB,
+                        attributeService.getTrackedEntityAttributeByName("Attribute" + s)))
+            .collect(Collectors.toList());
 
-    @Test
-    void testGetAllIndexableAttributes()
-    {
-        attributeService.addTrackedEntityAttribute( attributeW );
-        attributeService.addTrackedEntityAttribute( attributeY );
-        attributeService.addTrackedEntityAttribute( attributeZ );
+    // Setting searchable to true for 5 random program tracked entity
+    // attributes
+    ProgramTrackedEntityAttribute ptea = pteaList.get(0);
+    ptea.setSearchable(true);
+    ptea = pteaList.get(4);
+    ptea.setSearchable(true);
+    ptea = pteaList.get(9);
+    ptea.setSearchable(true);
+    ptea = pteaList.get(13);
+    ptea.setSearchable(true);
+    ptea = pteaList.get(18);
+    ptea.setSearchable(true);
 
-        Set<TrackedEntityAttribute> indexableAttributes = attributeService
-            .getAllTrigramIndexableTrackedEntityAttributes();
+    programB.getProgramAttributes().addAll(pteaList);
+    programService.updateProgram(programB);
+  }
 
-        assertNotNull( indexableAttributes );
-        assertEquals( indexableAttributes.size(), 9 );
-        assertTrue( indexableAttributes.contains( attributeW ) );
-        assertTrue( indexableAttributes.contains( attributeY ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'A' ) ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'E' ) ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'J' ) ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'N' ) ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'O' ) ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'S' ) ) );
-        assertTrue(
-            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'T' ) ) );
-    }
+  @Test
+  void testGetAllIndexableAttributes() {
+    attributeService.addTrackedEntityAttribute(attributeW);
+    attributeService.addTrackedEntityAttribute(attributeY);
+    attributeService.addTrackedEntityAttribute(attributeZ);
 
-    @Test
-    void testCreateTrigramIndex()
-    {
-        attributeService.addTrackedEntityAttribute( attributeW );
-        trackedEntityAttributeTableManager.createTrigramIndex( attributeW );
-        assertFalse( jdbcTemplate.queryForList( "select * "
-            + "from pg_indexes "
-            + "where tablename= 'trackedentityattributevalue' and indexname like 'in_gin_teavalue_%'; " ).isEmpty() );
-    }
+    Set<TrackedEntityAttribute> indexableAttributes =
+        attributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
-    @Test
-    void testTrigramIndexDetection()
-    {
-        attributeService.addTrackedEntityAttribute( attributeW );
-        trackedEntityAttributeTableManager.createTrigramIndex( attributeW );
+    assertNotNull(indexableAttributes);
+    assertEquals(indexableAttributes.size(), 9);
+    assertTrue(indexableAttributes.contains(attributeW));
+    assertTrue(indexableAttributes.contains(attributeY));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'A')));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'E')));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'J')));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'N')));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'O')));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'S')));
+    assertTrue(
+        indexableAttributes.contains(
+            attributeService.getTrackedEntityAttributeByName("Attribute" + 'T')));
+  }
 
-        List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
+  @Test
+  void testCreateTrigramIndex() {
+    attributeService.addTrackedEntityAttribute(attributeW);
+    trackedEntityAttributeTableManager.createTrigramIndex(attributeW);
+    assertFalse(
+        jdbcTemplate
+            .queryForList(
+                "select * "
+                    + "from pg_indexes "
+                    + "where tablename= 'trackedentityattributevalue' and indexname like 'in_gin_teavalue_%'; ")
+            .isEmpty());
+  }
 
-        assertNotNull( attributeIds );
-        assertTrue( attributeIds.contains( attributeW.getId() ) );
-    }
+  @Test
+  void testTrigramIndexDetection() {
+    attributeService.addTrackedEntityAttribute(attributeW);
+    trackedEntityAttributeTableManager.createTrigramIndex(attributeW);
+
+    List<Long> attributeIds = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
+
+    assertNotNull(attributeIds);
+    assertTrue(attributeIds.contains(attributeW.getId()));
+  }
+
+  @Test
+  void shouldValidateUniquenessWhenAttributeIsUnique() {
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+
+    attributeService.addTrackedEntityAttribute(attributeW);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('K');
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(attributeW);
+    trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+
+    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
+
+    trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+
+    trackedEntityService.addTrackedEntity(trackedEntity);
+
+    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+    trackedEntityAttributeValue.setAttribute(attributeW);
+    trackedEntityAttributeValue.setTrackedEntity(trackedEntity);
+    trackedEntityAttributeValue.setValue("unique_value");
+    entityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
+
+    assertNull(
+        attributeService.validateAttributeUniquenessWithinScope(
+            attributeW, "some_non_unique_value", trackedEntity, organisationUnit));
+  }
 }

@@ -31,18 +31,17 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_IS_MANDATORY;
 
 /**
- * A {@link PasswordValidationRule} that makes sure the password is set. This
- * should be the first rule in a sequence of rules.
+ * A {@link PasswordValidationRule} that makes sure the password is set. This should be the first
+ * rule in a sequence of rules.
  *
  * @author Jan Bernitt
  */
-public class PasswordMandatoryValidationRule implements PasswordValidationRule
-{
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentials )
-    {
-        return isBlank( credentials.getPassword() ) || !credentials.isNewUser() && isBlank( credentials.getUsername() )
-            ? new PasswordValidationResult( PASSWORD_IS_MANDATORY )
-            : PasswordValidationResult.VALID;
-    }
+public class PasswordMandatoryValidationRule implements PasswordValidationRule {
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentials) {
+    return isBlank(credentials.getPassword())
+            || !credentials.isNewUser() && isBlank(credentials.getUsername())
+        ? new PasswordValidationResult(PASSWORD_IS_MANDATORY)
+        : PasswordValidationResult.VALID;
+  }
 }

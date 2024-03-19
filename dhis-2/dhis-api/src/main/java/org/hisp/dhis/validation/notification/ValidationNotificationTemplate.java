@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.validation.notification;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -39,149 +41,126 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.collect.Sets;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ValidationNotificationTemplate
-    extends NotificationTemplateObject
-    implements MetadataObject
-{
-    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
+public class ValidationNotificationTemplate extends NotificationTemplateObject
+    implements MetadataObject {
+  private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS =
+      Sets.newHashSet(DeliveryChannel.values());
 
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    private String subjectTemplate;
+  private String subjectTemplate;
 
-    private String messageTemplate;
+  private String messageTemplate;
 
-    private Set<ValidationRule> validationRules = new HashSet<>();
+  private Set<ValidationRule> validationRules = new HashSet<>();
 
-    private Boolean notifyUsersInHierarchyOnly;
+  private Boolean notifyUsersInHierarchyOnly;
 
-    private Boolean notifyParentOrganisationUnitOnly;
+  private Boolean notifyParentOrganisationUnitOnly;
 
-    private Set<UserGroup> recipientUserGroups = new HashSet<>();
+  private Set<UserGroup> recipientUserGroups = new HashSet<>();
 
-    private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
+  private SendStrategy sendStrategy = SendStrategy.COLLECTIVE_SUMMARY;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ValidationNotificationTemplate()
-    {
-    }
+  public ValidationNotificationTemplate() {}
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public void addValidationRule( ValidationRule validationRule )
-    {
-        this.validationRules.add( validationRule );
-        validationRule.getNotificationTemplates().add( this );
-    }
+  public void addValidationRule(ValidationRule validationRule) {
+    this.validationRules.add(validationRule);
+    validationRule.getNotificationTemplates().add(this);
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Override
-    public String getSubjectTemplate()
-    {
-        return subjectTemplate;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Override
+  public String getSubjectTemplate() {
+    return subjectTemplate;
+  }
 
-    public void setSubjectTemplate( String subjectTemplate )
-    {
-        this.subjectTemplate = subjectTemplate;
-    }
+  public void setSubjectTemplate(String subjectTemplate) {
+    this.subjectTemplate = subjectTemplate;
+  }
 
-    @PropertyRange( min = 1, max = 1000 )
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Override
-    public String getMessageTemplate()
-    {
-        return messageTemplate;
-    }
+  @PropertyRange(min = 1, max = 1000)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Override
+  public String getMessageTemplate() {
+    return messageTemplate;
+  }
 
-    @Override
-    public Set<DeliveryChannel> getDeliveryChannels()
-    {
-        return ALL_DELIVERY_CHANNELS;
-    }
+  @Override
+  public Set<DeliveryChannel> getDeliveryChannels() {
+    return ALL_DELIVERY_CHANNELS;
+  }
 
-    public void setMessageTemplate( String messageTemplate )
-    {
-        this.messageTemplate = messageTemplate;
-    }
+  public void setMessageTemplate(String messageTemplate) {
+    this.messageTemplate = messageTemplate;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ValidationRule> getValidationRules()
-    {
-        return validationRules;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<ValidationRule> getValidationRules() {
+    return validationRules;
+  }
 
-    public void setValidationRules( Set<ValidationRule> validationRules )
-    {
-        this.validationRules = validationRules;
-    }
+  public void setValidationRules(Set<ValidationRule> validationRules) {
+    this.validationRules = validationRules;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getNotifyUsersInHierarchyOnly()
-    {
-        return notifyUsersInHierarchyOnly;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getNotifyUsersInHierarchyOnly() {
+    return notifyUsersInHierarchyOnly;
+  }
 
-    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
-    {
-        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
-    }
+  public void setNotifyUsersInHierarchyOnly(Boolean notifyUsersInHierarchyOnly) {
+    this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getNotifyParentOrganisationUnitOnly()
-    {
-        return notifyParentOrganisationUnitOnly;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getNotifyParentOrganisationUnitOnly() {
+    return notifyParentOrganisationUnitOnly;
+  }
 
-    public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
-    {
-        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
-    }
+  public void setNotifyParentOrganisationUnitOnly(Boolean notifyParentOrganisationUnitOnly) {
+    this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroup> getRecipientUserGroups()
-    {
-        return recipientUserGroups;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<UserGroup> getRecipientUserGroups() {
+    return recipientUserGroups;
+  }
 
-    public void setRecipientUserGroups( Set<UserGroup> recipientUserGroups )
-    {
-        this.recipientUserGroups = recipientUserGroups;
-    }
+  public void setRecipientUserGroups(Set<UserGroup> recipientUserGroups) {
+    this.recipientUserGroups = recipientUserGroups;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public SendStrategy getSendStrategy()
-    {
-        return sendStrategy;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public SendStrategy getSendStrategy() {
+    return sendStrategy;
+  }
 
-    public void setSendStrategy( SendStrategy sendStrategy )
-    {
-        this.sendStrategy = sendStrategy;
-    }
+  public void setSendStrategy(SendStrategy sendStrategy) {
+    this.sendStrategy = sendStrategy;
+  }
 }

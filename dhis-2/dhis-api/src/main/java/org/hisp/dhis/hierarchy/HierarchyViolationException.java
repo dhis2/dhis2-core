@@ -32,11 +32,8 @@ package org.hisp.dhis.hierarchy;
  *
  * @author Kristian Nordal
  */
-public class HierarchyViolationException
-    extends RuntimeException
-{
-    public HierarchyViolationException( String message )
-    {
-        super( message );
-    }
+public class HierarchyViolationException extends RuntimeException {
+  public HierarchyViolationException(String message) {
+    super(message);
+  }
 }

@@ -27,31 +27,26 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.translation.Translatable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+public abstract class NotificationTemplateObject extends BaseIdentifiableObject
+    implements NotificationTemplate {
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "subjectTemplate", key = "SUBJECT_TEMPLATE")
+  public String getDisplaySubjectTemplate() {
+    return getTranslation("SUBJECT_TEMPLATE", getSubjectTemplate());
+  }
 
-public abstract class NotificationTemplateObject
-    extends BaseIdentifiableObject
-    implements NotificationTemplate
-{
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "subjectTemplate", key = "SUBJECT_TEMPLATE" )
-    public String getDisplaySubjectTemplate()
-    {
-        return getTranslation( "SUBJECT_TEMPLATE", getSubjectTemplate() );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "messageTemplate", key = "MESSAGE_TEMPLATE" )
-    public String getDisplayMessageTemplate()
-    {
-        return getTranslation( "MESSAGE_TEMPLATE", getMessageTemplate() );
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "messageTemplate", key = "MESSAGE_TEMPLATE")
+  public String getDisplayMessageTemplate() {
+    return getTranslation("MESSAGE_TEMPLATE", getMessageTemplate());
+  }
 }

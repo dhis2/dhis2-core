@@ -29,7 +29,6 @@ name: indicator_no_analysis
 description: Indicators not used in analytical objects.
 section: Indicators
 section_order: 4
-summary_uid: sgBuVm7KhJC
 summary_sql: >-
     select count(*) as value,
      100*count(*)/ NULLIF( (select count(*) from indicator),0) as percent
@@ -37,7 +36,6 @@ summary_sql: >-
     where indicatorid
     not in (SELECT DISTINCT indicatorid from datadimensionitem
     where indicatorid IS NOT NULL);
-details_uid: zqKrnvP2CMp
 details_sql: >-
    SELECT uid,name
     FROM indicator

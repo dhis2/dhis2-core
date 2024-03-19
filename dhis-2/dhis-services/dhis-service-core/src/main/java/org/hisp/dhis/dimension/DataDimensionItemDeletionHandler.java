@@ -28,7 +28,6 @@
 package org.hisp.dhis.dimension;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -39,19 +38,17 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class DataDimensionItemDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataDimensionItem.class );
+public class DataDimensionItemDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataDimensionItem.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select 1 from datadimensionitem where dataelementoperand_categoryoptioncomboid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "select 1 from datadimensionitem where dataelementoperand_categoryoptioncomboid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
+  }
 }

@@ -34,7 +34,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
@@ -51,218 +50,243 @@ import org.springframework.mock.web.MockHttpServletRequest;
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class DefaultLinkServiceTest
-{
-    @Mock
-    private SchemaService schemaService;
+@ExtendWith(MockitoExtension.class)
+class DefaultLinkServiceTest {
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private ContextService contextService;
+  @Mock private ContextService contextService;
 
-    @InjectMocks
-    private DefaultLinkService service;
+  @InjectMocks private DefaultLinkService service;
 
-    private final MockHttpServletRequest request = new MockHttpServletRequest();
+  private final MockHttpServletRequest request = new MockHttpServletRequest();
 
-    @Test
-    void noLinks()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void noLinks() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        final Pager pager = new Pager();
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertNull( pager.getPrevPage() );
-        assertNull( pager.getNextPage() );
-    }
+    final Pager pager = new Pager();
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertNull(pager.getPrevPage());
+    assertNull(pager.getNextPage());
+  }
 
-    @Test
-    void nextLinkDefaultParameters()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void nextLinkDefaultParameters() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        request.setRequestURI( "/organizationUnits" );
-        when( contextService.getRequest() ).thenReturn( request );
+    request.setRequestURI("/organizationUnits");
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+    when(contextService.getApiPath()).thenReturn("/demo/api/456");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55")));
 
-        final Pager pager = new Pager( 1, 1000 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertNull( pager.getPrevPage() );
-        assertEquals( "/demo/api/456/organizationUnits?page=2", pager.getNextPage() );
-    }
+    final Pager pager = new Pager(1, 1000);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertNull(pager.getPrevPage());
+    assertEquals("/demo/api/456/organizationUnits?page=2", pager.getNextPage());
+  }
 
-    @Test
-    void nextLinkParameters()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void nextLinkParameters() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        request.setRequestURI( "/organizationUnits.json" );
-        when( contextService.getRequest() ).thenReturn( request );
+    request.setRequestURI("/organizationUnits.json");
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+    when(contextService.getApiPath()).thenReturn("/demo/api/456");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ),
-            "fields", List.of( "id,name,value[id,text]" ),
-            "value[x]", List.of( "test1", "test2\u00D8" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55"),
+                    "fields", List.of("id,name,value[id,text]"),
+                    "value[x]", List.of("test1", "test2\u00D8")));
 
-        final Pager pager = new Pager( 1, 1000 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertNull( pager.getPrevPage() );
-        assertEquivalentRelativeUrls(
-            "/demo/api/456/organizationUnits.json?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
-            pager.getNextPage() );
-    }
+    final Pager pager = new Pager(1, 1000);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertNull(pager.getPrevPage());
+    assertEquivalentRelativeUrls(
+        "/demo/api/456/organizationUnits.json?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
+        pager.getNextPage());
+  }
 
-    @Test
-    void prevLinkDefaultParameters()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void prevLinkDefaultParameters() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        request.setRequestURI( "/organizationUnits.xml" );
-        when( contextService.getRequest() ).thenReturn( request );
+    request.setRequestURI("/organizationUnits.xml");
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+    when(contextService.getApiPath()).thenReturn("/demo/api/456");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55")));
 
-        final Pager pager = new Pager( 2, 60 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertEquals( "/demo/api/456/organizationUnits.xml", pager.getPrevPage() );
-        assertNull( pager.getNextPage() );
-    }
+    final Pager pager = new Pager(2, 60);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertEquals("/demo/api/456/organizationUnits.xml", pager.getPrevPage());
+    assertNull(pager.getNextPage());
+  }
 
-    @Test
-    void nextLink()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void nextLink() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        request.setRequestURI( "/organizationUnits.xml.gz" );
-        when( contextService.getRequest() ).thenReturn( request );
+    request.setRequestURI("/organizationUnits.xml.gz");
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+    when(contextService.getApiPath()).thenReturn("/demo/api/456");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55")));
 
-        final Pager pager = new Pager( 2, 60 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertEquals( "/demo/api/456/organizationUnits.xml.gz", pager.getPrevPage() );
-        assertNull( pager.getNextPage() );
-    }
+    final Pager pager = new Pager(2, 60);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertEquals("/demo/api/456/organizationUnits.xml.gz", pager.getPrevPage());
+    assertNull(pager.getNextPage());
+  }
 
-    @Test
-    void nextLinkWithDotsInPath()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void nextLinkWithDotsInPath() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        request.setRequestURI( "https://play.dhis2.org/2.30/api/30/organizationUnits.xml.gz" );
-        when( contextService.getRequest() ).thenReturn( request );
+    request.setRequestURI("https://play.dhis2.org/2.30/api/30/organizationUnits.xml.gz");
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/2.30/api/30" );
+    when(contextService.getApiPath()).thenReturn("/2.30/api/30");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55")));
 
-        final Pager pager = new Pager( 2, 60 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertEquals( "/2.30/api/30/organizationUnits.xml.gz", pager.getPrevPage() );
-        assertNull( pager.getNextPage() );
-    }
+    final Pager pager = new Pager(2, 60);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertEquals("/2.30/api/30/organizationUnits.xml.gz", pager.getPrevPage());
+    assertNull(pager.getNextPage());
+  }
 
-    @Test
-    void prevLinkParameters()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void prevLinkParameters() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        when( contextService.getRequest() ).thenReturn( request );
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+    when(contextService.getApiPath()).thenReturn("/demo/api/456");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ),
-            "fields", List.of( "id,name,value[id,text]" ),
-            "value[x]", List.of( "test1", "test2\u00D8" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55"),
+                    "fields", List.of("id,name,value[id,text]"),
+                    "value[x]", List.of("test1", "test2\u00D8")));
 
-        final Pager pager = new Pager( 3, 110 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertNull( pager.getNextPage() );
-        assertEquivalentRelativeUrls(
-            "/demo/api/456/organizationUnits?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
-            pager.getPrevPage() );
-    }
+    final Pager pager = new Pager(3, 110);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertNull(pager.getNextPage());
+    assertEquivalentRelativeUrls(
+        "/demo/api/456/organizationUnits?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
+        pager.getPrevPage());
+  }
 
-    @Test
-    void prevLinkParametersPage1()
-    {
-        when( schemaService.getDynamicSchema( OrganisationUnit.class ) )
-            .thenAnswer( invocation -> {
-                Schema schema = new Schema( OrganisationUnit.class, "organisationUnit", "organisationUnits" );
-                schema.setRelativeApiEndpoint( "/organizationUnits" );
-                return schema;
-            } );
+  @Test
+  void prevLinkParametersPage1() {
+    when(schemaService.getDynamicSchema(OrganisationUnit.class))
+        .thenAnswer(
+            invocation -> {
+              Schema schema =
+                  new Schema(OrganisationUnit.class, "organisationUnit", "organisationUnits");
+              schema.setRelativeApiEndpoint("/organizationUnits");
+              return schema;
+            });
 
-        when( contextService.getRequest() ).thenReturn( request );
+    when(contextService.getRequest()).thenReturn(request);
 
-        when( contextService.getApiPath() ).thenReturn( "/demo/api/456" );
+    when(contextService.getApiPath()).thenReturn("/demo/api/456");
 
-        when( contextService.getParameterValuesMap() ).thenAnswer( invocation -> Map.of(
-            "page", List.of( "1" ),
-            "pageSize", List.of( "55" ),
-            "fields", List.of( "id,name,value[id,text]" ),
-            "value[x]", List.of( "test1", "test2\u00D8" ) ) );
+    when(contextService.getParameterValuesMap())
+        .thenAnswer(
+            invocation ->
+                Map.of(
+                    "page", List.of("1"),
+                    "pageSize", List.of("55"),
+                    "fields", List.of("id,name,value[id,text]"),
+                    "value[x]", List.of("test1", "test2\u00D8")));
 
-        final Pager pager = new Pager( 2, 90 );
-        service.generatePagerLinks( pager, OrganisationUnit.class );
-        assertNull( pager.getNextPage() );
-        assertEquivalentRelativeUrls(
-            "/demo/api/456/organizationUnits?fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
-            pager.getPrevPage() );
-    }
+    final Pager pager = new Pager(2, 90);
+    service.generatePagerLinks(pager, OrganisationUnit.class);
+    assertNull(pager.getNextPage());
+    assertEquivalentRelativeUrls(
+        "/demo/api/456/organizationUnits?fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
+        pager.getPrevPage());
+  }
 }

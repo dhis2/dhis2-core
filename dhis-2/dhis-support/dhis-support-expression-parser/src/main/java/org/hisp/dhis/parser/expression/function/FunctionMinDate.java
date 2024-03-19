@@ -31,7 +31,6 @@ import static org.hisp.dhis.parser.expression.ParserUtils.parseExpressionDate;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.Date;
-
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -41,16 +40,13 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionMinDate
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Date minDate = parseExpressionDate( ctx.minDate.getText() );
+public class FunctionMinDate implements ExpressionItem {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Date minDate = parseExpressionDate(ctx.minDate.getText());
 
-        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().minDate( minDate ).build();
+    QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().minDate(minDate).build();
 
-        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
-    }
+    return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
+  }
 }

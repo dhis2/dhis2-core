@@ -30,7 +30,6 @@ package org.hisp.dhis.period;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,124 +37,116 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Kristian Wærstad
  */
-class BiWeeklyPeriodTypeTest
-{
+class BiWeeklyPeriodTypeTest {
 
-    private DateTime startDate;
+  private DateTime startDate;
 
-    private DateTime endDate;
+  private DateTime endDate;
 
-    private DateTime testDate;
+  private DateTime testDate;
 
-    private BiWeeklyPeriodType periodType;
+  private BiWeeklyPeriodType periodType;
 
-    @BeforeEach
-    void before()
-    {
-        periodType = new BiWeeklyPeriodType();
-    }
+  @BeforeEach
+  void before() {
+    periodType = new BiWeeklyPeriodType();
+  }
 
-    @Test
-    void testGetPeriodTypeEnum()
-    {
-        assertEquals( PeriodTypeEnum.BI_WEEKLY, periodType.getPeriodTypeEnum() );
-        assertEquals( PeriodTypeEnum.BI_WEEKLY.getName(), periodType.getName() );
-    }
+  @Test
+  void testGetPeriodTypeEnum() {
+    assertEquals(PeriodTypeEnum.BI_WEEKLY, periodType.getPeriodTypeEnum());
+    assertEquals(PeriodTypeEnum.BI_WEEKLY.getName(), periodType.getName());
+  }
 
-    @Test
-    void testCreatePeriod()
-    {
-        startDate = new DateTime( 2018, 1, 1, 0, 0 );
-        endDate = new DateTime( 2018, 1, 14, 0, 0 );
-        testDate = new DateTime( 2018, 1, 8, 0, 0 );
-        Period period = periodType.createPeriod( testDate.toDate() );
-        assertEquals( startDate.toDate(), period.getStartDate() );
-        assertEquals( endDate.toDate(), period.getEndDate() );
-        startDate = new DateTime( 2017, 12, 18, 0, 0 );
-        endDate = new DateTime( 2017, 12, 31, 0, 0 );
-        testDate = new DateTime( 2017, 12, 29, 0, 0 );
-        period = periodType.createPeriod( testDate.toDate() );
-        assertEquals( startDate.toDate(), period.getStartDate() );
-        assertEquals( endDate.toDate(), period.getEndDate() );
-    }
+  @Test
+  void testCreatePeriod() {
+    startDate = new DateTime(2018, 1, 1, 0, 0);
+    endDate = new DateTime(2018, 1, 14, 0, 0);
+    testDate = new DateTime(2018, 1, 8, 0, 0);
+    Period period = periodType.createPeriod(testDate.toDate());
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
+    startDate = new DateTime(2017, 12, 18, 0, 0);
+    endDate = new DateTime(2017, 12, 31, 0, 0);
+    testDate = new DateTime(2017, 12, 29, 0, 0);
+    period = periodType.createPeriod(testDate.toDate());
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
+  }
 
-    @Test
-    void testGetNextPeriod()
-    {
-        testDate = new DateTime( 2018, 1, 3, 0, 0 );
-        Period period = periodType.createPeriod( testDate.toDate() );
-        period = periodType.getNextPeriod( period );
-        startDate = new DateTime( 2018, 1, 15, 0, 0 );
-        endDate = new DateTime( 2018, 1, 28, 0, 0 );
-        assertEquals( startDate.toDate(), period.getStartDate() );
-        assertEquals( endDate.toDate(), period.getEndDate() );
-    }
+  @Test
+  void testGetNextPeriod() {
+    testDate = new DateTime(2018, 1, 3, 0, 0);
+    Period period = periodType.createPeriod(testDate.toDate());
+    period = periodType.getNextPeriod(period);
+    startDate = new DateTime(2018, 1, 15, 0, 0);
+    endDate = new DateTime(2018, 1, 28, 0, 0);
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
+  }
 
-    @Test
-    void testGetPreviousPeriod()
-    {
-        testDate = new DateTime( 2018, 1, 4, 0, 0 );
-        Period period = periodType.createPeriod( testDate.toDate() );
-        period = periodType.getPreviousPeriod( period );
-        startDate = new DateTime( 2017, 12, 18, 0, 0 );
-        endDate = new DateTime( 2017, 12, 31, 0, 0 );
-        assertEquals( startDate.toDate(), period.getStartDate() );
-        assertEquals( endDate.toDate(), period.getEndDate() );
-    }
+  @Test
+  void testGetPreviousPeriod() {
+    testDate = new DateTime(2018, 1, 4, 0, 0);
+    Period period = periodType.createPeriod(testDate.toDate());
+    period = periodType.getPreviousPeriod(period);
+    startDate = new DateTime(2017, 12, 18, 0, 0);
+    endDate = new DateTime(2017, 12, 31, 0, 0);
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
+  }
 
-    @Test
-    void testGeneratePeriods()
-    {
-        testDate = new DateTime( 2018, 10, 5, 0, 0 );
-        List<Period> periods = periodType.generatePeriods( testDate.toDate() );
-        assertEquals( 26, periods.size() );
-        assertEquals( periodType.createPeriod( new DateTime( 2018, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2018, 1, 15, 0, 0 ).toDate() ), periods.get( 1 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2018, 1, 31, 0, 0 ).toDate() ), periods.get( 2 ) );
-    }
+  @Test
+  void testGeneratePeriods() {
+    testDate = new DateTime(2018, 10, 5, 0, 0);
+    List<Period> periods = periodType.generatePeriods(testDate.toDate());
+    assertEquals(26, periods.size());
+    assertEquals(periodType.createPeriod(new DateTime(2018, 1, 1, 0, 0).toDate()), periods.get(0));
+    assertEquals(periodType.createPeriod(new DateTime(2018, 1, 15, 0, 0).toDate()), periods.get(1));
+    assertEquals(periodType.createPeriod(new DateTime(2018, 1, 31, 0, 0).toDate()), periods.get(2));
+  }
 
-    @Test
-    void testGenerateRollingPeriods()
-    {
-        testDate = new DateTime( 2018, 1, 1, 0, 0 );
-        List<Period> periods = periodType.generateRollingPeriods( testDate.toDate() );
-        assertEquals( 26, periods.size() );
-        assertEquals( periodType.createPeriod( new DateTime( 2017, 1, 16, 0, 0 ).toDate() ), periods.get( 0 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2017, 1, 30, 0, 0 ).toDate() ), periods.get( 1 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2017, 2, 13, 0, 0 ).toDate() ), periods.get( 2 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2017, 2, 28, 0, 0 ).toDate() ), periods.get( 3 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2017, 3, 14, 0, 0 ).toDate() ), periods.get( 4 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2017, 3, 29, 0, 0 ).toDate() ), periods.get( 5 ) );
-        assertEquals( periodType.createPeriod( testDate.toDate() ), periods.get( periods.size() - 1 ) );
-    }
+  @Test
+  void testGenerateRollingPeriods() {
+    testDate = new DateTime(2018, 1, 1, 0, 0);
+    List<Period> periods = periodType.generateRollingPeriods(testDate.toDate());
+    assertEquals(26, periods.size());
+    assertEquals(periodType.createPeriod(new DateTime(2017, 1, 16, 0, 0).toDate()), periods.get(0));
+    assertEquals(periodType.createPeriod(new DateTime(2017, 1, 30, 0, 0).toDate()), periods.get(1));
+    assertEquals(periodType.createPeriod(new DateTime(2017, 2, 13, 0, 0).toDate()), periods.get(2));
+    assertEquals(periodType.createPeriod(new DateTime(2017, 2, 28, 0, 0).toDate()), periods.get(3));
+    assertEquals(periodType.createPeriod(new DateTime(2017, 3, 14, 0, 0).toDate()), periods.get(4));
+    assertEquals(periodType.createPeriod(new DateTime(2017, 3, 29, 0, 0).toDate()), periods.get(5));
+    assertEquals(periodType.createPeriod(testDate.toDate()), periods.get(periods.size() - 1));
+  }
 
-    @Test
-    void testToIsoDate()
-    {
-        testDate = new DateTime( 2018, 1, 1, 0, 0 );
-        List<Period> periods = periodType.generateRollingPeriods( testDate.toDate() );
-        assertEquals( "2017BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2018BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
-        testDate = new DateTime( 2019, 1, 1, 0, 0 );
-        periods = periodType.generateRollingPeriods( testDate.toDate() );
-        assertEquals( "2018BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2019BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
-        testDate = new DateTime( 2010, 1, 1, 0, 0 );
-        periods = periodType.generateRollingPeriods( testDate.toDate() );
-        assertEquals( "2009BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2009BiW27", periodType.getIsoDate( periods.get( 25 ) ) );
-        testDate = new DateTime( 2020, 1, 1, 0, 0 );
-        periods = periodType.generateRollingPeriods( testDate.toDate() );
-        assertEquals( "2019BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2020BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
-    }
+  @Test
+  void testToIsoDate() {
+    testDate = new DateTime(2018, 1, 1, 0, 0);
+    List<Period> periods = periodType.generateRollingPeriods(testDate.toDate());
+    assertEquals("2017BiW2", periodType.getIsoDate(periods.get(0)));
+    assertEquals("2018BiW1", periodType.getIsoDate(periods.get(25)));
+    testDate = new DateTime(2019, 1, 1, 0, 0);
+    periods = periodType.generateRollingPeriods(testDate.toDate());
+    assertEquals("2018BiW2", periodType.getIsoDate(periods.get(0)));
+    assertEquals("2019BiW1", periodType.getIsoDate(periods.get(25)));
+    testDate = new DateTime(2010, 1, 1, 0, 0);
+    periods = periodType.generateRollingPeriods(testDate.toDate());
+    assertEquals("2009BiW2", periodType.getIsoDate(periods.get(0)));
+    assertEquals("2009BiW27", periodType.getIsoDate(periods.get(25)));
+    testDate = new DateTime(2020, 1, 1, 0, 0);
+    periods = periodType.generateRollingPeriods(testDate.toDate());
+    assertEquals("2019BiW2", periodType.getIsoDate(periods.get(0)));
+    assertEquals("2020BiW1", periodType.getIsoDate(periods.get(25)));
+  }
 
-    @Test
-    void testGetRewindedDate()
-    {
-        assertEquals( new DateTime( 2020, 1, 3, 0, 0 ).toDate(),
-            periodType.getRewindedDate( new DateTime( 2020, 2, 14, 0, 0 ).toDate(), 3 ) );
-        assertEquals( new DateTime( 2020, 1, 31, 0, 0 ).toDate(),
-            periodType.getRewindedDate( new DateTime( 2020, 1, 3, 0, 0 ).toDate(), -2 ) );
-    }
+  @Test
+  void testGetRewindedDate() {
+    assertEquals(
+        new DateTime(2020, 1, 3, 0, 0).toDate(),
+        periodType.getRewindedDate(new DateTime(2020, 2, 14, 0, 0).toDate(), 3));
+    assertEquals(
+        new DateTime(2020, 1, 31, 0, 0).toDate(),
+        periodType.getRewindedDate(new DateTime(2020, 1, 3, 0, 0).toDate(), -2));
+  }
 }

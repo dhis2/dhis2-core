@@ -30,8 +30,7 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum ImageFormat
-{
-    PNG,
-    JPG
+public enum ImageFormat {
+  PNG,
+  JPG
 }

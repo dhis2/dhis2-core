@@ -30,7 +30,6 @@ package org.hisp.dhis.interpretation;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.user.User;
@@ -39,60 +38,58 @@ import org.hisp.dhis.visualization.Visualization;
 /**
  * @author Lars Helge Overland
  */
-public interface InterpretationService
-{
-    long saveInterpretation( Interpretation interpretation );
+public interface InterpretationService {
+  long saveInterpretation(Interpretation interpretation);
 
-    Interpretation getInterpretation( long id );
+  Interpretation getInterpretation(long id);
 
-    Interpretation getInterpretation( String uid );
+  Interpretation getInterpretation(String uid);
 
-    void updateInterpretation( Interpretation interpretation );
+  void updateInterpretation(Interpretation interpretation);
 
-    void updateInterpretationText( Interpretation interpretation, String text );
+  void updateInterpretationText(Interpretation interpretation, String text);
 
-    void deleteInterpretation( Interpretation interpretation );
+  void deleteInterpretation(Interpretation interpretation);
 
-    List<Interpretation> getInterpretations();
+  List<Interpretation> getInterpretations();
 
-    List<Interpretation> getInterpretations( Visualization visualization );
+  List<Interpretation> getInterpretations(Visualization visualization);
 
-    List<Interpretation> getInterpretations( EventVisualization eventVisualization );
+  List<Interpretation> getInterpretations(EventVisualization eventVisualization);
 
-    List<Interpretation> getInterpretations( Map map );
+  List<Interpretation> getInterpretations(Map map);
 
-    List<Interpretation> getInterpretations( Date lastUpdated );
+  List<Interpretation> getInterpretations(Date lastUpdated);
 
-    List<Interpretation> getInterpretations( int first, int max );
+  List<Interpretation> getInterpretations(int first, int max);
 
-    InterpretationComment addInterpretationComment( String uid, String text );
+  InterpretationComment addInterpretationComment(String uid, String text);
 
-    void updateComment( Interpretation interpretation, InterpretationComment comment );
+  void updateComment(Interpretation interpretation, InterpretationComment comment);
 
-    boolean updateSharingForMentions( Interpretation interpretation, Set<User> users );
+  boolean updateSharingForMentions(Interpretation interpretation, Set<User> users);
 
-    void updateCurrentUserLastChecked();
+  void updateCurrentUserLastChecked();
 
-    long getNewInterpretationCount();
+  long getNewInterpretationCount();
 
-    /**
-     * Adds a like to the given interpretation for the current user. This method
-     * will have a "repeatable read" transaction isolation level to ensure an
-     * atomic increment of the like count interpretation property.
-     *
-     * @param id the interpretation id.
-     * @return true if the current user had not already liked the
-     *         interpretation.
-     */
-    boolean likeInterpretation( long id );
+  /**
+   * Adds a like to the given interpretation for the current user. This method will have a
+   * "repeatable read" transaction isolation level to ensure an atomic increment of the like count
+   * interpretation property.
+   *
+   * @param id the interpretation id.
+   * @return true if the current user had not already liked the interpretation.
+   */
+  boolean likeInterpretation(long id);
 
-    /**
-     * Removes a like from the given interpretation for the current user. This
-     * method will have a "repeatable read" transaction isolation level to
-     * ensure an atomic decrease of the like count interpretation property.
-     *
-     * @param id the interpretation id.
-     * @return true if the current user had previously liked the interpretation.
-     */
-    boolean unlikeInterpretation( long id );
+  /**
+   * Removes a like from the given interpretation for the current user. This method will have a
+   * "repeatable read" transaction isolation level to ensure an atomic decrease of the like count
+   * interpretation property.
+   *
+   * @param id the interpretation id.
+   * @return true if the current user had previously liked the interpretation.
+   */
+  boolean unlikeInterpretation(long id);
 }

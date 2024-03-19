@@ -30,10 +30,9 @@ package org.hisp.dhis.webapi.controller.validation;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -59,94 +58,81 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Stian Sandvold
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @RestController
-@RequestMapping( value = ValidationResultSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
-public class ValidationResultController
-{
-    private final FieldFilterService fieldFilterService;
+@RequestMapping(value = ValidationResultSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
+public class ValidationResultController {
+  private final FieldFilterService fieldFilterService;
 
-    private final ValidationResultService validationResultService;
+  private final ValidationResultService validationResultService;
 
-    private final ContextService contextService;
+  private final ContextService contextService;
 
-    public ValidationResultController( FieldFilterService fieldFilterService,
-        ValidationResultService validationResultService,
-        ContextService contextService )
-    {
-        this.fieldFilterService = fieldFilterService;
-        this.validationResultService = validationResultService;
-        this.contextService = contextService;
+  public ValidationResultController(
+      FieldFilterService fieldFilterService,
+      ValidationResultService validationResultService,
+      ContextService contextService) {
+    this.fieldFilterService = fieldFilterService;
+    this.validationResultService = validationResultService;
+    this.contextService = contextService;
+  }
+
+  @GetMapping
+  public @ResponseBody RootNode getObjectList(
+      ValidationResultQuery query, HttpServletResponse response) {
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.ALL.getFields());
     }
 
-    @GetMapping
-    public @ResponseBody RootNode getObjectList( ValidationResultQuery query, HttpServletResponse response )
-    {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+    List<ValidationResult> validationResults = validationResultService.getValidationResults(query);
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
+    RootNode rootNode = NodeUtils.createMetadata();
 
-        List<ValidationResult> validationResults = validationResultService.getValidationResults( query );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( !query.isSkipPaging() )
-        {
-            query.setTotal( validationResultService.countValidationResults( query ) );
-            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
-        }
-
-        rootNode.addChild( fieldFilterService.toCollectionNode( ValidationResult.class,
-            new FieldFilterParams( validationResults, fields ) ) );
-
-        setNoStore( response );
-        return rootNode;
+    if (!query.isSkipPaging()) {
+      query.setTotal(validationResultService.countValidationResults(query));
+      rootNode.addChild(NodeUtils.createPager(query.getPager()));
     }
 
-    @GetMapping( value = "/{id}" )
-    public @ResponseBody ValidationResult getObject( @PathVariable int id )
-        throws WebMessageException
-    {
-        ValidationResult result = validationResultService.getById( id );
-        checkFound( id, result );
-        return result;
-    }
+    rootNode.addChild(
+        fieldFilterService.toCollectionNode(
+            ValidationResult.class, new FieldFilterParams(validationResults, fields)));
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    @DeleteMapping( value = "/{id}" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void delete( @PathVariable int id )
-        throws WebMessageException
-    {
-        ValidationResult result = validationResultService.getById( id );
-        checkFound( id, result );
-        validationResultService.deleteValidationResult( result );
-    }
+    setNoStore(response);
+    return rootNode;
+  }
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    @DeleteMapping
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void deleteValidationResults( ValidationResultsDeletionRequest request )
-    {
-        validationResultService.deleteValidationResults( request );
-    }
+  @GetMapping(value = "/{id}")
+  public @ResponseBody ValidationResult getObject(@PathVariable int id) throws WebMessageException {
+    ValidationResult result = validationResultService.getById(id);
+    checkFound(id, result);
+    return result;
+  }
 
-    private void checkFound( int id, ValidationResult result )
-        throws WebMessageException
-    {
-        if ( result == null )
-        {
-            throw new WebMessageException(
-                notFound( "Validation result with id " + id + " was not found" ) );
-        }
+  @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
+  @DeleteMapping(value = "/{id}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable int id) throws WebMessageException {
+    ValidationResult result = validationResultService.getById(id);
+    checkFound(id, result);
+    validationResultService.deleteValidationResult(result);
+  }
+
+  @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
+  @DeleteMapping
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void deleteValidationResults(ValidationResultsDeletionRequest request) {
+    validationResultService.deleteValidationResults(request);
+  }
+
+  private void checkFound(int id, ValidationResult result) throws WebMessageException {
+    if (result == null) {
+      throw new WebMessageException(notFound("Validation result with id " + id + " was not found"));
     }
+  }
 }

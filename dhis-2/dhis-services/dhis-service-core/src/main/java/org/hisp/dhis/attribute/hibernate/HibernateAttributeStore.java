@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.attribute.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -41,16 +40,15 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.attribute.AttributeStore" )
-public class HibernateAttributeStore
-    extends HibernateIdentifiableObjectStore<Attribute>
-    implements AttributeStore
-{
-    @Autowired
-    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.attribute.AttributeStore")
+public class HibernateAttributeStore extends HibernateIdentifiableObjectStore<Attribute>
+    implements AttributeStore {
+  @Autowired
+  public HibernateAttributeStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Attribute.class, aclService, true);
+  }
 }

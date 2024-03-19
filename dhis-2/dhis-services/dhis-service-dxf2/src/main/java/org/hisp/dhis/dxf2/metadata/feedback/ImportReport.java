@@ -29,6 +29,12 @@ package org.hisp.dhis.dxf2.metadata.feedback;
 
 import static java.util.Collections.unmodifiableSet;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -37,7 +43,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -48,179 +53,146 @@ import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "importReport", namespace = DxfNamespaces.DXF_2_0 )
-public class ImportReport implements ErrorReportContainer
-{
-    private MetadataImportParams importParams;
+@JacksonXmlRootElement(localName = "importReport", namespace = DxfNamespaces.DXF_2_0)
+public class ImportReport implements ErrorReportContainer {
+  private MetadataImportParams importParams;
 
-    private Status status = Status.OK;
+  private Status status = Status.OK;
 
-    private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
+  private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
 
-    /**
-     * Removes all {@link TypeReport} entries where the {@link Stats#getTotal()}
-     * is zero.
-     */
-    public void clean()
-    {
-        typeReportMap.entrySet().removeIf( entry -> entry.getValue().getStats().getTotal() == 0 );
+  /** Removes all {@link TypeReport} entries where the {@link Stats#getTotal()} is zero. */
+  public void clean() {
+    typeReportMap.entrySet().removeIf(entry -> entry.getValue().getStats().getTotal() == 0);
+  }
+
+  public void addTypeReport(TypeReport typeReport) {
+    typeReportMap.computeIfAbsent(typeReport.getKlass(), TypeReport::new).merge(typeReport);
+  }
+
+  public void addTypeReports(Iterable<TypeReport> typeReports) {
+    typeReports.forEach(this::addTypeReport);
+  }
+
+  @JsonIgnore
+  @Override
+  public int getErrorReportsCount() {
+    return typeReportMap.values().stream().mapToInt(TypeReport::getErrorReportsCount).sum();
+  }
+
+  @Override
+  public int getErrorReportsCount(ErrorCode errorCode) {
+    return typeReportMap.values().stream()
+        .mapToInt(report -> report.getErrorReportsCount(errorCode))
+        .sum();
+  }
+
+  @Override
+  public boolean hasErrorReports() {
+    return typeReportMap.values().stream().anyMatch(TypeReport::hasErrorReports);
+  }
+
+  @Override
+  public boolean hasErrorReport(Predicate<ErrorReport> test) {
+    return typeReportMap.values().stream().anyMatch(report -> report.hasErrorReport(test));
+  }
+
+  @Override
+  public void forEachErrorReport(Consumer<ErrorReport> reportConsumer) {
+    typeReportMap.values().forEach(report -> report.forEachErrorReport(reportConsumer));
+  }
+
+  // -----------------------------------------------------------------------------------
+  // Getters and Setters
+  // -----------------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public MetadataImportParams getImportParams() {
+    return importParams;
+  }
+
+  public void setImportParams(MetadataImportParams importParams) {
+    this.importParams = importParams;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Stats getStats() {
+    Stats stats = new Stats();
+    typeReportMap.values().forEach(typeReport -> stats.merge(typeReport.getStats()));
+
+    return stats;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "typeReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "typeReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<TypeReport> getTypeReports() {
+    return new ArrayList<>(typeReportMap.values());
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "typeReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "typeReport", namespace = DxfNamespaces.DXF_2_0)
+  public void setTypeReports(List<TypeReport> typeReports) {
+    typeReportMap.clear();
+    if (typeReports != null) {
+      typeReports.forEach(tr -> typeReportMap.put(tr.getKlass(), tr));
     }
+  }
 
-    public void addTypeReport( TypeReport typeReport )
-    {
-        typeReportMap.computeIfAbsent( typeReport.getKlass(), TypeReport::new ).merge( typeReport );
+  public Set<Class<?>> getTypeReportKeys() {
+    return unmodifiableSet(typeReportMap.keySet());
+  }
+
+  @JsonIgnore
+  public int getTypeReportCount() {
+    return typeReportMap.size();
+  }
+
+  public TypeReport getTypeReport(Class<?> klass) {
+    return typeReportMap.get(klass);
+  }
+
+  public void forEachTypeReport(Consumer<TypeReport> reportConsumer) {
+    typeReportMap.values().forEach(reportConsumer);
+  }
+
+  public ObjectReport getFirstObjectReport() {
+    Iterator<TypeReport> iter = typeReportMap.values().iterator();
+    if (!iter.hasNext()) {
+      return null;
     }
-
-    public void addTypeReports( Iterable<TypeReport> typeReports )
-    {
-        typeReports.forEach( this::addTypeReport );
+    TypeReport report = iter.next();
+    if (!report.hasObjectReports()) {
+      return null;
     }
+    return report.getFirstObjectReport();
+  }
 
-    @JsonIgnore
-    @Override
-    public int getErrorReportsCount()
-    {
-        return typeReportMap.values().stream().mapToInt( TypeReport::getErrorReportsCount ).sum();
-    }
-
-    @Override
-    public int getErrorReportsCount( ErrorCode errorCode )
-    {
-        return typeReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
-    }
-
-    @Override
-    public boolean hasErrorReports()
-    {
-        return typeReportMap.values().stream().anyMatch( TypeReport::hasErrorReports );
-    }
-
-    @Override
-    public boolean hasErrorReport( Predicate<ErrorReport> test )
-    {
-        return typeReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
-    }
-
-    @Override
-    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
-    {
-        typeReportMap.values().forEach( report -> report.forEachErrorReport( reportConsumer ) );
-    }
-
-    // -----------------------------------------------------------------------------------
-    // Getters and Setters
-    // -----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MetadataImportParams getImportParams()
-    {
-        return importParams;
-    }
-
-    public void setImportParams( MetadataImportParams importParams )
-    {
-        this.importParams = importParams;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Status getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus( Status status )
-    {
-        this.status = status;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Stats getStats()
-    {
-        Stats stats = new Stats();
-        typeReportMap.values().forEach( typeReport -> stats.merge( typeReport.getStats() ) );
-
-        return stats;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TypeReport> getTypeReports()
-    {
-        return new ArrayList<>( typeReportMap.values() );
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public void setTypeReports( List<TypeReport> typeReports )
-    {
-        typeReportMap.clear();
-        if ( typeReports != null )
-        {
-            typeReports.forEach( tr -> typeReportMap.put( tr.getKlass(), tr ) );
-        }
-    }
-
-    public Set<Class<?>> getTypeReportKeys()
-    {
-        return unmodifiableSet( typeReportMap.keySet() );
-    }
-
-    @JsonIgnore
-    public int getTypeReportCount()
-    {
-        return typeReportMap.size();
-    }
-
-    public TypeReport getTypeReport( Class<?> klass )
-    {
-        return typeReportMap.get( klass );
-    }
-
-    public void forEachTypeReport( Consumer<TypeReport> reportConsumer )
-    {
-        typeReportMap.values().forEach( reportConsumer );
-    }
-
-    public ObjectReport getFirstObjectReport()
-    {
-        Iterator<TypeReport> iter = typeReportMap.values().iterator();
-        if ( !iter.hasNext() )
-        {
-            return null;
-        }
-        TypeReport report = iter.next();
-        if ( !report.hasObjectReports() )
-        {
-            return null;
-        }
-        return report.getFirstObjectReport();
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "stats", getStats() )
-            .add( "typeReports", getTypeReports() )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("stats", getStats())
+        .add("typeReports", getTypeReports())
+        .toString();
+  }
 }

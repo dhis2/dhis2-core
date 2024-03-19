@@ -30,7 +30,6 @@ package org.hisp.dhis.artemis;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Message
-{
-    MessageType getMessageType();
+public interface Message {
+  MessageType getMessageType();
 }

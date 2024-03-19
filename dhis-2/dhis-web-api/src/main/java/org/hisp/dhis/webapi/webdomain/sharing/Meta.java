@@ -32,35 +32,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Meta
-{
-    @JsonProperty
-    private boolean allowPublicAccess;
+public class Meta {
+  @JsonProperty private boolean allowPublicAccess;
 
-    @JsonProperty
-    private boolean allowExternalAccess;
+  @JsonProperty private boolean allowExternalAccess;
 
-    public Meta()
-    {
-    }
+  public Meta() {}
 
-    public boolean isAllowPublicAccess()
-    {
-        return allowPublicAccess;
-    }
+  public boolean isAllowPublicAccess() {
+    return allowPublicAccess;
+  }
 
-    public void setAllowPublicAccess( boolean allowPublicAccess )
-    {
-        this.allowPublicAccess = allowPublicAccess;
-    }
+  public void setAllowPublicAccess(boolean allowPublicAccess) {
+    this.allowPublicAccess = allowPublicAccess;
+  }
 
-    public boolean isAllowExternalAccess()
-    {
-        return allowExternalAccess;
-    }
+  public boolean isAllowExternalAccess() {
+    return allowExternalAccess;
+  }
 
-    public void setAllowExternalAccess( boolean allowExternalAccess )
-    {
-        this.allowExternalAccess = allowExternalAccess;
-    }
+  public void setAllowExternalAccess(boolean allowExternalAccess) {
+    this.allowExternalAccess = allowExternalAccess;
+  }
 }

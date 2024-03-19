@@ -39,61 +39,54 @@ import org.slf4j.Logger;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@ExtendWith( MockitoExtension.class )
-class NotificationLoggerUtilTest
-{
+@ExtendWith(MockitoExtension.class)
+class NotificationLoggerUtilTest {
 
-    @Mock
-    Logger logger;
+  @Mock Logger logger;
 
-    private static String logMessage = "logMessage";
+  private static String logMessage = "logMessage";
 
-    @Test
-    void shouldLogDebugLevel()
-    {
+  @Test
+  void shouldLogDebugLevel() {
 
-        NotificationLoggerUtil.log( logger, NotificationLevel.DEBUG, logMessage );
+    NotificationLoggerUtil.log(logger, NotificationLevel.DEBUG, logMessage);
 
-        verify( logger ).debug( logMessage );
-        verify( logger, times( 0 ) ).info( logMessage );
-        verify( logger, times( 0 ) ).warn( logMessage );
-        verify( logger, times( 0 ) ).error( logMessage );
-    }
+    verify(logger).debug(logMessage);
+    verify(logger, times(0)).info(logMessage);
+    verify(logger, times(0)).warn(logMessage);
+    verify(logger, times(0)).error(logMessage);
+  }
 
-    @Test
-    void shouldLogInfoLevel()
-    {
+  @Test
+  void shouldLogInfoLevel() {
 
-        NotificationLoggerUtil.log( logger, NotificationLevel.INFO, logMessage );
+    NotificationLoggerUtil.log(logger, NotificationLevel.INFO, logMessage);
 
-        verify( logger, times( 0 ) ).debug( logMessage );
-        verify( logger ).info( logMessage );
-        verify( logger, times( 0 ) ).warn( logMessage );
-        verify( logger, times( 0 ) ).error( logMessage );
-    }
+    verify(logger, times(0)).debug(logMessage);
+    verify(logger).info(logMessage);
+    verify(logger, times(0)).warn(logMessage);
+    verify(logger, times(0)).error(logMessage);
+  }
 
-    @Test
-    void shouldLogWarnLevel()
-    {
+  @Test
+  void shouldLogWarnLevel() {
 
-        NotificationLoggerUtil.log( logger, NotificationLevel.WARN, logMessage );
+    NotificationLoggerUtil.log(logger, NotificationLevel.WARN, logMessage);
 
-        verify( logger, times( 0 ) ).debug( logMessage );
-        verify( logger, times( 0 ) ).info( logMessage );
-        verify( logger ).warn( logMessage );
-        verify( logger, times( 0 ) ).error( logMessage );
-    }
+    verify(logger, times(0)).debug(logMessage);
+    verify(logger, times(0)).info(logMessage);
+    verify(logger).warn(logMessage);
+    verify(logger, times(0)).error(logMessage);
+  }
 
-    @Test
-    void shouldLogErrorLevel()
-    {
+  @Test
+  void shouldLogErrorLevel() {
 
-        NotificationLoggerUtil.log( logger, NotificationLevel.ERROR, logMessage );
+    NotificationLoggerUtil.log(logger, NotificationLevel.ERROR, logMessage);
 
-        verify( logger, times( 0 ) ).debug( logMessage );
-        verify( logger, times( 0 ) ).info( logMessage );
-        verify( logger, times( 0 ) ).warn( logMessage );
-        verify( logger ).error( logMessage );
-    }
-
+    verify(logger, times(0)).debug(logMessage);
+    verify(logger, times(0)).info(logMessage);
+    verify(logger, times(0)).warn(logMessage);
+    verify(logger).error(logMessage);
+  }
 }

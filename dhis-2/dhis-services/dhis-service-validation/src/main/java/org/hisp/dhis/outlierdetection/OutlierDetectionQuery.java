@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.outlierdetection;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm.Z_SCORE;
+
 import java.util.Date;
-import java.util.List;
-
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Encapsulation of a web API request for outlier value detection.
@@ -41,38 +41,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Lars Helge Overland
  */
 @Data
-public class OutlierDetectionQuery
-{
-    @JsonProperty
-    private List<String> ds = new ArrayList<>();
+public class OutlierDetectionQuery {
+  private Set<String> ds = new HashSet<>();
 
-    @JsonProperty
-    private List<String> de = new ArrayList<>();
+  private Set<String> dx = new HashSet<>();
 
-    @JsonProperty
-    private Date startDate;
+  private Date startDate;
 
-    @JsonProperty
-    private Date endDate;
+  private Date endDate;
 
-    @JsonProperty
-    private List<String> ou = new ArrayList<>();
+  private Set<String> ou = new HashSet<>();
 
-    @JsonProperty
-    private OutlierDetectionAlgorithm algorithm = OutlierDetectionAlgorithm.Z_SCORE;
+  private OutlierDetectionAlgorithm algorithm = Z_SCORE;
 
-    @JsonProperty
-    private Double threshold;
+  private Double threshold;
 
-    @JsonProperty
-    private Date dataStartDate;
+  private Date dataStartDate;
 
-    @JsonProperty
-    private Date dataEndDate;
+  private Date dataEndDate;
 
-    @JsonProperty
-    private Order orderBy;
+  private Order orderBy;
 
-    @JsonProperty
-    private Integer maxResults;
+  private Integer maxResults;
+
+  /**
+   * This parameter selects the headers to be returned in the response. We use a LinkedHashSet
+   * because the other matters.
+   */
+  private Set<String> headers = new LinkedHashSet<>();
+
+  public boolean hasHeaders() {
+    return headers != null && !headers.isEmpty();
+  }
 }

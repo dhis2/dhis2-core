@@ -30,17 +30,14 @@ package org.hisp.dhis.programrule.hibernate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -48,60 +45,59 @@ import org.springframework.stereotype.Repository;
 /**
  * @author markusbekken
  */
-@Repository( "org.hisp.dhis.programrule.ProgramRuleActionStore" )
+@Repository("org.hisp.dhis.programrule.ProgramRuleActionStore")
 public class HibernateProgramRuleActionStore
-    extends HibernateIdentifiableObjectStore<ProgramRuleAction>
-    implements ProgramRuleActionStore
-{
-    private static final String QUERY = "FROM ProgramRuleAction pra WHERE pra.programRuleActionType =:type  AND pra.%s IS NULL";
+    extends HibernateIdentifiableObjectStore<ProgramRuleAction> implements ProgramRuleActionStore {
+  private static final String QUERY =
+      "FROM ProgramRuleAction pra WHERE pra.programRuleActionType =:type  AND pra.%s IS NULL";
 
-    private static final Map<ProgramRuleActionType, String> QUERY_FILTER = Map.of(
-        ProgramRuleActionType.HIDESECTION, "programStageSection",
-        ProgramRuleActionType.HIDEPROGRAMSTAGE, "programStage" );
+  private static final Map<ProgramRuleActionType, String> QUERY_FILTER =
+      Map.of(
+          ProgramRuleActionType.HIDESECTION, "programStageSection",
+          ProgramRuleActionType.HIDEPROGRAMSTAGE, "programStage");
 
-    public HibernateProgramRuleActionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramRuleAction.class, currentUserService, aclService, true );
+  public HibernateProgramRuleActionStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, ProgramRuleAction.class, aclService, true);
+  }
+
+  @Override
+  public List<ProgramRuleAction> get(ProgramRule programRule) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("programRule"), programRule)));
+  }
+
+  @Override
+  public List<ProgramRuleAction> getProgramActionsWithNoDataObject() {
+    return getQuery(
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL")
+        .setParameter("dataTypes", ProgramRuleActionType.DATA_LINKED_TYPES)
+        .getResultList();
+  }
+
+  @Override
+  public List<ProgramRuleAction> getProgramActionsWithNoNotification() {
+    return getQuery(
+            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL")
+        .setParameter("notificationTypes", ProgramRuleActionType.NOTIFICATION_LINKED_TYPES)
+        .getResultList();
+  }
+
+  @Override
+  public List<ProgramRuleAction> getMalFormedRuleActionsByType(ProgramRuleActionType type) {
+    if (QUERY_FILTER.containsKey(type)) {
+      String filter = QUERY_FILTER.get(type);
+
+      return getQuery(String.format(QUERY, filter)).setParameter("type", type).getResultList();
     }
 
-    @Override
-    public List<ProgramRuleAction> get( ProgramRule programRule )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programRule" ), programRule ) ) );
-    }
-
-    @Override
-    public List<ProgramRuleAction> getProgramActionsWithNoDataObject()
-    {
-        return getQuery(
-            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN (:dataTypes ) AND pra.dataElement IS NULL AND pra.attribute IS NULL" )
-                .setParameter( "dataTypes", ProgramRuleActionType.DATA_LINKED_TYPES )
-                .getResultList();
-    }
-
-    @Override
-    public List<ProgramRuleAction> getProgramActionsWithNoNotification()
-    {
-        return getQuery(
-            "FROM ProgramRuleAction pra WHERE pra.programRuleActionType IN ( :notificationTypes ) AND pra.templateUid IS NULL" )
-                .setParameter( "notificationTypes", ProgramRuleActionType.NOTIFICATION_LINKED_TYPES )
-                .getResultList();
-    }
-
-    @Override
-    public List<ProgramRuleAction> getMalFormedRuleActionsByType( ProgramRuleActionType type )
-    {
-        if ( QUERY_FILTER.containsKey( type ) )
-        {
-            String filter = QUERY_FILTER.get( type );
-
-            return getQuery( String.format( QUERY, filter ) ).setParameter( "type", type ).getResultList();
-        }
-
-        return new ArrayList<>();
-    }
+    return new ArrayList<>();
+  }
 }

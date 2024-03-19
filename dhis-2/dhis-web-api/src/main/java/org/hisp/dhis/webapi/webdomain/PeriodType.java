@@ -27,57 +27,49 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import lombok.Data;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.Data;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
-@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodType
-{
-    private final String name;
+@JacksonXmlRootElement(localName = "periodType", namespace = DxfNamespaces.DXF_2_0)
+public class PeriodType {
+  private final String name;
 
-    private final String isoDuration;
+  private final String isoDuration;
 
-    private final String isoFormat;
+  private final String isoFormat;
 
-    private final int frequencyOrder;
+  private final int frequencyOrder;
 
-    public PeriodType( org.hisp.dhis.period.PeriodType periodType )
-    {
-        this.name = periodType.getName();
-        this.frequencyOrder = periodType.getFrequencyOrder();
-        this.isoDuration = periodType.getIso8601Duration();
-        this.isoFormat = periodType.getIsoFormat();
-    }
+  public PeriodType(org.hisp.dhis.period.PeriodType periodType) {
+    this.name = periodType.getName();
+    this.frequencyOrder = periodType.getFrequencyOrder();
+    this.isoDuration = periodType.getIso8601Duration();
+    this.isoFormat = periodType.getIsoFormat();
+  }
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return name;
-    }
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getName() {
+    return name;
+  }
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoDuration()
-    {
-        return isoDuration;
-    }
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getIsoDuration() {
+    return isoDuration;
+  }
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIsoFormat()
-    {
-        return isoFormat;
-    }
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getIsoFormat() {
+    return isoFormat;
+  }
 
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFrequencyOrder()
-    {
-        return frequencyOrder;
-    }
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getFrequencyOrder() {
+    return frequencyOrder;
+  }
 }

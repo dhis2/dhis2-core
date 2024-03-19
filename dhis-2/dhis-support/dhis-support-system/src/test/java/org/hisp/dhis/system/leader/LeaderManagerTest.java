@@ -39,18 +39,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed
  */
-class LeaderManagerTest extends SystemTest
-{
+class LeaderManagerTest extends SystemTest {
 
-    @Autowired
-    private LeaderManager leaderManager;
+  @Autowired private LeaderManager leaderManager;
 
-    @Test
-    void testNodeInfo()
-    {
-        assertNotNull( leaderManager.getCurrentNodeUuid() );
-        assertNotNull( leaderManager.getLeaderNodeUuid() );
-        assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
-        assertTrue( leaderManager.isLeader() );
-    }
+  @Test
+  void testNodeInfo() {
+    assertNotNull(leaderManager.getCurrentNodeUuid());
+    assertNotNull(leaderManager.getLeaderNodeUuid());
+    assertEquals(leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid());
+    assertTrue(leaderManager.isLeader());
+  }
 }

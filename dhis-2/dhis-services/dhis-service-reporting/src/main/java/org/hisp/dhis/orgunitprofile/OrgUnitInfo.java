@@ -27,81 +27,55 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.organisationunit.FeatureType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Org unit DTO object.
- */
+/** Org unit DTO object. */
 @Getter
 @Setter
 @NoArgsConstructor
-public class OrgUnitInfo
-{
-    @JsonProperty
-    private String id;
+public class OrgUnitInfo {
+  @JsonProperty private String id;
 
-    @JsonProperty
-    private String code;
+  @JsonProperty private String code;
 
-    @JsonProperty
-    private String name;
+  @JsonProperty private String name;
 
-    @JsonProperty
-    private String shortName;
+  @JsonProperty private String shortName;
 
-    @JsonProperty
-    private String description;
+  @JsonProperty private String description;
 
-    @JsonProperty
-    private String parentName;
+  @JsonProperty private String parentName;
 
-    @JsonProperty
-    private Integer level;
+  @JsonProperty private Integer level;
 
-    @JsonProperty
-    private String levelName;
+  @JsonProperty private String levelName;
 
-    @JsonProperty
-    private Date openingDate;
+  @JsonProperty private Date openingDate;
 
-    @JsonProperty
-    private Date closedDate;
+  @JsonProperty private Date closedDate;
 
-    @JsonProperty
-    private String comment;
+  @JsonProperty private String comment;
 
-    @JsonProperty
-    private String url;
+  @JsonProperty private String url;
 
-    @JsonProperty
-    private String contactPerson;
+  @JsonProperty private String contactPerson;
 
-    @JsonProperty
-    private String address;
+  @JsonProperty private String address;
 
-    @JsonProperty
-    private String email;
+  @JsonProperty private String email;
 
-    @JsonProperty
-    private String phoneNumber;
+  @JsonProperty private String phoneNumber;
 
-    @JsonProperty
-    private FeatureType featureType;
+  @JsonProperty private FeatureType featureType;
 
-    @JsonProperty
-    private Double longitude;
+  @JsonProperty private Double longitude;
 
-    @JsonProperty
-    private Double latitude;
+  @JsonProperty private Double latitude;
 
-    @JsonProperty
-    private String imageId;
+  @JsonProperty private String imageId;
 }

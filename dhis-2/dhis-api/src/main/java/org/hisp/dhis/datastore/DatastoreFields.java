@@ -29,38 +29,33 @@ package org.hisp.dhis.datastore;
 
 import java.util.List;
 import java.util.Map.Entry;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Represents an entry in the datatore in the form that it is extracted with
- * field filtering. The {@link #key} is the key of the datastore entry, the
- * {@link #values} are the values for the extracted fields in the order of the
- * fields.
- * <p>
- * It is also made an {@link Entry} to allow usage in pipeline not specifically
- * linked to this class.
+ * Represents an entry in the datatore in the form that it is extracted with field filtering. The
+ * {@link #key} is the key of the datastore entry, the {@link #values} are the values for the
+ * extracted fields in the order of the fields.
+ *
+ * <p>It is also made an {@link Entry} to allow usage in pipeline not specifically linked to this
+ * class.
  *
  * @author Jan Bernitt
  */
 @Getter
 @AllArgsConstructor
-public final class DatastoreFields implements Entry<String, List<String>>
-{
-    private final String key;
+public final class DatastoreFields implements Entry<String, List<String>> {
+  private final String key;
 
-    private final List<String> values;
+  private final List<String> values;
 
-    @Override
-    public List<String> getValue()
-    {
-        return getValues();
-    }
+  @Override
+  public List<String> getValue() {
+    return getValues();
+  }
 
-    @Override
-    public List<String> setValue( List<String> strings )
-    {
-        throw new UnsupportedOperationException();
-    }
+  @Override
+  public List<String> setValue(List<String> strings) {
+    throw new UnsupportedOperationException();
+  }
 }

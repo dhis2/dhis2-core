@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.common.auth;
 
-import java.io.Serializable;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-import org.springframework.util.MultiValueMap;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Morten Olav Hansen
@@ -47,23 +44,22 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @Getter
 @Setter
 @EqualsAndHashCode
-@Accessors( chain = true )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = HttpBasicAuth.class, name = "http-basic" ),
-    @JsonSubTypes.Type( value = ApiTokenAuth.class, name = "api-token" )
-} )
-public abstract class Auth
-    implements Serializable
-{
-    @JsonProperty
-    protected final String type;
+@Accessors(chain = true)
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = HttpBasicAuth.class, name = "http-basic"),
+  @JsonSubTypes.Type(value = ApiTokenAuth.class, name = "api-token")
+})
+public abstract class Auth implements Serializable {
+  @JsonProperty protected final String type;
 
-    @JsonCreator
-    protected Auth( @JsonProperty( "type" ) String type )
-    {
-        this.type = type;
-    }
+  @JsonCreator
+  protected Auth(@JsonProperty("type") String type) {
+    this.type = type;
+  }
 
-    public abstract void apply( MultiValueMap<String, String> headers );
+  public abstract void apply(MultiValueMap<String, String> headers);
 }

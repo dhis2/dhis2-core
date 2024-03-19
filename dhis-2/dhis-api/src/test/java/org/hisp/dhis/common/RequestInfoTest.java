@@ -31,57 +31,49 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests valid XRequestID header validation of
- * {@link RequestInfo#isValidXRequestID(String)}
+ * Tests valid XRequestID header validation of {@link RequestInfo#isValidXRequestID(String)}
  *
  * @author Jan Bernitt
  */
-class RequestInfoTest
-{
-    @Test
-    void testUidIsValidXRequestID()
-    {
-        assertValid( CodeGenerator.generateUid() );
-    }
+class RequestInfoTest {
+  @Test
+  void testUidIsValidXRequestID() {
+    assertValid(CodeGenerator.generateUid());
+  }
 
-    @Test
-    void testUUIDIsValidXRequestID()
-    {
-        assertValid( UUID.randomUUID().toString() );
-    }
+  @Test
+  void testUUIDIsValidXRequestID() {
+    assertValid(UUID.randomUUID().toString());
+  }
 
-    @Test
-    void testLongStringIsInvalidXRequestID()
-    {
-        assertInvalid( "1234567890123456789012345678901234567890" );
-    }
+  @Test
+  void testLongStringIsInvalidXRequestID() {
+    assertInvalid("1234567890123456789012345678901234567890");
+  }
 
-    @Test
-    void testQuoteStringIsInvalidXRequestID()
-    {
-        assertInvalid( "'now-I-escaped" );
-        assertInvalid( "\"now-I-escaped" );
-    }
+  @Test
+  void testQuoteStringIsInvalidXRequestID() {
+    assertInvalid("'now-I-escaped");
+    assertInvalid("\"now-I-escaped");
+  }
 
-    @Test
-    void testSpaceStringIsInvalidXRequestID()
-    {
-        assertInvalid( "no - not having it" );
-    }
+  @Test
+  void testSpaceStringIsInvalidXRequestID() {
+    assertInvalid("no - not having it");
+  }
 
-    private static void assertValid( String xRequestID )
-    {
-        assertTrue( RequestInfo.isValidXRequestID( xRequestID ),
-            "Should be a valid ID but is not: " + xRequestID );
-    }
+  private static void assertValid(String xRequestID) {
+    assertTrue(
+        RequestInfo.isValidXRequestID(xRequestID),
+        "Should be a valid ID but is not: " + xRequestID);
+  }
 
-    private static void assertInvalid( String xRequestID )
-    {
-        assertFalse( RequestInfo.isValidXRequestID( xRequestID ),
-            "Should be an invalid ID but is valid: " + xRequestID );
-    }
+  private static void assertInvalid(String xRequestID) {
+    assertFalse(
+        RequestInfo.isValidXRequestID(xRequestID),
+        "Should be an invalid ID but is valid: " + xRequestID);
+  }
 }

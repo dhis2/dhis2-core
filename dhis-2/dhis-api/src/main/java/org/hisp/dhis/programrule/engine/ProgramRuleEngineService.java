@@ -28,49 +28,45 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
-
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 
-/**
- * Created by zubair@dhis2.org on 23.10.17.
- */
-public interface ProgramRuleEngineService
-{
-    /**
-     * Call rule engine to evaluate the target enrollment and get a list of rule
-     * effects, then run the actions present in these effects.
-     *
-     * @param enrollment identifier of the target enrollment.
-     * @return the list of rule effects calculated by rule engine.
-     */
-    List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment );
+/** Created by zubair@dhis2.org on 23.10.17. */
+public interface ProgramRuleEngineService {
+  /**
+   * Call rule engine to evaluate the target enrollment and get a list of rule effects, then run the
+   * actions present in these effects.
+   *
+   * @param enrollment identifier of the target enrollment.
+   * @return the list of rule effects calculated by rule engine.
+   */
+  List<RuleEffect> evaluateEnrollmentAndRunEffects(long enrollment);
 
-    /**
-     * Call rule engine to evaluate the target event and get a list of rule
-     * effects, then run the actions present in these effects.
-     *
-     * @param event identifier (uid) of the target event.
-     * @return the list of rule effects calculated by rule engine
-     */
-    List<RuleEffect> evaluateEventAndRunEffects( String event );
+  /**
+   * Call rule engine to evaluate the target event and get a list of rule effects, then run the
+   * actions present in these effects.
+   *
+   * @param event identifier (uid) of the target event.
+   * @return the list of rule effects calculated by rule engine
+   */
+  List<RuleEffect> evaluateEventAndRunEffects(String event);
 
-    /**
-     * Gets the description of program rule condition. This also provides run
-     * time validation for program rule condition.
-     *
-     * @param condition to get description for.
-     * @param programId program id which program rule is associated to.
-     * @return {@link RuleValidationResult}
-     */
-    RuleValidationResult getDescription( String condition, String programId );
+  /**
+   * Gets the description of program rule condition. This also provides run time validation for
+   * program rule condition.
+   *
+   * @param condition to get description for.
+   * @param programId program id which program rule is associated to.
+   * @return {@link RuleValidationResult}
+   */
+  RuleValidationResult getDescription(String condition, String programId);
 
-    /**
-     * Gets the description of program rule action data field.
-     *
-     * @param dataExpression to get description for.
-     * @param programId program id which program rule is associated to.
-     * @return {@link RuleValidationResult}
-     */
-    RuleValidationResult getDataExpressionDescription( String dataExpression, String programId );
+  /**
+   * Gets the description of program rule action data field.
+   *
+   * @param dataExpression to get description for.
+   * @param programId program id which program rule is associated to.
+   * @return {@link RuleValidationResult}
+   */
+  RuleValidationResult getDataExpressionDescription(String dataExpression, String programId);
 }

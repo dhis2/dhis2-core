@@ -36,21 +36,17 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
  *
  * @author Jim Grace
  */
-public class NullLiteral
-    implements ExpressionItem
-{
-    @Override
-    public final Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        // Don't replace this null with a zero:
-        visitor.getState().setReplaceNulls( false );
+public class NullLiteral implements ExpressionItem {
+  @Override
+  public final Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    // Don't replace this null with a zero:
+    visitor.getState().setReplaceNulls(false);
 
-        return null;
-    }
+    return null;
+  }
 
-    @Override
-    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "null";
-    }
+  @Override
+  public Object getSql(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "null";
+  }
 }

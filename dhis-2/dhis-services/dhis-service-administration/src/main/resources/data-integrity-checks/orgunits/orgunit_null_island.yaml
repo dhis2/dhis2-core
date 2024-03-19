@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: fMoHpxuPT18
 name: orgunits_null_island
 description: Organisation units located within 100 km of Null Island (0,0).
 section: Organisation units
@@ -47,7 +46,6 @@ summary_sql: >-
   COUNT(*) as count,
   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
   FROM orgunits_null_island;
-details_uid: yBAsnuFkmbj
 details_sql: >-
   SELECT a.uid,a.name,ST_AsText(a.geometry) as comment
   from organisationunit a

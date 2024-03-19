@@ -30,25 +30,24 @@ package org.hisp.dhis.fieldfiltering;
 import java.util.List;
 
 /**
- * Constants for available field presets. A preset represents a short-hand
- * notation for a specific category of fields.
+ * Constants for available field presets. A preset represents a short-hand notation for a specific
+ * category of fields.
  *
- * TODO: Centralize this with the existing Preset enum in dhis-service-node.
+ * <p>TODO: Centralize this with the existing Preset enum in dhis-service-node.
  *
  * @author Lars Helge Overland
  */
-public interface FieldPreset
-{
-    List<String> IDENTIFIABLE_FIELDS = List.of(
-        "id", "code", "name", "created", "lastUpdated", "lastUpdatedBy" );
+public interface FieldPreset {
+  List<String> IDENTIFIABLE_FIELDS =
+      List.of("id", "code", "name", "created", "lastUpdated", "lastUpdatedBy");
 
-    String ALL = "all";
+  String ALL = "all";
 
-    String OWNER = "owner";
+  String OWNER = "owner";
 
-    String PERSISTED = "persisted";
+  String PERSISTED = "persisted";
 
-    String IDENTIFIABLE = "identifiable";
+  String IDENTIFIABLE = "identifiable";
 
-    String SIMPLE = "simple";
+  String SIMPLE = "simple";
 }

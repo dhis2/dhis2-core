@@ -8,7 +8,6 @@
             "displayDescription": "Person",
             "displayFormName": "Person",
             "displayName": "Person",
-            "externalAccess": false,
             "favorite": false,
             "favorites": [],
             "featureType": "NONE",
@@ -16,7 +15,6 @@
             "maxTeiCountToReturn": 0,
             "minAttributesRequiredToSearch": 1,
             "name": "Person",
-            "publicAccess": "--------",
             "style": {
                 "icon": "man_positive"
             },
@@ -58,7 +56,7 @@
                 {
                     "locale": "uz",
                     "property": "NAME",
-                    "value": "Шахс"
+                    "value": "\u0428\u0430\u0445\u0441"
                 },
                 {
                     "locale": "id",
@@ -73,7 +71,7 @@
                 {
                     "locale": "uz",
                     "property": "DESCRIPTION",
-                    "value": "Шахс"
+                    "value": "\u0428\u0430\u0445\u0441"
                 },
                 {
                     "locale": "pt",
@@ -129,71 +127,71 @@
             "user": {
                 "id": "vUeLeQMSwhN"
             },
-            "userAccesses": [],
-            "userGroupAccesses": [
-                {
-                    "access": "r-r-----",
-                    "displayName": "COVAC - Covid-19 Immunization Data Analysis",
-                    "id": "VLIaHu6ou8E",
-                    "userGroupUid": "VLIaHu6ou8E"
-                },
-                {
-                    "access": "rwrw----",
-                    "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
-                    "id": "AEAQ9LktNze",
-                    "userGroupUid": "AEAQ9LktNze"
-                },
-                {
-                    "access": "r-rw----",
-                    "displayName": "COVAC - Covid-19 Immunization Data Entry",
-                    "id": "q3Nh5xhJEy2",
-                    "userGroupUid": "q3Nh5xhJEy2"
+            "sharing": {
+                "public": "--------",
+                "external": false,
+                "owner": "vUeLeQMSwhN",
+                "users": {},
+                "userGroups": {
+                    "VLIaHu6ou8E": {
+                        "id": "VLIaHu6ou8E",
+                        "access": "r-r-----"
+                    },
+                    "AEAQ9LktNze": {
+                        "id": "AEAQ9LktNze",
+                        "access": "rwrw----"
+                    },
+                    "q3Nh5xhJEy2": {
+                        "id": "q3Nh5xhJEy2",
+                        "access": "r-rw----"
+                    }
                 }
-            ]
+            }
         }
     ],
     "userGroups": [
         {
             "attributeValues": [],
             "displayName": "COVAC - Covid-19 Immunization Data Analysis",
-            "externalAccess": false,
             "favorite": false,
             "favorites": [],
             "id": "VLIaHu6ou8E",
             "managedByGroups": [],
             "managedGroups": [],
             "name": "COVAC - Covid-19 Immunization Data Analysis",
-            "publicAccess": "rw------",
             "translations": [
                 {
                     "locale": "cs",
                     "property": "NAME",
-                    "value": "COVAC - Analýza dat imunizace Covid-19"
+                    "value": "COVAC - Anal\u00fdza dat imunizace Covid-19"
                 },
                 {
                     "locale": "es",
                     "property": "NAME",
-                    "value": "COVAC - Análisis de datos de inmunización Covid-19"
+                    "value": "COVAC - An\u00e1lisis de datos de inmunizaci\u00f3n Covid-19"
                 }
             ],
             "user": {
                 "id": "vUeLeQMSwhN"
             },
-            "userAccesses": [],
-            "userGroupAccesses": [],
-            "users": []
+            "users": [],
+            "sharing": {
+                "public": "rw------",
+                "external": false,
+                "owner": "vUeLeQMSwhN",
+                "users": {},
+                "userGroups": {}
+            }
         },
         {
             "attributeValues": [],
             "displayName": "COVAC - Covid-19 Immunization Data Entry",
-            "externalAccess": false,
             "favorite": false,
             "favorites": [],
             "id": "q3Nh5xhJEy2",
             "managedByGroups": [],
             "managedGroups": [],
             "name": "COVAC - Covid-19 Immunization Data Entry",
-            "publicAccess": "rw------",
             "translations": [
                 {
                     "locale": "cs",
@@ -203,45 +201,53 @@
                 {
                     "locale": "es",
                     "property": "NAME",
-                    "value": "COVAC - Entrada de datos de inmunización Covid-19"
+                    "value": "COVAC - Entrada de datos de inmunizaci\u00f3n Covid-19"
                 }
             ],
             "user": {
                 "id": "vUeLeQMSwhN"
             },
-            "userAccesses": [],
-            "userGroupAccesses": [],
-            "users": []
+            "users": [],
+            "sharing": {
+                "public": "rw------",
+                "external": false,
+                "owner": "vUeLeQMSwhN",
+                "users": {},
+                "userGroups": {}
+            }
         },
         {
             "attributeValues": [],
             "displayName": "COVAC - Covid-19 Immunization Metadata Admin",
-            "externalAccess": false,
             "favorite": false,
             "favorites": [],
             "id": "AEAQ9LktNze",
             "managedByGroups": [],
             "managedGroups": [],
             "name": "COVAC - Covid-19 Immunization Metadata Admin",
-            "publicAccess": "rw------",
             "translations": [
                 {
                     "locale": "es",
                     "property": "NAME",
-                    "value": "COVAC - Administrador de metadatos de inmunización Covid-19"
+                    "value": "COVAC - Administrador de metadatos de inmunizaci\u00f3n Covid-19"
                 },
                 {
                     "locale": "cs",
                     "property": "NAME",
-                    "value": "COVAC - správce metadat imunizace Covid-19"
+                    "value": "COVAC - spr\u00e1vce metadat imunizace Covid-19"
                 }
             ],
             "user": {
                 "id": "vUeLeQMSwhN"
             },
-            "userAccesses": [],
-            "userGroupAccesses": [],
-            "users": []
+            "users": [],
+            "sharing": {
+                "public": "rw------",
+                "external": false,
+                "owner": "vUeLeQMSwhN",
+                "users": {},
+                "userGroups": {}
+            }
         }
     ],
     "users": [
@@ -260,22 +266,22 @@
             "teiSearchOrganisationUnits": [],
             "translations": [],
             "userAccesses": [],
-                "catDimensionConstraints": [],
-                "cogsDimensionConstraints": [],
-                "disabled": false,
-                "externalAuth": false,
-                "invitation": false,
-                "lastLogin": "2020-04-23T09:17:46.912",
-                "passwordLastUpdated": "2019-10-16T12:06:30.668",
-                "selfRegistered": false,
-                "twoFA": false,
-                "userGroupAccesses": [],
-                "userRoles": [
-                    {
-                        "id": "yrB6vc5Ip3r"
-                    }
-                ],
-                "username": "who"
+            "catDimensionConstraints": [],
+            "cogsDimensionConstraints": [],
+            "disabled": false,
+            "externalAuth": false,
+            "invitation": false,
+            "lastLogin": "2020-04-23T09:17:46.912",
+            "passwordLastUpdated": "2019-10-16T12:06:30.668",
+            "selfRegistered": false,
+            "twoFA": false,
+            "userGroupAccesses": [],
+            "userRoles": [
+                {
+                    "id": "yrB6vc5Ip3r"
+                }
+            ],
+            "username": "who"
         }
     ]
 }

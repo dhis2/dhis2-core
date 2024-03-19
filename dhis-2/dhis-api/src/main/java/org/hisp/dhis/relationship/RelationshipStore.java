@@ -28,68 +28,54 @@
 package org.hisp.dhis.relationship;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Abyot Asalefew
  */
-public interface RelationshipStore
-    extends IdentifiableObjectStore<Relationship>
-{
-    String ID = RelationshipStore.class.getName();
+public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
+  String ID = RelationshipStore.class.getName();
 
-    default List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
-    {
-        return getByTrackedEntityInstance( tei, null );
-    }
+  List<Relationship> getByTrackedEntity(
+      TrackedEntity te,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
-    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByEnrollment(
+      Enrollment enrollment,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
-    default List<Relationship> getByProgramInstance( ProgramInstance pi )
-    {
-        return getByProgramInstance( pi, null );
-    }
+  List<Relationship> getByEvent(
+      Event event,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean includeDeleted);
 
-    List<Relationship> getByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByRelationshipType(RelationshipType relationshipType);
 
-    default List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
-    {
-        return getByProgramStageInstance( psi, null );
-    }
+  /**
+   * Fetches a {@link Relationship} based on a relationship identifying attributes: - relationship
+   * type - from - to
+   *
+   * @param relationship A valid Relationship
+   * @return a {@link Relationship} or null if no Relationship is found matching the identifying
+   *     criterias
+   */
+  Relationship getByRelationship(Relationship relationship);
 
-    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  /**
+   * Checks if relationship for given UID exists (including deleted relationships).
+   *
+   * @param uid Relationship UID to check for.
+   * @return return true if relationship exists, false otherwise.
+   */
+  boolean existsIncludingDeleted(String uid);
 
-    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
+  List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList);
 
-    /**
-     * Fetches a {@link Relationship} based on a relationship identifying
-     * attributes: - relationship type - from - to
-     *
-     * @param relationship A valid Relationship
-     *
-     * @return a {@link Relationship} or null if no Relationship is found
-     *         matching the identifying criterias
-     */
-    Relationship getByRelationship( Relationship relationship );
-
-    /**
-     * Checks if relationship for given UID exists (including deleted
-     * relationships).
-     *
-     * @param uid Relationship UID to check for.
-     * @return return true if relationship exists, false otherwise.
-     */
-    boolean existsIncludingDeleted( String uid );
-
-    List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
-
-    List<Relationship> getByUidsIncludeDeleted( List<String> uids );
+  List<Relationship> getByUidsIncludeDeleted(List<String> uids);
 }

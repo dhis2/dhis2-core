@@ -27,52 +27,89 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Collection;
-import java.util.Optional;
-
-import org.springframework.core.io.Resource;
+import java.sql.SQLException;
+import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Kristian Wærstad
  */
-public interface IconService
-{
-    /**
-     * Gets data about all the icons in the system
-     *
-     * @return a collection of data about all the icons in the system
-     */
-    Collection<IconData> getIcons();
+public interface IconService {
 
-    /**
-     * Gets info about the icons in the system tagged with all the keywords in a
-     * collection
-     *
-     * @param keywords collection of keywords
-     * @return a collection of matching icons
-     */
-    Collection<IconData> getIcons( Collection<String> keywords );
+  /**
+   * The {@link Icon}s returned by this method are not persisted in DB.
+   *
+   * @return an {@link Icon} for all {@link DefaultIcon}s variants that do not yet exist
+   */
+  List<Icon> findNonExistingDefaultIcons();
 
-    /**
-     * Gets the info of the icon associated with a specific key if there is one
-     *
-     * @param key key of the icon
-     * @return icon data associated with the key if there is one
-     */
-    Optional<IconData> getIcon( String key );
+  /**
+   * To creates the {@link org.hisp.dhis.fileresource.FileResource} for the default icon provided
+   *
+   * @param icon to create
+   * @return the UID of the crated {@link org.hisp.dhis.fileresource.FileResource}
+   */
+  String uploadDefaultIcon(Icon icon) throws ConflictException;
 
-    /**
-     * Gets the icon with the correct key if one exists
-     *
-     * @param key key of the icon
-     * @return the icon resource
-     */
-    Optional<Resource> getIconResource( String key );
+  /**
+   * Get the count of Icons based on filters provided in {@link IconQueryParams}
+   *
+   * @param params filters
+   * @return total count
+   */
+  long count(IconQueryParams params);
 
-    /**
-     * Gets a collection of all unique keywords assigned to icons
-     *
-     * @return collection of uniquee keywords
-     */
-    Collection<String> getKeywords();
+  /**
+   * Get list of Icons based on filters provided in {@link IconQueryParams}
+   *
+   * @param params filters to build query
+   * @return list of Icons
+   */
+  List<Icon> getIcons(IconQueryParams params);
+
+  /**
+   * Gets the icon associated to a key, if it exists
+   *
+   * @param key key of the icon to find
+   * @return custom icon associated to the key, if found
+   * @throws NotFoundException if no custom icon exists with the provided key
+   */
+  Icon getIcon(String key) throws NotFoundException;
+
+  /**
+   * Checks whether an icon with a given key exists, either default or custom
+   *
+   * @param key key of the icon
+   * @return true if the icon exists, false otherwise
+   */
+  boolean iconExists(String key);
+
+  /**
+   * Persists the provided icon to the database
+   *
+   * @param icon the icon to be persisted
+   * @throws BadRequestException when an icon already exists with the same key or the file resource
+   *     id is not specified
+   * @throws NotFoundException when no file resource with the provided id exists
+   */
+  void addIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException, SQLException;
+
+  /**
+   * Updated the provided icon
+   *
+   * @param icon the icon to be updated
+   */
+  void updateIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException, SQLException;
+
+  /**
+   * Deletes a given Icon
+   *
+   * @param key of the icon to be deleted
+   * @throws BadRequestException when icon key is not specified
+   * @throws NotFoundException when no icon with the provided key exists
+   */
+  void deleteIcon(String key) throws BadRequestException, NotFoundException;
 }

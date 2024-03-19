@@ -30,9 +30,7 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
@@ -49,67 +47,68 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Component( "org.hisp.dhis.sms.config.ClickatellGateway" )
+@Component("org.hisp.dhis.sms.config.ClickatellGateway")
 @RequiredArgsConstructor
-public class ClickatellHttpGateway
-    extends SmsGateway
-{
-    @Qualifier( "tripleDesStringEncryptor" )
-    private final PBEStringEncryptor pbeStringEncryptor;
+public class ClickatellHttpGateway extends SmsGateway {
+  @Qualifier("tripleDesStringEncryptor")
+  private final PBEStringEncryptor pbeStringEncryptor;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig instanceof ClickatellGatewayConfig;
-    }
+  @Override
+  public boolean accept(SmsGatewayConfig gatewayConfig) {
+    return gatewayConfig instanceof ClickatellGatewayConfig;
+  }
 
-    @Override
-    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
-    {
-        return batch.getMessages()
-            .parallelStream()
-            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  public List<OutboundMessageResponse> sendBatch(
+      OutboundMessageBatch batch, SmsGatewayConfig config) {
+    return batch.getMessages().parallelStream()
+        .map(m -> send(m.getSubject(), m.getText(), m.getRecipients(), config))
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
-    {
-        ClickatellGatewayConfig clickatellConfiguration = (ClickatellGatewayConfig) config;
-        HttpEntity<ClickatellRequestEntity> request = new HttpEntity<>( getRequestBody( text, recipients ),
-            getRequestHeaderParameters( clickatellConfiguration ) );
+  @Override
+  public OutboundMessageResponse send(
+      String subject, String text, Set<String> recipients, SmsGatewayConfig config) {
+    ClickatellGatewayConfig clickatellConfiguration = (ClickatellGatewayConfig) config;
+    HttpEntity<ClickatellRequestEntity> request =
+        new HttpEntity<>(
+            getRequestBody(text, recipients), getRequestHeaderParameters(clickatellConfiguration));
 
-        HttpStatus httpStatus = send( clickatellConfiguration.getUrlTemplate() + MAX_MESSAGE_PART, request,
-            HttpMethod.POST, ClickatellResponseEntity.class );
+    HttpStatus httpStatus =
+        send(
+            clickatellConfiguration.getUrlTemplate() + MAX_MESSAGE_PART,
+            request,
+            HttpMethod.POST,
+            ClickatellResponseEntity.class);
 
-        return wrapHttpStatus( httpStatus );
-    }
+    return wrapHttpStatus(httpStatus);
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    private ClickatellRequestEntity getRequestBody( String text, Set<String> recipients )
-    {
-        ClickatellRequestEntity requestBody = new ClickatellRequestEntity();
-        requestBody.setContent( text );
-        requestBody.setTo( recipients );
+  private ClickatellRequestEntity getRequestBody(String text, Set<String> recipients) {
+    ClickatellRequestEntity requestBody = new ClickatellRequestEntity();
+    requestBody.setContent(text);
+    requestBody.setTo(recipients);
 
-        return requestBody;
-    }
+    return requestBody;
+  }
 
-    private HttpHeaders getRequestHeaderParameters( ClickatellGatewayConfig clickatellConfiguration )
-    {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( HttpHeaders.AUTHORIZATION, pbeStringEncryptor.decrypt( clickatellConfiguration.getPassword() ) );
+  private HttpHeaders getRequestHeaderParameters(ClickatellGatewayConfig clickatellConfiguration) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+    headers.set(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
+    headers.set(PROTOCOL_VERSION, "1");
+    headers.set(
+        HttpHeaders.AUTHORIZATION,
+        pbeStringEncryptor.decrypt(clickatellConfiguration.getPassword()));
 
-        return headers;
-    }
+    return headers;
+  }
 }

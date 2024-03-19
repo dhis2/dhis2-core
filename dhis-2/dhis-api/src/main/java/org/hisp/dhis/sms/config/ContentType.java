@@ -32,35 +32,29 @@ import java.util.Optional;
 /**
  * @Author Zubair Asghar.
  */
-public enum ContentType
-{
-    APPLICATION_JSON( "application/json" ),
-    APPLICATION_XML( "application/xml" ),
-    TEXT_PLAIN( "text/plain" ),
-    FORM_URL_ENCODED( "application/x-www-form-urlencoded" );
+public enum ContentType {
+  APPLICATION_JSON("application/json"),
+  APPLICATION_XML("application/xml"),
+  TEXT_PLAIN("text/plain"),
+  FORM_URL_ENCODED("application/x-www-form-urlencoded");
 
-    private String value;
+  private String value;
 
-    ContentType( String value )
-    {
-        this.value = value;
+  ContentType(String value) {
+    this.value = value;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public static Optional<ContentType> from(String value) {
+    for (ContentType type : ContentType.values()) {
+      if (type.getValue().equals(value)) {
+        return Optional.of(type);
+      }
     }
 
-    public String getValue()
-    {
-        return value;
-    }
-
-    public static Optional<ContentType> from( String value )
-    {
-        for ( ContentType type : ContentType.values() )
-        {
-            if ( type.getValue().equals( value ) )
-            {
-                return Optional.of( type );
-            }
-        }
-
-        return Optional.empty();
-    }
+    return Optional.empty();
+  }
 }

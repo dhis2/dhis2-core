@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -36,14 +35,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class AttributeObjectBundleHook
-    extends AbstractObjectBundleHook<Attribute>
-{
-    private final AttributeService attributeService;
+public class AttributeObjectBundleHook extends AbstractObjectBundleHook<Attribute> {
+  private final AttributeService attributeService;
 
-    @Override
-    public void postUpdate( Attribute persistedObject, ObjectBundle bundle )
-    {
-        attributeService.invalidateCachedAttribute( persistedObject.getUid() );
-    }
+  @Override
+  public void postUpdate(Attribute persistedObject, ObjectBundle bundle) {
+    attributeService.invalidateCachedAttribute(persistedObject.getUid());
+  }
 }

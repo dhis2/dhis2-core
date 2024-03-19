@@ -32,47 +32,39 @@ import static org.hisp.dhis.common.OpenApi.Response.Status.NOT_FOUND;
 import java.text.MessageFormat;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import lombok.Getter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 @Getter
-@Accessors( chain = true )
-@OpenApi.Response( status = NOT_FOUND, value = WebMessageResponse.class )
-public final class NotFoundException extends Exception implements Error
-{
-    public static <E extends RuntimeException, V> V on( Class<E> type, Supplier<V> operation )
-        throws NotFoundException
-    {
-        return Error.rethrow( type, NotFoundException::new, operation );
-    }
+@Accessors(chain = true)
+@OpenApi.Response(status = NOT_FOUND, value = WebMessageResponse.class)
+public final class NotFoundException extends Exception implements Error {
+  public static <E extends RuntimeException, V> V on(Class<E> type, Supplier<V> operation)
+      throws NotFoundException {
+    return Error.rethrow(type, NotFoundException::new, operation);
+  }
 
-    public static <E extends RuntimeException, V> V on( Class<E> type, Function<E, NotFoundException> map,
-        Supplier<V> operation )
-        throws NotFoundException
-    {
-        return Error.rethrowMapped( type, map, operation );
-    }
+  public static <E extends RuntimeException, V> V on(
+      Class<E> type, Function<E, NotFoundException> map, Supplier<V> operation)
+      throws NotFoundException {
+    return Error.rethrowMapped(type, map, operation);
+  }
 
-    private final ErrorCode code;
+  private final ErrorCode code;
 
-    public NotFoundException( Class<?> type, String uid )
-    {
-        this( type.getSimpleName() + " with id " + uid + " could not be found." );
-    }
+  public NotFoundException(Class<?> type, String uid) {
+    this(type.getSimpleName() + " with id " + uid + " could not be found.");
+  }
 
-    public NotFoundException( String message )
-    {
-        super( message );
-        this.code = ErrorCode.E1005;
-    }
+  public NotFoundException(String message) {
+    super(message);
+    this.code = ErrorCode.E1005;
+  }
 
-    public NotFoundException( ErrorCode code, Object... args )
-    {
-        super( MessageFormat.format( code.getMessage(), args ) );
-        this.code = code;
-    }
+  public NotFoundException(ErrorCode code, Object... args) {
+    super(MessageFormat.format(code.getMessage(), args));
+    this.code = code;
+  }
 }

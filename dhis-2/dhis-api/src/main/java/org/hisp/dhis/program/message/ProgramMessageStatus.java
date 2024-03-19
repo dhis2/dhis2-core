@@ -27,18 +27,16 @@
  */
 package org.hisp.dhis.program.message;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JacksonXmlRootElement( localName = "programMessageStatus", namespace = DxfNamespaces.DXF_2_0 )
-public enum ProgramMessageStatus
-{
-    SENT,
-    FAILED,
-    SCHEDULED,
-    OUTBOUND
+@JacksonXmlRootElement(localName = "programMessageStatus", namespace = DxfNamespaces.DXF_2_0)
+public enum ProgramMessageStatus {
+  SENT,
+  FAILED,
+  SCHEDULED,
+  OUTBOUND
 }

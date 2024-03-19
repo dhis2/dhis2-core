@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import java.util.List;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
+import lombok.Data;
 
 /**
  * @author Jan Bernitt
  */
 @Data
-public class DataValuesFollowUpRequest
-{
-    @JsonProperty
-    private List<DataValueFollowUpRequest> values;
+public class DataValuesFollowUpRequest {
+  @JsonProperty private List<DataValueFollowUpRequest> values;
 }

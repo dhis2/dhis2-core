@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -51,60 +50,58 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class ProgramStageObjectBundleHookTest
-{
-    private ProgramStageObjectBundleHook subject;
+@ExtendWith(MockitoExtension.class)
+class ProgramStageObjectBundleHookTest {
+  private ProgramStageObjectBundleHook subject;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private ProgramStageSectionService programStageSectionService;
+  @Mock private ProgramStageSectionService programStageSectionService;
 
-    private ProgramStage programStage;
+  private ProgramStage programStage;
 
-    private Program program;
+  private Program program;
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private User user;
+  private User user;
 
-    private Preheat preheat = new Preheat();
+  private Preheat preheat = new Preheat();
 
-    @BeforeEach
-    public void init()
-    {
-        this.subject = new ProgramStageObjectBundleHook( aclService, programStageSectionService );
+  @BeforeEach
+  public void init() {
+    this.subject = new ProgramStageObjectBundleHook(aclService, programStageSectionService);
 
-        program = DhisConvenienceTest.createProgram( 'A' );
-        program.setUid( "jGRqKgwvvb6" );
+    program = DhisConvenienceTest.createProgram('A');
+    program.setUid("jGRqKgwvvb6");
 
-        programStage = DhisConvenienceTest.createProgramStage( 'A', program );
-        programStage.setUid( "giQh4EFWKOk" );
+    programStage = DhisConvenienceTest.createProgramStage('A', program);
+    programStage.setUid("giQh4EFWKOk");
 
-        dataElement = DhisConvenienceTest.createDataElement( 'A' );
-        dataElement.setUid( "qtplcYVR1oO" );
-        programStage.addDataElement( dataElement, 0 );
-        user = DhisConvenienceTest.makeUser( "A" );
-        user.setUid( "WAoGUm593U7" );
+    dataElement = DhisConvenienceTest.createDataElement('A');
+    dataElement.setUid("qtplcYVR1oO");
+    programStage.addDataElement(dataElement, 0);
+    user = DhisConvenienceTest.makeUser("A");
+    user.setUid("WAoGUm593U7");
 
-        preheat.put( PreheatIdentifier.UID, program );
-        preheat.put( PreheatIdentifier.UID, programStage );
-        preheat.put( PreheatIdentifier.UID, dataElement );
-    }
+    preheat.put(PreheatIdentifier.UID, program);
+    preheat.put(PreheatIdentifier.UID, programStage);
+    preheat.put(PreheatIdentifier.UID, dataElement);
+  }
 
-    @Test
-    void testValidateDataElementAcl()
-    {
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        objectBundleParams.setUser( user );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections
-            .singletonMap( OptionSet.class, Collections.singletonList( programStage ) ) );
+  @Test
+  void testValidateDataElementAcl() {
+    ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+    objectBundleParams.setPreheatIdentifier(PreheatIdentifier.UID);
+    objectBundleParams.setUser(user);
+    ObjectBundle bundle =
+        new ObjectBundle(
+            objectBundleParams,
+            preheat,
+            Collections.singletonMap(OptionSet.class, Collections.singletonList(programStage)));
 
-        List<ErrorReport> errors = subject.validate( programStage, bundle );
-        Assertions.assertEquals( 1, errors.size() );
-        Assertions.assertEquals( ErrorCode.E3012, errors.get( 0 ).getErrorCode() );
-    }
+    List<ErrorReport> errors = subject.validate(programStage, bundle);
+    Assertions.assertEquals(1, errors.size());
+    Assertions.assertEquals(ErrorCode.E3012, errors.get(0).getErrorCode());
+  }
 }

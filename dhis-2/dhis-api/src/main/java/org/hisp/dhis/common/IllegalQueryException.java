@@ -35,47 +35,41 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author Lars Helge Overland
  */
-public class IllegalQueryException
-    extends ErrorCodeException
-{
-    /**
-     * Constructor.
-     *
-     * @param message the exception message.
-     */
-    public IllegalQueryException( String message )
-    {
-        super( message );
-    }
+public class IllegalQueryException extends ErrorCodeException {
+  /**
+   * Constructor.
+   *
+   * @param message the exception message.
+   */
+  public IllegalQueryException(String message) {
+    super(message);
+  }
 
-    /**
-     * Constructor. Sets the message based on the error code message.
-     *
-     * @param errorCode the {@link ErrorCode}.
-     */
-    public IllegalQueryException( ErrorCode errorCode )
-    {
-        super( errorCode );
-    }
+  /**
+   * Constructor. Sets the message based on the error code message.
+   *
+   * @param errorCode the {@link ErrorCode}.
+   */
+  public IllegalQueryException(ErrorCode errorCode) {
+    super(errorCode);
+  }
 
-    /**
-     * Constructor. Sets the message and error code based on the error message.
-     *
-     * @param errorMessage the {@link ErrorMessage}.
-     */
-    public IllegalQueryException( ErrorMessage errorMessage )
-    {
-        super( errorMessage );
-    }
+  /**
+   * Constructor. Sets the message and error code based on the error message.
+   *
+   * @param errorMessage the {@link ErrorMessage}.
+   */
+  public IllegalQueryException(ErrorMessage errorMessage) {
+    super(errorMessage);
+  }
 
-    /**
-     * Constructor. Sets the message based on the error code and arguments.
-     *
-     * @param errorCode the {@link ErrorCode}.
-     * @param args the message format arguments.
-     */
-    public IllegalQueryException( ErrorCode errorCode, Object... args )
-    {
-        super( errorCode, args );
-    }
+  /**
+   * Constructor. Sets the message based on the error code and arguments.
+   *
+   * @param errorCode the {@link ErrorCode}.
+   * @param args the message format arguments.
+   */
+  public IllegalQueryException(ErrorCode errorCode, Object... args) {
+    super(errorCode, args);
+  }
 }

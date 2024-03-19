@@ -27,65 +27,53 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+public class ObjectStyle implements Serializable, EmbeddedObject {
+  private String color;
 
-public class ObjectStyle
-    implements Serializable, EmbeddedObject
-{
-    private String color;
+  private String icon;
 
-    private String icon;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getColor() {
+    return color;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getColor()
-    {
-        return color;
+  public void setColor(String color) {
+    this.color = color;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getIcon() {
+    return icon;
+  }
+
+  public void setIcon(String icon) {
+    this.icon = icon;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public void setColor( String color )
-    {
-        this.color = color;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getIcon()
-    {
-        return icon;
-    }
+    ObjectStyle that = (ObjectStyle) o;
 
-    public void setIcon( String icon )
-    {
-        this.icon = icon;
-    }
+    return Objects.equals(color, that.color) && Objects.equals(icon, that.icon);
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        ObjectStyle that = (ObjectStyle) o;
-
-        return Objects.equals( color, that.color ) &&
-            Objects.equals( icon, that.icon );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( color, icon );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(color, icon);
+  }
 }

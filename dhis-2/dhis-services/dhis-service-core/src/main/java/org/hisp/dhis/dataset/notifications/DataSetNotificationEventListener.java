@@ -33,30 +33,23 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Created by zubair@dhis2.org on 18.01.18.
- */
+/** Created by zubair@dhis2.org on 18.01.18. */
+@Component("org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener")
+public class DataSetNotificationEventListener {
+  private DataSetNotificationService dataSetNotificationService;
 
-@Component( "org.hisp.dhis.dataset.notifications.DataSetNotificationEventListener" )
-public class DataSetNotificationEventListener
-{
-    private DataSetNotificationService dataSetNotificationService;
+  public DataSetNotificationEventListener(DataSetNotificationService dataSetNotificationService) {
+    checkNotNull(dataSetNotificationService);
 
-    public DataSetNotificationEventListener( DataSetNotificationService dataSetNotificationService )
-    {
-        checkNotNull( dataSetNotificationService );
+    this.dataSetNotificationService = dataSetNotificationService;
+  }
 
-        this.dataSetNotificationService = dataSetNotificationService;
+  @EventListener
+  public void onApplicationEvent(DataSetNotificationEvent event) {
+    CompleteDataSetRegistration registration = event.getRegistration();
+
+    if (registration != null) {
+      dataSetNotificationService.sendCompleteDataSetNotifications(registration);
     }
-
-    @EventListener
-    public void onApplicationEvent( DataSetNotificationEvent event )
-    {
-        CompleteDataSetRegistration registration = event.getRegistration();
-
-        if ( registration != null )
-        {
-            dataSetNotificationService.sendCompleteDataSetNotifications( registration );
-        }
-    }
+  }
 }

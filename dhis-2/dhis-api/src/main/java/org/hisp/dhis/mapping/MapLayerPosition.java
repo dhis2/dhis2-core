@@ -30,8 +30,7 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum MapLayerPosition
-{
-    BASEMAP,
-    OVERLAY
+public enum MapLayerPosition {
+  BASEMAP,
+  OVERLAY
 }

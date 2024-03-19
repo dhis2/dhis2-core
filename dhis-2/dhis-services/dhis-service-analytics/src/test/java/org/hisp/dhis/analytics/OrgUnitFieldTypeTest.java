@@ -48,38 +48,34 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class OrgUnitFieldTypeTest
-{
-    @Test
-    void testGetEventColumn()
-    {
-        assertEquals( DEFAULT_ORG_UNIT_COL, DEFAULT.getEventColumn() );
-        assertNull( ATTRIBUTE.getEventColumn() );
-        assertEquals( REGISTRATION_OU_COL, REGISTRATION.getEventColumn() );
-        assertEquals( ENROLLMENT_OU_COL, ENROLLMENT.getEventColumn() );
-        assertEquals( ENROLLMENT_OU_COL, OWNER_AT_START.getEventColumn() );
-        assertEquals( ENROLLMENT_OU_COL, OWNER_AT_END.getEventColumn() );
-    }
+class OrgUnitFieldTypeTest {
+  @Test
+  void testGetEventColumn() {
+    assertEquals(DEFAULT_ORG_UNIT_COL, DEFAULT.getEventColumn());
+    assertNull(ATTRIBUTE.getEventColumn());
+    assertEquals(REGISTRATION_OU_COL, REGISTRATION.getEventColumn());
+    assertEquals(ENROLLMENT_OU_COL, ENROLLMENT.getEventColumn());
+    assertEquals(ENROLLMENT_OU_COL, OWNER_AT_START.getEventColumn());
+    assertEquals(ENROLLMENT_OU_COL, OWNER_AT_END.getEventColumn());
+  }
 
-    @Test
-    void testGetEnrollmentColumn()
-    {
-        assertEquals( DEFAULT_ORG_UNIT_COL, DEFAULT.getEnrollmentColumn() );
-        assertNull( ATTRIBUTE.getEnrollmentColumn() );
-        assertEquals( REGISTRATION_OU_COL, REGISTRATION.getEnrollmentColumn() );
-        assertEquals( DEFAULT_ORG_UNIT_COL, ENROLLMENT.getEnrollmentColumn() );
-        assertEquals( DEFAULT_ORG_UNIT_COL, OWNER_AT_START.getEnrollmentColumn() );
-        assertEquals( DEFAULT_ORG_UNIT_COL, OWNER_AT_END.getEnrollmentColumn() );
-    }
+  @Test
+  void testGetEnrollmentColumn() {
+    assertEquals(DEFAULT_ORG_UNIT_COL, DEFAULT.getEnrollmentColumn());
+    assertNull(ATTRIBUTE.getEnrollmentColumn());
+    assertEquals(REGISTRATION_OU_COL, REGISTRATION.getEnrollmentColumn());
+    assertEquals(DEFAULT_ORG_UNIT_COL, ENROLLMENT.getEnrollmentColumn());
+    assertEquals(DEFAULT_ORG_UNIT_COL, OWNER_AT_START.getEnrollmentColumn());
+    assertEquals(DEFAULT_ORG_UNIT_COL, OWNER_AT_END.getEnrollmentColumn());
+  }
 
-    @Test
-    void testIsOwnership()
-    {
-        assertFalse( DEFAULT.isOwnership() );
-        assertFalse( ATTRIBUTE.isOwnership() );
-        assertFalse( REGISTRATION.isOwnership() );
-        assertFalse( ENROLLMENT.isOwnership() );
-        assertTrue( OWNER_AT_START.isOwnership() );
-        assertTrue( OWNER_AT_END.isOwnership() );
-    }
+  @Test
+  void testIsOwnership() {
+    assertFalse(DEFAULT.isOwnership());
+    assertFalse(ATTRIBUTE.isOwnership());
+    assertFalse(REGISTRATION.isOwnership());
+    assertFalse(ENROLLMENT.isOwnership());
+    assertTrue(OWNER_AT_START.isOwnership());
+    assertTrue(OWNER_AT_END.isOwnership());
+  }
 }

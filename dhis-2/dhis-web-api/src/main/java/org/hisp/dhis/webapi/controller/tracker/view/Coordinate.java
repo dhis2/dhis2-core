@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,11 +40,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Coordinate
-{
-    @JsonProperty
-    private Double latitude;
+public class Coordinate {
+  @JsonProperty private Double latitude;
 
-    @JsonProperty
-    private Double longitude;
+  @JsonProperty private Double longitude;
 }

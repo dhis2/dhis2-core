@@ -29,13 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -49,10 +49,12 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -65,95 +67,96 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfWriter;
-
 /**
  * @author James Chang <jamesbchang@gmail.com>
  */
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @Controller
-@RequestMapping( value = "/pdfForm" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class PdfFormController
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@RequestMapping(value = "/pdfForm")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class PdfFormController {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private Notifier notifier;
 
-    @Autowired
-    private Notifier notifier;
+  @Autowired private DataValueSetService dataValueSetService;
 
-    @Autowired
-    private DataValueSetService dataValueSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private I18nManager i18nManager;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private PdfDataEntryFormService pdfDataEntryFormService;
 
-    @Autowired
-    private PdfDataEntryFormService pdfDataEntryFormService;
+  @Autowired private ContextUtils contextUtils;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  // --------------------------------------------------------------------------
+  // DataSet
+  // --------------------------------------------------------------------------
 
-    // --------------------------------------------------------------------------
-    // DataSet
-    // --------------------------------------------------------------------------
+  @GetMapping("/dataSet/{dataSetUid}")
+  public void getFormPdfDataSet(
+      @PathVariable String dataSetUid,
+      HttpServletRequest request,
+      HttpServletResponse response,
+      OutputStream out)
+      throws Exception {
+    Document document = new Document();
 
-    @GetMapping( "/dataSet/{dataSetUid}" )
-    public void getFormPdfDataSet( @PathVariable String dataSetUid, HttpServletRequest request,
-        HttpServletResponse response, OutputStream out )
-        throws Exception
-    {
-        Document document = new Document();
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PdfWriter writer = PdfWriter.getInstance(document, baos);
+    PdfFormFontSettings pdfFormFontSettings =
+        new PdfFormFontSettings(
+            CurrentUserUtil.getUserSetting(UserSettingKey.UI_LOCALE, LocaleManager.DEFAULT_LOCALE));
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfWriter writer = PdfWriter.getInstance( document, baos );
+    PdfDataEntryFormUtil.setDefaultFooterOnDocument(
+        document,
+        request.getServerName(),
+        pdfFormFontSettings.getFont(PdfFormFontSettings.FONTTYPE_FOOTER));
 
-        PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings();
+    pdfDataEntryFormService.generatePDFDataEntryForm(
+        document,
+        writer,
+        dataSetUid,
+        PdfDataEntryFormUtil.DATATYPE_DATASET,
+        PdfDataEntryFormUtil.getDefaultPageSize(PdfDataEntryFormUtil.DATATYPE_DATASET),
+        pdfFormFontSettings,
+        i18nManager.getI18nFormat());
 
-        PdfDataEntryFormUtil.setDefaultFooterOnDocument( document, request.getServerName(),
-            pdfFormFontSettings.getFont( PdfFormFontSettings.FONTTYPE_FOOTER ) );
+    String fileName =
+        dataSetService.getDataSet(dataSetUid).getName()
+            + " "
+            + DateUtils.getMediumDateString()
+            + ".pdf";
 
-        pdfDataEntryFormService.generatePDFDataEntryForm( document, writer, dataSetUid,
-            PdfDataEntryFormUtil.DATATYPE_DATASET,
-            PdfDataEntryFormUtil.getDefaultPageSize( PdfDataEntryFormUtil.DATATYPE_DATASET ),
-            pdfFormFontSettings, i18nManager.getI18nFormat() );
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true);
+    response.setContentLength(baos.size());
 
-        String fileName = dataSetService.getDataSet( dataSetUid ).getName() + " " +
-            DateUtils.getMediumDateString() + ".pdf";
+    baos.writeTo(out);
+  }
 
-        contextUtils.configureResponse( response,
-            ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true );
-        response.setContentLength( baos.size() );
+  @PostMapping("/dataSet")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @ResponseBody
+  public WebMessage sendFormPdfDataSet(HttpServletRequest request) throws Exception {
+    JobConfiguration jobId =
+        new JobConfiguration(
+            "inMemoryDataValueImport",
+            JobType.DATAVALUE_IMPORT,
+            CurrentUserUtil.getCurrentUserDetails().getUid());
 
-        baos.writeTo( out );
-    }
+    notifier.clear(jobId);
 
-    @PostMapping( "/dataSet" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    @ResponseBody
-    public WebMessage sendFormPdfDataSet( HttpServletRequest request )
-        throws Exception
-    {
-        JobConfiguration jobId = new JobConfiguration( "inMemoryDataValueImport",
-            JobType.DATAVALUE_IMPORT, currentUserService.getCurrentUser().getUid(), true );
+    InputStream in = request.getInputStream();
 
-        notifier.clear( jobId );
+    in = StreamUtils.wrapAndCheckCompressionFormat(in);
 
-        InputStream in = request.getInputStream();
+    ImportSummary summary =
+        dataValueSetService.importDataValueSetPdf(
+            in, ImportOptions.getDefaultImportOptions(), jobId);
 
-        in = StreamUtils.wrapAndCheckCompressionFormat( in );
-
-        ImportSummary summary = dataValueSetService.importDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(),
-            jobId );
-
-        return importSummary( summary );
-    }
+    return importSummary(summary);
+  }
 }

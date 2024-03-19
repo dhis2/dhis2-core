@@ -32,7 +32,4 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public interface OptionGroupSetStore
-    extends GenericDimensionalObjectStore<OptionGroupSet>
-{
-}
+public interface OptionGroupSetStore extends GenericDimensionalObjectStore<OptionGroupSet> {}

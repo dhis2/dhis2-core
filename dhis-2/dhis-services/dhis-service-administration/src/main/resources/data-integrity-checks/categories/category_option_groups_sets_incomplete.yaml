@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: vTuF0zbwTcd
 name: category_option_group_sets_incomplete
 description: Category option group sets which which do not contain all category options.
 section: Categories
@@ -54,14 +53,13 @@ summary_sql: >-
     (SELECT categoryid,array_agg(categoryoptionid) as wants from categories_categoryoptions
     GROUP BY categoryid) as z USING (categoryid) ) as cat_option_group_check ) f) g
   INNER JOIN categoryoptiongroupset cogs USING(categoryoptiongroupsetid)
-  INNER JOIN dataelementcategory cats USING(categoryid)
-  INNER JOIN dataelementcategoryoption opt USING(categoryoptionid)
+  INNER JOIN category cats USING(categoryid)
+  INNER JOIN categoryoption opt USING(categoryoptionid)
   ORDER BY cogs.uid, cats.name)
   SELECT COUNT(*) as value,
   100 * COUNT(*) / NULLIF( (SELECT COUNT(*)  from categoryoptiongroupmembers 
   where categoryoptiongroupid in (SELECT categoryoptiongroupid from categoryoptiongroupsetmembers)), 0) as percent
   FROM cat_option_group_complete;
-details_uid: xrA4Mhz6yjH
 details_sql: >-
   SELECT cogs.uid,cogs.name , cats.name || ':{' || opt.name || '}' as comment
   FROM (
@@ -85,8 +83,8 @@ details_sql: >-
     (SELECT categoryid,array_agg(categoryoptionid) as wants from categories_categoryoptions
     GROUP BY categoryid) as z USING (categoryid) ) as cat_option_group_check ) f) g
   INNER JOIN categoryoptiongroupset cogs USING(categoryoptiongroupsetid)
-  INNER JOIN dataelementcategory cats USING(categoryid)
-  INNER JOIN dataelementcategoryoption opt USING(categoryoptionid)
+  INNER JOIN category cats USING(categoryid)
+  INNER JOIN categoryoption opt USING(categoryoptionid)
   ORDER BY cogs.uid, cats.name;
 details_id_type: categoryOptionGroupSets
 severity: SEVERE

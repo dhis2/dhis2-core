@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -40,14 +39,14 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityTypeStore" )
+@Repository("org.hisp.dhis.trackedentity.TrackedEntityTypeStore")
 public class HibernateTrackedEntityTypeStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityType>
-    implements TrackedEntityTypeStore
-{
-    public HibernateTrackedEntityTypeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityType.class, currentUserService, aclService, true );
-    }
+    extends HibernateIdentifiableObjectStore<TrackedEntityType> implements TrackedEntityTypeStore {
+  public HibernateTrackedEntityTypeStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntityType.class, aclService, true);
+  }
 }

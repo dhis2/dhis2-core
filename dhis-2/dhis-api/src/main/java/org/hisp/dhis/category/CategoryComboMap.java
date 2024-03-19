@@ -31,93 +31,76 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdScheme;
 
 /**
- * CategoryComboMap is used to lookup categoryoptioncombos by identifiers of the
- * categoryoptions. Identifiers must be trimmed of whitespace and be
- * concatenated in the order given by the categories property in object of this
- * class.
+ * CategoryComboMap is used to lookup categoryoptioncombos by identifiers of the categoryoptions.
+ * Identifiers must be trimmed of whitespace and be concatenated in the order given by the
+ * categories property in object of this class.
  *
  * @author bobj
  */
-public class CategoryComboMap
-{
-    private final List<Category> categories;
+public class CategoryComboMap {
+  private final List<Category> categories;
 
-    private CategoryCombo categoryCombo;
+  private CategoryCombo categoryCombo;
 
-    private Map<String, CategoryOptionCombo> ccMap;
+  private Map<String, CategoryOptionCombo> ccMap;
 
-    public List<Category> getCategories()
-    {
-        return categories;
+  public List<Category> getCategories() {
+    return categories;
+  }
+
+  public class CategoryComboMapException extends Exception {
+    public CategoryComboMapException(String msg) {
+      super(msg);
     }
+  }
 
-    public class CategoryComboMapException
-        extends Exception
-    {
-        public CategoryComboMapException( String msg )
-        {
-            super( msg );
+  public CategoryComboMap(CategoryCombo cc, IdScheme coScheme) throws CategoryComboMapException {
+    this.categoryCombo = cc;
+    ccMap = new HashMap<>();
+
+    categories = categoryCombo.getCategories();
+
+    Collection<CategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
+
+    for (CategoryOptionCombo optionCombo : optionCombos) {
+      String compositeIdentifier = "";
+
+      for (Category category : categories) {
+        CategoryOption catopt = category.getCategoryOption(optionCombo);
+
+        if (catopt == null) {
+          throw new CategoryComboMapException(
+              "No categoryOption in " + category.getName() + " matching " + optionCombo.getName());
+        } else {
+          String identifier = catopt.getPropertyValue(coScheme);
+
+          if (identifier == null) {
+            throw new CategoryComboMapException(
+                "No " + coScheme.name() + " identifier for CategoryOption: " + catopt.getName());
+          }
+
+          compositeIdentifier += "\"" + identifier.trim() + "\"";
         }
+      }
+
+      this.ccMap.put(compositeIdentifier, optionCombo);
     }
+  }
 
-    public CategoryComboMap( CategoryCombo cc, IdScheme coScheme )
-        throws CategoryComboMapException
-    {
-        this.categoryCombo = cc;
-        ccMap = new HashMap<>();
+  /**
+   * Look up the category option combo based on a composite identifier.
+   *
+   * @param compositeIdentifier the composite identifier.
+   * @return a category option combo.
+   */
+  public CategoryOptionCombo getCategoryOptionCombo(String compositeIdentifier) {
+    return ccMap.get(compositeIdentifier);
+  }
 
-        categories = categoryCombo.getCategories();
-
-        Collection<CategoryOptionCombo> optionCombos = categoryCombo.getOptionCombos();
-
-        for ( CategoryOptionCombo optionCombo : optionCombos )
-        {
-            String compositeIdentifier = "";
-
-            for ( Category category : categories )
-            {
-                CategoryOption catopt = category.getCategoryOption( optionCombo );
-
-                if ( catopt == null )
-                {
-                    throw new CategoryComboMapException( "No categoryOption in " + category.getName() + " matching "
-                        + optionCombo.getName() );
-                }
-                else
-                {
-                    String identifier = catopt.getPropertyValue( coScheme );
-
-                    if ( identifier == null )
-                    {
-                        throw new CategoryComboMapException(
-                            "No " + coScheme.name() + " identifier for CategoryOption: " + catopt.getName() );
-                    }
-
-                    compositeIdentifier += "\"" + identifier.trim() + "\"";
-                }
-            }
-
-            this.ccMap.put( compositeIdentifier, optionCombo );
-        }
-    }
-
-    /**
-     * Look up the category option combo based on a composite identifier.
-     *
-     * @param compositeIdentifier the composite identifier.
-     * @return a category option combo.
-     */
-    public CategoryOptionCombo getCategoryOptionCombo( String compositeIdentifier )
-    {
-        return ccMap.get( compositeIdentifier );
-    }
-
-    public String toString()
-    {
-        return "CatComboMap: catcombo=" + categoryCombo.getName() + " map:" + ccMap.toString();
-    }
+  public String toString() {
+    return "CatComboMap: catcombo=" + categoryCombo.getName() + " map:" + ccMap.toString();
+  }
 }

@@ -38,81 +38,66 @@ import java.util.stream.Stream;
 /**
  * @author Luciano Fiandesio
  */
-public class TestCache<V> implements Cache<V>
-{
-    private Map<String, V> mapCache = new HashMap<>();
+public class TestCache<V> implements Cache<V> {
+  private Map<String, V> mapCache = new HashMap<>();
 
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        if ( mapCache.containsKey( key ) )
-        {
-            return get( key );
-        }
-        else
-        {
-            return Optional.empty();
-        }
+  @Override
+  public Optional<V> getIfPresent(String key) {
+    if (mapCache.containsKey(key)) {
+      return get(key);
+    } else {
+      return Optional.empty();
     }
+  }
 
-    @Override
-    public Optional<V> get( String key )
-    {
-        return Optional.ofNullable( mapCache.get( key ) );
-    }
+  @Override
+  public Optional<V> get(String key) {
+    return Optional.ofNullable(mapCache.get(key));
+  }
 
-    @Override
-    public V get( String key, Function<String, V> mappingFunction )
-    {
-        return null;
-    }
+  @Override
+  public V get(String key, Function<String, V> mappingFunction) {
+    return null;
+  }
 
-    @Override
-    public Stream<V> getAll()
-    {
-        return mapCache.values().stream();
-    }
+  @Override
+  public Stream<V> getAll() {
+    return mapCache.values().stream();
+  }
 
-    @Override
-    public Iterable<String> keys()
-    {
-        return unmodifiableSet( mapCache.keySet() );
-    }
+  @Override
+  public Iterable<String> keys() {
+    return unmodifiableSet(mapCache.keySet());
+  }
 
-    @Override
-    public void put( String key, V value )
-    {
-        mapCache.put( key, value );
-    }
+  @Override
+  public void put(String key, V value) {
+    mapCache.put(key, value);
+  }
 
-    @Override
-    public void put( String key, V value, long ttlInSeconds )
-    {
-        // Ignoring ttl for this testing cache
-        mapCache.put( key, value );
-    }
+  @Override
+  public void put(String key, V value, long ttlInSeconds) {
+    // Ignoring ttl for this testing cache
+    mapCache.put(key, value);
+  }
 
-    @Override
-    public boolean putIfAbsent( String key, V value )
-    {
-        return mapCache.putIfAbsent( key, value ) != value;
-    }
+  @Override
+  public boolean putIfAbsent(String key, V value) {
+    return mapCache.putIfAbsent(key, value) != value;
+  }
 
-    @Override
-    public void invalidate( String key )
-    {
-        mapCache.remove( key );
-    }
+  @Override
+  public void invalidate(String key) {
+    mapCache.remove(key);
+  }
 
-    @Override
-    public void invalidateAll()
-    {
-        mapCache = new HashMap<>();
-    }
+  @Override
+  public void invalidateAll() {
+    mapCache = new HashMap<>();
+  }
 
-    @Override
-    public CacheType getCacheType()
-    {
-        return null;
-    }
+  @Override
+  public CacheType getCacheType() {
+    return null;
+  }
 }

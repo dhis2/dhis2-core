@@ -34,9 +34,8 @@ import lombok.experimental.Accessors;
 
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class SourceDataQueryParams
-{
-    private String outputIdScheme;
+public class SourceDataQueryParams {
+  private String outputIdScheme;
 }

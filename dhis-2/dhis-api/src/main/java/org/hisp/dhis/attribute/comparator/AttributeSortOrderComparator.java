@@ -28,29 +28,23 @@
 package org.hisp.dhis.attribute.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.attribute.Attribute;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeSortOrderComparator
-    implements Comparator<Attribute>
-{
-    public static final Comparator<Attribute> INSTANCE = new AttributeSortOrderComparator();
+public class AttributeSortOrderComparator implements Comparator<Attribute> {
+  public static final Comparator<Attribute> INSTANCE = new AttributeSortOrderComparator();
 
-    @Override
-    public int compare( Attribute attribute0, Attribute attribute1 )
-    {
-        if ( attribute0.getSortOrder() == null || attribute0.getSortOrder() == 0 )
-        {
-            return attribute0.getName().compareTo( attribute1.getName() );
-        }
-        if ( attribute1.getSortOrder() == null || attribute1.getSortOrder() == 0 )
-        {
-            return attribute0.getName().compareTo( attribute1.getName() );
-        }
-
-        return attribute0.getSortOrder() - attribute1.getSortOrder();
+  @Override
+  public int compare(Attribute attribute0, Attribute attribute1) {
+    if (attribute0.getSortOrder() == null || attribute0.getSortOrder() == 0) {
+      return attribute0.getName().compareTo(attribute1.getName());
     }
+    if (attribute1.getSortOrder() == null || attribute1.getSortOrder() == 0) {
+      return attribute0.getName().compareTo(attribute1.getName());
+    }
+
+    return attribute0.getSortOrder() - attribute1.getSortOrder();
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.expression.function;
 
 import java.util.stream.Collectors;
-
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.expression.ExpressionParams;
@@ -39,61 +38,52 @@ import org.hisp.dhis.program.Program;
 
 /**
  * Function orgUnit.program
- * <p>
- * Is the current orgUnit assigned to one of the programs?
+ *
+ * <p>Is the current orgUnit assigned to one of the programs?
  *
  * @author Jim Grace
  */
-public class FunctionOrgUnitProgram
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        for ( TerminalNode uid : ctx.UID() )
-        {
-            Program program = visitor.getIdObjectManager().get( Program.class, uid.getText() );
+public class FunctionOrgUnitProgram implements ExpressionItem {
+  @Override
+  public Object getDescription(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    for (TerminalNode uid : ctx.UID()) {
+      Program program = visitor.getIdObjectManager().get(Program.class, uid.getText());
 
-            if ( program == null )
-            {
-                throw new ParserExceptionWithoutContext( "No program defined for " + uid.getText() );
-            }
+      if (program == null) {
+        throw new ParserExceptionWithoutContext("No program defined for " + uid.getText());
+      }
 
-            visitor.getItemDescriptions().put( uid.getText(), program.getDisplayName() );
+      visitor.getItemDescriptions().put(uid.getText(), program.getDisplayName());
+    }
+
+    return false;
+  }
+
+  @Override
+  public Object getExpressionInfo(
+      ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    visitor
+        .getInfo()
+        .getOrgUnitProgramIds()
+        .addAll(ctx.UID().stream().map(TerminalNode::getText).collect(Collectors.toList()));
+
+    return false;
+  }
+
+  @Override
+  public Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    ExpressionParams params = visitor.getParams();
+
+    if (params.getOrgUnit() != null) {
+      for (TerminalNode uid : ctx.UID()) {
+        Program program = params.getProgramMap().get(uid.getText());
+
+        if (program != null && program.getOrganisationUnits().contains(params.getOrgUnit())) {
+          return true;
         }
-
-        return false;
+      }
     }
 
-    @Override
-    public Object getExpressionInfo( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getInfo().getOrgUnitProgramIds().addAll(
-            ctx.UID().stream()
-                .map( TerminalNode::getText )
-                .collect( Collectors.toList() ) );
-
-        return false;
-    }
-
-    @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        ExpressionParams params = visitor.getParams();
-
-        if ( params.getOrgUnit() != null )
-        {
-            for ( TerminalNode uid : ctx.UID() )
-            {
-                Program program = params.getProgramMap().get( uid.getText() );
-
-                if ( program != null && program.getOrganisationUnits().contains( params.getOrgUnit() ) )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

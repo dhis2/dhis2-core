@@ -27,35 +27,32 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PredictorSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "predictor";
+public class PredictorSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "predictor";
 
-    public static final String PLURAL = "predictors";
+  public static final String PLURAL = "predictors";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Predictor.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 2001 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Predictor.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(2001);
 
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTOR_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTOR_DELETE" ) ) );
+    schema.add(new Authority(AuthorityType.CREATE, Lists.newArrayList("F_PREDICTOR_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_PREDICTOR_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

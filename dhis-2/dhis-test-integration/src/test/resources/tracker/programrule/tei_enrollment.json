@@ -37,9 +37,7 @@
         "idScheme": "UID",
         "identifier": "ja8NY4PW7Xm"
       },
-      "createdAt": "2020-02-20T12:09:21.844",
       "createdAtClient": "2020-02-20T10:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "updatedAtClient": "2020-02-20T11:09:21.844",
       "orgUnit": {
         "idScheme": "UID",
@@ -56,9 +54,7 @@
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
-      "createdAt": "2018-01-26T13:48:13.363",
       "createdAtClient": "2018-01-25T13:48:13.363",
-      "updatedAt": "2018-01-26T17:48:13.363",
       "updatedAtClient": "2018-01-25T17:48:13.363",
       "trackedEntity": "IOR1AXXl24H",
       "program": {

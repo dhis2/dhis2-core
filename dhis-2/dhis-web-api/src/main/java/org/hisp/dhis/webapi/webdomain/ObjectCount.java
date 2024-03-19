@@ -27,32 +27,27 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Objects;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashMap;
+import java.util.Map;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Objects;
 
 /**
  * @author Morten Olav Hansen
  */
-@JacksonXmlRootElement( localName = "objectCounts", namespace = DxfNamespaces.DXF_2_0 )
-public class ObjectCount
-{
-    private final Map<String, Long> objectCounts;
+@JacksonXmlRootElement(localName = "objectCounts", namespace = DxfNamespaces.DXF_2_0)
+public class ObjectCount {
+  private final Map<String, Long> objectCounts;
 
-    public ObjectCount( Map<Objects, Long> objectCounts )
-    {
-        this.objectCounts = new HashMap<>();
-        objectCounts.keySet().forEach( k -> this.objectCounts.put( k.getValue(), objectCounts.get( k ) ) );
-    }
+  public ObjectCount(Map<Objects, Long> objectCounts) {
+    this.objectCounts = new HashMap<>();
+    objectCounts.keySet().forEach(k -> this.objectCounts.put(k.getValue(), objectCounts.get(k)));
+  }
 
-    @JsonAnyGetter
-    public Map<String, Long> getObjectCounts()
-    {
-        return objectCounts;
-    }
+  @JsonAnyGetter
+  public Map<String, Long> getObjectCounts() {
+    return objectCounts;
+  }
 }

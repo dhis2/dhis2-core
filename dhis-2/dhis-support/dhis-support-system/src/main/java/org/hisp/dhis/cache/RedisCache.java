@@ -37,204 +37,169 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * A redis backed implementation of {@link Cache}. This implementation uses a
- * shared redis cache server for any number of instances.
+ * A redis backed implementation of {@link Cache}. This implementation uses a shared redis cache
+ * server for any number of instances.
  *
  * @author Ameen Mohamed
  */
-public class RedisCache<V> implements Cache<V>
-{
-    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+public class RedisCache<V> implements Cache<V> {
+  private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-    private RedisTemplate<String, V> redisTemplate;
+  private RedisTemplate<String, V> redisTemplate;
 
-    private boolean refreshExpriryOnAccess;
+  private boolean refreshExpriryOnAccess;
 
-    private long expiryInSeconds;
+  private long expiryInSeconds;
 
-    private String cacheRegion;
+  private String cacheRegion;
 
-    private V defaultValue;
+  private V defaultValue;
 
-    private boolean expiryEnabled;
+  private boolean expiryEnabled;
 
-    /**
-     * Constructor for instantiating RedisCache.
-     *
-     * @param cacheBuilder The cache builder instance
-     */
-    @SuppressWarnings( "unchecked" )
-    public RedisCache( ExtendedCacheBuilder<V> cacheBuilder )
-    {
-        this.redisTemplate = (RedisTemplate<String, V>) cacheBuilder.getRedisTemplate();
-        this.refreshExpriryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
-        this.expiryInSeconds = cacheBuilder.getExpiryInSeconds();
-        this.cacheRegion = cacheBuilder.getRegion();
-        this.defaultValue = cacheBuilder.getDefaultValue();
-        this.expiryEnabled = cacheBuilder.isExpiryEnabled();
+  /**
+   * Constructor for instantiating RedisCache.
+   *
+   * @param cacheBuilder The cache builder instance
+   */
+  @SuppressWarnings("unchecked")
+  public RedisCache(ExtendedCacheBuilder<V> cacheBuilder) {
+    this.redisTemplate = (RedisTemplate<String, V>) cacheBuilder.getRedisTemplate();
+    this.refreshExpriryOnAccess = cacheBuilder.isRefreshExpiryOnAccess();
+    this.expiryInSeconds = cacheBuilder.getExpiryInSeconds();
+    this.cacheRegion = cacheBuilder.getRegion();
+    this.defaultValue = cacheBuilder.getDefaultValue();
+    this.expiryEnabled = cacheBuilder.isExpiryEnabled();
+  }
+
+  @Override
+  public Optional<V> getIfPresent(String key) {
+    String redisKey = generateKey(key);
+    if (expiryEnabled && refreshExpriryOnAccess) {
+      redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
+    }
+    return Optional.ofNullable(redisTemplate.boundValueOps(redisKey).get());
+  }
+
+  @Override
+  public Optional<V> get(String key) {
+    String redisKey = generateKey(key);
+    if (expiryEnabled && refreshExpriryOnAccess) {
+      redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
+    }
+    return Optional.ofNullable(
+        Optional.ofNullable(redisTemplate.boundValueOps(redisKey).get()).orElse(defaultValue));
+  }
+
+  @Override
+  public V get(String key, Function<String, V> mappingFunction) {
+    if (null == mappingFunction) {
+      throw new IllegalArgumentException("MappingFunction cannot be null");
     }
 
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        String redisKey = generateKey( key );
-        if ( expiryEnabled && refreshExpriryOnAccess )
-        {
-            redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
+    String redisKey = generateKey(key);
+
+    if (expiryEnabled && refreshExpriryOnAccess) {
+      redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
+    }
+
+    V value = redisTemplate.boundValueOps(redisKey).get();
+
+    if (null == value) {
+      value = mappingFunction.apply(key);
+
+      if (null != value) {
+        if (expiryEnabled) {
+          redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
+        } else {
+          redisTemplate.boundValueOps(redisKey).set(value);
         }
-        return Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() );
+      }
     }
 
-    @Override
-    public Optional<V> get( String key )
-    {
-        String redisKey = generateKey( key );
-        if ( expiryEnabled && refreshExpriryOnAccess )
-        {
-            redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
-        }
-        return Optional
-            .ofNullable( Optional.ofNullable( redisTemplate.boundValueOps( redisKey ).get() ).orElse( defaultValue ) );
+    return Optional.ofNullable(value).orElse(defaultValue);
+  }
+
+  @Override
+  public Stream<V> getAll() {
+    Set<String> keySet = redisTemplate.keys(getAllKeysInRegionPattern());
+    if (keySet == null) {
+      return Stream.empty();
+    }
+    List<V> values = redisTemplate.opsForValue().multiGet(keySet);
+    return values == null ? Stream.empty() : values.stream();
+  }
+
+  @Override
+  public Set<String> keys() {
+    var keys = redisTemplate.keys(getAllKeysInRegionPattern());
+    return keys == null
+        ? emptySet()
+        : keys.stream().map(key -> key.substring(key.indexOf(':') + 1)).collect(toSet());
+  }
+
+  @Override
+  public void put(String key, V value) {
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
     }
 
-    @Override
-    public V get( String key, Function<String, V> mappingFunction )
-    {
-        if ( null == mappingFunction )
-        {
-            throw new IllegalArgumentException( "MappingFunction cannot be null" );
-        }
-
-        String redisKey = generateKey( key );
-
-        if ( expiryEnabled && refreshExpriryOnAccess )
-        {
-            redisTemplate.expire( redisKey, expiryInSeconds, SECONDS );
-        }
-
-        V value = redisTemplate.boundValueOps( redisKey ).get();
-
-        if ( null == value )
-        {
-            value = mappingFunction.apply( key );
-
-            if ( null != value )
-            {
-                if ( expiryEnabled )
-                {
-                    redisTemplate.boundValueOps( redisKey ).set( value, expiryInSeconds, SECONDS );
-                }
-                else
-                {
-                    redisTemplate.boundValueOps( redisKey ).set( value );
-                }
-            }
-        }
-
-        return Optional.ofNullable( value ).orElse( defaultValue );
+    String redisKey = generateKey(key);
+    if (expiryEnabled) {
+      redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
+    } else {
+      redisTemplate.boundValueOps(redisKey).set(value);
     }
+  }
 
-    @Override
-    public Stream<V> getAll()
-    {
-        Set<String> keySet = redisTemplate.keys( getAllKeysInRegionPattern() );
-        if ( keySet == null )
-        {
-            return Stream.empty();
-        }
-        List<V> values = redisTemplate.opsForValue().multiGet( keySet );
-        return values == null ? Stream.empty() : values.stream();
+  @Override
+  public void put(String key, V value, long ttlInSeconds) {
+    hasText(key, VALUE_CANNOT_BE_NULL);
+
+    String redisKey = generateKey(key);
+
+    redisTemplate.boundValueOps(redisKey).set(value, ttlInSeconds, SECONDS);
+  }
+
+  @Override
+  public boolean putIfAbsent(String key, V value) {
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
     }
+    String redisKey = generateKey(key);
 
-    @Override
-    public Set<String> keys()
-    {
-        var keys = redisTemplate.keys( getAllKeysInRegionPattern() );
-        return keys == null
-            ? emptySet()
-            : keys.stream().map( key -> key.substring( key.indexOf( ':' ) + 1 ) ).collect( toSet() );
+    var ops = redisTemplate.boundValueOps(redisKey);
+    if (expiryEnabled) {
+      return ops.setIfAbsent(value, expiryInSeconds, SECONDS) == Boolean.TRUE;
+    } else {
+      return ops.setIfAbsent(value) == Boolean.TRUE;
     }
+  }
 
-    @Override
-    public void put( String key, V value )
-    {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
-        }
+  @Override
+  public void invalidate(String key) {
+    redisTemplate.delete(generateKey(key));
+  }
 
-        String redisKey = generateKey( key );
-        if ( expiryEnabled )
-        {
-            redisTemplate.boundValueOps( redisKey ).set( value, expiryInSeconds, SECONDS );
-        }
-        else
-        {
-            redisTemplate.boundValueOps( redisKey ).set( value );
-        }
-    }
+  private String generateKey(String key) {
+    return cacheRegion.concat(":").concat(key);
+  }
 
-    @Override
-    public void put( String key, V value, long ttlInSeconds )
-    {
-        hasText( key, VALUE_CANNOT_BE_NULL );
+  private String getAllKeysInRegionPattern() {
+    return generateKey("*");
+  }
 
-        String redisKey = generateKey( key );
+  @Override
+  public void invalidateAll() {
+    Set<String> keysToDelete = redisTemplate.keys(getAllKeysInRegionPattern());
+    redisTemplate.delete(keysToDelete);
+  }
 
-        redisTemplate.boundValueOps( redisKey ).set( value, ttlInSeconds, SECONDS );
-    }
-
-    @Override
-    public boolean putIfAbsent( String key, V value )
-    {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
-        }
-        String redisKey = generateKey( key );
-
-        var ops = redisTemplate.boundValueOps( redisKey );
-        if ( expiryEnabled )
-        {
-            return ops.setIfAbsent( value, expiryInSeconds, SECONDS ) == Boolean.TRUE;
-        }
-        else
-        {
-            return ops.setIfAbsent( value ) == Boolean.TRUE;
-        }
-    }
-
-    @Override
-    public void invalidate( String key )
-    {
-        redisTemplate.delete( generateKey( key ) );
-    }
-
-    private String generateKey( String key )
-    {
-        return cacheRegion.concat( ":" ).concat( key );
-    }
-
-    private String getAllKeysInRegionPattern()
-    {
-        return generateKey( "*" );
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        Set<String> keysToDelete = redisTemplate.keys( getAllKeysInRegionPattern() );
-        redisTemplate.delete( keysToDelete );
-    }
-
-    @Override
-    public CacheType getCacheType()
-    {
-        return CacheType.REDIS;
-    }
-
+  @Override
+  public CacheType getCacheType() {
+    return CacheType.REDIS;
+  }
 }

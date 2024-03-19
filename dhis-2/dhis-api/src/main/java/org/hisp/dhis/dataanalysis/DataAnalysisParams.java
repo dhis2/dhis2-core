@@ -27,90 +27,83 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+public class DataAnalysisParams {
+  private String startDate;
 
-public class DataAnalysisParams
-{
-    private String startDate;
+  private String endDate;
 
-    private String endDate;
+  private List<String> ds;
 
-    private List<String> ds;
+  private Double standardDeviation;
 
-    private Double standardDeviation;
+  private String ou;
 
-    private String ou;
+  public DataAnalysisParams() {}
 
-    public DataAnalysisParams()
-    {
-    }
+  @JsonProperty
+  public String getStartDate() {
+    return startDate;
+  }
 
-    @JsonProperty
-    public String getStartDate()
-    {
-        return startDate;
-    }
+  public void setStartDate(String startDate) {
+    this.startDate = startDate;
+  }
 
-    public void setStartDate( String startDate )
-    {
-        this.startDate = startDate;
-    }
+  @JsonProperty
+  public String getEndDate() {
+    return endDate;
+  }
 
-    @JsonProperty
-    public String getEndDate()
-    {
-        return endDate;
-    }
+  public void setEndDate(String endDate) {
+    this.endDate = endDate;
+  }
 
-    public void setEndDate( String endDate )
-    {
-        this.endDate = endDate;
-    }
+  @JsonProperty
+  public List<String> getDs() {
+    return ds;
+  }
 
-    @JsonProperty
-    public List<String> getDs()
-    {
-        return ds;
-    }
+  public void setDs(List<String> ds) {
+    this.ds = ds;
+  }
 
-    public void setDs( List<String> ds )
-    {
-        this.ds = ds;
-    }
+  @JsonProperty
+  public Double getStandardDeviation() {
+    return standardDeviation;
+  }
 
-    @JsonProperty
-    public Double getStandardDeviation()
-    {
-        return standardDeviation;
-    }
+  public void setStandardDeviation(Double standardDeviation) {
+    this.standardDeviation = standardDeviation;
+  }
 
-    public void setStandardDeviation( Double standardDeviation )
-    {
-        this.standardDeviation = standardDeviation;
-    }
+  @JsonProperty
+  public String getOu() {
+    return ou;
+  }
 
-    @JsonProperty
-    public String getOu()
-    {
-        return ou;
-    }
+  public void setOu(String ou) {
+    this.ou = ou;
+  }
 
-    public void setOu( String ou )
-    {
-        this.ou = ou;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "StdDevOutlierAnalysisParams{" +
-            "startDate='" + startDate + '\'' +
-            ", endDate='" + endDate + '\'' +
-            ", ds=" + ds +
-            ", standardDeviation=" + standardDeviation +
-            ", ou='" + ou + '\'' +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "StdDevOutlierAnalysisParams{"
+        + "startDate='"
+        + startDate
+        + '\''
+        + ", endDate='"
+        + endDate
+        + '\''
+        + ", ds="
+        + ds
+        + ", standardDeviation="
+        + standardDeviation
+        + ", ou='"
+        + ou
+        + '\''
+        + '}';
+  }
 }

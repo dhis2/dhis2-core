@@ -28,11 +28,10 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import lombok.RequiredArgsConstructor;
-
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
+import org.hibernate.Session;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -42,31 +41,28 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler
-{
-    private final SessionFactory sessionFactory;
+public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler {
+  private final EntityManager entityManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
+  @Override
+  protected void register() {
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void deleteLegendSet(LegendSet legendSet) {
+    // TODO Move this get-method to service layer
+
+    Query query =
+        entityManager.createQuery(
+            "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet");
+    query.setParameter("legendSet", legendSet);
+
+    List<TrackedEntityDataElementDimension> dataElementDimensions = query.getResultList();
+
+    for (TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions) {
+      dataElementDimension.setLegendSet(null);
+      entityManager.unwrap(Session.class).update(dataElementDimension);
     }
-
-    @SuppressWarnings( "unchecked" )
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        // TODO Move this get-method to service layer
-
-        Query query = sessionFactory.getCurrentSession()
-            .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
-        query.setParameter( "legendSet", legendSet );
-
-        List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
-
-        for ( TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions )
-        {
-            dataElementDimension.setLegendSet( null );
-            sessionFactory.getCurrentSession().update( dataElementDimension );
-        }
-    }
+  }
 }

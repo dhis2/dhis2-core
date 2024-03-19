@@ -27,47 +27,40 @@
  */
 package org.hisp.dhis.common.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used
- * for dhis2 personal access token, but can be used anywhere the format is
- * accepted.
+ * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
+ * access token, but can be used anywhere the format is accepted.
  *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class ApiTokenAuth extends Auth
-{
-    public static final String TYPE = "api-token";
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class ApiTokenAuth extends Auth {
+  public static final String TYPE = "api-token";
 
-    @JsonProperty( required = true )
-    private String token;
+  @JsonProperty(required = true)
+  private String token;
 
-    public ApiTokenAuth()
-    {
-        super( TYPE );
+  public ApiTokenAuth() {
+    super(TYPE);
+  }
+
+  @Override
+  public void apply(MultiValueMap<String, String> headers) {
+    if (!StringUtils.hasText(token)) {
+      return;
     }
 
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !StringUtils.hasText( token ) )
-        {
-            return;
-        }
-
-        headers.set( "Authorization", "ApiToken " + token );
-    }
+    headers.set("Authorization", "ApiToken " + token);
+  }
 }

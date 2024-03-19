@@ -30,10 +30,8 @@ package org.hisp.dhis.query.planner;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,48 +39,18 @@ import org.hisp.dhis.user.User;
 @Getter
 @Builder
 @AllArgsConstructor
-public class QueryPlan
-{
-    private final Query persistedQuery;
+public class QueryPlan {
+  private final Query persistedQuery;
 
-    private final Query nonPersistedQuery;
+  private final Query nonPersistedQuery;
 
-    public Schema getSchema()
-    {
-        if ( persistedQuery != null )
-        {
-            return persistedQuery.getSchema();
-        }
-        if ( nonPersistedQuery != null )
-        {
-            return nonPersistedQuery.getSchema();
-        }
-        return null;
+  public Schema getSchema() {
+    if (persistedQuery != null) {
+      return persistedQuery.getSchema();
     }
-
-    public User getUser()
-    {
-        if ( persistedQuery != null )
-        {
-            return persistedQuery.getUser();
-        }
-        if ( nonPersistedQuery != null )
-        {
-            return nonPersistedQuery.getUser();
-        }
-        return null;
+    if (nonPersistedQuery != null) {
+      return nonPersistedQuery.getSchema();
     }
-
-    public void setUser( User user )
-    {
-        if ( persistedQuery != null )
-        {
-            persistedQuery.setUser( user );
-        }
-
-        if ( nonPersistedQuery != null )
-        {
-            nonPersistedQuery.setUser( user );
-        }
-    }
+    return null;
+  }
 }

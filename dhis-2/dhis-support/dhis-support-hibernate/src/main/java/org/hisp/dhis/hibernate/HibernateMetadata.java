@@ -35,20 +35,17 @@ import org.hibernate.boot.spi.SessionFactoryBuilderImplementor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class HibernateMetadata implements SessionFactoryBuilderFactory
-{
-    private static final ThreadLocal<MetadataImplementor> metadataImplementor = new ThreadLocal<>();
+public class HibernateMetadata implements SessionFactoryBuilderFactory {
+  private static final ThreadLocal<MetadataImplementor> metadataImplementor = new ThreadLocal<>();
 
-    @Override
-    public SessionFactoryBuilder getSessionFactoryBuilder( MetadataImplementor metadataImplementor,
-        SessionFactoryBuilderImplementor defaultBuilder )
-    {
-        HibernateMetadata.metadataImplementor.set( metadataImplementor );
-        return defaultBuilder;
-    }
+  @Override
+  public SessionFactoryBuilder getSessionFactoryBuilder(
+      MetadataImplementor metadataImplementor, SessionFactoryBuilderImplementor defaultBuilder) {
+    HibernateMetadata.metadataImplementor.set(metadataImplementor);
+    return defaultBuilder;
+  }
 
-    public static MetadataImplementor getMetadataImplementor()
-    {
-        return metadataImplementor.get();
-    }
+  public static MetadataImplementor getMetadataImplementor() {
+    return metadataImplementor.get();
+  }
 }

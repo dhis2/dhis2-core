@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.security;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -42,34 +43,34 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "ldapUserDetailsService" )
-@RequiredArgsConstructor
-public class DefaultLdapUserDetailsService
-    implements UserDetailsService
-{
-    private final UserService userService;
+@Service("ldapUserDetailsService")
+public class DefaultLdapUserDetailsService implements UserDetailsService {
+  private final UserStore userStore;
+  private final UserService userService;
 
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
-    {
-        User user = userService.getUserByUsername( username );
-        if ( user == null )
-        {
-            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
-        }
+  public DefaultLdapUserDetailsService(
+      UserStore userStore,
+      @Lazy @Qualifier("org.hisp.dhis.user.UserService") UserService userService) {
+    this.userStore = userStore;
+    this.userService = userService;
+  }
 
-        if ( !user.isExternalAuth() || !user.hasLdapId() )
-        {
-            throw new UsernameNotFoundException( "Wrong type of user, is not LDAP user." );
-        }
-
-        String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
-        user.setPassword( password );
-
-        return userService.createUserDetails( user );
+  @Override
+  @Transactional(readOnly = true)
+  public UserDetails loadUserByUsername(String username)
+      throws UsernameNotFoundException, DataAccessException {
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      throw new UsernameNotFoundException(String.format("Username '%s' not found.", username));
     }
 
+    if (!user.isExternalAuth() || !user.hasLdapId()) {
+      throw new UsernameNotFoundException("Wrong type of user, is not LDAP user.");
+    }
+
+    String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode(10);
+    user.setPassword(password);
+
+    return userService.createUserDetails(user);
+  }
 }

@@ -8,36 +8,36 @@
 <hibernate-mapping>
     <class name="org.hisp.dhis.program.ProgramSection" table="programsection">
 
-        <cache usage="read-write" />
+        <cache usage="read-write"/>
 
         <id name="id" column="programsectionid">
-            <generator class="native" />
+            <generator class="native"/>
         </id>
         &identifiableProperties;
 
-        <property name="name" column="name" not-null="true" length="230" />
+        <property name="name" column="name" not-null="true" length="230"/>
 
-        <property name="description" type="text" />
+        <property name="description" type="text"/>
 
-        <property name="formName" type="text" />
+        <property name="formName" type="text"/>
 
-        <property name="style" type="jbObjectStyle" column="style" />
+        <property name="style" type="jbObjectStyle" column="style"/>
 
-        <property name="renderType" type="jbSectionRenderType" column="rendertype" />
+        <property name="renderType" type="jbSectionRenderType" column="rendertype"/>
 
         <property name="translations" type="jblTranslations"/>
 
         <many-to-one name="program" class="org.hisp.dhis.program.Program"
-                     column="programid" foreign-key="fk_program_programid" />
+                     column="programid" foreign-key="fk_program_programid"/>
 
         <list name="trackedEntityAttributes" table="programsection_attributes">
-            <key column="programsectionid" foreign-key="fk_programsections_attributes_programsectionid" />
-            <list-index column="sort_order" base="1" />
+            <key column="programsectionid" foreign-key="fk_programsections_attributes_programsectionid"/>
+            <list-index column="sort_order" base="1"/>
             <many-to-many class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
-                          foreign-key="fk_programsection_attributes_trackedentityattributeid" />
+                          foreign-key="fk_programsection_attributes_trackedentityattributeid"/>
         </list>
 
-        <property name="sortOrder" column="sortorder" not-null="true" />
+        <property name="sortOrder" column="sortorder" not-null="true"/>
 
     </class>
 

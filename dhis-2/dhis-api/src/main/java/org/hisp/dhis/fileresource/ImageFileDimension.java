@@ -28,39 +28,35 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.Optional;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @Author Zubair Asghar.
  */
-public enum ImageFileDimension
-{
-    SMALL( "small" ),
-    MEDIUM( "medium" ),
-    LARGE( "large" ),
-    ORIGINAL( "" );
+@OpenApi.Shared
+public enum ImageFileDimension {
+  SMALL("small"),
+  MEDIUM("medium"),
+  LARGE("large"),
+  ORIGINAL("");
 
-    private String dimension;
+  private String dimension;
 
-    ImageFileDimension( String dimension )
-    {
-        this.dimension = dimension;
+  ImageFileDimension(String dimension) {
+    this.dimension = dimension;
+  }
+
+  public String getDimension() {
+    return this.dimension;
+  }
+
+  public static Optional<ImageFileDimension> from(String dimension) {
+    for (ImageFileDimension d : ImageFileDimension.values()) {
+      if (d.dimension.equalsIgnoreCase(dimension)) {
+        return Optional.of(d);
+      }
     }
 
-    public String getDimension()
-    {
-        return this.dimension;
-    }
-
-    public static Optional<ImageFileDimension> from( String dimension )
-    {
-        for ( ImageFileDimension d : ImageFileDimension.values() )
-        {
-            if ( d.dimension.equalsIgnoreCase( dimension ) )
-            {
-                return Optional.of( d );
-            }
-        }
-
-        return Optional.empty();
-    }
+    return Optional.empty();
+  }
 }

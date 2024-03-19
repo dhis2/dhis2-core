@@ -29,13 +29,11 @@
   description: Dashboards with no items.
   section: Dashboards
   section_order: 4
-  summary_uid: mQ8XfW10fOQ
   summary_sql: >-
       select count(*) as value,
       100*count(*) / NULLIF( (select count(*) from dashboard),0) as percent
       from dashboard where
        dashboardid not in (select dashboardid from dashboard_items);
-  details_uid: NMZhvSZpTtW
   details_sql: >-
        SELECT uid,name from dashboard WHERE
        dashboardid not in (select dashboardid from dashboard_items);

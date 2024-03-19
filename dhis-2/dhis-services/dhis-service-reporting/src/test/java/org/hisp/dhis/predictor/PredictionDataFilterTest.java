@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -51,93 +50,90 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
+class PredictionDataFilterTest extends DhisConvenienceTest {
+  private final OrganisationUnit ouA = createOrganisationUnit('A');
 
-class PredictionDataFilterTest
-    extends DhisConvenienceTest
-{
-    private final OrganisationUnit ouA = createOrganisationUnit( 'A' );
+  private final Period periodA = createPeriod("202201");
 
-    private final Period periodA = createPeriod( "202201" );
+  private final Period periodB = createPeriod("202202");
 
-    private final Period periodB = createPeriod( "202202" );
+  private final Period periodC = createPeriod("202203");
 
-    private final Period periodC = createPeriod( "202203" );
+  private final CategoryCombo ccA = createCategoryCombo('A');
 
-    private final CategoryCombo ccA = createCategoryCombo( 'A' );
+  private final DataElement deA = createDataElement('A', ccA);
 
-    private final DataElement deA = createDataElement( 'A', ccA );
+  private final CategoryOption coA = createCategoryOption('A');
 
-    private final CategoryOption coA = createCategoryOption( 'A' );
+  private final CategoryOptionCombo cocA = createCategoryOptionCombo(ccA, coA);
 
-    private final CategoryOptionCombo cocA = createCategoryOptionCombo( ccA, coA );
+  private final FoundDimensionItemValue valueA =
+      new FoundDimensionItemValue(ouA, periodA, cocA, deA, 1.0);
 
-    private final FoundDimensionItemValue valueA = new FoundDimensionItemValue( ouA, periodA, cocA, deA, 1.0 );
+  private final FoundDimensionItemValue valueB =
+      new FoundDimensionItemValue(ouA, periodB, cocA, deA, 2.0);
 
-    private final FoundDimensionItemValue valueB = new FoundDimensionItemValue( ouA, periodB, cocA, deA, 2.0 );
+  private final FoundDimensionItemValue valueC =
+      new FoundDimensionItemValue(ouA, periodC, cocA, deA, 3.0);
 
-    private final FoundDimensionItemValue valueC = new FoundDimensionItemValue( ouA, periodC, cocA, deA, 3.0 );
+  private final List<DataValue> oldPredictions = emptyList();
 
-    private final List<DataValue> oldPredictions = emptyList();
+  private final PredictionData dataABC =
+      new PredictionData(ouA, List.of(valueA, valueB, valueC), oldPredictions);
 
-    private final PredictionData dataABC = new PredictionData( ouA, List.of( valueA, valueB, valueC ), oldPredictions );
+  private final PredictionData dataAB =
+      new PredictionData(ouA, List.of(valueA, valueB), oldPredictions);
 
-    private final PredictionData dataAB = new PredictionData( ouA, List.of( valueA, valueB ), oldPredictions );
+  private final PredictionData dataBC =
+      new PredictionData(ouA, List.of(valueB, valueC), oldPredictions);
 
-    private final PredictionData dataBC = new PredictionData( ouA, List.of( valueB, valueC ), oldPredictions );
+  private final PredictionData dataB = new PredictionData(ouA, List.of(valueB), oldPredictions);
 
-    private final PredictionData dataB = new PredictionData( ouA, List.of( valueB ), oldPredictions );
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
+  @Test
+  void testFilterMinDate() {
+    deA.setQueryMods(QueryModifiers.builder().minDate(periodB.getStartDate()).build());
 
-    @Test
-    void testFilterMinDate()
-    {
-        deA.setQueryMods( QueryModifiers.builder()
-            .minDate( periodB.getStartDate() ).build() );
+    assertEquals(dataBC, filter(dataABC));
+  }
 
-        assertEquals( dataBC, filter( dataABC ) );
-    }
+  @Test
+  void testFilterMaxDate() {
+    deA.setQueryMods(QueryModifiers.builder().maxDate(periodB.getEndDate()).build());
 
-    @Test
-    void testFilterMaxDate()
-    {
-        deA.setQueryMods( QueryModifiers.builder()
-            .maxDate( periodB.getEndDate() ).build() );
+    assertEquals(dataAB, filter(dataABC));
+  }
 
-        assertEquals( dataAB, filter( dataABC ) );
-    }
+  @Test
+  void testFilterMinAndMaxDate() {
+    deA.setQueryMods(
+        QueryModifiers.builder()
+            .minDate(periodB.getStartDate())
+            .maxDate(periodB.getEndDate())
+            .build());
 
-    @Test
-    void testFilterMinAndMaxDate()
-    {
-        deA.setQueryMods( QueryModifiers.builder()
-            .minDate( periodB.getStartDate() )
-            .maxDate( periodB.getEndDate() ).build() );
+    assertEquals(dataB, filter(dataABC));
+  }
 
-        assertEquals( dataB, filter( dataABC ) );
-    }
+  @Test
+  void testFilterNoMinOrMaxDate() {
+    deA.setQueryMods(QueryModifiers.builder().build());
 
-    @Test
-    void testFilterNoMinOrMaxDate()
-    {
-        deA.setQueryMods( QueryModifiers.builder().build() );
+    assertEquals(dataABC, filter(dataABC));
+  }
 
-        assertEquals( dataABC, filter( dataABC ) );
-    }
+  @Test
+  void testFilterNoQueryMods() {
+    deA.setQueryMods(null);
 
-    @Test
-    void testFilterNoQueryMods()
-    {
-        deA.setQueryMods( null );
+    assertEquals(dataABC, filter(dataABC));
+  }
 
-        assertEquals( dataABC, filter( dataABC ) );
-    }
-
-    @Test
-    void testFilterNoData()
-    {
-        assertNull( filter( null ) );
-    }
+  @Test
+  void testFilterNoData() {
+    assertNull(filter(null));
+  }
 }

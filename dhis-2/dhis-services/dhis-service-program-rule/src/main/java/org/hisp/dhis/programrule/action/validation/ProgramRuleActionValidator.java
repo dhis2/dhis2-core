@@ -33,8 +33,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 /**
  * @author Zubair Asghar
  */
-public interface ProgramRuleActionValidator
-{
-    ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationContext validationContext );
+public interface ProgramRuleActionValidator {
+  ProgramRuleActionValidationResult validate(
+      ProgramRuleAction programRuleAction, ProgramRuleActionValidationContext validationContext);
 }

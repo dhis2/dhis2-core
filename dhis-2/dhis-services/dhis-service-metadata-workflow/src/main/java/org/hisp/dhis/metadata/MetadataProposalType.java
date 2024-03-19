@@ -32,20 +32,13 @@ package org.hisp.dhis.metadata;
  *
  * @author Jan Bernitt
  */
-public enum MetadataProposalType
-{
-    /**
-     * Propose to add a new object
-     */
-    ADD,
+public enum MetadataProposalType {
+  /** Propose to add a new object */
+  ADD,
 
-    /**
-     * Propose to update an existing object
-     */
-    UPDATE,
+  /** Propose to update an existing object */
+  UPDATE,
 
-    /**
-     * Propose to remove an existing object
-     */
-    REMOVE
+  /** Propose to remove an existing object */
+  REMOVE
 }

@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.schema.SchemaService;
@@ -43,52 +41,44 @@ import org.hisp.dhis.user.UserService;
  * @author Luciano Fiandesio
  */
 @AllArgsConstructor
-public class ValidationContext
-{
-    private final ObjectBundleHooks objectBundleHooks;
+public class ValidationContext {
+  private final ObjectBundleHooks objectBundleHooks;
 
-    private final SchemaValidator schemaValidator;
+  private final SchemaValidator schemaValidator;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    private final List<IdentifiableObject> markedForRemoval = new ArrayList<>();
+  private final List<IdentifiableObject> markedForRemoval = new ArrayList<>();
 
-    public ObjectBundleHooks getObjectBundleHooks()
-    {
-        return objectBundleHooks;
-    }
+  public ObjectBundleHooks getObjectBundleHooks() {
+    return objectBundleHooks;
+  }
 
-    public SchemaValidator getSchemaValidator()
-    {
-        return schemaValidator;
-    }
+  public SchemaValidator getSchemaValidator() {
+    return schemaValidator;
+  }
 
-    public AclService getAclService()
-    {
-        return aclService;
-    }
+  public AclService getAclService() {
+    return aclService;
+  }
 
-    public UserService getUserService()
-    {
-        return userService;
-    }
+  public UserService getUserService() {
+    return userService;
+  }
 
-    public SchemaService getSchemaService()
-    {
-        return schemaService;
-    }
+  public SchemaService getSchemaService() {
+    return schemaService;
+  }
 
-    public void markForRemoval( IdentifiableObject object )
-    {
-        this.markedForRemoval.add( object );
-    }
+  public void markForRemoval(IdentifiableObject object) {
+    this.markedForRemoval.add(object);
+  }
 
-    public List<? extends IdentifiableObject> getMarkedForRemoval()
-    {
-        return markedForRemoval;
-    }
+  public List<? extends IdentifiableObject> getMarkedForRemoval() {
+    return markedForRemoval;
+  }
 }

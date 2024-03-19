@@ -33,7 +33,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
-
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.email.EmailService;
@@ -51,92 +50,86 @@ import org.springframework.retry.RetryContext;
 /**
  * @author aamerm
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataSyncPostProcessorTest
-{
-    @Mock
-    private EmailService emailService;
+@ExtendWith(MockitoExtension.class)
+class MetadataSyncPostProcessorTest {
+  @Mock private EmailService emailService;
 
-    @Mock
-    private MetadataRetryContext metadataRetryContext;
+  @Mock private MetadataRetryContext metadataRetryContext;
 
-    @InjectMocks
-    private MetadataSyncPostProcessor metadataSyncPostProcessor;
+  @InjectMocks private MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-    private MetadataVersion dataVersion;
+  private MetadataVersion dataVersion;
 
-    private MetadataSyncSummary metadataSyncSummary;
+  private MetadataSyncSummary metadataSyncSummary;
 
-    @BeforeEach
-    public void setUp()
-    {
+  @BeforeEach
+  public void setUp() {
 
-        dataVersion = new MetadataVersion();
-        dataVersion.setType( VersionType.BEST_EFFORT );
-        dataVersion.setName( "testVersion" );
-        dataVersion.setCreated( new Date() );
-        dataVersion.setHashCode( "samplehashcode" );
-        metadataSyncSummary = new MetadataSyncSummary();
-    }
+    dataVersion = new MetadataVersion();
+    dataVersion.setType(VersionType.BEST_EFFORT);
+    dataVersion.setName("testVersion");
+    dataVersion.setCreated(new Date());
+    dataVersion.setHashCode("samplehashcode");
+    metadataSyncSummary = new MetadataSyncSummary();
+  }
 
-    @Test
-    void testShouldSendSuccessEmailIfSyncSummaryIsOk()
-    {
-        metadataSyncSummary.setImportReport( new ImportReport() );
-        metadataSyncSummary.getImportReport().setStatus( Status.OK );
-        metadataSyncSummary.setMetadataVersion( dataVersion );
-        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
+  @Test
+  void testShouldSendSuccessEmailIfSyncSummaryIsOk() {
+    metadataSyncSummary.setImportReport(new ImportReport());
+    metadataSyncSummary.getImportReport().setStatus(Status.OK);
+    metadataSyncSummary.setMetadataVersion(dataVersion);
+    MetadataRetryContext mockRetryContext = mock(MetadataRetryContext.class);
 
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
-            mockRetryContext, dataVersion );
+    boolean status =
+        metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus(
+            metadataSyncSummary, mockRetryContext, dataVersion);
 
-        assertFalse( status );
-    }
+    assertFalse(status);
+  }
 
-    @Test
-    void testShouldSendSuccessEmailIfSyncSummaryIsWarning()
-    {
-        metadataSyncSummary.setImportReport( new ImportReport() );
-        metadataSyncSummary.getImportReport().setStatus( Status.WARNING );
-        metadataSyncSummary.setMetadataVersion( dataVersion );
-        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
+  @Test
+  void testShouldSendSuccessEmailIfSyncSummaryIsWarning() {
+    metadataSyncSummary.setImportReport(new ImportReport());
+    metadataSyncSummary.getImportReport().setStatus(Status.WARNING);
+    metadataSyncSummary.setMetadataVersion(dataVersion);
+    MetadataRetryContext mockRetryContext = mock(MetadataRetryContext.class);
 
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
-            mockRetryContext, dataVersion );
+    boolean status =
+        metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus(
+            metadataSyncSummary, mockRetryContext, dataVersion);
 
-        assertFalse( status );
+    assertFalse(status);
+  }
 
-    }
+  @Test
+  void testShouldSendSuccessEmailIfSyncSummaryIsError() {
+    metadataSyncSummary.setImportReport(new ImportReport());
+    metadataSyncSummary.getImportReport().setStatus(Status.ERROR);
+    metadataSyncSummary.setMetadataVersion(dataVersion);
+    MetadataRetryContext mockMetadataRetryContext = mock(MetadataRetryContext.class);
+    RetryContext mockRetryContext = mock(RetryContext.class);
 
-    @Test
-    void testShouldSendSuccessEmailIfSyncSummaryIsError()
-    {
-        metadataSyncSummary.setImportReport( new ImportReport() );
-        metadataSyncSummary.getImportReport().setStatus( Status.ERROR );
-        metadataSyncSummary.setMetadataVersion( dataVersion );
-        MetadataRetryContext mockMetadataRetryContext = mock( MetadataRetryContext.class );
-        RetryContext mockRetryContext = mock( RetryContext.class );
+    when(mockMetadataRetryContext.getRetryContext()).thenReturn(mockRetryContext);
+    boolean status =
+        metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus(
+            metadataSyncSummary, mockMetadataRetryContext, dataVersion);
 
-        when( mockMetadataRetryContext.getRetryContext() ).thenReturn( mockRetryContext );
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
-            mockMetadataRetryContext, dataVersion );
+    assertTrue(status);
+  }
 
-        assertTrue( status );
-    }
+  @Test
+  void testShouldSendEmailToAdminWithProperSubjectAndBody() {
+    ImportReport importReport = mock(ImportReport.class);
 
-    @Test
-    void testShouldSendEmailToAdminWithProperSubjectAndBody()
-    {
-        ImportReport importReport = mock( ImportReport.class );
+    metadataSyncSummary.setImportReport(importReport);
+    metadataSyncSummary.getImportReport().setStatus(Status.OK);
+    metadataSyncSummary.setMetadataVersion(dataVersion);
+    MetadataRetryContext mockRetryContext = mock(MetadataRetryContext.class);
 
-        metadataSyncSummary.setImportReport( importReport );
-        metadataSyncSummary.getImportReport().setStatus( Status.OK );
-        metadataSyncSummary.setMetadataVersion( dataVersion );
-        MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
+    boolean status =
+        metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus(
+            metadataSyncSummary, mockRetryContext, dataVersion);
 
-        boolean status = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
-            mockRetryContext, dataVersion );
-
-        assertFalse( status );
-    }
+    assertFalse(status);
+  }
 }

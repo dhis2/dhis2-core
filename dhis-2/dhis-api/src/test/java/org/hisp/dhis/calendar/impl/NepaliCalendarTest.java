@@ -38,45 +38,40 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class NepaliCalendarTest
-{
+class NepaliCalendarTest {
 
-    private Calendar calendar;
+  private Calendar calendar;
 
-    @BeforeEach
-    void init()
-    {
-        calendar = NepaliCalendar.getInstance();
-    }
+  @BeforeEach
+  void init() {
+    calendar = NepaliCalendar.getInstance();
+  }
 
-    @Test
-    void testToIso()
-    {
-        Assertions.assertEquals( new DateTimeUnit( 2014, 4, 14, true ),
-            calendar.toIso( new DateTimeUnit( 2071, 1, 1 ) ) );
-        Assertions.assertEquals( new DateTimeUnit( 2014, 4, 14, true ), calendar.toIso( 2071, 1, 1 ) );
-    }
+  @Test
+  void testToIso() {
+    Assertions.assertEquals(
+        new DateTimeUnit(2014, 4, 14, true), calendar.toIso(new DateTimeUnit(2071, 1, 1)));
+    Assertions.assertEquals(new DateTimeUnit(2014, 4, 14, true), calendar.toIso(2071, 1, 1));
+  }
 
-    @Test
-    void testFromIso()
-    {
-        Assertions.assertEquals( new DateTimeUnit( 2071, 1, 1, false ),
-            calendar.fromIso( new DateTimeUnit( 2014, 4, 14, true ) ) );
-        Assertions.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( 2014, 4, 14 ) );
-    }
+  @Test
+  void testFromIso() {
+    Assertions.assertEquals(
+        new DateTimeUnit(2071, 1, 1, false), calendar.fromIso(new DateTimeUnit(2014, 4, 14, true)));
+    Assertions.assertEquals(new DateTimeUnit(2071, 1, 1, false), calendar.fromIso(2014, 4, 14));
+  }
 
-    @Test
-    void testPlusDays()
-    {
-        DateTimeUnit dateTimeUnit = new DateTimeUnit( 2014, 12, 30 );
-        DateTimeUnit testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
-        assertEquals( 2014, testDateTimeUnit.getYear() );
-        assertEquals( 12, testDateTimeUnit.getMonth() );
-        assertEquals( 29, testDateTimeUnit.getDay() );
-        dateTimeUnit = new DateTimeUnit( 2014, 1, 1 );
-        testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
-        assertEquals( 2013, testDateTimeUnit.getYear() );
-        assertEquals( 12, testDateTimeUnit.getMonth() );
-        assertEquals( 30, testDateTimeUnit.getDay() );
-    }
+  @Test
+  void testPlusDays() {
+    DateTimeUnit dateTimeUnit = new DateTimeUnit(2014, 12, 30);
+    DateTimeUnit testDateTimeUnit = calendar.plusDays(dateTimeUnit, -1);
+    assertEquals(2014, testDateTimeUnit.getYear());
+    assertEquals(12, testDateTimeUnit.getMonth());
+    assertEquals(29, testDateTimeUnit.getDay());
+    dateTimeUnit = new DateTimeUnit(2014, 1, 1);
+    testDateTimeUnit = calendar.plusDays(dateTimeUnit, -1);
+    assertEquals(2013, testDateTimeUnit.getYear());
+    assertEquals(12, testDateTimeUnit.getMonth());
+    assertEquals(30, testDateTimeUnit.getDay());
+  }
 }

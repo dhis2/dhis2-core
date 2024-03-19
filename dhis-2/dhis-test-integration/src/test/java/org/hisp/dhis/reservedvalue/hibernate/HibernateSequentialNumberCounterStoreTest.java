@@ -43,132 +43,88 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import org.apache.commons.lang3.RandomStringUtils;
+import java.util.stream.Stream;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegrationTest
-{
+class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private DummyService dummyService;
+  @Autowired private SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    @Test
-    void getNextValues()
-    {
-        List<Integer> result = dummyService.getNextValues( "ABC", "ABC-#", 3 );
-        assertEquals( 3, result.size() );
-        assertTrue( result.contains( 1 ) );
-        assertTrue( result.contains( 2 ) );
-        assertTrue( result.contains( 3 ) );
-        result = dummyService.getNextValues( "ABC", "ABC-#", 50 );
-        assertEquals( 50, result.size() );
-        assertTrue( result.contains( 4 ) );
-        assertTrue( result.contains( 5 ) );
-        assertTrue( result.contains( 52 ) );
-        assertTrue( result.contains( 53 ) );
+  @Test
+  void getNextValues() {
+    List<Integer> result = nextSequentialValues("ABC", "ABC-#", 3);
+    assertEquals(3, result.size());
+    assertTrue(result.contains(1));
+    assertTrue(result.contains(2));
+    assertTrue(result.contains(3));
+    result = nextSequentialValues("ABC", "ABC-#", 50);
+    assertEquals(50, result.size());
+    assertTrue(result.contains(4));
+    assertTrue(result.contains(5));
+    assertTrue(result.contains(52));
+    assertTrue(result.contains(53));
+  }
+
+  private static Stream<Arguments> threadCounter() {
+    return Stream.of(
+        Arguments.of(1, "AAA"),
+        Arguments.of(4, "BBB"),
+        Arguments.of(8, "CCC"),
+        Arguments.of(16, "DDD"),
+        Arguments.of(32, "EEE"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("threadCounter")
+  void shouldGenerateSequentialValueGivenThreadCounter(int threadCount, String uid)
+      throws InterruptedException, ExecutionException {
+    Callable<List<Integer>> task = () -> nextSequentialValues(uid, uid + "-#", 50);
+    List<Callable<List<Integer>>> tasks = Collections.nCopies(threadCount, task);
+    ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+    List<Future<List<Integer>>> futures = executorService.invokeAll(tasks);
+    List<List<Integer>> resultList = new ArrayList<>(futures.size());
+    // Check for exceptions
+    for (Future<List<Integer>> future : futures) {
+      // Throws an exception if an exception was thrown by the task.
+      resultList.add(future.get());
     }
-
-    private void test( final int threadCount )
-        throws InterruptedException,
-        ExecutionException
-    {
-        final String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
-        Callable<List<Integer>> task = () -> dummyService.getNextValues( uid, uid + "-#", 50 );
-        List<Callable<List<Integer>>> tasks = Collections.nCopies( threadCount, task );
-        ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
-        List<Future<List<Integer>>> futures = executorService.invokeAll( tasks );
-        List<List<Integer>> resultList = new ArrayList<>( futures.size() );
-        // Check for exceptions
-        for ( Future<List<Integer>> future : futures )
-        {
-            // Throws an exception if an exception was thrown by the task.
-            resultList.add( future.get() );
-        }
-        assertEquals( threadCount, futures.size() );
-        Set<Integer> allIds = new HashSet<>();
-        List<Integer> allIdList = new ArrayList<>();
-        for ( List<Integer> integers : resultList )
-        {
-            allIds.addAll( integers );
-            allIdList.addAll( integers );
-        }
-        assertThat( allIds, hasSize( threadCount * 50 ) );
-        Collections.sort( allIdList );
-        assertThat( allIdList.get( 0 ), is( 1 ) );
-        assertThat( allIdList.get( allIdList.size() - 1 ), is( 50 * threadCount ) );
+    assertEquals(threadCount, futures.size());
+    Set<Integer> allIds = new HashSet<>();
+    List<Integer> allIdList = new ArrayList<>();
+    for (List<Integer> integers : resultList) {
+      allIds.addAll(integers);
+      allIdList.addAll(integers);
     }
+    assertThat(allIds, hasSize(threadCount * 50));
+    Collections.sort(allIdList);
+    assertThat(allIdList.get(0), is(1));
+    assertThat(allIdList.get(allIdList.size() - 1), is(50 * threadCount));
+  }
 
-    @Test
-    void test1()
-        throws InterruptedException,
-        ExecutionException
-    {
-        test( 1 );
-    }
+  @Test
+  void deleteCounter() {
+    assertTrue(nextSequentialValues("ABC", "ABC-#", 3).contains(1));
+    deleteCounter("ABC");
+    assertTrue(nextSequentialValues("ABC", "ABC-#", 3).contains(1));
+    assertTrue(nextSequentialValues("ABC", "ABC-##", 3).contains(1));
+    assertTrue(nextSequentialValues("ABC", "ABC-###", 3).contains(1));
+    deleteCounter("ABC");
+    assertTrue(nextSequentialValues("ABC", "ABC-#", 3).contains(1));
+    assertTrue(nextSequentialValues("ABC", "ABC-##", 3).contains(1));
+    assertTrue(nextSequentialValues("ABC", "ABC-###", 3).contains(1));
+  }
 
-    @Test
-    void test4()
-        throws InterruptedException,
-        ExecutionException
-    {
-        test( 4 );
-    }
+  public List<Integer> nextSequentialValues(String uid, String key, int length) {
+    return sequentialNumberCounterStore.getNextValues(uid, key, length);
+  }
 
-    @Test
-    void test8()
-        throws InterruptedException,
-        ExecutionException
-    {
-        test( 8 );
-    }
-
-    @Test
-    void test16()
-        throws InterruptedException,
-        ExecutionException
-    {
-        test( 16 );
-    }
-
-    @Test
-    void test32()
-        throws InterruptedException,
-        ExecutionException
-    {
-        test( 32 );
-    }
-
-    @Test
-    void deleteCounter()
-    {
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        dummyService.deleteCounter( "ABC" );
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
-        dummyService.deleteCounter( "ABC" );
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
-        assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
-    }
-
-    @Configuration
-    static class TestConfig
-    {
-
-        @Autowired
-        private SequentialNumberCounterStore sequentialNumberCounterStore;
-
-        @Bean
-        public DummyService dummyService()
-        {
-            return new DummyService( sequentialNumberCounterStore );
-        }
-    }
+  public void deleteCounter(String uid) {
+    sequentialNumberCounterStore.deleteCounter(uid);
+  }
 }

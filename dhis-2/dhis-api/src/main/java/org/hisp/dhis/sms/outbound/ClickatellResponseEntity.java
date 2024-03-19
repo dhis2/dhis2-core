@@ -27,31 +27,24 @@
  */
 package org.hisp.dhis.sms.outbound;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
+import java.util.Map;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
+/** Zubair <rajazubair.asghar@gmail.com> */
+@JacksonXmlRootElement(localName = "responseEntity")
+public class ClickatellResponseEntity {
+  private Map<Object, List<Map<Object, Object>>> data;
 
-@JacksonXmlRootElement( localName = "responseEntity" )
-public class ClickatellResponseEntity
-{
-    private Map<Object, List<Map<Object, Object>>> data;
+  @JsonProperty(value = "data")
+  @JacksonXmlProperty(localName = "data")
+  public Map<Object, List<Map<Object, Object>>> getData() {
+    return data;
+  }
 
-    @JsonProperty( value = "data" )
-    @JacksonXmlProperty( localName = "data" )
-    public Map<Object, List<Map<Object, Object>>> getData()
-    {
-        return data;
-    }
-
-    public void setData( Map<Object, List<Map<Object, Object>>> data )
-    {
-        this.data = data;
-    }
+  public void setData(Map<Object, List<Map<Object, Object>>> data) {
+    this.data = data;
+  }
 }

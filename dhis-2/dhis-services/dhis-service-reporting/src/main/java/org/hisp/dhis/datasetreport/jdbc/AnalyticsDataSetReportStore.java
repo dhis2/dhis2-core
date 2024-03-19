@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datasetreport.jdbc;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,10 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -55,213 +54,197 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
 @RequiredArgsConstructor
-@Repository( "org.hisp.dhis.datasetreport.DataSetReportStore" )
-public class AnalyticsDataSetReportStore
-    implements DataSetReportStore
-{
-    private final DataQueryService dataQueryService;
+@Repository("org.hisp.dhis.datasetreport.DataSetReportStore")
+public class AnalyticsDataSetReportStore implements DataSetReportStore {
+  private final DataQueryService dataQueryService;
 
-    private final AnalyticsService analyticsService;
+  private final AnalyticsService analyticsService;
 
-    // -------------------------------------------------------------------------
-    // DataSetReportStore implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataSetReportStore implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public Map<String, Object> getAggregatedValues( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
-        Set<String> filters )
-    {
-        List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
+  @Override
+  public Map<String, Object> getAggregatedValues(
+      DataSet dataSet, List<Period> periods, OrganisationUnit unit, Set<String> filters) {
+    List<DataElement> dataElements = new ArrayList<>(dataSet.getDataElements());
 
-        FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
+    FilterUtils.filter(dataElements, AggregatableDataElementFilter.INSTANCE);
 
-        if ( dataElements.isEmpty() )
-        {
-            return new HashMap<>();
-        }
-
-        DataQueryParams.Builder params = DataQueryParams.newBuilder()
-            .withDataElements( dataElements )
-            .withPeriods( periods )
-            .withOrganisationUnit( unit )
-            .withCategoryOptionCombos( Lists.newArrayList() );
-
-        if ( filters != null )
-        {
-            params
-                .addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, IdScheme.UID ) );
-        }
-
-        Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
-
-        Map<String, Object> dataMap = new HashMap<>();
-
-        for ( Entry<String, Object> entry : map.entrySet() )
-        {
-            String[] split = entry.getKey().split( SEPARATOR );
-            addToMap( dataMap, split[0] + SEPARATOR + split[3], entry.getValue() );
-        }
-
-        return dataMap;
+    if (dataElements.isEmpty()) {
+      return new HashMap<>();
     }
 
-    @Override
-    public Map<String, Object> getAggregatedSubTotals( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
-        Set<String> filters )
-    {
-        Map<String, Object> dataMap = new HashMap<>();
+    DataQueryParams.Builder params =
+        DataQueryParams.newBuilder()
+            .withDataElements(dataElements)
+            .withPeriods(periods)
+            .withOrganisationUnit(unit)
+            .withCategoryOptionCombos(Lists.newArrayList());
 
-        for ( Section section : dataSet.getSections() )
-        {
-            List<DataElement> dataElements = new ArrayList<>( section.getDataElements() );
-            Set<Category> categories = new HashSet<>();
-
-            for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
-            {
-                categories.addAll( categoryCombo.getCategories() );
-            }
-
-            FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
-
-            if ( dataElements.isEmpty() || categories == null || categories.isEmpty() )
-            {
-                continue;
-            }
-
-            for ( Category category : categories )
-            {
-                if ( category.isDefault() )
-                {
-                    continue; // No need for sub-total for default
-                }
-
-                if ( !category.isDataDimension() )
-                {
-                    log.warn( "Could not get sub-total for category: " + category.getUid() + " for data set report: "
-                        + dataSet + ", not a data dimension" );
-                    continue;
-                }
-
-                DataQueryParams.Builder params = DataQueryParams.newBuilder()
-                    .withDataElements( dataElements )
-                    .withPeriods( periods )
-                    .withOrganisationUnit( unit )
-                    .withCategory( category );
-
-                if ( filters != null )
-                {
-                    params.addFilters(
-                        dataQueryService.getDimensionalObjects( filters, null, null, null, IdScheme.UID ) );
-                }
-
-                Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
-
-                for ( Entry<String, Object> entry : map.entrySet() )
-                {
-                    String[] split = entry.getKey().split( SEPARATOR );
-                    addToMap( dataMap, split[0] + SEPARATOR + split[3], entry.getValue() );
-                }
-            }
-        }
-
-        return dataMap;
+    if (filters != null) {
+      params.addFilters(
+          dataQueryService.getDimensionalObjects(filters, null, null, null, IdScheme.UID));
     }
 
-    @Override
-    public Map<String, Object> getAggregatedTotals( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
-        Set<String> filters )
-    {
-        List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
+    Map<String, Object> map = analyticsService.getAggregatedDataValueMapping(params.build());
 
-        FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
+    Map<String, Object> dataMap = new HashMap<>();
 
-        if ( dataElements.isEmpty() )
-        {
-            return new HashMap<>();
-        }
-
-        DataQueryParams.Builder params = DataQueryParams.newBuilder()
-            .withDataElements( dataElements )
-            .withPeriods( periods )
-            .withOrganisationUnit( unit );
-
-        if ( filters != null )
-        {
-            params
-                .addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, IdScheme.UID ) );
-        }
-
-        Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
-
-        Map<String, Object> dataMap = new HashMap<>();
-
-        for ( Entry<String, Object> entry : map.entrySet() )
-        {
-            String[] split = entry.getKey().split( SEPARATOR );
-            addToMap( dataMap, split[0], entry.getValue() );
-        }
-
-        return dataMap;
+    for (Entry<String, Object> entry : map.entrySet()) {
+      String[] split = entry.getKey().split(SEPARATOR);
+      addToMap(dataMap, split[0] + SEPARATOR + split[3], entry.getValue());
     }
 
-    @Override
-    public Map<String, Object> getAggregatedIndicatorValues( DataSet dataSet, List<Period> periods,
-        OrganisationUnit unit, Set<String> filters )
-    {
-        List<Indicator> indicators = new ArrayList<>( dataSet.getIndicators() );
+    return dataMap;
+  }
 
-        if ( indicators.isEmpty() )
-        {
-            return new HashMap<>();
+  @Override
+  public Map<String, Object> getAggregatedSubTotals(
+      DataSet dataSet, List<Period> periods, OrganisationUnit unit, Set<String> filters) {
+    Map<String, Object> dataMap = new HashMap<>();
+
+    for (Section section : dataSet.getSections()) {
+      List<DataElement> dataElements = new ArrayList<>(section.getDataElements());
+      Set<Category> categories = new HashSet<>();
+
+      for (CategoryCombo categoryCombo : section.getCategoryCombos()) {
+        categories.addAll(categoryCombo.getCategories());
+      }
+
+      FilterUtils.filter(dataElements, AggregatableDataElementFilter.INSTANCE);
+
+      if (dataElements.isEmpty() || categories == null || categories.isEmpty()) {
+        continue;
+      }
+
+      for (Category category : categories) {
+        if (category.isDefault()) {
+          continue; // No need for sub-total for default
         }
 
-        DataQueryParams.Builder params = DataQueryParams.newBuilder()
-            .withIndicators( indicators )
-            .withPeriods( periods )
-            .withOrganisationUnit( unit );
-
-        if ( filters != null )
-        {
-            params
-                .addFilters( dataQueryService.getDimensionalObjects( filters, null, null, null, IdScheme.UID ) );
+        if (!category.isDataDimension()) {
+          log.warn(
+              "Could not get sub-total for category: "
+                  + category.getUid()
+                  + " for data set report: "
+                  + dataSet
+                  + ", not a data dimension");
+          continue;
         }
 
-        Map<String, Object> map = analyticsService.getAggregatedDataValueMapping( params.build() );
+        DataQueryParams.Builder params =
+            DataQueryParams.newBuilder()
+                .withDataElements(dataElements)
+                .withPeriods(periods)
+                .withOrganisationUnit(unit)
+                .withCategory(category);
 
-        Map<String, Object> dataMap = new HashMap<>();
-
-        for ( Entry<String, Object> entry : map.entrySet() )
-        {
-            String[] split = entry.getKey().split( SEPARATOR );
-            addToMap( dataMap, split[0], entry.getValue() );
-            dataMap.put( split[0], entry.getValue() );
+        if (filters != null) {
+          params.addFilters(
+              dataQueryService.getDimensionalObjects(filters, null, null, null, IdScheme.UID));
         }
 
-        return dataMap;
+        Map<String, Object> map = analyticsService.getAggregatedDataValueMapping(params.build());
+
+        for (Entry<String, Object> entry : map.entrySet()) {
+          String[] split = entry.getKey().split(SEPARATOR);
+          addToMap(dataMap, split[0] + SEPARATOR + split[3], entry.getValue());
+        }
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return dataMap;
+  }
 
-    /**
-     * If values are numeric, sum the values in the map for the same key. If
-     * values are non-numeric, add the value to the map. Ignore nulls.
-     */
-    private void addToMap( Map<String, Object> dataMap, String key, Object value )
-    {
-        if ( value != null )
-        {
-            dataMap.compute( key, ( k, v ) -> (!(v instanceof Double) || !(value instanceof Double)
-                ? value
-                : (Double) v + (Double) value) );
-        }
+  @Override
+  public Map<String, Object> getAggregatedTotals(
+      DataSet dataSet, List<Period> periods, OrganisationUnit unit, Set<String> filters) {
+    List<DataElement> dataElements = new ArrayList<>(dataSet.getDataElements());
+
+    FilterUtils.filter(dataElements, AggregatableDataElementFilter.INSTANCE);
+
+    if (dataElements.isEmpty()) {
+      return new HashMap<>();
     }
+
+    DataQueryParams.Builder params =
+        DataQueryParams.newBuilder()
+            .withDataElements(dataElements)
+            .withPeriods(periods)
+            .withOrganisationUnit(unit);
+
+    if (filters != null) {
+      params.addFilters(
+          dataQueryService.getDimensionalObjects(filters, null, null, null, IdScheme.UID));
+    }
+
+    Map<String, Object> map = analyticsService.getAggregatedDataValueMapping(params.build());
+
+    Map<String, Object> dataMap = new HashMap<>();
+
+    for (Entry<String, Object> entry : map.entrySet()) {
+      String[] split = entry.getKey().split(SEPARATOR);
+      addToMap(dataMap, split[0], entry.getValue());
+    }
+
+    return dataMap;
+  }
+
+  @Override
+  public Map<String, Object> getAggregatedIndicatorValues(
+      DataSet dataSet, List<Period> periods, OrganisationUnit unit, Set<String> filters) {
+    List<Indicator> indicators = new ArrayList<>(dataSet.getIndicators());
+
+    if (indicators.isEmpty()) {
+      return new HashMap<>();
+    }
+
+    DataQueryParams.Builder params =
+        DataQueryParams.newBuilder()
+            .withIndicators(indicators)
+            .withPeriods(periods)
+            .withOrganisationUnit(unit);
+
+    if (filters != null) {
+      params.addFilters(
+          dataQueryService.getDimensionalObjects(filters, null, null, null, IdScheme.UID));
+    }
+
+    Map<String, Object> map = analyticsService.getAggregatedDataValueMapping(params.build());
+
+    Map<String, Object> dataMap = new HashMap<>();
+
+    for (Entry<String, Object> entry : map.entrySet()) {
+      String[] split = entry.getKey().split(SEPARATOR);
+      addToMap(dataMap, split[0], entry.getValue());
+      dataMap.put(split[0], entry.getValue());
+    }
+
+    return dataMap;
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * If values are numeric, sum the values in the map for the same key. If values are non-numeric,
+   * add the value to the map. Ignore nulls.
+   */
+  private void addToMap(Map<String, Object> dataMap, String key, Object value) {
+    if (value != null) {
+      dataMap.compute(
+          key,
+          (k, v) ->
+              (!(v instanceof Double) || !(value instanceof Double)
+                  ? value
+                  : (Double) v + (Double) value));
+    }
+  }
 }

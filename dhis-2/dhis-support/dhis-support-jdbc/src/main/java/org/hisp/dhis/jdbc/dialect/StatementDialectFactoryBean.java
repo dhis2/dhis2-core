@@ -31,76 +31,67 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;
 
 /**
  * @author Lars Helge Overland
  */
-public class StatementDialectFactoryBean
-    implements FactoryBean<StatementDialect>
-{
-    private static Map<String, StatementDialect> dialectMap;
+public class StatementDialectFactoryBean implements FactoryBean<StatementDialect> {
+  private static Map<String, StatementDialect> dialectMap;
 
-    static
-    {
-        dialectMap = new HashMap<>();
-        dialectMap.put( "org.hibernate.dialect.MySQLDialect", StatementDialect.MYSQL );
-        dialectMap.put( "org.hibernate.dialect.PostgreSQLDialect", StatementDialect.POSTGRESQL );
-        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect", StatementDialect.POSTGRESQL );
-        dialectMap.put( "org.hibernate.dialect.HSQLDialect", StatementDialect.HSQL );
-        dialectMap.put( "org.hibernate.dialect.H2Dialect", StatementDialect.H2 );
-        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisH2Dialect", StatementDialect.H2 );
+  static {
+    dialectMap = new HashMap<>();
+    dialectMap.put("org.hibernate.dialect.MySQLDialect", StatementDialect.MYSQL);
+    dialectMap.put("org.hibernate.dialect.PostgreSQLDialect", StatementDialect.POSTGRESQL);
+    dialectMap.put(
+        "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect", StatementDialect.POSTGRESQL);
+    dialectMap.put("org.hibernate.dialect.HSQLDialect", StatementDialect.HSQL);
+    dialectMap.put("org.hibernate.dialect.H2Dialect", StatementDialect.H2);
+    dialectMap.put("org.hisp.dhis.hibernate.dialect.DhisH2Dialect", StatementDialect.H2);
+  }
+
+  private final String dialectTypeKey;
+
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
+
+  public StatementDialectFactoryBean(String dialectTypeKey) {
+    checkNotNull(dialectTypeKey);
+    this.dialectTypeKey = dialectTypeKey;
+  }
+
+  private StatementDialect statementDialect;
+
+  // -------------------------------------------------------------------------
+  // Initialisation
+  // -------------------------------------------------------------------------
+
+  public void init() {
+    statementDialect = dialectMap.get(dialectTypeKey);
+
+    if (statementDialect == null) {
+      throw new RuntimeException("Unsupported dialect: " + dialectTypeKey);
     }
+  }
 
-    private final String dialectTypeKey;
+  // -------------------------------------------------------------------------
+  // FactoryBean implementation
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  @Override
+  public StatementDialect getObject() {
+    return statementDialect;
+  }
 
-    public StatementDialectFactoryBean( String dialectTypeKey )
-    {
-        checkNotNull( dialectTypeKey );
-        this.dialectTypeKey = dialectTypeKey;
-    }
+  @Override
+  public Class<StatementDialect> getObjectType() {
+    return StatementDialect.class;
+  }
 
-    private StatementDialect statementDialect;
-
-    // -------------------------------------------------------------------------
-    // Initialisation
-    // -------------------------------------------------------------------------
-
-    public void init()
-    {
-        statementDialect = dialectMap.get( dialectTypeKey );
-
-        if ( statementDialect == null )
-        {
-            throw new RuntimeException( "Unsupported dialect: " + dialectTypeKey );
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // FactoryBean implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public StatementDialect getObject()
-    {
-        return statementDialect;
-    }
-
-    @Override
-    public Class<StatementDialect> getObjectType()
-    {
-        return StatementDialect.class;
-    }
-
-    @Override
-    public boolean isSingleton()
-    {
-        return true;
-    }
+  @Override
+  public boolean isSingleton() {
+    return true;
+  }
 }

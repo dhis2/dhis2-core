@@ -30,10 +30,8 @@ package org.hisp.dhis.eventhook;
 /**
  * @author Morten Olav Hansen
  */
-public class EventHookException extends Exception
-{
-    public EventHookException( String message )
-    {
-        super( message );
-    }
+public class EventHookException extends Exception {
+  public EventHookException(String message) {
+    super(message);
+  }
 }

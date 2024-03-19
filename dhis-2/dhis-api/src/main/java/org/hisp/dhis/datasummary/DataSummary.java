@@ -27,18 +27,15 @@
  */
 package org.hisp.dhis.datasummary;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.Dhis2Info;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * DataSummary object to transfer System Statistics
@@ -50,23 +47,16 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @AllArgsConstructor
 @JacksonXmlRootElement
-public class DataSummary
-{
-    @JsonProperty
-    private Map<String, Long> objectCounts = new HashMap<>();
+public class DataSummary {
+  @JsonProperty private Map<String, Long> objectCounts = new HashMap<>();
 
-    @JsonProperty
-    private Map<Integer, Integer> activeUsers = new HashMap<>();
+  @JsonProperty private Map<Integer, Integer> activeUsers = new HashMap<>();
 
-    @JsonProperty
-    private Map<String, Integer> userInvitations = new HashMap<>();
+  @JsonProperty private Map<String, Integer> userInvitations = new HashMap<>();
 
-    @JsonProperty
-    private Map<Integer, Integer> dataValueCount = new HashMap<>();
+  @JsonProperty private Map<Integer, Integer> dataValueCount = new HashMap<>();
 
-    @JsonProperty
-    private Map<Integer, Long> eventCount = new HashMap<>();
+  @JsonProperty private Map<Integer, Long> eventCount = new HashMap<>();
 
-    @JsonProperty
-    private Dhis2Info system;
+  @JsonProperty private Dhis2Info system;
 }

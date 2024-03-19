@@ -28,25 +28,21 @@
 package org.hisp.dhis.reservedvalue;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class SequentialNumberCounterDeletionHandler extends DeletionHandler
-{
-    private final SequentialNumberCounterStore sequentialNumberCounterStore;
+public class SequentialNumberCounterDeletionHandler extends DeletionHandler {
+  private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
+  }
 
-    private void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        sequentialNumberCounterStore.deleteCounter( attribute.getUid() );
-    }
+  private void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    sequentialNumberCounterStore.deleteCounter(attribute.getUid());
+  }
 }

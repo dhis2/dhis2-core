@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.dimension.mappers;
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
 import java.util.List;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -38,16 +37,15 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.mappers.BaseDimensionalItemObjectMapper;
 import org.junit.jupiter.api.Test;
 
-class BaseDimensionalItemObjectMapperTest
-{
-    private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
+class BaseDimensionalItemObjectMapperTest {
+  private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
 
-    @Test
-    void testDimensionalItemObjectMapper()
-    {
-        asserter( new BaseDimensionalItemObjectMapper(),
-            BaseDimensionalItemObject::new,
-            List.of( b -> b.setDimensionItemType( DIMENSION_ITEM_TYPE ) ),
-            List.of( Pair.of( DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE ) ) );
-    }
+  @Test
+  void testDimensionalItemObjectMapper() {
+    asserter(
+        new BaseDimensionalItemObjectMapper(),
+        BaseDimensionalItemObject::new,
+        List.of(b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE)),
+        List.of(Pair.of(DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE)));
+  }
 }

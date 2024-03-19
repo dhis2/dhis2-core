@@ -28,13 +28,13 @@
 package org.hisp.dhis.indicator.hibernate;
 
 import java.util.List;
-
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -42,41 +42,68 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.indicator.IndicatorStore" )
-public class HibernateIndicatorStore
-    extends HibernateIdentifiableObjectStore<Indicator>
-    implements IndicatorStore
-{
-    public HibernateIndicatorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Indicator.class, currentUserService, aclService, true );
-    }
-    // -------------------------------------------------------------------------
-    // Indicator
-    // -------------------------------------------------------------------------
+@Repository("org.hisp.dhis.indicator.IndicatorStore")
+public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<Indicator>
+    implements IndicatorStore {
+  public HibernateIndicatorStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Indicator.class, aclService, true);
+  }
 
-    @Override
-    public List<Indicator> getIndicatorsWithGroupSets()
-    {
-        final String hql = "from Indicator d where size(d.groupSets) > 0";
+  // -------------------------------------------------------------------------
+  // Indicator
+  // -------------------------------------------------------------------------
 
-        return getQuery( hql ).setCacheable( true ).list();
-    }
+  @Override
+  public List<Indicator> getIndicatorsWithGroupSets() {
+    final String hql = "from Indicator d where size(d.groupSets) > 0";
 
-    @Override
-    public List<Indicator> getIndicatorsWithoutGroups()
-    {
-        final String hql = "from Indicator d where size(d.groups) = 0";
+    return getQuery(hql).setCacheable(true).list();
+  }
 
-        return getQuery( hql ).setCacheable( true ).list();
-    }
+  @Override
+  public List<Indicator> getIndicatorsWithoutGroups() {
+    final String hql = "from Indicator d where size(d.groups) = 0";
 
-    @Override
-    public List<Indicator> getIndicatorsWithDataSets()
-    {
-        final String hql = "from Indicator d where size(d.dataSets) > 0";
+    return getQuery(hql).setCacheable(true).list();
+  }
 
-        return getQuery( hql ).setCacheable( true ).list();
-    }
+  @Override
+  public List<Indicator> getIndicatorsWithDataSets() {
+    final String hql = "from Indicator d where size(d.dataSets) > 0";
+
+    return getQuery(hql).setCacheable(true).list();
+  }
+
+  @Override
+  public List<Indicator> getAssociatedIndicators(List<IndicatorType> indicatorTypes) {
+    // language=sql
+    TypedQuery<Indicator> query =
+        entityManager.createQuery(
+            "FROM Indicator i where i.indicatorType in :indicatorTypes", Indicator.class);
+    return query.setParameter("indicatorTypes", indicatorTypes).getResultList();
+  }
+
+  @Override
+  public List<Indicator> getIndicatorsWithNumeratorContaining(String search) {
+    // language=sql
+    TypedQuery<Indicator> query =
+        entityManager.createQuery(
+            "FROM Indicator i where i.numerator like :search", Indicator.class);
+    query.setParameter("search", "%" + search + "%");
+    return query.getResultList();
+  }
+
+  @Override
+  public List<Indicator> getIndicatorsWithDenominatorContaining(String search) {
+    // language=sql
+    TypedQuery<Indicator> query =
+        entityManager.createQuery(
+            "FROM Indicator i where i.denominator like :search", Indicator.class);
+    query.setParameter("search", "%" + search + "%");
+    return query.getResultList();
+  }
 }

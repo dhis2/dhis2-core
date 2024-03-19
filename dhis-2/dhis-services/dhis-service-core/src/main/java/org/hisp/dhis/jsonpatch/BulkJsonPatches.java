@@ -30,22 +30,17 @@ package org.hisp.dhis.jsonpatch;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 
 /**
  * DTO for applying multiple {@link JsonPatch} to multiple object types.
- * <p>
- * The format is {@code Map<className,Map<UID,JsonPatch>}
  *
- * <p>
- * className is in plural form {@link org.hisp.dhis.schema.Schema#getPlural()}
+ * <p>The format is {@code Map<className,Map<UID,JsonPatch>}
+ *
+ * <p>className is in plural form {@link org.hisp.dhis.schema.Schema#getPlural()}
  */
-public class BulkJsonPatches
-    extends LinkedHashMap<String, Map<String, JsonPatch>>
-{
-    public Set<String> getClassNames()
-    {
-        return keySet();
-    }
+public class BulkJsonPatches extends LinkedHashMap<String, Map<String, JsonPatch>> {
+  public Set<String> getClassNames() {
+    return keySet();
+  }
 }

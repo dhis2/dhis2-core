@@ -29,25 +29,24 @@ package org.hisp.dhis.sms.outbound;
 
 import java.util.List;
 
-public interface OutboundSmsService
-{
-    String ID = OutboundSmsService.class.getName();
+public interface OutboundSmsService {
+  String ID = OutboundSmsService.class.getName();
 
-    long save( OutboundSms sms );
+  long save(OutboundSms sms);
 
-    List<OutboundSms> get( OutboundSmsStatus status );
+  List<OutboundSms> get(OutboundSmsStatus status);
 
-    List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination );
+  List<OutboundSms> get(OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination);
 
-    OutboundSms get( long id );
+  OutboundSms get(long id);
 
-    OutboundSms get( String uid );
+  OutboundSms get(String uid);
 
-    List<OutboundSms> getAll();
+  List<OutboundSms> getAll();
 
-    List<OutboundSms> getAll( Integer min, Integer max, boolean hasPagination );
+  List<OutboundSms> getAll(Integer min, Integer max, boolean hasPagination);
 
-    void delete( long id );
+  void delete(long id);
 
-    void delete( String uid );
+  void delete(String uid);
 }

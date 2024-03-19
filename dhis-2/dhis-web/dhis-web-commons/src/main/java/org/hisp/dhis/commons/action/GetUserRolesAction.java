@@ -30,67 +30,59 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 
 /**
  * @author mortenoh
  */
-public class GetUserRolesAction
-    extends ActionPagingSupport<UserRole>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetUserRolesAction extends ActionPagingSupport<UserRole> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private UserService userService;
+  private UserService userService;
 
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
+  public void setUserService(UserService userService) {
+    this.userService = userService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private List<UserRole> userRoles;
+
+  public List<UserRole> getUserRoles() {
+    return this.userRoles;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(UserRole.class);
+
+    userRoles = new ArrayList<>(userService.getAllUserRoles());
+
+    userService.canIssueFilter(userRoles);
+
+    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+    userRoles.forEach(instance -> canReadInstance(instance, currentUserDetails));
+
+    Collections.sort(userRoles);
+
+    if (usePaging) {
+      this.paging = createPaging(userRoles.size());
+
+      userRoles = userRoles.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
-
-    private List<UserRole> userRoles;
-
-    public List<UserRole> getUserRoles()
-    {
-        return this.userRoles;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( UserRole.class );
-
-        userRoles = new ArrayList<>( userService.getAllUserRoles() );
-
-        userService.canIssueFilter( userRoles );
-
-        User currentUser = currentUserService.getCurrentUser();
-        userRoles.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        Collections.sort( userRoles );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( userRoles.size() );
-
-            userRoles = userRoles.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
-
+    return SUCCESS;
+  }
 }

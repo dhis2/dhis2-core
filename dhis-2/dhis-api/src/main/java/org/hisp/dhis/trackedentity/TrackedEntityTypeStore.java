@@ -29,7 +29,4 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface TrackedEntityTypeStore
-    extends IdentifiableObjectStore<TrackedEntityType>
-{
-}
+public interface TrackedEntityTypeStore extends IdentifiableObjectStore<TrackedEntityType> {}

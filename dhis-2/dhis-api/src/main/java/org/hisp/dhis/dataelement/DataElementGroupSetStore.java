@@ -30,6 +30,4 @@ package org.hisp.dhis.dataelement;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 
 public interface DataElementGroupSetStore
-    extends GenericDimensionalObjectStore<DataElementGroupSet>
-{
-}
+    extends GenericDimensionalObjectStore<DataElementGroupSet> {}

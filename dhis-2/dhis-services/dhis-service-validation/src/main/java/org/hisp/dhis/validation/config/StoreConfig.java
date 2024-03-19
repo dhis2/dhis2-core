@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.validation.config;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,37 +42,31 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "validationStoreConfig" )
-public class StoreConfig
-{
-    @Autowired
-    private SessionFactory sessionFactory;
+@Configuration("validationStoreConfig")
+public class StoreConfig {
+  @PersistenceContext private EntityManager entityManager;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+  @Autowired private ApplicationEventPublisher publisher;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private AclService aclService;
+  @Bean("org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore")
+  public HibernateIdentifiableObjectStore<ValidationNotificationTemplate>
+      programNotificationInstanceStore() {
+    return new HibernateIdentifiableObjectStore<ValidationNotificationTemplate>(
+        entityManager,
+        jdbcTemplate,
+        publisher,
+        ValidationNotificationTemplate.class,
+        aclService,
+        true);
+  }
 
-    @Bean( "org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore" )
-    public HibernateIdentifiableObjectStore<ValidationNotificationTemplate> programNotificationInstanceStore()
-    {
-        return new HibernateIdentifiableObjectStore<ValidationNotificationTemplate>(
-            sessionFactory, jdbcTemplate, publisher, ValidationNotificationTemplate.class, currentUserService,
-            aclService, true );
-    }
-
-    @Bean( "org.hisp.dhis.validation.ValidationRuleGroupStore" )
-    public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore()
-    {
-        return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
-            sessionFactory, jdbcTemplate, publisher, ValidationRuleGroup.class, currentUserService,
-            aclService, true );
-    }
+  @Bean("org.hisp.dhis.validation.ValidationRuleGroupStore")
+  public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore() {
+    return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
+        entityManager, jdbcTemplate, publisher, ValidationRuleGroup.class, aclService, true);
+  }
 }

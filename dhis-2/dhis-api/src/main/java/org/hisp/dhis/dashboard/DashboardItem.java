@@ -29,10 +29,15 @@ package org.hisp.dhis.dashboard;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -50,461 +55,372 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * Represents an item in the dashboard. An item can represent an embedded object
- * or represent links to other objects.
+ * Represents an item in the dashboard. An item can represent an embedded object or represent links
+ * to other objects.
  *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "dashboardItem", namespace = DXF_2_0 )
-public class DashboardItem
-    extends BaseIdentifiableObject implements EmbeddedObject
-{
-    public static final int MAX_CONTENT = 8;
+@JacksonXmlRootElement(localName = "dashboardItem", namespace = DXF_2_0)
+public class DashboardItem extends BaseIdentifiableObject implements EmbeddedObject {
+  public static final int MAX_CONTENT = 8;
 
-    private Visualization visualization;
+  private Visualization visualization;
 
-    private EventVisualization eventVisualization;
+  private EventVisualization eventVisualization;
 
-    private EventChart eventChart;
+  private EventChart eventChart;
 
-    private Map map;
+  private Map map;
 
-    private EventReport eventReport;
+  private EventReport eventReport;
 
-    private String text;
+  private String text;
 
-    private List<User> users = new ArrayList<>();
+  private List<User> users = new ArrayList<>();
 
-    private List<Report> reports = new ArrayList<>();
+  private List<Report> reports = new ArrayList<>();
 
-    private List<Document> resources = new ArrayList<>();
+  private List<Document> resources = new ArrayList<>();
 
-    private Boolean messages;
+  private Boolean messages;
 
-    private String appKey;
+  private String appKey;
 
-    private DashboardItemShape shape;
+  private DashboardItemShape shape;
 
-    private Integer x;
+  private Integer x;
 
-    private Integer y;
+  private Integer y;
 
-    private Integer height;
+  private Integer height;
 
-    private Integer width;
+  private Integer width;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DashboardItem()
-    {
-        setAutoFields();
+  public DashboardItem() {
+    setAutoFields();
+  }
+
+  public DashboardItem(String uid) {
+    this.uid = uid;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public DashboardItemType getType() {
+    if (visualization != null) {
+      return DashboardItemType.VISUALIZATION;
+    } else if (eventChart != null) {
+      return DashboardItemType.EVENT_CHART;
+    } else if (eventReport != null) {
+      return DashboardItemType.EVENT_REPORT;
+    }
+    if (eventVisualization != null) {
+      return DashboardItemType.EVENT_VISUALIZATION;
+    } else if (map != null) {
+      return DashboardItemType.MAP;
+    } else if (text != null) {
+      return DashboardItemType.TEXT;
+    } else if (!users.isEmpty()) {
+      return DashboardItemType.USERS;
+    } else if (!reports.isEmpty()) {
+      return DashboardItemType.REPORTS;
+    } else if (!resources.isEmpty()) {
+      return DashboardItemType.RESOURCES;
+    } else if (messages != null) {
+      return DashboardItemType.MESSAGES;
+    } else if (appKey != null) {
+      return DashboardItemType.APP;
     }
 
-    public DashboardItem( String uid )
-    {
-        this.uid = uid;
+    return null;
+  }
+
+  /**
+   * Returns the actual item object if this dashboard item represents an embedded item and not links
+   * to items.
+   */
+  public InterpretableObject getEmbeddedItem() {
+    if (visualization != null) {
+      return visualization;
+    } else if (eventChart != null) {
+      return eventChart;
+    } else if (eventReport != null) {
+      return eventReport;
+    }
+    if (eventVisualization != null) {
+      return eventVisualization;
+    } else if (map != null) {
+      return map;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return null;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public DashboardItemType getType()
-    {
-        if ( visualization != null )
-        {
-            return DashboardItemType.VISUALIZATION;
-        }
-        else if ( eventChart != null )
-        {
-            return DashboardItemType.EVENT_CHART;
-        }
-        else if ( eventReport != null )
-        {
-            return DashboardItemType.EVENT_REPORT;
-        }
-        if ( eventVisualization != null )
-        {
-            return DashboardItemType.EVENT_VISUALIZATION;
-        }
-        else if ( map != null )
-        {
-            return DashboardItemType.MAP;
-        }
-        else if ( text != null )
-        {
-            return DashboardItemType.TEXT;
-        }
-        else if ( !users.isEmpty() )
-        {
-            return DashboardItemType.USERS;
-        }
-        else if ( !reports.isEmpty() )
-        {
-            return DashboardItemType.REPORTS;
-        }
-        else if ( !resources.isEmpty() )
-        {
-            return DashboardItemType.RESOURCES;
-        }
-        else if ( messages != null )
-        {
-            return DashboardItemType.MESSAGES;
-        }
-        else if ( appKey != null )
-        {
-            return DashboardItemType.APP;
-        }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public int getInterpretationCount() {
+    InterpretableObject object = getEmbeddedItem();
 
-        return null;
+    return object != null ? object.getInterpretations().size() : 0;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public int getInterpretationLikeCount() {
+    InterpretableObject object = getEmbeddedItem();
+
+    return object != null
+        ? object.getInterpretations().stream().mapToInt(Interpretation::getLikes).sum()
+        : 0;
+  }
+
+  /**
+   * Returns a list of the actual item objects if this dashboard item represents a list of objects
+   * and not an embedded item.
+   */
+  public List<? extends IdentifiableObject> getLinkItems() {
+    if (!users.isEmpty()) {
+      return users;
+    } else if (!reports.isEmpty()) {
+      return reports;
+    } else if (!resources.isEmpty()) {
+      return resources;
     }
 
-    /**
-     * Returns the actual item object if this dashboard item represents an
-     * embedded item and not links to items.
-     */
-    public InterpretableObject getEmbeddedItem()
-    {
-        if ( visualization != null )
-        {
-            return visualization;
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart;
-        }
-        else if ( eventReport != null )
-        {
-            return eventReport;
-        }
-        if ( eventVisualization != null )
-        {
-            return eventVisualization;
-        }
-        else if ( map != null )
-        {
-            return map;
-        }
+    return null;
+  }
 
-        return null;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public int getContentCount() {
+    int count = 0;
+    count += visualization != null ? 1 : 0;
+    count += eventVisualization != null ? 1 : 0;
+    count += eventChart != null ? 1 : 0;
+    count += map != null ? 1 : 0;
+    count += eventReport != null ? 1 : 0;
+    count += text != null ? 1 : 0;
+    count += users.size();
+    count += reports.size();
+    count += resources.size();
+    count += messages != null ? 1 : 0;
+    count += appKey != null ? 1 : 0;
+    return count;
+  }
+
+  /**
+   * Removes the content with the given uid. Returns true if a content with the given uid existed
+   * and was removed.
+   *
+   * @param uid the identifier of the content.
+   * @return true if a content was removed.
+   */
+  public boolean removeItemContent(String uid) {
+    if (!users.isEmpty()) {
+      return removeContent(uid, users);
+    } else if (!reports.isEmpty()) {
+      return removeContent(uid, reports);
+    } else {
+      return removeContent(uid, resources);
+    }
+  }
+
+  private boolean removeContent(String uid, List<? extends IdentifiableObject> content) {
+    Iterator<? extends IdentifiableObject> iterator = content.iterator();
+
+    while (iterator.hasNext()) {
+      if (uid.equals(iterator.next().getUid())) {
+        iterator.remove();
+        return true;
+      }
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getInterpretationCount()
-    {
-        InterpretableObject object = getEmbeddedItem();
+    return false;
+  }
 
-        return object != null ? object.getInterpretations().size() : 0;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getInterpretationLikeCount()
-    {
-        InterpretableObject object = getEmbeddedItem();
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Visualization getVisualization() {
+    return visualization;
+  }
 
-        return object != null ? object.getInterpretations().stream().mapToInt( Interpretation::getLikes ).sum() : 0;
-    }
+  public void setVisualization(Visualization visualization) {
+    this.visualization = visualization;
+  }
 
-    /**
-     * Returns a list of the actual item objects if this dashboard item
-     * represents a list of objects and not an embedded item.
-     */
-    public List<? extends IdentifiableObject> getLinkItems()
-    {
-        if ( !users.isEmpty() )
-        {
-            return users;
-        }
-        else if ( !reports.isEmpty() )
-        {
-            return reports;
-        }
-        else if ( !resources.isEmpty() )
-        {
-            return resources;
-        }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EventVisualization getEventVisualization() {
+    return eventVisualization;
+  }
 
-        return null;
-    }
+  public void setEventVisualization(EventVisualization eventVisualization) {
+    this.eventVisualization = eventVisualization;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getContentCount()
-    {
-        int count = 0;
-        count += visualization != null ? 1 : 0;
-        count += eventVisualization != null ? 1 : 0;
-        count += eventChart != null ? 1 : 0;
-        count += map != null ? 1 : 0;
-        count += eventReport != null ? 1 : 0;
-        count += text != null ? 1 : 0;
-        count += users.size();
-        count += reports.size();
-        count += resources.size();
-        count += messages != null ? 1 : 0;
-        count += appKey != null ? 1 : 0;
-        return count;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EventChart getEventChart() {
+    return eventChart;
+  }
 
-    /**
-     * Removes the content with the given uid. Returns true if a content with
-     * the given uid existed and was removed.
-     *
-     * @param uid the identifier of the content.
-     * @return true if a content was removed.
-     */
-    public boolean removeItemContent( String uid )
-    {
-        if ( !users.isEmpty() )
-        {
-            return removeContent( uid, users );
-        }
-        else if ( !reports.isEmpty() )
-        {
-            return removeContent( uid, reports );
-        }
-        else
-        {
-            return removeContent( uid, resources );
-        }
-    }
+  public void setEventChart(EventChart eventChart) {
+    this.eventChart = eventChart;
+  }
 
-    private boolean removeContent( String uid, List<? extends IdentifiableObject> content )
-    {
-        Iterator<? extends IdentifiableObject> iterator = content.iterator();
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Map getMap() {
+    return map;
+  }
 
-        while ( iterator.hasNext() )
-        {
-            if ( uid.equals( iterator.next().getUid() ) )
-            {
-                iterator.remove();
-                return true;
-            }
-        }
+  public void setMap(Map map) {
+    this.map = map;
+  }
 
-        return false;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public EventReport getEventReport() {
+    return eventReport;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  public void setEventReport(EventReport eventReport) {
+    this.eventReport = eventReport;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Visualization getVisualization()
-    {
-        return visualization;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public String getText() {
+    return text;
+  }
 
-    public void setVisualization( Visualization visualization )
-    {
-        this.visualization = visualization;
-    }
+  public void setText(String text) {
+    this.text = text;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public EventVisualization getEventVisualization()
-    {
-        return eventVisualization;
-    }
+  @JsonProperty
+  @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "user", namespace = DxfNamespaces.DXF_2_0)
+  public List<User> getUsers() {
+    return users;
+  }
 
-    public void setEventVisualization( EventVisualization eventVisualization )
-    {
-        this.eventVisualization = eventVisualization;
-    }
+  @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
+  public void setUsers(List<User> users) {
+    this.users = users;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public EventChart getEventChart()
-    {
-        return eventChart;
-    }
+  @JsonProperty("reports")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "reports", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "report", namespace = DXF_2_0)
+  public List<Report> getReports() {
+    return reports;
+  }
 
-    public void setEventChart( EventChart eventChart )
-    {
-        this.eventChart = eventChart;
-    }
+  public void setReports(List<Report> reports) {
+    this.reports = reports;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Map getMap()
-    {
-        return map;
-    }
+  @JsonProperty("resources")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "resources", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "resource", namespace = DXF_2_0)
+  public List<Document> getResources() {
+    return resources;
+  }
 
-    public void setMap( Map map )
-    {
-        this.map = map;
-    }
+  public void setResources(List<Document> resources) {
+    this.resources = resources;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public EventReport getEventReport()
-    {
-        return eventReport;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Boolean getMessages() {
+    return messages;
+  }
 
-    public void setEventReport( EventReport eventReport )
-    {
-        this.eventReport = eventReport;
-    }
+  public void setMessages(Boolean messages) {
+    this.messages = messages;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public String getText()
-    {
-        return text;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public String getAppKey() {
+    return appKey;
+  }
 
-    public void setText( String text )
-    {
-        this.text = text;
-    }
+  public void setAppKey(String appKey) {
+    this.appKey = appKey;
+  }
 
-    @JsonProperty
-    @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
-    @PropertyTransformer( UserPropertyTransformer.class )
-    @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
-    public List<User> getUsers()
-    {
-        return users;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public DashboardItemShape getShape() {
+    return shape;
+  }
 
-    @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
-    public void setUsers( List<User> users )
-    {
-        this.users = users;
-    }
+  public void setShape(DashboardItemShape shape) {
+    this.shape = shape;
+  }
 
-    @JsonProperty( "reports" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "reports", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "report", namespace = DXF_2_0 )
-    public List<Report> getReports()
-    {
-        return reports;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Integer getX() {
+    return x;
+  }
 
-    public void setReports( List<Report> reports )
-    {
-        this.reports = reports;
-    }
+  public void setX(Integer x) {
+    this.x = x;
+  }
 
-    @JsonProperty( "resources" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "resources", namespace = DXF_2_0 )
-    @JacksonXmlProperty( localName = "resource", namespace = DXF_2_0 )
-    public List<Document> getResources()
-    {
-        return resources;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Integer getY() {
+    return y;
+  }
 
-    public void setResources( List<Document> resources )
-    {
-        this.resources = resources;
-    }
+  public void setY(Integer y) {
+    this.y = y;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Boolean getMessages()
-    {
-        return messages;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Integer getHeight() {
+    return height;
+  }
 
-    public void setMessages( Boolean messages )
-    {
-        this.messages = messages;
-    }
+  public void setHeight(Integer height) {
+    this.height = height;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public String getAppKey()
-    {
-        return appKey;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Integer getWidth() {
+    return width;
+  }
 
-    public void setAppKey( String appKey )
-    {
-        this.appKey = appKey;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public DashboardItemShape getShape()
-    {
-        return shape;
-    }
-
-    public void setShape( DashboardItemShape shape )
-    {
-        this.shape = shape;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Integer getX()
-    {
-        return x;
-    }
-
-    public void setX( Integer x )
-    {
-        this.x = x;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Integer getY()
-    {
-        return y;
-    }
-
-    public void setY( Integer y )
-    {
-        this.y = y;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Integer getHeight()
-    {
-        return height;
-    }
-
-    public void setHeight( Integer height )
-    {
-        this.height = height;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Integer getWidth()
-    {
-        return width;
-    }
-
-    public void setWidth( Integer width )
-    {
-        this.width = width;
-    }
+  public void setWidth(Integer width) {
+    this.width = width;
+  }
 }

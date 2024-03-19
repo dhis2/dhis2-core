@@ -30,20 +30,17 @@ package org.hisp.dhis.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.user.sharing.UserAccess} and
- * {@link org.hisp.dhis.user.sharing.UserGroupAccess}.
+ * Web API equivalent of a {@link org.hisp.dhis.user.sharing.UserAccess} and {@link
+ * org.hisp.dhis.user.sharing.UserGroupAccess}.
  *
  * @author Jan Bernitt
  */
-public interface JsonObjectAccess extends JsonObject
-{
-    default JsonAccess getAccess()
-    {
-        return get( "access", JsonAccess.class );
-    }
+public interface JsonObjectAccess extends JsonObject {
+  default JsonAccess getAccess() {
+    return get("access", JsonAccess.class);
+  }
 
-    default String getId()
-    {
-        return getString( "id" ).string();
-    }
+  default String getId() {
+    return getString("id").string();
+  }
 }

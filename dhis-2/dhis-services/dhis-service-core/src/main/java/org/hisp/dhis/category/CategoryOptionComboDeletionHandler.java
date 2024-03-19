@@ -31,9 +31,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -43,98 +41,91 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class CategoryOptionComboDeletionHandler extends IdObjectDeletionHandler<CategoryOptionCombo>
-{
-    private final CategoryService categoryService;
+public class CategoryOptionComboDeletionHandler
+    extends IdObjectDeletionHandler<CategoryOptionCombo> {
+  private final CategoryService categoryService;
 
-    // TODO expressionoptioncombo
+  // TODO expressionoptioncombo
 
-    @Override
-    protected void registerHandler()
-    {
-        whenVetoing( CategoryOption.class, this::allowDeleteCategoryOption );
-        whenVetoing( CategoryCombo.class, this::allowDeleteCategoryCombo );
-        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
+  @Override
+  protected void registerHandler() {
+    whenVetoing(CategoryOption.class, this::allowDeleteCategoryOption);
+    whenVetoing(CategoryCombo.class, this::allowDeleteCategoryCombo);
+    whenDeleting(CategoryOption.class, this::deleteCategoryOption);
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+  }
+
+  private DeletionVeto allowDeleteCategoryOption(CategoryOption categoryOption) {
+    final String dvSql =
+        "select 1 from datavalue dv "
+            + "where dv.categoryoptioncomboid in ( "
+            + "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc "
+            + "where cc.categoryoptionid = :coId ) "
+            + "or dv.attributeoptioncomboid in ( "
+            + "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc "
+            + "where cc.categoryoptionid = :coId ) limit 1;";
+
+    if (exists(dvSql, Map.of("coId", categoryOption.getId()))) {
+      return VETO;
     }
 
-    private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
-    {
-        final String dvSql = "select 1 from datavalue dv " +
-            "where dv.categoryoptioncomboid in ( " +
-            "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-            "where cc.categoryoptionid = :coId ) " +
-            "or dv.attributeoptioncomboid in ( " +
-            "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-            "where cc.categoryoptionid = :coId ) limit 1;";
+    final String crSql =
+        "select 1 from completedatasetregistration cdr "
+            + "where cdr.attributeoptioncomboid in ( "
+            + "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc "
+            + "where cc.categoryoptionid = :coId ) limit 1;";
 
-        if ( exists( dvSql, Map.of( "coId", categoryOption.getId() ) ) )
-        {
-            return VETO;
-        }
-
-        final String crSql = "select 1 from completedatasetregistration cdr " +
-            "where cdr.attributeoptioncomboid in ( " +
-            "select cc.categoryoptioncomboid from categoryoptioncombos_categoryoptions cc " +
-            "where cc.categoryoptionid = :coId ) limit 1;";
-
-        if ( exists( crSql, Map.of( "coId", categoryOption.getId() ) ) )
-        {
-            return VETO;
-        }
-
-        return ACCEPT;
+    if (exists(crSql, Map.of("coId", categoryOption.getId()))) {
+      return VETO;
     }
 
-    private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        final String dvSql = "select 1 from datavalue dv " +
-            "where dv.categoryoptioncomboid in ( " +
-            "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-            "where co.categorycomboid= :coId ) " +
-            "or dv.attributeoptioncomboid in ( " +
-            "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-            "where co.categorycomboid= :coId ) limit 1;";
+    return ACCEPT;
+  }
 
-        if ( exists( dvSql, Map.of( "coId", categoryCombo.getId() ) ) )
-        {
-            return VETO;
-        }
+  private DeletionVeto allowDeleteCategoryCombo(CategoryCombo categoryCombo) {
+    final String dvSql =
+        "select 1 from datavalue dv "
+            + "where dv.categoryoptioncomboid in ( "
+            + "select co.categoryoptioncomboid from categorycombos_optioncombos co "
+            + "where co.categorycomboid= :coId ) "
+            + "or dv.attributeoptioncomboid in ( "
+            + "select co.categoryoptioncomboid from categorycombos_optioncombos co "
+            + "where co.categorycomboid= :coId ) limit 1;";
 
-        final String crSql = "select 1 from completedatasetregistration cdr " +
-            "where cdr.attributeoptioncomboid in ( " +
-            "select co.categoryoptioncomboid from categorycombos_optioncombos co " +
-            "where co.categorycomboid= :coId ) limit 1;";
-
-        if ( exists( crSql, Map.of( "coId", categoryCombo.getId() ) ) )
-        {
-            return VETO;
-        }
-
-        return ACCEPT;
+    if (exists(dvSql, Map.of("coId", categoryCombo.getId()))) {
+      return VETO;
     }
 
-    private void deleteCategoryOption( CategoryOption categoryOption )
-    {
-        Iterator<CategoryOptionCombo> iterator = categoryOption.getCategoryOptionCombos().iterator();
+    final String crSql =
+        "select 1 from completedatasetregistration cdr "
+            + "where cdr.attributeoptioncomboid in ( "
+            + "select co.categoryoptioncomboid from categorycombos_optioncombos co "
+            + "where co.categorycomboid= :coId ) limit 1;";
 
-        while ( iterator.hasNext() )
-        {
-            CategoryOptionCombo optionCombo = iterator.next();
-            iterator.remove();
-            categoryService.deleteCategoryOptionCombo( optionCombo );
-        }
+    if (exists(crSql, Map.of("coId", categoryCombo.getId()))) {
+      return VETO;
     }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        Iterator<CategoryOptionCombo> iterator = categoryCombo.getOptionCombos().iterator();
+    return ACCEPT;
+  }
 
-        while ( iterator.hasNext() )
-        {
-            CategoryOptionCombo optionCombo = iterator.next();
-            iterator.remove();
-            categoryService.deleteCategoryOptionCombo( optionCombo );
-        }
+  private void deleteCategoryOption(CategoryOption categoryOption) {
+    Iterator<CategoryOptionCombo> iterator = categoryOption.getCategoryOptionCombos().iterator();
+
+    while (iterator.hasNext()) {
+      CategoryOptionCombo optionCombo = iterator.next();
+      iterator.remove();
+      categoryService.deleteCategoryOptionCombo(optionCombo);
     }
+  }
+
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    Iterator<CategoryOptionCombo> iterator = categoryCombo.getOptionCombos().iterator();
+
+    while (iterator.hasNext()) {
+      CategoryOptionCombo optionCombo = iterator.next();
+      iterator.remove();
+      categoryService.deleteCategoryOptionCombo(optionCombo);
+    }
+  }
 }

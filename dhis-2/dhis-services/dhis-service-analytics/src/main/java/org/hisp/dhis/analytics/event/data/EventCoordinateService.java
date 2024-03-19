@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.event.data;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -36,53 +35,51 @@ import org.hisp.dhis.feedback.ErrorCode;
 /**
  * @author Dusan Bernat
  */
-public interface EventCoordinateService
-{
-    /**
-     * Verifies the validity of fallback coordinate field.
-     *
-     * @param isRegistration true when underlying program is registration
-     * @param coordinateField the name of coordinate field (uid or name)
-     * @return returns true if valid.
-     * @throws IllegalQueryException
-     */
-    boolean isFallbackCoordinateFieldValid( boolean isRegistration, String coordinateField )
-        throws IllegalQueryException;
+public interface EventCoordinateService {
+  /**
+   * Verifies the validity of fallback coordinate field.
+   *
+   * @param isRegistration true when underlying program is registration
+   * @param coordinateField the name of coordinate field (uid or name)
+   * @return returns true if valid.
+   * @throws IllegalQueryException
+   */
+  boolean isFallbackCoordinateFieldValid(boolean isRegistration, String coordinateField)
+      throws IllegalQueryException;
 
-    /**
-     * Provides list of coordinate fields.
-     *
-     * @param program underlying program
-     * @param fallbackCoordinateField fallback
-     * @param defaultCoordinateFallback fallback cascade should be applied when
-     *        true
-     * @return list of coordinate fields
-     * @throws IllegalQueryException
-     */
-    List<String> getFallbackCoordinateFields( String program, String fallbackCoordinateField,
-        boolean defaultCoordinateFallback );
+  /**
+   * Provides list of coordinate fields.
+   *
+   * @param program underlying program
+   * @param fallbackCoordinateField fallback
+   * @param defaultCoordinateFallback fallback cascade should be applied when true
+   * @return list of coordinate fields
+   * @throws IllegalQueryException
+   */
+  List<String> getFallbackCoordinateFields(
+      String program, String fallbackCoordinateField, boolean defaultCoordinateFallback);
 
-    /**
-     * Provides verified geometry.
-     *
-     * @param valueType value type
-     * @param field geometry
-     * @param errorCode code for standard error message
-     * @return the coordinate field.
-     * @throws IllegalQueryException
-     */
-    String getCoordinateField( ValueType valueType, String field, ErrorCode errorCode )
-        throws IllegalQueryException;
+  /**
+   * Provides verified geometry.
+   *
+   * @param valueType value type
+   * @param field geometry
+   * @param errorCode code for standard error message
+   * @return the coordinate field.
+   * @throws IllegalQueryException
+   */
+  String getCoordinateField(ValueType valueType, String field, ErrorCode errorCode)
+      throws IllegalQueryException;
 
-    /**
-     * Provides verified geometry.
-     *
-     * @param program underlying program
-     * @param coordinateField geometry
-     * @param errorCode code for standard error message
-     * @return the coordinate field.
-     * @throws IllegalQueryException
-     */
-    public String getCoordinateField( String program, String coordinateField, ErrorCode errorCode )
-        throws IllegalQueryException;
+  /**
+   * Provides verified geometry.
+   *
+   * @param program underlying program
+   * @param coordinateField geometry
+   * @param errorCode code for standard error message
+   * @return the coordinate field.
+   * @throws IllegalQueryException
+   */
+  public String getCoordinateField(String program, String coordinateField, ErrorCode errorCode)
+      throws IllegalQueryException;
 }

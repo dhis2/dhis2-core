@@ -34,30 +34,24 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonStats extends JsonObject
-{
-    default int getCreated()
-    {
-        return getNumber( "created" ).intValue();
-    }
+public interface JsonStats extends JsonObject {
+  default int getCreated() {
+    return getNumber("created").intValue();
+  }
 
-    default int getUpdated()
-    {
-        return getNumber( "updated" ).intValue();
-    }
+  default int getUpdated() {
+    return getNumber("updated").intValue();
+  }
 
-    default int getDeleted()
-    {
-        return getNumber( "deleted" ).intValue();
-    }
+  default int getDeleted() {
+    return getNumber("deleted").intValue();
+  }
 
-    default int getIgnored()
-    {
-        return getNumber( "ignored" ).intValue();
-    }
+  default int getIgnored() {
+    return getNumber("ignored").intValue();
+  }
 
-    default int getTotal()
-    {
-        return getNumber( "total" ).intValue();
-    }
+  default int getTotal() {
+    return getNumber("total").intValue();
+  }
 }

@@ -28,11 +28,13 @@
 package org.hisp.dhis.security.oidc;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-
-import org.hisp.dhis.user.CurrentUserDetails;
-import org.springframework.security.core.userdetails.UserDetails;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -41,102 +43,192 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DhisOidcUser
-    extends DefaultOAuth2User
-    implements OidcUser, CurrentUserDetails
-{
-    private final OidcIdToken oidcIdToken;
+public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, OidcUser {
+  private final OidcIdToken oidcIdToken;
 
-    private final CurrentUserDetails user;
+  private final UserDetails user;
 
-    public DhisOidcUser( CurrentUserDetails user, Map<String, Object> attributes, String nameAttributeKey,
-        OidcIdToken idToken )
-    {
-        super( user.getAuthorities(), attributes, nameAttributeKey );
-        this.oidcIdToken = idToken;
-        this.user = user;
-    }
+  public DhisOidcUser(
+      UserDetails user,
+      Map<String, Object> attributes,
+      String nameAttributeKey,
+      OidcIdToken idToken) {
+    super(user.getAuthorities(), attributes, nameAttributeKey);
+    this.oidcIdToken = idToken;
+    this.user = user;
+  }
 
-    @Override
-    public Map<String, Object> getClaims()
-    {
-        return this.getAttributes();
-    }
+  @Override
+  public Map<String, Object> getClaims() {
+    return this.getAttributes();
+  }
 
-    @Override
-    public OidcUserInfo getUserInfo()
-    {
-        return null;
-    }
+  @Override
+  public OidcUserInfo getUserInfo() {
+    return null;
+  }
 
-    @Override
-    public OidcIdToken getIdToken()
-    {
-        return oidcIdToken;
-    }
+  @Override
+  public OidcIdToken getIdToken() {
+    return oidcIdToken;
+  }
 
-    public UserDetails getUser()
-    {
-        return user;
-    }
+  public org.springframework.security.core.userdetails.UserDetails getUser() {
+    return user;
+  }
 
-    @Override
-    public String getUsername()
-    {
-        return user.getUsername();
-    }
+  @Override
+  public String getUsername() {
+    return user.getUsername();
+  }
 
-    @Override
-    public String getPassword()
-    {
-        return user.getPassword();
-    }
+  @Override
+  public String getPassword() {
+    return user.getPassword();
+  }
 
-    @Override
-    public boolean isAccountNonExpired()
-    {
-        return user.isAccountNonExpired();
-    }
+  @Override
+  public boolean isAccountNonExpired() {
+    return user.isAccountNonExpired();
+  }
 
-    @Override
-    public boolean isAccountNonLocked()
-    {
-        return user.isAccountNonLocked();
-    }
+  @Override
+  public boolean isAccountNonLocked() {
+    return user.isAccountNonLocked();
+  }
 
-    @Override
-    public boolean isCredentialsNonExpired()
-    {
-        return user.isCredentialsNonExpired();
-    }
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return user.isCredentialsNonExpired();
+  }
 
-    @Override
-    public boolean isEnabled()
-    {
-        return user.isEnabled();
-    }
+  @Override
+  public boolean isEnabled() {
+    return user.isEnabled();
+  }
 
-    @Override
-    public boolean isSuper()
-    {
-        return user.isSuper();
-    }
+  @Override
+  public boolean isSuper() {
+    return user.isSuper();
+  }
 
-    @Override
-    public String getUid()
-    {
-        return user.getUid();
-    }
+  @Override
+  public String getUid() {
+    return user.getUid();
+  }
 
-    @Override
-    public Set<String> getUserGroupIds()
-    {
-        return user.getUserGroupIds();
-    }
+  @Override
+  public Long getId() {
+    return user.getId();
+  }
 
-    @Override
-    public Map<String, Serializable> getUserSettings()
-    {
-        return user.getUserSettings();
-    }
+  @Override
+  public String getCode() {
+    return user.getCode();
+  }
+
+  @Override
+  public String getFirstName() {
+    return user.getFirstName();
+  }
+
+  @Override
+  public String getSurname() {
+    return user.getSurname();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserGroupIds() {
+    return user.getUserGroupIds();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getAllAuthorities() {
+    return user.getAllAuthorities();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserOrgUnitIds() {
+    return user.getUserOrgUnitIds();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserSearchOrgUnitIds() {
+    return user.getUserSearchOrgUnitIds();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserDataOrgUnitIds() {
+    return user.getUserDataOrgUnitIds();
+  }
+
+  @Override
+  public boolean hasAnyAuthority(Collection<String> auths) {
+    return false;
+  }
+
+  @Override
+  public boolean isAuthorized(String auth) {
+    return false;
+  }
+
+  @Nonnull
+  @Override
+  public Map<String, Serializable> getUserSettings() {
+    return user.getUserSettings();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserRoleIds() {
+    return user.getUserRoleIds();
+  }
+
+  @Override
+  public boolean canModifyUser(User userToModify) {
+    return user.canModifyUser(userToModify);
+  }
+
+  @Override
+  public boolean isExternalAuth() {
+    return user.isExternalAuth();
+  }
+
+  @Override
+  public boolean isTwoFactorEnabled() {
+    return user.isTwoFactorEnabled();
+  }
+
+  @Override
+  public boolean hasAnyRestrictions(Collection<String> restrictions) {
+    return user.hasAnyRestrictions(restrictions);
+  }
+
+  @Override
+  public void setId(Long id) {
+    user.setId(id);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    DhisOidcUser that = (DhisOidcUser) o;
+
+    return Objects.equals(user, that.user);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (user != null ? user.hashCode() : 0);
+    return result;
+  }
 }

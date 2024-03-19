@@ -1,8 +1,7 @@
 {
   "dataSets": [
     {
-      "sections" : [
-      ],
+      "sections": [],
       "dataSetElements": [
         {
           "id": "WTOZ7gqbASV",
@@ -23,7 +22,7 @@
           }
         }
       ],
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "timelyDays": 15,
       "fieldCombinationRequired": false,
       "version": 4,
@@ -33,13 +32,11 @@
       "skipOffline": false,
       "dataElementDecoration": false,
       "validCompleteOnly": false,
-      "publicAccess": "rw------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
-      "indicators": [ ],
-      "userGroupAccesses": [ ],
+      "indicators": [],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
@@ -54,6 +51,13 @@
       "renderHorizontally": false,
       "user": {
         "id": "T12jeH7KPzk"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "T12jeH7KPzk",
+        "users": {},
+        "userGroups": {}
       }
     }
   ]

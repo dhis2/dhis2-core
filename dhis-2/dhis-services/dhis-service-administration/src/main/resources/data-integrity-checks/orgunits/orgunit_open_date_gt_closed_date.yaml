@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: oIK2h41Rc9L
 name: orgunits_openingdate_gt_closeddate
 description: Organisation units which have an opening date later than the closed date.
 section: Organisation units
@@ -36,7 +35,6 @@ summary_sql: >-
   count(*) as count,
   100*count(*)/NULLIF((select count(*) from organisationunit), 0) as percent
   from orgunit_future_opening_date;
-details_uid: qGXxCOoeipq
 details_sql: >-
   select uid,name
   from organisationunit where openingdate > closeddate

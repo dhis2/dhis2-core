@@ -37,23 +37,19 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class JulianCalendar extends ChronologyBasedCalendar
-{
-    private static final Calendar self = new JulianCalendar();
+public class JulianCalendar extends ChronologyBasedCalendar {
+  private static final Calendar self = new JulianCalendar();
 
-    public static Calendar getInstance()
-    {
-        return self;
-    }
+  public static Calendar getInstance() {
+    return self;
+  }
 
-    protected JulianCalendar()
-    {
-        super( JulianChronology.getInstance( DateTimeZone.getDefault() ) );
-    }
+  protected JulianCalendar() {
+    super(JulianChronology.getInstance(DateTimeZone.getDefault()));
+  }
 
-    @Override
-    public String name()
-    {
-        return "julian";
-    }
+  @Override
+  public String name() {
+    return "julian";
+  }
 }

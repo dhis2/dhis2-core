@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
@@ -38,35 +37,31 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.stereotype.Component;
 
 @Component
-public class NotificationImplementableRuleService
-    extends ImplementableRuleService
-{
-    private final Cache<Boolean> programHasRulesCache;
+public class NotificationImplementableRuleService extends ImplementableRuleService {
+  private final Cache<Boolean> programHasRulesCache;
 
-    public NotificationImplementableRuleService( ProgramRuleService programRuleService,
-        final CacheProvider cacheProvider )
-    {
-        super( programRuleService );
-        this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
+  public NotificationImplementableRuleService(
+      ProgramRuleService programRuleService, final CacheProvider cacheProvider) {
+    super(programRuleService);
+    this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
+  }
+
+  @Override
+  public List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid) {
+    List<ProgramRule> permittedRules =
+        getProgramRulesByActionTypes(
+            program, ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid);
+
+    if (permittedRules.isEmpty()) {
+      return permittedRules;
     }
 
-    @Override
-    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
-    {
-        List<ProgramRule> permittedRules = getProgramRulesByActionTypes( program,
-            ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid );
+    return getProgramRulesByActionTypes(
+        program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid);
+  }
 
-        if ( permittedRules.isEmpty() )
-        {
-            return permittedRules;
-        }
-
-        return getProgramRulesByActionTypes( program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid );
-    }
-
-    @Override
-    Cache<Boolean> getProgramHasRulesCache()
-    {
-        return this.programHasRulesCache;
-    }
+  @Override
+  Cache<Boolean> getProgramHasRulesCache() {
+    return this.programHasRulesCache;
+  }
 }

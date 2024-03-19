@@ -34,12 +34,9 @@ import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DATE_VALUE;
  *
  * @author Jim Grace
  */
-public abstract class ProgramDateVariable
-    implements ProgramVariable
-{
-    @Override
-    public final Object defaultVariableValue()
-    {
-        return DEFAULT_DATE_VALUE;
-    }
+public abstract class ProgramDateVariable implements ProgramVariable {
+  @Override
+  public final Object defaultVariableValue() {
+    return DEFAULT_DATE_VALUE;
+  }
 }

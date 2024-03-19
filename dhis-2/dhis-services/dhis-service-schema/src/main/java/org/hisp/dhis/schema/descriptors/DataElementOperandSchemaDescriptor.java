@@ -34,20 +34,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataElementOperandSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataElementOperand";
+public class DataElementOperandSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataElementOperand";
 
-    public static final String PLURAL = "dataElementOperands";
+  public static final String PLURAL = "dataElementOperands";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DataElementOperand.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DataElementOperand.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

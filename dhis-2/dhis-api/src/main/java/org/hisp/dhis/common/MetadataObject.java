@@ -31,12 +31,10 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 
 /**
- * Marker interface marking the class as a proper metadata object (not data, not
- * embedded object, etc).
+ * Marker interface marking the class as a proper metadata object (not data, not embedded object,
+ * etc).
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Auditable( scope = AuditScope.METADATA )
-public interface MetadataObject
-{
-}
+@Auditable(scope = AuditScope.METADATA)
+public interface MetadataObject {}

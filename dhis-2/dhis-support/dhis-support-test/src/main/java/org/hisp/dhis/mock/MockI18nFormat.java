@@ -29,7 +29,6 @@ package org.hisp.dhis.mock;
 
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.period.Period;
 import org.joda.time.DateTime;
@@ -40,27 +39,27 @@ import org.joda.time.format.DateTimeFormatter;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class MockI18nFormat
-    extends I18nFormat
-{
-    private static final DateTimeFormatter FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
+public class MockI18nFormat extends I18nFormat {
+  private static final DateTimeFormatter FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
-    @Override
-    public String formatPeriod( Period period )
-    {
-        return "Period_" + FORMAT.print( new DateTime( period.getStartDate() ) ) + "_"
-            + ThreadLocalRandom.current().nextInt( 1000 );
-    }
+  @Override
+  public String formatPeriod(Period period) {
+    return "Period_"
+        + FORMAT.print(new DateTime(period.getStartDate()))
+        + "_"
+        + ThreadLocalRandom.current().nextInt(1000);
+  }
 
-    @Override
-    public String formatDate( Date date )
-    {
-        return "Date_" + FORMAT.print( new DateTime( date ) ) + "_" + ThreadLocalRandom.current().nextInt( 1000 );
-    }
+  @Override
+  public String formatDate(Date date) {
+    return "Date_"
+        + FORMAT.print(new DateTime(date))
+        + "_"
+        + ThreadLocalRandom.current().nextInt(1000);
+  }
 
-    @Override
-    public Date parseDate( String string )
-    {
-        return string != null ? FORMAT.parseDateTime( string ).toDate() : null;
-    }
+  @Override
+  public Date parseDate(String string) {
+    return string != null ? FORMAT.parseDateTime(string).toDate() : null;
+  }
 }

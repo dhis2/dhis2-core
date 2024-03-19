@@ -32,12 +32,10 @@ import org.hisp.dhis.option.OptionSet;
 /**
  * @author Henning Håkonsen
  */
-public interface ValueTypedDimensionalItemObject
-    extends DimensionalItemObject
-{
-    boolean hasOptionSet();
+public interface ValueTypedDimensionalItemObject extends DimensionalItemObject {
+  boolean hasOptionSet();
 
-    OptionSet getOptionSet();
+  OptionSet getOptionSet();
 
-    ValueType getValueType();
+  ValueType getValueType();
 }

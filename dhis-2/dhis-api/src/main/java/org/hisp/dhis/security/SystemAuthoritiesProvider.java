@@ -32,9 +32,8 @@ import java.util.Collection;
 /**
  * @author Torgeir Lorange Ostby
  */
-public interface SystemAuthoritiesProvider
-{
-    String ID = SystemAuthoritiesProvider.class.getName();
+public interface SystemAuthoritiesProvider {
+  String ID = SystemAuthoritiesProvider.class.getName();
 
-    Collection<String> getSystemAuthorities();
+  Collection<String> getSystemAuthorities();
 }

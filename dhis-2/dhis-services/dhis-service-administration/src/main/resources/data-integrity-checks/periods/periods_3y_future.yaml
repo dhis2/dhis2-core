@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-  summary_uid: OuOMLbV8AaS
   name: periods_3y_future
   description: Periods which are more than three years in the future.
   section: Periods
@@ -36,7 +35,6 @@
     SELECT COUNT(*) as value,
     100.0* COUNT(*) / NULLIF( (SELECT COUNT(*) FROM period), 0)  as percent
     FROM periods_3y_future;
-  details_uid: OBtJROkTncz
   details_sql: >-
     SELECT NULL as uid, to_char(startdate, 'YYYY-MM-DD') || '-' || to_char(enddate,'YYYY-MM-DD') as name
     from period where AGE(enddate,now()) >=  INTERVAL '3 year'

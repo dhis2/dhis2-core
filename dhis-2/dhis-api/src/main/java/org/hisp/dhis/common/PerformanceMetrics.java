@@ -27,21 +27,16 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.Setter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Getter
 @Setter
-public class PerformanceMetrics implements Serializable
-{
-    @JsonProperty
-    private double totalTimeInMillis;
+public class PerformanceMetrics implements Serializable {
+  @JsonProperty private double totalTimeInMillis;
 
-    @JsonProperty
-    private List<ExecutionPlan> executionPlans;
+  @JsonProperty private List<ExecutionPlan> executionPlans;
 }

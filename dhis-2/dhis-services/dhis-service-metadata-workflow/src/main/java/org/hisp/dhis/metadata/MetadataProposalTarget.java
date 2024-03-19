@@ -35,19 +35,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  *
  * @author Jan Bernitt
  */
-public enum MetadataProposalTarget
-{
-    ORGANISATION_UNIT( OrganisationUnit.class );
+public enum MetadataProposalTarget {
+  ORGANISATION_UNIT(OrganisationUnit.class);
 
-    private Class<? extends IdentifiableObject> type;
+  private Class<? extends IdentifiableObject> type;
 
-    MetadataProposalTarget( Class<? extends IdentifiableObject> type )
-    {
-        this.type = type;
-    }
+  MetadataProposalTarget(Class<? extends IdentifiableObject> type) {
+    this.type = type;
+  }
 
-    public Class<? extends IdentifiableObject> getType()
-    {
-        return type;
-    }
+  public Class<? extends IdentifiableObject> getType() {
+    return type;
+  }
 }

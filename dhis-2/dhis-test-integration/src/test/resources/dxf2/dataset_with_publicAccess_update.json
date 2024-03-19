@@ -21,7 +21,7 @@
           }
         }
       ],
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "timelyDays": 15,
       "fieldCombinationRequired": false,
       "version": 4,
@@ -31,14 +31,12 @@
       "skipOffline": false,
       "dataElementDecoration": false,
       "validCompleteOnly": false,
-      "publicAccess": "r-------",
       "noValueRequiresComment": false,
       "shortName": "Data Set",
-      "description" : "update data set",
-      "attributeValues": [ ],
+      "description": "update data set",
+      "attributeValues": [],
       "id": "em8Bg4LCr5k",
-      "indicators": [ ],
-      "userGroupAccesses": [ ],
+      "indicators": [],
       "periodType": "Monthly",
       "mobile": false,
       "lastUpdated": "2016-03-08T07:32:42.146+0000",
@@ -54,14 +52,18 @@
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "userAccesses": [
-        {
-          "user": {
-            "id": "T12jeH7KPzk"
-          },
-          "access":"rwrw----"
-        }
-      ]
+      "sharing": {
+        "public": "r-------",
+        "external": false,
+        "owner": "T12jeH7KPzk",
+        "users": {
+          "T12jeH7KPzk": {
+            "id": "T12jeH7KPzk",
+            "access": "rwrw----"
+          }
+        },
+        "userGroups": {}
+      }
     }
   ]
 }

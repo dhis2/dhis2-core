@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.dxf2.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.datavalueset.DataValueEntry;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -46,60 +44,58 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @Setter
 @ToString
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
-public final class DataValue implements DataValueEntry
-{
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String dataElement;
+@JacksonXmlRootElement(localName = "dataValue", namespace = DxfNamespaces.DXF_2_0)
+public final class DataValue implements DataValueEntry {
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String dataElement;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String period;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String period;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String orgUnit;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String orgUnit;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String categoryOptionCombo;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String categoryOptionCombo;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String attributeOptionCombo;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String attributeOptionCombo;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String value;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String value;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String storedBy;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String storedBy;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String created;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String created;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String lastUpdated;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String lastUpdated;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String comment;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private String comment;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private boolean followup;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private boolean followup;
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private Boolean deleted;
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  private Boolean deleted;
 
-    @Override
-    public boolean getFollowup()
-    {
-        return followup;
-    }
+  @Override
+  public boolean getFollowup() {
+    return followup;
+  }
 }

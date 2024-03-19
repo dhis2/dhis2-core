@@ -35,11 +35,8 @@ import org.hisp.dhis.jsontree.JsonList;
  * @author Jan Bernitt
  * @author Jason P. Pickering
  */
-public interface JsonDataElementGroup extends JsonIdentifiableObject
-{
-    default JsonList<JsonDataElement> getDataElements()
-    {
-        return getList( "dataElements", JsonDataElement.class );
-    }
-
+public interface JsonDataElementGroup extends JsonIdentifiableObject {
+  default JsonList<JsonDataElement> getDataElements() {
+    return getList("dataElements", JsonDataElement.class);
+  }
 }

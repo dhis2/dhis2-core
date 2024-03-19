@@ -57,23 +57,17 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorLogicalAnd
-    extends AntlrOperatorLogicalAnd
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Boolean value0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
-        Boolean value1 = visitor.castBooleanVisit( ctx.expr( 1 ) );
+public class OperatorLogicalAnd extends AntlrOperatorLogicalAnd implements ExpressionItem {
+  @Override
+  public Object evaluateAllPaths(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Boolean value0 = visitor.castBooleanVisit(ctx.expr(0));
+    Boolean value1 = visitor.castBooleanVisit(ctx.expr(1));
 
-        return value0 != null && value0 ? value1 : true;
-    }
+    return value0 != null && value0 ? value1 : true;
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.castStringVisit( ctx.expr( 0 ) )
-            + " and " + visitor.castStringVisit( ctx.expr( 1 ) );
-    }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitor.castStringVisit(ctx.expr(0)) + " and " + visitor.castStringVisit(ctx.expr(1));
+  }
 }

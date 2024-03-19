@@ -27,28 +27,22 @@
  */
 package org.hisp.dhis.sms.outbound;
 
-public class BulkSmsRecipient
-{
-    private String type = "INTERNATIONAL";
+public class BulkSmsRecipient {
+  private String type = "INTERNATIONAL";
 
-    private String address;
+  private String address;
 
-    public BulkSmsRecipient()
-    {
-    }
+  public BulkSmsRecipient() {}
 
-    public BulkSmsRecipient( String address )
-    {
-        this.address = address;
-    }
+  public BulkSmsRecipient(String address) {
+    this.address = address;
+  }
 
-    public String getType()
-    {
-        return type;
-    }
+  public String getType() {
+    return type;
+  }
 
-    public String getAddress()
-    {
-        return address;
-    }
+  public String getAddress() {
+    return address;
+  }
 }

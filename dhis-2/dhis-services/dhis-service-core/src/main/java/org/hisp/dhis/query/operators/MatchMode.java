@@ -30,10 +30,9 @@ package org.hisp.dhis.query.operators;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum MatchMode
-{
-    EXACT,
-    START,
-    END,
-    ANYWHERE
+public enum MatchMode {
+  EXACT,
+  START,
+  END,
+  ANYWHERE
 }

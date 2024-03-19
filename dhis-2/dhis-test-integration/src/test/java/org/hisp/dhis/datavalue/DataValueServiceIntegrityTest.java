@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -48,94 +47,86 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * Tests the {@link DataValueService} API methods that are related to data
- * integrity checks.
- */
-class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private CategoryService categoryService;
+/** Tests the {@link DataValueService} API methods that are related to data integrity checks. */
+class DataValueServiceIntegrityTest extends SingleSetupIntegrationTestBase {
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private Period peA;
+  private Period peA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private CategoryCombo categoryComboAB;
+  private CategoryCombo categoryComboAB;
 
-    private CategoryCombo categoryComboAC;
+  private CategoryCombo categoryComboAC;
 
-    private Category categoryA;
+  private Category categoryA;
 
-    private Category categoryB;
+  private Category categoryB;
 
-    private CategoryOptionCombo categoryOptionComboAB;
+  private CategoryOptionCombo categoryOptionComboAB;
 
-    private CategoryOptionCombo categoryOptionComboAC;
+  private CategoryOptionCombo categoryOptionComboAC;
 
-    @Override
-    protected void setUpTest()
-    {
-        deA = createDataElement( 'A' );
-        dataElementService.addDataElement( deA );
+  @Override
+  protected void setUpTest() {
+    deA = createDataElement('A');
+    dataElementService.addDataElement(deA);
 
-        peA = createPeriod( "2022-07" );
+    peA = createPeriod("2022-07");
 
-        ouA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( ouA );
+    ouA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(ouA);
 
-        CategoryOption categoryOptionAB1 = new CategoryOption( "OptionA1" );
-        categoryService.addCategoryOption( categoryOptionAB1 );
-        CategoryOption categoryOptionAB2 = new CategoryOption( "OptionA2" );
-        categoryService.addCategoryOption( categoryOptionAB2 );
+    CategoryOption categoryOptionAB1 = new CategoryOption("OptionA1");
+    categoryService.addCategoryOption(categoryOptionAB1);
+    CategoryOption categoryOptionAB2 = new CategoryOption("OptionA2");
+    categoryService.addCategoryOption(categoryOptionAB2);
 
-        CategoryOption categoryOptionAC1 = new CategoryOption( "OptionB1" );
-        categoryService.addCategoryOption( categoryOptionAC1 );
-        CategoryOption categoryOptionAC2 = new CategoryOption( "OptionB2" );
-        categoryService.addCategoryOption( categoryOptionAC2 );
+    CategoryOption categoryOptionAC1 = new CategoryOption("OptionB1");
+    categoryService.addCategoryOption(categoryOptionAC1);
+    CategoryOption categoryOptionAC2 = new CategoryOption("OptionB2");
+    categoryService.addCategoryOption(categoryOptionAC2);
 
-        categoryA = createCategory( 'A', categoryOptionAB1, categoryOptionAB2 );
-        categoryB = createCategory( 'B', categoryOptionAC1, categoryOptionAC2 );
-        categoryService.addCategory( categoryA );
-        categoryService.addCategory( categoryB );
+    categoryA = createCategory('A', categoryOptionAB1, categoryOptionAB2);
+    categoryB = createCategory('B', categoryOptionAC1, categoryOptionAC2);
+    categoryService.addCategory(categoryA);
+    categoryService.addCategory(categoryB);
 
-        categoryComboAB = new CategoryCombo( "CategoryComboAB", DataDimensionType.DISAGGREGATION,
-            List.of( categoryA, categoryB ) );
-        categoryService.addCategoryCombo( categoryComboAB );
+    categoryComboAB =
+        new CategoryCombo(
+            "CategoryComboAB", DataDimensionType.DISAGGREGATION, List.of(categoryA, categoryB));
+    categoryService.addCategoryCombo(categoryComboAB);
 
-        categoryOptionComboAB = createCategoryOptionCombo( 'A' );
-        categoryOptionComboAB.setCategoryCombo( categoryComboAB );
-        categoryOptionComboAB.setCategoryOptions( Set.of( categoryOptionAB1, categoryOptionAB2 ) );
-        categoryService.addCategoryOptionCombo( categoryOptionComboAB );
+    categoryOptionComboAB = createCategoryOptionCombo('A');
+    categoryOptionComboAB.setCategoryCombo(categoryComboAB);
+    categoryOptionComboAB.setCategoryOptions(Set.of(categoryOptionAB1, categoryOptionAB2));
+    categoryService.addCategoryOptionCombo(categoryOptionComboAB);
 
-        categoryComboAC = new CategoryCombo( "CategoryComboAC", DataDimensionType.DISAGGREGATION,
-            List.of( categoryA, categoryB ) );
-        categoryService.addCategoryCombo( categoryComboAC );
+    categoryComboAC =
+        new CategoryCombo(
+            "CategoryComboAC", DataDimensionType.DISAGGREGATION, List.of(categoryA, categoryB));
+    categoryService.addCategoryCombo(categoryComboAC);
 
-        categoryOptionComboAC = createCategoryOptionCombo( 'B' );
-        categoryOptionComboAC.setCategoryCombo( categoryComboAC );
-        categoryOptionComboAC.setCategoryOptions( Set.of( categoryOptionAC1, categoryOptionAC2 ) );
-        categoryService.addCategoryOptionCombo( categoryOptionComboAC );
+    categoryOptionComboAC = createCategoryOptionCombo('B');
+    categoryOptionComboAC.setCategoryCombo(categoryComboAC);
+    categoryOptionComboAC.setCategoryOptions(Set.of(categoryOptionAC1, categoryOptionAC2));
+    categoryService.addCategoryOptionCombo(categoryOptionComboAC);
 
-        DataValue dataValueA = new DataValue( deA, peA, ouA, categoryOptionComboAB, null, "1" );
-        dataValueService.addDataValue( dataValueA );
-    }
+    DataValue dataValueA = new DataValue(deA, peA, ouA, categoryOptionComboAB, null, "1");
+    dataValueService.addDataValue(dataValueA);
+  }
 
-    @Test
-    void testExistsAnyValue()
-    {
-        assertTrue( dataValueService.dataValueExists( categoryComboAB ) );
-        assertFalse( dataValueService.dataValueExists( categoryComboAC ) );
-    }
+  @Test
+  void testExistsAnyValue() {
+    assertTrue(dataValueService.dataValueExists(categoryComboAB));
+    assertFalse(dataValueService.dataValueExists(categoryComboAC));
+  }
 }

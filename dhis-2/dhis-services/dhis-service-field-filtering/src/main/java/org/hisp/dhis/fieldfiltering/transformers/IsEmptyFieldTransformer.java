@@ -27,38 +27,33 @@
  */
 package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.fieldfiltering.FieldTransformer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 /**
  * Field transformer that check if an array is empty or not.
  *
- * Usage: "?fields=id,name,dataElementGroups::isEmpty"
+ * <p>Usage: "?fields=id,name,dataElementGroups::isEmpty"
  *
  * @author Morten Olav Hansen
  */
-public class IsEmptyFieldTransformer implements FieldTransformer
-{
-    public static final IsEmptyFieldTransformer INSTANCE = new IsEmptyFieldTransformer();
+public class IsEmptyFieldTransformer implements FieldTransformer {
+  public static final IsEmptyFieldTransformer INSTANCE = new IsEmptyFieldTransformer();
 
-    @Override
-    public JsonNode apply( String path, JsonNode value, JsonNode parent )
-    {
-        if ( !parent.isObject() )
-        {
-            return value;
-        }
-
-        String fieldName = getFieldName( path );
-
-        if ( value.isArray() )
-        {
-            // overwrite array node with true/false depending on empty status
-            ((ObjectNode) parent).put( fieldName, value.isEmpty() );
-        }
-
-        return value;
+  @Override
+  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
+    if (!parent.isObject()) {
+      return value;
     }
+
+    String fieldName = getFieldName(path);
+
+    if (value.isArray()) {
+      // overwrite array node with true/false depending on empty status
+      ((ObjectNode) parent).put(fieldName, value.isEmpty());
+    }
+
+    return value;
+  }
 }

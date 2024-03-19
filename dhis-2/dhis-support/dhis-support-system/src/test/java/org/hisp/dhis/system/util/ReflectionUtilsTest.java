@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,60 +50,53 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class ReflectionUtilsTest
-{
-    private DataElement dataElementA;
+class ReflectionUtilsTest {
+  private DataElement dataElementA;
 
-    @BeforeEach
-    void before()
-    {
-        dataElementA = new DataElement();
-        dataElementA.setId( 8 );
-        dataElementA.setName( "NameA" );
-        dataElementA.setAggregationType( AggregationType.SUM );
-    }
+  @BeforeEach
+  void before() {
+    dataElementA = new DataElement();
+    dataElementA.setId(8);
+    dataElementA.setName("NameA");
+    dataElementA.setAggregationType(AggregationType.SUM);
+  }
 
-    @Test
-    void testGetId()
-    {
-        assertEquals( 8, getId( dataElementA ) );
-    }
+  @Test
+  void testGetId() {
+    assertEquals(8, getId(dataElementA));
+  }
 
-    @Test
-    void testGetProperty()
-    {
-        assertEquals( "NameA", getProperty( dataElementA, "name" ) );
-        assertNull( getProperty( dataElementA, "color" ) );
-    }
+  @Test
+  void testGetProperty() {
+    assertEquals("NameA", getProperty(dataElementA, "name"));
+    assertNull(getProperty(dataElementA, "color"));
+  }
 
-    @Test
-    void testSetProperty()
-    {
-        setProperty( dataElementA, "shortName", "ShortNameA" );
-        assertEquals( "ShortNameA", dataElementA.getShortName() );
-    }
+  @Test
+  void testSetProperty() {
+    setProperty(dataElementA, "shortName", "ShortNameA");
+    assertEquals("ShortNameA", dataElementA.getShortName());
+  }
 
-    @Test
-    void testSetPropertyException()
-    {
-        assertThrows( UnsupportedOperationException.class, () -> setProperty( dataElementA, "color", "Blue" ) );
-    }
+  @Test
+  void testSetPropertyException() {
+    assertThrows(
+        UnsupportedOperationException.class, () -> setProperty(dataElementA, "color", "Blue"));
+  }
 
-    @Test
-    void testGetClassName()
-    {
-        assertEquals( "DataElement", getClassName( dataElementA ) );
-    }
+  @Test
+  void testGetClassName() {
+    assertEquals("DataElement", getClassName(dataElementA));
+  }
 
-    @Test
-    void testIsCollection()
-    {
-        List<Object> colA = new ArrayList<>();
-        Collection<DataElement> colB = new HashSet<>();
-        Collection<DataElement> colC = new ArrayList<>();
-        assertTrue( isCollection( colA ) );
-        assertTrue( isCollection( colB ) );
-        assertTrue( isCollection( colC ) );
-        assertFalse( isCollection( dataElementA ) );
-    }
+  @Test
+  void testIsCollection() {
+    List<Object> colA = new ArrayList<>();
+    Collection<DataElement> colB = new HashSet<>();
+    Collection<DataElement> colC = new ArrayList<>();
+    assertTrue(isCollection(colA));
+    assertTrue(isCollection(colB));
+    assertTrue(isCollection(colC));
+    assertFalse(isCollection(dataElementA));
+  }
 }

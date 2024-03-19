@@ -27,26 +27,23 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class CodeUtilsTest
-{
+class CodeUtilsTest {
 
-    @Test
-    void testFilenameEncode()
-    {
-        assertEquals( "nicechart", CodecUtils.filenameEncode( "nicechart" ) );
-    }
+  @Test
+  void testFilenameEncode() {
+    assertEquals("nicechart", CodecUtils.filenameEncode("nicechart"));
+  }
 
-    @Test
-    void test()
-    {
-        assertEquals( "Basic am9objpkb2UxMjM=", CodecUtils.getBasicAuthString( "john", "doe123" ) );
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", CodecUtils.getBasicAuthString( "admin", "district" ) );
-    }
+  @Test
+  void test() {
+    assertEquals("Basic am9objpkb2UxMjM=", CodecUtils.getBasicAuthString("john", "doe123"));
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", CodecUtils.getBasicAuthString("admin", "district"));
+  }
 }

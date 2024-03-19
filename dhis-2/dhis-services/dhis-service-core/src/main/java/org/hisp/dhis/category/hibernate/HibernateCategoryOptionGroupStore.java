@@ -28,18 +28,15 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
-
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
-
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -47,32 +44,34 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.category.CategoryOptionGroupStore" )
+@Repository("org.hisp.dhis.category.CategoryOptionGroupStore")
 public class HibernateCategoryOptionGroupStore
     extends HibernateIdentifiableObjectStore<CategoryOptionGroup>
-    implements CategoryOptionGroupStore
-{
-    public HibernateCategoryOptionGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionGroup.class, currentUserService, aclService,
-            true );
-    }
+    implements CategoryOptionGroupStore {
+  public HibernateCategoryOptionGroupStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, CategoryOptionGroup.class, aclService, true);
+  }
 
-    @Override
-    public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<CategoryOptionGroup> parameters = newJpaParameters()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> {
-                Join<Object, Object> groupSets = root.join( "groupSets" );
+    JpaQueryParameters<CategoryOptionGroup> parameters =
+        newJpaParameters()
+            .addPredicates(getSharingPredicates(builder))
+            .addPredicate(
+                root -> {
+                  Join<Object, Object> groupSets = root.join("groupSets");
 
-                return builder.or( builder.equal( groupSets.get( "id" ), groupSet.getId() ),
-                    builder.isNull( groupSets.get( "id" ) ) );
-            } );
+                  return builder.or(
+                      builder.equal(groupSets.get("id"), groupSet.getId()),
+                      builder.isNull(groupSets.get("id")));
+                });
 
-        return getList( builder, parameters );
-    }
+    return getList(builder, parameters);
+  }
 }

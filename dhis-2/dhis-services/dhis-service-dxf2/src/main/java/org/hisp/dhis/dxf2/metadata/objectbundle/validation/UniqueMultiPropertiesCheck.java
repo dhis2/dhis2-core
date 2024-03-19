@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -48,46 +47,49 @@ import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UniqueMultiPropertiesCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
-    {
-        Schema schema = context.getSchemaService().getSchema( klass );
+public class UniqueMultiPropertiesCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    Schema schema = context.getSchemaService().getSchema(klass);
 
-        Map<List<String>, List<IdentifiableObject>> propertyValuesToObjects = new HashMap<>();
+    Map<List<String>, List<IdentifiableObject>> propertyValuesToObjects = new HashMap<>();
 
-        for ( T identifiableObject : nonPersistedObjects )
-        {
-            for ( Map.Entry<Collection<String>, Collection<Function<IdentifiableObject, String>>> entry : schema
-                .getUniqueMultiPropertiesExctractors().entrySet() )
-            {
-                List<String> propertyValues = entry.getValue().stream()
-                    .map( valueExtractor -> valueExtractor.apply( identifiableObject ) )
-                    .collect( Collectors.toList() );
+    for (T identifiableObject : nonPersistedObjects) {
+      for (Map.Entry<Collection<String>, Collection<Function<IdentifiableObject, String>>> entry :
+          schema.getUniqueMultiPropertiesExctractors().entrySet()) {
+        List<String> propertyValues =
+            entry.getValue().stream()
+                .map(valueExtractor -> valueExtractor.apply(identifiableObject))
+                .collect(Collectors.toList());
 
-                propertyValuesToObjects.computeIfAbsent( propertyValues, key -> new ArrayList<>() )
-                    .add( identifiableObject );
-            }
-        }
-
-        for ( Map.Entry<List<String>, List<IdentifiableObject>> entry : propertyValuesToObjects.entrySet() )
-        {
-            List<IdentifiableObject> objects = entry.getValue();
-            if ( objects.size() > 1 )
-            {
-                for ( IdentifiableObject object : objects )
-                {
-                    ErrorReport errorReport = new ErrorReport( klass, E5005,
-                        String.join( ", ", entry.getKey() ),
-                        objects.stream().map( IdentifiableObject::getUid )
-                            .collect( joining( ", " ) ) );
-                    addReports.accept( ValidationUtils.createObjectReport( errorReport, object, bundle ) );
-                    context.markForRemoval( object );
-                }
-            }
-        }
+        propertyValuesToObjects
+            .computeIfAbsent(propertyValues, key -> new ArrayList<>())
+            .add(identifiableObject);
+      }
     }
+
+    for (Map.Entry<List<String>, List<IdentifiableObject>> entry :
+        propertyValuesToObjects.entrySet()) {
+      List<IdentifiableObject> objects = entry.getValue();
+      if (objects.size() > 1) {
+        for (IdentifiableObject object : objects) {
+          ErrorReport errorReport =
+              new ErrorReport(
+                  klass,
+                  E5005,
+                  String.join(", ", entry.getKey()),
+                  objects.stream().map(IdentifiableObject::getUid).collect(joining(", ")));
+          addReports.accept(ValidationUtils.createObjectReport(errorReport, object, bundle));
+          context.markForRemoval(object);
+        }
+      }
+    }
+  }
 }

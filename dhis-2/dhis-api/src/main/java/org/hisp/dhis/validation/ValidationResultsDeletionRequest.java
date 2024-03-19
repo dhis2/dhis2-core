@@ -35,71 +35,59 @@ import java.util.List;
 /**
  * @author Jan Bernitt
  */
-public class ValidationResultsDeletionRequest
-{
+public class ValidationResultsDeletionRequest {
 
-    private List<String> ou = new ArrayList<>();
+  private List<String> ou = new ArrayList<>();
 
-    private List<String> vr = new ArrayList<>();
+  private List<String> vr = new ArrayList<>();
 
-    private String pe;
+  private String pe;
 
-    private String created;
+  private String created;
 
-    private Boolean notificationSent;
+  private Boolean notificationSent;
 
-    public List<String> getOu()
-    {
-        return ou;
-    }
+  public List<String> getOu() {
+    return ou;
+  }
 
-    public void setOu( List<String> ou )
-    {
-        this.ou = ou;
-    }
+  public void setOu(List<String> ou) {
+    this.ou = ou;
+  }
 
-    public List<String> getVr()
-    {
-        return vr;
-    }
+  public List<String> getVr() {
+    return vr;
+  }
 
-    public void setVr( List<String> vr )
-    {
-        this.vr = vr;
-    }
+  public void setVr(List<String> vr) {
+    this.vr = vr;
+  }
 
-    public String getPe()
-    {
-        return pe;
-    }
+  public String getPe() {
+    return pe;
+  }
 
-    public void setPe( String pe )
-    {
-        this.pe = pe;
-    }
+  public void setPe(String pe) {
+    this.pe = pe;
+  }
 
-    public String getCreated()
-    {
-        return created;
-    }
+  public String getCreated() {
+    return created;
+  }
 
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
+  public void setCreated(String created) {
+    this.created = created;
+  }
 
-    public Boolean getNotificationSent()
-    {
-        return notificationSent;
-    }
+  public Boolean getNotificationSent() {
+    return notificationSent;
+  }
 
-    public void setNotificationSent( Boolean notificationSent )
-    {
-        this.notificationSent = notificationSent;
-    }
+  public void setNotificationSent(Boolean notificationSent) {
+    this.notificationSent = notificationSent;
+  }
 
-    public boolean isUnconstrained()
-    {
-        return isEmpty( ou ) && isEmpty( vr ) && pe == null && created == null && notificationSent == null;
-    }
+  public boolean isUnconstrained() {
+    return isEmpty(ou) && isEmpty(vr) && pe == null && created == null && notificationSent == null;
+  }
 }

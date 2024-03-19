@@ -30,24 +30,18 @@ package org.hisp.dhis.utils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import org.springframework.core.io.ClassPathResource;
 import org.testcontainers.shaded.com.google.common.io.Files;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TestResourceUtils
-{
-    public static File getFile( String path )
-        throws IOException
-    {
-        return new ClassPathResource( path ).getFile();
-    }
+public class TestResourceUtils {
+  public static File getFile(String path) throws IOException {
+    return new ClassPathResource(path).getFile();
+  }
 
-    public static String getFileContent( String path )
-        throws IOException
-    {
-        return Files.toString( getFile( path ), StandardCharsets.UTF_8 );
-    }
+  public static String getFileContent(String path) throws IOException {
+    return Files.toString(getFile(path), StandardCharsets.UTF_8);
+  }
 }

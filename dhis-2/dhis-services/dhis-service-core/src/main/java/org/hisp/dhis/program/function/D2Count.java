@@ -37,20 +37,16 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class D2Count
-    extends ProgramCountFunction
-{
-    @Override
-    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        getProgramStageElementDescription( ctx, visitor );
+public class D2Count extends ProgramCountFunction {
+  @Override
+  public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    getProgramStageElementDescription(ctx, visitor);
 
-        return DEFAULT_DOUBLE_VALUE;
-    }
+    return DEFAULT_DOUBLE_VALUE;
+  }
 
-    @Override
-    public String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return " is not null";
-    }
+  @Override
+  public String getConditionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return " is not null";
+  }
 }

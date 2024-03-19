@@ -29,35 +29,32 @@ package org.hisp.dhis.webapi.dimension.mappers;
 
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DataElementMapper extends BaseDimensionalItemObjectMapper
-{
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        DataElement.class );
+public class DataElementMapper extends BaseDimensionalItemObjectMapper {
+  @Getter
+  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+      Set.of(DataElement.class);
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        DataElement dataElement = (DataElement) dimension;
+  /** maps data elements to DimensionResponse */
+  @Override
+  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
+    DataElement dataElement = (DataElement) prefixedDimension.getItem();
 
-        final DimensionResponse mapped = super.map( dataElement, prefix )
-            .withValueType( dataElement.getValueType().name() )
-            .withId( String.join( ".", prefix, dataElement.getUid() ) );
+    final DimensionResponse mapped =
+        super.map(prefixedDimension, prefix).withValueType(dataElement.getValueType().name());
 
-        return Optional.of( dataElement )
-            .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
-            .map( mapped::withOptionSet )
-            .orElse( mapped );
-    }
-
+    return Optional.of(dataElement)
+        .map(DataElement::getOptionSet)
+        .map(IdentifiableObject::getUid)
+        .map(mapped::withOptionSet)
+        .orElse(mapped);
+  }
 }

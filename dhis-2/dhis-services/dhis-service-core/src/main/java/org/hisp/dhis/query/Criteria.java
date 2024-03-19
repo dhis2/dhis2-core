@@ -34,44 +34,35 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class Criteria
-{
-    @Getter
-    protected final List<Criterion> criterions = new ArrayList<>();
+public abstract class Criteria {
+  @Getter protected final List<Criterion> criterions = new ArrayList<>();
 
-    @Getter
-    private final Set<String> aliases = new HashSet<>();
+  @Getter private final Set<String> aliases = new HashSet<>();
 
-    protected final Schema schema;
+  protected final Schema schema;
 
-    Criteria( Schema schema )
-    {
-        this.schema = schema;
-    }
+  Criteria(Schema schema) {
+    this.schema = schema;
+  }
 
-    public Criteria add( Criterion criterion )
-    {
-        this.criterions.add( criterion );
-        return this;
-    }
+  public Criteria add(Criterion criterion) {
+    this.criterions.add(criterion);
+    return this;
+  }
 
-    public Criteria add( Criterion... criterions )
-    {
-        this.criterions.addAll( asList( criterions ) );
-        return this;
-    }
+  public Criteria add(Criterion... criterions) {
+    this.criterions.addAll(asList(criterions));
+    return this;
+  }
 
-    public Criteria add( Collection<Criterion> criterions )
-    {
-        this.criterions.addAll( criterions );
-        return this;
-    }
+  public Criteria add(Collection<Criterion> criterions) {
+    this.criterions.addAll(criterions);
+    return this;
+  }
 }

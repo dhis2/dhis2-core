@@ -30,9 +30,7 @@ package org.hisp.dhis.program;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,62 +39,54 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Viet Nguyen
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramStageDataElementService" )
-public class DefaultProgramStageDataElementService
-    implements ProgramStageDataElementService
-{
-    private final ProgramStageDataElementStore programStageDataElementStore;
+@Service("org.hisp.dhis.program.ProgramStageDataElementService")
+public class DefaultProgramStageDataElementService implements ProgramStageDataElementService {
+  private final ProgramStageDataElementStore programStageDataElementStore;
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addProgramStageDataElement( ProgramStageDataElement programStageDataElement )
-    {
-        programStageDataElementStore.save( programStageDataElement );
-    }
+  @Override
+  @Transactional
+  public void addProgramStageDataElement(ProgramStageDataElement programStageDataElement) {
+    programStageDataElementStore.save(programStageDataElement);
+  }
 
-    @Override
-    @Transactional
-    public void deleteProgramStageDataElement( ProgramStageDataElement programStageDataElement )
-    {
-        programStageDataElementStore.delete( programStageDataElement );
-    }
+  @Override
+  @Transactional
+  public void deleteProgramStageDataElement(ProgramStageDataElement programStageDataElement) {
+    programStageDataElementStore.delete(programStageDataElement);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStageDataElement> getAllProgramStageDataElements()
-    {
-        return programStageDataElementStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramStageDataElement> getAllProgramStageDataElements() {
+    return programStageDataElementStore.getAll();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStageDataElement> getProgramStageDataElements( DataElement dataElement )
-    {
-        return programStageDataElementStore.getProgramStageDataElements( dataElement );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement) {
+    return programStageDataElementStore.getProgramStageDataElements(dataElement);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
-    {
-        return programStageDataElementStore.get( programStage, dataElement );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement) {
+    return programStageDataElementStore.get(programStage, dataElement);
+  }
 
-    @Override
-    @Transactional
-    public void updateProgramStageDataElement( ProgramStageDataElement programStageDataElement )
-    {
-        programStageDataElementStore.update( programStageDataElement );
-    }
+  @Override
+  @Transactional
+  public void updateProgramStageDataElement(ProgramStageDataElement programStageDataElement) {
+    programStageDataElementStore.update(programStageDataElement);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue()
-    {
-        return programStageDataElementStore.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue() {
+    return programStageDataElementStore
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  }
 }

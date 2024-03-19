@@ -38,32 +38,27 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
  *
  * @author Jim Grace
  */
-public class FunctionRemoveZeros
-    implements ExpressionItem
-{
-    private static final Double ZERO = Double.valueOf( 0.0 );
+public class FunctionRemoveZeros implements ExpressionItem {
+  private static final Double ZERO = Double.valueOf(0.0);
 
-    @Override
-    public final Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Object value = visitor.visit( ctx.expr( 0 ) );
+  @Override
+  public final Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor) {
+    Object value = visitor.visit(ctx.expr(0));
 
-        if ( ZERO.equals( value ) )
-        {
-            // Don't replace this null with a zero:
-            visitor.getState().setReplaceNulls( false );
+    if (ZERO.equals(value)) {
+      // Don't replace this null with a zero:
+      visitor.getState().setReplaceNulls(false);
 
-            return null;
-        }
-
-        return value;
+      return null;
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String value = visitor.castStringVisit( ctx.expr( 0 ) );
+    return value;
+  }
 
-        return " case " + value + " when 0 then null else " + value + " end";
-    }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String value = visitor.castStringVisit(ctx.expr(0));
+
+    return " case " + value + " when 0 then null else " + value + " end";
+  }
 }

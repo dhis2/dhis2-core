@@ -36,21 +36,22 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Jim Grace
  */
-public class vCreationDate
-    extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
+public class vCreationDate extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
 
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "created", params.getReportingStartDate(),
-                params.getReportingEndDate(), params.getProgramIndicator() );
-        }
-
-        return "created";
+    if (AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
+      return visitor
+          .getStatementBuilder()
+          .getProgramIndicatorEventColumnSql(
+              null,
+              "created",
+              params.getReportingStartDate(),
+              params.getReportingEndDate(),
+              params.getProgramIndicator());
     }
+
+    return "created";
+  }
 }

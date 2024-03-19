@@ -35,23 +35,18 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Jim Grace
  */
-public class vEnrollmentStatus
-    implements ProgramVariable
-{
-    @Override
-    public final Object defaultVariableValue()
-    {
-        return "COMPLETED";
+public class vEnrollmentStatus implements ProgramVariable {
+  @Override
+  public final Object defaultVariableValue() {
+    return "COMPLETED";
+  }
+
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    if (AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType()) {
+      return "pistatus";
     }
 
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        if ( AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType() )
-        {
-            return "pistatus";
-        }
-
-        return "enrollmentstatus";
-    }
+    return "enrollmentstatus";
+  }
 }

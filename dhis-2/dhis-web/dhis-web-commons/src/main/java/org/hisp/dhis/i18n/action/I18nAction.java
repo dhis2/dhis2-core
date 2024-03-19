@@ -29,13 +29,13 @@ package org.hisp.dhis.i18n.action;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.i18n.I18nLocaleService;
@@ -46,158 +46,139 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.TranslationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Oyvind Brucker
  * @version $Id$
  * @modifier Dang Duy Hieu
  * @since 2010-03-24
  */
-public class I18nAction
-    implements Action
-{
-    private String className;
+public class I18nAction implements Action {
+  private String className;
 
-    private String uid;
+  private String uid;
 
-    private String returnUrl;
+  private String returnUrl;
 
-    private String message;
+  private String message;
 
-    private Locale currentLocale;
+  private Locale currentLocale;
 
-    private List<Locale> availableLocales = new ArrayList<>();
+  private List<Locale> availableLocales = new ArrayList<>();
 
-    private Map<String, String> translations = new Hashtable<>();
+  private Map<String, String> translations = new Hashtable<>();
 
-    private Map<String, String> referenceTranslations = new Hashtable<>();
+  private Map<String, String> referenceTranslations = new Hashtable<>();
 
-    private List<String> propertyNames = new ArrayList<>();
+  private List<String> propertyNames = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private UserSettingService userSettingService;
+  private UserSettingService userSettingService;
 
-    public void setUserSettingService( UserSettingService userSettingService )
-    {
-        this.userSettingService = userSettingService;
-    }
+  public void setUserSettingService(UserSettingService userSettingService) {
+    this.userSettingService = userSettingService;
+  }
 
-    private IdentifiableObjectManager identifiableObjectManager;
+  private IdentifiableObjectManager identifiableObjectManager;
 
-    public void setIdentifiableObjectManager( IdentifiableObjectManager identifiableObjectManager )
-    {
-        this.identifiableObjectManager = identifiableObjectManager;
-    }
+  public void setIdentifiableObjectManager(IdentifiableObjectManager identifiableObjectManager) {
+    this.identifiableObjectManager = identifiableObjectManager;
+  }
 
-    @Autowired
-    private I18nLocaleService i18nLocaleService;
+  @Autowired private I18nLocaleService i18nLocaleService;
 
-    @Autowired
-    private SchemaService schemaService;
+  @Autowired private SchemaService schemaService;
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
 
-    public void setClassName( String className )
-    {
-        this.className = className;
-    }
+  public void setClassName(String className) {
+    this.className = className;
+  }
 
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
 
-    public void setReturnUrl( String returnUrl )
-    {
-        this.returnUrl = returnUrl;
-    }
+  public void setReturnUrl(String returnUrl) {
+    this.returnUrl = returnUrl;
+  }
 
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    public String getClassName()
-    {
-        return className;
-    }
+  public String getClassName() {
+    return className;
+  }
 
-    public String getUid()
-    {
-        return uid;
-    }
+  public String getUid() {
+    return uid;
+  }
 
-    public String getReturnUrl()
-    {
-        return returnUrl;
-    }
+  public String getReturnUrl() {
+    return returnUrl;
+  }
 
-    public String getMessage()
-    {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public Locale getCurrentLocale()
-    {
-        return currentLocale;
-    }
+  public Locale getCurrentLocale() {
+    return currentLocale;
+  }
 
-    public List<Locale> getAvailableLocales()
-    {
-        return availableLocales;
-    }
+  public List<Locale> getAvailableLocales() {
+    return availableLocales;
+  }
 
-    public Map<String, String> getReferenceTranslations()
-    {
-        return referenceTranslations;
-    }
+  public Map<String, String> getReferenceTranslations() {
+    return referenceTranslations;
+  }
 
-    public Map<String, String> getTranslations()
-    {
-        return translations;
-    }
+  public Map<String, String> getTranslations() {
+    return translations;
+  }
 
-    public List<String> getPropertyNames()
-    {
-        return propertyNames;
-    }
+  public List<String> getPropertyNames() {
+    return propertyNames;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-        throws Exception
-    {
-        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className )
+  @Override
+  public String execute() throws Exception {
+    className =
+        className != null && CLASS_ALIAS.containsKey(className)
+            ? CLASS_ALIAS.get(className)
             : className;
 
-        currentLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
+    currentLocale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
 
-        availableLocales = i18nLocaleService.getAllLocales();
+    availableLocales = i18nLocaleService.getAllLocales();
 
-        IdentifiableObject object = identifiableObjectManager.getObject( uid, className );
+    IdentifiableObject object = identifiableObjectManager.getObject(uid, className);
 
-        translations = TranslationUtils.convertTranslations( object.getTranslations(), currentLocale );
+    translations = TranslationUtils.convertTranslations(object.getTranslations(), currentLocale);
 
-        Schema schema = schemaService.getSchema( object.getClass() );
+    Schema schema = schemaService.getSchema(object.getClass());
 
-        referenceTranslations = TranslationUtils.getObjectPropertyValues( schema, object );
+    referenceTranslations = TranslationUtils.getObjectPropertyValues(schema, object);
 
-        propertyNames = schema.getTranslatableProperties().stream().map( p -> p.getName() )
-            .collect( Collectors.toList() );
+    propertyNames =
+        schema.getTranslatableProperties().stream()
+            .map(p -> p.getName())
+            .collect(Collectors.toList());
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

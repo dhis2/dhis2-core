@@ -32,7 +32,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Morten Olav Hansen
  */
-public interface EventHookStore
-    extends IdentifiableObjectStore<EventHook>
-{
-}
+public interface EventHookStore extends IdentifiableObjectStore<EventHook> {}

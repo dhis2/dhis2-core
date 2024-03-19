@@ -27,50 +27,43 @@
  */
 package org.hisp.dhis.eventhook.targets;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.eventhook.Target;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class JmsTarget extends Target
-{
-    public static final String TYPE = "jms";
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class JmsTarget extends Target {
+  public static final String TYPE = "jms";
 
-    @JsonProperty( required = true )
-    private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
+  @JsonProperty(required = true)
+  private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
 
-    @JsonProperty( required = true )
-    private String groupId = "dhis2";
+  @JsonProperty(required = true)
+  private String groupId = "dhis2";
 
-    @JsonProperty( required = true )
-    private String address = "dhis2.hooks";
+  @JsonProperty(required = true)
+  private String address = "dhis2.hooks";
 
-    @JsonProperty( required = true )
-    private String brokerUrl = "tcp://localhost:61616";
+  @JsonProperty(required = true)
+  private String brokerUrl = "tcp://localhost:61616";
 
-    @JsonProperty
-    private String username;
+  @JsonProperty private String username;
 
-    @JsonProperty
-    private String password;
+  @JsonProperty private String password;
 
-    @JsonProperty
-    private boolean useQueue;
+  @JsonProperty private boolean useQueue;
 
-    public JmsTarget()
-    {
-        super( TYPE );
-    }
+  public JmsTarget() {
+    super(TYPE);
+  }
 }

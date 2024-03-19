@@ -27,17 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
-{
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    DataValue from( org.hisp.dhis.dxf2.events.event.DataValue dataValue );
+@Mapper(uses = {InstantMapper.class, UserMapper.class})
+public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue> {
+
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Override
+  DataValue from(EventDataValue dataValue);
 }

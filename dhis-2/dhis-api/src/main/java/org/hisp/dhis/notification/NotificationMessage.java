@@ -33,49 +33,41 @@ import org.hisp.dhis.message.MessageConversationStatus;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class NotificationMessage
-{
-    private String subject = "";
+public class NotificationMessage {
+  private String subject = "";
 
-    private String message = "";
+  private String message = "";
 
-    private MessageConversationPriority priority = MessageConversationPriority.NONE;
+  private MessageConversationPriority priority = MessageConversationPriority.NONE;
 
-    private MessageConversationStatus status = MessageConversationStatus.NONE;
+  private MessageConversationStatus status = MessageConversationStatus.NONE;
 
-    public NotificationMessage( String subject, String message )
-    {
-        this.subject = subject;
-        this.message = message;
-    }
+  public NotificationMessage(String subject, String message) {
+    this.subject = subject;
+    this.message = message;
+  }
 
-    public String getSubject()
-    {
-        return subject;
-    }
+  public String getSubject() {
+    return subject;
+  }
 
-    public String getMessage()
-    {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    public MessageConversationPriority getPriority()
-    {
-        return priority;
-    }
+  public MessageConversationPriority getPriority() {
+    return priority;
+  }
 
-    public void setPriority( MessageConversationPriority priority )
-    {
-        this.priority = priority;
-    }
+  public void setPriority(MessageConversationPriority priority) {
+    this.priority = priority;
+  }
 
-    public MessageConversationStatus getStatus()
-    {
-        return status;
-    }
+  public MessageConversationStatus getStatus() {
+    return status;
+  }
 
-    public void setStatus( MessageConversationStatus status )
-    {
-        this.status = status;
-    }
+  public void setStatus(MessageConversationStatus status) {
+    this.status = status;
+  }
 }

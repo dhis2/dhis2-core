@@ -27,35 +27,22 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
-
 import org.hisp.dhis.security.apikey.ApiTokenAttribute;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+public class ApiKeyAttributeJsonBinaryType extends JsonBinaryType {
+  public ApiKeyAttributeJsonBinaryType() {
+    super();
+    writer = MAPPER.writerFor(new TypeReference<List<ApiTokenAttribute>>() {});
+    reader = MAPPER.readerFor(new TypeReference<List<ApiTokenAttribute>>() {});
+    returnedClass = ApiTokenAttribute.class;
+  }
 
-public class ApiKeyAttributeJsonBinaryType extends JsonBinaryType
-{
-    public ApiKeyAttributeJsonBinaryType()
-    {
-        super();
-        writer = MAPPER.writerFor( new TypeReference<List<ApiTokenAttribute>>()
-        {
-        } );
-        reader = MAPPER.readerFor( new TypeReference<List<ApiTokenAttribute>>()
-        {
-        } );
-        returnedClass = ApiTokenAttribute.class;
-    }
-
-    @Override
-    protected void init( Class<?> klass )
-    {
-        returnedClass = klass;
-        writer = MAPPER.writerFor( new TypeReference<List<ApiTokenAttribute>>()
-        {
-        } );
-        reader = MAPPER.readerFor( new TypeReference<List<ApiTokenAttribute>>()
-        {
-        } );
-    }
+  @Override
+  protected void init(Class<?> klass) {
+    returnedClass = klass;
+    writer = MAPPER.writerFor(new TypeReference<List<ApiTokenAttribute>>() {});
+    reader = MAPPER.readerFor(new TypeReference<List<ApiTokenAttribute>>() {});
+  }
 }

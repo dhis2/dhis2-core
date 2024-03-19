@@ -35,25 +35,23 @@ import lombok.Data;
  * @author Jan Bernitt
  */
 @Data
-public final class DatastoreParams
-{
-    public enum Junction
-    {
-        AND,
-        OR
-    }
+public final class DatastoreParams {
+  public enum Junction {
+    AND,
+    OR
+  }
 
-    int page = 1;
+  int page = 1;
 
-    int pageSize = 50;
+  int pageSize = 50;
 
-    boolean paging = true;
+  boolean paging = true;
 
-    boolean headless = false;
+  boolean headless = false;
 
-    Junction rootJunction = Junction.AND;
+  Junction rootJunction = Junction.AND;
 
-    String order = "_";
+  String order = "_";
 
-    String filter;
+  String filter;
 }

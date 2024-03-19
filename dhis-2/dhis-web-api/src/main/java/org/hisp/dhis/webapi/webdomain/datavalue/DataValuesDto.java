@@ -27,18 +27,15 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.webapi.webdomain.dataentry.CompleteStatusDto;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents data values and min-max values for a data entry form.
@@ -47,19 +44,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataValuesDto
-{
-    @JsonProperty
-    private List<DataValueDto> dataValues = new ArrayList<>();
+public class DataValuesDto {
+  @JsonProperty private List<DataValueDto> dataValues = new ArrayList<>();
 
-    @JsonProperty
-    private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
+  @JsonProperty private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
 
-    @JsonProperty
-    private LockStatus lockStatus;
+  @JsonProperty private LockStatus lockStatus;
 
-    @JsonProperty
-    private CompleteStatusDto completeStatus;
+  @JsonProperty private CompleteStatusDto completeStatus;
 }

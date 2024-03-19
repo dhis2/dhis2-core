@@ -28,21 +28,19 @@
 package org.hisp.dhis.user;
 
 import java.util.List;
-
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface UserGroupAccessService
-{
-    String ID = UserGroupAccessService.class.getName();
+public interface UserGroupAccessService {
+  String ID = UserGroupAccessService.class.getName();
 
-    void addUserGroupAccess( UserGroupAccess userGroupAccess );
+  void addUserGroupAccess(UserGroupAccess userGroupAccess);
 
-    void updateUserGroupAccess( UserGroupAccess userGroupAccess );
+  void updateUserGroupAccess(UserGroupAccess userGroupAccess);
 
-    void deleteUserGroupAccess( UserGroupAccess userGroupAccess );
+  void deleteUserGroupAccess(UserGroupAccess userGroupAccess);
 
-    List<UserGroupAccess> getAllUserGroupAccesses();
+  List<UserGroupAccess> getAllUserGroupAccesses();
 }

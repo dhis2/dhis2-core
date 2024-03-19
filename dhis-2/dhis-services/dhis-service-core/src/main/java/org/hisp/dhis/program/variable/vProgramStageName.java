@@ -35,20 +35,16 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Jim Grace
  */
-public class vProgramStageName
-    implements ProgramVariable
-{
-    @Override
-    public final Object defaultVariableValue()
-    {
-        return "First antenatal care visit";
-    }
+public class vProgramStageName implements ProgramVariable {
+  @Override
+  public final Object defaultVariableValue() {
+    return "First antenatal care visit";
+  }
 
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType()
-            ? "(select name from programstage where uid = ps)"
-            : "''";
-    }
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType()
+        ? "(select name from programstage where uid = ps)"
+        : "''";
+  }
 }

@@ -30,9 +30,8 @@ package org.hisp.dhis.pushanalysis;
 /**
  * @author Stian Sandvold
  */
-public enum SchedulingFrequency
-{
-    DAILY,
-    WEEKLY,
-    MONTHLY
+public enum SchedulingFrequency {
+  DAILY,
+  WEEKLY,
+  MONTHLY
 }

@@ -27,50 +27,43 @@
  */
 package org.hisp.dhis.feedback;
 
-import java.text.MessageFormat;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ErrorMessage
-{
-    private final ErrorCode errorCode;
+@Getter
+@ToString
+public class ErrorMessage {
 
-    private final Object[] args;
+  @JsonProperty private final ErrorCode errorCode;
+  @JsonProperty private final List<String> args;
+  @JsonProperty private String message;
 
-    private final String message;
+  public ErrorMessage(ErrorCode errorCode, Object... args) {
+    this.errorCode = errorCode;
+    this.args =
+        Stream.of(args)
+            .map(obj -> obj == null ? null : obj.toString())
+            .toList(); // OBS! Must support null values!
+    this.message = MessageFormat.format(errorCode.getMessage(), args);
+  }
 
-    public ErrorMessage( ErrorCode errorCode, Object... args )
-    {
-        this.errorCode = errorCode;
-        this.args = args;
-        this.message = MessageFormat.format( errorCode.getMessage(), this.args );
-    }
-
-    @JsonCreator
-    public ErrorMessage( @JsonProperty( "message" ) String message, @JsonProperty( "errorCode" ) ErrorCode errorCode )
-    {
-        this.errorCode = errorCode;
-        this.args = null;
-        this.message = message;
-    }
-
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
-
-    @Override
-    public String toString()
-    {
-        return String.format( "[%s: '%s']", errorCode.name(), message );
-    }
+  @JsonCreator
+  public ErrorMessage(
+      @Nonnull @JsonProperty("message") String message,
+      @Nonnull @JsonProperty("errorCode") ErrorCode errorCode,
+      @CheckForNull @JsonProperty("args") List<String> args) {
+    this.errorCode = errorCode;
+    this.args = args == null ? List.of() : args;
+    this.message = message;
+  }
 }

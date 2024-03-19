@@ -33,19 +33,18 @@ import java.util.Locale;
 /**
  * @author Torgeir Lorange Ostby
  */
-public interface LocaleManager
-{
-    String ID = LocaleManager.class.getName();
+public interface LocaleManager {
+  String ID = LocaleManager.class.getName();
 
-    Locale DEFAULT_LOCALE = Locale.ENGLISH;
+  Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
-    Locale getCurrentLocale();
+  Locale getCurrentLocale();
 
-    void setCurrentLocale( Locale locale );
+  void setCurrentLocale(Locale locale);
 
-    List<Locale> getLocalesOrderedByPriority();
+  List<Locale> getLocalesOrderedByPriority();
 
-    Locale getFallbackLocale();
+  Locale getFallbackLocale();
 
-    List<Locale> getAvailableLocales();
+  List<Locale> getAvailableLocales();
 }

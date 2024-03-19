@@ -34,15 +34,13 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ItemConfigSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "itemConfig";
+public class ItemConfigSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "itemConfig";
 
-    public static final String PLURAL = "itemConfigs";
+  public static final String PLURAL = "itemConfigs";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( ItemConfig.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(ItemConfig.class, SINGULAR, PLURAL);
+  }
 }

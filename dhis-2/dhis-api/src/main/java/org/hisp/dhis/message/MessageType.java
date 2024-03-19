@@ -30,11 +30,10 @@ package org.hisp.dhis.message;
 /**
  * @author Stian Sandvold
  */
-public enum MessageType
-{
-    PRIVATE,
-    SYSTEM,
-    VALIDATION_RESULT,
-    TICKET,
-    SYSTEM_VERSION_UPDATE,
+public enum MessageType {
+  PRIVATE,
+  SYSTEM,
+  VALIDATION_RESULT,
+  TICKET,
+  SYSTEM_VERSION_UPDATE,
 }

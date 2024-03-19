@@ -29,7 +29,6 @@ package org.hisp.dhis.system.callable;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -37,47 +36,40 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 /**
  * @author Lars Helge Overland
  */
-public class IdentifiableObjectCallable<T extends IdentifiableObject>
-    implements Callable<T>
-{
-    protected IdentifiableObjectManager manager;
+public class IdentifiableObjectCallable<T extends IdentifiableObject> implements Callable<T> {
+  protected IdentifiableObjectManager manager;
 
-    protected Class<T> clazz;
+  protected Class<T> clazz;
 
-    protected IdScheme idScheme = IdScheme.UID;
+  protected IdScheme idScheme = IdScheme.UID;
 
-    protected String id;
+  protected String id;
 
-    public IdentifiableObjectCallable( IdentifiableObjectManager manager, Class<T> clazz, String id )
-    {
-        this.manager = manager;
-        this.clazz = clazz;
-        this.id = id;
-    }
+  public IdentifiableObjectCallable(IdentifiableObjectManager manager, Class<T> clazz, String id) {
+    this.manager = manager;
+    this.clazz = clazz;
+    this.id = id;
+  }
 
-    public IdentifiableObjectCallable( IdentifiableObjectManager manager, Class<T> clazz, IdScheme idScheme, String id )
-    {
-        this.manager = manager;
-        this.clazz = clazz;
-        this.idScheme = idScheme;
-        this.id = id;
-    }
+  public IdentifiableObjectCallable(
+      IdentifiableObjectManager manager, Class<T> clazz, IdScheme idScheme, String id) {
+    this.manager = manager;
+    this.clazz = clazz;
+    this.idScheme = idScheme;
+    this.id = id;
+  }
 
-    @Override
-    public T call()
-        throws ExecutionException
-    {
-        return manager.getObject( clazz, idScheme, id );
-    }
+  @Override
+  public T call() throws ExecutionException {
+    return manager.getObject(clazz, idScheme, id);
+  }
 
-    public IdentifiableObjectCallable<T> setId( String id )
-    {
-        this.id = id;
-        return this;
-    }
+  public IdentifiableObjectCallable<T> setId(String id) {
+    this.id = id;
+    return this;
+  }
 
-    public IdScheme getIdScheme()
-    {
-        return idScheme;
-    }
+  public IdScheme getIdScheme() {
+    return idScheme;
+  }
 }

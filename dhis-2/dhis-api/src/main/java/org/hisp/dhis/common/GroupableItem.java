@@ -29,17 +29,11 @@ package org.hisp.dhis.common;
 
 import java.util.UUID;
 
-public interface GroupableItem
-{
+public interface GroupableItem {
 
-    default void setGroupUUID( UUID uuid )
-    {
+  default void setGroupUUID(UUID uuid) {}
 
-    }
-
-    default UUID getGroupUUID()
-    {
-        return null;
-    }
-
+  default UUID getGroupUUID() {
+    return null;
+  }
 }

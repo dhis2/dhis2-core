@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.dataapproval.hibernate;
 
-import org.hibernate.SessionFactory;
+import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflowStore;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -40,15 +39,15 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Jim Grace
  */
-@Repository( "org.hisp.dhis.dataapproval.DataApprovalWorkflowStore" )
+@Repository("org.hisp.dhis.dataapproval.DataApprovalWorkflowStore")
 public class HibernateDataApprovalWorkflowStore
     extends HibernateIdentifiableObjectStore<DataApprovalWorkflow>
-    implements DataApprovalWorkflowStore
-{
-    public HibernateDataApprovalWorkflowStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataApprovalWorkflow.class, currentUserService, aclService,
-            true );
-    }
+    implements DataApprovalWorkflowStore {
+  public HibernateDataApprovalWorkflowStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, DataApprovalWorkflow.class, aclService, true);
+  }
 }

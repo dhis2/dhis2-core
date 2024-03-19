@@ -32,132 +32,226 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.client.response.Dhis2Response;
+import org.hisp.dhis.dataexchange.client.response.InternalImportSummaryResponse;
 import org.hisp.dhis.dataexchange.client.response.Status;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.util.UriComponentsBuilder;
 
-class Dhis2ClientTest
-{
-    @Test
-    void testGetDataValueSetUri()
-    {
-        String baseUrl = "https://play.dhis2.org/2.38.0";
+class Dhis2ClientTest {
+  @Test
+  void testGetDataValueSetUriA() {
+    String base = "https://play.dhis2.org/2.38.0";
 
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            baseUrl, "admin", "district" );
+    Dhis2Client client = Dhis2Client.withBasicAuth(base, "admin", "district");
 
-        ImportOptions optionsA = new ImportOptions()
-            .setDataElementIdScheme( "CODE" )
-            .setOrgUnitIdScheme( "CODE" )
-            .setCategoryOptionComboIdScheme( "UID" );
-        ImportOptions optionsB = new ImportOptions()
-            .setDataElementIdScheme( "uid" )
-            .setOrgUnitIdScheme( "code" )
-            .setCategoryOptionComboIdScheme( "uid" )
-            .setIdScheme( "code" );
+    ImportOptions optionsA =
+        new ImportOptions()
+            .setDataElementIdScheme("CODE")
+            .setOrgUnitIdScheme("CODE")
+            .setCategoryOptionComboIdScheme("UID");
+    ImportOptions optionsB =
+        new ImportOptions()
+            .setDataElementIdScheme("uid")
+            .setOrgUnitIdScheme("code")
+            .setCategoryOptionComboIdScheme("uid")
+            .setIdScheme("code");
 
-        String uriA = client.getDataValueSetUri( optionsA ).toString();
-        String uriB = client.getDataValueSetUri( optionsB ).toString();
+    String uriA = client.getDataValueSetUri(optionsA).toString();
+    String uriB = client.getDataValueSetUri(optionsB).toString();
 
-        assertEquals( baseUrl + "/api/dataValueSets?dataElementIdScheme=CODE&orgUnitIdScheme=CODE", uriA );
-        assertEquals( baseUrl + "/api/dataValueSets?orgUnitIdScheme=CODE&idScheme=CODE", uriB );
-    }
+    String expectedA = base + "/api/dataValueSets?dataElementIdScheme=CODE&orgUnitIdScheme=CODE";
+    String expectedB = base + "/api/dataValueSets?orgUnitIdScheme=CODE&idScheme=CODE";
 
-    @Test
-    void testNullConstructorArgument()
-    {
-        assertThrows( NullPointerException.class, () -> Dhis2Client.withBasicAuth(
-            null, "admin", "district" ) );
-        assertThrows( NullPointerException.class, () -> Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", null, "district" ) );
-    }
+    assertEquals(expectedA, uriA);
+    assertEquals(expectedB, uriB);
+  }
 
-    @Test
-    void testGetUrl()
-    {
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+  @Test
+  void testGetDataValueSetUriB() {
+    String base = "https://play.dhis2.org/2.38.0";
 
-        assertEquals( "https://play.dhis2.org/2.38.0", client.getUrl() );
-    }
+    Dhis2Client client = Dhis2Client.withBasicAuth(base, "admin", "district");
 
-    @Test
-    void testGetResolvedUriBuilder()
-    {
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+    ImportOptions optionsA =
+        new ImportOptions()
+            .setImportStrategy(ImportStrategy.CREATE)
+            .setSkipAudit(true)
+            .setDryRun(true);
+    ImportOptions optionsB =
+        new ImportOptions()
+            .setImportStrategy(ImportStrategy.CREATE_AND_UPDATE)
+            .setSkipAudit(false)
+            .setDryRun(false);
 
-        assertEquals( "https://play.dhis2.org/2.38.0/api/dataValueSets",
-            client.getResolvedUriBuilder( "dataValueSets" ).build().toUriString() );
-        assertEquals( "https://play.dhis2.org/2.38.0/api/system/info",
-            client.getResolvedUriBuilder( "system/info" ).build().toUriString() );
-    }
+    String uriA = client.getDataValueSetUri(optionsA).toString();
+    String uriB = client.getDataValueSetUri(optionsB).toString();
 
-    @Test
-    void testGetJsonAuthHeaders()
-    {
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+    String expectedA = base + "/api/dataValueSets?importStrategy=CREATE&skipAudit=true&dryRun=true";
+    String expectedB = base + "/api/dataValueSets";
 
-        HttpHeaders headers = client.getJsonAuthHeaders();
+    assertEquals(expectedA, uriA);
+    assertEquals(expectedB, uriB);
+  }
 
-        assertNotNull( headers );
-        assertEquals( MediaType.APPLICATION_JSON, headers.getContentType() );
-    }
+  @Test
+  void testNullConstructorArgument() {
+    assertThrows(
+        NullPointerException.class, () -> Dhis2Client.withBasicAuth(null, "admin", "district"));
+    assertThrows(
+        NullPointerException.class,
+        () -> Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", null, "district"));
+  }
 
-    @Test
-    void testAddIfNotDefaultA()
-        throws Exception
-    {
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+  @Test
+  void testGetUrl() {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUri( new URI( "https://server.org" ) );
+    assertEquals("https://play.dhis2.org/2.38.0", client.getUrl());
+  }
 
-        client.addIfNotDefault( builder, "dataElementIdScheme", IdScheme.CODE );
-        client.addIfNotDefault( builder, "orgUnitIdScheme", null );
-        client.addIfNotDefault( builder, "idScheme", IdScheme.UID );
+  @Test
+  void testGetResolvedUriBuilder() {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
 
-        assertEquals( "https://server.org?dataElementIdScheme=CODE", builder.build().toString() );
-    }
+    assertEquals(
+        "https://play.dhis2.org/2.38.0/api/dataValueSets",
+        client.getResolvedUriBuilder("dataValueSets").build().toUriString());
+    assertEquals(
+        "https://play.dhis2.org/2.38.0/api/system/info",
+        client.getResolvedUriBuilder("system/info").build().toUriString());
+  }
 
-    @Test
-    void testAddIfNotDefaultB()
-        throws Exception
-    {
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+  @Test
+  void testGetJsonAuthHeaders() {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUri( new URI( "https://server.org" ) );
+    HttpHeaders headers = client.getJsonAuthHeaders();
 
-        client.addIfNotDefault( builder, "dataElementIdScheme", IdScheme.from( new Attribute( "bFOVPzWwQiC" ) ) );
-        client.addIfNotDefault( builder, "orgUnitIdScheme", IdScheme.UID );
-        client.addIfNotDefault( builder, "idScheme", IdScheme.from( new Attribute( "fd0zFf0ylhI" ) ) );
+    assertNotNull(headers);
+    assertEquals(MediaType.APPLICATION_JSON, headers.getContentType());
+  }
 
-        assertEquals( "https://server.org?dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI",
-            builder.build().toString() );
-    }
+  @Test
+  void testAddIfNotDefaultIdSchemeA() throws Exception {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
 
-    @Test
-    void testDeserialize()
-    {
-        String json = "{\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"There was a problem\"}";
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(new URI("https://server.org"));
 
-        Dhis2Client client = Dhis2Client.withBasicAuth(
-            "https://play.dhis2.org/2.38.0", "admin", "district" );
+    client.addIfNotDefault(builder, "dataElementIdScheme", IdScheme.CODE);
+    client.addIfNotDefault(builder, "orgUnitIdScheme", null);
+    client.addIfNotDefault(builder, "idScheme", IdScheme.UID);
 
-        Dhis2Response response = client.deserialize( json, Dhis2Response.class );
+    String expected = "https://server.org?dataElementIdScheme=CODE";
 
-        assertEquals( HttpStatus.CONFLICT, response.getHttpStatus() );
-        assertEquals( Status.ERROR, response.getStatus() );
-        assertEquals( "There was a problem", response.getMessage() );
-    }
+    assertEquals(expected, builder.build().toString());
+  }
+
+  @Test
+  void testAddIfNotDefaultIdSchemeB() throws Exception {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(new URI("https://server.org"));
+
+    client.addIfNotDefault(
+        builder, "dataElementIdScheme", IdScheme.from(new Attribute("bFOVPzWwQiC")));
+    client.addIfNotDefault(builder, "orgUnitIdScheme", IdScheme.UID);
+    client.addIfNotDefault(builder, "idScheme", IdScheme.from(new Attribute("fd0zFf0ylhI")));
+
+    String expected =
+        "https://server.org?"
+            + "dataElementIdScheme=ATTRIBUTE:bFOVPzWwQiC&idScheme=ATTRIBUTE:fd0zFf0ylhI";
+
+    assertEquals(expected, builder.build().toString());
+  }
+
+  @Test
+  void testAddIfNotDefaultA() throws Exception {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(new URI("https://server.org"));
+
+    client.addIfNotDefault(
+        builder,
+        "importStrategy",
+        ImportStrategy.CREATE_AND_UPDATE,
+        ImportStrategy.CREATE_AND_UPDATE);
+    client.addIfNotDefault(builder, "skipAudit", true, false);
+    client.addIfNotDefault(builder, "dryRun", false, false);
+
+    String expected = "https://server.org?skipAudit=true";
+
+    assertEquals(expected, builder.build().toString());
+  }
+
+  @Test
+  void testAddIfNotDefaultB() throws Exception {
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUri(new URI("https://server.org"));
+
+    client.addIfNotDefault(
+        builder, "importStrategy", ImportStrategy.CREATE, ImportStrategy.CREATE_AND_UPDATE);
+    client.addIfNotDefault(builder, "skipAudit", false, false);
+    client.addIfNotDefault(builder, "dryRun", true, false);
+
+    String expected = "https://server.org?importStrategy=CREATE&dryRun=true";
+
+    assertEquals(expected, builder.build().toString());
+  }
+
+  @Test
+  void testDeserializeResponse() {
+    String json =
+        "{\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"There was a problem\"}";
+
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    Dhis2Response response = client.deserialize(json, Dhis2Response.class);
+
+    assertEquals(HttpStatus.CONFLICT, response.getHttpStatus());
+    assertEquals(Status.ERROR, response.getStatus());
+    assertEquals("There was a problem", response.getMessage());
+  }
+
+  @Test
+  void testDeserializeImportSummary238() {
+    String json =
+        "{"
+            + "\"httpStatusCode\": 409, \"status\": \"ERROR\", \"message\": \"Process failed\","
+            + "\"response\": {\"status\": \"WARNING\", \"description\": \"Import process failed\","
+            + "\"importCount\": {\"imported\": 0, \"updated\": 0, \"ignored\": 4, \"deleted\": 0}}}";
+
+    Dhis2Client client =
+        Dhis2Client.withBasicAuth("https://play.dhis2.org/2.38.0", "admin", "district");
+
+    InternalImportSummaryResponse response =
+        client.deserialize(json, InternalImportSummaryResponse.class);
+
+    assertEquals(HttpStatus.CONFLICT, response.getHttpStatus());
+    assertEquals(Status.ERROR, response.getStatus());
+    assertEquals("Process failed", response.getMessage());
+    ImportSummary summary = response.getResponse();
+    assertEquals(ImportStatus.WARNING, summary.getStatus());
+    assertEquals("Import process failed", summary.getDescription());
+    assertEquals(0, summary.getImportCount().getImported());
+    assertEquals(4, summary.getImportCount().getIgnored());
+  }
 }

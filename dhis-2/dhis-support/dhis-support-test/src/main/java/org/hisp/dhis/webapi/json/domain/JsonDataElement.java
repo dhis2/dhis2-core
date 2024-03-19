@@ -31,25 +31,21 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElementDomain;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.dataelement}.
+ * Web API equivalent of a {@link org.hisp.dhis.dataelement.DataElement}.
  *
  * @author Jan Bernitt
  * @author Jason P. Pickering
  */
-public interface JsonDataElement extends JsonIdentifiableObject
-{
-    default DataElementDomain getDomainType()
-    {
-        return getString( "domainType" ).parsed( DataElementDomain::valueOf );
-    }
+public interface JsonDataElement extends JsonIdentifiableObject {
+  default DataElementDomain getDomainType() {
+    return getString("domainType").parsed(DataElementDomain::valueOf);
+  }
 
-    default AggregationType getAggregationType()
-    {
-        return getString( "aggregationType" ).parsed( AggregationType::valueOf );
-    }
+  default AggregationType getAggregationType() {
+    return getString("aggregationType").parsed(AggregationType::valueOf);
+  }
 
-    default JsonOptionSet getOptionSet()
-    {
-        return get( "optionSet", JsonOptionSet.class );
-    }
+  default JsonOptionSet getOptionSet() {
+    return get("optionSet", JsonOptionSet.class);
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelementhistory;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.apache.commons.math3.util.MathUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,212 +46,195 @@ import org.springframework.stereotype.Component;
 /**
  * @author Torgeir Lorange Ostby
  */
-@Component( "org.hisp.dhis.dataelementhistory.HistoryRetriever" )
-public class DefaultHistoryRetriever
-    implements HistoryRetriever
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Component("org.hisp.dhis.dataelementhistory.HistoryRetriever")
+public class DefaultHistoryRetriever implements HistoryRetriever {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final MinMaxDataElementService minMaxDataElementService;
+  private final MinMaxDataElementService minMaxDataElementService;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    public DefaultHistoryRetriever( MinMaxDataElementService minMaxDataElementService,
-        DataValueService dataValueService, PeriodService periodService )
-    {
-        checkNotNull( minMaxDataElementService );
-        checkNotNull( dataValueService );
-        checkNotNull( periodService );
+  public DefaultHistoryRetriever(
+      MinMaxDataElementService minMaxDataElementService,
+      DataValueService dataValueService,
+      PeriodService periodService) {
+    checkNotNull(minMaxDataElementService);
+    checkNotNull(dataValueService);
+    checkNotNull(periodService);
 
-        this.minMaxDataElementService = minMaxDataElementService;
-        this.dataValueService = dataValueService;
-        this.periodService = periodService;
+    this.minMaxDataElementService = minMaxDataElementService;
+    this.dataValueService = dataValueService;
+    this.periodService = periodService;
+  }
+
+  // -------------------------------------------------------------------------
+  // HistoryRetriever implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public DataElementHistory getHistory(
+      DataElement dataElement,
+      CategoryOptionCombo optionCombo,
+      CategoryOptionCombo attributeOptionCombo,
+      OrganisationUnit organisationUnit,
+      Period lastPeriod,
+      int historyLength) {
+    if (!dataElement.getValueType().isNumeric()) {
+      return null; // TODO
     }
 
-    // -------------------------------------------------------------------------
-    // HistoryRetriever implementation
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Initialise history
+    // ---------------------------------------------------------------------
 
-    @Override
-    public DataElementHistory getHistory( DataElement dataElement, CategoryOptionCombo optionCombo,
-        CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod,
-        int historyLength )
-    {
-        if ( !dataElement.getValueType().isNumeric() )
-        {
-            return null; // TODO
-        }
+    DataElementHistory history = new DataElementHistory();
+    history.setDataElement(dataElement);
+    history.setOptionCombo(optionCombo);
+    history.setAttributeOptionComboOptionCombo(attributeOptionCombo);
+    history.setOrganisationUnit(organisationUnit);
+    history.setHistoryLength(historyLength);
+    addMinMaxLimits(organisationUnit, dataElement, optionCombo, history);
 
-        // ---------------------------------------------------------------------
-        // Initialise history
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Create history points
+    // ---------------------------------------------------------------------
 
-        DataElementHistory history = new DataElementHistory();
-        history.setDataElement( dataElement );
-        history.setOptionCombo( optionCombo );
-        history.setAttributeOptionComboOptionCombo( attributeOptionCombo );
-        history.setOrganisationUnit( organisationUnit );
-        history.setHistoryLength( historyLength );
-        addMinMaxLimits( organisationUnit, dataElement, optionCombo, history );
+    List<Period> periods = periodService.getPeriods(lastPeriod, historyLength);
 
-        // ---------------------------------------------------------------------
-        // Create history points
-        // ---------------------------------------------------------------------
+    double max = 1;
+    double average = 0;
+    double total = 0;
+    int count = 0;
 
-        List<Period> periods = periodService.getPeriods( lastPeriod, historyLength );
-
-        double max = 1;
-        double average = 0;
-        double total = 0;
-        int count = 0;
-
-        if ( history.getMaxLimit() != null )
-        {
-            max = Math.max( max, history.getMaxLimit() );
-        }
-
-        for ( Period period : periods )
-        {
-            DataElementHistoryPoint historyPoint = new DataElementHistoryPoint();
-            historyPoint.setPeriod( period );
-
-            Double value = getValue( dataElement, optionCombo, attributeOptionCombo, organisationUnit, period );
-
-            if ( value != null )
-            {
-                historyPoint.setValue( value );
-            }
-
-            if ( historyPoint.getValue() != null )
-            {
-                max = Math.max( max, historyPoint.getValue() );
-                total += historyPoint.getValue();
-                average = total / ++count;
-                average = Precision.round( average, 1 );
-            }
-
-            historyPoint.setAverage( average );
-
-            history.getHistoryPoints().add( historyPoint );
-        }
-
-        history.setMaxHistoryValue( max );
-
-        double maxValue = getMaxValue( history );
-
-        if ( !MathUtils.equals( maxValue, Double.NEGATIVE_INFINITY ) )
-        {
-            history.setMaxValue( maxValue );
-
-            double minValue = getMinValue( history );
-            history.setMinValue( minValue );
-        }
-
-        return history;
+    if (history.getMaxLimit() != null) {
+      max = Math.max(max, history.getMaxLimit());
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    for (Period period : periods) {
+      DataElementHistoryPoint historyPoint = new DataElementHistoryPoint();
+      historyPoint.setPeriod(period);
 
-    private void addMinMaxLimits( OrganisationUnit organisationUnit, DataElement dataElement,
-        CategoryOptionCombo optionCombo, DataElementHistory history )
-    {
-        MinMaxDataElement minMaxDataElement = minMaxDataElementService.getMinMaxDataElement( organisationUnit,
-            dataElement, optionCombo );
+      Double value =
+          getValue(dataElement, optionCombo, attributeOptionCombo, organisationUnit, period);
 
-        if ( minMaxDataElement != null )
-        {
-            history.setMaxLimit( minMaxDataElement.getMax() );
-            history.setMinLimit( minMaxDataElement.getMin() );
-        }
+      if (value != null) {
+        historyPoint.setValue(value);
+      }
+
+      if (historyPoint.getValue() != null) {
+        max = Math.max(max, historyPoint.getValue());
+        total += historyPoint.getValue();
+        average = total / ++count;
+        average = Precision.round(average, 1);
+      }
+
+      historyPoint.setAverage(average);
+
+      history.getHistoryPoints().add(historyPoint);
     }
 
-    /**
-     * Finds the lowest value entered in the periode given by
-     * history.historyLenght.
-     *
-     * @param history DataElementHistory
-     * @return the lowest Double value entred. If no values are entred,
-     *         Double.MAX_VALUE is returned
-     */
-    private Double getMinValue( DataElementHistory history )
-    {
-        double value = Double.MAX_VALUE;
-        List<DataElementHistoryPoint> historyPoints = history.getHistoryPoints();
+    history.setMaxHistoryValue(max);
 
-        for ( DataElementHistoryPoint point : historyPoints )
-        {
-            if ( point.getValue() != null )
-            {
-                if ( point.getValue() < value )
-                {
-                    value = point.getValue();
-                }
-            }
-        }
+    double maxValue = getMaxValue(history);
 
-        return value;
+    if (!MathUtils.equals(maxValue, Double.NEGATIVE_INFINITY)) {
+      history.setMaxValue(maxValue);
+
+      double minValue = getMinValue(history);
+      history.setMinValue(minValue);
     }
 
-    /**
-     * Finds the highest value entered in the periode given by
-     * history.historyLenght.
-     *
-     * @param history DataElementHistory
-     * @return the highest entred value. If no value is entred
-     *         Double.NEGATIVE_INFINITY is returned
-     */
-    private Double getMaxValue( DataElementHistory history )
-    {
-        double value = Double.NEGATIVE_INFINITY;
-        List<DataElementHistoryPoint> historyPoints = history.getHistoryPoints();
+    return history;
+  }
 
-        for ( DataElementHistoryPoint point : historyPoints )
-        {
-            if ( point.getValue() != null )
-            {
-                if ( point.getValue() > value )
-                {
-                    value = point.getValue();
-                }
-            }
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private void addMinMaxLimits(
+      OrganisationUnit organisationUnit,
+      DataElement dataElement,
+      CategoryOptionCombo optionCombo,
+      DataElementHistory history) {
+    MinMaxDataElement minMaxDataElement =
+        minMaxDataElementService.getMinMaxDataElement(organisationUnit, dataElement, optionCombo);
+
+    if (minMaxDataElement != null) {
+      history.setMaxLimit(minMaxDataElement.getMax());
+      history.setMinLimit(minMaxDataElement.getMin());
+    }
+  }
+
+  /**
+   * Finds the lowest value entered in the periode given by history.historyLenght.
+   *
+   * @param history DataElementHistory
+   * @return the lowest Double value entred. If no values are entred, Double.MAX_VALUE is returned
+   */
+  private Double getMinValue(DataElementHistory history) {
+    double value = Double.MAX_VALUE;
+    List<DataElementHistoryPoint> historyPoints = history.getHistoryPoints();
+
+    for (DataElementHistoryPoint point : historyPoints) {
+      if (point.getValue() != null) {
+        if (point.getValue() < value) {
+          value = point.getValue();
         }
-
-        return value;
+      }
     }
 
-    private Double getValue( DataElement dataElement, CategoryOptionCombo optionCombo,
-        CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period period )
-    {
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, optionCombo,
-            attributeOptionCombo );
+    return value;
+  }
 
-        if ( dataValue != null )
-        {
-            if ( dataValue.getValue() != null )
-            {
-                return parseValue( dataValue.getValue() );
+  /**
+   * Finds the highest value entered in the periode given by history.historyLenght.
+   *
+   * @param history DataElementHistory
+   * @return the highest entred value. If no value is entred Double.NEGATIVE_INFINITY is returned
+   */
+  private Double getMaxValue(DataElementHistory history) {
+    double value = Double.NEGATIVE_INFINITY;
+    List<DataElementHistoryPoint> historyPoints = history.getHistoryPoints();
 
-            }
+    for (DataElementHistoryPoint point : historyPoints) {
+      if (point.getValue() != null) {
+        if (point.getValue() > value) {
+          value = point.getValue();
         }
-
-        return null;
+      }
     }
 
-    private Double parseValue( String value )
-    {
-        try
-        {
-            return Double.parseDouble( value );
-        }
-        catch ( NumberFormatException e )
-        {
-            throw new RuntimeException( "Failed to parse double: " + value, e );
-        }
+    return value;
+  }
+
+  private Double getValue(
+      DataElement dataElement,
+      CategoryOptionCombo optionCombo,
+      CategoryOptionCombo attributeOptionCombo,
+      OrganisationUnit organisationUnit,
+      Period period) {
+    DataValue dataValue =
+        dataValueService.getDataValue(
+            dataElement, period, organisationUnit, optionCombo, attributeOptionCombo);
+
+    if (dataValue != null) {
+      if (dataValue.getValue() != null) {
+        return parseValue(dataValue.getValue());
+      }
     }
+
+    return null;
+  }
+
+  private Double parseValue(String value) {
+    try {
+      return Double.parseDouble(value);
+    } catch (NumberFormatException e) {
+      throw new RuntimeException("Failed to parse double: " + value, e);
+    }
+  }
 }

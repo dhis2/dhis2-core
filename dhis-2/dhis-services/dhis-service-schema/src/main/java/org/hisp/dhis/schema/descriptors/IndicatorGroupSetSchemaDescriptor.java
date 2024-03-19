@@ -27,38 +27,38 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class IndicatorGroupSetSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "indicatorGroupSet";
+public class IndicatorGroupSetSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "indicatorGroupSet";
 
-    public static final String PLURAL = "indicatorGroupSets";
+  public static final String PLURAL = "indicatorGroupSets";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( IndicatorGroupSet.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1270 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(IndicatorGroupSet.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1270);
 
-        schema.add(
-            new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_INDICATORGROUPSET_PUBLIC_ADD" ) ) );
-        schema.add(
-            new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_INDICATORGROUPSET_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_INDICATORGROUPSET_DELETE" ) ) );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_INDICATORGROUPSET_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_INDICATORGROUPSET_PRIVATE_ADD")));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList("F_INDICATORGROUPSET_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

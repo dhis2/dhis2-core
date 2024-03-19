@@ -27,35 +27,29 @@
  */
 package org.hisp.dhis.visualization;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.annotation.Description;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * This class is just a wrapper class to provide a simplified summary view of
- * the Visualization object. It will only contains the BaseIdentifiableObject
- * attributes plus a minimum amount of attributes from Visualization.
+ * This class is just a wrapper class to provide a simplified summary view of the Visualization
+ * object. It will only contains the BaseIdentifiableObject attributes plus a minimum amount of
+ * attributes from Visualization.
  */
-public class SimpleVisualizationView
-    extends
-    BaseIdentifiableObject
-{
+public class SimpleVisualizationView extends BaseIdentifiableObject {
 
-    private VisualizationType type;
+  private VisualizationType type;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Description( "The type of the Visualization object. Only used for Visualization objects." )
-    public VisualizationType getType()
-    {
-        return type;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Description("The type of the Visualization object. Only used for Visualization objects.")
+  public VisualizationType getType() {
+    return type;
+  }
 
-    public void setType( VisualizationType type )
-    {
-        this.type = type;
-    }
+  public void setType(VisualizationType type) {
+    this.type = type;
+  }
 }

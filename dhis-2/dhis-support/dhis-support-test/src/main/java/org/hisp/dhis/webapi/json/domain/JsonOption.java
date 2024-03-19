@@ -30,18 +30,14 @@ package org.hisp.dhis.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
- *
  * @author Jason Pickering
  */
-public interface JsonOption extends JsonIdentifiableObject
-{
-    default JsonList<JsonOptionSet> getOptionSet()
-    {
-        return getList( "optionSet", JsonOptionSet.class );
-    }
+public interface JsonOption extends JsonIdentifiableObject {
+  default JsonList<JsonOptionSet> getOptionSet() {
+    return getList("optionSet", JsonOptionSet.class);
+  }
 
-    default Number getSortOrder()
-    {
-        return getNumber( "sortOrder" ).number();
-    }
+  default Number getSortOrder() {
+    return getNumber("sortOrder").number();
+  }
 }

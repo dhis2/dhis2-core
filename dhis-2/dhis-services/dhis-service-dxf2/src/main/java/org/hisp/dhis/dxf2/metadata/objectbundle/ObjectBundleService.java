@@ -28,25 +28,32 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ObjectBundleService
-{
-    /**
-     * Creates and prepares object bundle.
-     *
-     * @param params Params object for this bundle.
-     * @return Configured ObjectBundle instance
-     */
-    ObjectBundle create( ObjectBundleParams params );
+public interface ObjectBundleService {
+  /**
+   * Creates and prepares object bundle.
+   *
+   * @param params Params object for this bundle.
+   * @return Configured ObjectBundle instance
+   */
+  ObjectBundle create(ObjectBundleParams params);
 
-    /**
-     * Commits objects from bundle into persistence store if bundle mode COMMIT
-     * is enabled.
-     *
-     * @param bundle ObjectBundle to commit.
-     */
-    ObjectBundleCommitReport commit( ObjectBundle bundle );
+  /**
+   * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
+   *
+   * @param bundle ObjectBundle to commit.
+   */
+  ObjectBundleCommitReport commit(ObjectBundle bundle);
+
+  /**
+   * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
+   *
+   * @param bundle ObjectBundle to commit.
+   * @param progress to track progress
+   */
+  ObjectBundleCommitReport commit(ObjectBundle bundle, JobProgress progress);
 }

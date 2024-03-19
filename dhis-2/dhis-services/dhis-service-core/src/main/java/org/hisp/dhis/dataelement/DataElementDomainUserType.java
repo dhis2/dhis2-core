@@ -32,11 +32,8 @@ import org.hisp.dhis.hibernate.EnumUserType;
 /**
  * @author Chau Thu Tran
  */
-public class DataElementDomainUserType
-    extends EnumUserType<DataElementDomain>
-{
-    public DataElementDomainUserType()
-    {
-        super( DataElementDomain.class );
-    }
+public class DataElementDomainUserType extends EnumUserType<DataElementDomain> {
+  public DataElementDomainUserType() {
+    super(DataElementDomain.class);
+  }
 }

@@ -27,31 +27,26 @@
  */
 package org.hisp.dhis.dxf2.webmessage.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.fileresource.FileResource;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public class FileResourceWebMessageResponse
-    extends AbstractWebMessageResponse
-{
-    private FileResource fileResource;
+public class FileResourceWebMessageResponse extends AbstractWebMessageResponse {
+  private FileResource fileResource;
 
-    public FileResourceWebMessageResponse( FileResource fileResource )
-    {
-        this.setResponseType( FileResource.class.getSimpleName() );
-        this.fileResource = fileResource;
-    }
+  public FileResourceWebMessageResponse(FileResource fileResource) {
+    this.setResponseType(FileResource.class.getSimpleName());
+    this.fileResource = fileResource;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FileResource getFileResource()
-    {
-        return fileResource;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FileResource getFileResource() {
+    return fileResource;
+  }
 }

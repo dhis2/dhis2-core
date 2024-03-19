@@ -28,17 +28,14 @@
 package org.hisp.dhis.common;
 
 import java.util.Set;
-
 import org.hisp.dhis.user.User;
 
-public interface SubscribableObject
-    extends IdentifiableObject
-{
-    Set<String> getSubscribers();
+public interface SubscribableObject extends IdentifiableObject {
+  Set<String> getSubscribers();
 
-    boolean isSubscribed();
+  boolean isSubscribed();
 
-    boolean subscribe( User user );
+  boolean subscribe(User user);
 
-    boolean unsubscribe( User user );
+  boolean unsubscribe(User user);
 }

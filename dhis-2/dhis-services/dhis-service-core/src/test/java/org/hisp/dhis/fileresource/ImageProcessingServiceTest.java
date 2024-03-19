@@ -35,9 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Map;
-
 import javax.imageio.ImageIO;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,75 +45,68 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @Author Zubair Asghar.
  */
-@ExtendWith( MockitoExtension.class )
-class ImageProcessingServiceTest
-{
-    private static final int SMALL_IMAGE_WIDTH = 256;
+@ExtendWith(MockitoExtension.class)
+class ImageProcessingServiceTest {
+  private static final int SMALL_IMAGE_WIDTH = 256;
 
-    private static final int MEDIUM_IMAGE_WIDTH = 512;
+  private static final int MEDIUM_IMAGE_WIDTH = 512;
 
-    private static final int LARGE_IMAGE_WIDTH = 1024;
+  private static final int LARGE_IMAGE_WIDTH = 1024;
 
-    private ImageProcessingService subject;
+  private ImageProcessingService subject;
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new DefaultImageProcessingService();
-    }
+  @BeforeEach
+  public void setUp() {
+    subject = new DefaultImageProcessingService();
+  }
 
-    @Test
-    void test_create_images_with_null_values()
-    {
-        Map<ImageFileDimension, File> images = subject.createImages( new FileResource(), null );
+  @Test
+  void test_create_images_with_null_values() {
+    Map<ImageFileDimension, File> images = subject.createImages(new FileResource(), null);
 
-        assertTrue( images.isEmpty() );
-    }
+    assertTrue(images.isEmpty());
+  }
 
-    @Test
-    void test_create_images_with_wrong_file_content_type()
-        throws IOException
-    {
-        FileResource fileResource = new FileResource();
-        fileResource.setName( "test" );
-        fileResource.setContentType( "image/png" );
+  @Test
+  void test_create_images_with_wrong_file_content_type() throws IOException {
+    FileResource fileResource = new FileResource();
+    fileResource.setName("test");
+    fileResource.setContentType("image/png");
 
-        File file = new File( "complex.pdf" );
+    File file = new File("complex.pdf");
 
-        Map<ImageFileDimension, File> images = subject.createImages( fileResource, file );
+    Map<ImageFileDimension, File> images = subject.createImages(fileResource, file);
 
-        assertTrue( images.isEmpty() );
+    assertTrue(images.isEmpty());
 
-        Files.deleteIfExists( file.toPath() );
-    }
+    Files.deleteIfExists(file.toPath());
+  }
 
-    @Test
-    void test_create_image()
-        throws IOException
-    {
-        FileResource fileResource = new FileResource();
-        fileResource.setName( "test" );
-        fileResource.setContentType( "image/png" );
+  @Test
+  void test_create_image() throws IOException {
+    FileResource fileResource = new FileResource();
+    fileResource.setName("test");
+    fileResource.setContentType("image/png");
 
-        File file = new ClassPathResource( "images/dhis2.png" ).getFile();
+    File file = new ClassPathResource("images/dhis2.png").getFile();
 
-        Map<ImageFileDimension, File> images = subject.createImages( fileResource, file );
+    Map<ImageFileDimension, File> images = subject.createImages(fileResource, file);
 
-        assertNotNull( images );
-        assertEquals( 4, images.size() );
+    assertNotNull(images);
+    assertEquals(4, images.size());
 
-        File smallImage = images.get( ImageFileDimension.SMALL );
-        File mediumImage = images.get( ImageFileDimension.MEDIUM );
-        File largeImage = images.get( ImageFileDimension.LARGE );
+    File smallImage = images.get(ImageFileDimension.SMALL);
+    File mediumImage = images.get(ImageFileDimension.MEDIUM);
+    File largeImage = images.get(ImageFileDimension.LARGE);
 
-        assertEquals( SMALL_IMAGE_WIDTH, ImageIO.read( smallImage ).getWidth() );
+    assertEquals(SMALL_IMAGE_WIDTH, ImageIO.read(smallImage).getWidth());
 
-        assertEquals( MEDIUM_IMAGE_WIDTH, ImageIO.read( mediumImage ).getWidth() );
+    assertEquals(MEDIUM_IMAGE_WIDTH, ImageIO.read(mediumImage).getWidth());
 
-        assertEquals( LARGE_IMAGE_WIDTH, ImageIO.read( largeImage ).getWidth() );
+    assertEquals(LARGE_IMAGE_WIDTH, ImageIO.read(largeImage).getWidth());
 
-        Files.deleteIfExists( smallImage.toPath() );
-        Files.deleteIfExists( mediumImage.toPath() );
-        Files.deleteIfExists( largeImage.toPath() );
-    }
+    Files.deleteIfExists(smallImage.toPath());
+    Files.deleteIfExists(mediumImage.toPath());
+    Files.deleteIfExists(largeImage.toPath());
+  }
 }

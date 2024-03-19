@@ -29,33 +29,44 @@ package org.hisp.dhis.test.integration;
 
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.config.IntegrationTestConfig;
+import org.hisp.dhis.config.IntegrationBaseConfig;
+import org.hisp.dhis.config.TestContainerPostgresConfig;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ContextConfiguration(classes = {IntegrationBaseConfig.class, TestContainerPostgresConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
-{
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        bindSession();
+@ActiveProfiles(profiles = {"test-postgres"})
+public abstract class IntegrationTestBase extends BaseSpringTest {
 
-        integrationTestBefore();
-    }
+  @Autowired private UserService _userService;
 
-    @AfterEach
-    public final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
+  private User adminUser;
+
+  @BeforeEach
+  public final void before() throws Exception {
+    bindSession();
+
+    userService = _userService;
+    adminUser = preCreateInjectAdminUser();
+
+    integrationTestBeforeEach();
+  }
+
+  public User getAdminUser() {
+    return adminUser;
+  }
+
+  @AfterEach
+  public final void after() throws Exception {
+    nonTransactionalAfter();
+  }
 }

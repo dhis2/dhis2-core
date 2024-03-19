@@ -28,45 +28,38 @@
 package org.hisp.dhis.dataset.comparator;
 
 import java.util.Comparator;
-
 import org.hisp.dhis.dataset.DataSet;
 
-public class DataSetApprovalFrequencyComparator
-    implements Comparator<DataSet>
-{
-    public static final DataSetApprovalFrequencyComparator INSTANCE = new DataSetApprovalFrequencyComparator();
+public class DataSetApprovalFrequencyComparator implements Comparator<DataSet> {
+  public static final DataSetApprovalFrequencyComparator INSTANCE =
+      new DataSetApprovalFrequencyComparator();
 
-    @Override
-    public int compare( DataSet d1, DataSet d2 )
-    {
-        if ( d1 == null )
-        {
-            return -1;
-        }
-
-        if ( d2 == null )
-        {
-            return 1;
-        }
-
-        if ( d1.getWorkflow() != null && d2.getWorkflow() == null )
-        {
-            return -1;
-        }
-
-        if ( d1.getWorkflow() == null && d2.getWorkflow() != null )
-        {
-            return 1;
-        }
-
-        int frequencyOrder = Integer.valueOf( d1.getPeriodType().getFrequencyOrder() )
-            .compareTo( Integer.valueOf( d2.getPeriodType().getFrequencyOrder() ) );
-
-        if ( frequencyOrder != 0 )
-        {
-            return frequencyOrder;
-        }
-
-        return d1.compareTo( d2 );
+  @Override
+  public int compare(DataSet d1, DataSet d2) {
+    if (d1 == null) {
+      return -1;
     }
+
+    if (d2 == null) {
+      return 1;
+    }
+
+    if (d1.getWorkflow() != null && d2.getWorkflow() == null) {
+      return -1;
+    }
+
+    if (d1.getWorkflow() == null && d2.getWorkflow() != null) {
+      return 1;
+    }
+
+    int frequencyOrder =
+        Integer.valueOf(d1.getPeriodType().getFrequencyOrder())
+            .compareTo(Integer.valueOf(d2.getPeriodType().getFrequencyOrder()));
+
+    if (frequencyOrder != 0) {
+      return frequencyOrder;
+    }
+
+    return d1.compareTo(d2);
+  }
 }

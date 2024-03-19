@@ -32,24 +32,19 @@ package org.hisp.dhis.dxf2.adx;
  *
  * @author bobj
  */
-public class AdxException
-    extends Exception
-{
-    private final String object;
+public class AdxException extends Exception {
+  private final String object;
 
-    public String getObject()
-    {
-        return object;
-    }
+  public String getObject() {
+    return object;
+  }
 
-    public AdxException( String msg )
-    {
-        this( "ADX Error", msg );
-    }
+  public AdxException(String msg) {
+    this("ADX Error", msg);
+  }
 
-    public AdxException( String object, String msg )
-    {
-        super( msg );
-        this.object = object;
-    }
+  public AdxException(String object, String msg) {
+    super(msg);
+    this.object = object;
+  }
 }

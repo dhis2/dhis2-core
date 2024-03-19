@@ -34,7 +34,6 @@
   "enrollments": [
     {
       "enrollment": "MNWZ6hnuhLl",
-      "updatedAt": "2019-08-19T13:58:26.874",
       "trackedEntity": "Kj6vYde4LFf",
       "program": {
         "idScheme": "UID",

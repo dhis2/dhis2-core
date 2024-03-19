@@ -28,37 +28,32 @@
 package org.hisp.dhis.option;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class OptionGroupDeletionHandler extends IdObjectDeletionHandler<OptionGroup>
-{
-    private final OptionGroupStore optionGroupStore;
+public class OptionGroupDeletionHandler extends IdObjectDeletionHandler<OptionGroup> {
+  private final OptionGroupStore optionGroupStore;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Option.class, this::deleteOption );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Option.class, this::deleteOption);
+  }
+
+  private void deleteOption(Option option) {
+    List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId(option.getUid());
+
+    if (CollectionUtils.isEmpty(optionGroup)) {
+      return;
     }
 
-    private void deleteOption( Option option )
-    {
-        List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId( option.getUid() );
-
-        if ( CollectionUtils.isEmpty( optionGroup ) )
-        {
-            return;
-        }
-
-        optionGroup.forEach( og -> {
-            og.removeOption( option );
-            optionGroupStore.update( og );
-        } );
-    }
+    optionGroup.forEach(
+        og -> {
+          og.removeOption(option);
+          optionGroupStore.update(og);
+        });
+  }
 }

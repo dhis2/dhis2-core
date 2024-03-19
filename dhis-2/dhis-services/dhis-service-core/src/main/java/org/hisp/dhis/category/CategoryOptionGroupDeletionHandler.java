@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -38,22 +37,18 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CategoryOptionGroupDeletionHandler
-    extends IdObjectDeletionHandler<CategoryOptionGroup>
-{
-    private final CategoryService categoryService;
+    extends IdObjectDeletionHandler<CategoryOptionGroup> {
+  private final CategoryService categoryService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
-    }
+  @Override
+  protected void registerHandler() {
+    whenDeleting(CategoryOption.class, this::deleteCategoryOption);
+  }
 
-    private void deleteCategoryOption( CategoryOption categoryOption )
-    {
-        for ( CategoryOptionGroup group : categoryOption.getGroups() )
-        {
-            group.getMembers().remove( categoryOption );
-            categoryService.updateCategoryOptionGroup( group );
-        }
+  private void deleteCategoryOption(CategoryOption categoryOption) {
+    for (CategoryOptionGroup group : categoryOption.getGroups()) {
+      group.getMembers().remove(categoryOption);
+      categoryService.updateCategoryOptionGroup(group);
     }
+  }
 }

@@ -27,253 +27,227 @@
  */
 package org.hisp.dhis.validation;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
- * This class represents the most fundamental parameters to run a validation
- * rule analysis. The class is immutable and is meant to work as a gap-filler
- * for the different use-cases of validation rule analysis (Data set validation,
- * "manual" validation and scheduled validation).
+ * This class represents the most fundamental parameters to run a validation rule analysis. The
+ * class is immutable and is meant to work as a gap-filler for the different use-cases of validation
+ * rule analysis (Data set validation, "manual" validation and scheduled validation).
  *
  * @author Stian Sandvold
  */
-public final class ValidationAnalysisParams
-{
-    /*
-     * Required properties: Although required, they can be empty collections. If
-     * any of the collections are empty, there would be nothing to analyse. This
-     * is still a valid state for the params to have. The attribute option combo
-     * can also be null, in that case the default attribute option combo will be
-     * used. The organisation unit can be null, in that case all organisation
-     * units will be used.
-     */
-    private ImmutableSet<ValidationRule> validationRules;
+public final class ValidationAnalysisParams {
+  /*
+   * Required properties: Although required, they can be empty collections. If
+   * any of the collections are empty, there would be nothing to analyse. This
+   * is still a valid state for the params to have. The attribute option combo
+   * can also be null, in that case the default attribute option combo will be
+   * used. The organisation unit can be null, in that case all organisation
+   * units will be used.
+   */
+  private ImmutableSet<ValidationRule> validationRules;
 
-    private OrganisationUnit orgUnit;
+  private OrganisationUnit orgUnit;
 
-    private ImmutableSet<Period> periods;
+  private ImmutableSet<Period> periods;
 
-    private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
-    /*
-     * Optional properties: These have default values, which disables the
-     * behaviour represented by them.
-     */
-    private boolean includeOrgUnitDescendants = false;
+  /*
+   * Optional properties: These have default values, which disables the
+   * behaviour represented by them.
+   */
+  private boolean includeOrgUnitDescendants = false;
 
-    private int maxResults = ValidationService.MAX_INTERACTIVE_ALERTS;
+  private int maxResults = ValidationService.MAX_INTERACTIVE_ALERTS;
 
-    private boolean sendNotifications = false;
+  private boolean sendNotifications = false;
 
-    private boolean persistResults = false;
+  private boolean persistResults = false;
 
-    private int dayInPeriod = -1;
+  private int dayInPeriod = -1;
 
-    /**
-     * Gets the rules selected for analysis
-     *
-     * @return a collection of validation rules to be analysed
-     */
-    public ImmutableSet<ValidationRule> getValidationRules()
-    {
-        return validationRules;
+  /**
+   * Gets the rules selected for analysis
+   *
+   * @return a collection of validation rules to be analysed
+   */
+  public ImmutableSet<ValidationRule> getValidationRules() {
+    return validationRules;
+  }
+
+  /**
+   * Gets the organisation unit selected for analysis
+   *
+   * @return the organisation unit to be analysed
+   */
+  public OrganisationUnit getOrgUnit() {
+    return orgUnit;
+  }
+
+  /**
+   * Gets the periods selected for analysis
+   *
+   * @return a collection of periods to be analysed
+   */
+  public ImmutableSet<Period> getPeriods() {
+    return periods;
+  }
+
+  /**
+   * Gets the attribute option combo if defined
+   *
+   * @return an attribute option combo to be analysed
+   */
+  public CategoryOptionCombo getAttributeOptionCombo() {
+    return attributeOptionCombo;
+  }
+
+  /**
+   * Gets whether or not organisation unit descendants are included
+   *
+   * @return true if organisation unit descendants are included, false if not.
+   */
+  public boolean isIncludeOrgUnitDescendants() {
+    return includeOrgUnitDescendants;
+  }
+
+  /**
+   * Gets whether or not notifications should be sent for this analysis
+   *
+   * @return true if notifications should be sent, false if not.
+   */
+  public boolean isSendNotifications() {
+    return sendNotifications;
+  }
+
+  /**
+   * Gets whether or not the results of the analysis should be persisted in the database after the
+   * analysis
+   *
+   * @return true if results should be persisted, false if not.
+   */
+  public boolean isPersistResults() {
+    return persistResults;
+  }
+
+  /**
+   * Gets which day of a period the analysis should be run for. If a validation rule is utilizing
+   * sliding windows, this property will decide the positioning of the window relative to the period
+   * checked. In cases where the dayInPeriod is larger than the length of a period, the last day of
+   * the period will be used. If dayInPeriod is -1, it will not be used to position the window, and
+   * the window will be positioned according to the current date.
+   *
+   * @return -1 if disabled, or a positive integer if enabled.
+   */
+  public int getDayInPeriod() {
+    return dayInPeriod;
+  }
+
+  /**
+   * Limits the number of results we should look for. This can help prevent the analysis running too
+   * long by stopping after a set number of results, as well as limit any payload trough api.
+   *
+   * @return number of results we should look for
+   */
+  public int getMaxResults() {
+    return maxResults;
+  }
+
+  public static class Builder {
+    private ValidationAnalysisParams params;
+
+    public Builder(
+        Collection<ValidationRule> validationRules,
+        OrganisationUnit orgUnit,
+        Collection<Period> periods) {
+      this.params = new ValidationAnalysisParams();
+      this.params.validationRules = ImmutableSet.copyOf(validationRules);
+      this.params.orgUnit = orgUnit;
+      this.params.periods = ImmutableSet.copyOf(periods);
     }
 
     /**
-     * Gets the organisation unit selected for analysis
+     * Sets the attributeOptionCombo to use.
      *
-     * @return the organisation unit to be analysed
+     * @param attributeOptionCombo the attributeOptionCombo to use
+     * @return the updated builder object
      */
-    public OrganisationUnit getOrgUnit()
-    {
-        return orgUnit;
+    public Builder withAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
+      this.params.attributeOptionCombo = attributeOptionCombo;
+      return this;
     }
 
     /**
-     * Gets the periods selected for analysis
+     * If set to true, organisation unit descendants will be included
      *
-     * @return a collection of periods to be analysed
+     * @param includeOrgUnitDescendants true if organisation unit descendants will be included,
+     *     false if not.
+     * @return the updated builder object
      */
-    public ImmutableSet<Period> getPeriods()
-    {
-        return periods;
+    public Builder withIncludeOrgUnitDescendants(boolean includeOrgUnitDescendants) {
+      this.params.includeOrgUnitDescendants = includeOrgUnitDescendants;
+      return this;
     }
 
     /**
-     * Gets the attribute option combo if defined
+     * If set to true, results will be persisted in the database
      *
-     * @return an attribute option combo to be analysed
+     * @param persistResults true if results should be persisted, false if not.
+     * @return the updated builder object
      */
-    public CategoryOptionCombo getAttributeOptionCombo()
-    {
-        return attributeOptionCombo;
+    public Builder withPersistResults(boolean persistResults) {
+      this.params.persistResults = persistResults;
+      return this;
     }
 
     /**
-     * Gets whether or not organisation unit descendants are included
+     * If set to true, notifications will be sent after the analysis is completed if any results
+     * where found
      *
-     * @return true if organisation unit descendants are included, false if not.
+     * @param sendNotifications true if notifications should be sent, false if not.
+     * @return the updated builder object
      */
-    public boolean isIncludeOrgUnitDescendants()
-    {
-        return includeOrgUnitDescendants;
+    public Builder withSendNotifications(boolean sendNotifications) {
+      this.params.sendNotifications = sendNotifications;
+      return this;
     }
 
     /**
-     * Gets whether or not notifications should be sent for this analysis
+     * Decides the position of the sliding window, for rules that utilizes this feature. -1 means
+     * disabled, and integers bigger than the period length will position the window to the end of
+     * the period. If -1 the analysis will use todays date to position the window
      *
-     * @return true if notifications should be sent, false if not.
+     * @param dayInPeriod -1 if disabled, any positive integer if enabled
+     * @return the updated builder object
      */
-    public boolean isSendNotifications()
-    {
-        return sendNotifications;
+    public Builder withDayInPeriod(int dayInPeriod) {
+      this.params.dayInPeriod = dayInPeriod;
+      return this;
     }
 
     /**
-     * Gets whether or not the results of the analysis should be persisted in
-     * the database after the analysis
+     * The max number of results we want from the analysis.
      *
-     * @return true if results should be persisted, false if not.
+     * @param maxResults the number of results
+     * @return the updated builder object
      */
-    public boolean isPersistResults()
-    {
-        return persistResults;
+    public Builder withMaxResults(int maxResults) {
+      this.params.maxResults = maxResults;
+      return this;
     }
 
     /**
-     * Gets which day of a period the analysis should be run for. If a
-     * validation rule is utilizing sliding windows, this property will decide
-     * the positioning of the window relative to the period checked. In cases
-     * where the dayInPeriod is larger than the length of a period, the last day
-     * of the period will be used. If dayInPeriod is -1, it will not be used to
-     * position the window, and the window will be positioned according to the
-     * current date.
+     * Returns the params object
      *
-     * @return -1 if disabled, or a positive integer if enabled.
+     * @return the final ValidationAnalysisParams object.
      */
-    public int getDayInPeriod()
-    {
-        return dayInPeriod;
+    public ValidationAnalysisParams build() {
+      return params;
     }
-
-    /**
-     * Limits the number of results we should look for. This can help prevent
-     * the analysis running too long by stopping after a set number of results,
-     * as well as limit any payload trough api.
-     *
-     * @return number of results we should look for
-     */
-    public int getMaxResults()
-    {
-        return maxResults;
-    }
-
-    public static class Builder
-    {
-        private ValidationAnalysisParams params;
-
-        public Builder( Collection<ValidationRule> validationRules, OrganisationUnit orgUnit,
-            Collection<Period> periods )
-        {
-            this.params = new ValidationAnalysisParams();
-            this.params.validationRules = ImmutableSet.copyOf( validationRules );
-            this.params.orgUnit = orgUnit;
-            this.params.periods = ImmutableSet.copyOf( periods );
-        }
-
-        /**
-         * Sets the attributeOptionCombo to use.
-         *
-         * @param attributeOptionCombo the attributeOptionCombo to use
-         * @return the updated builder object
-         */
-        public Builder withAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
-        {
-            this.params.attributeOptionCombo = attributeOptionCombo;
-            return this;
-        }
-
-        /**
-         * If set to true, organisation unit descendants will be included
-         *
-         * @param includeOrgUnitDescendants true if organisation unit
-         *        descendants will be included, false if not.
-         * @return the updated builder object
-         */
-        public Builder withIncludeOrgUnitDescendants( boolean includeOrgUnitDescendants )
-        {
-            this.params.includeOrgUnitDescendants = includeOrgUnitDescendants;
-            return this;
-        }
-
-        /**
-         * If set to true, results will be persisted in the database
-         *
-         * @param persistResults true if results should be persisted, false if
-         *        not.
-         * @return the updated builder object
-         */
-        public Builder withPersistResults( boolean persistResults )
-        {
-            this.params.persistResults = persistResults;
-            return this;
-        }
-
-        /**
-         * If set to true, notifications will be sent after the analysis is
-         * completed if any results where found
-         *
-         * @param sendNotifications true if notifications should be sent, false
-         *        if not.
-         * @return the updated builder object
-         */
-        public Builder withSendNotifications( boolean sendNotifications )
-        {
-            this.params.sendNotifications = sendNotifications;
-            return this;
-        }
-
-        /**
-         * Decides the position of the sliding window, for rules that utilizes
-         * this feature. -1 means disabled, and integers bigger than the period
-         * length will position the window to the end of the period. If -1 the
-         * analysis will use todays date to position the window
-         *
-         * @param dayInPeriod -1 if disabled, any positive integer if enabled
-         * @return the updated builder object
-         */
-        public Builder withDayInPeriod( int dayInPeriod )
-        {
-            this.params.dayInPeriod = dayInPeriod;
-            return this;
-        }
-
-        /**
-         * The max number of results we want from the analysis.
-         *
-         * @param maxResults the number of results
-         * @return the updated builder object
-         */
-        public Builder withMaxResults( int maxResults )
-        {
-            this.params.maxResults = maxResults;
-            return this;
-        }
-
-        /**
-         * Returns the params object
-         *
-         * @return the final ValidationAnalysisParams object.
-         */
-        public ValidationAnalysisParams build()
-        {
-            return params;
-        }
-    }
+  }
 }

@@ -29,10 +29,8 @@ package org.hisp.dhis.webapi.security.config;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,95 +44,86 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.util.HtmlUtils;
 
-@OpenApi.Tags( { "user", "login" } )
+@OpenApi.Tags({"user", "login"})
 @Controller
-@SessionAttributes( "authorizationRequest" )
-public class OAuth2ConfirmAccessController
-{
-    @Autowired
-    @Qualifier( "org.hisp.dhis.system.velocity.VelocityManager" )
-    VelocityManager velocityManager;
+@SessionAttributes("authorizationRequest")
+public class OAuth2ConfirmAccessController {
+  @Autowired
+  @Qualifier("org.hisp.dhis.system.velocity.VelocityManager")
+  VelocityManager velocityManager;
 
-    @GetMapping( "/oauth/confirm_access" )
-    public ModelAndView getAccessConfirmationB( Map<String, Object> model, HttpServletRequest request )
-        throws Exception
-    {
-        Map<String, Object> vars = new HashMap<>();
+  @GetMapping("/oauth/confirm_access")
+  public ModelAndView getAccessConfirmationB(Map<String, Object> model, HttpServletRequest request)
+      throws Exception {
+    Map<String, Object> vars = new HashMap<>();
 
-        AuthorizationRequest authorizationRequest = (AuthorizationRequest) model.get( "authorizationRequest" );
-        if ( authorizationRequest != null )
-        {
-            String clientId = authorizationRequest.getClientId();
-            vars.put( "client_id", clientId );
-        }
-
-        String approvalContent = velocityManager.render( vars, "confirm_access" );
-
-        if ( request.getAttribute( "_csrf" ) != null )
-        {
-            model.put( "_csrf", request.getAttribute( "_csrf" ) );
-        }
-
-        View approvalView = new View()
-        {
-            @Override
-            public String getContentType()
-            {
-                return "text/html";
-            }
-
-            @Override
-            public void render( Map<String, ?> model, HttpServletRequest request, HttpServletResponse response )
-                throws Exception
-            {
-                response.setContentType( getContentType() );
-                response.getWriter().append( approvalContent );
-            }
-        };
-
-        return new ModelAndView( approvalView, model );
+    AuthorizationRequest authorizationRequest =
+        (AuthorizationRequest) model.get("authorizationRequest");
+    if (authorizationRequest != null) {
+      String clientId = authorizationRequest.getClientId();
+      vars.put("client_id", clientId);
     }
 
-    @GetMapping( "/oauth/error" )
-    public ModelAndView handleError( HttpServletRequest request )
-    {
-        String errorSummary;
+    String approvalContent = velocityManager.render(vars, "confirm_access");
 
-        // The error summary may contain malicious user input,
-        // it needs to be escaped to prevent XSS
-        Object error = request.getAttribute( "error" );
-        if ( error instanceof OAuth2Exception )
-        {
-            OAuth2Exception oauthError = (OAuth2Exception) error;
-            errorSummary = HtmlUtils.htmlEscape( oauthError.getSummary() );
-        }
-        else
-        {
-            errorSummary = "Unknown error";
-        }
+    if (request.getAttribute("_csrf") != null) {
+      model.put("_csrf", request.getAttribute("_csrf"));
+    }
 
-        Map<String, Object> vars = new HashMap<>();
-        vars.put( "error_summary", errorSummary );
+    View approvalView =
+        new View() {
+          @Override
+          public String getContentType() {
+            return "text/html";
+          }
 
-        String errorContent = velocityManager.render( vars, "error" );
-
-        View errorView = new View()
-        {
-            @Override
-            public String getContentType()
-            {
-                return "text/html";
-            }
-
-            @Override
-            public void render( Map<String, ?> model, HttpServletRequest request, HttpServletResponse response )
-                throws Exception
-            {
-                response.setContentType( getContentType() );
-                response.getWriter().append( errorContent );
-            }
+          @Override
+          public void render(
+              Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
+              throws Exception {
+            response.setContentType(getContentType());
+            response.getWriter().append(approvalContent);
+          }
         };
 
-        return new ModelAndView( errorView, new HashMap<>() );
+    return new ModelAndView(approvalView, model);
+  }
+
+  @GetMapping("/oauth/error")
+  public ModelAndView handleError(HttpServletRequest request) {
+    String errorSummary;
+
+    // The error summary may contain malicious user input,
+    // it needs to be escaped to prevent XSS
+    Object error = request.getAttribute("error");
+    if (error instanceof OAuth2Exception) {
+      OAuth2Exception oauthError = (OAuth2Exception) error;
+      errorSummary = HtmlUtils.htmlEscape(oauthError.getSummary());
+    } else {
+      errorSummary = "Unknown error";
     }
+
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("error_summary", errorSummary);
+
+    String errorContent = velocityManager.render(vars, "error");
+
+    View errorView =
+        new View() {
+          @Override
+          public String getContentType() {
+            return "text/html";
+          }
+
+          @Override
+          public void render(
+              Map<String, ?> model, HttpServletRequest request, HttpServletResponse response)
+              throws Exception {
+            response.setContentType(getContentType());
+            response.getWriter().append(errorContent);
+          }
+        };
+
+    return new ModelAndView(errorView, new HashMap<>());
+  }
 }

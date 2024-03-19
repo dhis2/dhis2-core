@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataelement;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -37,20 +36,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DataElementGroupDeletionHandler extends IdObjectDeletionHandler<DataElementGroup>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-    }
+public class DataElementGroupDeletionHandler extends IdObjectDeletionHandler<DataElementGroup> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        for ( DataElementGroup group : dataElement.getGroups() )
-        {
-            group.getMembers().remove( dataElement );
-            idObjectManager.updateNoAcl( group );
-        }
+  private void deleteDataElement(DataElement dataElement) {
+    for (DataElementGroup group : dataElement.getGroups()) {
+      group.getMembers().remove(dataElement);
+      idObjectManager.updateNoAcl(group);
     }
+  }
 }

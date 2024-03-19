@@ -29,9 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.HashSet;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -40,23 +38,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramIndicatorDeletionHandler extends IdObjectDeletionHandler<ProgramIndicator>
-{
-    private final ProgramIndicatorService programIndicatorService;
+public class ProgramIndicatorDeletionHandler extends IdObjectDeletionHandler<ProgramIndicator> {
+  private final ProgramIndicatorService programIndicatorService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Program.class, this::deleteProgram );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteProgram(Program program) {
+    Collection<ProgramIndicator> indicators = new HashSet<>(program.getProgramIndicators());
+
+    for (ProgramIndicator indicator : indicators) {
+      programIndicatorService.deleteProgramIndicator(indicator);
     }
-
-    private void deleteProgram( Program program )
-    {
-        Collection<ProgramIndicator> indicators = new HashSet<>( program.getProgramIndicators() );
-
-        for ( ProgramIndicator indicator : indicators )
-        {
-            programIndicatorService.deleteProgramIndicator( indicator );
-        }
-    }
+  }
 }

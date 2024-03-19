@@ -27,24 +27,20 @@
  */
 package org.hisp.dhis.webapi.webdomain.i18n;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
-public class I18nOutput
-{
-    private Map<String, String> translations = new HashMap<>();
+public class I18nOutput {
+  private Map<String, String> translations = new HashMap<>();
 
-    @JsonAnyGetter
-    public Map<String, String> getTranslations()
-    {
-        return translations;
-    }
+  @JsonAnyGetter
+  public Map<String, String> getTranslations() {
+    return translations;
+  }
 }

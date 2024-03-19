@@ -33,55 +33,46 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class V2_38_32__Add_new_user_role_for_analytics_explain_endpoint extends BaseJavaMigration
-{
-    private static final Logger log = LoggerFactory
-        .getLogger( V2_38_32__Add_new_user_role_for_analytics_explain_endpoint.class );
+public class V2_38_32__Add_new_user_role_for_analytics_explain_endpoint extends BaseJavaMigration {
+  private static final Logger log =
+      LoggerFactory.getLogger(V2_38_32__Add_new_user_role_for_analytics_explain_endpoint.class);
 
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        List<Integer> superUserRoleIds = new ArrayList<>();
+  @Override
+  public void migrate(Context context) throws Exception {
+    List<Integer> superUserRoleIds = new ArrayList<>();
 
-        try ( Statement statement = context.getConnection().createStatement();
-            ResultSet superUserRole = statement.executeQuery(
-                "select userroleid from userrole where lower(name)='superuser'" ) )
-        {
-            while ( superUserRole.next() )
-            {
-                superUserRoleIds.add( superUserRole.getInt( 1 ) );
-            }
-        }
-        catch ( SQLException e )
-        {
-            log.error( "Flyway java migration error (select)", e );
-            throw new FlywayException( e );
-        }
-
-        if ( !superUserRoleIds.isEmpty() )
-        {
-            try ( PreparedStatement ps = context.getConnection().prepareStatement(
-                "INSERT INTO userroleauthorities (userroleid, authority) VALUES (?, 'F_PERFORM_ANALYTICS_EXPLAIN')" ) )
-            {
-                for ( Integer id : superUserRoleIds )
-                {
-                    ps.setInt( 1, id );
-                    ps.execute();
-                }
-            }
-            catch ( SQLException e )
-            {
-                log.error( "Flyway java migration error (insert):", e );
-                throw new FlywayException( e );
-            }
-        }
+    try (Statement statement = context.getConnection().createStatement();
+        ResultSet superUserRole =
+            statement.executeQuery(
+                "select userroleid from userrole where lower(name)='superuser'")) {
+      while (superUserRole.next()) {
+        superUserRoleIds.add(superUserRole.getInt(1));
+      }
+    } catch (SQLException e) {
+      log.error("Flyway java migration error (select)", e);
+      throw new FlywayException(e);
     }
+
+    if (!superUserRoleIds.isEmpty()) {
+      try (PreparedStatement ps =
+          context
+              .getConnection()
+              .prepareStatement(
+                  "INSERT INTO userroleauthorities (userroleid, authority) VALUES (?, 'F_PERFORM_ANALYTICS_EXPLAIN')")) {
+        for (Integer id : superUserRoleIds) {
+          ps.setInt(1, id);
+          ps.execute();
+        }
+      } catch (SQLException e) {
+        log.error("Flyway java migration error (insert):", e);
+        throw new FlywayException(e);
+      }
+    }
+  }
 }

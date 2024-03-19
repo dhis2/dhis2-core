@@ -41,49 +41,51 @@ import org.hisp.dhis.parser.expression.ProgramExpressionParams;
  *
  * @author Jim Grace
  */
-public class D2CountIfCondition
-    extends ProgramCountFunction
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        castDouble( getProgramStageElementDescription( ctx, visitor ) );
+public class D2CountIfCondition extends ProgramCountFunction {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    castDouble(getProgramStageElementDescription(ctx, visitor));
 
-        String conditionExpression = getConditionalExpression( ctx );
+    String conditionExpression = getConditionalExpression(ctx);
 
-        visitor.getProgramIndicatorService().validate( conditionExpression,
-            Boolean.class, visitor.getItemDescriptions() );
+    visitor
+        .getProgramIndicatorService()
+        .validate(conditionExpression, Boolean.class, visitor.getItemDescriptions());
 
-        return DEFAULT_DOUBLE_VALUE;
-    }
+    return DEFAULT_DOUBLE_VALUE;
+  }
 
-    @Override
-    public String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String conditionExpression = getConditionalExpression( ctx );
+  @Override
+  public String getConditionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String conditionExpression = getConditionalExpression(ctx);
 
-        ProgramExpressionParams params = visitor.getProgParams();
+    ProgramExpressionParams params = visitor.getProgParams();
 
-        String conditionSql = visitor.getProgramIndicatorService().getAnalyticsSql(
-            conditionExpression, BOOLEAN, params.getProgramIndicator(),
-            params.getReportingStartDate(), params.getReportingEndDate() );
+    String conditionSql =
+        visitor
+            .getProgramIndicatorService()
+            .getAnalyticsSql(
+                conditionExpression,
+                BOOLEAN,
+                params.getProgramIndicator(),
+                params.getReportingStartDate(),
+                params.getReportingEndDate());
 
-        return conditionSql.substring( 1 );
-    }
+    return conditionSql.substring(1);
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    /**
-     * Gets a complete expression that is used to test a condition (e.g. "<5")
-     * by putting a "0" in front to get a complete expression (e.g., "0<5").
-     *
-     * @param ctx the expression context
-     * @return the complete expression
-     */
-    private String getConditionalExpression( ExprContext ctx )
-    {
-        return "0" + trimQuotes( ctx.stringLiteral().getText() );
-    }
+  /**
+   * Gets a complete expression that is used to test a condition (e.g. "<5") by putting a "0" in
+   * front to get a complete expression (e.g., "0<5").
+   *
+   * @param ctx the expression context
+   * @return the complete expression
+   */
+  private String getConditionalExpression(ExprContext ctx) {
+    return "0" + trimQuotes(ctx.stringLiteral().getText());
+  }
 }

@@ -33,63 +33,57 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class SqlViewUtilsTest
-{
+class SqlViewUtilsTest {
 
-    @Test
-    void testGetVariables()
-    {
-        String sql = "select * from dataelement where name = '${de_name}' and aggregationType = '${de_aggregation_type}'";
-        Set<String> variables = SqlViewUtils.getVariables( sql );
-        assertEquals( 2, variables.size() );
-        assertTrue( variables.contains( "de_name" ) );
-        assertTrue( variables.contains( "de_aggregation_type" ) );
-    }
+  @Test
+  void testGetVariables() {
+    String sql =
+        "select * from dataelement where name = '${de_name}' and aggregationType = '${de_aggregation_type}'";
+    Set<String> variables = SqlViewUtils.getVariables(sql);
+    assertEquals(2, variables.size());
+    assertTrue(variables.contains("de_name"));
+    assertTrue(variables.contains("de_aggregation_type"));
+  }
 
-    @Test
-    void testSubsituteSql()
-    {
-        Map<String, String> variables = new HashMap<>();
-        variables.put( "level", "4" );
-        variables.put( "id", "abc" );
-        String sql = "select ${level},* from datavalue where level=${level} and id='${id}'";
-        String expected = "select 4,* from datavalue where level=4 and id='abc'";
-        String actual = SqlViewUtils.substituteSqlVariables( sql, variables );
-        assertEquals( expected, actual );
-    }
+  @Test
+  void testSubsituteSql() {
+    Map<String, String> variables = new HashMap<>();
+    variables.put("level", "4");
+    variables.put("id", "abc");
+    String sql = "select ${level},* from datavalue where level=${level} and id='${id}'";
+    String expected = "select 4,* from datavalue where level=4 and id='abc'";
+    String actual = SqlViewUtils.substituteSqlVariables(sql, variables);
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    void testSubsituteSqlMalicious()
-    {
-        Map<String, String> variables = new HashMap<>();
-        variables.put( "level", "; delete from datavalue;" );
-        String sql = "select * from datavalue where level=${level}";
-        String expected = "select * from datavalue where level=${level}";
-        String actual = SqlViewUtils.substituteSqlVariables( sql, variables );
-        assertEquals( expected, actual );
-    }
+  @Test
+  void testSubsituteSqlMalicious() {
+    Map<String, String> variables = new HashMap<>();
+    variables.put("level", "; delete from datavalue;");
+    String sql = "select * from datavalue where level=${level}";
+    String expected = "select * from datavalue where level=${level}";
+    String actual = SqlViewUtils.substituteSqlVariables(sql, variables);
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    void testSubsituteSqlVariable()
-    {
-        String sql = "select ${level},* from datavalue where level=${level} and id='${id}'";
-        String expected = "select 4,* from datavalue where level=4 and id='${id}'";
-        String actual = SqlViewUtils.substituteSqlVariable( sql, "level", "4" );
-        assertEquals( expected, actual );
-    }
+  @Test
+  void testSubsituteSqlVariable() {
+    String sql = "select ${level},* from datavalue where level=${level} and id='${id}'";
+    String expected = "select 4,* from datavalue where level=4 and id='${id}'";
+    String actual = SqlViewUtils.substituteSqlVariable(sql, "level", "4");
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    void testRemoveQuerySeparator()
-    {
-        String sql = "select * from datavalue; delete from datavalue;";
-        String expected = "select * from datavalue delete from datavalue";
-        String actual = SqlViewUtils.removeQuerySeparator( sql );
-        assertEquals( expected, actual );
-    }
+  @Test
+  void testRemoveQuerySeparator() {
+    String sql = "select * from datavalue; delete from datavalue;";
+    String expected = "select * from datavalue delete from datavalue";
+    String actual = SqlViewUtils.removeQuerySeparator(sql);
+    assertEquals(expected, actual);
+  }
 }

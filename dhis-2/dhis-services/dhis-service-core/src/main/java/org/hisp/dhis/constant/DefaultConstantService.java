@@ -32,9 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -44,116 +42,100 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Dang Duy Hieu
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.constant.ConstantService" )
-public class DefaultConstantService
-    implements ConstantService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.constant.ConstantService")
+public class DefaultConstantService implements ConstantService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Qualifier( "org.hisp.dhis.constant.ConstantStore" )
-    private final IdentifiableObjectStore<Constant> constantStore;
+  @Qualifier("org.hisp.dhis.constant.ConstantStore")
+  private final IdentifiableObjectStore<Constant> constantStore;
 
-    // -------------------------------------------------------------------------
-    // Constant
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constant
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long saveConstant( Constant constant )
-    {
-        constantStore.save( constant );
-        return constant.getId();
+  @Override
+  @Transactional
+  public long saveConstant(Constant constant) {
+    constantStore.save(constant);
+    return constant.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateConstant(Constant constant) {
+    constantStore.update(constant);
+  }
+
+  @Override
+  @Transactional
+  public void deleteConstant(Constant constant) {
+    constantStore.delete(constant);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Constant getConstant(int constantId) {
+    return constantStore.get(constantId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Constant getConstant(String uid) {
+    return constantStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Constant> getAllConstants() {
+    return constantStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Constant> getConstantMap() {
+    return getAllConstants().stream()
+        .collect(Collectors.toMap(c -> c.getUid(), Function.identity()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Double> getConstantParameterMap() {
+    Map<String, Double> map = new HashMap<>();
+
+    for (Constant constant : getAllConstants()) {
+      map.put(constant.getName(), constant.getValue());
     }
 
-    @Override
-    @Transactional
-    public void updateConstant( Constant constant )
-    {
-        constantStore.update( constant );
-    }
+    return map;
+  }
 
-    @Override
-    @Transactional
-    public void deleteConstant( Constant constant )
-    {
-        constantStore.delete( constant );
-    }
+  // -------------------------------------------------------------------------
+  // Constant expanding
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional( readOnly = true )
-    public Constant getConstant( int constantId )
-    {
-        return constantStore.get( constantId );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public int getConstantCount() {
+    return constantStore.getCount();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Constant getConstant( String uid )
-    {
-        return constantStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public int getConstantCountByName(String name) {
+    return constantStore.getCountLikeName(name);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<Constant> getAllConstants()
-    {
-        return constantStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<Constant> getConstantsBetween(int first, int max) {
+    return constantStore.getAllOrderedName(first, max);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Map<String, Constant> getConstantMap()
-    {
-        return getAllConstants()
-            .stream()
-            .collect( Collectors.toMap( c -> c.getUid(), Function.identity() ) );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Map<String, Double> getConstantParameterMap()
-    {
-        Map<String, Double> map = new HashMap<>();
-
-        for ( Constant constant : getAllConstants() )
-        {
-            map.put( constant.getName(), constant.getValue() );
-        }
-
-        return map;
-    }
-
-    // -------------------------------------------------------------------------
-    // Constant expanding
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public int getConstantCount()
-    {
-        return constantStore.getCount();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int getConstantCountByName( String name )
-    {
-        return constantStore.getCountLikeName( name );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Constant> getConstantsBetween( int first, int max )
-    {
-        return constantStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Constant> getConstantsBetweenByName( String name, int first, int max )
-    {
-        return constantStore.getAllLikeName( name, first, max );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<Constant> getConstantsBetweenByName(String name, int first, int max) {
+    return constantStore.getAllLikeName(name, first, max);
+  }
 }

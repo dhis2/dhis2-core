@@ -44,85 +44,67 @@ import org.hisp.dhis.period.YearlyPeriodType;
  *
  * @author Jim Grace
  */
-public class ItemYearlyPeriodCount
-    extends ItemPeriodBase
-{
-    private static final int WEEKS_PER_YEAR_MINIMUM = 52;
+public class ItemYearlyPeriodCount extends ItemPeriodBase {
+  private static final int WEEKS_PER_YEAR_MINIMUM = 52;
 
-    private static final int BIWEEKS_PER_YEAR_MINIMUM = 26;
+  private static final int BIWEEKS_PER_YEAR_MINIMUM = 26;
 
-    private static final int DECEMBER = 12;
+  private static final int DECEMBER = 12;
 
-    @Override
-    public Double evaluate( PeriodType periodType, Period period )
-    {
-        if ( periodType instanceof WeeklyAbstractPeriodType )
-        {
-            return weeksInYearContaining( period );
-        }
-        else if ( periodType instanceof BiWeeklyAbstractPeriodType )
-        {
-            return biWeeksInYearContaining( period );
-        }
-        else if ( periodType instanceof CalendarPeriodType &&
-            periodType.getFrequencyOrder() < YearlyPeriodType.FREQUENCY_ORDER )
-        {
-            return countPeriodsWithinThisYear( period );
-        }
-
-        return 1.0;
+  @Override
+  public Double evaluate(PeriodType periodType, Period period) {
+    if (periodType instanceof WeeklyAbstractPeriodType) {
+      return weeksInYearContaining(period);
+    } else if (periodType instanceof BiWeeklyAbstractPeriodType) {
+      return biWeeksInYearContaining(period);
+    } else if (periodType instanceof CalendarPeriodType
+        && periodType.getFrequencyOrder() < YearlyPeriodType.FREQUENCY_ORDER) {
+      return countPeriodsWithinThisYear(period);
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return 1.0;
+  }
 
-    /**
-     * Finds the number of weeks in this year (52 or 53).
-     */
-    private double weeksInYearContaining( Period period )
-    {
-        return testLastPeriodInYear( period, WEEKS_PER_YEAR_MINIMUM );
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Finds the number of weeks in this year (52 or 53). */
+  private double weeksInYearContaining(Period period) {
+    return testLastPeriodInYear(period, WEEKS_PER_YEAR_MINIMUM);
+  }
+
+  /** Finds the number of biweeks in this year (26 or 27). */
+  private double biWeeksInYearContaining(Period period) {
+    return testLastPeriodInYear(period, BIWEEKS_PER_YEAR_MINIMUM);
+  }
+
+  /**
+   * Sees if the guaranteed last week (or biweek) of the year ends before December 28. If so, there
+   * will be at least 4 more days in the year and DHIS2 will generate another week (or biweek) for
+   * that year.
+   *
+   * <p>(This doesn't make complete sense for biweeks, but it's how DHIS2 currently does it.)
+   */
+  private double testLastPeriodInYear(Period period, int count) {
+    String isoDate = period.getIsoDate();
+    String testIsoString = isoDate.replaceAll("\\d+$", valueOf(count));
+    Period testPeriod = getPeriodFromIsoString(testIsoString);
+    DateTimeUnit testEndDate = fromJdkDate(testPeriod.getEndDate());
+
+    if (testEndDate.getMonth() == DECEMBER && testEndDate.getDay() < 28) {
+      return 1.0 + count; // An extra week (or biweek) this year
     }
 
-    /**
-     * Finds the number of biweeks in this year (26 or 27).
-     */
-    private double biWeeksInYearContaining( Period period )
-    {
-        return testLastPeriodInYear( period, BIWEEKS_PER_YEAR_MINIMUM );
-    }
+    return count;
+  }
 
-    /**
-     * Sees if the guaranteed last week (or biweek) of the year ends before
-     * December 28. If so, there will be at least 4 more days in the year and
-     * DHIS2 will generate another week (or biweek) for that year.
-     * <p>
-     * (This doesn't make complete sense for biweeks, but it's how DHIS2
-     * currently does it.)
-     */
-    private double testLastPeriodInYear( Period period, int count )
-    {
-        String isoDate = period.getIsoDate();
-        String testIsoString = isoDate.replaceAll( "\\d+$", valueOf( count ) );
-        Period testPeriod = getPeriodFromIsoString( testIsoString );
-        DateTimeUnit testEndDate = fromJdkDate( testPeriod.getEndDate() );
-
-        if ( testEndDate.getMonth() == DECEMBER && testEndDate.getDay() < 28 )
-        {
-            return 1.0 + count; // An extra week (or biweek) this year
-        }
-
-        return count;
-    }
-
-    /**
-     * Counts the periods that can be generated within a year.
-     * <p>
-     * {@link PeriodType} must be a {@link CalendarPeriodType}.
-     */
-    private double countPeriodsWithinThisYear( Period period )
-    {
-        return ((CalendarPeriodType) period.getPeriodType()).generatePeriods( period ).size();
-    }
+  /**
+   * Counts the periods that can be generated within a year.
+   *
+   * <p>{@link PeriodType} must be a {@link CalendarPeriodType}.
+   */
+  private double countPeriodsWithinThisYear(Period period) {
+    return ((CalendarPeriodType) period.getPeriodType()).generatePeriods(period).size();
+  }
 }

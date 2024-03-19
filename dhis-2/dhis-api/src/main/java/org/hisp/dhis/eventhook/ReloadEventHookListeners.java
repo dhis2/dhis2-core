@@ -28,11 +28,9 @@
 package org.hisp.dhis.eventhook;
 
 /**
- * Event that reloads the internals of the event listener. Should be published
- * when EventHooks are created, updated, deleted.
+ * Event that reloads the internals of the event listener. Should be published when EventHooks are
+ * created, updated, deleted.
  *
  * @author Morten Olav Hansen
  */
-public class ReloadEventHookListeners
-{
-}
+public class ReloadEventHookListeners {}

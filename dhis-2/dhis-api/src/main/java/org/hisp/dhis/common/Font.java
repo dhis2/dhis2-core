@@ -32,10 +32,9 @@ package org.hisp.dhis.common;
  *
  * @author Lars Helge Overland
  */
-public enum Font
-{
-    ARIAL,
-    SANS_SERIF,
-    VERDANA,
-    ROBOTO;
+public enum Font {
+  ARIAL,
+  SANS_SERIF,
+  VERDANA,
+  ROBOTO;
 }

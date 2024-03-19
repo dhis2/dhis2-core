@@ -28,10 +28,8 @@
 package org.hisp.dhis.dxf2.dataset;
 
 import java.util.function.Supplier;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
@@ -46,104 +44,123 @@ import org.hisp.dhis.setting.SystemSettingManager;
  */
 @Slf4j
 @Getter
-final class ImportConfig
-{
-    private final IdScheme dsScheme;
+final class ImportConfig {
+  private final IdScheme dsScheme;
 
-    private final IdScheme ouScheme;
+  private final IdScheme ouScheme;
 
-    private final IdScheme aocScheme;
+  private final IdScheme aocScheme;
 
-    private final ImportStrategy strategy;
+  private final ImportStrategy strategy;
 
-    private final boolean dryRun;
+  private final boolean dryRun;
 
-    private final boolean skipExistingCheck;
+  private final boolean skipExistingCheck;
 
-    private final boolean strictPeriods;
+  private final boolean strictPeriods;
 
-    private final boolean strictAttrOptionCombos;
+  private final boolean strictAttrOptionCombos;
 
-    private final boolean strictOrgUnits;
+  private final boolean strictOrgUnits;
 
-    private final boolean requireAttrOptionCombos;
+  private final boolean requireAttrOptionCombos;
 
-    private final boolean skipNotifications;
+  private final boolean skipNotifications;
 
-    private final CategoryOptionCombo fallbackCatOptCombo;
+  private final CategoryOptionCombo fallbackCatOptCombo;
 
-    ImportConfig( SystemSettingManager systemSettingManager, CategoryService categoryService,
-        CompleteDataSetRegistrations registrations, ImportOptions options )
-    {
+  ImportConfig(
+      SystemSettingManager systemSettingManager,
+      CategoryService categoryService,
+      CompleteDataSetRegistrations registrations,
+      ImportOptions options) {
 
-        IdSchemes idSchemes = options.getIdSchemes();
-        dsScheme = getIdScheme( registrations::getDataSetIdScheme, registrations::getIdScheme,
-            idSchemes::getDataSetIdScheme, idSchemes::getIdScheme );
-        ouScheme = getIdScheme( registrations::getOrgUnitIdScheme, registrations::getIdScheme,
-            idSchemes::getOrgUnitIdScheme, idSchemes::getIdScheme );
-        aocScheme = getIdScheme( registrations::getAttributeOptionComboIdScheme, registrations::getIdScheme,
-            idSchemes::getAttributeOptionComboIdScheme, idSchemes::getIdScheme );
+    IdSchemes idSchemes = options.getIdSchemes();
+    dsScheme =
+        getIdScheme(
+            registrations::getDataSetIdScheme,
+            registrations::getIdScheme,
+            idSchemes::getDataSetIdScheme,
+            idSchemes::getIdScheme);
+    ouScheme =
+        getIdScheme(
+            registrations::getOrgUnitIdScheme,
+            registrations::getIdScheme,
+            idSchemes::getOrgUnitIdScheme,
+            idSchemes::getIdScheme);
+    aocScheme =
+        getIdScheme(
+            registrations::getAttributeOptionComboIdScheme,
+            registrations::getIdScheme,
+            idSchemes::getAttributeOptionComboIdScheme,
+            idSchemes::getIdScheme);
 
-        log.info( String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s",
-            dsScheme, ouScheme, aocScheme ) );
+    log.info(
+        String.format(
+            "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s",
+            dsScheme, ouScheme, aocScheme));
 
-        strategy = registrations.getStrategy() != null
-            ? ImportStrategy.valueOf( registrations.getStrategy() )
+    strategy =
+        registrations.getStrategy() != null
+            ? ImportStrategy.valueOf(registrations.getStrategy())
             : options.getImportStrategy();
 
-        dryRun = registrations.getDryRun() != null ? registrations.getDryRun() : options.isDryRun();
+    dryRun = registrations.getDryRun() != null ? registrations.getDryRun() : options.isDryRun();
 
-        skipNotifications = options.isSkipNotifications();
+    skipNotifications = options.isSkipNotifications();
 
-        skipExistingCheck = options.isSkipExistingCheck();
+    skipExistingCheck = options.isSkipExistingCheck();
 
-        strictPeriods = options.isStrictPeriods()
-            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+    strictPeriods =
+        options.isStrictPeriods()
+            || systemSettingManager.getBoolSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
 
-        strictAttrOptionCombos = options.isStrictAttributeOptionCombos()
-            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+    strictAttrOptionCombos =
+        options.isStrictAttributeOptionCombos()
+            || systemSettingManager.getBoolSetting(
+                SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS);
 
-        strictOrgUnits = options.isStrictOrganisationUnits()
-            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+    strictOrgUnits =
+        options.isStrictOrganisationUnits()
+            || systemSettingManager.getBoolSetting(
+                SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
 
-        requireAttrOptionCombos = options.isRequireAttributeOptionCombo()
-            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+    requireAttrOptionCombos =
+        options.isRequireAttributeOptionCombo()
+            || systemSettingManager.getBoolSetting(
+                SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO);
 
-        fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
+    fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
+  }
+
+  /**
+   * For the effective {@link IdScheme} the explicit value from {@link CompleteDataSetRegistrations}
+   * (payload) takes precedence over explicit scheme from {@link ImportOptions} (URL params). If no
+   * scheme is set again the default of {@link CompleteDataSetRegistrations#getIdScheme()} takes
+   * precedence over the default from {@link ImportOptions#getIdSchemes()} {@link
+   * IdSchemes#getIdScheme()}.
+   */
+  private static IdScheme getIdScheme(
+      Supplier<String> primary,
+      Supplier<String> primaryDefault,
+      Supplier<IdScheme> secondary,
+      Supplier<IdScheme> secondaryDefault) {
+    String schemeName = primary.get();
+    if (schemeName != null) {
+      return getIdSchemeIdAsUid(IdScheme.from(schemeName));
     }
-
-    /**
-     * For the effective {@link IdScheme} the explicit value from
-     * {@link CompleteDataSetRegistrations} (payload) takes precedence over
-     * explicit scheme from {@link ImportOptions} (URL params). If no scheme is
-     * set again the default of
-     * {@link CompleteDataSetRegistrations#getIdScheme()} takes precedence over
-     * the default from {@link ImportOptions#getIdSchemes()}
-     * {@link IdSchemes#getIdScheme()}.
-     */
-    private static IdScheme getIdScheme( Supplier<String> primary, Supplier<String> primaryDefault,
-        Supplier<IdScheme> secondary, Supplier<IdScheme> secondaryDefault )
-    {
-        String schemeName = primary.get();
-        if ( schemeName != null )
-        {
-            return getIdSchemeIdAsUid( IdScheme.from( schemeName ) );
-        }
-        IdScheme scheme = secondary.get();
-        if ( scheme != null && scheme != IdScheme.NULL )
-        {
-            return getIdSchemeIdAsUid( scheme );
-        }
-        schemeName = primaryDefault.get();
-        if ( schemeName != null )
-        {
-            return getIdSchemeIdAsUid( IdScheme.from( schemeName ) );
-        }
-        return getIdSchemeIdAsUid( IdScheme.from( secondaryDefault.get() ) );
+    IdScheme scheme = secondary.get();
+    if (scheme != null && scheme != IdScheme.NULL) {
+      return getIdSchemeIdAsUid(scheme);
     }
-
-    private static IdScheme getIdSchemeIdAsUid( IdScheme scheme )
-    {
-        return scheme == IdScheme.ID ? IdScheme.UID : scheme;
+    schemeName = primaryDefault.get();
+    if (schemeName != null) {
+      return getIdSchemeIdAsUid(IdScheme.from(schemeName));
     }
+    return getIdSchemeIdAsUid(IdScheme.from(secondaryDefault.get()));
+  }
+
+  private static IdScheme getIdSchemeIdAsUid(IdScheme scheme) {
+    return scheme == IdScheme.ID ? IdScheme.UID : scheme;
+  }
 }

@@ -29,11 +29,8 @@ package org.hisp.dhis.expression;
 
 import org.hisp.dhis.hibernate.EnumUserType;
 
-public class OperatorUserType
-    extends EnumUserType<Operator>
-{
-    public OperatorUserType()
-    {
-        super( Operator.class );
-    }
+public class OperatorUserType extends EnumUserType<Operator> {
+  public OperatorUserType() {
+    super(Operator.class);
+  }
 }

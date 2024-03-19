@@ -28,7 +28,6 @@
 package org.hisp.dhis.eventhook;
 
 import java.util.concurrent.Executor;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -37,20 +36,19 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Morten Olav Hansen
  */
 @Configuration
-public class EventHookConfiguration
-{
-    @Bean( name = "eventHookTaskExecutor" )
-    public Executor eventHookPoolTaskExecutor()
-    {
-        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+public class EventHookConfiguration {
+  @Bean(name = "eventHookTaskExecutor")
+  public Executor eventHookPoolTaskExecutor() {
+    final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-        // setting static defaults for now, we might to make this configurable in dhis.conf in the future
-        executor.setCorePoolSize( 50 );
-        executor.setMaxPoolSize( 500 );
-        executor.setQueueCapacity( 5000 );
-        executor.setThreadNamePrefix( "EventHook-" );
-        executor.initialize();
+    // setting static defaults for now, we might to make this configurable in dhis.conf in the
+    // future
+    executor.setCorePoolSize(50);
+    executor.setMaxPoolSize(500);
+    executor.setQueueCapacity(5000);
+    executor.setThreadNamePrefix("EventHook-");
+    executor.initialize();
 
-        return executor;
-    }
+    return executor;
+  }
 }

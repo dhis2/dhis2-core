@@ -28,7 +28,6 @@
 package org.hisp.dhis.validation.config;
 
 import java.util.Map;
-
 import org.hisp.dhis.common.ServiceProvider;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService;
@@ -39,17 +38,19 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "validationServiceConfig" )
-public class ServiceConfig
-{
-    @Bean( "dataAnalysisServiceProvider" )
-    public ServiceProvider<DataAnalysisService> dataAnalysisServiceProvider(
-        StdDevOutlierAnalysisService stdDevOutlierAnalysisService,
-        MinMaxOutlierAnalysisService minMaxOutlierAnalysisService )
-    {
-        ServiceProvider<DataAnalysisService> serviceProvider = new ServiceProvider<>();
-        serviceProvider.setServices( Map.of( "stddevoutlier", stdDevOutlierAnalysisService, "minmaxoutlier",
-            minMaxOutlierAnalysisService ) );
-        return serviceProvider;
-    }
+@Configuration("validationServiceConfig")
+public class ServiceConfig {
+  @Bean("dataAnalysisServiceProvider")
+  public ServiceProvider<DataAnalysisService> dataAnalysisServiceProvider(
+      StdDevOutlierAnalysisService stdDevOutlierAnalysisService,
+      MinMaxOutlierAnalysisService minMaxOutlierAnalysisService) {
+    ServiceProvider<DataAnalysisService> serviceProvider = new ServiceProvider<>();
+    serviceProvider.setServices(
+        Map.of(
+            "stddevoutlier",
+            stdDevOutlierAnalysisService,
+            "minmaxoutlier",
+            minMaxOutlierAnalysisService));
+    return serviceProvider;
+  }
 }

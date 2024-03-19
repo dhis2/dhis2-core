@@ -32,55 +32,72 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-class GridHeaderTest
-{
-    @Test
-    void getNoRepeatableStageParamTest()
-    {
+class GridHeaderTest {
+  @Test
+  void getNoRepeatableStageParamTest() {
 
-        GridHeader gridHeader = new GridHeader( "name", "column", ValueType.REFERENCE, false, false,
-            null, null, "programStage", null );
+    GridHeader gridHeader =
+        new GridHeader(
+            "name", "column", ValueType.REFERENCE, false, false, null, null, "programStage", null);
 
-        assertNull( gridHeader.getRepeatableStageParams() );
-    }
+    assertNull(gridHeader.getRepeatableStageParams());
+  }
 
-    @Test
-    void getStageOffsetOfNoRepeatableStageParamTest()
-    {
+  @Test
+  void getStageOffsetOfNoRepeatableStageParamTest() {
 
-        GridHeader gridHeader = new GridHeader( "name", "column", ValueType.REFERENCE, false, false,
-            null, null, "programStage", null );
+    GridHeader gridHeader =
+        new GridHeader(
+            "name", "column", ValueType.REFERENCE, false, false, null, null, "programStage", null);
 
-        assertNull( gridHeader.getStageOffset() );
-    }
+    assertNull(gridHeader.getStageOffset());
+  }
 
-    @Test
-    void getWithRepeatableStageParamTest()
-    {
-        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+  @Test
+  void getWithRepeatableStageParamTest() {
+    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-        repeatableStageParams.setStartIndex( 1 );
+    repeatableStageParams.setStartIndex(1);
 
-        repeatableStageParams.setCount( Integer.MAX_VALUE );
+    repeatableStageParams.setCount(Integer.MAX_VALUE);
 
-        GridHeader gridHeader = new GridHeader( "name", "column", ValueType.REFERENCE, false, false,
-            null, null, "programStage", repeatableStageParams );
+    GridHeader gridHeader =
+        new GridHeader(
+            "name",
+            "column",
+            ValueType.REFERENCE,
+            false,
+            false,
+            null,
+            null,
+            "programStage",
+            repeatableStageParams);
 
-        assertEquals( "startIndex:1 count:all startDate:null endDate: null", gridHeader.getRepeatableStageParams() );
-    }
+    assertEquals(
+        "startIndex:1 count:all startDate:null endDate: null",
+        gridHeader.getRepeatableStageParams());
+  }
 
-    @Test
-    void getStageOffsetWithRepeatableStageParamTest()
-    {
-        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+  @Test
+  void getStageOffsetWithRepeatableStageParamTest() {
+    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-        repeatableStageParams.setStartIndex( 1 );
+    repeatableStageParams.setStartIndex(1);
 
-        repeatableStageParams.setCount( Integer.MAX_VALUE );
+    repeatableStageParams.setCount(Integer.MAX_VALUE);
 
-        GridHeader gridHeader = new GridHeader( "name", "column", ValueType.REFERENCE, false, false,
-            null, null, "programStage", repeatableStageParams );
+    GridHeader gridHeader =
+        new GridHeader(
+            "name",
+            "column",
+            ValueType.REFERENCE,
+            false,
+            false,
+            null,
+            null,
+            "programStage",
+            repeatableStageParams);
 
-        assertEquals( 1, gridHeader.getStageOffset() );
-    }
+    assertEquals(1, gridHeader.getStageOffset());
+  }
 }

@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.webapi.webdomain.dataentry;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents the completion status of a form.
@@ -43,22 +41,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class CompleteStatusDto
-{
-    @JsonProperty
-    private boolean complete = false;
+public class CompleteStatusDto {
+  @JsonProperty private boolean complete = false;
 
-    @JsonProperty
-    private Date created;
+  @JsonProperty private Date created;
 
-    @JsonProperty
-    private String createdBy;
+  @JsonProperty private String createdBy;
 
-    @JsonProperty
-    private Date lastUpdated;
+  @JsonProperty private Date lastUpdated;
 
-    @JsonProperty
-    private String lastUpdatedBy;
+  @JsonProperty private String lastUpdatedBy;
 }

@@ -25,7 +25,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-summary_uid: KVICQmNL1pc
 name: orgunits_no_coordinates
 description: Organisation units with no coordinates.
 section: Organisation units
@@ -38,7 +37,6 @@ summary_sql: >-
   COUNT(*)as value,
   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
   FROM orgunits_no_coordinates;
-details_uid: O8Hxk6GsUXu
 details_sql: >-
   SELECT uid,name, CAST(hierarchylevel as text) as comment from organisationunit
   where geometry IS NULL

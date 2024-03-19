@@ -28,24 +28,19 @@
 package org.hisp.dhis.period;
 
 /**
- * PeriodType for weekly Periods. A valid weekly Period has startDate set to
- * Saturday and endDate set to Friday the same week, assuming Saturday is the
- * first day and Friday is the last day of the week.
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to Saturday and endDate
+ * set to Friday the same week, assuming Saturday is the first day and Friday is the last day of the
+ * week.
  *
  * @author Torgeir Lorange Ostby
  */
-public class WeeklySaturdayPeriodType
-    extends WeeklyAbstractPeriodType
-{
-    public WeeklySaturdayPeriodType()
-    {
-        super( PeriodTypeEnum.WEEKLY_SATURDAY.getName(), 6, "yyyySatWn", "P7D", 7, "1 week", "SatW" );
-    }
+public class WeeklySaturdayPeriodType extends WeeklyAbstractPeriodType {
+  public WeeklySaturdayPeriodType() {
+    super(PeriodTypeEnum.WEEKLY_SATURDAY.getName(), 6, "yyyySatWn", "P7D", 7, "1 week", "SatW");
+  }
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.WEEKLY_SATURDAY;
-    }
-
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.WEEKLY_SATURDAY;
+  }
 }

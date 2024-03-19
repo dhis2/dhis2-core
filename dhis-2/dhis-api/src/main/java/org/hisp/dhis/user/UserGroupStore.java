@@ -29,11 +29,7 @@ package org.hisp.dhis.user;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/**
- * Contains functions to manage {@link UserGroup}
- */
-public interface UserGroupStore
-    extends IdentifiableObjectStore<UserGroup>
-{
-    String ID = UserGroupStore.class.getName();
+/** Contains functions to manage {@link UserGroup} */
+public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
+  String ID = UserGroupStore.class.getName();
 }

@@ -34,19 +34,16 @@ import java.util.HashMap;
  *
  * @author Lars Helge Overland
  */
-public class MimicingHashMap<K, V>
-    extends HashMap<K, V>
-{
-    /**
-     * Returns the given key.
-     *
-     * @param key the key.
-     * @return the given key.
-     */
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public V get( Object key )
-    {
-        return (V) key;
-    }
+public class MimicingHashMap<K, V> extends HashMap<K, V> {
+  /**
+   * Returns the given key.
+   *
+   * @param key the key.
+   * @return the given key.
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public V get(Object key) {
+    return (V) key;
+  }
 }

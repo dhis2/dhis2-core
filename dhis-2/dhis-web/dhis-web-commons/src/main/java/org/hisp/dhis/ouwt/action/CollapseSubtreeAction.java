@@ -27,72 +27,62 @@
  */
 package org.hisp.dhis.ouwt.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.Collection;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.ouwt.manager.TreeStateManager;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Torgeir Lorange Ostby
  */
-public class CollapseSubtreeAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class CollapseSubtreeAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+  private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
+  public void setOrganisationUnitService(OrganisationUnitService organisationUnitService) {
+    this.organisationUnitService = organisationUnitService;
+  }
 
-    private TreeStateManager treeStateManager;
+  private TreeStateManager treeStateManager;
 
-    public void setTreeStateManager( TreeStateManager treeStateManager )
-    {
-        this.treeStateManager = treeStateManager;
-    }
+  public void setTreeStateManager(TreeStateManager treeStateManager) {
+    this.treeStateManager = treeStateManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
 
-    private String parentId;
+  private String parentId;
 
-    public void setParentId( String parentId )
-    {
-        this.parentId = parentId;
-    }
+  public void setParentId(String parentId) {
+    this.parentId = parentId;
+  }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    private Collection<OrganisationUnit> collapsedUnits;
+  private Collection<OrganisationUnit> collapsedUnits;
 
-    public Collection<OrganisationUnit> getCollapsedUnits()
-    {
-        return collapsedUnits;
-    }
+  public Collection<OrganisationUnit> getCollapsedUnits() {
+    return collapsedUnits;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-        throws Exception
-    {
-        OrganisationUnit parentUnit = organisationUnitService.getOrganisationUnit( parentId );
+  @Override
+  public String execute() throws Exception {
+    OrganisationUnit parentUnit = organisationUnitService.getOrganisationUnit(parentId);
 
-        collapsedUnits = treeStateManager.setSubtreeCollapsed( parentUnit );
+    collapsedUnits = treeStateManager.setSubtreeCollapsed(parentUnit);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

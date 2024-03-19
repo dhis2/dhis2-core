@@ -34,40 +34,32 @@ import java.util.List;
  *
  * @author Jan Bernitt
  */
-public interface JsonGeoMap extends JsonNameableObject
-{
-    default Number getLongitude()
-    {
-        return getNumber( "longitude" ).number();
-    }
+public interface JsonGeoMap extends JsonNameableObject {
+  default Number getLongitude() {
+    return getNumber("longitude").number();
+  }
 
-    default Number getLatitude()
-    {
-        return getNumber( "latitude" ).number();
-    }
+  default Number getLatitude() {
+    return getNumber("latitude").number();
+  }
 
-    default Number getZoom()
-    {
-        return getNumber( "zoom" ).number();
-    }
+  default Number getZoom() {
+    return getNumber("zoom").number();
+  }
 
-    default String getBasemap()
-    {
-        return getString( "basemap" ).string();
-    }
+  default String getBasemap() {
+    return getString("basemap").string();
+  }
 
-    default String getTitle()
-    {
-        return getString( "title" ).string();
-    }
+  default String getTitle() {
+    return getString("title").string();
+  }
 
-    default List<String> getSubscribers()
-    {
-        return getArray( "subscribers" ).stringValues();
-    }
+  default List<String> getSubscribers() {
+    return getArray("subscribers").stringValues();
+  }
 
-    default boolean isSubscribed()
-    {
-        return getBoolean( "subscribed" ).booleanValue();
-    }
+  default boolean isSubscribed() {
+    return getBoolean("subscribed").booleanValue();
+  }
 }

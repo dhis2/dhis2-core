@@ -27,52 +27,32 @@
  */
 package org.hisp.dhis.common;
 
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * @author Lars Helge Overland
  */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
-{
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
+public class ObjectDeletionRequestedEvent extends ApplicationEvent {
+  /** Should rollback the transaction if DeleteNotAllowedException is thrown */
+  private boolean shouldRollBack = true;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ObjectDeletionRequestedEvent( Object source )
-    {
-        super( source );
-    }
+  public ObjectDeletionRequestedEvent(Object source) {
+    super(source);
+  }
 
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getter && Setter
+  // -------------------------------------------------------------------------
 
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
+  public boolean isShouldRollBack() {
+    return shouldRollBack;
+  }
 
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
-    }
-
-    /**
-     * Check whether the given class should be skipped for DeletionHandler.
-     *
-     * @param type the class type.
-     * @return true if the given class should be skipped.
-     */
-    public static boolean shouldSkip( Class<?> type )
-    {
-        return UserAccess.class.isAssignableFrom( type ) || UserGroupAccess.class.isAssignableFrom( type );
-    }
+  public void setShouldRollBack(boolean shouldRollBack) {
+    this.shouldRollBack = shouldRollBack;
+  }
 }

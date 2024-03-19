@@ -29,29 +29,25 @@ package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
-public interface DeduplicationService
-{
-    PotentialDuplicate getPotentialDuplicateById( long id );
+public interface DeduplicationService {
+  PotentialDuplicate getPotentialDuplicateById(long id);
 
-    PotentialDuplicate getPotentialDuplicateByUid( String uid );
+  PotentialDuplicate getPotentialDuplicateByUid(String uid);
 
-    int countPotentialDuplicates( PotentialDuplicateCriteria criteria );
+  int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
 
-    boolean exists( PotentialDuplicate potentialDuplicate )
-        throws PotentialDuplicateConflictException;
+  boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
 
-    List<PotentialDuplicate> getPotentialDuplicates( PotentialDuplicateCriteria criteria );
+  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria);
 
-    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
-        throws PotentialDuplicateConflictException;
+  void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
+      throws PotentialDuplicateConflictException;
 
-    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+  void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate);
 
-    void autoMerge( DeduplicationMergeParams deduplicationRequest )
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException;
+  void autoMerge(DeduplicationMergeParams deduplicationRequest)
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException;
 
-    void manualMerge( DeduplicationMergeParams deduplicationRequest )
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException;
+  void manualMerge(DeduplicationMergeParams deduplicationRequest)
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException;
 }

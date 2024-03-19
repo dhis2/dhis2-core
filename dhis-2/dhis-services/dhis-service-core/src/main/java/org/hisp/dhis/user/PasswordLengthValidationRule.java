@@ -30,27 +30,22 @@ package org.hisp.dhis.user;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
-/**
- * Created by zubair on 08.03.17.
- */
+/** Created by zubair on 08.03.17. */
 @AllArgsConstructor
-public class PasswordLengthValidationRule implements PasswordValidationRule
-{
-    private final SystemSettingManager systemSettings;
+public class PasswordLengthValidationRule implements PasswordValidationRule {
+  private final SystemSettingManager systemSettings;
 
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentials )
-    {
-        int minLength = systemSettings.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH );
-        int maxLength = systemSettings.getIntSetting( SettingKey.MAX_PASSWORD_LENGTH );
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentials) {
+    int minLength = systemSettings.getIntSetting(SettingKey.MIN_PASSWORD_LENGTH);
+    int maxLength = systemSettings.getIntSetting(SettingKey.MAX_PASSWORD_LENGTH);
 
-        int length = credentials.getPassword().trim().length();
-        return length < minLength || length > maxLength
-            ? new PasswordValidationResult( PASSWORD_TOO_LONG_TOO_SHORT, minLength, maxLength )
-            : PasswordValidationResult.VALID;
-    }
+    int length = credentials.getPassword().trim().length();
+    return length < minLength || length > maxLength
+        ? new PasswordValidationResult(PASSWORD_TOO_LONG_TOO_SHORT, minLength, maxLength)
+        : PasswordValidationResult.VALID;
+  }
 }
