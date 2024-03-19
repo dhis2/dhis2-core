@@ -177,16 +177,16 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 9, 1, "ND");
 
     // Assert rows.
-    validateRow(response, 0, List.of("sonkoya MCHP", "", "2022-03-07 12:38:08.598"));
-    validateRow(response, 1, List.of("sonkoya MCHP", "", "2022-03-05 12:28:46.886"));
-    validateRow(response, 2, List.of("sonkoya MCHP", "", "2022-02-11 12:43:10.757"));
-    validateRow(response, 3, List.of("sonkoya MCHP", "", "2022-01-26 12:40:08.658"));
-    validateRow(response, 4, List.of("sonkoya MCHP", "", "2022-01-23 12:41:30.493"));
-    validateRow(response, 5, List.of("kamba mamudia", "", "2022-04-17 12:42:44.887"));
-    validateRow(response, 6, List.of("kamba mamudia", "", "2022-02-26 12:31:45.327"));
-    validateRow(response, 7, List.of("kamba mamudia", "", "2022-02-16 12:33:59.273"));
-    validateRow(response, 8, List.of("kamba mamudia", "", "2022-02-09 12:43:21.288"));
-    validateRow(response, 9, List.of("kamba mamudia", "", "2022-02-09 12:40:38.934"));
+    validateRow(response, 0, List.of("Zimmi CHC", "", "2022-04-01 12:37:00.018"));
+    validateRow(response, 1, List.of("Zimmi CHC", "", "2022-03-30 12:28:16.982"));
+    validateRow(response, 2, List.of("Zimmi CHC", "", "2022-03-05 12:38:13.732"));
+    validateRow(response, 3, List.of("Zimmi CHC", "", "2022-02-27 12:40:22.113"));
+    validateRow(response, 4, List.of("Zimmi CHC", "", "2022-02-04 12:29:18.933"));
+    validateRow(response, 5, List.of("Zimmi CHC", "", "2022-02-03 12:32:27.983"));
+    validateRow(response, 6, List.of("Zimmi CHC", "", "2022-02-02 12:31:53.863"));
+    validateRow(response, 7, List.of("Zimmi CHC", "", "2022-01-30 12:32:31.554"));
+    validateRow(response, 8, List.of("Zimmi CHC", "", "2022-01-30 12:28:34.169"));
+    validateRow(response, 9, List.of("Zimmi CHC", "", "2022-01-08 12:28:36.274"));
   }
 
   @Test
