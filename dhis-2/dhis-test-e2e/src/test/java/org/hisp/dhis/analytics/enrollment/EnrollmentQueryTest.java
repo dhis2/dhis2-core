@@ -160,50 +160,6 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         response,
         0,
         List.of(
-            "EbRsJr8LSSO",
-            "oi3PMIGYJH8",
-            "2022-07-02 02:00:00.0",
-            "2022-07-08 02:00:00.0",
-            "",
-            "",
-            "",
-            "2017-07-23 12:45:49.807",
-            "",
-            "",
-            "",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "DiszpKrYNg8",
-            "1231.0"));
-
-    validateRow(
-        response,
-        1,
-        List.of(
-            "XeuUO4RbQEb",
-            "AivS67mcmKY",
-            "2022-06-01 02:00:00.0",
-            "2022-05-01 02:00:00.0",
-            "",
-            "",
-            "",
-            "2017-11-15 17:48:49.132",
-            "",
-            "",
-            "",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "DiszpKrYNg8",
-            "1234.0"));
-
-    validateRow(
-        response,
-        2,
-        List.of(
             "KxXkjF6buFN",
             "uhubxsfLanV",
             "2022-04-02 02:00:00.0",
@@ -221,6 +177,50 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "COMPLETED",
             "DiszpKrYNg8",
             "2313.0"));
+
+    validateRow(
+        response,
+        1,
+        List.of(
+            "BcScme5sd9I",
+            "CH8wA03IelF",
+            "2022-01-26 12:05:00.0",
+            "2022-01-26 12:05:00.0",
+            "",
+            "",
+            "",
+            "2018-08-06 21:20:51.744",
+            "",
+            "",
+            "",
+            "Bendu CHC",
+            "Sierra Leone / Bonthe / Bendu Cha / Bendu CHC",
+            "OU_197430",
+            "ACTIVE",
+            "uFp0ztDOFbI",
+            "2500.0"));
+
+    validateRow(
+        response,
+        2,
+        List.of(
+            "V8wilIsWKja",
+            "kTlQEa3I3W6",
+            "2022-07-12 12:05:00.0",
+            "2022-07-12 12:05:00.0",
+            "",
+            "",
+            "",
+            "2018-08-06 21:20:50.875",
+            "",
+            "",
+            "",
+            "St Anthony clinic",
+            "Sierra Leone / Western Area / Freetown / St Anthony clinic",
+            "OU_278348",
+            "ACTIVE",
+            "bVZTNrnfn9G",
+            "2500.0"));
   }
 
   @Test
