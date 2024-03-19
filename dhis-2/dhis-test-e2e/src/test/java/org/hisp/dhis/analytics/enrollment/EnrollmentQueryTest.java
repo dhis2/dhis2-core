@@ -61,7 +61,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             .add("stage=A03MvHHogjR")
             .add("displayProperty=NAME")
             .add("outputType=ENROLLMENT")
-            .add("asc=A03MvHHogjR.UXz7xuGCEhU")
+            .add("asc=A03MvHHogjR.UXz7xuGCEhU,lastupdated")
             .add("totalPages=false")
             .add("pageSize=100")
             .add("page=1")
@@ -182,44 +182,44 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         response,
         1,
         List.of(
-            "BcScme5sd9I",
-            "CH8wA03IelF",
-            "2022-01-26 12:05:00.0",
-            "2022-01-26 12:05:00.0",
+            "xieBMWGVUhY",
+            "Ss42PAKPV4p",
+            "2022-01-09 12:05:00.0",
+            "2022-01-09 12:05:00.0",
             "",
             "",
             "",
-            "2018-08-06 21:20:51.744",
+            "2018-08-06 21:15:40.207",
             "",
             "",
             "",
-            "Bendu CHC",
-            "Sierra Leone / Bonthe / Bendu Cha / Bendu CHC",
-            "OU_197430",
+            "Sienga CHP",
+            "Sierra Leone / Kailahun / Dea / Sienga CHP",
+            "OU_204921",
             "ACTIVE",
-            "uFp0ztDOFbI",
+            "a1E6QWBTEwX",
             "2500.0"));
 
     validateRow(
         response,
         2,
         List.of(
-            "V8wilIsWKja",
-            "kTlQEa3I3W6",
-            "2022-07-12 12:05:00.0",
-            "2022-07-12 12:05:00.0",
+            "B5X5DWgtrSu",
+            "bB8bbcI5hQO",
+            "2022-07-18 12:05:00.0",
+            "2022-07-18 12:05:00.0",
             "",
             "",
             "",
-            "2018-08-06 21:20:50.875",
+            "2018-08-06 21:15:41.333",
             "",
             "",
             "",
-            "St Anthony clinic",
-            "Sierra Leone / Western Area / Freetown / St Anthony clinic",
-            "OU_278348",
+            "Masumana MCHP",
+            "Sierra Leone / Port Loko / Koya / Masumana MCHP",
+            "OU_254965",
             "ACTIVE",
-            "bVZTNrnfn9G",
+            "UlgEReuUPM4",
             "2500.0"));
   }
 
