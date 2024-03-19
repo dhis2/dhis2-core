@@ -272,9 +272,9 @@ public class DhisWebApiWebSecurityConfig {
 
           // Temporary solution for Struts less login page, will be removed when apps are fully
           // migrated
-          .antMatchers("/**/service-worker.js.map")
+          .antMatchers("/*/service-worker.js.map")
           .permitAll()
-          .antMatchers("/**/service-worker.js")
+          .antMatchers("/*/service-worker.js")
           .permitAll()
           .antMatchers("/index.html")
           .permitAll()
