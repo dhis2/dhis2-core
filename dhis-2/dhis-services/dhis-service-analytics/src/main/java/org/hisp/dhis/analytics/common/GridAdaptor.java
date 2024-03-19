@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -77,7 +76,7 @@ public class GridAdaptor {
 
     notNull(teiQueryParams, "The 'teiQueryParams' must not be null");
 
-    Grid grid = new ListGrid();
+    TeiListGrid grid = new TeiListGrid(teiQueryParams);
 
     // Adding headers.
     headerParamsHandler.handle(grid, teiQueryParams, fields);
