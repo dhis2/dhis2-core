@@ -282,7 +282,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntity getTrackedEntity(
       String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
       throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = getTrackedEntity(uid);
+    TrackedEntity trackedEntity = getTrackedEntity(uid);
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
     if (!trackerAccessManager.canRead(userDetails, daoTrackedEntity, program, false).isEmpty()) {
