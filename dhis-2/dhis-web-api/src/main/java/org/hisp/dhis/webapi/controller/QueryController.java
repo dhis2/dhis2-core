@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -141,7 +140,7 @@ public class QueryController {
     String alias = CodecUtils.sha1Hex(target);
     aliasCache.put(alias, target);
 
-    String contextPath = ContextUtils.getContextPath(request);
+    String contextPath = request.getContextPath();
     String path = replaceDuplicateSlashes(String.join("/", ALIAS_ROOT, alias));
     String href = constructAliasHref(path, contextPath);
 
