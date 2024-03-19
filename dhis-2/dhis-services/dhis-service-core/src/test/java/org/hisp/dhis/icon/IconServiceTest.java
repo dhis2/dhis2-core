@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,7 +73,7 @@ class IconServiceTest extends DhisConvenienceTest {
     FileResource fileResource = createFileResource('A', "file".getBytes());
     fileResource.setUid(fileResourceUid);
     when(iconStore.getIconByKey(uniqueKey)).thenReturn(null);
-    when(fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON))
+    when(fileResourceService.getFileResource(fileResourceUid, ICON))
         .thenReturn(Optional.of(new FileResource()));
 
     User user = new User();

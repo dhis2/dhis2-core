@@ -258,11 +258,7 @@ class IconTest extends TrackerTest {
 
     FileResource fileResource =
         new FileResource(
-            filename,
-            contentType,
-            content.length,
-            contentMd5.toString(),
-            FileResourceDomain.CUSTOM_ICON);
+            filename, contentType, content.length, contentMd5.toString(), FileResourceDomain.ICON);
     fileResource.setAssigned(false);
     fileResource.setCreated(new Date());
     fileResource.setAutoFields();
