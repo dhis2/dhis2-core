@@ -35,19 +35,27 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
 public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
 
   // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
   // to use UserDetails higher up in the layers.
+
+  /**
+   * Create UserDetails from User
+   *
+   * @param user user to convert
+   * @return UserDetails
+   */
   @CheckForNull
   static UserDetails fromUser(@CheckForNull User user) {
+    // TODO check in session if a UserDetails for the user already exists (if the user is the
+    // current user)
     if (user == null) {
       return null;
     }
-    // TODO check in session if a UserDetails for the user already exists (if the user is the
-    // current user)
     return createUserDetails(
         user,
         user.isAccountNonLocked(),
@@ -55,7 +63,30 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         null,
         null,
         null,
-        new HashMap<>());
+        new HashMap<>(),
+        true);
+  }
+
+  /**
+   * Create UserDetails from User without loading org units. NB: ONLY use if you are 100% sure that
+   * the user is not going to be used to retrieve org units
+   *
+   * @param user user to convert
+   * @return UserDetails
+   */
+  static UserDetails fromUserDontLoadOrgUnits(User user) {
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(
+        user,
+        user.isAccountNonLocked(),
+        user.isCredentialsNonExpired(),
+        null,
+        null,
+        null,
+        new HashMap<>(),
+        false);
   }
 
   @CheckForNull
@@ -67,49 +98,86 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
       @CheckForNull Map<String, Serializable> settings) {
+    return createUserDetails(
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        orgUnitUids,
+        searchOrgUnitUids,
+        dataViewUnitUids,
+        settings,
+        true);
+  }
+
+  @CheckForNull
+  static UserDetails createUserDetails(
+      @CheckForNull User user,
+      boolean accountNonLocked,
+      boolean credentialsNonExpired,
+      @CheckForNull Set<String> orgUnitUids,
+      @CheckForNull Set<String> searchOrgUnitUids,
+      @CheckForNull Set<String> dataViewUnitUids,
+      @CheckForNull Map<String, Serializable> settings,
+      boolean loadOrgUnits) {
+
     if (user == null) {
       return null;
     }
 
-    Set<String> userOrgUnitIds =
-        (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
+    UserDetailsImplBuilder userDetailsImplBuilder =
+        UserDetailsImpl.builder()
+            .id(user.getId())
+            .uid(user.getUid())
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .externalAuth(user.isExternalAuth())
+            .isTwoFactorEnabled(user.isTwoFactorEnabled())
+            .code(user.getCode())
+            .firstName(user.getFirstName())
+            .surname(user.getSurname())
+            .enabled(user.isEnabled())
+            .accountNonExpired(user.isAccountNonExpired())
+            .accountNonLocked(accountNonLocked)
+            .credentialsNonExpired(credentialsNonExpired)
+            .authorities(user.getAuthorities())
+            .allAuthorities(
+                Set.copyOf(
+                    user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()))
+            .isSuper(user.isSuper())
+            .userRoleIds(setOfIds(user.getUserRoles()))
+            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
+            .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings));
 
-    Set<String> userSearchOrgUnitIds =
-        (searchOrgUnitUids == null)
-            ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
-            : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
+    if (loadOrgUnits) {
 
-    Set<String> userDataOrgUnitIds =
-        (dataViewUnitUids == null)
-            ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
-            : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
+      Set<String> userOrgUnitIds =
+          (orgUnitUids == null) ? setOfIds(user.getOrganisationUnits()) : orgUnitUids;
 
-    return UserDetailsImpl.builder()
-        .id(user.getId())
-        .uid(user.getUid())
-        .username(user.getUsername())
-        .password(user.getPassword())
-        .externalAuth(user.isExternalAuth())
-        .isTwoFactorEnabled(user.isTwoFactorEnabled())
-        .code(user.getCode())
-        .firstName(user.getFirstName())
-        .surname(user.getSurname())
-        .enabled(user.isEnabled())
-        .accountNonExpired(user.isAccountNonExpired())
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
-        .authorities(user.getAuthorities())
-        .allAuthorities(
-            Set.copyOf(user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()))
-        .isSuper(user.isSuper())
-        .allRestrictions(user.getAllRestrictions())
-        .userRoleIds(setOfIds(user.getUserRoles()))
-        .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-        .userOrgUnitIds(userOrgUnitIds)
-        .userSearchOrgUnitIds(userSearchOrgUnitIds)
-        .userDataOrgUnitIds(userDataOrgUnitIds)
-        .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings))
-        .build();
+      Set<String> userSearchOrgUnitIds =
+          (searchOrgUnitUids == null)
+              ? setOfIds(user.getTeiSearchOrganisationUnitsWithFallback())
+              : (searchOrgUnitUids.isEmpty() ? orgUnitUids : searchOrgUnitUids);
+
+      Set<String> userDataOrgUnitIds =
+          (dataViewUnitUids == null)
+              ? setOfIds(user.getDataViewOrganisationUnitsWithFallback())
+              : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
+
+      userDetailsImplBuilder
+          .userOrgUnitIds(userOrgUnitIds)
+          .userSearchOrgUnitIds(userSearchOrgUnitIds)
+          .userDataOrgUnitIds(userDataOrgUnitIds)
+          .allRestrictions(user.getAllRestrictions());
+
+    } else {
+      userDetailsImplBuilder
+          .userOrgUnitIds(Set.of())
+          .userSearchOrgUnitIds(Set.of())
+          .userDataOrgUnitIds(Set.of())
+          .allRestrictions(Set.of());
+    }
+
+    return userDetailsImplBuilder.build();
   }
 
   @Nonnull
