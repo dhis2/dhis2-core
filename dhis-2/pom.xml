@@ -202,7 +202,7 @@
     <micrometer.version>1.12.3</micrometer.version>
 
     <!-- Logging -->
-    <log4j.version>2.23.0</log4j.version>
+    <log4j.version>2.23.1</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
