@@ -130,13 +130,20 @@ public class DhisWebCommonsWebSecurityConfig {
 
     @Override
     public void configure(WebSecurity web) {
-      web.ignoring().antMatchers("/api/ping");
+      web.ignoring()
+          .antMatchers("/api/ping")
+          .antMatchers("/*/service-worker.js.map")
+          .antMatchers("/*/service-worker.js");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests()
           .accessDecisionManager(accessDecisionManager())
+          .antMatchers("/*/service-worker.js.map")
+          .permitAll()
+          .antMatchers("/*/service-worker.js")
+          .permitAll()
           .antMatchers("/dhis-web-login/**")
           .permitAll()
           .requestMatchers(analyticsPluginResources())
