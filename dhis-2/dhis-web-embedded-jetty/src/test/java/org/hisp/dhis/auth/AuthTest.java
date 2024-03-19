@@ -177,8 +177,6 @@ class AuthTest {
 
     assertNotNull(getResponse);
     assertNotNull(getResponse.getBody());
-    JsonNode meDto = getResponse.getBody();
-    log.info("MeDto: " + meDto);
   }
 
   @Test
@@ -201,11 +199,19 @@ class AuthTest {
 
   @Test
   void testRedirectWithQueryParam() {
+    testRedirectUrl("/api/users?fields=id,name,displayName");
+  }
+
+  @Test
+  void testRedirectWithoutQueryParam() {
+    testRedirectUrl("/api/users");
+  }
+
+  private static void testRedirectUrl(String url) {
     RestTemplate restTemplate = new RestTemplate();
 
     ResponseEntity<LoginResponse> firstResponse =
-        restTemplate.postForEntity(
-            "http://localhost:9090/api/users?fields=id", null, LoginResponse.class);
+        restTemplate.postForEntity("http://localhost:9090" + url, null, LoginResponse.class);
     HttpHeaders headersFirstResponse = firstResponse.getHeaders();
     String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
 
@@ -224,10 +230,7 @@ class AuthTest {
     LoginResponse body = loginResponse.getBody();
     assertNotNull(body);
     assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
-    HttpHeaders headers = loginResponse.getHeaders();
 
-    log.info("Headers: " + headers);
-
-    assertEquals("/api/users?fields=id", body.getRedirectUrl());
+    assertEquals(url, body.getRedirectUrl());
   }
 }
