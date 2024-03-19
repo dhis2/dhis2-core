@@ -184,12 +184,29 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       for (int i = 0; i < grid.getHeaders().size(); ++i) {
         addGridValue(grid, grid.getHeaders().get(i), i + 1 + columnOffset, rowSet, params);
 
-        if (params.isRowContext()
-            && addValueMetaInfo(grid, rowSet, grid.getHeaders().get(i).getName())) {
-          ++columnOffset;
+        if (params.isRowContext()) {
+          addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
+          columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
         }
       }
     }
+  }
+
+  /**
+   * The method retrieves the amount of the supportive columns in database result set
+   *
+   * @param rowSet {@link SqlRowSet}.
+   * @param columnName The name of the investigated column.
+   * @return If the investigated column has some supportive columns lie .exists or .status, the
+   *     count of the columns is returned.
+   */
+  private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
+    return Arrays.stream(rowSet.getMetaData().getColumnNames())
+        .filter(
+            c ->
+                c.equalsIgnoreCase(columnName + ".exists")
+                    || c.equalsIgnoreCase(columnName + ".status"))
+        .count();
   }
 
   /**
@@ -199,23 +216,35 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param grid the {@link Grid}.
    * @param rowSet the {@link SqlRowSet}.
    * @param columnName the {@link String}.
-   * @return true when ValueMetaInfo added
+   * @return int, the amount of written info items
    */
-  private boolean addValueMetaInfo(Grid grid, SqlRowSet rowSet, String columnName) {
+  private boolean addValueOriginInfo(Grid grid, SqlRowSet rowSet, String columnName) {
     int gridRowIndex = grid.getRows().size() - 1;
 
-    Optional<String> valueMetaInfoColumnName =
+    Optional<String> existsMetaInfoColumnName =
         Arrays.stream(rowSet.getMetaData().getColumnNames())
             .filter((columnName + ".exists")::equalsIgnoreCase)
             .findFirst();
 
-    if (valueMetaInfoColumnName.isPresent()) {
+    if (existsMetaInfoColumnName.isPresent()) {
       try {
-        boolean isDefined = rowSet.getBoolean(valueMetaInfoColumnName.get());
+        Optional<String> statusMetaInfoColumnName =
+            Arrays.stream(rowSet.getMetaData().getColumnNames())
+                .filter((columnName + ".status")::equalsIgnoreCase)
+                .findFirst();
+
+        boolean isDefined = rowSet.getBoolean(existsMetaInfoColumnName.get());
 
         boolean isSet = rowSet.getObject(columnName) != null;
 
-        ValueStatus valueStatus = ValueStatus.of(isDefined, isSet);
+        boolean isScheduled = false;
+
+        if (statusMetaInfoColumnName.isPresent()) {
+          String status = rowSet.getString(statusMetaInfoColumnName.get());
+          isScheduled = "schedule".equalsIgnoreCase(status);
+        }
+
+        ValueStatus valueStatus = ValueStatus.of(isDefined, isSet, isScheduled);
 
         if (valueStatus == ValueStatus.SET) {
           return true;
