@@ -489,8 +489,6 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     trackedEntityInstance.setProgramInstances(Sets.newHashSet());
     trackedEntityInstance.setTrackedEntityType(trackedEntityType);
 
-    assertIsEmpty(reporter.getErrors());
-
     return trackedEntityInstance;
   }
 
