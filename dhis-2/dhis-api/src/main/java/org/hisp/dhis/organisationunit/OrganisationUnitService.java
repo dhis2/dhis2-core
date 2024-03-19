@@ -340,8 +340,8 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
       double longitude, double latitude, String topOrgUnitUid, Integer targetLevel);
 
   /**
-   * Equal to {@link OrganisationUnitService#isInUserHierarchy(User,OrganisationUnit)} except adds a
-   * caching layer on top. Use this method when performance is imperative and the risk of a stale
+   * Equal to {@link OrganisationUnitService#isInUserHierarchy(User, OrganisationUnit)} except adds
+   * a caching layer on top. Use this method when performance is imperative and the risk of a stale
    * result is tolerable.
    *
    * @param user the user to check for.
@@ -373,7 +373,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit);
 
   /**
-   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User,OrganisationUnit)} except
+   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User, OrganisationUnit)} except
    * adds a caching layer on top. Use this method when performance is imperative and the risk of a
    * stale result is tolerable.
    *
@@ -437,4 +437,28 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
 
   /** Update all OUs (thus forcing update of path). */
   void forceUpdatePaths();
+
+  /**
+   * Returns all OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all data view scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getDataViewOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all search scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getSearchOrganisationUnitsUidsByUser(String username);
 }
