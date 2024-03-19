@@ -214,6 +214,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
@@ -254,8 +256,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + dataElementUid
             + "\" from analytics_event_"
             + programUid
-            + " "
-            + "where analytics_event_"
+            + " where analytics_event_"
+            + programUid
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programUid
             + ".pi = ax.pi and ps = '"
             + repeatableProgramStage.getUid()
@@ -269,8 +272,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "\" "
             + "from analytics_event_"
             + programUid
-            + " "
-            + "where analytics_event_"
+            + " where analytics_event_"
+            + programUid
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programUid
             + ".pi = ax.pi and ps = '"
             + programStageUid
@@ -283,8 +287,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ", ((select \"psistatus\" "
             + "from analytics_event_"
             + programUid
-            + " "
-            + "where analytics_event_"
+            + " where analytics_event_"
+            + programUid
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programUid
             + ".pi = ax.pi and ps = '"
             + programStageUid
@@ -316,6 +321,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         "(select \"fWIAEtYVEGk\" from analytics_event_"
             + programA.getUid()
             + " where analytics_event_"
+            + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
@@ -391,6 +398,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
@@ -418,6 +427,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
@@ -437,6 +448,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
@@ -454,6 +467,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         "(select \"fWIAEtYVEGk\" from analytics_event_"
             + programA.getUid()
             + " where analytics_event_"
+            + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
@@ -483,6 +498,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid()
             + " where analytics_event_"
             + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
+            + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
             + "' order by occurreddate desc, created desc  limit 1 )";
@@ -501,6 +518,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
         "(select \"fWIAEtYVEGk\" from analytics_event_"
             + programA.getUid()
             + " where analytics_event_"
+            + programA.getUid()
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programA.getUid()
             + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid()
@@ -732,6 +751,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + programA.getUid()
                 + " where analytics_event_"
                 + programA.getUid()
+                + ".psistatus != 'SCHEDULE' and analytics_event_"
+                + programA.getUid()
                 + ".pi = ax.pi and \""
                 + dataElementA.getUid()
                 + "\" is not null and ps = '"
@@ -766,6 +787,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + programB.getUid()
                 + " where analytics_event_"
                 + programB.getUid()
+                + ".psistatus != 'SCHEDULE' and analytics_event_"
+                + programB.getUid()
                 + ".pi = ax.pi and ps = '"
                 + repeatableProgramStage.getUid()
                 + "' and occurreddate >= '2022-01-01'  and occurreddate <= '2022-01-31' order by occurreddate desc, created desc   LIMIT 100 ) as t1)"));
@@ -795,6 +818,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + "\" from analytics_event_"
                 + programB.getUid()
                 + " where analytics_event_"
+                + programB.getUid()
+                + ".psistatus != 'SCHEDULE' and analytics_event_"
                 + programB.getUid()
                 + ".pi = ax.pi and ps = '"
                 + repeatableProgramStage.getUid()

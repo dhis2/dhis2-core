@@ -67,6 +67,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -585,6 +586,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       colName = quote(colName + suffix);
 
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+      String excludingScheduledCondition =
+          eventTableName + ".psistatus != '" + EventStatus.SCHEDULE + "' and ";
 
       if (item.getProgramStage().getRepeatable()
           && item.hasRepeatableStageParams()
@@ -595,6 +598,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " from "
             + eventTableName
             + " where "
+            + excludingScheduledCondition
             + eventTableName
             + ".pi = "
             + ANALYTICS_TBL_ALIAS
@@ -619,6 +623,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " from "
             + eventTableName
             + " where "
+            + excludingScheduledCondition
             + eventTableName
             + ".pi = "
             + ANALYTICS_TBL_ALIAS
@@ -647,6 +652,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " from "
           + eventTableName
           + " where "
+          + excludingScheduledCondition
           + eventTableName
           + ".pi = "
           + ANALYTICS_TBL_ALIAS
