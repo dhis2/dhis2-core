@@ -156,7 +156,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 17, "ND");
+    validateRowContext(response, 1, 17, "NS");
 
     // Assert rows.
     validateRow(
@@ -342,7 +342,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 1, "ND");
+    validateRowContext(response, 1, 1, "NS");
 
     // Assert rows.
     validateRow(response, 0, List.of("36282", "3"));
@@ -731,7 +731,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 0, "ND");
+    validateRowContext(response, 1, 0, "NS");
 
     // Assert rows.
     validateRow(response, 0, List.of("3"));

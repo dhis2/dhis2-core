@@ -366,7 +366,7 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 3, 16, "ND");
     validateRowContext(response, 4, 16, "ND");
     validateRowContext(response, 5, 16, "ND");
-    validateRowContext(response, 6, 16, "SC");
+    validateRowContext(response, 6, 16, "NS");
     validateRowContext(response, 7, 16, "ND");
 
     // Assert rows.
