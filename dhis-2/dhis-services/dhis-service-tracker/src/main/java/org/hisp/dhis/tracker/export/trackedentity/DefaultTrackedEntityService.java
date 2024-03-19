@@ -264,12 +264,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntity trackedEntity = getTrackedEntity(uid);
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    List<String> errors = trackerAccessManager.canRead(currentUser, daoTrackedEntity);
+    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
-    return mapTrackedEntity(daoTrackedEntity, params, currentUser, includeDeleted);
+    return mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted);
   }
 
   /**
@@ -285,24 +285,24 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntity trackedEntity = getTrackedEntity(uid);
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
-    if (!trackerAccessManager.canRead(userDetails, daoTrackedEntity, program, false).isEmpty()) {
+    if (!trackerAccessManager.canRead(userDetails, trackedEntity, program, false).isEmpty()) {
       if (program.getAccessLevel() == AccessLevel.CLOSED) {
         throw new ForbiddenException(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED);
       }
       throw new ForbiddenException(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
     }
 
-    return mapTrackedEntity(daoTrackedEntity, params, userDetails, includeDeleted);
+    return mapTrackedEntity(trackedEntity, params, userDetails, includeDeleted);
   }
 
   private TrackedEntity getTrackedEntity(String uid) throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
-    if (daoTrackedEntity == null) {
+    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
-    return daoTrackedEntity;
+    return trackedEntity;
   }
 
   private TrackedEntity mapTrackedEntity(
