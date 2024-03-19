@@ -166,6 +166,19 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
+  public Category getCategoryByName(String name, UserDetails userDetails) {
+    List<Category> dataElementCategories =
+        new ArrayList<>(categoryStore.getAllEqName(name, userDetails));
+
+    if (dataElementCategories.isEmpty()) {
+      return null;
+    }
+
+    return dataElementCategories.get(0);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public Category getDefaultCategory() {
     return getCategoryByName(Category.DEFAULT_NAME);
   }

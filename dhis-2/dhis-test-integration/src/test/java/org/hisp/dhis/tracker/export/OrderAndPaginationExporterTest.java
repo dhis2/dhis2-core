@@ -126,6 +126,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
 
     manager.flush();
+    manager.clear();
   }
 
   @BeforeEach
