@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.Reporter;
@@ -54,6 +55,35 @@ public class AssertValidations {
         dto,
         code,
         "Missing required " + dto.getTrackerType().getName() + " property: `" + property + "`.");
+  }
+
+  public static void assertNoErrors(Reporter reporter) {
+    assertTrue(
+        reporter.getErrors().isEmpty(),
+        String.format(
+            "Expecting no validation errors but found errors : %s",
+            reporter.getErrors().stream()
+                .map(e -> e.getErrorCode().name())
+                .collect(Collectors.joining(","))));
+  }
+
+  public static void assertHasNoError(Reporter reporter, TrackerDto dto, ValidationCode code) {
+    if (reporter.getErrors().isEmpty()) {
+      return;
+    }
+
+    TrackerType type = dto.getTrackerType();
+    String uid = dto.getUid();
+    assertFalse(
+        reporter.getErrors().stream()
+            .anyMatch(
+                v ->
+                    code.name().equals(v.getCode())
+                        && type.name().equals(v.getType())
+                        && uid.equals(v.getUid())),
+        String.format(
+            "Error with code %s for %s with uid %s is found but not expected",
+            code, type.getName(), uid));
   }
 
   public static void assertHasError(Reporter reporter, TrackerDto dto, ValidationCode code) {
