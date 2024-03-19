@@ -296,7 +296,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private TrackedEntity getTrackedEntity(String uid) throws NotFoundException {
-    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
     if (daoTrackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
