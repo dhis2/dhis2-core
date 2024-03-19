@@ -287,8 +287,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ", ((select \"psistatus\" "
             + "from analytics_event_"
             + programUid
-            + " "
-            + "where analytics_event_"
+            + " where analytics_event_"
+            + programUid
+            + ".psistatus != 'SCHEDULE' and analytics_event_"
             + programUid
             + ".pi = ax.pi and ps = '"
             + programStageUid
