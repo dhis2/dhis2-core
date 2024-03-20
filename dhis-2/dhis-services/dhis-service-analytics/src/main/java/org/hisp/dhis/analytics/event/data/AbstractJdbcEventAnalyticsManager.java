@@ -397,9 +397,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       // asked for row context if allowed and needed
       if (rowContextAllowedAndNeeded(params, queryItem)) {
-        String column = " exists (" + columnAndAlias.column + ")";
-        String alias = columnAndAlias.alias + ".exists";
-        columns.add((new ColumnAndAlias(column, alias)).asSql());
+        String columnForExists = " exists (" + columnAndAlias.column + ")";
+        String aliasForExists = columnAndAlias.alias + ".exists";
+        columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
+        String columnForStatus =
+            " (" + columnAndAlias.column.replace(queryItem.getItem().getUid(), "psistatus") + ")";
+        String aliasForStatus = columnAndAlias.alias + ".status";
+        columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
     }
   }
