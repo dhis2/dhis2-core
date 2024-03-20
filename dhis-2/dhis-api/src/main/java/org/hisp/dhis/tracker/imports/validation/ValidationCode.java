@@ -70,10 +70,10 @@ public enum ValidationCode {
   E1039("ProgramStage: `{0}`, is not repeatable and an event already exists."),
   E1041("Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
   E1042("Event: `{0}`, needs to have completed date."),
-  E1045(
-      "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event."),
   E1043("Event: `{0}`, completeness date has expired. Not possible to make changes to this event."),
   E1044("Event: `{0}`, needs to have event date."),
+  E1045(
+      "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event."),
   E1046("Event: `{0}`, needs to have at least one (event or schedule) date."),
   E1047(
       "Event: `{0}`, date belongs to an expired period. It is not possible to create such event."),
