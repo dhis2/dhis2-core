@@ -64,7 +64,9 @@ public class DhisBindAuthenticator extends BindAuthenticator {
 
     if (user.hasLdapId() && user.isExternalAuth()) {
       log.debug(
-          "Attemping username/password LDAP authentication for user: '{}'", user.getUsername());
+          "LDAP authentication attempt with username: '{}' and LDAP ID: '{}'",
+          user.getUsername(),
+          user.getLdapId());
       authentication =
           new UsernamePasswordAuthenticationToken(
               user.getLdapId(), authentication.getCredentials());
