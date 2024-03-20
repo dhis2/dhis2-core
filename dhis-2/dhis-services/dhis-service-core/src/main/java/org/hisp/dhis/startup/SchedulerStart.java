@@ -46,4 +46,11 @@ public class SchedulerStart extends AbstractStartupRoutine {
   public void execute() throws Exception {
     scheduler.start();
   }
+
+  @Override
+  public boolean enabled() {
+    // get env var
+    String schedulingEnabled = System.getenv("SCHEDULING_ENABLED").toLowerCase();
+    return "true".equals(schedulingEnabled);
+  }
 }

@@ -88,7 +88,7 @@ public class DefaultStartupRoutineExecutor implements StartupRoutineExecutor {
     int index = 1;
 
     for (StartupRoutine routine : startupRoutines) {
-      if (!(testing && routine.skipInTests())) {
+      if (!(testing && routine.skipInTests() || !routine.enabled())) {
         log.info(
             "Executing startup routine ["
                 + index

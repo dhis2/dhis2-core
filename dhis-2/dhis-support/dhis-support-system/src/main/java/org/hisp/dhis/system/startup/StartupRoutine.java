@@ -65,4 +65,14 @@ public interface StartupRoutine {
    * @return true if this StartupRoutine is skipped in tests, false otherwise.
    */
   boolean skipInTests();
+
+  /**
+   * Returns whether this StartupRoutine is enabled or not. Default implementation is that all
+   * routines are enabled. Override if other behaviour is desired.
+   *
+   * @return true if this StartupRoutine is enabled, false otherwise.
+   */
+  default boolean enabled() {
+    return true;
+  }
 }
