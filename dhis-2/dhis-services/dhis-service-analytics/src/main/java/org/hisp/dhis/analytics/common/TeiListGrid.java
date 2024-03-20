@@ -49,7 +49,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class TeiListGrid extends ListGrid {
@@ -113,7 +112,6 @@ public class TeiListGrid extends ListGrid {
     return roundIfNecessary(rs, columnLabel);
   }
 
-  @Nullable
   private Double roundIfNecessary(SqlRowSet rs, String columnLabel) {
     if (isNull(rs.getObject(columnLabel))) {
       return null;
