@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,6 +55,7 @@ public class HousekeepingJob implements Job {
 
   private final JobSchedulerLoopService jobSchedulerService;
   private final JobConfigurationService jobConfigurationService;
+  private final IconService iconService;
 
   @Override
   public JobType getJobType() {
@@ -67,9 +72,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Auto spawn default jobs when missing", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d default jobs were created"::formatted, //
-        jobConfigurationService::createDefaultJobs);
+        0, "%d default jobs were created"::formatted, jobConfigurationService::createDefaultJobs);
 
     progress.startingStage("Update statue to DISABLED for non enabled jobs", SKIP_STAGE);
     progress.runStage(
@@ -79,9 +82,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Cleanup finished ONCE_ASAP jobs", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d jobs were deleted"::formatted, //
-        () -> jobConfigurationService.deleteFinishedJobs(-1));
+        0, "%d jobs were deleted"::formatted, () -> jobConfigurationService.deleteFinishedJobs(-1));
 
     progress.startingStage("Reschedule stale jobs", SKIP_STAGE);
     progress.runStage(
@@ -89,6 +90,23 @@ public class HousekeepingJob implements Job {
         "%d jobs were rescheduled"::formatted,
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
 
+    progress.startingStage("Finding missing default icons", SKIP_STAGE);
+    List<Icon> missing = progress.runStage(List.of(), iconService::findNonExistingDefaultIcons);
+    progress.startingStage("Insert default icons", missing.size(), SKIP_ITEM);
+    progress.runStage(missing, Icon::getKey, this::createDefaultIcon);
+
     progress.completedProcess(null);
+  }
+
+  private void createDefaultIcon(Icon icon) {
+    try {
+      // note that these are split in two to have independent TX boundaries
+      // for file resource creation and icon creation
+      // to make sure the file upload is complete before creating the icon
+      iconService.uploadDefaultIcon(icon);
+      iconService.addIcon(icon);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
   }
 }
