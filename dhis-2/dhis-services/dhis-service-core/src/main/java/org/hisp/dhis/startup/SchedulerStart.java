@@ -48,9 +48,8 @@ public class SchedulerStart extends AbstractStartupRoutine {
   }
 
   @Override
-  public boolean enabled() {
-    // get env var
-    String schedulingEnabled = System.getenv("SCHEDULING_ENABLED").toLowerCase();
-    return "true".equals(schedulingEnabled);
+  public boolean skip() {
+    String skipScheduler = System.getProperty("dhis.skip.startup.scheduler");
+    return "true".equalsIgnoreCase(skipScheduler);
   }
 }

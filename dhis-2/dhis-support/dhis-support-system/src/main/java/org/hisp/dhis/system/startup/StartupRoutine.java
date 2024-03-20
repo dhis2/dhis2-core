@@ -67,12 +67,14 @@ public interface StartupRoutine {
   boolean skipInTests();
 
   /**
-   * Returns whether this StartupRoutine is enabled or not. Default implementation is that all
-   * routines are enabled. Override if other behaviour is desired.
+   * Returns whether this StartupRoutine should be skipped or not. Default implementation is that
+   * all routines are not skipped. Override if other behaviour is desired. An example of why a
+   * startup routine may want to be skipped is the Job Scheduler that runs every 20 seconds or so.
+   * Skipping these during local development can help reduce noise.
    *
-   * @return true if this StartupRoutine is enabled, false otherwise.
+   * @return true if this StartupRoutine should be skipped, false otherwise.
    */
-  default boolean enabled() {
-    return true;
+  default boolean skip() {
+    return false;
   }
 }
