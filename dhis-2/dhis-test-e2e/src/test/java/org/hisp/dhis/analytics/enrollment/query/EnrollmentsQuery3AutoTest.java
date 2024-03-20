@@ -121,7 +121,7 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
             .add("pageSize=10")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,EPEcjy3FWmI[-1].lJTx9EZ1dk1")
-            .add("desc=ouname,enrollmentdate");
+            .add("desc=enrollmentdate");
 
     // When
     ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
@@ -177,16 +177,16 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 9, 1, "ND");
 
     // Assert rows.
-    validateRow(response, 0, List.of("sonkoya MCHP", "", "2022-03-07 12:38:08.598"));
-    validateRow(response, 1, List.of("sonkoya MCHP", "", "2022-03-05 12:28:46.886"));
-    validateRow(response, 2, List.of("sonkoya MCHP", "", "2022-02-11 12:43:10.757"));
-    validateRow(response, 3, List.of("sonkoya MCHP", "", "2022-01-26 12:40:08.658"));
-    validateRow(response, 4, List.of("sonkoya MCHP", "", "2022-01-23 12:41:30.493"));
-    validateRow(response, 5, List.of("kamba mamudia", "", "2022-04-17 12:42:44.887"));
-    validateRow(response, 6, List.of("kamba mamudia", "", "2022-02-26 12:31:45.327"));
-    validateRow(response, 7, List.of("kamba mamudia", "", "2022-02-16 12:33:59.273"));
-    validateRow(response, 8, List.of("kamba mamudia", "", "2022-02-09 12:43:21.288"));
-    validateRow(response, 9, List.of("kamba mamudia", "", "2022-02-09 12:40:38.934"));
+    validateRow(response, 0, List.of("Ngelehun CHC", "", "2022-08-11 12:32:30.524"));
+    validateRow(response, 1, List.of("Panderu MCHP", "", "2022-04-26 12:43:23.827"));
+    validateRow(response, 2, List.of("Bumbuna CHC", "", "2022-04-26 12:34:21.521"));
+    validateRow(response, 3, List.of("Gissiwolo MCHP", "", "2022-04-26 12:33:26.455"));
+    validateRow(response, 4, List.of("Tengbewabu MCHP", "", "2022-04-26 12:32:04.965"));
+    validateRow(response, 5, List.of("Bombordu MCHP", "", "2022-04-25 12:37:33.687"));
+    validateRow(response, 6, List.of("Macrogba MCHP", "", "2022-04-25 12:34:07.072"));
+    validateRow(response, 7, List.of("Bandawor MCHP", "", "2022-04-25 12:33:45.644"));
+    validateRow(response, 8, List.of("Rofutha MCHP", "", "2022-04-25 12:29:47.209"));
+    validateRow(response, 9, List.of("Nyandehun MCHP", "", "2022-04-25 12:29:32.927"));
   }
 
   @Test
