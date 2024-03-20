@@ -175,6 +175,7 @@ case-sensitive properties
 * `completedAt`
 * `completedBy`
 * `createdAt`
+* `createdAtClient`
 * `createdBy`
 * `deleted`
 * `enrolledAt`
@@ -192,6 +193,7 @@ case-sensitive properties
 * `storedBy`
 * `trackedEntity`
 * `updatedAt`
+* `updatedAtClient`
 * `updatedBy`
 
 Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
