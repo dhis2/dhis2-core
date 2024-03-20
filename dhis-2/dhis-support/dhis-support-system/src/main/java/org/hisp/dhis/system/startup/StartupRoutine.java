@@ -68,9 +68,10 @@ public interface StartupRoutine {
 
   /**
    * Returns whether this StartupRoutine should be skipped or not. Default implementation is that
-   * all routines are not skipped. Override if other behaviour is desired. An example of why a
-   * startup routine may want to be skipped is the Job Scheduler that runs every 20 seconds or so.
-   * Skipping these during local development can help reduce noise.
+   * all routines are not skipped. Override if other behaviour is desired. <br>
+   * <br>
+   * An example of why a startup routine may want to be skipped is the Job Scheduler that runs every
+   * 20 seconds or so. Skipping these during local development can help reduce noise.
    *
    * @return true if this StartupRoutine should be skipped, false otherwise.
    */
