@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,7 +97,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     Map<String, List<String>> supplementaryData =
         providerToTest.getSupplementaryData(getProgramRules());
     assertFalse(supplementaryData.isEmpty());
-    assertEquals(getUserRoleUids(), supplementaryData.get("USER"));
+    assertEquals(getUserRoleUids(), new HashSet<>(supplementaryData.get("USER")));
     assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
     assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
     assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
@@ -108,8 +109,8 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     return Lists.newArrayList(programRule);
   }
 
-  private List<String> getUserRoleUids() {
-    return getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toList());
+  private Set<String> getUserRoleUids() {
+    return getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
   }
 
   private Set<UserRole> getUserRoles() {
