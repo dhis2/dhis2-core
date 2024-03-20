@@ -57,6 +57,15 @@ public class TeiListGrid extends ListGrid {
     this.teiQueryParams = teiQueryParams;
   }
 
+  /**
+   * Adds named rows to the grid based on the given result set. The column names are used to
+   * identify the grid headers and the row values are added to the grid. The method also adds row
+   * context content that describes the origin of the data value, indicating whether it is set, not
+   * set, undefined or scheduled.
+   *
+   * @param rs the {@link ResultSet}
+   * @return the {@link Grid} object
+   */
   public Grid addNamedRows(SqlRowSet rs) {
     String[] cols = getHeaders().stream().map(GridHeader::getName).toArray(String[]::new);
     Set<String> headersSet = new LinkedHashSet<>();
@@ -121,7 +130,6 @@ public class TeiListGrid extends ListGrid {
    *
    * @param rs the {@link ResultSet},
    * @param columnName the {@link String}, grid row column name
-   * @param rowIndex, row id
    * @return Map of column index and value status
    */
   private Map<String, Object> getRowContextItem(SqlRowSet rs, String columnName, int rowIndex) {
