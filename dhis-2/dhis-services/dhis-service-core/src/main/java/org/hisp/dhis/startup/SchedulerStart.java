@@ -46,10 +46,4 @@ public class SchedulerStart extends AbstractStartupRoutine {
   public void execute() throws Exception {
     scheduler.start();
   }
-
-  @Override
-  public boolean skip() {
-    String skipScheduler = System.getProperty("dhis.skip.startup.scheduler");
-    return "true".equalsIgnoreCase(skipScheduler);
-  }
 }
