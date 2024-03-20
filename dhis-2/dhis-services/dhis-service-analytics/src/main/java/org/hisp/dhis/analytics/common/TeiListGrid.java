@@ -33,7 +33,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -49,6 +51,9 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class TeiListGrid extends ListGrid {
+
+  private static final List<ValueType> ROUNDABLE_TYPES =
+      List.of(ValueType.PERCENTAGE, ValueType.NUMBER);
 
   @JsonIgnore private final transient TeiQueryParams teiQueryParams;
 
@@ -100,15 +105,23 @@ public class TeiListGrid extends ListGrid {
 
   private Object getValueAndRoundIfNecessary(SqlRowSet rs, String columnLabel) {
     ValueType valueType = getValueType(columnLabel);
-    if (shouldRound(valueType)) {
-      return MathUtils.getRounded(rs.getDouble(columnLabel));
+    if (isRoundableType(valueType)) {
+      Object value = rs.getObject(columnLabel);
+      if (Objects.nonNull(value)) {
+        double doubleValue = rs.getDouble(columnLabel);
+        if (!teiQueryParams.getCommonParams().isSkipRounding()) {
+          return MathUtils.getRounded(doubleValue);
+        }
+        return doubleValue;
+      }
+      // value is null here
+      return null;
     }
     return rs.getObject(columnLabel);
   }
 
-  private boolean shouldRound(ValueType valueType) {
-    return !teiQueryParams.getCommonParams().isSkipRounding()
-        && (valueType == ValueType.NUMBER || valueType == ValueType.PERCENTAGE);
+  private boolean isRoundableType(ValueType valueType) {
+    return ROUNDABLE_TYPES.contains(valueType);
   }
 
   private ValueType getValueType(String col) {
