@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.auth;
+package org.hisp.dhis.security;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@Getter
-@Setter
-@ToString
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @NoArgsConstructor
-public abstract class RegistrationParams {
-  @JsonProperty String username;
-  @JsonProperty String firstName;
-  @JsonProperty String surname;
-  @JsonProperty String password;
-  @JsonProperty String email;
-
-  @JsonProperty("g-recaptcha-response")
-  String recaptchaResponse;
+@AllArgsConstructor
+@Getter
+@Builder
+public class LoginOidcProvider {
+  @JsonProperty private String id;
+  @JsonProperty private String icon;
+  @JsonProperty private String iconPadding;
+  @JsonProperty private String loginText;
+  @JsonProperty private String url;
 }

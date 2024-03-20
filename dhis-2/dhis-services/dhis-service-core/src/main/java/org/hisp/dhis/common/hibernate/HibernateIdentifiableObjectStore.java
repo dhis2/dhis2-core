@@ -470,6 +470,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
   @Nonnull
   @Override
+  public List<T> getAllEqName(@Nonnull String name, UserDetails userDetails) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<T> param =
+        new JpaQueryParameters<T>()
+            .addPredicates(getSharingPredicates(builder, userDetails))
+            .addPredicate(root -> builder.equal(root.get("name"), name))
+            .addOrder(root -> builder.asc(root.get("name")));
+
+    return getList(builder, param);
+  }
+
+  @Nonnull
+  @Override
   public List<T> getAllLikeName(@Nonnull String name) {
     return getAllLikeName(name, true);
   }

@@ -47,6 +47,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -909,13 +910,32 @@ public class DefaultUserService implements UserService {
 
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
 
+    List<String> organisationUnitsUidsByUser =
+        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
+
     return UserDetails.createUserDetails(
-        user, accountNonLocked, credentialsNonExpired, userSettings);
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        new HashSet<>(organisationUnitsUidsByUser),
+        new HashSet<>(searchOrganisationUnitsUidsByUser),
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
+        userSettings);
   }
 
   @Override
   public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
     return userStore.getCurrentUserGroupInfo(userUID);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByEmail(String email) {
+    return userStore.getUserByEmail(email);
   }
 
   @Override
@@ -1090,6 +1110,9 @@ public class DefaultUserService implements UserService {
     vars.put("applicationTitle", applicationTitle);
     vars.put("restorePath", rootPath + RESTORE_PATH + restoreType.getAction());
     vars.put("token", encodedTokens);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
 
     I18n i18n =
@@ -1270,6 +1293,11 @@ public class DefaultUserService implements UserService {
 
     if (user.getEmail() == null || !ValidationUtils.emailIsValid(user.getEmail())) {
       log.warn("Could not send restore/invite message as user has no email or email is invalid");
+      return ErrorCode.E6202;
+    }
+
+    if (user.isExternalAuth()) {
+      log.warn("Could reset password, user is using external authentication.");
       return ErrorCode.E6202;
     }
 

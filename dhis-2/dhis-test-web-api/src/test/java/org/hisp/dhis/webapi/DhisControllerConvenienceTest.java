@@ -78,7 +78,7 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
   private User adminUser;
 
   @BeforeEach
-  final void setup() throws Exception {
+  public final void setup() throws Exception {
     userService = _userService;
     renderService = _renderService;
     clearSecurityContext();

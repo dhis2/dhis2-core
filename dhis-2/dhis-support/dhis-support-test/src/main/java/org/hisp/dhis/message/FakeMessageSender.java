@@ -62,6 +62,14 @@ public class FakeMessageSender implements MessageSender {
     return unmodifiableList(sendMessagesByRecipient.getOrDefault(recipient, emptyList()));
   }
 
+  public void clearMessages() {
+    sendMessagesByRecipient.clear();
+  }
+
+  public List<OutboundMessage> getAllMessages() {
+    return sendMessagesByRecipient.values().stream().flatMap(List::stream).toList();
+  }
+
   @Override
   public OutboundMessageResponse sendMessage(
       String subject,

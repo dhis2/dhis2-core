@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
@@ -45,8 +44,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.feedback.HiddenNotFoundException;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
@@ -94,31 +94,20 @@ public class UserAccountController {
   @ResponseStatus(HttpStatus.OK)
   public void forgotPassword(
       HttpServletRequest request, @RequestBody ForgotPasswordRequest forgotPasswordRequest)
-      throws NotFoundException, ConflictException, ForbiddenException {
+      throws HiddenNotFoundException, ConflictException, ForbiddenException {
 
-    String username = forgotPasswordRequest.getUsername();
-
-    if (userService.isRecoveryLocked(username)) {
-      throw new ForbiddenException(
-          "The account recovery operation for the given user is temporarily locked due to too "
-              + "many calls to this endpoint in the last '"
-              + RECOVERY_LOCKOUT_MINS
-              + "' minutes. Username:"
-              + username);
-    } else {
-      userService.registerRecoveryAttempt(username);
+    if (!systemSettingManager.accountRecoveryEnabled()) {
+      throw new ConflictException("Account recovery is not enabled");
     }
 
-    User user = userService.getUserByUsername(username);
+    User user = getUser(forgotPasswordRequest.getEmailOrUsername());
 
-    if (user == null) {
-      throw new NotFoundException("User does not exist: " + username);
-    }
+    checkRecoveryLock(user.getUsername());
 
     ErrorCode errorCode = userService.validateRestore(user);
-
     if (errorCode != null) {
-      throw new IllegalQueryException(errorCode);
+      log.warn("Validate email restore failed: {}", errorCode);
+      throw new HiddenNotFoundException("Validate failed: " + errorCode);
     }
 
     if (!userService.sendRestoreOrInviteMessage(
@@ -128,7 +117,7 @@ public class UserAccountController {
       throw new ConflictException("Account could not be recovered");
     }
 
-    log.info("Recovery message sent for user: {}", username);
+    log.info("Forgot email was sent to user: {}", user.getUsername());
   }
 
   @PostMapping("/passwordReset")
@@ -136,44 +125,53 @@ public class UserAccountController {
   public void resetPassword(@RequestBody ResetPasswordRequest resetRequest)
       throws ConflictException, BadRequestException {
 
-    String token = resetRequest.getResetToken();
+    if (!systemSettingManager.accountRecoveryEnabled()) {
+      throw new ConflictException("Account recovery is not enabled");
+    }
+
+    String token = resetRequest.getToken();
     String newPassword = resetRequest.getNewPassword();
+
+    if (StringUtils.isBlank(token)) {
+      throw new BadRequestException("Token is required");
+    }
+    if (StringUtils.isBlank(newPassword)) {
+      throw new BadRequestException("New password is required");
+    }
 
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
 
     User user = userService.getUserByIdToken(idToken);
-    if (user == null || idAndRestoreToken.length < 2) {
+    if (user == null || idAndRestoreToken.length < 2 || user.isExternalAuth()) {
       throw new ConflictException("Account recovery failed");
     }
-    String restoreToken = idAndRestoreToken[1];
 
-    if (!systemSettingManager.accountRecoveryEnabled()) {
-      throw new ConflictException("Account recovery is not enabled");
-    }
+    String restoreToken = idAndRestoreToken[1];
 
     if (newPassword.trim().equals(user.getUsername())) {
       throw new BadRequestException("Password cannot be equal to username");
     }
 
     CredentialsInfo credentialsInfo =
-        new CredentialsInfo(
-            user.getUsername(), newPassword, StringUtils.trimToEmpty(user.getEmail()), false);
+        CredentialsInfo.builder()
+            .username(user.getUsername())
+            .password(newPassword)
+            .email(StringUtils.trimToEmpty(user.getEmail()))
+            .newUser(false)
+            .build();
 
     PasswordValidationResult result = passwordValidationService.validate(credentialsInfo);
-
     if (!result.isValid()) {
       throw new BadRequestException(result.getErrorMessage());
     }
 
-    boolean restoreSuccess =
-        userService.restore(user, restoreToken, newPassword, RestoreType.RECOVER_PASSWORD);
-
-    if (!restoreSuccess) {
-      throw new BadRequestException("Account could not be restored");
+    if (!userService.restore(user, restoreToken, newPassword, RestoreType.RECOVER_PASSWORD)) {
+      throw new BadRequestException(
+          "Account could not be restored for user: " + user.getUsername());
     }
 
-    log.info("Account restored for user: {}", user.getUsername());
+    log.info("Password was reset for user: {}", user.getUsername());
   }
 
   @PostMapping("/registration")
@@ -201,5 +199,33 @@ public class UserAccountController {
 
     log.info("Invite confirmation successful");
     return ok("Account updated");
+  }
+
+  private void checkRecoveryLock(String username) throws ForbiddenException {
+    if (userService.isRecoveryLocked(username)) {
+      throw new ForbiddenException(
+          "The account recovery operation for the given user is temporarily locked due to too "
+              + "many calls to this endpoint in the last '"
+              + RECOVERY_LOCKOUT_MINS
+              + "' minutes. Username:"
+              + username);
+    } else {
+      userService.registerRecoveryAttempt(username);
+    }
+  }
+
+  private User getUser(String emailOrUsername) throws HiddenNotFoundException {
+    User user;
+
+    if (ValidationUtils.emailIsValid(emailOrUsername)) {
+      user = userService.getUserByEmail(emailOrUsername);
+    } else {
+      user = userService.getUserByUsername(emailOrUsername);
+    }
+    if (user == null) {
+      throw new HiddenNotFoundException("User does not exist: " + emailOrUsername);
+    }
+
+    return user;
   }
 }
