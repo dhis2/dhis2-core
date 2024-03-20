@@ -168,7 +168,7 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam(required = false) String uid)
       throws WebMessageException, IOException {
     FileResource fileResource;
-    if (domain.equals(FileResourceDomain.CUSTOM_ICON)) {
+    if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
       fileResource = fileResourceUtils.saveFileResource(uid, resizeToDefaultIconSize(file), domain);
     } else {

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
+import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
 
 import com.google.common.base.Strings;
 import java.io.IOException;
@@ -53,7 +53,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +68,7 @@ public class DefaultIconService implements IconService {
   private static final Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
 
   private static final String ICON_PATH = "SVGs";
+  private static final String MEDIA_TYPE_SVG = "image/svg+xml";
 
   private final IconStore iconStore;
   private final FileResourceService fileResourceService;
@@ -79,19 +79,19 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional(readOnly = true)
   public List<Icon> findNonExistingDefaultIcons() {
-    Set<String> existing = Set.copyOf(iconStore.getAllKeys());
-    List<Icon> missing = new ArrayList<>();
+    Set<String> existingKeys = Set.copyOf(iconStore.getAllKeys());
+    List<Icon> missingIcons = new ArrayList<>();
     for (DefaultIcon icon : DefaultIcon.values()) {
       if (!ignoredAfterFailure.contains(icon)
-          && icon.getVariants().stream().anyMatch(key -> !existing.contains(key))) {
-        for (Icon i : icon.createIcons()) {
-          if (!existing.contains(i.getKey())) {
-            missing.add(i);
+          && icon.getVariantKeys().stream().anyMatch(key -> !existingKeys.contains(key))) {
+        for (Icon i : icon.toVariantIcons()) {
+          if (!existingKeys.contains(i.getKey())) {
+            missingIcons.add(i);
           }
         }
       }
     }
-    return missing;
+    return missingIcons;
   }
 
   @Override
@@ -100,8 +100,7 @@ public class DefaultIconService implements IconService {
     String fileResourceId = CodeGenerator.generateUid();
     Resource resource = getDefaultIconResource(icon.getKey());
     try {
-      FileResource fileResource =
-          FileResource.ofKey(CUSTOM_ICON, icon.getKey(), MediaType.IMAGE_PNG);
+      FileResource fileResource = FileResource.ofKey(ICON, icon.getKey(), MEDIA_TYPE_SVG);
       fileResource.setUid(fileResourceId);
       fileResource.setAssigned(true);
       try (InputStream image = resource.getInputStream()) {
@@ -250,7 +249,7 @@ public class DefaultIconService implements IconService {
     }
 
     Optional<FileResource> fileResource =
-        fileResourceService.getFileResource(fileResourceUid, CUSTOM_ICON);
+        fileResourceService.getFileResource(fileResourceUid, ICON);
     if (fileResource.isEmpty()) {
       throw new NotFoundException(String.format("FileResource %s does not exist", fileResourceUid));
     }
