@@ -47,6 +47,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.dxf2.telemetry.TelemetryService;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
@@ -289,6 +290,11 @@ public enum SettingKey {
 
   /** The HTML string which is used for displaying LoginPage when LOGIN_PAGE_LAYOUT is CUSTOM. */
   LOGIN_PAGE_TEMPLATE("loginPageTemplate", null, String.class, false, false),
+
+  TELEMETRY_URL("telemetryUrl", TelemetryService.DEFAULT_TELEMETRY_URL, String.class, false, false),
+  TELEMETRY_REPORTS_ENABLED("telemetryReportsEnabled", false, Boolean.class, false, false),
+
+  LAST_SUCCESSFUL_TELEMETRY_REPORT("keyLastSuccessfulSystemMonitoringPush", Date.class),
   ;
 
   private final String name;
