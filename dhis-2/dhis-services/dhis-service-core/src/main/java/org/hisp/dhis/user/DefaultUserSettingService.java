@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -177,14 +178,14 @@ public class DefaultUserSettingService implements UserSettingService {
   @Transactional(readOnly = true)
   public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap(
       User user, Set<UserSettingKey> userSettingKeys, boolean useFallback) {
-    Map<String, Serializable> result =
-        Sets.newHashSet(getUserSettings(user)).stream()
-            .filter(
-                userSetting ->
-                    userSetting != null
-                        && userSetting.getName() != null
-                        && userSetting.getValue() != null)
-            .collect(Collectors.toMap(UserSetting::getName, UserSetting::getValue));
+    Map<String, Serializable> result = new HashMap<>();
+    getUserSettings(user).stream()
+        .filter(
+            userSetting ->
+                userSetting != null
+                    && userSetting.getName() != null
+                    && userSetting.getValue() != null)
+        .forEach(userSetting -> result.put(userSetting.getName(), userSetting.getValue()));
 
     userSettingKeys.forEach(
         userSettingKey -> {

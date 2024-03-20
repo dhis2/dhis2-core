@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
-
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.AndCondition;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValueIndicator extends BaseRenderable {
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+/**
+ * Represents query parameters sent to {@link Icon}.
+ *
+ * @author Zubair Asghar
+ */
+@Data
+@NoArgsConstructor
+public class IconQueryParams {
 
-  @Override
-  @Nonnull
-  public String render() {
-    return AndCondition.of(
-                List.of(
-                    IsNotNullCondition.of(
-                        () -> doubleQuote(dimensionIdentifier.getProgram().toString())),
-                    IsNotNullCondition.of(
-                        () -> doubleQuote(dimensionIdentifier.getPrefix()) + "::varchar"),
-                    Field.of(
-                        doubleQuote(dimensionIdentifier.getPrefix()),
-                        () -> "eventdatavalues",
-                        EMPTY)))
-            .render()
-        + " ::jsonb ?? '"
-        + dimensionIdentifier.getDimension().getUid()
-        + "'";
+  private List<String> keys = new ArrayList<>();
+  private List<String> keywords = new ArrayList<>();
+  private List<OrderCriteria> order = new ArrayList<>();
+  private Date createdStartDate;
+  private Date createdEndDate;
+  private Date lastUpdatedStartDate;
+  private Date lastUpdatedEndDate;
+  private Boolean includeCustomIcon = null;
+  private String search;
+  private boolean paging = true;
+  private Pager pager = new Pager();
+
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
+
+  public boolean hasCreatedStartDate() {
+    return createdStartDate != null;
+  }
+
+  public boolean hasCreatedEndDate() {
+    return createdEndDate != null;
+  }
+
+  public boolean hasKeywords() {
+    return !keywords.isEmpty();
+  }
+
+  public boolean hasKeys() {
+    return !keys.isEmpty();
+  }
+
+  public boolean hasCustom() {
+    return includeCustomIcon != null;
+  }
+
+  public boolean hasSearch() {
+    return StringUtils.isNotEmpty(search);
   }
 }

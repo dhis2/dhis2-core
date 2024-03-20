@@ -28,20 +28,24 @@
 package org.hisp.dhis.webapi.controller.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 @Getter
-class IconDto {
+@AllArgsConstructor
+@NoArgsConstructor
+class CustomIconRequest {
 
   @JsonProperty private String key;
 
   @JsonProperty private String description;
 
-  @JsonProperty private String[] keywords;
+  @JsonProperty private Set<String> keywords = new HashSet<>();
 
-  @JsonProperty private String fileResourceUid;
+  @JsonProperty private String fileResourceId;
 }

@@ -397,9 +397,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       // asked for row context if allowed and needed
       if (rowContextAllowedAndNeeded(params, queryItem)) {
-        String column = " exists (" + columnAndAlias.column + ")";
-        String alias = columnAndAlias.alias + ".exists";
-        columns.add((new ColumnAndAlias(column, alias)).asSql());
+        String columnForExists = " exists (" + columnAndAlias.column + ")";
+        String aliasForExists = columnAndAlias.alias + ".exists";
+        columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
+        String columnForStatus =
+            " (" + columnAndAlias.column.replace(queryItem.getItem().getUid(), "psistatus") + ")";
+        String aliasForStatus = columnAndAlias.alias + ".status";
+        columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
     }
   }
@@ -1081,6 +1085,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addGridDoubleTypeValue(
       Double value, Grid grid, GridHeader header, EventQueryParams params) {
+    final int defaultScale = 10;
     if (header.hasOptionSet()) {
       Optional<Option> option =
           header.getOptionSetObject().getOptions().stream()
@@ -1093,10 +1098,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (option.isPresent()) {
         grid.addValue(option.get().getCode());
       } else {
-        grid.addValue(params.isSkipRounding() ? value : MathUtils.getRoundedObject(value));
+        grid.addValue(
+            params.isSkipRounding()
+                ? MathUtils.getRoundedObject(value, defaultScale)
+                : MathUtils.getRoundedObject(value));
       }
     } else {
-      grid.addValue(params.isSkipRounding() ? value : MathUtils.getRoundedObject(value));
+      grid.addValue(
+          params.isSkipRounding()
+              ? MathUtils.getRoundedObject(value, defaultScale)
+              : MathUtils.getRoundedObject(value));
     }
   }
 

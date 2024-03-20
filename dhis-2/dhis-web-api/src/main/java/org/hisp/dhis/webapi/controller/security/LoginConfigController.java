@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -36,7 +39,10 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginConfigResponse.LoginConfigResponseBuilder;
+import org.hisp.dhis.security.LoginOidcProvider;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
@@ -59,6 +65,7 @@ public class LoginConfigController {
   private final SystemSettingManager manager;
   private final ConfigurationService configurationService;
   private final SystemService systemService;
+  private final DhisOidcProviderRepository oidcProviderRepository;
 
   @Getter
   private enum KEYS {
@@ -150,6 +157,30 @@ public class LoginConfigController {
     builder.loginPageTemplate(
         manager.getStringSetting(SettingKey.valueOf(KEYS.LOGIN_PAGE_TEMPLATE.name())));
 
+    builder.oidcProviders(getRegisteredOidcProviders());
+
     return builder.build();
+  }
+
+  private List<LoginOidcProvider> getRegisteredOidcProviders() {
+    List<LoginOidcProvider> providers = new ArrayList<>();
+
+    Set<String> allRegistrationIds = oidcProviderRepository.getAllRegistrationId();
+
+    for (String registrationId : allRegistrationIds) {
+      DhisOidcClientRegistration clientRegistration =
+          oidcProviderRepository.getDhisOidcClientRegistration(registrationId);
+
+      providers.add(
+          LoginOidcProvider.builder()
+              .id(registrationId)
+              .icon(clientRegistration.getLoginIcon())
+              .iconPadding(clientRegistration.getLoginIconPadding())
+              .loginText(clientRegistration.getLoginText())
+              .url("/oauth2/authorization/" + registrationId)
+              .build());
+    }
+
+    return providers;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.common.auth;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * Represents query parameters sent to {@link org.hisp.dhis.icon.IconService}.
- *
- * @author Zubair Asghar
- */
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
-public class IconOperationParams {
+public abstract class RegistrationParams {
+  @JsonProperty String username;
+  @JsonProperty String firstName;
+  @JsonProperty String surname;
+  @JsonProperty String password;
+  @JsonProperty String email;
 
-  private List<String> keys = new ArrayList<>();
-  private IconTypeFilter iconTypeFilter = IconTypeFilter.ALL;
-  private List<String> keywords = new ArrayList<>();
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private boolean paging = true;
-  private Pager pager = new Pager();
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
-
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
-
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasKeywords() {
-    return !keywords.isEmpty();
-  }
-
-  public boolean hasKeys() {
-    return !keys.isEmpty();
-  }
+  @JsonProperty("g-recaptcha-response")
+  String recaptchaResponse;
 }

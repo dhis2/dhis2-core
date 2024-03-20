@@ -255,7 +255,7 @@ public abstract class AbstractEnrollmentService
       Iterable<Enrollment> programInstances) {
     List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments =
         new ArrayList<>();
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     for (Enrollment enrollment : programInstances) {
       if (enrollment != null
           && trackerOwnershipAccessManager.hasAccess(
@@ -277,13 +277,16 @@ public abstract class AbstractEnrollmentService
   @Override
   public org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment getEnrollment(
       Enrollment enrollment, EnrollmentParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     return getEnrollment(currentUser, enrollment, params, false);
   }
 
   @Override
   public org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment getEnrollment(
-      User user, Enrollment programInstance, EnrollmentParams params, boolean skipOwnershipCheck) {
+      UserDetails user,
+      Enrollment programInstance,
+      EnrollmentParams params,
+      boolean skipOwnershipCheck) {
     org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment =
         new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
     enrollment.setEnrollment(programInstance.getUid());
@@ -360,7 +363,7 @@ public abstract class AbstractEnrollmentService
     if (params.isIncludeAttributes()) {
       Set<TrackedEntityAttribute> readableAttributes =
           trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-              UserDetails.fromUser(user), List.of(programInstance.getProgram()), null);
+              user, List.of(programInstance.getProgram()), null);
 
       for (TrackedEntityAttributeValue trackedEntityAttributeValue :
           programInstance.getTrackedEntity().getTrackedEntityAttributeValues()) {
@@ -526,17 +529,17 @@ public abstract class AbstractEnrollmentService
       boolean handleEvents) {
     importOptions = updateImportOptions(importOptions);
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
+
     String storedBy =
         !StringUtils.isEmpty(enrollment.getStoredBy()) && enrollment.getStoredBy().length() < 31
             ? enrollment.getStoredBy()
-            : (importOptions.getUser() == null
-                    || StringUtils.isEmpty(importOptions.getUser().getUsername())
+            : (user == null || StringUtils.isEmpty(user.getUsername())
                 ? "system-process"
-                : importOptions.getUser().getUsername());
+                : user.getUsername());
 
     if (daoTrackedEntity == null) {
-      daoTrackedEntity =
-          getTrackedEntityInstance(enrollment.getTrackedEntityInstance(), importOptions.getUser());
+      daoTrackedEntity = getTrackedEntityInstance(enrollment.getTrackedEntityInstance(), user);
     }
 
     Program program = getProgram(importOptions.getIdSchemes(), enrollment.getProgram());
@@ -553,9 +556,7 @@ public abstract class AbstractEnrollmentService
 
     List<String> errors =
         trackerAccessManager.canCreate(
-            importOptions.getUser(),
-            new Enrollment(program, daoTrackedEntity, organisationUnit),
-            false);
+            user, new Enrollment(program, daoTrackedEntity, organisationUnit), false);
 
     if (!errors.isEmpty()) {
       return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
@@ -589,20 +590,19 @@ public abstract class AbstractEnrollmentService
         date = new Date();
       }
 
-      String user = enrollment.getCompletedBy();
+      String completedBy = enrollment.getCompletedBy();
 
-      if (user == null) {
-        user = importOptions.getUser().getUsername();
+      if (completedBy == null && user != null) {
+        completedBy = user.getUsername();
       }
 
-      programInstance.setCompletedBy(user);
+      programInstance.setCompletedBy(completedBy);
       programInstance.setCompletedDate(date);
     }
 
-    programInstance.setCreatedByUserInfo(
-        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
-    programInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
+    UserInfoSnapshot snapshot = UserInfoSnapshot.from(user);
+    programInstance.setCreatedByUserInfo(snapshot);
+    programInstance.setLastUpdatedByUserInfo(snapshot);
 
     enrollmentService.addEnrollment(programInstance, importOptions.getUser());
 
@@ -629,10 +629,10 @@ public abstract class AbstractEnrollmentService
     programInstance.setFollowup(enrollment.getFollowup());
     programInstance.setStoredBy(storedBy);
 
-    enrollmentService.updateEnrollment(programInstance, importOptions.getUser());
+    enrollmentService.updateEnrollment(programInstance, user);
     trackerOwnershipAccessManager.assignOwnership(
         daoTrackedEntity, program, organisationUnit, true, true);
-    saveTrackedEntityComment(programInstance, enrollment, importOptions.getUser());
+    saveTrackedEntityComment(programInstance, enrollment, user);
 
     importSummary.setReference(programInstance.getUid());
     enrollment.setEnrollment(programInstance.getUid());
@@ -898,8 +898,8 @@ public abstract class AbstractEnrollmentService
     }
 
     Enrollment programInstance = enrollmentService.getEnrollment(enrollment.getEnrollment());
-    List<String> errors =
-        trackerAccessManager.canUpdate(importOptions.getUser(), programInstance, false);
+    UserDetails currentUser = UserDetails.fromUser(importOptions.getUser());
+    List<String> errors = trackerAccessManager.canUpdate(currentUser, programInstance, false);
 
     if (programInstance == null) {
       return new ImportSummary(
@@ -967,7 +967,7 @@ public abstract class AbstractEnrollmentService
       }
 
       if (user == null) {
-        user = importOptions.getUser().getUsername();
+        user = currentUser.getUsername();
       }
 
       if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
@@ -993,13 +993,12 @@ public abstract class AbstractEnrollmentService
     updateAttributeValues(enrollment, importOptions);
     updateDateFields(enrollment, programInstance);
 
-    programInstance.setLastUpdatedByUserInfo(
-        UserInfoSnapshot.from(UserDetails.fromUser(importOptions.getUser())));
+    programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(currentUser));
 
-    enrollmentService.updateEnrollment(programInstance, importOptions.getUser());
-    teiService.updateTrackedEntity(programInstance.getTrackedEntity(), importOptions.getUser());
+    enrollmentService.updateEnrollment(programInstance, currentUser);
+    teiService.updateTrackedEntity(programInstance.getTrackedEntity(), currentUser);
 
-    saveTrackedEntityComment(programInstance, enrollment, importOptions.getUser());
+    saveTrackedEntityComment(programInstance, enrollment, currentUser);
 
     importSummary = new ImportSummary(enrollment.getEnrollment()).incrementUpdated();
     importSummary.setReference(enrollment.getEnrollment());
@@ -1034,7 +1033,7 @@ public abstract class AbstractEnrollmentService
           .incrementIgnored();
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     saveTrackedEntityComment(programInstance, enrollment, currentUser);
 
     importSummary.setReference(enrollment.getEnrollment());
@@ -1060,6 +1059,8 @@ public abstract class AbstractEnrollmentService
     ImportSummary importSummary = new ImportSummary();
     importOptions = updateImportOptions(importOptions);
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
+
     boolean existsEnrollment = enrollmentService.enrollmentExists(uid);
 
     if (existsEnrollment) {
@@ -1070,8 +1071,8 @@ public abstract class AbstractEnrollmentService
         importSummary.setEvents(handleEvents(enrollment, programInstance, importOptions));
       }
 
-      if (importOptions.getUser() != null) {
-        isAllowedToDelete(importOptions.getUser(), programInstance, importSummary);
+      if (user != null) {
+        isAllowedToDelete(user, programInstance, importSummary);
 
         if (importSummary.hasConflicts()) {
           importSummary.setStatus(ImportStatus.ERROR);
@@ -1081,11 +1082,11 @@ public abstract class AbstractEnrollmentService
         }
       }
 
-      programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+      programInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
       enrollmentService.deleteEnrollment(programInstance);
 
       TrackedEntity entity = programInstance.getTrackedEntity();
-      entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
+      entity.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
       teiService.updateTrackedEntity(entity);
 
@@ -1341,7 +1342,8 @@ public abstract class AbstractEnrollmentService
       validateAttributeType(attribute, importOptions, importConflicts);
     }
 
-    List<String> errors = trackerAccessManager.canRead(importOptions.getUser(), trackedEntity);
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
+    List<String> errors = trackerAccessManager.canRead(user, trackedEntity);
 
     if (!errors.isEmpty()) {
       throw new IllegalQueryException(errors.toString());
@@ -1448,6 +1450,7 @@ public abstract class AbstractEnrollmentService
       attributeValueMap.put(attribute.getAttribute(), attribute);
     }
 
+    UserDetails user = UserDetails.fromUser(importOptions.getUser());
     trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(value -> attributeValueMap.containsKey(value.getAttribute().getUid()))
         .forEach(
@@ -1456,10 +1459,9 @@ public abstract class AbstractEnrollmentService
 
               String newValue = enrollmentAttribute.getValue();
               value.setValue(newValue);
-              value.setStoredBy(getStoredBy(enrollmentAttribute, importOptions.getUser()));
+              value.setStoredBy(getStoredBy(enrollmentAttribute, user));
 
-              trackedEntityAttributeValueService.updateTrackedEntityAttributeValue(
-                  value, importOptions.getUser());
+              trackedEntityAttributeValueService.updateTrackedEntityAttributeValue(value, user);
 
               attributeValueMap.remove(value.getAttribute().getUid());
             });
@@ -1474,7 +1476,7 @@ public abstract class AbstractEnrollmentService
 
         value.setValue(enrollmentAttribute.getValue());
         value.setAttribute(attribute);
-        value.setStoredBy(getStoredBy(enrollmentAttribute, importOptions.getUser()));
+        value.setStoredBy(getStoredBy(enrollmentAttribute, user));
 
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue(value);
         trackedEntity.addAttributeValue(value);
@@ -1482,7 +1484,7 @@ public abstract class AbstractEnrollmentService
     }
   }
 
-  private String getStoredBy(Attribute attribute, User user) {
+  private String getStoredBy(Attribute attribute, UserDetails user) {
     if (!StringUtils.isEmpty(attribute.getStoredBy())) {
       return attribute.getStoredBy();
     }
@@ -1490,7 +1492,7 @@ public abstract class AbstractEnrollmentService
     return User.username(user, Constants.UNKNOWN);
   }
 
-  private TrackedEntity getTrackedEntityInstance(String teiUID, User user) {
+  private TrackedEntity getTrackedEntityInstance(String teiUID, UserDetails user) {
     TrackedEntity entityInstance = teiService.getTrackedEntity(teiUID, user);
 
     if (entityInstance == null) {
@@ -1521,7 +1523,7 @@ public abstract class AbstractEnrollmentService
   private void saveTrackedEntityComment(
       Enrollment programInstance,
       org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment,
-      User user) {
+      UserDetails user) {
     for (Note note : enrollment.getNotes()) {
       String noteUid =
           CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
@@ -1541,7 +1543,8 @@ public abstract class AbstractEnrollmentService
 
         comment.setCreated(created);
 
-        comment.setLastUpdatedBy(user);
+        // TODO is this needed here?
+        comment.setLastUpdatedBy(userService.getUser(user.getUid()));
         comment.setLastUpdated(new Date());
 
         commentService.addNote(comment);
@@ -1629,7 +1632,7 @@ public abstract class AbstractEnrollmentService
     importOptions.setUser(userService.getUser(importOptions.getUser().getUid()));
   }
 
-  private void isAllowedToDelete(User user, Enrollment pi, ImportConflicts importConflicts) {
+  private void isAllowedToDelete(UserDetails user, Enrollment pi, ImportConflicts importConflicts) {
 
     Set<Event> notDeletedEvents =
         pi.getEvents().stream().filter(psi -> !psi.isDeleted()).collect(Collectors.toSet());

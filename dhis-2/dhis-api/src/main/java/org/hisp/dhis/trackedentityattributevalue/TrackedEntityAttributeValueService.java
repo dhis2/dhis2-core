@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew
@@ -57,7 +57,8 @@ public interface TrackedEntityAttributeValueService {
    * @param attributeValue the TrackedEntityAttribute to update.
    * @param user User for audits
    */
-  void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue, User user);
+  void updateTrackedEntityAttributeValue(
+      TrackedEntityAttributeValue attributeValue, UserDetails user);
 
   /**
    * Deletes a {@link TrackedEntityAttribute}.
