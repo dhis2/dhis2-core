@@ -362,13 +362,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String sql =
         replace(
             """
-            select psi.eventid
-            from event psi "
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid "
-            where pi.programid = ${programId} "
-            + "and psi.lastupdated >= '${startDate}'"
-            + "and psi.lastupdated < '${endDate}'"
-            + "limit 1""",
+            select psi.eventid \
+            from event psi \
+            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
+            where pi.programid = ${programId} \
+            and psi.lastupdated >= '${startDate}' \
+            and psi.lastupdated < '${endDate}' \
+            limit 1""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -389,7 +389,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               where ax.psi in (
                 select psi.uid
                 from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid
-                where pi.programid = ${programId} and psi.lastupdated >= '${startDate}'
+                where pi.programid = ${programId}
+                and psi.lastupdated >= '${startDate}'
                 and psi.lastupdated < '${endDate}')""",
               Map.of(
                   "tableName", quote(table.getName()),
@@ -574,12 +575,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String selectClause = getSelectClause(attribute.getValueType(), "value");
     String query =
         """
-          (select l.uid from maplegend l "
-          + "inner join trackedentityattributevalue av on l.startvalue <= ${selectClause}"
-          + "and l.endvalue > ${selectClause} "
-          + "and l.maplegendsetid=${legendSetId}"
-          + "and av.trackedentityid=pi.trackedentityid "
-          + "and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
+          (select l.uid from maplegend l \
+          inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
+          and l.endvalue > ${selectClause} \
+          and l.maplegendsetid=${legendSetId} \
+          and av.trackedentityid=pi.trackedentityid \
+          and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
@@ -709,7 +710,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replace(
         """
-            select ${fromType} from trackedentityattributevalue where trackedentityid=pi.trackedentityid
+            select ${fromType} from trackedentityattributevalue
+            where trackedentityid=pi.trackedentityid
             and trackedentityattributeid=${attributeId} ${dataClause})
             ${closingParentheses} as ${attributeUid}
             """,
@@ -725,11 +727,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-                      (select l.uid from maplegend l "
-                      + "inner join event on l.startvalue <= ${select}"
-                      + "and l.endvalue > ${select} "
-                      + "and l.maplegendsetid=${legendSetId} "
-                      + "and eventid=psi.eventid ${dataClause}) as ${column}""";
+                      (select l.uid from maplegend l
+                      inner join event on l.startvalue <= ${select}
+                      and l.endvalue > ${select}
+                      and l.maplegendsetid=${legendSetId}
+                      and eventid=psi.eventid ${dataClause}) as ${column}""";
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
@@ -783,7 +785,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and (${eventDateExpression}) > '1000-01-01' \
             and psi.deleted is false \
             ${fromDateClause}) as temp \
-            where temp.supportedyear >= ${firstDataYear} and temp.supportedyear <= ${latestDataYear}""",
+            where temp.supportedyear >= ${firstDataYear}
+            and temp.supportedyear <= ${latestDataYear}""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
