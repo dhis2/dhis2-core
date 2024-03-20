@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.util.Objects.isNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -35,7 +37,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -48,6 +49,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class TeiListGrid extends ListGrid {
@@ -105,23 +107,26 @@ public class TeiListGrid extends ListGrid {
 
   private Object getValueAndRoundIfNecessary(SqlRowSet rs, String columnLabel) {
     ValueType valueType = getValueType(columnLabel);
-    if (isRoundableType(valueType)) {
-      Object value = rs.getObject(columnLabel);
-      if (Objects.nonNull(value)) {
-        double doubleValue = rs.getDouble(columnLabel);
-        if (!teiQueryParams.getCommonParams().isSkipRounding()) {
-          return MathUtils.getRounded(doubleValue);
-        }
-        return doubleValue;
-      }
-      // value is null here
-      return null;
+    if (isNotRoundableType(valueType)) {
+      return rs.getObject(columnLabel);
     }
-    return rs.getObject(columnLabel);
+    return roundIfNecessary(rs, columnLabel);
   }
 
-  private boolean isRoundableType(ValueType valueType) {
-    return ROUNDABLE_TYPES.contains(valueType);
+  @Nullable
+  private Double roundIfNecessary(SqlRowSet rs, String columnLabel) {
+    if (isNull(rs.getObject(columnLabel))) {
+      return null;
+    }
+    double doubleValue = rs.getDouble(columnLabel);
+    if (teiQueryParams.getCommonParams().isSkipRounding()) {
+      return doubleValue;
+    }
+    return MathUtils.getRounded(doubleValue);
+  }
+
+  private boolean isNotRoundableType(ValueType valueType) {
+    return !ROUNDABLE_TYPES.contains(valueType);
   }
 
   private ValueType getValueType(String col) {
