@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
+import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
@@ -61,6 +62,8 @@ class SecurityOwnershipValidatorTest {
 
   private Relationship relationship;
 
+  private RelationshipType relationshipType;
+
   @BeforeEach
   public void setUp() {
     validator = new SecurityOwnershipValidator(aclService);
@@ -70,25 +73,25 @@ class SecurityOwnershipValidatorTest {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
     relationship = new Relationship();
+    relationshipType = new RelationshipType();
+
+    when(bundle.getPreheat().getRelationshipType(any())).thenReturn(relationshipType);
+    when(bundle.getStrategy(relationship)).thenReturn(CREATE);
   }
 
   @Test
   void shouldFailWhenUserHasNoAccessToRelationshipType() {
-    RelationshipType relationshipType = new RelationshipType();
-    when(bundle.getPreheat().getRelationshipType(any())).thenReturn(relationshipType);
     when(aclService.canDataWrite(bundle.getUser(), relationshipType)).thenReturn(false);
 
     validator.validate(reporter, bundle, relationship);
 
     assertNotEmpty(reporter.getErrors());
     assertContains(
-        "has no data read access to relationship type", reporter.getErrors().get(0).getMessage());
+        "has no data write access to relationship type", reporter.getErrors().get(0).getMessage());
   }
 
   @Test
   void shouldWorkWhenUserHasAccessToRelationshipType() {
-    RelationshipType relationshipType = new RelationshipType();
-    when(bundle.getPreheat().getRelationshipType(any())).thenReturn(relationshipType);
     when(aclService.canDataWrite(bundle.getUser(), relationshipType)).thenReturn(true);
 
     validator.validate(reporter, bundle, relationship);

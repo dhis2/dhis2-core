@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -78,6 +80,17 @@ class RelationshipImportTest extends TrackerTest {
         trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
+  }
+
+  @Test
+  void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
+    userA = userService.getUser("o1HMTIzBGo7");
+    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    ImportReport importReport =
+        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
+    assertThat(importReport.getStatus(), is(Status.ERROR));
+    assertHasError(importReport, ValidationCode.E4019);
+    assertThat(importReport.getStats().getIgnored(), is(2));
   }
 
   @Test
