@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -177,7 +178,7 @@ public class UserAccountController {
   @PostMapping("/registration")
   @ResponseStatus(HttpStatus.CREATED)
   public WebMessageResponse registerUser(
-      @RequestBody UserRegistrationParams params, HttpServletRequest request)
+      @Valid @RequestBody UserRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
 
