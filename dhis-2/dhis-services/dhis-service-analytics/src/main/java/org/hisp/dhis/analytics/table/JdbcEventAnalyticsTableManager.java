@@ -422,28 +422,28 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         replace(
             """
-            from event psi
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid
-            inner join programstage ps on psi.programstageid=ps.programstageid
-            inner join program pr on pi.programid=pr.programid and pi.deleted is false
-            inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid
-            left join trackedentity tei on pi.trackedentityid=tei.trackedentityid
-            and tei.deleted is false
-            left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid
-            inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid
-            left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid
-            left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid
-            and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null)
-            left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid
-            inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid
-            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod
-            where psi.lastupdated < '${startTime}' ${partitionClause}
-            and pr.programid=${programId}
-            and psi.organisationunitid is not null
-            and (${eventDateExpression}) is not null
-            and dps.year >= ${firstDataYear}
-            and dps.year <= ${latestDataYear}"
-            and psi.status in (${exportableEventStatues})
+            from event psi \
+            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
+            inner join programstage ps on psi.programstageid=ps.programstageid \
+            inner join program pr on pi.programid=pr.programid and pi.deleted is false \
+            inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid \
+            left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
+            and tei.deleted is false \
+            left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
+            inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid \
+            and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null) \
+            left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
+            inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+            where psi.lastupdated < '${startTime}' ${partitionClause} \
+            and pr.programid=${programId} \
+            and psi.organisationunitid is not null \
+            and (${eventDateExpression}) is not null \
+            and dps.year >= ${firstDataYear} \
+            and dps.year <= ${latestDataYear} \
+            and psi.status in (${exportableEventStatues}) \
             and psi.deleted is false """,
             Map.of(
                 "eventDateExpression", eventDateExpression,
@@ -692,9 +692,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
     return replace(
         """
-              (select ${fromType} from event
-              where eventid=psi.eventid ${dataClause})
-              {closingParentheses} as ${dataElementUid}""",
+              (select ${fromType} from event \
+              where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
         Map.of(
             "fromType",
             fromType,
@@ -710,11 +709,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replace(
         """
-            select ${fromType} from trackedentityattributevalue
-            where trackedentityid=pi.trackedentityid
-            and trackedentityattributeid=${attributeId} ${dataClause})
-            ${closingParentheses} as ${attributeUid}
-            """,
+            (select ${fromType} from trackedentityattributevalue \
+            where trackedentityid=pi.trackedentityid \
+            and trackedentityattributeid=${attributeId}\
+            ${dataClause})\
+            ${closingParentheses} as ${attributeUid}""",
         Map.of(
             "fromType", fromType,
             "dataClause", dataClause,
@@ -727,11 +726,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-                      (select l.uid from maplegend l
-                      inner join event on l.startvalue <= ${select}
-                      and l.endvalue > ${select}
-                      and l.maplegendsetid=${legendSetId}
-                      and eventid=psi.eventid ${dataClause}) as ${column}""";
+          (select l.uid from maplegend l
+          inner join event on l.startvalue <= ${select}
+          and l.endvalue > ${select}
+          and l.maplegendsetid=${legendSetId}
+          and eventid=psi.eventid ${dataClause}) as ${column}""";
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
@@ -742,6 +741,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                       Map.of(
                           "select", select,
                           "legendSetId", String.valueOf(ls.getId()),
+                          "dataClause", dataClause,
                           "column", column));
               return new AnalyticsTableColumn(column, CHARACTER_11, sql);
             })
@@ -752,7 +752,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     if (valueType.isNumeric() || valueType.isDate()) {
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
-      return " and eventdatavalues #>> '{" + uid + ",value}' ~* '" + regex + "'";
+      return replace(
+          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
+          Map.of("uid", uid, "regex", regex));
     }
 
     return "";
@@ -766,7 +768,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromDateClause =
         params.getFromDate() != null
             ? replace(
-                "and (${eventDateExpression}) >='${fromDate}'",
+                "and (${eventDateExpression}) >= '${fromDate}'",
                 Map.of(
                     "eventDateExpression",
                     eventDateExpression,
@@ -785,7 +787,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and (${eventDateExpression}) > '1000-01-01' \
             and psi.deleted is false \
             ${fromDateClause}) as temp \
-            where temp.supportedyear >= ${firstDataYear}
+            where temp.supportedyear >= ${firstDataYear} \
             and temp.supportedyear <= ${latestDataYear}""",
             Map.of(
                 "eventDateExpression", eventDateExpression,

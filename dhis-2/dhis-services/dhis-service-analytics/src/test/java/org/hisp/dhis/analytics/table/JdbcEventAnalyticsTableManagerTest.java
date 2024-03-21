@@ -86,7 +86,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
@@ -990,17 +989,19 @@ class JdbcEventAnalyticsTableManagerTest {
     int latestYear = availableDataYears.get(availableDataYears.size() - 1);
 
     String sql =
-        TextUtils.replace(
-            """
-            select temp.supportedyear from (select distinct \
-            extract(year from ${dateLinkedToStatus}) as supportedyear \
-            from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid \
-            where psi.lastupdated <= '2019-08-01T00:00:00' \
-            and pi.programid = ${programId} and (${dateLinkedToStatus}) is not null \
-            and (${dateLinkedToStatus}) > '1000-01-01' and psi.deleted is false""",
-            Map.of(
-                "dateLinkedToStatus", getDateLinkedToStatus(),
-                "programId", String.valueOf(program.getId())));
+        "select temp.supportedyear from (select distinct "
+            + "extract(year from "
+            + getDateLinkedToStatus()
+            + ") as supportedyear "
+            + "from event psi inner join "
+            + "enrollment pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
+            + "2019-08-01T00:00:00' and pi.programid = "
+            + program.getId()
+            + " and ("
+            + getDateLinkedToStatus()
+            + ") is not null and ("
+            + getDateLinkedToStatus()
+            + ") > '1000-01-01' and psi.deleted is false ";
 
     if (withExecutionDate) {
       sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";
