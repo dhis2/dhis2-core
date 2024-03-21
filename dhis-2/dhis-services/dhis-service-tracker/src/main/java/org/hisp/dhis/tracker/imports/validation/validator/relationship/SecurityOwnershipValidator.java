@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,43 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
-
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/** Validator to validate all {@link Relationship}s in the {@link TrackerBundle}. */
-@Component("org.hisp.dhis.tracker.imports.validation.validator.relationship.RelationshipValidator")
-public class RelationshipValidator implements Validator<TrackerBundle> {
-  private final Validator<TrackerBundle> validator;
+@Component(
+    "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
+@RequiredArgsConstructor
+@Slf4j
+class SecurityOwnershipValidator implements Validator<Relationship> {
 
-  public RelationshipValidator(SecurityOwnershipValidator securityOwnershipValidator) {
-    validator =
-        each(
-            TrackerBundle::getRelationships,
-            seq(
-                new UidValidator(),
-                new ExistenceValidator(),
-                new MandatoryFieldsValidator(),
-                new MetaValidator(),
-                new LinkValidator(),
-                new ConstraintValidator(),
-                new DuplicationValidator(),
-                securityOwnershipValidator));
-  }
+  @Nonnull private final AclService aclService;
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-    validator.validate(reporter, bundle, input);
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+    RelationshipType relationshipType =
+        strategy.isUpdateOrDelete()
+            ? bundle.getPreheat().getRelationship(relationship).getRelationshipType()
+            : bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
+
+    if (!aclService.canDataWrite(bundle.getUser(), relationshipType)) {
+      reporter.addError(
+          relationship, ValidationCode.E4019, bundle.getUser(), relationship.getRelationshipType());
+    }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true; // this main validator should always run
+    return true;
   }
 }

@@ -64,5 +64,6 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "name")
   @Mapping(target = "attributeValues")
   @Mapping(target = "bidirectional")
+  @Mapping(target = "sharing")
   RelationshipType mapType(RelationshipType type);
 }
