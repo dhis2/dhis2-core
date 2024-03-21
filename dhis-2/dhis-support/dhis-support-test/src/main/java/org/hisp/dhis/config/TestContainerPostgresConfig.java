@@ -41,10 +41,10 @@ import org.testcontainers.utility.DockerImageName;
 @Configuration
 public class TestContainerPostgresConfig {
   /**
-   * Refers to the {@code postgis/postgis:10-2.5-alpine} image which contains PostgreSQL 10 and
-   * PostGIS 2.5.
+   * Refers to the {@code postgis/postgis:16-3.4-alpine} image which contains PostgreSQL 16 and
+   * PostGIS 3.4.2.
    */
-  private static final String POSTGRES_POSTGIS_VERSION = "10-2.5-alpine";
+  private static final String POSTGRES_POSTGIS_VERSION = "16-3.4-alpine";
 
   private static final DockerImageName POSTGIS_IMAGE_NAME =
       DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
