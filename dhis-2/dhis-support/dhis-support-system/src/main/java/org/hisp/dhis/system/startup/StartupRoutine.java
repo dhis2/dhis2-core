@@ -65,4 +65,21 @@ public interface StartupRoutine {
    * @return true if this StartupRoutine is skipped in tests, false otherwise.
    */
   boolean skipInTests();
+
+  /**
+   * Returns whether this {@link StartupRoutine} should be skipped or not. <br>
+   * <br>
+   * A system property is checked at startup to see if the routine should be skipped. It looks for
+   * system properties in the format `dhis.skip.startup.{name}` where {name} is the simple class
+   * name of the implementation class of {@link StartupRoutine}. <br>
+   * e.g. to skip the {@link SchedulerStart} routine, pass this VM arg at startup
+   * `-Ddhis.skip.startup.SchedulerStart` <br>
+   * <br>
+   * An example of why a startup routine may want to be skipped is the Job Scheduler that runs every
+   * 20 seconds or so. Skipping these during local development can help reduce noise. <br>
+   * <br>
+   *
+   * @return true if this StartupRoutine should be skipped, false otherwise.
+   */
+  boolean skip();
 }
