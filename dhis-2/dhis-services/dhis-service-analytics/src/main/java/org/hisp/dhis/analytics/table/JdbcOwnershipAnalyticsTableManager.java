@@ -237,9 +237,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     sb.append(
         TextUtils.replace(
             """
-                from ( \
+                 from (\
                 select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
-                from programownershiphistory h
+                from programownershiphistory h \
                 where h.programid=${programId} \
                 and h.organisationunitid is not null \
                 union \
