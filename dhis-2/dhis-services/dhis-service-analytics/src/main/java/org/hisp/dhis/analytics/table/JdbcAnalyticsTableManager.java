@@ -430,24 +430,25 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getApprovalJoinClause(Integer year) {
     if (isApprovalEnabled(year)) {
-      String sql =
-          """
+      StringBuilder sql =
+          new StringBuilder(
+              """
               left join analytics_rs_dataapprovalminlevel da
               on des.workflowid=da.workflowid and da.periodid=dv.periodid
               and da.attributeoptioncomboid=dv.attributeoptioncomboid
-              and (""";
+              and (""");
 
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
 
       for (OrganisationUnitLevel level : levels) {
-        sql +=
+        sql.append(
             replace(
                 "ous.idlevel ${level} = da.organisationunitid or",
-                Map.of("level", String.valueOf(level.getLevel())));
+                Map.of("level", String.valueOf(level.getLevel()))));
       }
 
-      return TextUtils.removeLastOr(sql) + ") ";
+      return TextUtils.removeLastOr(sql.toString()) + ") ";
     }
 
     return StringUtils.EMPTY;
@@ -641,9 +642,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "dataElements", quotedCommaDelimitedString(dataElements)));
 
     log.debug("Aggregation level SQL: '{}'", updateQuery);
-
-    ;
-
     jdbcTemplate.execute(updateQuery);
   }
 
