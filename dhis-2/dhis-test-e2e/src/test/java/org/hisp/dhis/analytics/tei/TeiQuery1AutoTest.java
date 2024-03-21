@@ -179,8 +179,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Johnson",
             "Female",
             "",
-            "36282",
-            "3"));
+            "36282.0",
+            "3.0"));
     validateRow(
         response,
         1,
@@ -201,7 +201,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ryder",
             "Female",
             "",
-            "4322",
+            "4322.0",
             ""));
     validateRow(
         response,
@@ -223,8 +223,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Dean",
             "Male",
             "",
-            "4210",
-            "10"));
+            "4210.0",
+            "10.0"));
     validateRow(
         response,
         List.of(
@@ -244,8 +244,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Johnson",
             "Male",
             "",
-            "4201",
-            "8"));
+            "4201.0",
+            "8.0"));
     validateRow(
         response,
         List.of(
@@ -265,8 +265,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Matthews",
             "Female",
             "",
-            "4201",
-            "5"));
+            "4201.0",
+            "5.0"));
     validateRow(
         response,
         List.of(
@@ -286,8 +286,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Foster",
             "Male",
             "",
-            "3999",
-            "2"));
+            "3999.0",
+            "2.0"));
   }
 
   @Test
@@ -345,16 +345,16 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 1, 1, "NS");
 
     // Assert rows.
-    validateRow(response, 0, List.of("36282", "3"));
-    validateRow(response, 1, List.of("4322", ""));
-    validateRow(response, 2, List.of("4210", "10"));
-    validateRow(response, 3, List.of("4201", "8"));
-    validateRow(response, 4, List.of("4201", "5"));
-    validateRow(response, 5, List.of("3999", "2"));
-    validateRow(response, 6, List.of("3999", "2"));
-    validateRow(response, 7, List.of("3999", "2"));
-    validateRow(response, 8, List.of("3999", "2"));
-    validateRow(response, 9, List.of("3999", "1"));
+    validateRow(response, 0, List.of("36282.0", "3.0"));
+    validateRow(response, 1, List.of("4322.0", ""));
+    validateRow(response, 2, List.of("4210.0", "10.0"));
+    validateRow(response, 3, List.of("4201.0", "8.0"));
+    validateRow(response, 4, List.of("4201.0", "5.0"));
+    validateRow(response, 5, List.of("3999.0", "2.0"));
+    validateRow(response, 6, List.of("3999.0", "2.0"));
+    validateRow(response, 7, List.of("3999.0", "2.0"));
+    validateRow(response, 8, List.of("3999.0", "2.0"));
+    validateRow(response, 9, List.of("3999.0", "1.0"));
   }
 
   @Test
@@ -487,7 +487,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Ryder",
             "Female",
             "",
-            "4322",
+            "4322.0",
             ""));
     validateRow(
         response,
@@ -509,8 +509,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Fjordsen",
             "Male",
             "",
-            "3444",
-            "5"));
+            "3444.0",
+            "5.0"));
     validateRow(
         response,
         2,
@@ -531,8 +531,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Fjordsen",
             "Female",
             "",
-            "3320",
-            "5"));
+            "3320.0",
+            "5.0"));
     validateRow(
         response,
         3,
@@ -553,8 +553,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Walker",
             "Female",
             "",
-            "3444",
-            "1"));
+            "3444.0",
+            "1.0"));
     validateRow(
         response,
         4,
@@ -597,8 +597,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Jones",
             "Female",
             "",
-            "3243",
-            "10"));
+            "3243.0",
+            "10.0"));
     validateRow(
         response,
         6,
@@ -619,8 +619,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Robertson",
             "Male",
             "",
-            "3706",
-            "2"));
+            "3706.0",
+            "2.0"));
     validateRow(
         response,
         7,
@@ -641,8 +641,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Bryant",
             "Female",
             "",
-            "3779",
-            "0"));
+            "3779.0",
+            "0.0"));
     validateRow(
         response,
         8,
@@ -663,8 +663,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "Coleman",
             "Male",
             "",
-            "3297",
-            "0"));
+            "3297.0",
+            "0.0"));
     validateRow(
         response,
         9,
@@ -685,8 +685,8 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
             "James",
             "Female",
             "",
-            "2579",
-            "0"));
+            "2579.0",
+            "0.0"));
   }
 
   @Test
@@ -735,15 +735,15 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
     validateRowContext(response, 1, 0, "NS");
 
     // Assert rows.
-    validateRow(response, 0, List.of("3"));
+    validateRow(response, 0, List.of("3.0"));
     validateRow(response, 1, List.of(""));
-    validateRow(response, 2, List.of("10"));
-    validateRow(response, 3, List.of("8"));
-    validateRow(response, 4, List.of("5"));
-    validateRow(response, 5, List.of("2"));
-    validateRow(response, 6, List.of("2"));
-    validateRow(response, 7, List.of("2"));
-    validateRow(response, 8, List.of("2"));
-    validateRow(response, 9, List.of("1"));
+    validateRow(response, 2, List.of("10.0"));
+    validateRow(response, 3, List.of("8.0"));
+    validateRow(response, 4, List.of("5.0"));
+    validateRow(response, 5, List.of("2.0"));
+    validateRow(response, 6, List.of("2.0"));
+    validateRow(response, 7, List.of("2.0"));
+    validateRow(response, 8, List.of("2.0"));
+    validateRow(response, 9, List.of("1.0"));
   }
 }
