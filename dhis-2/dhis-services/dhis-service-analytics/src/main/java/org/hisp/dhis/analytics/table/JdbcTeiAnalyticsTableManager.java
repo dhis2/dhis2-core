@@ -66,6 +66,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -257,11 +258,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         program.getUid(),
                         BOOLEAN,
-                        " exists(select 1 from enrollment pi_0"
-                            + " where pi_0.trackedentityid = tei.trackedentityid"
-                            + " and pi_0.programid = "
-                            + program.getId()
-                            + ")")));
+                        TextUtils.replace(
+                            """
+                            exists(select 1 from enrollment pi_0
+                            where pi_0.trackedentityid = tei.trackedentityid
+                            and pi_0.programid = ${programId})""",
+                            Map.of("programId", String.valueOf(program.getId()))))));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         programsByTetUid.containsKey(tet.getUid())
@@ -386,10 +388,10 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     removeLastComma(sql)
         .append(
             """
-      from trackedentity tei
-      left join organisationunit ou on tei.organisationunitid = ou.organisationunitid
-      left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid
-      left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid
+      from trackedentity tei \
+      left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
+      left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+      left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
       and (cast(date_trunc('month', tei.created) as date) = ougs.startdate or ougs.startdate is null)""");
 
     ((List<TrackedEntityAttribute>)
@@ -399,30 +401,29 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                 sql.append(
                     replace(
                         """
-                    left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid
+                    left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
                     and "${teaUid}".trackedentityattributeid = ${teaId}""",
-                        Map.of("teaUid", tea.getUid(), "teaId", String.valueOf(tea.getId())))));
+                        Map.of(
+                            "teaUid", tea.getUid(),
+                            "teaId", String.valueOf(tea.getId())))));
     sql.append(
         replace(
             """
-      where tei.trackedentitytypeid = ${tetId}
-      and tei.lastupdated < '${startTime}'
-      and exists ( select 1 from enrollment pi
-      where pi.trackedentityid = tei.trackedentityid
-      and exists (
-        select 1 from event psi
-        where psi.enrollmentid = pi.enrollmentid
-        and psi.status in (${statuses})
-        and psi.deleted is false))
-      and tei.created is not null
+      where tei.trackedentitytypeid = ${tetId} \
+      and tei.lastupdated < '${startTime}' \
+      and exists ( select 1 from enrollment pi \
+      where pi.trackedentityid = tei.trackedentityid \
+      and exists ( \
+      select 1 from event psi \
+      where psi.enrollmentid = pi.enrollmentid \
+      and psi.status in (${statuses}) \
+      and psi.deleted is false)) \
+      and tei.created is not null \
       and tei.deleted is false""",
             Map.of(
-                "tetId",
-                String.valueOf(trackedEntityType.getId()),
-                "startTime",
-                toLongDate(params.getStartTime()),
-                "statuses",
-                join(",", EXPORTABLE_EVENT_STATUSES))));
+                "tetId", String.valueOf(trackedEntityType.getId()),
+                "startTime", toLongDate(params.getStartTime()),
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), tableName);
   }

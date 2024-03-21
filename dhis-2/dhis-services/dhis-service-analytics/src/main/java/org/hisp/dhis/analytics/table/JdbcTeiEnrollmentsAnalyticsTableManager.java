@@ -203,20 +203,19 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-    from enrollment pi
-    inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid
-    and tei.deleted is false
-    and tei.trackedentitytypeid =${teiId}
-    and tei.lastupdated < '${startTime}'
-    left join program p on p.programid = pi.programid
-    left join organisationunit ou on pi.organisationunitid = ou.organisationunitid
-    left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid
-    where exists ( select 1 from event psi where psi.deleted is false
-      and psi.enrollmentid = pi.enrollmentid
-      and psi.status in (${statuses}))
-    and pi.occurreddate is not null
-    and pi.deleted is false
-    """,
+    from enrollment pi \
+    inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
+    and tei.deleted is false \
+    and tei.trackedentitytypeid =${teiId} \
+    and tei.lastupdated < '${startTime}' \
+    left join program p on p.programid = pi.programid \
+    left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
+    left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+    where exists ( select 1 from event psi where psi.deleted is false \
+    and psi.enrollmentid = pi.enrollmentid \
+    and psi.status in (${statuses})) \
+    and pi.occurreddate is not null \
+    and pi.deleted is false""",
                 Map.of(
                     "teiId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
