@@ -31,9 +31,14 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -189,6 +194,15 @@ public class UserAccountController {
     return created("Account created");
   }
 
+  @PostMapping("/params")
+  @ResponseStatus(HttpStatus.CREATED)
+  public WebMessageResponse params(@Valid @RequestBody Params params)
+      throws BadRequestException, IOException {
+    log.info("params received: {}", params);
+
+    return created("Account created");
+  }
+
   @PostMapping("/invite")
   @ResponseStatus(HttpStatus.OK)
   public WebMessageResponse invite(@RequestBody UserInviteParams params, HttpServletRequest request)
@@ -229,4 +243,17 @@ public class UserAccountController {
 
     return user;
   }
+}
+
+@Data
+class Params {
+
+  @JsonProperty
+  @NotNull(message = "username cannot be null")
+  @NotEmpty
+  String username;
+
+  @JsonProperty
+  @Min(20)
+  String firstName;
 }
