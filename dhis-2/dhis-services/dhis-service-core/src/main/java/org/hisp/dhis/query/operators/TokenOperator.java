@@ -76,15 +76,18 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
         || queryPath.getProperty().getTranslationKey() == null) {
       return defaultSearch;
     }
-    return builder.equal(
-        builder.function(
-            JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
-            Boolean.class,
-            root.get("translations"),
-            builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
-            builder.literal(queryPath.getLocale().getLanguage()),
-            builder.literal(TokenUtils.createRegex(value).toString())),
-        true);
+
+    return builder.or(
+        builder.equal(
+            builder.function(
+                JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
+                Boolean.class,
+                root.get("translations"),
+                builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
+                builder.literal(queryPath.getLocale().getLanguage()),
+                builder.literal(TokenUtils.createRegex(value).toString())),
+            true),
+        defaultSearch);
   }
 
   @Override
