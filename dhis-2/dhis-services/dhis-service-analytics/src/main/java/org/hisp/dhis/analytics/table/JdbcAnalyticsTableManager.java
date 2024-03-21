@@ -595,10 +595,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String sql =
         replace(
             """
-            select distinct(extract(year from pe.startdate)) "
-            from datavalue dv "
-            inner join period pe on dv.periodid=pe.periodid "
-            where pe.startdate is not null
+            select distinct(extract(year from pe.startdate)) \
+            from datavalue dv \
+            inner join period pe on dv.periodid=pe.periodid \
+            where pe.startdate is not null \
             and dv.lastupdated < '${startTime}' """,
             Map.of("startTime", toLongDate(params.getStartTime())));
 
@@ -627,19 +627,18 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     sql.deleteCharAt(sql.length() - ",".length());
 
-    sql.append(" where oulevel > ${aggregationLevel}");
-    sql.append(" and dx in ( ${dataElements} )");
+    sql.append(
+        """
+        where oulevel > ${aggregationLevel}
+        and dx in ( ${dataElements} )""");
 
     String updateQuery =
         replace(
             sql.toString(),
             Map.of(
-                "partitionName",
-                partition.getName(),
-                "aggregationLevel",
-                String.valueOf(aggregationLevel),
-                "dataElements",
-                quotedCommaDelimitedString(dataElements)));
+                "partitionName", partition.getName(),
+                "aggregationLevel", String.valueOf(aggregationLevel),
+                "dataElements", quotedCommaDelimitedString(dataElements)));
 
     log.debug("Aggregation level SQL: '{}'", updateQuery);
 
