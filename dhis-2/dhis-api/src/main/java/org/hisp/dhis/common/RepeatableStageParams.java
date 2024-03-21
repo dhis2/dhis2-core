@@ -28,13 +28,17 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Parameters for repeatable stage values. */
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(of = {"startIndex", "count", "startDate", "endDate"})
 public class RepeatableStageParams {
   private int startIndex;
@@ -66,5 +70,11 @@ public class RepeatableStageParams {
   /** Indicates whether value type should be considered as a number. */
   public boolean simpleStageValueExpected() {
     return count == 1;
+  }
+
+  public static RepeatableStageParams ofStartIndex(int startIndex) {
+    RepeatableStageParams params = new RepeatableStageParams();
+    params.setStartIndex(startIndex);
+    return params;
   }
 }

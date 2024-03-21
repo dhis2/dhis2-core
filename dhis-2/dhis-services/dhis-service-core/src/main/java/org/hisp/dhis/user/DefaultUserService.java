@@ -47,6 +47,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -192,8 +193,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public long addUser(User user, UserDetails actingUser) {
-    String currentUsername = CurrentUserUtil.getCurrentUsername();
-    AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
+    AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_CREATE);
 
     userStore.save(user, actingUser, false);
 
@@ -778,9 +778,9 @@ public class DefaultUserService implements UserService {
 
   @Transactional
   @Override
-  public void resetTwoFactor(User user) {
+  public void resetTwoFactor(User user, UserDetails actingUser) {
     user.setSecret(null);
-    updateUser(user);
+    updateUser(user, actingUser);
   }
 
   @Transactional
@@ -800,7 +800,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Invalid code");
     }
 
-    approveTwoFactorSecret(user);
+    approveTwoFactorSecret(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Transactional
@@ -814,7 +814,7 @@ public class DefaultUserService implements UserService {
       throw new IllegalStateException("Invalid code");
     }
 
-    resetTwoFactor(user);
+    resetTwoFactor(user, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
@@ -831,7 +831,7 @@ public class DefaultUserService implements UserService {
       throw new UpdateAccessDeniedException(ErrorCode.E3021.getMessage());
     }
 
-    resetTwoFactor(user);
+    resetTwoFactor(user, UserDetails.fromUser(currentUser));
   }
 
   @Override
@@ -857,6 +857,12 @@ public class DefaultUserService implements UserService {
   public Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween(
       Date from, Date to) {
     return userStore.findNotifiableUsersWithPasswordLastUpdatedBetween(from, to);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId) {
+    return userStore.getUserGroupUserEmailsByUsername(userGroupId);
   }
 
   @Override
@@ -904,13 +910,32 @@ public class DefaultUserService implements UserService {
 
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
 
+    List<String> organisationUnitsUidsByUser =
+        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
+
     return UserDetails.createUserDetails(
-        user, accountNonLocked, credentialsNonExpired, userSettings);
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        new HashSet<>(organisationUnitsUidsByUser),
+        new HashSet<>(searchOrganisationUnitsUidsByUser),
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
+        userSettings);
   }
 
   @Override
   public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
     return userStore.getCurrentUserGroupInfo(userUID);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getUserByEmail(String email) {
+    return userStore.getUserByEmail(email);
   }
 
   @Override
@@ -943,10 +968,10 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional
-  public void approveTwoFactorSecret(User user) {
+  public void approveTwoFactorSecret(User user, UserDetails actingUser) {
     if (user.getSecret() != null && UserService.hasTwoFactorSecretForApproval(user)) {
       user.setSecret(user.getSecret().replace(TWO_FACTOR_CODE_APPROVAL_PREFIX, ""));
-      updateUser(user);
+      updateUser(user, actingUser);
     }
   }
 
@@ -1085,6 +1110,9 @@ public class DefaultUserService implements UserService {
     vars.put("applicationTitle", applicationTitle);
     vars.put("restorePath", rootPath + RESTORE_PATH + restoreType.getAction());
     vars.put("token", encodedTokens);
+    vars.put("username", user.getUsername());
+    vars.put("email", user.getEmail());
+
     vars.put("welcomeMessage", persistedUser.getWelcomeMessage());
 
     I18n i18n =
@@ -1140,7 +1168,7 @@ public class DefaultUserService implements UserService {
     user.setRestoreToken(hashedRestoreToken);
     user.setRestoreExpiry(expiry);
 
-    updateUser(user);
+    updateUser(user, new SystemUser());
 
     return Base64.getUrlEncoder()
         .withoutPadding()
@@ -1265,6 +1293,11 @@ public class DefaultUserService implements UserService {
 
     if (user.getEmail() == null || !ValidationUtils.emailIsValid(user.getEmail())) {
       log.warn("Could not send restore/invite message as user has no email or email is invalid");
+      return ErrorCode.E6202;
+    }
+
+    if (user.isExternalAuth()) {
+      log.warn("Could reset password, user is using external authentication.");
       return ErrorCode.E6202;
     }
 

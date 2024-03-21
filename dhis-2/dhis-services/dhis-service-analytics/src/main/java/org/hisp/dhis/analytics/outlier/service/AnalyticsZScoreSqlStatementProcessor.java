@@ -30,17 +30,21 @@ package org.hisp.dhis.analytics.outlier.service;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MODIFIED_Z_SCORE;
 import static org.hisp.dhis.analytics.outlier.Order.ABS_DEV;
-import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_IDS;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.CATEGORY_OPTION_COMBO_ID;
+import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.DATA_ELEMENT_ID;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.END_DATE;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.MAX_RESULTS;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.START_DATE;
 import static org.hisp.dhis.analytics.outlier.data.OutlierSqlParams.THRESHOLD;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.outlier.OutlierHelper;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.DataDimension;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -106,8 +110,17 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     MapSqlParameterSource sqlParameterSource =
         new MapSqlParameterSource()
             .addValue(THRESHOLD.getKey(), request.getThreshold())
-            .addValue(DATA_ELEMENT_IDS.getKey(), request.getDataElementIds())
             .addValue(MAX_RESULTS.getKey(), request.getMaxResults());
+
+    for (int i = 0; i < request.getDataDimensions().size(); i++) {
+      sqlParameterSource.addValue(
+          DATA_ELEMENT_ID.getKey() + i,
+          request.getDataDimensions().get(i).getDataElement().getId());
+      CategoryOptionCombo coc = request.getDataDimensions().get(i).getCategoryOptionCombo();
+      if (coc != null) {
+        sqlParameterSource.addValue(CATEGORY_OPTION_COMBO_ID.getKey() + i, coc.getId());
+      }
+    }
 
     if (request.hasStartEndDate()) {
       sqlParameterSource
@@ -136,7 +149,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
       return EMPTY;
     }
 
-    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax");
+    String ouPathClause = OutlierHelper.getOrgUnitPathClause(request.getOrgUnits(), "ax", "and");
 
     boolean modifiedZ = request.getAlgorithm() == MODIFIED_Z_SCORE;
 
@@ -149,6 +162,25 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
 
     String thresholdParam =
         withParams ? ":" + THRESHOLD.getKey() : Double.toString(request.getThreshold());
+
+    //  The constant 0.6745 in the formula for the modified z-score is derived from the standard
+    // normal distribution.
+    //  Specifically, it represents the approximate value of the standard deviation of the standard
+    // normal distribution
+    //  when calculated from the median absolute deviation (MAD).
+    //  In a standard normal distribution, approximately 75% of the data lies within one standard
+    // deviation of the mean.
+    //  Similarly, when using the median absolute deviation as a measure of dispersion,
+    // approximately 75% of the data points
+    //  lie within a certain range from the median. The constant 0.6745 is chosen to make the
+    // modified z-score calculation
+    //  consistent with this property.
+    //  It's important to note that 0.6745 is an approximation, and the exact value for the standard
+    // deviation of a standard
+    //  normal distribution is 1. However, in the context of the modified z-score calculation,
+    // 0.6745 is used to adjust
+    //  for the difference between the standard deviation and the median absolute deviation.
+    final double scoreScalingFactor = 0.6745;
 
     String sql =
         "select * from (select "
@@ -169,7 +201,9 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
     if (modifiedZ) {
       sql +=
           "(case when ax.mad = 0 then 0 "
-              + "      else 0.6745 * abs(ax.value::double precision - "
+              + "      else "
+              + scoreScalingFactor
+              + " * abs(ax.value::double precision - "
               + middleValue
               + " ) / ax.mad "
               + "       end) as z_score, ";
@@ -182,23 +216,31 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
               + "       end) as z_score, ";
     }
     sql +=
-        middleValue
-            + " - (ax.std_dev * "
-            + thresholdParam
-            + ") as lower_bound, "
-            + middleValue
-            + " + (ax.std_dev * "
-            + thresholdParam
-            + ") as upper_bound "
-            + "from analytics ax "
-            + "where dataelementid in  ("
-            + (withParams
-                ? ":" + DATA_ELEMENT_IDS.getKey()
-                : request.getDataElementIds().stream()
-                    .map(Object::toString)
-                    .collect(Collectors.joining(",")))
-            + ") "
-            + "and "
+        modifiedZ
+            ? middleValue
+                + " - (ax.mad * "
+                + thresholdParam
+                + "/"
+                + scoreScalingFactor
+                + ") as lower_bound, "
+                + middleValue
+                + " + (ax.mad * "
+                + thresholdParam
+                + "/"
+                + scoreScalingFactor
+                + ") as upper_bound "
+            : middleValue
+                + " - (ax.std_dev * "
+                + thresholdParam
+                + ") as lower_bound, "
+                + middleValue
+                + " + (ax.std_dev * "
+                + thresholdParam
+                + ") as upper_bound ";
+    sql +=
+        "from analytics ax "
+            + "where "
+            + getDataDimensionSql(withParams, request.getDataDimensions())
             + ouPathClause
             + getPeriodSqlSnippet(request, withParams)
             + ") t1 "
@@ -213,6 +255,46 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
             + " ";
 
     return sql;
+  }
+
+  /**
+   * The function retrieves the sql form of the data dimension objects
+   *
+   * @param withParams determines the usage of sql parameter source
+   * @param dataDimensions the list of {@link DataDimension}.
+   * @return the sql form of the data dimension objects
+   */
+  private String getDataDimensionSql(boolean withParams, List<DataDimension> dataDimensions) {
+    StringBuilder sql = new StringBuilder("(");
+    if (withParams) {
+      for (int i = 0; i < dataDimensions.size(); i++) {
+        sql.append(i == 0 ? "(ax.dataelementid = :" : " or (ax.dataelementid = :")
+            .append(DATA_ELEMENT_ID.getKey())
+            .append(i);
+        if (dataDimensions.get(i).getCategoryOptionCombo() != null) {
+          sql.append(" and ax.categoryoptioncomboid = :")
+              .append(CATEGORY_OPTION_COMBO_ID.getKey())
+              .append(i);
+        }
+        sql.append(")");
+      }
+      sql.append(") ");
+
+      return sql.toString();
+    }
+
+    return dataDimensions.stream()
+        .map(
+            dd -> {
+              String s = "(ax.dataelementid = " + dd.getDataElement().getId();
+              if (dd.getCategoryOptionCombo() != null) {
+                s += " and ax.categoryoptioncomboid = " + dd.getCategoryOptionCombo().getId();
+              }
+              s += ")";
+
+              return s;
+            })
+        .collect(Collectors.joining(" or "));
   }
 
   /**

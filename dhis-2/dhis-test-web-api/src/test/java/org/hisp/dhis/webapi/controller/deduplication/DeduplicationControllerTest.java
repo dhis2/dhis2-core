@@ -147,8 +147,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest {
     // assert deprecated fields
     assertEquals(2, page.getPage());
     assertEquals(1, page.getPageSize());
-    assertHasNoMember(page.getPager(), "total");
-    assertHasNoMember(page.getPager(), "pageCount");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
   }
 
   @Test

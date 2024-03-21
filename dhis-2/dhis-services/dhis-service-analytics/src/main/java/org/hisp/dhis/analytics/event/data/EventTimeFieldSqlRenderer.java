@@ -36,8 +36,8 @@ import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.List;
 import java.util.Optional;
@@ -111,11 +111,11 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     return "( "
         + timeCol
         + " >= '"
-        + getMediumDateString(period.getStartDate())
+        + toMediumDate(period.getStartDate())
         + "' and "
         + timeCol
         + " < '"
-        + getMediumDateString(plusOneDay(period.getEndDate()))
+        + toMediumDate(plusOneDay(period.getEndDate()))
         + "') ";
   }
 

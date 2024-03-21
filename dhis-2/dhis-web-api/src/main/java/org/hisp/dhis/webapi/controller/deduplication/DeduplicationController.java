@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -57,8 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -84,8 +82,6 @@ public class DeduplicationController {
   private final TrackedEntityService trackedEntityService;
 
   private final TrackerAccessManager trackerAccessManager;
-
-  private final UserService userService;
 
   private final FieldFilterService fieldFilterService;
 
@@ -113,11 +109,12 @@ public class DeduplicationController {
     setNoStore(response);
 
     if (criteria.isPaged()) {
-      Pager pager = new Pager(criteria.getPageWithDefault(), 0, criteria.getPageSizeWithDefault());
-      pager.force(criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
       org.hisp.dhis.tracker.export.Page<PotentialDuplicate> page =
-          org.hisp.dhis.tracker.export.Page.of(potentialDuplicates, pager, false);
-      return Page.withPager("potentialDuplicates", objectNodes, page);
+          org.hisp.dhis.tracker.export.Page.withoutTotals(
+              potentialDuplicates,
+              criteria.getPageWithDefault(),
+              criteria.getPageSizeWithDefault());
+      return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
     }
 
     return Page.withoutPager("potentialDuplicates", objectNodes);
@@ -268,7 +265,7 @@ public class DeduplicationController {
   }
 
   private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       throw new ForbiddenException(
           "You don't have read access to '" + trackedEntity.getUid() + "'.");

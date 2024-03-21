@@ -29,15 +29,16 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.springframework.util.Assert;
 
 /**
  * Class representing an analytics database table. Note that the table name initially represents a
@@ -140,6 +141,16 @@ public class AnalyticsTable extends Table {
   }
 
   /**
+   * Converts the given analytics table partition to a table partition.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @return a {@link TablePartition}.
+   */
+  private TablePartition toTablePartition(AnalyticsTablePartition partition) {
+    return new TablePartition(partition.getName(), "year", partition.getYear());
+  }
+
+  /**
    * Returns a table name.
    *
    * @param tableType the {@link AnalyticsTableType}.
@@ -208,12 +219,14 @@ public class AnalyticsTable extends Table {
    */
   public AnalyticsTable addTablePartition(
       List<String> checks, Integer year, Date startDate, Date endDate) {
-    Assert.notNull(year, "Year must be specified");
+    Objects.requireNonNull(year);
 
-    AnalyticsTablePartition tablePartition =
+    AnalyticsTablePartition partition =
         new AnalyticsTablePartition(this, checks, year, startDate, endDate);
 
-    this.tablePartitions.add(tablePartition);
+    super.addPartition(toTablePartition(partition));
+
+    this.tablePartitions.add(partition);
 
     return this;
   }

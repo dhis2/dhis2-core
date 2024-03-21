@@ -55,6 +55,7 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -81,7 +82,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
             new OrgUnitQueryBuilder(),
             new PeriodQueryBuilder(),
             new EnrolledInProgramQueryBuilder(),
-            new TeiQueryBuilder(),
+            new TeiQueryBuilder(mock(IdentifiableObjectManager.class)),
             new ProgramIndicatorQueryBuilder(programIndicatorService));
     sqlQueryCreatorService = new SqlQueryCreatorService(queryBuilders);
   }

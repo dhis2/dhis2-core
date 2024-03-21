@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.db.sql;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
-import java.util.Collection;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
-import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
@@ -46,6 +43,11 @@ import org.hisp.dhis.db.model.constraint.Unique;
  * @author Lars Helge Overland
  */
 public class PostgreSqlBuilder extends AbstractSqlBuilder {
+
+  // Constants
+
+  private static final String QUOTE = "\"";
+
   // Data types
 
   @Override
@@ -64,13 +66,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeNumeric() {
-    return "numeric(18,6)";
+  public String dataTypeDecimal() {
+    return "decimal(18,6)";
   }
 
   @Override
-  public String dataTypeReal() {
-    return "real";
+  public String dataTypeFloat() {
+    return "float";
   }
 
   @Override
@@ -114,16 +116,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeTime() {
-    return "time";
-  }
-
-  @Override
-  public String dataTypeTimeTz() {
-    return "timetz";
-  }
-
-  @Override
   public String dataTypeGeometry() {
     return "geometry";
   }
@@ -134,7 +126,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String dataTypeJsonb() {
+  public String dataTypeJson() {
     return "jsonb";
   }
 
@@ -170,12 +162,31 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   // Capabilities
 
   @Override
+  public boolean supportsGeospatialData() {
+    return true;
+  }
+
+  /**
+   * PostgreSQL supports declarative partitioning, but table inheritance is used as query
+   * performance is better.
+   */
+  @Override
+  public boolean supportsDeclarativePartitioning() {
+    return false;
+  }
+
+  @Override
   public boolean supportsAnalyze() {
     return true;
   }
 
   @Override
   public boolean supportsVacuum() {
+    return true;
+  }
+
+  @Override
+  public boolean requiresIndexesForAnalytics() {
     return true;
   }
 
@@ -193,11 +204,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String quoteAx(String relation) {
-    return ALIAS_AX + DOT + quote(relation);
-  }
-
-  @Override
   public String singleQuote(String value) {
     return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
@@ -210,17 +216,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String singleQuotedCommaDelimited(Collection<String> items) {
-    return isEmpty(items)
-        ? EMPTY
-        : items.stream().map(this::singleQuote).collect(Collectors.joining(COMMA));
+  public String qualifyTable(String name) {
+    return quote(name);
   }
 
   // Statements
 
   @Override
   public String createTable(Table table) {
-    String unlogged = table.getLogged() == Logged.UNLOGGED ? " unlogged" : "";
+    String unlogged = table.isUnlogged() ? " unlogged" : "";
 
     StringBuilder sql =
         new StringBuilder("create")
@@ -231,16 +235,18 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Columns
 
-    for (Column column : table.getColumns()) {
-      String dataType = getDataTypeName(column.getDataType());
-      String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-      String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
+    if (table.hasColumns()) {
+      for (Column column : table.getColumns()) {
+        String dataType = getDataTypeName(column.getDataType());
+        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+        String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
 
-      sql.append(quote(column.getName()) + " ")
-          .append(dataType)
-          .append(nullable)
-          .append(collation)
-          .append(COMMA);
+        sql.append(quote(column.getName()) + " ")
+            .append(dataType)
+            .append(nullable)
+            .append(collation)
+            .append(COMMA);
+      }
     }
 
     // Primary key
@@ -265,16 +271,13 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     removeLastComma(sql).append(")");
 
+    // Parent
+
     if (table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 
     return sql.append(";").toString();
-  }
-
-  @Override
-  public String analyzeTable(Table table) {
-    return analyzeTable(table.getName());
   }
 
   @Override
@@ -284,22 +287,12 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String vacuumTable(Table table) {
-    return vacuumTable(table.getName());
-  }
-
-  @Override
-  public String vacuumTable(String name) {
-    return String.format("vacuum %s;", quote(name));
+    return String.format("vacuum %s;", quote(table.getName()));
   }
 
   @Override
   public String renameTable(Table table, String newName) {
     return String.format("alter table %s rename to %s;", quote(table.getName()), quote(newName));
-  }
-
-  @Override
-  public String dropTableIfExists(Table table) {
-    return dropTableIfExists(table.getName());
   }
 
   @Override
@@ -318,11 +311,6 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String swapTable(Table table, String newName) {
-    return String.join(" ", dropTableIfExistsCascade(newName), renameTable(table, newName));
-  }
-
-  @Override
   public String setParentTable(Table table, String parentName) {
     return String.format("alter table %s inherit %s;", quote(table.getName()), quote(parentName));
   }
@@ -334,16 +322,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String swapParentTable(Table table, String parentName, String newParentName) {
-    return String.join(
-        " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
-  }
-
-  @Override
   public String tableExists(String name) {
     return String.format(
-        "select t.table_name from information_schema.tables t "
-            + "where t.table_schema = 'public' and t.table_name = %s;",
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' and t.table_name = %s;""",
         singleQuote(name));
   }
 
@@ -361,5 +344,15 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         "create %sindex %s on %s using %s(%s);",
         unique, quote(index.getName()), quote(tableName), typeName, columns);
+  }
+
+  @Override
+  public String createCatalog(String connectionUrl, String username, String password) {
+    return notSupported();
+  }
+
+  @Override
+  public String dropCatalogIfExists() {
+    return notSupported();
   }
 }

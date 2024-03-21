@@ -108,11 +108,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.items.ImspTQPwCqd.name", equalTo("Sierra Leone"))
         .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
         .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.IpHINAT79UW.name", equalTo("Child Programme"))
-        .body("metaData.items.ZzYYXq4fJie.name", equalTo("Baby Postnatal"))
-        .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
-        .body("metaData.items.A03MvHHogjR.name", equalTo("Birth"))
-        .body("metaData.items.cejWyOfXge6.name", equalTo("Gender"))
         .body("metaData.items.ou.name", equalTo("Organisation unit"))
         .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
         .body("metaData.dimensions", hasKey("zDhUuAYrxNC"))
@@ -210,11 +205,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
         .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
         .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.IpHINAT79UW.name", equalTo("Child Programme"))
-        .body("metaData.items.ZzYYXq4fJie.name", equalTo("Baby Postnatal"))
-        .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
-        .body("metaData.items.A03MvHHogjR.name", equalTo("Birth"))
-        .body("metaData.items.cejWyOfXge6.name", equalTo("Gender"))
         .body("metaData.items.ou.name", equalTo(null))
         .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
         .body("metaData.dimensions", hasKey("zDhUuAYrxNC"))
@@ -371,11 +361,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
         .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
         .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.IpHINAT79UW.name", equalTo("Child Programme"))
-        .body("metaData.items.ZzYYXq4fJie.name", equalTo("Baby Postnatal"))
-        .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
-        .body("metaData.items.A03MvHHogjR.name", equalTo("Birth"))
-        .body("metaData.items.cejWyOfXge6.name", equalTo("Gender"))
         .body("metaData.items.ou.name", equalTo(null))
         .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
         .body("metaData.dimensions", hasKey("zDhUuAYrxNC"))
@@ -533,12 +518,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.pager", not(hasKey("total")))
         .body("metaData.pager", not(hasKey("pageCount")))
         .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
-        .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
-        .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.IpHINAT79UW.name", equalTo("Child Programme"))
-        .body("metaData.items.ZzYYXq4fJie.name", equalTo("Baby Postnatal"))
         .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
-        .body("metaData.items.A03MvHHogjR.name", equalTo("Birth"))
         .body("metaData.items.cejWyOfXge6.name", equalTo("Gender"))
         .body("metaData.items.ou.name", equalTo(null))
         .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
@@ -636,13 +616,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.pager", not(hasKey("total")))
         .body("metaData.pager", not(hasKey("pageCount")))
         .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
-        .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
-        .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.IpHINAT79UW.name", equalTo("Child Programme"))
-        .body("metaData.items.ZzYYXq4fJie.name", equalTo("Baby Postnatal"))
         .body("metaData.items.w75KJ2mc4zz.name", equalTo("First name"))
-        .body("metaData.items.A03MvHHogjR.name", equalTo("Birth"))
-        .body("metaData.items.cejWyOfXge6.name", equalTo("Gender"))
         .body("metaData.items.ou.name", equalTo(null))
         .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
         .body("metaData.dimensions", hasKey("zDhUuAYrxNC"))
@@ -1748,6 +1722,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("metaData.dimensions", not(hasKey("ou")))
         .body("metaData.dimensions", hasKey("pe"))
         .body("metaData.items.GQY2lXrypjO.name", equalTo("MCH Infant Weight  (g)"))
+        .body(
+            "metaData.items[\"IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO\"].name",
+            equalTo("MCH Infant Weight  (g)"))
         .body("height", equalTo(1))
         .body("width", equalTo(17))
         .body("headerWidth", equalTo(17));
@@ -1781,7 +1758,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("program=IpHINAT79UW")
-            .add("enrollmentDate=IpHINAT79UW[-1].LAST_YEAR")
+            .add("enrollmentDate=IpHINAT79UW[1].LAST_YEAR")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2023-04-03")
             .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC");
@@ -1841,7 +1818,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2991,6 +2968,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("metaData.items['IpHINAT79UW.enrollmentdate'].name", equalTo("Date of enrollment"))
+        .body("headers[1].column", equalTo("Date of enrollment, Child Programme"))
         .body(
             "metaData.items['IpHINAT79UW.ZzYYXq4fJie.cYGaxwK615G'].name",
             equalTo("MCH Infant HIV Test Result"));
@@ -3082,5 +3060,195 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
 
     validateRow(response, 0, List.of("John", "Kelly"));
     validateRow(response, 1, List.of("John", "Doe"));
+  }
+
+  @Test
+  public void headerShouldContainOffsetIfPresent() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.A03MvHHogjR[-1].bx6fsa0t90x")
+            .add("headers=IpHINAT79UW.A03MvHHogjR[-1].bx6fsa0t90x")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR[-1].bx6fsa0t90x"))
+        .body("headers[0].stageOffset", equalTo(-1));
+  }
+
+  @Test
+  public void headerShouldNotContainOffsetIfNotPresent() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x")
+            .add("headers=IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x"))
+        .body("headers[0]", not(hasKey("stageOffset")));
+  }
+
+  @Test
+  public void orgUnitGroupSetAreExported() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=uIuxlbV1vRT")
+            .add("headers=uIuxlbV1vRT")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("uIuxlbV1vRT"))
+        .body("headers[0].column", equalTo("Area"));
+  }
+
+  @Test
+  public void multipleValuesAreAccepted() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6:IN:2;5")
+            .add("headers=IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6"))
+        .body("headers[0].column", equalTo("MCH Apgar Score, Child Programme, Birth"));
+  }
+
+  @Test
+  public void testOugs() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=J5jldMd8OHv:CXw2yu5fodb")
+            .add("headers=J5jldMd8OHv")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].name", equalTo("J5jldMd8OHv"))
+        .body("headers[0].column", equalTo("Facility Type"));
+  }
+
+  @Test
+  public void testProgramStatusAsDimensionNoValue() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("programStatus=IpHINAT79UW")
+            .add("headers=IpHINAT79UW.programstatus")
+            .add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers[0].column", equalTo("Program Status, Child Programme"));
+  }
+
+  @Test
+  public void headersContainsCustomLabels() {
+
+    Map<String, String> headersCustomLabels =
+        Map.of(
+            "IpHINAT79UW.enrollmentdate",
+            "Date of enrollment, Child Programme",
+            "IpHINAT79UW[-1].enrollmentdate",
+            "Date of enrollment, Child Programme (-1)",
+            "IpHINAT79UW.incidentdate",
+            "Date of birth, Child Programme",
+            "IpHINAT79UW[-1].incidentdate",
+            "Date of birth, Child Programme (-1)",
+            "IpHINAT79UW.A03MvHHogjR.occurreddate",
+            "Report date, Child Programme, Birth",
+            "IpHINAT79UW[-1].A03MvHHogjR.occurreddate",
+            "Report date, Child Programme (-1), Birth",
+            "IpHINAT79UW.A03MvHHogjR[-1].occurreddate",
+            "Report date, Child Programme, Birth (-1)",
+            "IpHINAT79UW[-1].A03MvHHogjR[-1].occurreddate",
+            "Report date, Child Programme (-1), Birth (-1)",
+            "IpHINAT79UW.ouname",
+            "Organisation Unit Name, Child Programme",
+            "IpHINAT79UW[-1].ouname",
+            "Organisation Unit Name, Child Programme (-1)");
+
+    headersCustomLabels.forEach(this::testHeadersCustomLabel);
+  }
+
+  private void testHeadersCustomLabel(String header, String expected) {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200).body("headers[0].column", equalTo(expected));
+  }
+
+  @Test
+  public void metaItemsContainsCustomLabels() {
+
+    Map<String, String> metaCustomLabels =
+        Map.of(
+            "IpHINAT79UW.enrollmentdate",
+            "Date of enrollment",
+            "IpHINAT79UW.incidentdate",
+            "Date of birth",
+            "IpHINAT79UW.A03MvHHogjR.occurreddate",
+            "Report date",
+            "IpHINAT79UW.ouname",
+            "Organisation Unit Name");
+
+    metaCustomLabels.forEach(this::testMetaCustomLabel);
+  }
+
+  private void testMetaCustomLabel(String header, String expected) {
+    // Given
+    QueryParamsBuilder params = new QueryParamsBuilder().add("headers=" + header).add("pageSize=0");
+
+    // When
+    ApiResponse response = analyticsTeiActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("metaData.items['" + header + "'].name", equalTo(expected));
   }
 }

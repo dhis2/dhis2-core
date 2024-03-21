@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.OutlierDetectionAlgorithm.MIN_MAX;
 import static org.hisp.dhis.feedback.ErrorCode.E2200;
 import static org.hisp.dhis.feedback.ErrorCode.E2201;
 import static org.hisp.dhis.feedback.ErrorCode.E2202;
-import static org.hisp.dhis.feedback.ErrorCode.E2203;
 import static org.hisp.dhis.feedback.ErrorCode.E2204;
 import static org.hisp.dhis.feedback.ErrorCode.E2205;
 import static org.hisp.dhis.feedback.ErrorCode.E2206;
@@ -115,7 +114,7 @@ public class OutlierRequestValidator {
   private ErrorMessage getErrorMessage(OutlierRequest request, int maxLimit) {
     ErrorMessage error = null;
 
-    if (request.getDataElements().isEmpty()) {
+    if (request.getDataDimensions().isEmpty()) {
       error = new ErrorMessage(E2200);
     } else if (!request.hasStartEndDate() && !request.hasPeriods()) {
       error = new ErrorMessage(E2201);
@@ -123,8 +122,6 @@ public class OutlierRequestValidator {
       error = new ErrorMessage(E2212);
     } else if (request.hasStartEndDate() && request.getStartDate().after(request.getEndDate())) {
       error = new ErrorMessage(E2202);
-    } else if (request.getOrgUnits().isEmpty()) {
-      error = new ErrorMessage(E2203);
     } else if (request.getThreshold() <= 0) {
       error = new ErrorMessage(E2204);
     } else if (request.getMaxResults() <= 0) {

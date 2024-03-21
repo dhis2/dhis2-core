@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
@@ -293,16 +292,20 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return curProperty == null && CodeGenerator.isValidUid(propertyName);
   }
 
+  /**
+   * Set the current locale on the query path. The current locale is the user's selected database
+   * locale if available, otherwise the system setting DB_Locale. If neither is available, the
+   * {@link LocaleManager#DEFAULT_LOCALE} is used.
+   *
+   * @param restriction the {@link Restriction} which contains the query path.
+   */
   private void setQueryPathLocale(Restriction restriction) {
-    Locale systemLocale =
-        systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE);
-    Locale currentUserLocale = CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE);
-    if (currentUserLocale != null && !currentUserLocale.equals(systemLocale)) {
-      // Use translations jsonb column for querying with the current user locale.
-      restriction.getQueryPath().setLocale(currentUserLocale);
-    } else {
-      // Use default properties for querying. Don't use the translations jsonb column.
-      restriction.getQueryPath().setLocale(null);
-    }
+    restriction
+        .getQueryPath()
+        .setLocale(
+            CurrentUserUtil.getUserSetting(
+                UserSettingKey.DB_LOCALE,
+                systemSettingManager.getSystemSetting(
+                    SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE)));
   }
 }

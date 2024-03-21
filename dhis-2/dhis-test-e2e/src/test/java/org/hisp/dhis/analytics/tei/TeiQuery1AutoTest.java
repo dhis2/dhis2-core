@@ -75,7 +75,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":false,\"pageSize\":10,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -140,7 +140,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         16,
         "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU",
-        "MCH Weight (g)",
+        "MCH Weight (g), Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -149,14 +149,14 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         17,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
-        "MCH Apgar Score",
+        "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 17, "ND");
+    validateRowContext(response, 1, 17, "NS");
 
     // Assert rows.
     validateRow(
@@ -317,7 +317,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":false,\"pageSize\":10,\"page\":1},\"items\":{\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -326,7 +326,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         0,
         "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU",
-        "MCH Weight (g)",
+        "MCH Weight (g), Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -335,14 +335,14 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         1,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
-        "MCH Apgar Score",
+        "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 1, "ND");
+    validateRowContext(response, 1, 1, "NS");
 
     // Assert rows.
     validateRow(response, 0, List.of("36282", "3"));
@@ -362,6 +362,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
+            .add("desc=lastupdated")
             .add("pageSize=10")
             .add("program=IpHINAT79UW")
             .add(
@@ -382,7 +383,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":false,\"pageSize\":10,\"page\":1},\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -447,7 +448,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         16,
         "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU",
-        "MCH Weight (g)",
+        "MCH Weight (g), Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -456,7 +457,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         17,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
-        "MCH Apgar Score",
+        "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
@@ -470,221 +471,221 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         0,
         List.of(
-            "A0EeVFFEUV6",
-            "2015-08-06 21:20:48.576",
+            "vOxUH373fy5",
+            "2017-05-26 11:46:22.372",
             "",
-            "2015-08-06 21:20:48.576",
-            "",
-            "",
+            "2017-01-20 10:44:02.77",
             "",
             "",
             "",
-            "Pejewa CHC",
-            "OU_204927",
-            "Sierra Leone / Kailahun / Peje West / Pejewa CHC",
-            "Nancy",
-            "Jones",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Filona",
+            "Ryder",
             "Female",
             "",
-            "2796",
-            "0"));
+            "4322",
+            ""));
     validateRow(
         response,
         1,
         List.of(
-            "A0Hae4WYtQl",
-            "2015-08-06 21:15:40.015",
+            "lkuI9OgwfOc",
+            "2017-01-20 10:41:45.624",
             "",
-            "2015-08-06 21:15:40.013",
-            "",
-            "",
+            "2017-01-20 10:37:57.638",
             "",
             "",
             "",
-            "Gbangba MCHP",
-            "OU_8399",
-            "Sierra Leone / Bo / Selenga / Gbangba MCHP",
-            "James",
-            "Jordan",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Frank",
+            "Fjordsen",
             "Male",
             "",
-            "3418",
-            "2"));
+            "3444",
+            "5"));
     validateRow(
         response,
         2,
         List.of(
-            "A0TpTrpIoOK",
-            "2015-08-06 21:20:51.879",
+            "pybd813kIWx",
+            "2017-01-20 10:40:31.913",
             "",
-            "2015-08-06 21:20:51.879",
-            "",
-            "",
+            "2017-01-20 10:40:31.623",
             "",
             "",
             "",
-            "Massabendu CHP",
-            "OU_233335",
-            "Sierra Leone / Kono / Nimiyama / Massabendu CHP",
-            "Jane",
-            "Cox",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Gertrude",
+            "Fjordsen",
             "Female",
             "",
-            "3740",
-            "0"));
+            "3320",
+            "5"));
     validateRow(
         response,
         3,
         List.of(
-            "A0UwTZLUnHY",
-            "2015-08-06 21:15:41.923",
+            "eHFFZnew6KJ",
+            "2016-10-11 11:09:02.811",
             "",
-            "2015-08-06 21:15:41.922",
-            "",
-            "",
+            "2015-08-07 15:47:19.378",
             "",
             "",
             "",
-            "Mansundu MCHP",
-            "OU_233396",
-            "Sierra Leone / Kono / Nimikoro / Mansundu MCHP",
-            "Martha",
-            "Harvey",
+            "",
+            "",
+            "Mapailleh MCHP",
+            "OU_247072",
+            "Sierra Leone / Moyamba / Kargboro / Mapailleh MCHP",
+            "Paula",
+            "Walker",
             "Female",
             "",
-            "3150",
-            "0"));
+            "3444",
+            "1"));
     validateRow(
         response,
         4,
         List.of(
-            "A0wAPfNmMkD",
-            "2015-08-07 15:47:21.213",
+            "PQfMcpmXeFE",
+            "2016-08-03 23:49:43.309",
             "",
-            "2015-08-07 15:47:21.212",
-            "",
-            "",
+            "2014-03-06 05:49:28.256",
             "",
             "",
             "",
-            "Liya MCHP",
-            "OU_260442",
-            "Sierra Leone / Pujehun / Kpaka / Liya MCHP",
-            "Joshua",
-            "Wood",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "John",
+            "Kelly",
             "Male",
             "",
-            "3416",
-            "0"));
+            "",
+            ""));
     validateRow(
         response,
         5,
         List.of(
-            "A0zUZPe4bk0",
-            "2015-08-06 21:20:51.006",
+            "EaOyKGOIGRp",
+            "2016-08-03 23:47:14.517",
             "",
-            "2015-08-06 21:20:51.006",
-            "",
-            "",
+            "2014-11-16 11:38:23.592",
             "",
             "",
             "",
-            "SLRCS (Nongowa) clinic",
-            "OU_222695",
-            "Sierra Leone / Kenema / Nongowa / SLRCS (Nongowa) clinic",
-            "James",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Anna",
             "Jones",
-            "Male",
+            "Female",
             "",
-            "3580",
-            "1"));
+            "3243",
+            "10"));
     validateRow(
         response,
         6,
         List.of(
-            "A12rcS9b7nG",
-            "2015-08-07 15:47:24.148",
+            "zDFe02SbmSD",
+            "2016-04-21 18:13:40.579",
             "",
-            "2015-08-07 15:47:24.147",
-            "",
-            "",
+            "2015-08-07 15:47:25.385",
             "",
             "",
             "",
-            "Mabonkanie MCHP",
-            "OU_193270",
-            "Sierra Leone / Bombali / Safroko Limba / Mabonkanie MCHP",
-            "John",
-            "Lynch",
+            "",
+            "",
+            "Gelehun MCHP",
+            "OU_222626",
+            "Sierra Leone / Kenema / Small Bo / Gelehun MCHP",
+            "Eric",
+            "Robertson",
             "Male",
             "",
-            "3510",
-            "0"));
+            "3706",
+            "2"));
     validateRow(
         response,
         7,
         List.of(
-            "A16VGL32xEg",
-            "2015-08-07 15:47:19.802",
+            "lSxhGlVaTvy",
+            "2016-04-21 16:01:20.435",
             "",
-            "2015-08-07 15:47:19.801",
-            "",
-            "",
+            "2015-08-06 21:20:49.454",
             "",
             "",
             "",
-            "Mabineh MCHP",
-            "OU_268179",
-            "Sierra Leone / Tonkolili / Kunike / Mabineh MCHP",
-            "Arthur",
-            "Alexander",
-            "Male",
             "",
-            "2502",
-            "1"));
+            "",
+            "Masoko MCHP",
+            "OU_268158",
+            "Sierra Leone / Tonkolili / Kholifa Rowalla / Masoko MCHP",
+            "Diane",
+            "Bryant",
+            "Female",
+            "",
+            "3779",
+            "0"));
     validateRow(
         response,
         8,
         List.of(
-            "A17SeLLte4D",
-            "2015-08-07 15:47:21.607",
+            "gGDBG5aGlIk",
+            "2015-08-07 15:47:29.301",
             "",
-            "2015-08-07 15:47:21.606",
-            "",
-            "",
+            "2015-08-07 15:47:29.301",
             "",
             "",
             "",
-            "Modia MCHP",
-            "OU_211233",
-            "Sierra Leone / Kambia / Magbema / Modia MCHP",
-            "Sandra",
-            "Richards",
-            "Female",
             "",
-            "2510",
-            "1"));
+            "",
+            "Tonko Maternity Clinic",
+            "OU_193214",
+            "Sierra Leone / Bombali / Bombali Sebora / Tonko Maternity Clinic",
+            "Mark",
+            "Coleman",
+            "Male",
+            "",
+            "3297",
+            "0"));
     validateRow(
         response,
         9,
         List.of(
-            "A17oc8VDBjC",
-            "2015-08-06 21:20:52.062",
+            "IjhtI0sk0O6",
+            "2015-08-07 15:47:29.3",
             "",
-            "2015-08-06 21:20:52.061",
-            "",
-            "",
+            "2015-08-07 15:47:29.3",
             "",
             "",
             "",
-            "Yoyema MCHP",
-            "OU_247067",
-            "Sierra Leone / Moyamba / Kaiyamba / Yoyema MCHP",
-            "Dennis",
-            "Washington",
-            "Male",
             "",
-            "2678",
+            "",
+            "Banka Makuloh MCHP",
+            "OU_211259",
+            "Sierra Leone / Kambia / Masungbala / Banka Makuloh MCHP",
+            "Deborah",
+            "James",
+            "Female",
+            "",
+            "2579",
             "0"));
   }
 
@@ -715,7 +716,7 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"cejWyOfXge6\":{\"name\":\"Gender\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":false,\"pageSize\":10,\"page\":1},\"items\":{\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[],\"w75KJ2mc4zz\":[],\"a3kGcGDCuk6\":[],\"UXz7xuGCEhU\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -724,14 +725,14 @@ public class TeiQuery1AutoTest extends AnalyticsApiTest {
         response,
         0,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
-        "MCH Apgar Score",
+        "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
         "java.lang.Double",
         false,
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 0, "ND");
+    validateRowContext(response, 1, 0, "NS");
 
     // Assert rows.
     validateRow(response, 0, List.of("3"));

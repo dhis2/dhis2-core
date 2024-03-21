@@ -32,7 +32,9 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
+import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -44,10 +46,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -60,25 +59,23 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
+import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -91,11 +88,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Ignore
 class EventsExportController {
   protected static final String EVENTS = "events";
 
   private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
+
+  private static final String EVENT_CSV_FILE = EVENTS + ".csv";
+
+  private static final String EVENT_JSON_FILE = EVENTS + ".json";
+
+  private static final String GZIP_EXT = ".gz";
+
+  private static final String ZIP_EXT = ".zip";
 
   private final EventService eventService;
 
@@ -109,19 +113,27 @@ class EventsExportController {
 
   private final ObjectMapper objectMapper;
 
+  private final EventChangeLogService eventChangeLogService;
+
+  private final FieldFilterRequestHandler fieldFilterRequestHandler;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<Event> csvEventService,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      EventChangeLogService eventChangeLogService,
+      FieldFilterRequestHandler fieldFilterRequestHandler) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
+    this.eventChangeLogService = eventChangeLogService;
+    this.fieldFilterRequestHandler = fieldFilterRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -145,7 +157,7 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, objectNodes, eventsPage);
+      return Page.withPager(EVENTS, eventsPage.withItems(objectNodes));
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -165,17 +177,16 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "gz");
-
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + GZIP_EXT);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_GZIP);
 
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            EVENTS_MAPPER.fromCollection(events), eventRequestParams.getFields());
+
     writeGzip(
-        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), objectMapper.writer());
+        response.getOutputStream(), Page.withoutPager(EVENTS, objectNodes), objectMapper.writer());
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_ZIP)
@@ -187,20 +198,19 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "json", "zip");
-
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_JSON_FILE + ZIP_EXT);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_JSON_ZIP);
+
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            EVENTS_MAPPER.fromCollection(events), eventRequestParams.getFields());
 
     writeZip(
         response.getOutputStream(),
-        EVENTS_MAPPER.fromCollection(events),
+        Page.withoutPager(EVENTS, objectNodes),
         objectMapper.writer(),
-        attachment);
+        EVENT_JSON_FILE);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
@@ -213,14 +223,11 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv");
-
-    OutputStream outputStream = response.getOutputStream();
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE);
     response.setContentType(CONTENT_TYPE_CSV);
-    response.setHeader(
-        HttpHeaders.CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
-    csvEventService.write(outputStream, EVENTS_MAPPER.fromCollection(events), !skipHeader);
+    csvEventService.write(
+        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), !skipHeader);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
@@ -233,14 +240,9 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "gz");
-
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE + GZIP_EXT);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
     csvEventService.writeGzip(
         response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), !skipHeader);
@@ -256,25 +258,15 @@ class EventsExportController {
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
 
-    String attachment = getAttachmentOrDefault(eventRequestParams.getAttachment(), "csv", "zip");
-
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING,
-        ContextUtils.BINARY_HEADER_CONTENT_TRANSFER_ENCODING);
+    ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE + ZIP_EXT);
+    ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
-    response.addHeader(
-        ContextUtils.HEADER_CONTENT_DISPOSITION, getContentDispositionHeaderValue(attachment));
 
     csvEventService.writeZip(
-        response.getOutputStream(), EVENTS_MAPPER.fromCollection(events), !skipHeader, attachment);
-  }
-
-  private String getAttachmentOrDefault(String filename, String type, String compression) {
-    return Objects.toString(filename, String.join(".", EVENTS, type, compression));
-  }
-
-  private String getAttachmentOrDefault(String filename, String type) {
-    return Objects.toString(filename, String.join(".", EVENTS, type));
+        response.getOutputStream(),
+        EVENTS_MAPPER.fromCollection(events),
+        !skipHeader,
+        EVENT_CSV_FILE);
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
@@ -296,6 +288,11 @@ class EventsExportController {
       @OpenApi.Param({UID.class, DataElement.class}) @PathVariable UID dataElement,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException {
+    validateUnsupportedParameter(
+        request,
+        "dimension",
+        "Request parameter 'dimension' is only supported for images by API /tracker/event/dataValues/{dataElement}/image");
+
     return handleFileRequest(request, eventService.getFileResource(event, dataElement));
   }
 
@@ -310,31 +307,20 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
-  private static ResponseEntity<InputStreamResource> handleFileRequest(
-      HttpServletRequest request, FileResourceStream file)
-      throws ConflictException, BadRequestException {
-    FileResource fileResource = file.getFileResource();
+  @GetMapping("/{event}/changeLogs")
+  Page<ObjectNode> getEventChangeLogsByUid(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
+      ChangeLogRequestParams requestParams,
+      HttpServletRequest request)
+      throws NotFoundException, BadRequestException {
+    EventChangeLogOperationParams operationParams =
+        ChangeLogRequestParamsMapper.map(eventChangeLogService.getOrderableFields(), requestParams);
+    PageParams pageParams =
+        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    final String etag = fileResource.getContentMd5();
-    if (ResponseEntityUtils.checkNotModified(etag, request)) {
-      return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-          .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
-          .eTag(etag)
-          .build();
-    }
+    org.hisp.dhis.tracker.export.Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
-    return ResponseEntity.ok()
-        .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate().mustRevalidate())
-        .eTag(etag)
-        .contentType(MediaType.valueOf(fileResource.getContentType()))
-        .contentLength(fileResource.getContentLength())
-        .header(
-            HttpHeaders.CONTENT_DISPOSITION,
-            getContentDispositionHeaderValue(fileResource.getName()))
-        .body(new InputStreamResource(file.getInputStreamSupplier().get()));
-  }
-
-  private static String getContentDispositionHeaderValue(String filename) {
-    return "attachment; filename=" + filename;
+    return fieldFilterRequestHandler.handle(request, "changeLogs", changeLogs, requestParams);
   }
 }

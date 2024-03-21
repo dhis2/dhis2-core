@@ -159,12 +159,12 @@ public class DateUtils {
           "s", ChronoUnit.SECONDS);
 
   /** Returns date formatted as ISO 8601 */
-  public static String getIso8601(Date date) {
+  public static String toIso8601(Date date) {
     return date != null ? ISO8601.print(new DateTime(date)) : null;
   }
 
   /** Returns date formatted as ISO 8601, without any TZ info */
-  public static String getIso8601NoTz(Date date) {
+  public static String toIso8601NoTz(Date date) {
     return date != null ? ISO8601_NO_TZ.print(new DateTime(date)) : null;
   }
 
@@ -174,7 +174,7 @@ public class DateUtils {
    * @param date the Date to parse.
    * @return A formatted date string.
    */
-  public static String getLongGmtDateString(Date date) {
+  public static String toLongGmtDate(Date date) {
     return date != null ? TIMESTAMP_UTC_TZ_FORMAT.print(new DateTime(date)) : null;
   }
 
@@ -184,7 +184,7 @@ public class DateUtils {
    * @param date the Date to parse.
    * @return A formatted date string.
    */
-  public static String getLongDateString(Date date) {
+  public static String toLongDate(Date date) {
     return date != null ? LONG_DATE_FORMAT.print(new DateTime(date)) : null;
   }
 
@@ -193,8 +193,8 @@ public class DateUtils {
    *
    * @return A formatted date string.
    */
-  public static String getLongDateString() {
-    return getLongDateString(Calendar.getInstance().getTime());
+  public static String getLongDate() {
+    return toLongDate(Calendar.getInstance().getTime());
   }
 
   /**
@@ -203,7 +203,7 @@ public class DateUtils {
    * @param date the Date to parse.
    * @return A formatted date string. Null if argument is null.
    */
-  public static String getMediumDateString(Date date) {
+  public static String toMediumDate(Date date) {
     return date != null ? MEDIUM_DATE_FORMAT.print(new DateTime(date)) : null;
   }
 
@@ -213,7 +213,7 @@ public class DateUtils {
    * @return A formatted date string.
    */
   public static String getMediumDateString() {
-    return getMediumDateString(Calendar.getInstance().getTime());
+    return toMediumDate(Calendar.getInstance().getTime());
   }
 
   /**
@@ -237,12 +237,26 @@ public class DateUtils {
   }
 
   /**
+   * Creates a {@link Date} representing the given year, month and day.
+   *
+   * @param year the year.
+   * @param month the month, from 1.
+   * @param dayOfMonth the day of the month, from 1.
+   * @param hourOfDay the hour of day, from 0.
+   * @param minuteOfHour the minute of hour, from 0.
+   * @return a {@link Date}.
+   */
+  public static Date getDate(int year, int month, int dayOfMonth, int hourOfDay, int minuteOfHour) {
+    return new DateTime(year, month, dayOfMonth, hourOfDay, minuteOfHour).toDate();
+  }
+
+  /**
    * Formats a Date according to the HTTP specification standard date format.
    *
    * @param date the Date to format.
    * @return a formatted string.
    */
-  public static String getHttpDateString(Date date) {
+  public static String toHttpDateString(Date date) {
     return date != null ? (HTTP_DATE_FORMAT.print(new DateTime(date))) : null;
   }
 
@@ -315,7 +329,7 @@ public class DateUtils {
    * @return a Date based on the given String.
    * @throws IllegalArgumentException if the given string is invalid.
    */
-  public static Date getMediumDate(String string) {
+  public static Date toMediumDate(String string) {
     return safeParseDateTime(string, MEDIUM_DATE_FORMAT);
   }
 
@@ -454,24 +468,24 @@ public class DateUtils {
   }
 
   /**
-   * Returns the nearest date forward in time with the given hour of day, with the minute, second
+   * Calculates the nearest date forward in time with the given hour of day, with the minute, second
    * and millisecond to zero. If the hour equals the current hour of day, the next following day is
    * used.
    *
    * @param hourOfDay the hour of the day.
-   * @param now the date representing the current time, if null, the current time is used.
+   * @param date the date representing the base time for the calculation.
    * @return the nearest date forward in time with the given hour of day.
    */
-  public static Date getNextDate(int hourOfDay, Date now) {
-    now = now != null ? now : new Date();
+  public static Date getNextDate(int hourOfDay, Date date) {
+    Objects.requireNonNull(date);
 
-    DateTime date = new DateTime(now).plusHours(1);
+    DateTime dateTime = new DateTime(date).plusHours(1);
 
-    while (date.getHourOfDay() != hourOfDay) {
-      date = date.plusHours(1);
+    while (dateTime.getHourOfDay() != hourOfDay) {
+      dateTime = dateTime.plusHours(1);
     }
 
-    return date.withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).toDate();
+    return dateTime.withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0).toDate();
   }
 
   /**
@@ -840,7 +854,7 @@ public class DateUtils {
    * @return a date
    */
   public static Date removeTimeStamp(Date date) {
-    return date == null ? null : getMediumDate(getMediumDateString(date));
+    return date == null ? null : toMediumDate(toMediumDate(date));
   }
 
   /**

@@ -35,7 +35,7 @@ import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webportal.module.Module;
 import org.hisp.dhis.webportal.module.ModuleManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ public class GetModulesAction implements Action {
 
   @Override
   public String execute() throws Exception {
-    String contextPath = ContextUtils.getContextPath(ServletActionContext.getRequest());
+    String contextPath = HttpServletRequestPaths.getContextPath(ServletActionContext.getRequest());
 
     modules = manager.getAccessibleMenuModulesAndApps(contextPath);
 

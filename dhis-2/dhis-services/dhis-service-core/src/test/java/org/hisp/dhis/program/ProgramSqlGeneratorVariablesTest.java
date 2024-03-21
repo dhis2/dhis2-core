@@ -145,7 +145,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
   @Test
   void testCurrentDateForEvent() {
     String sql = castString(test("V{current_date}", new DefaultLiteral(), eventIndicator));
-    String date = DateUtils.getLongDateString();
+    String date = DateUtils.getLongDate();
 
     assertThat(sql, startsWith("'" + date.substring(0, 13)));
   }

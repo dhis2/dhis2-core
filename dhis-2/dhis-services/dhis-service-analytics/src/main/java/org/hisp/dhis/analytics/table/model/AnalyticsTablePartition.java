@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
-import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -74,12 +73,31 @@ public class AnalyticsTablePartition extends Table {
         List.of(),
         List.of(),
         checks,
-        Logged.LOGGED,
+        masterTable.getLogged(),
         masterTable);
     this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
+  }
+
+  /**
+   * Constructor. Sets the name to represent a staging table partition.
+   *
+   * @param table the master {@link Table} of this partition.
+   */
+  public AnalyticsTablePartition(AnalyticsTable table) {
+    super(
+        toStaging(getTableName(table.getMainName(), null)),
+        List.of(),
+        List.of(),
+        List.of(),
+        table.getLogged(),
+        table);
+    this.masterTable = table;
+    this.year = null;
+    this.startDate = null;
+    this.endDate = null;
   }
 
   // -------------------------------------------------------------------------

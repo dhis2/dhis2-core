@@ -37,7 +37,7 @@ import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.hisp.dhis.commons.collection.ListUtils;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -66,21 +66,6 @@ class TextUtilsTest {
   }
 
   @Test
-  void testHtmlLinks() {
-    assertEquals(
-        "<a href=\"http://dhis2.org\">http://dhis2.org</a>",
-        TextUtils.htmlLinks("http://dhis2.org"));
-    assertEquals(
-        "<a href=\"https://dhis2.org\">https://dhis2.org</a>",
-        TextUtils.htmlLinks("https://dhis2.org"));
-    assertEquals(
-        "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", TextUtils.htmlLinks("www.dhis2.org"));
-    assertEquals(
-        "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.",
-        TextUtils.htmlLinks("Navigate to http://dhis2.org or www.dhis2.com to read more."));
-  }
-
-  @Test
   void testSubString() {
     assertEquals("abcdefghij", TextUtils.subString(STRING, 0, 10));
     assertEquals("cdef", TextUtils.subString(STRING, 2, 4));
@@ -89,11 +74,6 @@ class TextUtilsTest {
     assertEquals("", TextUtils.subString(STRING, 11, 3));
     assertEquals("j", TextUtils.subString(STRING, 9, 1));
     assertEquals("", TextUtils.subString(STRING, 4, 0));
-  }
-
-  @Test
-  void testTrim() {
-    assertEquals("abcdefgh", TextUtils.trimEnd("abcdefghijkl", 4));
   }
 
   @Test
@@ -211,24 +191,23 @@ class TextUtilsTest {
 
   @Test
   void testReplace() {
-    String actual =
+    assertEquals(
+        "Welcome John Doe",
         TextUtils.replace(
-            "select * from {table} where {column} = 'Foo'",
-            "{table}",
-            "dataelement",
-            "{column}",
-            "name");
-    assertEquals("select * from dataelement where name = 'Foo'", actual);
-    actual =
-        TextUtils.replace("Hi [name] and welcome to [place]", "[name]", "Frank", "[place]", "Oslo");
-    assertEquals("Hi Frank and welcome to Oslo", actual);
+            "Welcome ${first_name} ${last_name}",
+            Map.of("first_name", "John", "last_name", "Doe")));
+  }
+
+  @Test
+  void testReplaceVarargs() {
+    assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
   }
 
   @Test
   void testGetOptions() {
-    assertEquals(ListUtils.newList("uidA", "uidB"), TextUtils.getOptions("uidA;uidB"));
-    assertEquals(ListUtils.newList("uidA"), TextUtils.getOptions("uidA"));
-    assertEquals(ListUtils.newList(), TextUtils.getOptions(null));
+    assertEquals(List.of("uidA", "uidB"), TextUtils.getOptions("uidA;uidB"));
+    assertEquals(List.of("uidA"), TextUtils.getOptions("uidA"));
+    assertEquals(List.of(), TextUtils.getOptions(null));
   }
 
   @Test
@@ -275,5 +254,17 @@ class TextUtilsTest {
   void testFormat() {
     assertEquals(
         "Found 2 items of type text", TextUtils.format("Found {} items of type {}", 2, "text"));
+  }
+
+  @Test
+  void testEmptyIfFalse() {
+    assertEquals("", TextUtils.emptyIfFalse("foo", false));
+    assertEquals("foo", TextUtils.emptyIfFalse("foo", true));
+  }
+
+  @Test
+  void testEmptyIfTrue() {
+    assertEquals("", TextUtils.emptyIfTrue("foo", true));
+    assertEquals("foo", TextUtils.emptyIfTrue("foo", false));
   }
 }

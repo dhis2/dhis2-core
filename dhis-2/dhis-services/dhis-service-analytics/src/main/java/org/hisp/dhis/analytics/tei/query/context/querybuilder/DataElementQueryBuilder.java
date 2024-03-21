@@ -27,15 +27,22 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
+import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
+import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
+import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -45,7 +52,7 @@ import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
-import org.hisp.dhis.analytics.tei.query.RenderableDataValueIndicator;
+import org.hisp.dhis.analytics.tei.query.StageExistsRenderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
@@ -80,27 +87,17 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     // Select fields are the union of headers, dimensions and sorting params
     List<DimensionIdentifier<DimensionParam>> dimensions =
         streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams).toList();
-    dimensions.stream()
-        .map(
-            dimensionIdentifier ->
-                Field.ofUnquoted(
-                    StringUtils.EMPTY,
-                    RenderableDataValue.of(
-                            doubleQuote(dimensionIdentifier.getPrefix()),
-                            dimensionIdentifier.getDimension().getUid(),
-                            fromValueType(dimensionIdentifier.getDimension().getValueType()))
-                        .transformedIfNecessary(),
-                    dimensionIdentifier.toString()))
-        .forEach(builder::selectField);
-    dimensions.stream()
-        .map(
-            dimensionIdentifier ->
-                Field.ofUnquoted(
-                    StringUtils.EMPTY,
-                    RenderableDataValueIndicator.of(
-                        doubleQuote(dimensionIdentifier.getPrefix()),
-                        dimensionIdentifier.getDimension().getUid()),
-                    dimensionIdentifier + ".exists"))
+
+    Stream.of(
+            // Fields holding the value of data elements
+            getValueFields(dimensions),
+            // Fields holding the "exists" flag of the stages
+            getExistsFields(dimensions),
+            // Fields holding the status of the stages (SCHEDULED, COMPLETE, etc)
+            getStatusFields(dimensions),
+            // Fields holding the "hasValue" flag of the data elements
+            getHasValueFields(dimensions))
+        .flatMap(Function.identity())
         .forEach(builder::selectField);
 
     // Groupable conditions comes from dimensions
@@ -123,6 +120,53 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
                         analyticsSortingParams.getSortDirection()))));
 
     return builder.build();
+  }
+
+  private Stream<Field> getHasValueFields(List<DimensionIdentifier<DimensionParam>> dimensions) {
+    return dimensions.stream()
+        .map(
+            dimensionIdentifier -> {
+              String prefix = dimensionIdentifier.getPrefix();
+              return ofUnquoted(
+                  EMPTY,
+                  () ->
+                      doubleQuote(prefix)
+                          + ".eventdatavalues :: jsonb ?? '"
+                          + dimensionIdentifier.getDimension().getUid()
+                          + "'",
+                  dimensionIdentifier + HAS_VALUE);
+            });
+  }
+
+  private Stream<Field> getStatusFields(List<DimensionIdentifier<DimensionParam>> dimensions) {
+    return dimensions.stream()
+        .map(
+            dimId ->
+                ofUnquoted(
+                    EMPTY,
+                    () -> doubleQuote(dimId.getPrefix()) + STATUS,
+                    dimId.toString() + STATUS));
+  }
+
+  private Stream<Field> getExistsFields(List<DimensionIdentifier<DimensionParam>> dimensions) {
+    return dimensions.stream()
+        .map(dim -> ofUnquoted(EMPTY, StageExistsRenderable.of(dim), dim.getKey() + EXISTS));
+  }
+
+  @Nonnull
+  private static Stream<Field> getValueFields(
+      List<DimensionIdentifier<DimensionParam>> dimensions) {
+    return dimensions.stream()
+        .map(
+            dimensionIdentifier ->
+                ofUnquoted(
+                    EMPTY,
+                    RenderableDataValue.of(
+                            doubleQuote(dimensionIdentifier.getPrefix()),
+                            dimensionIdentifier.getDimension().getUid(),
+                            fromValueType(dimensionIdentifier.getDimension().getValueType()))
+                        .transformedIfNecessary(),
+                    dimensionIdentifier.toString()));
   }
 
   /**

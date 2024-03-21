@@ -67,6 +67,7 @@ import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -76,6 +77,11 @@ import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
  * @author Lars Helge Overland
  */
 public class ListGrid implements Grid, Serializable {
+
+  public static final String HAS_VALUE = ".hasValue";
+  public static final String STATUS = ".status";
+  public static final String EXISTS = ".exists";
+
   private static final String REGRESSION_SUFFIX = "_regression";
 
   private static final String CUMULATIVE_SUFFIX = "_cumulative";
@@ -1013,7 +1019,7 @@ public class ListGrid implements Grid, Serializable {
 
     while (rs.next()) {
       addRow();
-      Map<String, Object> rowContextItem = new HashMap<>();
+      Map<String, Object> rowContextItems = new HashMap<>();
 
       for (int i = 0; i < cols.length; i++) {
         if (headerExists(cols[i])) {
@@ -1023,11 +1029,11 @@ public class ListGrid implements Grid, Serializable {
           addValue(value);
           headersSet.add(columnLabel);
 
-          rowContextItem = getRowContextItem(rs, cols[i], value, i);
+          rowContextItems.putAll(getRowContextItem(rs, cols[i], i));
         }
       }
-      if (!rowContextItem.isEmpty()) {
-        rowContext.put(currentRowWriteIndex, rowContextItem);
+      if (!rowContextItems.isEmpty()) {
+        rowContext.put(currentRowWriteIndex, rowContextItems);
       }
     }
 
@@ -1129,21 +1135,23 @@ public class ListGrid implements Grid, Serializable {
 
     // reposition columns in the row context structure
     Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
-    Map<String, Object> orderedRowContextItems = new HashMap<>();
 
     for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
       Map<String, Object> ctxItem = rowContextEntry.getValue();
+      Integer rowIndex = rowContextEntry.getKey();
+      Map<String, Object> orderedRowContextItems = new HashMap<>();
       ctxItem
           .keySet()
           .forEach(
               key -> {
                 if (numberRegex.matcher(key).matches()) {
+                  // reindexing of columns
                   orderedRowContextItems.put(
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
               });
       if (!orderedRowContextItems.isEmpty()) {
-        orderedRowContext.put(rowContextEntry.getKey(), orderedRowContextItems);
+        orderedRowContext.put(rowIndex, orderedRowContextItems);
       }
     }
 
@@ -1208,26 +1216,32 @@ public class ListGrid implements Grid, Serializable {
    *
    * @param rs the {@link ResultSet},
    * @param columnName the {@link String}, grid row column name
-   * @param value the {@link Object}, grid row column value
    * @param rowIndex, row id
    * @return Map of column index and value status
    */
-  private Map<String, Object> getRowContextItem(
-      SqlRowSet rs, String columnName, Object value, int rowIndex) {
+  private Map<String, Object> getRowContextItem(SqlRowSet rs, String columnName, int rowIndex) {
     Map<String, Object> rowContextItem = new HashMap<>();
-    String indicatorColumnLabel = columnName + ".exists";
+    String existIndicatorColumnLabel = columnName + EXISTS;
+    String statusIndicatorColumnLabel = columnName + STATUS;
+    String hasValueIndicatorColumnLabel = columnName + HAS_VALUE;
 
     if (Arrays.stream(rs.getMetaData().getColumnNames())
-        .anyMatch(n -> n.equalsIgnoreCase(indicatorColumnLabel))) {
+        .anyMatch(n -> n.equalsIgnoreCase(existIndicatorColumnLabel))) {
 
-      boolean isDefined = rs.getBoolean(indicatorColumnLabel);
-      boolean isSet = isDefined && value != null;
+      boolean isDefined = rs.getBoolean(existIndicatorColumnLabel);
+      boolean isSet = rs.getBoolean(hasValueIndicatorColumnLabel);
+      boolean isScheduled =
+          StringUtils.equalsIgnoreCase(
+              rs.getString(statusIndicatorColumnLabel), EventStatus.SCHEDULE.toString());
 
-      ValueStatus valueStatus;
+      ValueStatus valueStatus = ValueStatus.SET;
+
       if (!isDefined) {
         valueStatus = ValueStatus.NOT_DEFINED;
-      } else {
-        valueStatus = isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+      } else if (isScheduled) {
+        valueStatus = ValueStatus.SCHEDULED;
+      } else if (!isSet) {
+        valueStatus = ValueStatus.NOT_SET;
       }
 
       if (valueStatus != ValueStatus.SET) {

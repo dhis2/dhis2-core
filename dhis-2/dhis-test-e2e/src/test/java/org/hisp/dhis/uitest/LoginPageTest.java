@@ -63,7 +63,7 @@ class LoginPageTest {
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
     driver = new RemoteWebDriver(getUrl(), chromeOptions);
-    driver.get("http://web:8080");
+    driver.get("http://web:8080/dhis-web-commons/security/login.action");
 
     mainPage = new LoginPage(driver);
   }

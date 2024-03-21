@@ -340,16 +340,22 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
       double longitude, double latitude, String topOrgUnitUid, Integer targetLevel);
 
   /**
-   * Equal to {@link OrganisationUnitService#isInUserHierarchy(User,OrganisationUnit)} except adds a
-   * caching layer on top. Use this method when performance is imperative and the risk of a stale
+   * Equal to {@link OrganisationUnitService#isInUserHierarchy(User, OrganisationUnit)} except adds
+   * a caching layer on top. Use this method when performance is imperative and the risk of a stale
    * result is tolerable.
    *
    * @param user the user to check for.
    * @param organisationUnit the organisation unit.
    * @return true if the given organisation unit is part of the hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserHierarchyCached(User user, OrganisationUnit organisationUnit);
 
+  /**
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserHierarchy(String)} instead
+   */
+  @Deprecated(forRemoval = true)
   boolean isInUserHierarchy(User user, OrganisationUnit organisationUnit);
 
   /**
@@ -359,7 +365,9 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param uid the uid of the organisation unit.
    * @param organisationUnits the set of organisation units associated with a user.
    * @return true if the organisation unit with the given uid is part of the hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserHierarchy(String uid, Set<OrganisationUnit> organisationUnits);
 
   /**
@@ -369,20 +377,28 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @param user the user to check for.
    * @param organisationUnit the organisation unit.
    * @return true if the given organisation unit is part of the data view hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserDataHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit);
 
   /**
-   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User,OrganisationUnit)} except
+   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User, OrganisationUnit)} except
    * adds a caching layer on top. Use this method when performance is imperative and the risk of a
    * stale result is tolerable.
    *
    * @param user the user to check for.
    * @param organisationUnit the organisation unit.
    * @return true if the given organisation unit is part of the hierarchy.
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
    */
+  @Deprecated(forRemoval = true)
   boolean isInUserSearchHierarchyCached(User user, OrganisationUnit organisationUnit);
 
+  /**
+   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
+   */
+  @Deprecated(forRemoval = true)
   boolean isInUserSearchHierarchy(User user, OrganisationUnit organisationUnit);
 
   // -------------------------------------------------------------------------
@@ -437,4 +453,28 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
 
   /** Update all OUs (thus forcing update of path). */
   void forceUpdatePaths();
+
+  /**
+   * Returns all OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all data view scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getDataViewOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all search scope OrganisationUnits that the user has access to.
+   *
+   * @param username of the user.
+   * @return
+   */
+  List<String> getSearchOrganisationUnitsUidsByUser(String username);
 }

@@ -150,7 +150,7 @@ public class DefaultReportService implements ReportService {
     log.debug(
         String.format(
             "Get report for report date: '%s', org unit: '%s'",
-            DateUtils.getMediumDateString(reportDate), organisationUnitUid));
+            DateUtils.toMediumDate(reportDate), organisationUnitUid));
 
     try {
       JasperReport jasperReport =
@@ -259,7 +259,7 @@ public class DefaultReportService implements ReportService {
       }
     }
 
-    String dateString = DateUtils.getMediumDateString(date);
+    String dateString = DateUtils.toMediumDate(date);
 
     if (date != null && !calendar.isIso8601()) {
       dateString = calendar.formattedDate(calendar.fromIso(date));

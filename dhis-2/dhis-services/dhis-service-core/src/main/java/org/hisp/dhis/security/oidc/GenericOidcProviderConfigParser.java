@@ -310,11 +310,10 @@ public final class GenericOidcProviderConfigParser {
       checkAndLogInvalidKeyNames(providerName, differences);
 
       log.error(
-          String.format(
-              "OpenID Connect (OIDC) configuration for provider: '%s' contains one or more invalid properties. "
-                  + "Failed to configure the provider successfully! "
-                  + "See previous errors for more information on what property that triggered this error!",
-              providerName));
+          "OpenID Connect (OIDC) configuration for provider: '{}' contains one or more invalid properties. "
+              + "Failed to configure the provider successfully! "
+              + "See previous errors for more information on what property that triggered this error!",
+          providerName);
 
       return false;
     }
@@ -342,13 +341,13 @@ public final class GenericOidcProviderConfigParser {
       wrongKeyAndMinDist = getLevenshteinDistances(wrongKeyName, wrongKeyAndMinDist);
 
       String msg =
-          "OpenID Connect (OIDC) configuration for provider: '%s' contains an invalid property: '%s'";
+          "OpenID Connect (OIDC) configuration for provider: '{}' contains an invalid property: '{}'";
 
       if (wrongKeyAndMinDist.getRight() < maxLevenshteinDistance) {
-        msg += ", did you mean: '%s' ?";
-        log.error(String.format(msg, providerName, wrongKeyName, wrongKeyAndMinDist.getLeft()));
+        msg += ", did you mean: '{}' ?";
+        log.error(msg, providerName, wrongKeyName, wrongKeyAndMinDist.getLeft());
       } else {
-        log.error(String.format(msg, providerName, wrongKeyName));
+        log.error(msg, providerName, wrongKeyName);
       }
     }
   }
@@ -400,10 +399,10 @@ public final class GenericOidcProviderConfigParser {
 
       if (isRequired && Strings.isNullOrEmpty(value)) {
         log.error(
-            String.format(
-                "OpenId Connect (OIDC) configuration for provider: '%s' is missing a required property: '%s'. "
-                    + "Failed to configure the provider successfully!",
-                providerId, key));
+            "OpenId Connect (OIDC) configuration for provider: '{}' is missing a required property: '{}'. "
+                + "Failed to configure the provider successfully!",
+            providerId,
+            key);
 
         return false;
       }
@@ -411,10 +410,11 @@ public final class GenericOidcProviderConfigParser {
       UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
       if (value != null && key.endsWith("uri") && !urlValidator.isValid(value)) {
         log.error(
-            String.format(
-                "OpenId Connect (OIDC) configuration for provider: '%s' has a URI property: '%s', "
-                    + "with a malformed value: '%s'. Failed to configure the provider successfully!",
-                providerId, key, value));
+            "OpenId Connect (OIDC) configuration for provider: '{}' has a URI property: '{}', "
+                + "with a malformed value: '{}'. Failed to configure the provider successfully!",
+            providerId,
+            key,
+            value);
 
         return false;
       }

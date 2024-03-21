@@ -58,7 +58,7 @@ public interface UserService {
 
   String TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME = "R_ENABLE_2FA";
 
-  String RESTORE_PATH = "/dhis-web-commons/security/";
+  String RESTORE_PATH = "/dhis-web-login/index.html#/";
 
   String TBD_NAME = "(TBD)";
 
@@ -126,7 +126,7 @@ public interface UserService {
   User getUserByUuid(UUID uuid);
 
   /**
-   * Retrieves the User with the given username.
+   * Retrieves the User with the given username. Returns null if no user is found.
    *
    * @param username the username of the User to retrieve.
    * @return the User.
@@ -154,6 +154,14 @@ public interface UserService {
    * @return the User, or null if not found.
    */
   User getUserByIdentifier(String id);
+
+  /**
+   * Retrieves the User with the given email.
+   *
+   * @param email the email of the User to retrieve.
+   * @return the User.
+   */
+  User getUserByEmail(String email);
 
   /**
    * Retrieves a collection of User with the given unique identifiers.
@@ -452,6 +460,15 @@ public interface UserService {
   Map<String, Optional<Locale>> findNotifiableUsersWithPasswordLastUpdatedBetween(
       Date from, Date to);
 
+  /**
+   * Find users with email that are members of a user-group and return them by username.
+   *
+   * @param userGroupId a user group ID
+   * @return a map of user emails by username for all users in the group that have an email
+   *     configured
+   */
+  Map<String, String> getUserGroupUserEmailsByUsername(String userGroupId);
+
   /** Get user display name by concat( firstname,' ', surname ) Return null if User doesn't exist */
   String getDisplayName(String userUid);
 
@@ -462,9 +479,9 @@ public interface UserService {
    * Use this method instead of {@link #createUserDetails(User)} if no {@link User} instance is
    * available or if the one available is not fully loaded or connected to a session.
    *
-   * @see #createUserDetails(User)
    * @param userUid UID of the {@link UserDetails} to create
    * @return the implementation object
+   * @see #createUserDetails(User)
    */
   UserDetails createUserDetails(String userUid) throws NotFoundException;
 
@@ -516,14 +533,14 @@ public interface UserService {
    *
    * @param user The user object that is being updated.
    */
-  void approveTwoFactorSecret(User user);
+  void approveTwoFactorSecret(User user, UserDetails actingUser);
 
   /**
    * "Disable 2FA authentication for the input user, by setting the secret to null."
    *
    * @param user The user object that you want to reset the 2FA for.
    */
-  void resetTwoFactor(User user);
+  void resetTwoFactor(User user, UserDetails actingUser);
 
   /**
    * If the user has a secret, and the secret has not been approved, and the code is valid, then

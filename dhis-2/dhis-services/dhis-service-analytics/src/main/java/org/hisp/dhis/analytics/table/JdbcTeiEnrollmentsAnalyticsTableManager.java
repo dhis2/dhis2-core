@@ -41,7 +41,7 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,7 +54,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -115,7 +115,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
       DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       TrackedEntityTypeService trackedEntityTypeService,
-      AnalyticsTableExportSettings settings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -129,7 +129,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         partitionManager,
         databaseInfoProvider,
         jdbcTemplate,
-        settings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
@@ -154,7 +154,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
-    Logged logged = analyticsExportSettings.getTableLogged();
+    Logged logged = analyticsTableSettings.getTableLogged();
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(tet -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet))
         .collect(Collectors.toList());
@@ -204,11 +204,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             " and tei.trackedentitytypeid = "
                 + partition.getMasterTable().getTrackedEntityType().getId())
-        .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
+        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
         .append(" left join program p on p.programid = pi.programid")
         .append(" left join organisationunit ou on pi.organisationunitid = ou.organisationunitid")
         .append(
-            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
         .append(
             " where exists ( select 1 from event psi where psi.deleted is false"
                 + " and psi.enrollmentid = pi.enrollmentid"

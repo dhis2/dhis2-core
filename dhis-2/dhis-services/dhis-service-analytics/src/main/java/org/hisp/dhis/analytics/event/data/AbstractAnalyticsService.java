@@ -437,7 +437,7 @@ public abstract class AbstractAnalyticsService {
       List<OrganisationUnit> organisationUnits =
           asTypedList(params.getDimensionOrFilterItems(ORGUNIT_DIM_ID));
 
-      Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+      Set<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
 
       List<OrganisationUnit> activeOrgUnits =
           OrgUnitHelper.getActiveOrganisationUnits(grid, organisationUnits);

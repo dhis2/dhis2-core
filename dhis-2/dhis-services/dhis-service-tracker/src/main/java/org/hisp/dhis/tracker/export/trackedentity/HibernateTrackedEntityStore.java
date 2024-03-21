@@ -34,8 +34,8 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -54,7 +54,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -176,20 +175,18 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       ids.add(rowSet.getLong("trackedentityid"));
     }
 
-    IntSupplier teCount = () -> getTrackedEntityCount(params);
+    LongSupplier teCount = () -> getTrackedEntityCount(params);
     return getPage(pageParams, ids, teCount);
   }
 
-  private Page<Long> getPage(PageParams pageParams, List<Long> teIds, IntSupplier enrollmentCount) {
+  private Page<Long> getPage(
+      PageParams pageParams, List<Long> teIds, LongSupplier enrollmentCount) {
     if (pageParams.isPageTotal()) {
-      Pager pager =
-          new Pager(pageParams.getPage(), enrollmentCount.getAsInt(), pageParams.getPageSize());
-      return Page.of(teIds, pager, pageParams.isPageTotal());
+      return Page.withTotals(
+          teIds, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
     }
 
-    Pager pager = new Pager(pageParams.getPage(), 0, pageParams.getPageSize());
-    pager.force(pageParams.getPage(), pageParams.getPageSize());
-    return Page.of(teIds, pager, pageParams.isPageTotal());
+    return Page.withoutTotals(teIds, pageParams.getPage(), pageParams.getPageSize());
   }
 
   @Override
@@ -212,9 +209,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   @Override
-  public int getTrackedEntityCount(TrackedEntityQueryParams params) {
+  public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     String sql = getCountQuery(params);
-    return jdbcTemplate.queryForObject(sql, Integer.class);
+    return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
   @Override
@@ -479,21 +476,21 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       trackedEntity
           .append(whereAnd.whereAnd())
           .append(" TE.lastupdated >= '")
-          .append(getLongGmtDateString(DateUtils.nowMinusDuration(params.getLastUpdatedDuration())))
+          .append(toLongGmtDate(DateUtils.nowMinusDuration(params.getLastUpdatedDuration())))
           .append(SINGLE_QUOTE);
     } else {
       if (params.hasLastUpdatedStartDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated >= '")
-            .append(getLongDateString(params.getLastUpdatedStartDate()))
+            .append(toLongDate(params.getLastUpdatedStartDate()))
             .append(SINGLE_QUOTE);
       }
       if (params.hasLastUpdatedEndDate()) {
         trackedEntity
             .append(whereAnd.whereAnd())
             .append(" TE.lastupdated <= '")
-            .append(getLongDateString(params.getLastUpdatedEndDate()))
+            .append(toLongDate(params.getLastUpdatedEndDate()))
             .append(SINGLE_QUOTE);
       }
     }
@@ -753,28 +750,28 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasProgramEnrollmentStartDate()) {
       program
           .append("AND EN.enrollmentdate >= '")
-          .append(getLongDateString(params.getProgramEnrollmentStartDate()))
+          .append(toLongDate(params.getProgramEnrollmentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       program
           .append("AND EN.enrollmentdate <= '")
-          .append(getLongDateString(params.getProgramEnrollmentEndDate()))
+          .append(toLongDate(params.getProgramEnrollmentEndDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentStartDate()) {
       program
           .append("AND EN.occurreddate >= '")
-          .append(getLongDateString(params.getProgramIncidentStartDate()))
+          .append(toLongDate(params.getProgramIncidentStartDate()))
           .append("' ");
     }
 
     if (params.hasProgramIncidentEndDate()) {
       program
           .append("AND EN.occurreddate <= '")
-          .append(getLongDateString(params.getProgramIncidentEndDate()))
+          .append(toLongDate(params.getProgramIncidentEndDate()))
           .append("' ");
     }
 
@@ -811,8 +808,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasEventStatus()) {
-      String start = getLongDateString(params.getEventStartDate());
-      String end = getLongDateString(params.getEventEndDate());
+      String start = toLongDate(params.getEventStartDate());
+      String end = toLongDate(params.getEventEndDate());
 
       if (params.isEventStatus(EventStatus.COMPLETED)) {
         events

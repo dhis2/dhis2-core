@@ -34,7 +34,7 @@ import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -149,11 +149,11 @@ public abstract class TimeFieldSqlRenderer {
     return "("
         + dateRangeColumn.getColumn()
         + " >= '"
-        + getMediumDateString(dateRangeColumn.getDateRange().getStartDate())
+        + toMediumDate(dateRangeColumn.getDateRange().getStartDate())
         + "' and "
         + dateRangeColumn.getColumn()
         + " < '"
-        + getMediumDateString(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
+        + toMediumDate(dateRangeColumn.getDateRange().getEndDatePlusOneDay())
         + "')";
   }
 
@@ -260,7 +260,7 @@ public abstract class TimeFieldSqlRenderer {
             .map(Period.class::cast)
             .collect(Collectors.groupingBy(Period::getPeriodType));
 
-    Collection<String> periodSingleConditions =
+    List<String> periodSingleConditions =
         periodsByType.entrySet().stream().map(entry -> toSqlCondition(alias, entry)).toList();
 
     String periodsCondition = wrapAndJoinWithOrIfNecessary(periodSingleConditions);

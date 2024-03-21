@@ -84,24 +84,25 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
     POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
         .content(HttpStatus.CREATED);
 
-    POST("/metadata", Body("program/create_program.json"))
-        .content(HttpStatus.OK)
-        .as(JsonWebMessage.class);
+    POST("/metadata", Body("program/create_program.json")).content(HttpStatus.OK);
   }
 
   @Test
   void shouldGetProgramLabels() {
 
     JsonProgram program =
-        GET("/programs/{id}", "PrZMWi7rBga").content(HttpStatus.OK).as(JsonProgram.class);
+        GET("/programs/{id}", PROGRAM_UID).content(HttpStatus.OK).as(JsonProgram.class);
 
-    assertEquals("enrollmetdatelabel", program.getEnrollmentDateLabel().string());
-    assertEquals("enrollmentlabel", program.getEnrollmentLabel().string());
-    assertEquals("followuplabel", program.getFollowUpLabel().string());
-    assertEquals("orgunitlabel", program.getOrUnitLabel().string());
-    assertEquals("relationshiplabel", program.getRelationshipLabel().string());
-    assertEquals("notelabel", program.getNoteLabel().string());
-    assertEquals("trackedentityattributelabel", program.getTrackedEntityAttributeLabel().string());
+    assertEquals("Label for Enrollment Date", program.getEnrollmentDateLabel().string());
+    assertEquals("Label for Enrollment", program.getEnrollmentLabel().string());
+    assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
+    assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
+    assertEquals("Label for Relationship", program.getRelationshipLabel().string());
+    assertEquals("Label for Note", program.getNoteLabel().string());
+    assertEquals(
+        "Label for Tracked Entity Attribute", program.getTrackedEntityAttributeLabel().string());
+    assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
+    assertEquals("Label for Event", program.getEventLabel().string());
   }
 
   @Test

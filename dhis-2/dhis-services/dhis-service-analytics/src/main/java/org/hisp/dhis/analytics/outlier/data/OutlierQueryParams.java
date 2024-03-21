@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.OutlierDetectionAlgorithm;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.period.RelativePeriodEnum;
 
 /** Encapsulation of a web API request for outlier value detection. */
 @Data
@@ -49,7 +48,7 @@ public class OutlierQueryParams {
 
   private Set<String> ou = new HashSet<>();
 
-  private RelativePeriodEnum pe;
+  private String pe;
 
   /**
    * This parameter selects the headers to be returned in the response. We use a LinkedHashSet
@@ -79,6 +78,8 @@ public class OutlierQueryParams {
 
   private IdScheme outputIdScheme = IdScheme.UID;
 
+  private boolean skipRounding;
+
   public boolean hasHeaders() {
     return headers != null && !headers.isEmpty();
   }
@@ -98,6 +99,7 @@ public class OutlierQueryParams {
     key.add(orderBy);
     key.add(sortOrder);
     key.add(outputIdScheme);
+    key.add(skipRounding);
 
     if (ds != null) {
       ds.forEach(e -> key.add("ds", "[" + e + "]"));

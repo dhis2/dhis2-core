@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY_POINT;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Database.POSTGRESQL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,6 +48,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.EnumUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
@@ -68,7 +70,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -190,7 +194,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertEquals(
         67L, AnalyticsUtils.getRoundedValueObject(paramsA, 67.0), "Should be a long value: 67");
     assertEquals(
-        3.1,
+        3.12,
         (Double) AnalyticsUtils.getRoundedValueObject(paramsA, 3.123),
         0.01,
         "Should be a double value: 3.1");
@@ -227,7 +231,7 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding(true).build();
     assertEquals(null, AnalyticsUtils.getRoundedValue(paramsA, null, (Double) null));
     assertEquals(3d, AnalyticsUtils.getRoundedValue(paramsA, null, 3d).doubleValue(), 0.01);
-    assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, null, 3.123).doubleValue(), 0.01);
+    assertEquals(3.12, AnalyticsUtils.getRoundedValue(paramsA, null, 3.123).doubleValue(), 0.01);
     assertEquals(3.1, AnalyticsUtils.getRoundedValue(paramsA, 1, 3.123).doubleValue(), 0.01);
     assertEquals(3.12, AnalyticsUtils.getRoundedValue(paramsA, 2, 3.123).doubleValue(), 0.01);
     assertEquals(3.123, AnalyticsUtils.getRoundedValue(paramsB, 3, 3.123).doubleValue(), 0.01);
@@ -709,5 +713,20 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     row.add(100D);
     // pass - index 1 is not a valid period iso string
     assertFalse(AnalyticsUtils.hasPeriod(row, 1));
+  }
+
+  /** {@link EnumUtils} is case sensitive, not specified in the documentation. */
+  @Test
+  void testgetEnumCaseSensitivity() {
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "POSTGRESQL"));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "PostgreSQL".toUpperCase()));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, "postgresql".toUpperCase()));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, POSTGRESQL.name()));
+    assertEquals(POSTGRESQL, EnumUtils.getEnum(Database.class, POSTGRESQL.toString()));
+    assertEquals(
+        POSTGRESQL,
+        EnumUtils.getEnum(Database.class, ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue()));
+    assertNull(EnumUtils.getEnum(Database.class, "PostgreSQL"));
+    assertNull(EnumUtils.getEnum(Database.class, "postgresql"));
   }
 }

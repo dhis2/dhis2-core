@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.db.model.Logged.LOGGED;
+import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -44,7 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableExportSettings;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -78,7 +81,7 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsTableExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
 
@@ -100,7 +103,7 @@ class JdbcAnalyticsTableManagerTest {
             mock(PartitionManager.class),
             mock(DatabaseInfoProvider.class),
             jdbcTemplate,
-            analyticsExportSettings,
+            analyticsTableSettings,
             periodDataProvider,
             sqlBuilder);
   }
@@ -113,6 +116,7 @@ class JdbcAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
 
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
 
@@ -132,12 +136,54 @@ class JdbcAnalyticsTableManagerTest {
     assertNotNull(partitionA);
     assertNotNull(partitionA.getStartDate());
     assertNotNull(partitionA.getEndDate());
+    assertTrue(partitionA.isUnlogged());
     assertEquals(
         partitionA.getYear().intValue(), new DateTime(partitionA.getStartDate()).getYear());
 
     assertNotNull(partitionB);
     assertNotNull(partitionB.getStartDate());
     assertNotNull(partitionB.getEndDate());
+    assertTrue(partitionB.isUnlogged());
+    assertEquals(
+        partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
+  }
+
+  @Test
+  void testGetRegularAnalyticsTableLogged() {
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    List<Integer> dataYears = List.of(2018, 2019);
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withStartTime(startTime).build();
+
+    when(analyticsTableSettings.getTableLogged()).thenReturn(LOGGED);
+    when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(dataYears);
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertEquals(1, tables.size());
+
+    AnalyticsTable table = tables.get(0);
+
+    assertNotNull(table);
+    assertNotNull(table.getTablePartitions());
+    assertEquals(2, table.getTablePartitions().size());
+
+    AnalyticsTablePartition partitionA = table.getTablePartitions().get(0);
+    AnalyticsTablePartition partitionB = table.getTablePartitions().get(1);
+
+    assertNotNull(partitionA);
+    assertNotNull(partitionA.getStartDate());
+    assertNotNull(partitionA.getEndDate());
+    assertFalse(partitionA.isUnlogged());
+    assertEquals(
+        partitionA.getYear().intValue(), new DateTime(partitionA.getStartDate()).getYear());
+
+    assertNotNull(partitionB);
+    assertNotNull(partitionB.getStartDate());
+    assertNotNull(partitionB.getEndDate());
+    assertFalse(partitionB.isUnlogged());
     assertEquals(
         partitionB.getYear().intValue(), new DateTime(partitionB.getStartDate()).getYear());
   }
@@ -162,6 +208,7 @@ class JdbcAnalyticsTableManagerTest {
     when(systemSettingManager.getDateSetting(
             SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
         .thenReturn(lastLatestPartitionUpdate);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -180,6 +227,7 @@ class JdbcAnalyticsTableManagerTest {
     assertTrue(partition.isLatestPartition());
     assertEquals(lastFullTableUpdate, partition.getStartDate());
     assertEquals(startTime, partition.getEndDate());
+    assertTrue(partition.isUnlogged());
   }
 
   @Test

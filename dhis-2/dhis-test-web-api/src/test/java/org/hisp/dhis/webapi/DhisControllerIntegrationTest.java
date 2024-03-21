@@ -86,8 +86,9 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
   @Autowired private TransactionTemplate txTemplate;
 
   @BeforeEach
-  final void setup() throws Exception {
+  final void setup() {
     userService = _userService;
+
     clearSecurityContext();
 
     createAndPersistAdminUserAndRole();
@@ -144,7 +145,7 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     return user;
   }
 
-  protected void integrationTestBefore() throws Exception {
+  protected void integrationTestBefore() {
     boolean enableQueryLogging =
         dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
     // Enable to query logger to log only what's happening inside the test

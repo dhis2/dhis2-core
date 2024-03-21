@@ -126,6 +126,7 @@ import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.hibernate.HibernateService;
+import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -2211,6 +2212,19 @@ public abstract class DhisConvenienceTest {
     return fileResource;
   }
 
+  public static Icon createIcon(char uniqueChar, Set<String> keywords, FileResource fileResource) {
+
+    Icon icon = new Icon();
+    icon.setAutoFields();
+    icon.setKey("iconKey" + uniqueChar);
+    icon.setDescription("description");
+    icon.setKeywords(keywords);
+    icon.setFileResource(fileResource);
+    icon.setCustom(true);
+
+    return icon;
+  }
+
   /**
    * @param uniqueChar A unique character to identify the object.
    * @param content The content of the file
@@ -2336,6 +2350,16 @@ public abstract class DhisConvenienceTest {
 
     option.setName("Option" + uniqueCharacter);
     option.setCode("OptionCode" + uniqueCharacter);
+
+    return option;
+  }
+
+  public static Option createOption(String code) {
+    Option option = new Option();
+    option.setAutoFields();
+
+    option.setName("Option" + code);
+    option.setCode(code);
 
     return option;
   }

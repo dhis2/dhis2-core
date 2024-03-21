@@ -676,16 +676,17 @@ public class EventQueryTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd")
+            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd, pe:THIS_YEAR")
             .add("headers=ou,ounamehierarchy,edqlbukwRfQ.vANAXwtLwcT")
             .add("stage=edqlbukwRfQ")
             .add("displayProperty=NAME")
             .add("outputType=EVENT")
-            .add("desc=incidentdate")
+            .add("desc=incidentdate,edqlbukwRfQ.vANAXwtLwcT")
             .add("totalPages=false")
-            .add("pageSize=100")
+            .add("pageSize=2")
             .add("page=1")
-            .add("rowContext=true");
+            .add("rowContext=true")
+            .add("relativePeriodDate=2022-09-22");
 
     // When
     ApiResponse response = analyticsEventActions.query().get("WSGAb5XwJ3Y", JSON, JSON, params);
@@ -693,7 +694,7 @@ public class EventQueryTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(100)));
+        .body("rows", hasSize(equalTo(2)));
 
     validateHeader(response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -717,11 +718,15 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     validateRow(
         response,
+        0,
         List.of(
-            "NjyJYiIuKIG", "Sierra Leone / Bombali / Sella Limba / Kathanta Yimbor CHC", "14.0"));
+            "zQpYVEyAM2t",
+            "Sierra Leone / Western Area / Rural Western Area / Hastings Health Centre",
+            "10.0"));
     validateRow(
         response,
-        List.of("xATvj8pdYoT", "Sierra Leone / Kailahun / Peje Bongre / Grima Jou MCHP", "24.0"));
+        1,
+        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17.0"));
   }
 
   @Test

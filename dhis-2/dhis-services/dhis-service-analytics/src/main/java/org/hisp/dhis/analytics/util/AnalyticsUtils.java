@@ -39,7 +39,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
@@ -121,7 +121,7 @@ import org.springframework.util.Assert;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsUtils {
+public final class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 
   private static final String KEY_AGG_VALUE = "[aggregated]";
@@ -174,9 +174,9 @@ public class AnalyticsUtils {
       Period pe = (Period) period;
       sql +=
           "(pe.startdate >= '"
-              + getMediumDateString(pe.getStartDate())
+              + toMediumDate(pe.getStartDate())
               + "' and pe.enddate <= '"
-              + getMediumDateString(pe.getEndDate())
+              + toMediumDate(pe.getEndDate())
               + "') or ";
     }
 
@@ -186,7 +186,7 @@ public class AnalyticsUtils {
       OrganisationUnit ou = (OrganisationUnit) orgUnit;
       int level = ou.getLevel();
       sql +=
-          "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel"
+          "(dv.sourceid in (select organisationunitid from analytics_rs_orgunitstructure where idlevel"
               + level
               + " = "
               + ou.getId()

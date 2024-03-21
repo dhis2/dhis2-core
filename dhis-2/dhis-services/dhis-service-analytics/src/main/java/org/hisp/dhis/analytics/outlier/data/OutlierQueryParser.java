@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.analytics.outlier.data;
 
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.outlier.Order.getOrderBy;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
+import static org.hisp.dhis.feedback.ErrorCode.E7617;
+import static org.hisp.dhis.feedback.ErrorCode.E7622;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,16 +39,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -67,25 +71,11 @@ public class OutlierQueryParser {
    * @return a {@link OutlierRequest}.
    */
   public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
-    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
-
-    // Re-fetch data elements to maintain access control.
-    // Only data elements are supported for now.
-    List<String> de =
-        dataSets.stream()
-            .map(DataSet::getDataElements)
-            .flatMap(Collection::stream)
-            .filter(d -> d.getValueType().isNumeric())
-            .map(DataElement::getUid)
-            .collect(toList());
-
-    de.addAll(queryParams.getDx());
-
-    List<DataElement> dataElements = idObjectManager.getByUid(DataElement.class, de);
+    List<DataDimension> dimensions = getDataDimensions(queryParams);
 
     OutlierRequest.OutlierRequestBuilder builder =
         OutlierRequest.builder()
-            .dataElements(dataElements)
+            .dataDimensions(dimensions)
             .startDate(queryParams.getStartDate())
             .endDate(queryParams.getEndDate())
             .periods(getPeriods(queryParams.getPe(), queryParams.getRelativePeriodDate()))
@@ -94,6 +84,7 @@ public class OutlierQueryParser {
             .dataStartDate(queryParams.getDataStartDate())
             .dataEndDate(queryParams.getDataEndDate())
             .outputIdScheme(queryParams.getOutputIdScheme())
+            .skipRounding(queryParams.isSkipRounding())
             .queryKey(queryParams.queryKey());
 
     if (queryParams.getAlgorithm() != null) {
@@ -124,6 +115,57 @@ public class OutlierQueryParser {
   }
 
   /**
+   * Retrieves the list of outlier data dimensions
+   *
+   * @param queryParams the {@link OutlierQueryParams}.
+   * @return the list of {@link DataDimension}.
+   */
+  private List<DataDimension> getDataDimensions(OutlierQueryParams queryParams) {
+    List<DataSet> dataSets = idObjectManager.getByUid(DataSet.class, queryParams.getDs());
+
+    // Re-fetch data elements to maintain access control.
+    // Only data elements and category option combos are supported for now.
+
+    // DataSet
+    List<String> dx =
+        dataSets.stream()
+            .map(DataSet::getDataElements)
+            .flatMap(Collection::stream)
+            .filter(d -> d.getValueType().isNumeric())
+            .map(DataElement::getUid)
+            .toList();
+
+    List<DataDimension> dataDimensions =
+        new ArrayList<>(
+            idObjectManager.getByUid(DataElement.class, dx).stream()
+                .map(de -> new DataDimension(de, null))
+                .toList());
+
+    // DataElement and CategoryOptionCombo
+    dataDimensions.addAll(
+        queryParams.getDx().stream()
+            .map(
+                dd -> {
+                  String[] tokens = dd.split("\\.");
+                  List<DataElement> dataElements =
+                      idObjectManager.getByUid(DataElement.class, List.of(tokens[0]));
+                  List<CategoryOptionCombo> categoryOptionCombos =
+                      tokens.length == 2
+                          ? idObjectManager.getByUid(CategoryOptionCombo.class, List.of(tokens[1]))
+                          : new ArrayList<>();
+                  if (dataElements.size() == 1 && categoryOptionCombos.size() == 1) {
+                    return new DataDimension(dataElements.get(0), categoryOptionCombos.get(0));
+                  } else if (dataElements.size() == 1) {
+                    return new DataDimension(dataElements.get(0), null);
+                  }
+                  return null;
+                })
+            .toList());
+
+    return dataDimensions;
+  }
+
+  /**
    * The function retrieves all required organisation units, accepting all forms of ou requirements
    * like uids, levels, groups, user organisations ...
    *
@@ -131,35 +173,77 @@ public class OutlierQueryParser {
    * @return a list of the {@link OrganisationUnit}.
    */
   private List<OrganisationUnit> getOrganisationUnits(OutlierQueryParams queryParams) {
-
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     User currentUser = userService.getUserByUsername(currentUsername);
 
-    Set<OrganisationUnit> organisationUnits =
-        currentUser == null ? Set.of() : currentUser.getOrganisationUnits();
+    Set<OrganisationUnit> userOrganisationUnits;
 
-    BaseDimensionalObject baseDimensionalObject =
+    if (currentUser != null && currentUser.hasOrganisationUnit()) {
+      userOrganisationUnits = currentUser.getOrganisationUnits();
+    } else if (currentUser != null && currentUser.hasDataViewOrganisationUnit()) {
+      userOrganisationUnits = currentUser.getDataViewOrganisationUnits();
+    } else {
+      throw new IllegalQueryException(
+          E7622, currentUser == null ? EMPTY : currentUser.getUsername());
+    }
+
+    if (queryParams.getOu().isEmpty()) {
+      return userOrganisationUnits.stream().toList();
+    }
+
+    List<OrganisationUnit> validOrganisationUnits =
+        applySecurityConstrain(userOrganisationUnits, queryParams.getOu(), currentUser);
+
+    if (validOrganisationUnits.isEmpty()) {
+      throw new IllegalQueryException(
+          E7617, String.join(",", queryParams.getOu()), currentUser.getUsername());
+    }
+
+    return validOrganisationUnits;
+  }
+
+  /**
+   * The function retrieves all required organisation units compatible the with security constrain
+   *
+   * @param organisationUnitsSecurityConstrain list of the {@link OrganisationUnit}
+   * @param organisationUnits list of the requested organisation unit Uids
+   * @param currentUser the {@link User}.
+   * @return a list of the {@link OrganisationUnit}.
+   */
+  private List<OrganisationUnit> applySecurityConstrain(
+      Set<OrganisationUnit> organisationUnitsSecurityConstrain,
+      Set<String> organisationUnits,
+      User currentUser) {
+    BaseDimensionalObject orgUnitDimension =
         dimensionalObjectProducer.getOrgUnitDimension(
-            queryParams.getOu().stream().toList(),
-            DisplayProperty.NAME,
             organisationUnits.stream().toList(),
+            DisplayProperty.NAME,
+            currentUser != null ? currentUser.getOrganisationUnits().stream().toList() : List.of(),
             IdScheme.UID);
 
-    return baseDimensionalObject.getItems().stream().map(ou -> (OrganisationUnit) ou).toList();
+    return orgUnitDimension.getItems().stream()
+        .filter(
+            bdo ->
+                organisationUnitsSecurityConstrain.isEmpty()
+                    || organisationUnitsSecurityConstrain.stream()
+                        .anyMatch(((OrganisationUnit) bdo)::isDescendant))
+        .map(ou -> (OrganisationUnit) ou)
+        .toList();
   }
 
   /**
    * The method retrieves the list of the periods
    *
-   * @param relativePeriod the {@link RelativePeriodEnum}.
+   * @param relativePeriod, the period dimension.
    * @return list of the {@link Period}.
    */
-  private List<Period> getPeriods(RelativePeriodEnum relativePeriod, Date relativePeriodDate) {
-    if (relativePeriod == null) {
-      return new ArrayList<>();
+  private List<Period> getPeriods(String relativePeriod, Date relativePeriodDate) {
+    if (StringUtils.isBlank(relativePeriod)) {
+      return List.of();
     }
+
     return dimensionalObjectProducer
-        .getPeriodDimension(List.of(relativePeriod.name()), relativePeriodDate)
+        .getPeriodDimension(List.of(relativePeriod), relativePeriodDate)
         .getItems()
         .stream()
         .map(pe -> (Period) pe)

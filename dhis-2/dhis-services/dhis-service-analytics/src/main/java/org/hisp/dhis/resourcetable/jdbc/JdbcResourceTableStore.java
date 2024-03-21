@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -54,12 +56,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.resourcetable.ResourceTableStore")
 public class JdbcResourceTableStore implements ResourceTableStore {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
+  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
@@ -84,13 +84,13 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     createIndexes(indexes);
 
-    jdbcTemplate.execute(sqlBuilder.analyzeTable(stagingTable));
+    analyzeTable(stagingTable);
 
     jdbcTemplate.execute(sqlBuilder.dropTableIfExists(tableName));
 
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
-    log.info("Resource table '{}' update done: '{}'", tableName, clock.time());
+    log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
   }
 
   /**
@@ -121,7 +121,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   /**
    * Invokes table hooks.
    *
-   * @param tableType the {@link TableType}.
+   * @param tableType the {@link ResourceTableType}.
    */
   private void invokeTableHooks(ResourceTableType tableType) {
     List<AnalyticsTableHook> hooks =
@@ -149,6 +149,17 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   }
 
   /**
+   * Analyzes the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void analyzeTable(Table table) {
+    if (sqlBuilder.supportsAnalyze()) {
+      jdbcTemplate.execute(sqlBuilder.analyzeTable(table));
+    }
+  }
+
+  /**
    * Performs a batch update.
    *
    * @param columns the number of columns in the table to update.
@@ -160,14 +171,14 @@ public class JdbcResourceTableStore implements ResourceTableStore {
       return;
     }
 
-    StringBuilder builder = new StringBuilder("insert into " + tableName + " values (");
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " values (");
 
     for (int i = 0; i < columns; i++) {
-      builder.append("?,");
+      sql.append("?,");
     }
 
-    builder.deleteCharAt(builder.length() - 1).append(")");
+    removeLastComma(sql).append(")");
 
-    jdbcTemplate.batchUpdate(builder.toString(), batchArgs);
+    jdbcTemplate.batchUpdate(sql.toString(), batchArgs);
   }
 }
