@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.hisp.dhis.user.UserSettingKey.handleObsoleteLocales;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Locale;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Lars Helge Overland
+ * @author David Mackessy
  */
-@JacksonXmlRootElement(localName = "locale")
-public class WebLocale {
-  private String locale;
-
-  private String name;
-
-  public static WebLocale fromLocale(Locale locale) {
-    WebLocale loc = new WebLocale();
-
-    loc.setLocale(locale.toString());
-    loc.setName(locale.getDisplayName());
-
-    return loc;
+public interface JsonWebLocale extends JsonObject {
+  default String getLocale() {
+    return getString("locale").string();
   }
 
-  public static WebLocale fromLocaleHandlingIndonesiaFormat(Locale locale) {
-    WebLocale loc = new WebLocale();
-
-    loc.setLocale(handleObsoleteLocales(locale));
-    loc.setName(locale.getDisplayName());
-
-    return loc;
+  default String getName() {
+    return getString("name").string();
   }
 
-  @JsonProperty
-  @JacksonXmlProperty
-  public String getLocale() {
-    return locale;
-  }
-
-  public void setLocale(String locale) {
-    this.locale = locale;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
+  default String getDisplayName() {
+    return getString("displayName").string();
   }
 }

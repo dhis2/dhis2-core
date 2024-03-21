@@ -64,3 +64,6 @@ updates:
       - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
           - ">= 11.0"
+      - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"

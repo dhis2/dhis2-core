@@ -114,6 +114,14 @@ public class TrackerActions extends RestApiActions {
     return new TrackerApiResponse(this.get("/trackedEntities/", queryParamsBuilder));
   }
 
+  public TrackerApiResponse getTrackedEntitiesCsvGZip(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/trackedEntities.csv.gz", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getTrackedEntitiesCsv(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/trackedEntities.csv", queryParamsBuilder));
+  }
+
   public TrackerApiResponse getEnrollment(String enrollmentId) {
     return new TrackerApiResponse(this.get("/enrollments/" + enrollmentId));
   }
@@ -129,6 +137,22 @@ public class TrackerActions extends RestApiActions {
 
   public TrackerApiResponse getEvent(String eventId) {
     return new TrackerApiResponse(this.get("/events/" + eventId));
+  }
+
+  public TrackerApiResponse getEventsJsonZip(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events.json.zip", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getEventsJsonGZip(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events.json.gz", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getEventsCsvZip(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events.csv.zip", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getEventsCsvGZip(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events.csv.gz", queryParamsBuilder));
   }
 
   public TrackerApiResponse getRelationship(String relationshipId) {
