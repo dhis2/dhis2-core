@@ -59,7 +59,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Slf4j
 class AuthTest {
-  private static final String POSTGRES_POSTGIS_VERSION = "15-3.4-alpine";
+  private static final String POSTGRES_POSTGIS_VERSION = "16-3.4-alpine";
   private static final DockerImageName POSTGIS_IMAGE_NAME =
       DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
   private static final String POSTGRES_DATABASE_NAME = "dhis";
