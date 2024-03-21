@@ -276,7 +276,7 @@ public class AppController {
         response.setContentType(mimeType);
       }
 
-      if (filename.endsWith(".html")) {
+      if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
         LineIterator iterator =
             IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
