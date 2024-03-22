@@ -224,6 +224,7 @@ class PostgreSqlBuilderTest {
         """
         create table "nutrition" ("id" bigint not null, "vitamin_a" bigint null, \
         "vitamin_d" bigint null, primary key ("id")) inherits ("vaccination");""";
+
     assertEquals(expected, sqlBuilder.createTable(table));
   }
 
