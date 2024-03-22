@@ -195,9 +195,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String fromDateClause =
-        replace(
-            "and pe.startdate >= '${fromDate}'",
-            Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
+        params.getFromDate() == null
+            ? ""
+            : replace(
+                "and pe.startdate >= '${fromDate}'",
+                Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     String sql =
         replace(
             """
