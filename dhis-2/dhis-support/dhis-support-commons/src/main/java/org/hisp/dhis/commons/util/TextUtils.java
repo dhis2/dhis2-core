@@ -546,7 +546,9 @@ public class TextUtils {
    * @return a resolved string.
    */
   public static String replace(String template, Map<String, String> variables) {
-    return new StringSubstitutor(variables).replace(template);
+    return new StringSubstitutor(variables)
+        .setEnableUndefinedVariableException(true)
+        .replace(template);
   }
 
   /**
