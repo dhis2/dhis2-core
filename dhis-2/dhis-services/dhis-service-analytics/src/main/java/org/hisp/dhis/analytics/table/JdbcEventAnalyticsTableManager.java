@@ -782,7 +782,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
             from event psi \
             inner join enrollment pi on psi.enrollmentid = pi.enrollmentid \
-            where psi.lastupdated <= '${startTime}'
+            where psi.lastupdated <= '${startTime}' \
             and pi.programid = ${programId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
