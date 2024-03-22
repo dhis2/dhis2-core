@@ -190,7 +190,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
               """
                 (select ${select} from trackedentityattributevalue \
                 where trackedentityid=pi.trackedentityid \
-                and trackedentityattributeid=${attributeId} \
+                and trackedentityattributeid=${attributeId}\
                 ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
                   "select",

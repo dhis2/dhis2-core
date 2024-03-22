@@ -413,10 +413,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
             """
       where tei.trackedentitytypeid = ${tetId} \
       and tei.lastupdated < '${startTime}' \
-      and exists ( select 1 from enrollment pi \
+      and exists (select 1 from enrollment pi \
       where pi.trackedentityid = tei.trackedentityid \
-      and exists ( \
-      select 1 from event psi \
+      and exists (select 1 from event psi \
       where psi.enrollmentid = pi.enrollmentid \
       and psi.status in (${statuses}) \
       and psi.deleted is false)) \
