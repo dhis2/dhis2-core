@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -39,9 +40,16 @@ class DorisSqlBuilderTest {
   // Data types
 
   @Test
-  void testDataType() {
+  void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+  }
+
+  // Index types
+
+  @Test
+  void testIndexTypes() {
+    assertThrows(UnsupportedOperationException.class, () -> sqlBuilder.indexTypeBtree());
   }
 
   // Capabilities

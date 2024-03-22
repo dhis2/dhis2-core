@@ -97,15 +97,18 @@ class PostgreSqlBuilderTest {
   // Data types
 
   @Test
-  void testDataType() {
+  void testDataTypes() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
   }
 
+  // Index types
+
   @Test
-  void testIndexType() {
+  void testIndexTypes() {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
+    assertEquals("gin", sqlBuilder.indexTypeGin());
   }
 
   // Capabilities
