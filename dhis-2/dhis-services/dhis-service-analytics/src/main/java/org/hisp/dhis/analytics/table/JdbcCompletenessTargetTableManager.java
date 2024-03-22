@@ -157,13 +157,14 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        "from analytics_rs_datasetorganisationunitcategory doc "
-            + "inner join dataset ds on doc.datasetid=ds.datasetid "
-            + "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid "
-            + "left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid "
-            + "left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid "
-            + "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
+        """
+            from analytics_rs_datasetorganisationunitcategory doc
+            inner join dataset ds on doc.datasetid=ds.datasetid
+            inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid
+            left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
+            left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
+            left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
+            left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""";
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
