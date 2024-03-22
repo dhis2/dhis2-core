@@ -282,7 +282,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(
             replace(
                 """
-        from event psi \
+        \s from event psi \
         inner join enrollment pi on pi.enrollmentid = psi.enrollmentid \
         and pi.deleted is false \
         inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid \

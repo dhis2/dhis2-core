@@ -251,9 +251,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     String selectExpression =
         """
-        exists(select 1 from enrollment pi_0 \
+        \s exists(select 1 from enrollment pi_0 \
         where pi_0.trackedentityid = tei.trackedentityid \
-        and pi_0.programid = ${programId})\s""";
+        and pi_0.programid = ${programId})""";
 
     // Review this logic, it could result in many columns
     CollectionUtils.emptyIfNull(programsByTetUid.get(tet.getUid()))
@@ -302,10 +302,10 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String castBasedOnType(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return replace(" cast(${columnName} as double precision ", Map.of("columnName", columnName));
+      return replace(" cast(${columnName} as double precision)", Map.of("columnName", columnName));
     }
     if (valueType.isInteger()) {
-      return replace(" cast(${columnName} as bigint ", Map.of("columnName", columnName));
+      return replace(" cast(${columnName} as bigint)", Map.of("columnName", columnName));
     }
     if (valueType.isBoolean()) {
       return replace(
@@ -313,13 +313,13 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           Map.of("columnName", columnName));
     }
     if (valueType.isDate()) {
-      return replace("cast(${columnName} as timestamp", Map.of("columnName", columnName));
+      return replace(" cast(${columnName} as timestamp)", Map.of("columnName", columnName));
     }
     if (valueType.isGeo() && isSpatialSupport()) {
       return replace(
           """
-    ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || ("${columnName}") || ',
-    "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')\s""",
+    \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
+    "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
           Map.of("columnName", columnName));
     }
     return columnName;
@@ -390,11 +390,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     removeLastComma(sql)
         .append(
             """
-      from trackedentity tei \
+      \s from trackedentity tei \
       left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
       left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
       left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
-      and (cast(date_trunc('month', tei.created) as date) = ougs.startdate or ougs.startdate is null)\s""");
+      and (cast(date_trunc('month', tei.created) as date) = ougs.startdate \
+      or ougs.startdate is null)""");
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
@@ -403,15 +404,15 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                 sql.append(
                     replace(
                         """
-                    left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
+                    \s left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
+                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
                         Map.of(
                             "teaUid", tea.getUid(),
                             "teaId", String.valueOf(tea.getId())))));
     sql.append(
         replace(
             """
-      where tei.trackedentitytypeid = ${tetId} \
+      \s where tei.trackedentitytypeid = ${tetId} \
       and tei.lastupdated < '${startTime}' \
       and exists (select 1 from enrollment pi \
       where pi.trackedentityid = tei.trackedentityid \
@@ -420,7 +421,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       and psi.status in (${statuses}) \
       and psi.deleted is false)) \
       and tei.created is not null \
-      and tei.deleted is false\s""",
+      and tei.deleted is false""",
             Map.of(
                 "tetId", String.valueOf(trackedEntityType.getId()),
                 "startTime", toLongDate(params.getStartTime()),
