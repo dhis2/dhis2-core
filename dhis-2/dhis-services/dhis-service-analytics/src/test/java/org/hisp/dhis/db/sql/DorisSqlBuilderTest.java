@@ -64,6 +64,39 @@ class DorisSqlBuilderTest {
     assertFalse(sqlBuilder.supportsVacuum());
   }
 
+  // Utilities
+
+  @Test
+  void testQuote() {
+    assertEquals(
+        "`Treated \"malaria\" at facility`", sqlBuilder.quote("Treated \"malaria\" at facility"));
+    assertEquals(
+        "`Patients on ``treatment`` for TB`", sqlBuilder.quote("Patients on `treatment` for TB"));
+    assertEquals("`quarterly`", sqlBuilder.quote("quarterly"));
+    assertEquals("`Fully immunized`", sqlBuilder.quote("Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAlias() {
+    assertEquals(
+        "ax.`Treated \"malaria\" at facility`",
+        sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
+    assertEquals(
+        "analytics.`Patients on ``treatment`` for TB`",
+        sqlBuilder.quote("analytics", "Patients on `treatment` for TB"));
+    assertEquals("analytics.`quarterly`", sqlBuilder.quote("analytics", "quarterly"));
+    assertEquals("dv.`Fully immunized`", sqlBuilder.quote("dv", "Fully immunized"));
+  }
+
+  @Test
+  void testQuoteAx() {
+    assertEquals(
+        "ax.`Treated ``malaria`` at facility`",
+        sqlBuilder.quoteAx("Treated `malaria` at facility"));
+    assertEquals("ax.`quarterly`", sqlBuilder.quoteAx("quarterly"));
+    assertEquals("ax.`Fully immunized`", sqlBuilder.quoteAx("Fully immunized"));
+  }
+
   @Test
   void testSingleQuote() {
     assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
@@ -87,30 +120,6 @@ class DorisSqlBuilderTest {
     assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
     assertEquals("", sqlBuilder.singleQuotedCommaDelimited(List.of()));
     assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
-  }
-
-  // Utilities
-
-  @Test
-  void testQuote() {
-    assertEquals(
-        "`Treated \"malaria\" at facility`", sqlBuilder.quote("Treated \"malaria\" at facility"));
-    assertEquals(
-        "`Patients on ``treatment`` for TB`", sqlBuilder.quote("Patients on `treatment` for TB"));
-    assertEquals("`quarterly`", sqlBuilder.quote("quarterly"));
-    assertEquals("`Fully immunized`", sqlBuilder.quote("Fully immunized"));
-  }
-
-  @Test
-  void testQuoteAlias() {
-    assertEquals(
-        "ax.`Treated \"malaria\" at facility`",
-        sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
-    assertEquals(
-        "analytics.`Patients on ``treatment`` for TB`",
-        sqlBuilder.quote("analytics", "Patients on `treatment` for TB"));
-    assertEquals("analytics.`quarterly`", sqlBuilder.quote("analytics", "quarterly"));
-    assertEquals("dv.`Fully immunized`", sqlBuilder.quote("dv", "Fully immunized"));
   }
 
   @Test
