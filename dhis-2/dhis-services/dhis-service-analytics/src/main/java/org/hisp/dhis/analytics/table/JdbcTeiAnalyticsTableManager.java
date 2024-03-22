@@ -253,7 +253,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         """
         exists(select 1 from enrollment pi_0 \
         where pi_0.trackedentityid = tei.trackedentityid \
-        and pi_0.programid = ${programId})""";
+        and pi_0.programid = ${programId})\s""";
 
     // Review this logic, it could result in many columns
     CollectionUtils.emptyIfNull(programsByTetUid.get(tet.getUid()))
@@ -302,14 +302,14 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String castBasedOnType(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return replace("cast(${columnName} as double precision", Map.of("columnName", columnName));
+      return replace(" cast(${columnName} as double precision ", Map.of("columnName", columnName));
     }
     if (valueType.isInteger()) {
-      return replace("cast(${columnName} as bigint", Map.of("columnName", columnName));
+      return replace(" cast(${columnName} as bigint ", Map.of("columnName", columnName));
     }
     if (valueType.isBoolean()) {
       return replace(
-          "case when ${columnName} = 'true' then 1 when ${columnName} = 'false' then 0 end",
+          " case when ${columnName} = 'true' then 1 when ${columnName} = 'false' then 0 end ",
           Map.of("columnName", columnName));
     }
     if (valueType.isDate()) {
@@ -318,8 +318,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     if (valueType.isGeo() && isSpatialSupport()) {
       return replace(
           """
-    ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
-    "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+    ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || ("${columnName}") || ',
+    "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')\s""",
           Map.of("columnName", columnName));
     }
     return columnName;
@@ -394,7 +394,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
       left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
       left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
-      and (cast(date_trunc('month', tei.created) as date) = ougs.startdate or ougs.startdate is null)""");
+      and (cast(date_trunc('month', tei.created) as date) = ougs.startdate or ougs.startdate is null)\s""");
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
@@ -404,7 +404,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     replace(
                         """
                     left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
+                    and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
                         Map.of(
                             "teaUid", tea.getUid(),
                             "teaId", String.valueOf(tea.getId())))));
@@ -420,7 +420,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       and psi.status in (${statuses}) \
       and psi.deleted is false)) \
       and tei.created is not null \
-      and tei.deleted is false""",
+      and tei.deleted is false\s""",
             Map.of(
                 "tetId", String.valueOf(trackedEntityType.getId()),
                 "startTime", toLongDate(params.getStartTime()),

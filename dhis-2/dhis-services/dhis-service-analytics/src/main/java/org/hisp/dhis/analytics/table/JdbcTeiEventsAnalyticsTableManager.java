@@ -213,7 +213,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         and (${eventDateExpression}) is not null \
         and (${eventDateExpression}) > '1000-01-01' \
         and psi.deleted is false \
-        and tei.deleted is false""",
+        and tei.deleted is false\s""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
@@ -233,7 +233,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         replace(
             """
              ) as temp where temp.supportedyear >= ${firstDataYear} \
-             and temp.supportedyear <= ${latestDataYear}""",
+             and temp.supportedyear <= ${latestDataYear}\s""",
             Map.of(
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear))));
@@ -295,7 +295,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
         where psi.status in (${statuses}) \
         ${partitionClause} \
-        and psi.deleted is false""",
+        and psi.deleted is false\s""",
                 Map.of(
                     "tetId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
