@@ -203,7 +203,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-    from enrollment pi \
+    \s from enrollment pi \
     inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
     and tei.deleted is false \
     and tei.trackedentitytypeid =${teiId} \
@@ -215,7 +215,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     and psi.enrollmentid = pi.enrollmentid \
     and psi.status in (${statuses})) \
     and pi.occurreddate is not null \
-    and pi.deleted is false""",
+    and pi.deleted is false\s""",
                 Map.of(
                     "teiId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
