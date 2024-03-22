@@ -730,7 +730,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           inner join event on l.startvalue <= ${select}
           and l.endvalue > ${select}
           and l.maplegendsetid=${legendSetId}
-          and eventid=psi.eventid ${dataClause}) as ${column}""";
+          and eventid=psi.eventid ${dataClause}) as ${column} """;
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
@@ -753,7 +753,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
       return replace(
-          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
+          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}' ",
           Map.of("uid", uid, "regex", regex));
     }
 
@@ -782,13 +782,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
             from event psi \
             inner join enrollment pi on psi.enrollmentid = pi.enrollmentid \
-            where psi.lastupdated <= '${startTime}' and pi.programid = ${programId} \
+            where psi.lastupdated <= '${startTime}'
+            and pi.programid = ${programId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
             and psi.deleted is false \
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
-            and temp.supportedyear <= ${latestDataYear}""",
+            and temp.supportedyear <= ${latestDataYear} """,
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),

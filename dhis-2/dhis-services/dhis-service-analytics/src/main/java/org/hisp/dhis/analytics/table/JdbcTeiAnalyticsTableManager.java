@@ -66,7 +66,6 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
@@ -250,6 +249,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
 
+    String selectExpression =
+        """
+        exists(select 1 from enrollment pi_0 \
+        where pi_0.trackedentityid = tei.trackedentityid \
+        and pi_0.programid = ${programId})""";
+
     // Review this logic, it could result in many columns
     CollectionUtils.emptyIfNull(programsByTetUid.get(tet.getUid()))
         .forEach(
@@ -258,11 +263,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         program.getUid(),
                         BOOLEAN,
-                        TextUtils.replace(
-                            """
-                            exists(select 1 from enrollment pi_0
-                            where pi_0.trackedentityid = tei.trackedentityid
-                            and pi_0.programid = ${programId})""",
+                        replace(
+                            selectExpression,
                             Map.of("programId", String.valueOf(program.getId()))))));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =

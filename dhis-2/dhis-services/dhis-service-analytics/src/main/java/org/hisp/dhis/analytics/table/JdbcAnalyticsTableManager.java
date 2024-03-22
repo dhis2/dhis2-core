@@ -179,8 +179,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
             select dv.dataelementid \
             from datavalue dv \
-            where dv.lastupdated > '${startDate}' and dv.lastupdated < '${endDate}' \
-            limit 1""",
+            where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
+            limit 1\s""",
             Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
@@ -208,7 +208,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                   inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
                   inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
                   inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
-              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}')""",
+              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}')\s""",
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -221,9 +221,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     Objects.requireNonNull(year);
     return List.of(
-        replace(
-            "year = ${year}, pestartdate < '${endDate}'",
-            Map.of("year", year.toString(), "endDate", DateUtils.toMediumDate(endDate))));
+        "year = " + year + "", "pestartdate < '" + DateUtils.toMediumDate(endDate) + "'");
   }
 
   @Override
@@ -247,10 +245,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
             (dv.value != '0' or de.aggregationtype in \
             ('${aggregationTypeAverage}','${aggregationTypeAverageSumOrgUnit}') \
-            ${zeroValueCondition})""",
+            ${zeroValueCondition})\s""",
             Map.of(
-                "aggregationTypeAverage", AggregationType.AVERAGE.getValue(),
-                "aggregationTypeAverageSumOrgUnit", AggregationType.AVERAGE_SUM_ORG_UNIT.getValue(),
+                "aggregationTypeAverage", AggregationType.AVERAGE.toString(),
+                "aggregationTypeAverageSumOrgUnit", AggregationType.AVERAGE_SUM_ORG_UNIT.toString(),
                 "zeroValueCondition", zeroValueCondition));
     String intClause = zeroValueClause + numericClause;
 
@@ -321,7 +319,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-            ${approvalSelectExpression} \
+             ${approvalSelectExpression} \
             as approvallevel, \
             ${valueExpression} * ps.daysno as daysxvalue, \
              ps.daysno as daysno, \
@@ -343,7 +341,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid""",
+            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
@@ -356,9 +354,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-            ${approvalClause} \
-            where de.valuetype in (${valTypes}) and de.domaintype = 'AGGREGATE' ${partitionClause} \
-            and dv.lastupdated < '${startTime}' and dv.value is not null and dv.deleted is false""",
+             ${approvalClause} \
+            where de.valuetype in (${valTypes}) \
+            and de.domaintype = 'AGGREGATE' ${partitionClause} \
+            and dv.lastupdated < '${startTime}' \
+            and dv.value is not null \
+            and dv.deleted is false\s""",
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
@@ -368,18 +369,18 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-              and (aon.startdate is null or aon.startdate <= pe.startdate) \
+               and (aon.startdate is null or aon.startdate <= pe.startdate) \
               and (aon.enddate is null or aon.enddate >= pe.enddate) \
               and (con.startdate is null or con.startdate <= pe.startdate) \
-              and (con.enddate is null or con.enddate >= pe.enddate)""");
+              and (con.enddate is null or con.enddate >= pe.enddate)\s""");
     }
 
     if (whereClause != null) {
-      sql.append("and " + whereClause + " ");
+      sql.append(" and " + whereClause + " ");
     }
 
     if (analyticsTableSettings.isTableOrdering()) {
-      sql.append("order by de.uid, co.uid");
+      sql.append(" order by de.uid, co.uid");
     }
 
     invokeTimeAndLog(sql.toString(), String.format("Populate %s %s", tableName, valueTypes));
@@ -417,7 +418,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                left join analytics_rs_dataapprovalminlevel da \
               on des.workflowid=da.workflowid and da.periodid=dv.periodid \
               and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (""");
+              and (\s""");
 
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
@@ -582,7 +583,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             from datavalue dv \
             inner join period pe on dv.periodid=pe.periodid \
             where pe.startdate is not null \
-            and dv.lastupdated < '${startTime}' """,
+            and dv.lastupdated < '${startTime}'\s""",
                 Map.of("startTime", toLongDate(params.getStartTime()))));
 
     if (params.getFromDate() != null) {
@@ -613,7 +614,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         """
         where oulevel > ${aggregationLevel} \
-        and dx in ( ${dataElements} )""");
+        and dx in ( ${dataElements} )\s""");
 
     String updateQuery =
         replace(

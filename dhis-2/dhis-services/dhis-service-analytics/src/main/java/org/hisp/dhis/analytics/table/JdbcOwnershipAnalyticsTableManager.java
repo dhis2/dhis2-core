@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -54,7 +55,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -235,7 +235,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     // Rows in programownershiphistory that don't have organisationunitid
     // will be filtered out.
     sb.append(
-        TextUtils.replace(
+        replace(
             """
                  from (\
                 select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
