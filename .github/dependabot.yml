@@ -141,6 +141,9 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+      - dependency-name: "org.flywaydb:flyway-core" # It requires Postgres version to be >= 11
+        versions:
+          - "> 9.22.3"
       - dependency-name: "org.slf4j:slf4j-api" # will update in https://dhis2.atlassian.net/browse/DHIS2-16504
         versions:
           - ">= 2.0"

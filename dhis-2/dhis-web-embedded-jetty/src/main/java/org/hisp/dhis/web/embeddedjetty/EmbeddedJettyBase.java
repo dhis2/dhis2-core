@@ -81,7 +81,7 @@ public abstract class EmbeddedJettyBase {
     rewrite.setHandler(resourceHandler);
     RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
     rewritePatternRule.setPattern("");
-    rewritePatternRule.setLocation("/index.html");
+    rewritePatternRule.setLocation("/dhis-web-login");
     rewrite.addRule(rewritePatternRule);
 
     HandlerList handlers = new HandlerList();

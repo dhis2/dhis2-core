@@ -111,7 +111,7 @@
     <lettuce.version>6.3.1.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.22.3</flyway-core.version>
+    <flyway-database-postgresql.version>10.10.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -130,7 +130,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.16.1</jackson.version>
+    <jackson.version>2.17.0</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -174,10 +174,10 @@
     <jetty.version>10.0.20</jetty.version>
 
     <!-- Div. utils -->
-    <guava.version>33.0.0-jre</guava.version>
+    <guava.version>33.1.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.3.0</google-api-client.version>
+    <google-api-client.version>2.4.0</google-api-client.version>
     <lombok.version>1.18.30</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.7</joda-time.version>
@@ -231,7 +231,7 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>9.0.9</dependency-check-maven.version>
+    <dependency-check-maven.version>9.0.10</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.3.1</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
@@ -1067,8 +1067,8 @@
       <!-- Flyway -->
       <dependency>
         <groupId>org.flywaydb</groupId>
-        <artifactId>flyway-core</artifactId>
-        <version>${flyway-core.version}</version>
+        <artifactId>flyway-database-postgresql</artifactId>
+        <version>${flyway-database-postgresql.version}</version>
       </dependency>
 
       <!-- Google gson -->
@@ -1842,7 +1842,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.10.0.2594</version>
+          <version>3.11.0.3922</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -2016,6 +2016,7 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.flywaydb:flyway-database-postgresql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports-fonts</ignoredUnusedDeclaredDependency>
@@ -2058,6 +2059,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
@@ -2075,6 +2077,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-databind</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
