@@ -246,8 +246,11 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
                 from trackedentityprogramowner o \
                 where o.programid=${programId} \
-                and exists (select 1 from programownershiphistory p where o.trackedentityid = p.trackedentityid \
-                and p.programid=${programId} and p.organisationunitid is not null)) a \
+                and exists ( \
+                select 1 from programownershiphistory p \
+                where o.trackedentityid = p.trackedentityid \
+                and p.programid=${programId} \
+                and p.organisationunitid is not null)) a \
                 inner join trackedentity tei on a.trackedentityid = tei.trackedentityid \
                 inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
