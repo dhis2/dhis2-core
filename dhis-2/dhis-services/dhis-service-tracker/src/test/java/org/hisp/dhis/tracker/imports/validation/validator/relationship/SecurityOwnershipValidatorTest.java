@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
-import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4019;
+import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -73,6 +73,7 @@ class SecurityOwnershipValidatorTest {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
     relationship = new Relationship();
+    relationship.setRelationship("relationshipUid");
     relationshipType = new RelationshipType();
 
     when(bundle.getPreheat().getRelationshipType(any())).thenReturn(relationshipType);
@@ -85,9 +86,7 @@ class SecurityOwnershipValidatorTest {
 
     validator.validate(reporter, bundle, relationship);
 
-    assertNotEmpty(reporter.getErrors());
-    assertContains(
-        "has no data write access to relationship type", reporter.getErrors().get(0).getMessage());
+    assertHasError(reporter, relationship, E4019);
   }
 
   @Test
