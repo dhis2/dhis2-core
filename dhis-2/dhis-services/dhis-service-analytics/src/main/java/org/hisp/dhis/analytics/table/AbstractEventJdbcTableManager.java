@@ -34,6 +34,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -185,18 +186,23 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
-          "(select "
-              + select
-              + " "
-              + "from trackedentityattributevalue where trackedentityid=pi.trackedentityid "
-              + "and trackedentityattributeid="
-              + attribute.getId()
-              + dataClause
-              + ")"
-              + getClosingParentheses(select)
-              + " as "
-              + quote(attribute.getUid());
-
+          TextUtils.replace(
+              """
+                (select ${select} from trackedentityattributevalue \
+                where trackedentityid=pi.trackedentityid \
+                and trackedentityattributeid=${attributeId} \
+                ${dataClause})${closingParentheses} as ${attributeUid}""",
+              Map.of(
+                  "select",
+                  select,
+                  "attributeId",
+                  String.valueOf(attribute.getId()),
+                  "dataClause",
+                  dataClause,
+                  "closingParentheses",
+                  getClosingParentheses(select),
+                  "attributeUid",
+                  quote(attribute.getUid())));
       columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
     }
 

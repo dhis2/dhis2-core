@@ -753,7 +753,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
       return replace(
-          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}' ",
+          " and eventdatavalues #>> '{${uid},value}' ~* '${regex}'",
           Map.of("uid", uid, "regex", regex));
     }
 
