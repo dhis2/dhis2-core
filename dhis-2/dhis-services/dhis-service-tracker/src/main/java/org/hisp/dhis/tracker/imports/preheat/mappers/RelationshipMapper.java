@@ -28,19 +28,17 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipType;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, AttributeValueMapper.class})
+@Mapper(uses = {DebugMapper.class, RelationshipTypeMapper.class, AttributeValueMapper.class})
 public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "relationshipType", qualifiedByName = "typeMapper")
+  @Mapping(target = "relationshipType")
   @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
@@ -55,15 +53,4 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "createdAtClient")
   @Mapping(target = "deleted")
   Relationship map(Relationship relationship);
-
-  @Named("typeMapper")
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "bidirectional")
-  @Mapping(target = "sharing")
-  RelationshipType mapType(RelationshipType type);
 }
