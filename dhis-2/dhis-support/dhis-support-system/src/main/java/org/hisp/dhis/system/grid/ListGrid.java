@@ -46,13 +46,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
@@ -65,9 +66,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
-import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -125,6 +124,7 @@ public class ListGrid implements Grid, Serializable {
   private List<Reference> refs;
 
   /** Indicating the current row in the grid for writing data. */
+  @Getter(AccessLevel.PROTECTED)
   private int currentRowWriteIndex = -1;
 
   /** Indicating the current row in the grid for reading data. */
@@ -1012,37 +1012,6 @@ public class ListGrid implements Grid, Serializable {
     return this;
   }
 
-  public Grid addNamedRows(SqlRowSet rs) {
-    String[] cols = headers.stream().map(GridHeader::getName).toArray(String[]::new);
-    Set<String> headersSet = new LinkedHashSet<>();
-    rowContext = new HashMap<>();
-
-    while (rs.next()) {
-      addRow();
-      Map<String, Object> rowContextItems = new HashMap<>();
-
-      for (int i = 0; i < cols.length; i++) {
-        if (headerExists(cols[i])) {
-          String columnLabel = cols[i];
-
-          Object value = rs.getObject(columnLabel);
-          addValue(value);
-          headersSet.add(columnLabel);
-
-          rowContextItems.putAll(getRowContextItem(rs, cols[i], i));
-        }
-      }
-      if (!rowContextItems.isEmpty()) {
-        rowContext.put(currentRowWriteIndex, rowContextItems);
-      }
-    }
-
-    // Needs to ensure the ordering of columns based on grid headers.
-    repositionColumns(repositionHeaders(new ArrayList<>(headersSet)));
-
-    return this;
-  }
-
   @Override
   public Grid addPerformanceMetrics(List<ExecutionPlan> plans) {
     if (plans.isEmpty()) {
@@ -1206,52 +1175,6 @@ public class ListGrid implements Grid, Serializable {
     for (int i = 0; i < headers.size(); i++) {
       columnIndexMap.put(headers.get(i).getColumn(), i);
     }
-  }
-
-  /**
-   * The method retrieves row context content that describes the origin of the data value,
-   * indicating whether it is set, not set, or undefined. The column index is used as the map key,
-   * and the corresponding value contains information about the origin, also known as the value
-   * status.
-   *
-   * @param rs the {@link ResultSet},
-   * @param columnName the {@link String}, grid row column name
-   * @param rowIndex, row id
-   * @return Map of column index and value status
-   */
-  private Map<String, Object> getRowContextItem(SqlRowSet rs, String columnName, int rowIndex) {
-    Map<String, Object> rowContextItem = new HashMap<>();
-    String existIndicatorColumnLabel = columnName + EXISTS;
-    String statusIndicatorColumnLabel = columnName + STATUS;
-    String hasValueIndicatorColumnLabel = columnName + HAS_VALUE;
-
-    if (Arrays.stream(rs.getMetaData().getColumnNames())
-        .anyMatch(n -> n.equalsIgnoreCase(existIndicatorColumnLabel))) {
-
-      boolean isDefined = rs.getBoolean(existIndicatorColumnLabel);
-      boolean isSet = rs.getBoolean(hasValueIndicatorColumnLabel);
-      boolean isScheduled =
-          StringUtils.equalsIgnoreCase(
-              rs.getString(statusIndicatorColumnLabel), EventStatus.SCHEDULE.toString());
-
-      ValueStatus valueStatus = ValueStatus.SET;
-
-      if (!isDefined) {
-        valueStatus = ValueStatus.NOT_DEFINED;
-      } else if (isScheduled) {
-        valueStatus = ValueStatus.SCHEDULED;
-      } else if (!isSet) {
-        valueStatus = ValueStatus.NOT_SET;
-      }
-
-      if (valueStatus != ValueStatus.SET) {
-        Map<String, String> valueStatusMap = new HashMap<>();
-        valueStatusMap.put("valueStatus", valueStatus.getValue());
-        rowContextItem.put(Integer.toString(rowIndex), valueStatusMap);
-      }
-    }
-
-    return rowContextItem;
   }
 
   // -------------------------------------------------------------------------

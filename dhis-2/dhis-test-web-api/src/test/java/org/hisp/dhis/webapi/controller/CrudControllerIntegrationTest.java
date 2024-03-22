@@ -32,21 +32,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.Serializable;
 import java.util.Locale;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.user.UserSettings;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -127,19 +122,6 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
     setUpTranslation();
     User userA = createAndAddUser("userA", null, "ALL");
 
-    User user = userService.getUser(userA.getUid());
-    UserSettings settings = user.getSettings();
-
-    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.ENGLISH, userA);
-    injectSecurityContextUser(userA);
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    Map<String, Serializable> userSettings = currentUserDetails.getUserSettings();
-
-    systemSettingManager.saveSystemSetting(SettingKey.DB_LOCALE, Locale.ENGLISH);
-    Locale systemSetting =
-        systemSettingManager.getSystemSetting(SettingKey.DB_LOCALE, Locale.class);
-
     JsonArray dataSets =
         GET("/dataSets?filter=identifiable:token:testToken").content().getArray("dataSets");
 
@@ -189,6 +171,30 @@ class CrudControllerIntegrationTest extends DhisControllerIntegrationTest {
 
     assertFalse(
         GET("/dataSets?filter=identifiable:token:english")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
+  }
+
+  @Test
+  @DisplayName(
+      "Search by token should use default properties if the translation value does not exist or does not match the search token")
+  void testSearchTokenWithFallback() {
+    setUpTranslation();
+    User userA = createAndAddUser("userA", null, "ALL");
+    userSettingService.saveUserSetting(UserSettingKey.DB_LOCALE, Locale.FRENCH, userA);
+
+    injectSecurityContextUser(userService.getUserByUsername(userA.getUsername()));
+
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:english&locale=fr")
+            .content()
+            .getArray("dataSets")
+            .isEmpty());
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:french").content().getArray("dataSets").isEmpty());
+    assertFalse(
+        GET("/dataSets?filter=identifiable:token:dataSet")
             .content()
             .getArray("dataSets")
             .isEmpty());
