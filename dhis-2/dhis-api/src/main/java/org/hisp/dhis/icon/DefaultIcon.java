@@ -457,23 +457,23 @@ public enum DefaultIcon {
 
   public static final String SUFFIX = "svg";
 
-  @Getter private final String key;
+  @Getter private final String keyPrefix;
   @Getter private final String description;
   @Getter private final Set<String> keywords;
-  @Getter private final List<String> variants;
+  @Getter private final List<String> variantKeys;
 
-  DefaultIcon(String key, String description, String... keywords) {
-    this.key = key;
+  DefaultIcon(String keyPrefix, String description, String... keywords) {
+    this.keyPrefix = keyPrefix;
     this.description = description;
     this.keywords = Set.of(keywords);
-    this.variants =
+    this.variantKeys =
         Set.of("positive", "negative", "outline").stream()
-            .map(variant -> "%s_%s".formatted(key, variant))
+            .map(variant -> "%s_%s".formatted(keyPrefix, variant))
             .toList();
   }
 
-  public List<Icon> createIcons() {
-    return getVariants().stream()
+  public List<Icon> toVariantIcons() {
+    return getVariantKeys().stream()
         .map(key -> new Icon(key, getDescription(), getKeywords(), false, null).setOrigin(this))
         .toList();
   }

@@ -52,7 +52,7 @@ public class LogoutServlet extends HttpServlet {
 
       String referer = (String) req.getAttribute("origin");
       req.setAttribute("origin", referer);
-      resp.sendRedirect("/index.html");
+      resp.sendRedirect("/dhis-web-login");
     } else {
       resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }

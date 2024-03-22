@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -41,14 +41,14 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -84,6 +84,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -175,16 +179,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
-        "select dv.dataelementid "
-            + "from datavalue dv "
-            + "where dv.lastupdated >= '"
-            + toLongDate(startDate)
-            + "' "
-            + "and dv.lastupdated < '"
-            + toLongDate(endDate)
-            + "' "
-            + "limit 1";
-
+        replace(
+            """
+            select dv.dataelementid \
+            from datavalue dv \
+            where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
+            limit 1\s""",
+            Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
 
@@ -200,23 +201,22 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        "delete from "
-            + quote(getAnalyticsTableType().getTableName())
-            + " ax "
-            + "where ax.id in ("
-            + "select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id "
-            + "from datavalue dv "
-            + "inner join dataelement de on dv.dataelementid=de.dataelementid "
-            + "inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid "
-            + "inner join organisationunit ou on dv.sourceid=ou.organisationunitid "
-            + "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid "
-            + "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "where dv.lastupdated >= '"
-            + toLongDate(partition.getStartDate())
-            + "' "
-            + "and dv.lastupdated < '"
-            + toLongDate(partition.getEndDate())
-            + "')";
+        replace(
+            """
+            delete from ${tableName} ax \
+            where ax.id in ( \
+              select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
+              from datavalue dv \
+              inner join dataelement de on dv.dataelementid=de.dataelementid \
+                  inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+                  inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
+                  inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+                  inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}')\s""",
+            Map.of(
+                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "startDate", toLongDate(partition.getStartDate()),
+                "endDate", toLongDate(partition.getEndDate())));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }
@@ -240,16 +240,20 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String numericClause =
         skipDataTypeValidation
             ? ""
-            : ("and dv.value ~* '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
+            : replace(
+                "and dv.value ~* '${expression}'",
+                Map.of("expression", MathUtils.NUMERIC_LENIENT_REGEXP));
     String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
     String zeroValueClause =
-        "(dv.value != '0' or de.aggregationtype in ('"
-            + AggregationType.AVERAGE
-            + "','"
-            + AggregationType.AVERAGE_SUM_ORG_UNIT
-            + "')"
-            + zeroValueCondition
-            + ") ";
+        replace(
+            """
+            (dv.value != '0' or de.aggregationtype in \
+            ('${aggregationTypeAverage}','${aggregationTypeAverageSumOrgUnit}') \
+            ${zeroValueCondition})\s""",
+            Map.of(
+                "aggregationTypeAverage", AggregationType.AVERAGE.toString(),
+                "aggregationTypeAverageSumOrgUnit", AggregationType.AVERAGE_SUM_ORG_UNIT.toString(),
+                "zeroValueCondition", zeroValueCondition));
     String intClause = zeroValueClause + numericClause;
 
     populateTable(
@@ -300,83 +304,90 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String approvalClause = getApprovalJoinClause(partition.getYear());
     String partitionClause = getPartitionClause(partition);
 
-    String sql = "insert into " + tableName + " (";
+    StringBuilder sql =
+        new StringBuilder(replace("insert into ${tableName} (", Map.of("tableName", tableName)));
 
     List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
+      sql.append(quote(col.getName()) + ",");
     }
 
-    sql = TextUtils.removeLastComma(sql) + ") select ";
+    sql = TextUtils.removeLastComma(sql).append(") select ");
 
     for (AnalyticsTableColumn col : dimensions) {
-      sql += col.getSelectExpression() + ",";
+      sql.append(col.getSelectExpression() + ",");
     }
 
-    sql +=
-        approvalSelectExpression
-            + " as approvallevel, "
-            + valueExpression
-            + " * ps.daysno as daysxvalue, "
-            + "ps.daysno as daysno, "
-            + valueExpression
-            + " as value, "
-            + textValueExpression
-            + " as textvalue "
-            + "from datavalue dv "
-            + "inner join period pe on dv.periodid=pe.periodid "
-            + "inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid "
-            + "left join periodtype pt on pe.periodtypeid = pt.periodtypeid "
-            + "inner join dataelement de on dv.dataelementid=de.dataelementid "
-            + "inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid "
-            + "inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid "
-            + "inner join organisationunit ou on dv.sourceid=ou.organisationunitid "
-            + "left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid "
-            + "inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid "
-            + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
-            + "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid "
-            + "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid "
-            + "inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid "
-            + "inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid "
-            + "inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid "
-            + "inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid ";
+    sql.append(
+        replace(
+            """
+             ${approvalSelectExpression} \
+            as approvallevel, \
+            ${valueExpression} * ps.daysno as daysxvalue, \
+             ps.daysno as daysno, \
+            ${valueExpression} as value, \
+            ${textValueExpression} as textvalue \
+            from datavalue dv \
+            inner join period pe on dv.periodid=pe.periodid \
+            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            left join periodtype pt on pe.periodtypeid = pt.periodtypeid \
+            inner join dataelement de on dv.dataelementid=de.dataelementid \
+            inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
+            inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
+            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
+            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
+            inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+            inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+            inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
+            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            Map.of(
+                "approvalSelectExpression", approvalSelectExpression,
+                "valueExpression", valueExpression,
+                "textValueExpression", textValueExpression)));
 
     if (!params.isSkipOutliers()) {
-      sql += getOutliersJoinStatement();
+      sql.append(getOutliersJoinStatement());
     }
 
-    sql +=
-        approvalClause
-            + "where de.valuetype in ("
-            + valTypes
-            + ") "
-            + "and de.domaintype = 'AGGREGATE' "
-            + partitionClause
-            + "and dv.lastupdated < '"
-            + toLongDate(params.getStartTime())
-            + "' "
-            + "and dv.value is not null "
-            + "and dv.deleted is false ";
+    sql.append(
+        replace(
+            """
+             ${approvalClause} \
+            where de.valuetype in (${valTypes}) \
+            and de.domaintype = 'AGGREGATE' ${partitionClause} \
+            and dv.lastupdated < '${startTime}' \
+            and dv.value is not null \
+            and dv.deleted is false\s""",
+            Map.of(
+                "approvalClause", approvalClause,
+                "valTypes", valTypes,
+                "partitionClause", partitionClause,
+                "startTime", toLongDate(params.getStartTime()))));
 
     if (respectStartEndDates) {
-      sql +=
-          "and (aon.startdate is null or aon.startdate <= pe.startdate) "
-              + "and (aon.enddate is null or aon.enddate >= pe.enddate) "
-              + "and (con.startdate is null or con.startdate <= pe.startdate) "
-              + "and (con.enddate is null or con.enddate >= pe.enddate) ";
+      sql.append(
+          """
+               and (aon.startdate is null or aon.startdate <= pe.startdate) \
+              and (aon.enddate is null or aon.enddate >= pe.enddate) \
+              and (con.startdate is null or con.startdate <= pe.startdate) \
+              and (con.enddate is null or con.enddate >= pe.enddate)\s""");
     }
 
     if (whereClause != null) {
-      sql += "and " + whereClause + " ";
+      sql.append(" and " + whereClause + " ");
     }
 
     if (analyticsTableSettings.isTableOrdering()) {
-      sql += "order by de.uid, co.uid";
+      sql.append(" order by de.uid, co.uid");
     }
 
-    invokeTimeAndLog(sql, String.format("Populate %s %s", tableName, valueTypes));
+    invokeTimeAndLog(sql.toString(), String.format("Populate %s %s", tableName, valueTypes));
   }
 
   /**
@@ -387,9 +398,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getApprovalSelectExpression(Integer year) {
     if (isApprovalEnabled(year)) {
-      return "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, "
-          + DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED
-          + ")";
+      return replace(
+          "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, ${approvalLevel})",
+          Map.of(
+              "approvalLevel", String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED)));
     } else {
       return String.valueOf(DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST);
     }
@@ -404,20 +416,25 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getApprovalJoinClause(Integer year) {
     if (isApprovalEnabled(year)) {
-      String sql =
-          "left join analytics_rs_dataapprovalminlevel da "
-              + "on des.workflowid=da.workflowid and da.periodid=dv.periodid "
-              + "and da.attributeoptioncomboid=dv.attributeoptioncomboid "
-              + "and (";
+      StringBuilder sql =
+          new StringBuilder(
+              """
+               left join analytics_rs_dataapprovalminlevel da \
+              on des.workflowid=da.workflowid and da.periodid=dv.periodid \
+              and da.attributeoptioncomboid=dv.attributeoptioncomboid \
+              and (\s""");
 
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
 
       for (OrganisationUnitLevel level : levels) {
-        sql += "ous.idlevel" + level.getLevel() + " = da.organisationunitid or ";
+        sql.append(
+            replace(
+                "ous.idlevel ${level} = da.organisationunitid or",
+                Map.of("level", String.valueOf(level.getLevel()))));
       }
 
-      return TextUtils.removeLastOr(sql) + ") ";
+      return TextUtils.removeLastOr(sql.toString()) + ") ";
     }
 
     return StringUtils.EMPTY;
@@ -431,8 +448,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        format("and dv.lastupdated >= '%s' ", toLongDate(partition.getStartDate()));
-    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+        replace(
+            "and dv.lastupdated >= '${startDate}' ",
+            Map.of("startDate", toLongDate(partition.getStartDate())));
+    String partitionFilter =
+        replace("and ps.year = ${year} ", Map.of("year", partition.getYear().toString()));
 
     return partition.isLatestPartition()
         ? latestFilter
@@ -561,26 +581,31 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    * @return a list of data years.
    */
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
-    String sql =
-        "select distinct(extract(year from pe.startdate)) "
-            + "from datavalue dv "
-            + "inner join period pe on dv.periodid=pe.periodid "
-            + "where pe.startdate is not null "
-            + "and dv.lastupdated < '"
-            + toLongDate(params.getStartTime())
-            + "' ";
+    StringBuilder sql =
+        new StringBuilder(
+            replace(
+                """
+            select distinct(extract(year from pe.startdate)) \
+            from datavalue dv \
+            inner join period pe on dv.periodid=pe.periodid \
+            where pe.startdate is not null \
+            and dv.lastupdated < '${startTime}'\s""",
+                Map.of("startTime", toLongDate(params.getStartTime()))));
 
     if (params.getFromDate() != null) {
-      sql += "and pe.startdate >= '" + DateUtils.toMediumDate(params.getFromDate()) + "'";
+      sql.append(
+          replace(
+              "and pe.startdate >= '${fromDate}'",
+              Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate()))));
     }
 
-    return jdbcTemplate.queryForList(sql, Integer.class);
+    return jdbcTemplate.queryForList(sql.toString(), Integer.class);
   }
 
   @Override
   public void applyAggregationLevels(
       AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update " + partition.getName() + " set ");
+    StringBuilder sql = new StringBuilder("update ${partitionName} set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
       int level = i + 1;
@@ -592,12 +617,21 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     sql.deleteCharAt(sql.length() - ",".length());
 
-    sql.append(" where oulevel > " + aggregationLevel);
-    sql.append(" and dx in (" + quotedCommaDelimitedString(dataElements) + ")");
+    sql.append(
+        """
+        where oulevel > ${aggregationLevel} \
+        and dx in ( ${dataElements} )\s""");
 
-    log.debug("Aggregation level SQL: '{}'", sql);
+    String updateQuery =
+        replace(
+            sql.toString(),
+            Map.of(
+                "partitionName", partition.getName(),
+                "aggregationLevel", String.valueOf(aggregationLevel),
+                "dataElements", quotedCommaDelimitedString(dataElements)));
 
-    jdbcTemplate.execute(sql.toString());
+    log.debug("Aggregation level SQL: '{}'", updateQuery);
+    jdbcTemplate.execute(updateQuery);
   }
 
   /**
