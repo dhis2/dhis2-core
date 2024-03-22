@@ -32,10 +32,55 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class DorisSqlBuilderTest {
   private final SqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
+
+  private Table getTableA() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
+            new Column("value", DataType.DOUBLE));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("immunization", columns, primaryKey, Logged.LOGGED);
+  }
+
+  private Table getTableB() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
+            new Column("bcg_doses", DataType.DOUBLE));
+
+    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
+
+    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+  }
+
+  private Table getTableC() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("vitamin_a", DataType.BIGINT),
+            new Column("vitamin_d", DataType.BIGINT));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("nutrition", columns, primaryKey, List.of(), Logged.LOGGED, getTableB());
+  }
 
   // Data types
 
@@ -127,6 +172,48 @@ class DorisSqlBuilderTest {
     assertEquals("pg_dhis.public.`category`", sqlBuilder.qualifyTable("category"));
     assertEquals(
         "pg_dhis.public.`categories_options`", sqlBuilder.qualifyTable("categories_options"));
+  }
+
+  // Statements
+
+  @Test
+  void testCreateTableA() {
+    Table table = getTableA();
+
+    String expected =
+        """
+        create table `immunization` (`id` bigint not null, \
+        `data` char(11) not null, `period` varchar(50) not null, \
+        `created` datetime null, `user` json null, `value` double null) \
+        engine = olap \
+        duplicate key (`id`) \
+        distributed by hash(`id`) \
+        buckets 10 \
+        properties ("replication_num" = "1");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  @Test
+  void testCreateTableB() {
+    // TODO
+  }
+
+  @Test
+  void testCreateTableC() {
+    Table table = getTableC();
+
+    String expected =
+        """
+        create table `nutrition` (`id` bigint not null, \
+        `vitamin_a` bigint null, `vitamin_d` bigint null) \
+        engine = olap \
+        duplicate key (`id`) \
+        distributed by hash(`id`) \
+        buckets 10 \
+        properties ("replication_num" = "1");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
   }
 
   @Test
