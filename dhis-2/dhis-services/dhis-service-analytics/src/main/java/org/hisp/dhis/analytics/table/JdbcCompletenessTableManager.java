@@ -164,7 +164,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             inner join organisationunit ou on cdr.sourceid=ou.organisationunitid \
             inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
-            and cdr.lastupdated < '${endDate}')""",
+            and cdr.lastupdated < '${endDate}');""",
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
