@@ -142,7 +142,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         select cdr.datasetid \
             from completedatasetregistration cdr \
             where cdr.lastupdated >= '${startDate}' \
-            and cdr.lastupdated < '${endDate}' limit 1""";
+            and cdr.lastupdated < '${endDate}' \
+            limit 1;""";
     replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
