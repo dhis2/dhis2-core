@@ -64,7 +64,7 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -78,6 +78,10 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
     }
 
     return columns;
+  }
+
+  private List<String> getPrimaryKey() {
+    return List.of("dateperiod");
   }
 
   @Override

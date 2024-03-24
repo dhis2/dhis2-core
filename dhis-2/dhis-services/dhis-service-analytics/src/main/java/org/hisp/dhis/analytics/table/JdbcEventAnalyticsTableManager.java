@@ -368,7 +368,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             where pi.programid = ${programId} \
             and psi.lastupdated >= '${startDate}' \
             and psi.lastupdated < '${endDate}' \
-            limit 1""",
+            limit 1;""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -391,7 +391,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
                 where pi.programid = ${programId} \
                 and psi.lastupdated >= '${startDate}' \
-                and psi.lastupdated < '${endDate}')""",
+                and psi.lastupdated < '${endDate}');""",
               Map.of(
                   "tableName", quote(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
