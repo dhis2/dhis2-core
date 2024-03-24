@@ -2887,8 +2887,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         0,
         "IpHINAT79UW.incidentdate",
         "Date of birth, Child Programme",
-        "DATETIME",
-        "java.time.LocalDateTime",
+        "DATE",
+        "java.time.LocalDate",
         false,
         true);
 

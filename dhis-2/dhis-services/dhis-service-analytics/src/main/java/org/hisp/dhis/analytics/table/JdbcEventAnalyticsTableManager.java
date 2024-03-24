@@ -369,7 +369,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             where pi.programid = ${programId} \
             and psi.lastupdated >= '${startDate}' \
             and psi.lastupdated < '${endDate}' \
-            limit 1""",
+            limit 1;""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -386,13 +386,13 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String sql =
           replace(
               """
-              delete from ${tableName} ax
-              where ax.psi in (
-                select psi.uid
-                from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid
-                where pi.programid = ${programId}
-                and psi.lastupdated >= '${startDate}'
-                and psi.lastupdated < '${endDate}')""",
+              delete from ${tableName} ax \
+              where ax.psi in ( \
+                select psi.uid \
+                from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
+                where pi.programid = ${programId} \
+                and psi.lastupdated >= '${startDate}' \
+                and psi.lastupdated < '${endDate}');""",
               Map.of(
                   "tableName", quote(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
@@ -423,7 +423,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         replace(
             """
-            from event psi \
+            \s from event psi \
             inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
             inner join programstage ps on psi.programstageid=ps.programstageid \
             inner join program pr on pi.programid=pr.programid and pi.deleted is false \
@@ -445,7 +445,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and psi.status in (${exportableEventStatues}) \
-            and psi.deleted is false """,
+            and psi.deleted is false""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
@@ -578,7 +578,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String selectClause = getSelectClause(attribute.getValueType(), "value");
     String query =
         """
-          (select l.uid from maplegend l \
+          \s(select l.uid from maplegend l \
           inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
           and l.endvalue > ${selectClause} \
           and l.maplegendsetid=${legendSetId} \
@@ -733,7 +733,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           inner join event on l.startvalue <= ${select}
           and l.endvalue > ${select}
           and l.maplegendsetid=${legendSetId}
-          and eventid=psi.eventid ${dataClause}) as ${column} """;
+          and eventid=psi.eventid ${dataClause}) as ${column}""";
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
@@ -792,7 +792,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and psi.deleted is false \
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
-            and temp.supportedyear <= ${latestDataYear} """,
+            and temp.supportedyear <= ${latestDataYear}""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),

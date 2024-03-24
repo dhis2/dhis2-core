@@ -211,7 +211,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     String fromClause =
         replace(
             """
-            from enrollment pi \
+            \s from enrollment pi \
             inner join program pr on pi.programid=pr.programid \
             left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
             and tei.deleted is false \
@@ -225,7 +225,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and pi.organisationunitid is not null \
             and pi.lastupdated <= '${startTime}' \
             and pi.occurreddate is not null \
-            and pi.deleted is false""",
+            and pi.deleted is false\s""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
