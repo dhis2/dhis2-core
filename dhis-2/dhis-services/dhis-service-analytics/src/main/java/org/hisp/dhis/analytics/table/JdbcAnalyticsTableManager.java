@@ -180,7 +180,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             select dv.dataelementid \
             from datavalue dv \
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
-            limit 1\s""",
+            limit 1;""",
             Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
@@ -208,7 +208,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                   inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
                   inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
                   inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
-              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}')\s""",
+              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
