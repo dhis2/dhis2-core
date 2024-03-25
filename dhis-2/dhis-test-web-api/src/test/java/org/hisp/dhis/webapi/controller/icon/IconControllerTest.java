@@ -196,6 +196,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(3, pager.getTotal());
     assertEquals(2, pager.getPageSize());
     assertEquals(2, pager.getPageCount());
+    assertNotNull(pager.getString("prevPage").string());
 
     assertEquals(
         1,
@@ -253,7 +254,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     InputStream in = getClass().getResourceAsStream("/icon/test-image.png");
     MockMultipartFile image = new MockMultipartFile("file", "test-image.png", "image/png", in);
 
-    HttpResponse response = POST_MULTIPART("/fileResources?domain=CUSTOM_ICON", image);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ICON", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
 

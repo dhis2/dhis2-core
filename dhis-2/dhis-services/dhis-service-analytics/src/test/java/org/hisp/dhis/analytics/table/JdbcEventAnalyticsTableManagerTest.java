@@ -330,11 +330,11 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "CASE WHEN psi.lastupdatedatclient IS NOT NULL THEN psi.lastupdatedatclient ELSE psi.lastupdated END"));
+            "case when psi.lastupdatedatclient is not null then psi.lastupdatedatclient else psi.lastupdated end"));
     assertThat(
         created.getSelectExpression(),
         is(
-            "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
+            "case when psi.createdatclient is not null then psi.createdatclient else psi.created end"));
   }
 
   @Test

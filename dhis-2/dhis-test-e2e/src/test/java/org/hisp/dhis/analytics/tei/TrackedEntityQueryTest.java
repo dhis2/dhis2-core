@@ -1749,7 +1749,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Johson",
             "",
             "",
-            "12"));
+            "12.0"));
   }
 
   @Test
@@ -2372,7 +2372,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ruiz",
             "Male",
             "",
-            "3681",
+            "3681.0",
             "Positive"));
 
     validateRow(
@@ -2395,7 +2395,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Gardner",
             "Female",
             "",
-            "3945",
+            "3945.0",
             "Positive"));
 
     validateRow(
@@ -2418,7 +2418,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Hart",
             "Female",
             "",
-            "3104",
+            "3104.0",
             "Positive"));
   }
 
@@ -2477,7 +2477,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Ruiz",
             "rBvjJYbMCVx",
             "",
-            "3681",
+            "3681.0",
             "fWI0UiNZgMy"));
 
     validateRow(
@@ -2500,7 +2500,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Gardner",
             "Mnp3oXrpAbK",
             "",
-            "3945",
+            "3945.0",
             "fWI0UiNZgMy"));
 
     validateRow(
@@ -2523,7 +2523,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Hart",
             "Mnp3oXrpAbK",
             "",
-            "3104",
+            "3104.0",
             "fWI0UiNZgMy"));
   }
 
@@ -2887,8 +2887,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         0,
         "IpHINAT79UW.incidentdate",
         "Date of birth, Child Programme",
-        "DATETIME",
-        "java.time.LocalDateTime",
+        "DATE",
+        "java.time.LocalDate",
         false,
         true);
 

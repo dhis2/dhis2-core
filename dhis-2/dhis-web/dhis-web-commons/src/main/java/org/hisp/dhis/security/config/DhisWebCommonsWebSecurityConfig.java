@@ -64,7 +64,6 @@ import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -130,21 +129,21 @@ public class DhisWebCommonsWebSecurityConfig {
     @Autowired private ConfigurationService configurationService;
 
     @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-      auth.authenticationProvider(customLdapAuthenticationProvider);
-      auth.authenticationProvider(twoFactorAuthenticationProvider);
-      auth.authenticationEventPublisher(authenticationEventPublisher);
-    }
-
-    @Override
     public void configure(WebSecurity web) {
-      web.ignoring().antMatchers("/api/ping");
+      web.ignoring()
+          .antMatchers("/api/ping")
+          .antMatchers("/*/service-worker.js.map")
+          .antMatchers("/*/service-worker.js");
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
       http.authorizeRequests()
           .accessDecisionManager(accessDecisionManager())
+          .antMatchers("/*/service-worker.js.map")
+          .permitAll()
+          .antMatchers("/*/service-worker.js")
+          .permitAll()
           .antMatchers("/dhis-web-login/**")
           .permitAll()
           .requestMatchers(analyticsPluginResources())

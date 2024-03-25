@@ -50,6 +50,7 @@ import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.security.AuthenticationController;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
@@ -65,11 +66,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -221,12 +224,21 @@ public class DhisWebApiWebSecurityConfig {
 
     @Autowired private RequestCache requestCache;
 
+    @Autowired private AuthenticationController authenticationController;
+
     @Override
     public void configure(AuthenticationManagerBuilder auth) {
       auth.authenticationProvider(customLdapAuthenticationProvider);
       auth.authenticationProvider(twoFactorAuthenticationProvider);
 
       auth.authenticationEventPublisher(authenticationEventPublisher);
+    }
+
+    @Bean(name = "customAuthenticationManager")
+    @Primary
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+      return super.authenticationManagerBean();
     }
 
     public WebExpressionVoter apiWebExpressionVoter() {
@@ -260,6 +272,10 @@ public class DhisWebApiWebSecurityConfig {
 
           // Temporary solution for Struts less login page, will be removed when apps are fully
           // migrated
+          .antMatchers("/*/service-worker.js.map")
+          .permitAll()
+          .antMatchers("/*/service-worker.js")
+          .permitAll()
           .antMatchers("/index.html")
           .permitAll()
           .antMatchers("/external-static/**")

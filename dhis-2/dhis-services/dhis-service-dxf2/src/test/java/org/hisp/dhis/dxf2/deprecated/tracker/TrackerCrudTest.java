@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.deprecated.tracker;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -140,7 +141,7 @@ class TrackerCrudTest {
     when(notifier.notify(any(JobConfiguration.class), anyString())).thenReturn(notifier);
     when(notifier.clear(any())).thenReturn(notifier);
 
-    when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid, user))
+    when(defaultTrackedEntityInstanceService.getTrackedEntity(eq(trackedEntityInstanceUid), any()))
         .thenReturn(new TrackedEntity());
     when(defaultTrackedEntityInstanceService.getTrackedEntity(trackedEntityInstanceUid))
         .thenReturn(new TrackedEntity());
@@ -240,7 +241,7 @@ class TrackerCrudTest {
             .anyMatch(is -> is.isStatus(ImportStatus.ERROR)));
 
     verify(defaultTrackedEntityInstanceService, times(1))
-        .getTrackedEntity(trackedEntityInstanceUid, user);
+        .getTrackedEntity(eq(trackedEntityInstanceUid), any());
     verify(defaultTrackedEntityInstanceService, times(1)).updateTrackedEntity(any());
   }
 

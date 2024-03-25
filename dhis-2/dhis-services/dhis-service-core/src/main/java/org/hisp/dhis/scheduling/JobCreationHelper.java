@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import java.io.InputStream;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.util.MimeType;
@@ -60,8 +61,11 @@ public interface JobCreationHelper {
       throw new ConflictException(
           "Job must be of type %s to allow content data".formatted(SchedulingType.ONCE_ASAP));
     config.setAutoFields(); // ensure UID is set
-    fileResourceService.syncSaveFileResource(
-        config.getUid(), contentType, content, FileResourceDomain.JOB_DATA);
+    FileResource fr =
+        FileResource.ofKey(FileResourceDomain.JOB_DATA, config.getUid(), contentType.toString());
+    fr.setUid(config.getUid());
+    fr.setAssigned(true);
+    fileResourceService.syncSaveFileResource(fr, content);
     store.save(config);
     return config.getUid();
   }

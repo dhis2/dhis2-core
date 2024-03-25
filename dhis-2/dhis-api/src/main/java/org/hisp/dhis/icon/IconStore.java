@@ -29,7 +29,6 @@ package org.hisp.dhis.icon;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Set;
 
 public interface IconStore {
 
@@ -71,12 +70,9 @@ public interface IconStore {
   List<Icon> getIcons(IconQueryParams params);
 
   /**
-   * Check if the store contains entries for all provided keys
-   *
-   * @param keys a set of keys
-   * @return true, if all exist
+   * @return all existing keys, a key includes the variant suffix
    */
-  boolean containsKeys(Set<String> keys);
+  List<String> getAllKeys();
 
   /**
    * Returns an icon that contains a given key

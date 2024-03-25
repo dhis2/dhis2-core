@@ -36,6 +36,10 @@ import lombok.RequiredArgsConstructor;
 public class AndCondition extends BaseRenderable {
   private final List<? extends Renderable> conditions;
 
+  public static AndCondition of(Renderable... conditions) {
+    return new AndCondition(List.of(conditions));
+  }
+
   @Override
   /**
    * Renders a list of conditions joined by "and". If the list is empty, returns an empty string. If
