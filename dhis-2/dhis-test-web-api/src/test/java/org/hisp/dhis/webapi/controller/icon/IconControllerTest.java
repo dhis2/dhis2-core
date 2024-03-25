@@ -196,6 +196,7 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     assertEquals(3, pager.getTotal());
     assertEquals(2, pager.getPageSize());
     assertEquals(2, pager.getPageCount());
+    assertNotNull(pager.getString("prevPage").string());
 
     assertEquals(
         1,
