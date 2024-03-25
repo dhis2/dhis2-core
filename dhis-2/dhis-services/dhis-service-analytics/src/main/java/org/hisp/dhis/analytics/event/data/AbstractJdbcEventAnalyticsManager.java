@@ -454,11 +454,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
       } else {
-        return rowContextAllowedAndNeeded(params, queryItem)
-            ? ColumnAndAlias.ofColumnAndAlias(
-                getColumn(queryItem, OU_NAME_COL_SUFFIX),
-                getAlias(queryItem).orElse(queryItem.getItemName()))
-            : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+        return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
@@ -474,6 +470,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return getColumnAndAlias(queryItem, isGroupByClause, "");
     }
+  }
+
+  /**
+   * The method create a ColumnAndAlias object for query item with repeatable stage and organization
+   * unit value type, will return f.e. select 'w75KJ2mc4zz' from..., '') as 'w75KJ2mc4zz'
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param queryItem the {@link QueryItem}.
+   * @return the {@link ColumnAndAlias}
+   */
+  private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
+      EventQueryParams params, QueryItem queryItem) {
+    return rowContextAllowedAndNeeded(params, queryItem)
+        ? ColumnAndAlias.ofColumnAndAlias(
+            getColumn(queryItem, OU_NAME_COL_SUFFIX),
+            getAlias(queryItem).orElse(queryItem.getItemName()))
+        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
   }
 
   /**
