@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import static org.hisp.dhis.user.UserSettingKey.handleObsoleteLocales;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -45,6 +47,15 @@ public class WebLocale {
     WebLocale loc = new WebLocale();
 
     loc.setLocale(locale.toString());
+    loc.setName(locale.getDisplayName());
+
+    return loc;
+  }
+
+  public static WebLocale fromLocaleHandlingIndonesiaFormat(Locale locale) {
+    WebLocale loc = new WebLocale();
+
+    loc.setLocale(handleObsoleteLocales(locale));
     loc.setName(locale.getDisplayName());
 
     return loc;

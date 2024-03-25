@@ -390,6 +390,7 @@ public class DefaultExpressionService implements ExpressionService {
             .orgUnitCountMap(orgUnitCountMap)
             .days(days)
             .missingValueStrategy(SKIP_IF_ALL_VALUES_MISSING)
+            .initialQueryMods(indicator.getQueryMods())
             .build();
 
     Double denominatorValue =
@@ -698,6 +699,8 @@ public class DefaultExpressionService implements ExpressionService {
   /** Creates a new {@see CommonExpressionVisitor} */
   private CommonExpressionVisitor newVisitor(
       ExpressionItemMethod itemMethod, ExpressionParams params) {
+    ExpressionState initialParsingState =
+        ExpressionState.builder().queryMods(params.getInitialQueryMods()).build();
     return CommonExpressionVisitor.builder()
         .idObjectManager(idObjectManager)
         .dimensionService(dimensionService)
@@ -708,6 +711,7 @@ public class DefaultExpressionService implements ExpressionService {
         .itemMethod(itemMethod)
         .params(params)
         .info(params.getExpressionInfo())
+        .state(initialParsingState)
         .build();
   }
 

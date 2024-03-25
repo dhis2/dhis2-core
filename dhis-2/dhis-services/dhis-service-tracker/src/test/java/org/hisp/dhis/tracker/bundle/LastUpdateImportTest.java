@@ -27,25 +27,32 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.function.Supplier;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,89 +64,490 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private SessionFactory sessionFactory;
+  private org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity;
+  private org.hisp.dhis.tracker.domain.Enrollment enrollment;
+  private org.hisp.dhis.tracker.domain.Event event;
 
   private static User user;
-
-  private static TrackedEntity trackedEntity;
 
   @Override
   @Transactional
   protected void initTest() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
     user = userService.getUser("M5zQapPyTZI");
+
     TrackerImportParams trackerImportParams = fromJson("tracker/single_tei.json", user.getUid());
     assertNoImportErrors(trackerImportService.importTracker(trackerImportParams));
+
     trackedEntity = trackerImportParams.getTrackedEntities().get(0);
-    TrackerImportParams enrollmentParams =
-        fromJson("tracker/single_enrollment.json", user.getUid());
-    assertNoImportErrors(trackerImportService.importTracker(enrollmentParams));
+
+    trackerImportParams = fromJson("tracker/single_enrollment.json", user.getUid());
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+
+    enrollment = trackerImportParams.getEnrollments().get(0);
+
+    trackerImportParams = fromJson("tracker/single_event.json", user.getUid());
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+
+    event = trackerImportParams.getEvents().get(0);
     manager.flush();
   }
 
   @Test
-  void shouldUpdateTeiIfTeiIsUpdated() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/single_tei.json", user.getUid());
+  void shouldUpdateTeiWhenTeiIsUpdated() throws IOException {
+
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
+
+    clearSession();
+
+    TrackerImportParams trackerImportParams = fromJson("tracker/single_tei.json");
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    Attribute attribute = new Attribute();
-    attribute.setAttribute("toUpdate000");
-    attribute.setValue("value");
-    trackedEntity.setAttributes(Collections.singletonList(attribute));
-    Date lastUpdateBefore =
-        trackedEntityInstanceService
-            .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
-            .getLastUpdated();
-    assertNoImportErrors(trackerImportService.importTracker(trackerImportParams));
+
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+
+    clearSession();
+
+    Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
+
     assertTrue(
-        manager
-                .get(TrackedEntityInstance.class, trackedEntity.getTrackedEntity())
-                .getLastUpdated()
-                .getTime()
-            > lastUpdateBefore.getTime());
+        lastUpdateAfter.getTime() > entityBeforeUpdate.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+            trackedEntity.getUid()));
   }
 
   @Test
-  void shouldUpdateTeiIfEventIsUpdated() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/event_with_data_values.json");
-    Date lastUpdateBefore =
-        trackedEntityInstanceService
-            .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
-            .getLastUpdated();
-    TrackerImportReport trackerImportReport =
-        trackerImportService.importTracker(trackerImportParams);
-    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
-    trackerImportParams = fromJson("tracker/event_with_updated_data_values.json");
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    assertNoImportErrors(trackerImportService.importTracker(trackerImportParams));
-    manager.clear();
-    assertTrue(
-        manager
-                .get(TrackedEntityInstance.class, trackedEntity.getTrackedEntity())
-                .getLastUpdated()
-                .getTime()
-            > lastUpdateBefore.getTime());
-  }
+  void shouldUpdateTeiWhenEventIsUpdated() throws IOException {
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
 
-  @Test
-  void shouldUpdateTeiIfEnrollmentIsUpdated() throws IOException {
+    clearSession();
+
+    User user = user();
+
+    clearSession();
+
     TrackerImportParams trackerImportParams =
-        fromJson("tracker/single_enrollment.json", user.getUid());
-    Date lastUpdateBefore =
-        trackedEntityInstanceService
-            .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
-            .getLastUpdated();
-    Enrollment enrollment = trackerImportParams.getEnrollments().get(0);
-    enrollment.setStatus(EnrollmentStatus.COMPLETED);
+        fromJson("tracker/event_with_updated_data_values.json");
     trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
-    TrackerImportReport trackerImportReport =
-        trackerImportService.importTracker(trackerImportParams);
-    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
-    manager.clear();
+    trackerImportParams.setUserId(user.getUid());
+
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams));
+
+    clearSession();
+
+    TrackedEntityInstance entityAfterUpdate = getTrackedEntity();
+
     assertTrue(
-        manager
-                .get(TrackedEntityInstance.class, trackedEntity.getTrackedEntity())
-                .getLastUpdated()
-                .getTime()
-            > lastUpdateBefore.getTime());
+        entityAfterUpdate.getLastUpdated().getTime()
+            > entityBeforeUpdate.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+            trackedEntity.getUid()));
+    assertEquals(
+        entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
+        UserInfoSnapshot.from(user).getUid(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
+            trackedEntity.getUid()));
+  }
+
+  @Test
+  void shouldUpdateTeiWhenEnrollmentIsUpdated() {
+
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
+
+    User user = user();
+
+    clearSession();
+
+    enrollment.setStatus(EnrollmentStatus.COMPLETED);
+
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.UPDATE)
+            .enrollments(List.of(enrollment))
+            .userId(user.getUid())
+            .build();
+
+    assertNoErrors(trackerImportService.importTracker(params));
+
+    clearSession();
+
+    TrackedEntityInstance entityAfterUpdate = getTrackedEntity();
+
+    assertTrue(
+        entityAfterUpdate.getLastUpdated().getTime()
+            > entityBeforeUpdate.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+            trackedEntity.getUid()));
+    assertEquals(
+        entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
+        UserInfoSnapshot.from(user).getUid(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
+            trackedEntity.getUid()));
+  }
+
+  @Test
+  void shouldUpdateAndDeleteTrackedEntityWhenTeIsDeleted() {
+
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
+
+    clearSession();
+
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .trackedEntities(List.of(trackedEntity))
+            .build();
+
+    TrackerImportReport importReport = trackerImportService.importTracker(params);
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+
+    clearSession();
+
+    TrackedEntityInstance entityAfterDeletion = getTrackedEntity();
+
+    assertAll(
+        () -> assertTrue(entityAfterDeletion.isDeleted(), "Tracked Entity %s has not been deleted"),
+        () ->
+            assertTrue(
+                entityAfterDeletion.getLastUpdated().getTime()
+                    > entityBeforeUpdate.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+                    trackedEntity.getUid())));
+  }
+
+  @Test
+  void shouldUpdateAndDeleteTrackedEntityCascadeWhenTeWithEnrollmentIsDeleted() {
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
+
+    ProgramInstance enrollmentBeforeDelete = getEnrollment();
+
+    enrollTrackerEntity();
+
+    clearSession();
+
+    // delete cascade
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .trackedEntities(List.of(trackedEntity))
+            .build();
+
+    TrackerImportReport importReport = trackerImportService.importTracker(params);
+
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+
+    clearSession();
+
+    TrackedEntityInstance entityAfterDelete = getTrackedEntity();
+    ProgramInstance enrollmentAfterDelete = getEnrollment();
+
+    assertAll(
+        () -> assertTrue(entityAfterDelete.isDeleted()),
+        () -> assertTrue(enrollmentAfterDelete.isDeleted()),
+        () ->
+            assertTrue(
+                entityAfterDelete.getLastUpdated().getTime()
+                    > entityBeforeUpdate.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+                    trackedEntity.getUid())),
+        () -> assertTrue(enrollmentAfterDelete.isDeleted()),
+        () ->
+            assertTrue(
+                enrollmentAfterDelete.getLastUpdated().getTime()
+                    > enrollmentBeforeDelete.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for enrollment %s. The lastUpdated date has not been updated after the import",
+                    enrollment.getUid())));
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityAndDeleteEnrollmentWhenEnrollmentIsDeleted() {
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
+
+    ProgramInstance enrollmentBeforeDeletion = getEnrollment();
+
+    ProgramStageInstance eventBeforeDeletion = getEvent();
+
+    clearSession();
+
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .enrollments(List.of(enrollment))
+            .userId(user.getUid())
+            .build();
+
+    TrackerImportReport importReport = trackerImportService.importTracker(params);
+    assertNoErrors(importReport);
+    assertEquals(1, importReport.getStats().getDeleted());
+
+    clearSession();
+
+    TrackedEntityInstance entityAfterDeletion = getTrackedEntity();
+    ProgramInstance enrollmentAfterDeletion = getEnrollment();
+    ProgramStageInstance eventAfterDeletion = getEvent();
+
+    assertAll(
+        () ->
+            assertTrue(
+                entityAfterDeletion.getLastUpdated().getTime()
+                    > entityBeforeUpdate.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+                    trackedEntity.getUid())),
+        () -> assertTrue(enrollmentAfterDeletion.isDeleted()),
+        () ->
+            assertEquals(
+                entityAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    trackedEntity.getUid())),
+        () ->
+            assertTrue(
+                enrollmentAfterDeletion.getLastUpdated().getTime()
+                    > enrollmentBeforeDeletion.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for enrollment %s. The lastUpdated date has not been updated after the import",
+                    enrollment.getUid())),
+        () ->
+            assertEquals(
+                enrollmentAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for enrollment %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    enrollment.getUid())),
+        () -> assertTrue(eventAfterDeletion.isDeleted()),
+        () ->
+            assertTrue(
+                eventAfterDeletion.getLastUpdated().getTime()
+                    > eventBeforeDeletion.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for event %s. The lastUpdated date has not been updated after the import",
+                    event.getUid())),
+        () ->
+            assertEquals(
+                eventAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for event %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    event.getUid())));
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityAndDeleteEnrolledEventWhenEventIsDeleted() {
+    TrackedEntityInstance entityBeforeUpdate = getTrackedEntity();
+
+    ProgramInstance enrollmentBeforeDeletion = getEnrollment();
+
+    ProgramStageInstance eventBeforeDeletion = getEvent();
+
+    clearSession();
+
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .events(List.of(event))
+            .userId(user.getUid())
+            .build();
+
+    assertNoErrors(trackerImportService.importTracker(params));
+
+    clearSession();
+
+    TrackedEntityInstance entityAfterDeletion = getTrackedEntity();
+    ProgramInstance enrollmentAfterDeletion = getEnrollment();
+
+    ProgramStageInstance eventAfterDeletion = getEvent();
+
+    assertAll(
+        () ->
+            assertTrue(
+                entityAfterDeletion.getLastUpdated().getTime()
+                    > entityBeforeUpdate.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
+                    trackedEntity.getUid())),
+        () ->
+            assertEquals(
+                entityAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    trackedEntity.getUid())),
+        () ->
+            assertTrue(
+                enrollmentAfterDeletion.getLastUpdated().getTime()
+                    > enrollmentBeforeDeletion.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for enrollment %s. The lastUpdated date has not been updated after the import",
+                    enrollment.getUid())),
+        () ->
+            assertEquals(
+                enrollmentAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for enrollment %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    enrollment.getUid())),
+        () -> assertTrue(eventAfterDeletion.isDeleted()),
+        () ->
+            assertTrue(
+                eventAfterDeletion.getLastUpdated().getTime()
+                    > eventBeforeDeletion.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for event %s. The lastUpdated date has not been updated after the import",
+                    event.getUid())),
+        () ->
+            assertEquals(
+                eventAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for event %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    event.getUid())));
+  }
+
+  @Test
+  void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
+
+    org.hisp.dhis.tracker.domain.Event ev = importEventProgram();
+
+    ProgramStageInstance eventBeforeDeletion = getEvent(ev.getUid());
+
+    clearSession();
+
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.DELETE)
+            .events(List.of(ev))
+            .userId(user.getUid())
+            .build();
+
+    assertNoErrors(trackerImportService.importTracker(params));
+
+    clearSession();
+
+    ProgramStageInstance eventAfterDeletion = getEvent(ev.getUid());
+
+    assertAll(
+        () -> assertTrue(eventAfterDeletion.isDeleted()),
+        () ->
+            assertTrue(
+                eventAfterDeletion.getLastUpdated().getTime()
+                    > eventBeforeDeletion.getLastUpdated().getTime(),
+                String.format(
+                    "Data integrity error for event %s. The lastUpdated date has not been updated after the import",
+                    event.getUid())),
+        () ->
+            assertEquals(
+                eventAfterDeletion.getLastUpdatedByUserInfo().getUid(),
+                UserInfoSnapshot.from(user).getUid(),
+                String.format(
+                    "Data integrity error for event %s. The lastUpdatedByUserinfo has not been saved during the import",
+                    event.getUid())));
+  }
+
+  private User user() {
+    return createUser(CodeGenerator.generateUid(), "ALL");
+  }
+
+  private org.hisp.dhis.tracker.domain.Event importEventProgram() throws IOException {
+    TrackerImportParams trackerObjects = fromJson("tracker/single_event.json");
+    org.hisp.dhis.tracker.domain.Event ev = trackerObjects.getEvents().get(0);
+    ev.setEnrollment(null);
+    ev.setEvent(CodeGenerator.generateUid());
+    // set event program and program stage
+    ev.setProgramStage("NpsdDv6kKSe");
+    ev.setProgram("BFcipDERJne");
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().events(List.of(ev)).build()));
+
+    return ev;
+  }
+
+  void enrollTrackerEntity() {
+    trackedEntity.setEnrollments(List.of(enrollment));
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder()
+                .trackedEntities(List.of(trackedEntity))
+                .importStrategy(TrackerImportStrategy.UPDATE)
+                .build()));
+  }
+
+  /**
+   * Flush the session to synchronize the hibernate objects with the database and clear the
+   * references used during the import, so we can compare an object before and after
+   */
+  void clearSession() {
+    dbmsManager.clearSession();
+  }
+
+  ProgramInstance getEnrollment() {
+    return getEntityJpql(ProgramInstance.class.getSimpleName(), enrollment.getUid());
+  }
+
+  ProgramStageInstance getEvent() {
+    return getEntityJpql(ProgramStageInstance.class.getSimpleName(), event.getUid());
+  }
+
+  ProgramStageInstance getEvent(String uid) {
+    return getEntityJpql(ProgramStageInstance.class.getSimpleName(), uid);
+  }
+
+  TrackedEntityInstance getTrackedEntity() {
+    return getEntityJpql(TrackedEntityInstance.class.getSimpleName(), trackedEntity.getUid());
+  }
+
+  /**
+   * Get with the current session because some Store exclude deleted and {@link
+   * TrackedEntityInstanceService#getTrackedEntityInstances} ies} use async Spring jdbc Template. So
+   * we use the same query for all the entities
+   */
+  @SuppressWarnings("unchecked")
+  public <T extends SoftDeletableObject> T getEntityJpql(String entity, String uid) {
+
+    return (T)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("SELECT e FROM " + entity + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
+  }
+
+  public static void assertNoErrors(TrackerImportReport report) {
+    assertNotNull(report);
+    assertEquals(
+        TrackerStatus.OK,
+        report.getStatus(),
+        errorMessage(
+            "Expected import with status OK, instead got:\n", report.getValidationReport()));
+  }
+
+  private static Supplier<String> errorMessage(String errorTitle, TrackerValidationReport report) {
+    return () -> {
+      StringBuilder msg = new StringBuilder(errorTitle);
+      report
+          .getErrors()
+          .forEach(
+              e -> {
+                msg.append(e.getErrorCode());
+                msg.append(": ");
+                msg.append(e.getMessage());
+                msg.append('\n');
+              });
+      return msg.toString();
+    };
   }
 }

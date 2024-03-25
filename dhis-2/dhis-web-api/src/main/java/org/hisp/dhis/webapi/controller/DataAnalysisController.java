@@ -33,7 +33,6 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -284,7 +283,7 @@ public class DataAnalysisController {
     List<DeflatedDataValue> dataValues =
         new ArrayList<>(
             stdDevOutlierAnalysisService.analyse(
-                Sets.newHashSet(organisationUnit),
+                organisationUnit,
                 dataElements,
                 periods,
                 stdDevOutlierAnalysisParams.getStandardDeviation(),
@@ -339,7 +338,7 @@ public class DataAnalysisController {
     List<DeflatedDataValue> dataValues =
         new ArrayList<>(
             minMaxOutlierAnalysisService.analyse(
-                Sets.newHashSet(organisationUnit), dataElements, periods, null, from));
+                organisationUnit, dataElements, periods, null, from));
 
     session.setAttribute(KEY_ANALYSIS_DATA_VALUES, dataValues);
     session.setAttribute(KEY_ORG_UNIT, organisationUnit);
@@ -373,10 +372,7 @@ public class DataAnalysisController {
     List<DeflatedDataValue> dataValues =
         new ArrayList<>(
             followupAnalysisService.getFollowupDataValues(
-                Sets.newHashSet(organisationUnit),
-                dataElements,
-                periods,
-                DataAnalysisService.MAX_OUTLIERS + 1));
+                organisationUnit, dataElements, periods, DataAnalysisService.MAX_OUTLIERS + 1));
     // +1 to detect overflow
 
     session.setAttribute(KEY_ANALYSIS_DATA_VALUES, dataValues);

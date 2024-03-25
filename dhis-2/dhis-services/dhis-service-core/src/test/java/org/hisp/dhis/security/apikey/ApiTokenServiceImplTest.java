@@ -37,6 +37,7 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +54,8 @@ class ApiTokenServiceImplTest extends DhisSpringTest {
   @Autowired private ApiTokenStore apiTokenStore;
 
   @Autowired private ApiTokenService apiTokenService;
+
+  @Autowired private CurrentUserService currentUserService;
 
   @Autowired
   @Qualifier(value = "xmlMapper")
@@ -100,6 +103,47 @@ class ApiTokenServiceImplTest extends DhisSpringTest {
     final ApiToken apiToken0 = createAndSaveToken();
     final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey());
     assertEquals(apiToken1.getKey(), apiToken0.getKey());
+  }
+
+  @Test
+  void testGetAllByUser() {
+    preCreateInjectAdminUser();
+
+    final ApiToken apiToken0 = createAndSaveToken();
+    createAndSaveToken();
+    User user = currentUserService.getCurrentUser();
+    List<ApiToken> allOwning = apiTokenService.getAllOwning(user);
+
+    assertEquals(2, allOwning.size());
+    assertEquals(allOwning.get(0).getKey(), apiToken0.getKey());
+  }
+
+  @Test
+  void testSaveGetCurrentUser() {
+    preCreateInjectAdminUser();
+
+    final ApiToken apiToken0 = createAndSaveToken();
+    User currentUser = currentUserService.getCurrentUser();
+    final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey(), currentUser);
+    assertEquals(apiToken1.getKey(), apiToken0.getKey());
+  }
+
+  @Test
+  void testShouldDeleteTokensWhenUserIsDeleted() {
+    preCreateInjectAdminUser();
+
+    User userB = createUser("userB");
+    injectSecurityContext(userB);
+    createAndSaveToken();
+    createAndSaveToken();
+
+    User adminUser = userService.getUserByUsername("admin_test");
+    injectSecurityContext(adminUser);
+
+    userService.deleteUser(userB);
+
+    List<ApiToken> all = apiTokenService.getAll();
+    assertEquals(0, all.size());
   }
 
   @Test

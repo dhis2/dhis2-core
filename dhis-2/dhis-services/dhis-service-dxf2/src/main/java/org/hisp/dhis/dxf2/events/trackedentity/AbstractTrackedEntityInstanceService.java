@@ -900,6 +900,7 @@ public abstract class AbstractTrackedEntityInstanceService
         }
       }
 
+      daoEntityInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(importOptions.getUser()));
       teiService.deleteTrackedEntityInstance(daoEntityInstance);
 
       importSummary.setStatus(ImportStatus.SUCCESS);

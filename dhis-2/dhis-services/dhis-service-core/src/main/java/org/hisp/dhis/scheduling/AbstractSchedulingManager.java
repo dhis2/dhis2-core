@@ -218,7 +218,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       return false;
     }
     JobType type = configuration.getJobType();
-    if (configuration.isLeaderOnlyJob() && !leaderManager.isLeader()) {
+    if (!configuration.isInMemoryJob()
+        && configuration.isLeaderOnlyJob()
+        && !leaderManager.isLeader()) {
       whenLeaderOnlyOnNonLeader(configuration);
       return false;
     }
@@ -230,7 +232,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       whenAlreadyRunning(configuration);
       return false;
     }
-    if (!runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
+    if (!type.isRunOnAllNodes()
+        && !runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
       runningLocally.remove(type);
       whenAlreadyRunning(configuration);
       return false;
@@ -275,8 +278,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       whenRunThrewException(configuration, ex, progress);
       return false;
     } finally {
-      completedLocally.put(type, runningLocally.remove(type));
-      runningRemotely.invalidate(type.name());
+      ControlledJobProgress done = runningLocally.remove(type);
+      if (done != null) completedLocally.put(type, done);
+      if (!type.isRunOnAllNodes()) runningRemotely.invalidate(type.name());
       whenRunIsDone(configuration, clock);
       MDC.remove("sessionId");
     }
