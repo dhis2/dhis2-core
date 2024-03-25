@@ -101,6 +101,7 @@ import org.hisp.dhis.schema.descriptors.ExpressionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ExternalMapLayerSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorGroupSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
@@ -236,6 +237,7 @@ public class DefaultSchemaService implements SchemaService {
     register(new ExpressionSchemaDescriptor());
     register(new ExpressionDimensionItemSchemaDescriptor());
     register(new FileResourceSchemaDescriptor());
+    register(new IconSchemaDescriptor());
     register(new IndicatorGroupSchemaDescriptor());
     register(new IndicatorGroupSetSchemaDescriptor());
     register(new IndicatorSchemaDescriptor());
