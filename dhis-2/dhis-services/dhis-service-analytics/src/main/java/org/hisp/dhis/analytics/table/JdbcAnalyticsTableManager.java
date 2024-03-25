@@ -173,7 +173,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+  public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
         replace(
             """

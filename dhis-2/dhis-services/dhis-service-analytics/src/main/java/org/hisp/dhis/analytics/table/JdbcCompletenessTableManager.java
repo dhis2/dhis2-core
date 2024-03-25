@@ -136,7 +136,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+  public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
         """
         select cdr.datasetid \

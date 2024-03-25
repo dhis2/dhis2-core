@@ -224,17 +224,4 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
 
     invokeTimeAndLog(sql.toString(), tableName);
   }
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
 }

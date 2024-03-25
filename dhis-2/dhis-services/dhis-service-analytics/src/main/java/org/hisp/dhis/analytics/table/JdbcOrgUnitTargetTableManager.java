@@ -121,11 +121,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
-
-  @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
