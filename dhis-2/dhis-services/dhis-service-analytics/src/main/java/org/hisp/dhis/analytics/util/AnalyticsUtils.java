@@ -1148,10 +1148,10 @@ public final class AnalyticsUtils {
   }
 
   /**
-   * Retrieves the sql string with content replacement between select and from
+   * Retrieves the sql string with content replacement between for example select and from
    *
    * @param original original sql string
-   * @param replacement the content of replacement
+   * @param replacement the replacement content
    */
   public static String replaceStringBetween(
       String original, String startToken, String endToken, String replacement) {
