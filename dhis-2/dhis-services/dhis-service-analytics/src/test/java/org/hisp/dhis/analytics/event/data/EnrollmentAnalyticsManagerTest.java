@@ -284,7 +284,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + "[-1]."
             + dataElementUid
             + ".exists\""
-            + ", ((select \"psistatus\" "
+            + ",(select psistatus "
             + "from analytics_event_"
             + programUid
             + " where analytics_event_"
@@ -293,7 +293,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programUid
             + ".pi = ax.pi and ps = '"
             + programStageUid
-            + "' order by occurreddate desc, created desc offset 1 limit 1 )) "
+            + "' order by occurreddate desc, created desc offset 1 limit 1 ) "
             + "as \""
             + programStageUid
             + "[-1]."
