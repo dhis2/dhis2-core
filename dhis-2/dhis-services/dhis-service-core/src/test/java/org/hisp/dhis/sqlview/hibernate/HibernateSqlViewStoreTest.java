@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.sqlview.hibernate;
 
-import static org.hisp.dhis.common.TransactionType.READ;
-import static org.hisp.dhis.common.TransactionType.WRITE;
+import static org.hisp.dhis.common.TransactionMode.READ;
+import static org.hisp.dhis.common.TransactionMode.WRITE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

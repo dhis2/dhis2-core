@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-public enum TransactionType {
+public enum TransactionMode {
   READ,
   WRITE
 }

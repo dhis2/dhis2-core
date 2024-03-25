@@ -29,7 +29,7 @@ package org.hisp.dhis.sqlview;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.TransactionType;
+import org.hisp.dhis.common.TransactionMode;
 
 /**
  * @author Dang Duy Hieu
@@ -43,15 +43,15 @@ public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
 
   /**
    * This method will use the appropriate jdbcTemplate depending how DHIS2 has been setup.<br>
-   * <br>
-   * If DHIS2 has been set up using Postgres read replica, then the readOnlyJdbcTemplate will be
+   *
+   * <p>If DHIS2 has been set up using Postgres read replica, then the readOnlyJdbcTemplate will be
    * used for the reads, otherwise the normal jdbcTemplate will be used for all reads/writes.
    *
-   * @param grid grid
-   * @param sql sql
-   * @param transType type of transaction read or write
+   * @param grid the {@link Grid} to populate with the results of the sql query.
+   * @param sql the sql query to execute.
+   * @param transactionMode the {@link TransactionMode} to use for the query.
    */
-  void populateSqlViewGrid(Grid grid, String sql, TransactionType transType);
+  void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode);
 
   boolean refreshMaterializedView(SqlView sqlView);
 }

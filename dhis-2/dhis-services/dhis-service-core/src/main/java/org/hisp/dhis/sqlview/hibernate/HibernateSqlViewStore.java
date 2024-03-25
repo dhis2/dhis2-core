@@ -33,7 +33,7 @@ import static java.lang.String.format;
 import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.TransactionType;
+import org.hisp.dhis.common.TransactionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
@@ -119,9 +119,9 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   }
 
   @Override
-  public void populateSqlViewGrid(Grid grid, String sql, TransactionType transType) {
+  public void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode) {
     SqlRowSet rs =
-        switch (transType) {
+        switch (transactionMode) {
           case READ -> readOnlyJdbcTemplate.queryForRowSet(sql);
           case WRITE -> jdbcTemplate.queryForRowSet(sql);
         };
