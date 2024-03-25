@@ -401,7 +401,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         String columnForExists = " exists (" + columnAndAlias.column + ")";
         String aliasForExists = columnAndAlias.alias + ".exists";
         columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
-        String columnForStatus = replaceStringBetween(columnAndAlias.column, "select", "from"," psistatus ");
+        String columnForStatus =
+            replaceStringBetween(columnAndAlias.column, "select", "from", " psistatus ");
         String aliasForStatus = columnAndAlias.alias + ".status";
         columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
@@ -453,11 +454,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
       } else {
-        return rowContextAllowedAndNeeded(params, queryItem) ?
-                ColumnAndAlias.ofColumnAndAlias(
-            getColumn(queryItem, OU_NAME_COL_SUFFIX),
-            getAlias(queryItem).orElse(queryItem.getItemName())):
-                ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+        return rowContextAllowedAndNeeded(params, queryItem)
+            ? ColumnAndAlias.ofColumnAndAlias(
+                getColumn(queryItem, OU_NAME_COL_SUFFIX),
+                getAlias(queryItem).orElse(queryItem.getItemName()))
+            : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
