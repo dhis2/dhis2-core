@@ -59,6 +59,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -1144,5 +1145,17 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  /**
+   * Retrieves the sql string with content replacement between select and from
+   *
+   * @param original original sql string
+   * @param replacement the content of replacement
+   */
+  public static String replaceStringBetween(String original, String startToken, String endToken, String replacement) {
+    Pattern pattern =  Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
+    Matcher matcher = pattern.matcher(original);
+    return matcher.replaceAll(startToken + replacement + endToken);
   }
 }
