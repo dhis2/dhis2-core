@@ -40,6 +40,8 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -47,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -82,8 +85,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -182,7 +183,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
             limit 1;""",
             Map.of(
-                "startDate", toLongDate(startDate), 
+                "startDate", toLongDate(startDate),
                 "endDate", toLongDate(endDate),
                 "datavalue", qualify("datavalue")));
     return !jdbcTemplate.queryForList(sql).isEmpty();
@@ -219,8 +220,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "datavalue", qualify("datavalue"),
                 "dataelement", qualify("dataelement"),
                 "organisationunit", qualify("organisationunit"),
-                "categoryoptioncombo", qualify("categoryoptioncombo")
-                ));
+                "categoryoptioncombo", qualify("categoryoptioncombo")));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }
@@ -601,11 +601,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             where pe.startdate is not null \
             and dv.lastupdated < '${startTime}'\s""",
                 Map.of(
-                    "startTime", 
+                    "startTime",
                     toLongDate(params.getStartTime()),
-                    "datavalue", qualify("datavalue"),
-                    "period", qualify("period")
-                    )));
+                    "datavalue",
+                    qualify("datavalue"),
+                    "period",
+                    qualify("period"))));
 
     if (params.getFromDate() != null) {
       sql.append(
