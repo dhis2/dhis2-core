@@ -31,8 +31,6 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +43,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -109,7 +108,7 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
           and igsm.indicatorgroupsetid = ${groupSetId} \
           where igm.indicatorid = i.indicatorid limit 1) as ${groupSetName}, \
           (
-          select ig.uid from ${indicatorgroup ig \
+          select ig.uid from ${indicatorgroup} ig \
           inner join ${indicatorgroupmembers} igm on igm.indicatorgroupid = ig.indicatorgroupid \
           inner join ${indicatorgroupsetmembers} igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
           and igsm.indicatorgroupsetid = ${groupSetId} \
