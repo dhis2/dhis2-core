@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -72,6 +73,7 @@ public class DefaultIconService implements IconService {
 
   private final IconStore iconStore;
   private final FileResourceService fileResourceService;
+  private final FileResourceContentStore fileResourceContentStore;
   private final UserService userService;
 
   private final Set<DefaultIcon> ignoredAfterFailure = ConcurrentHashMap.newKeySet();
@@ -130,17 +132,22 @@ public class DefaultIconService implements IconService {
   @Transactional(readOnly = true)
   public Icon getIcon(String key) throws NotFoundException {
     Icon icon = iconStore.getIconByKey(key);
-    if (icon == null) {
-      throw new NotFoundException(String.format("Icon not found: %s", key));
-    }
-
+    if (icon == null) throw new NotFoundException(Icon.class, key);
+    FileResource fr = icon.getFileResource();
+    if (fr == null) throw new NotFoundException(Icon.class, key);
+    if (!fileResourceContentStore.fileResourceContentExists(fr.getStorageKey()))
+      throw new NotFoundException(Icon.class, key);
     return icon;
   }
 
   @Override
   @Transactional(readOnly = true)
   public boolean iconExists(String key) {
-    return iconStore.getIconByKey(key) != null;
+    try {
+      return getIcon(key) != null;
+    } catch (NotFoundException ex) {
+      return false;
+    }
   }
 
   @Override

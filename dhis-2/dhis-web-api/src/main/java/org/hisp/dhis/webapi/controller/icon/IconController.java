@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -147,9 +148,7 @@ public class IconController {
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
       throws IOException, NotFoundException {
-    if (!iconService.iconExists(key)) {
-      throw new NotFoundException(String.format("Icon with key %s not found", key));
-    }
+    if (!iconService.iconExists(key)) throw new NotFoundException(Icon.class, key);
 
     String location = response.encodeRedirectURL("/icons/" + key + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
@@ -190,12 +189,7 @@ public class IconController {
 
   private void downloadIconFile(Icon icon, HttpServletResponse response)
       throws NotFoundException, WebMessageException {
-    FileResource fileResource =
-        fileResourceService.getFileResource(icon.getFileResource().getUid());
-
-    if (fileResource == null) {
-      throw new NotFoundException(FileResource.class, icon.getFileResource().getUid());
-    }
+    FileResource fileResource = icon.getFileResource();
 
     response.setContentType(fileResource.getContentType());
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
@@ -208,6 +202,8 @@ public class IconController {
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+    } catch (NoSuchElementException ex) {
+      throw new NotFoundException(Icon.class, icon.getKey());
     } catch (IOException e) {
       log.error("Could not retrieve file.", e);
       throw new WebMessageException(
