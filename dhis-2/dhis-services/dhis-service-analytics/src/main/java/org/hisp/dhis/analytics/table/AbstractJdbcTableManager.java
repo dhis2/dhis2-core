@@ -334,16 +334,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected abstract void populateTable(
       AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  protected abstract boolean hasUpdatedLatestData(Date startDate, Date endDate);
-
   // -------------------------------------------------------------------------
   // Protected supportive methods
   // -------------------------------------------------------------------------

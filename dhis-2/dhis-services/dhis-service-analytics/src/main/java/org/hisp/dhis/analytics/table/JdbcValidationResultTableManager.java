@@ -29,7 +29,8 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
@@ -132,11 +133,6 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   @Override
   public boolean validState() {
     return tableIsNotEmpty("validationresult");
-  }
-
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
   }
 
   @Override

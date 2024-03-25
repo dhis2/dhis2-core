@@ -203,19 +203,19 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-    \s from enrollment pi \
-    inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
-    and tei.deleted is false \
-    and tei.trackedentitytypeid =${teiId} \
-    and tei.lastupdated < '${startTime}' \
-    left join program p on p.programid = pi.programid \
-    left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
-    left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-    where exists ( select 1 from event psi where psi.deleted is false \
-    and psi.enrollmentid = pi.enrollmentid \
-    and psi.status in (${statuses})) \
-    and pi.occurreddate is not null \
-    and pi.deleted is false\s""",
+        \s from enrollment pi \
+        inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
+        and tei.deleted is false \
+        and tei.trackedentitytypeid =${teiId} \
+        and tei.lastupdated < '${startTime}' \
+        left join program p on p.programid = pi.programid \
+        left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+        where exists ( select 1 from event psi where psi.deleted is false \
+        and psi.enrollmentid = pi.enrollmentid \
+        and psi.status in (${statuses})) \
+        and pi.occurreddate is not null \
+        and pi.deleted is false\s""",
                 Map.of(
                     "teiId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
@@ -223,18 +223,5 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), tableName);
-  }
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
   }
 }
