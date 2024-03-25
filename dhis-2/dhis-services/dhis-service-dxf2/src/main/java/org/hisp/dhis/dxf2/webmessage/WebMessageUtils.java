@@ -278,9 +278,9 @@ public final class WebMessageUtils {
     message.setErrorCode(errorCode);
     message.setMessage(errorCode.getMessage());
     if (StringUtils.isNotBlank(sqlState)) {
-      message.setDevMessage("SqlState: " + sqlState);
       message.setMessage(message.getMessage() + " (SqlState: " + sqlState + ")");
     }
+    message.setDevMessage(ex.getMessage());
     return message;
   }
 
