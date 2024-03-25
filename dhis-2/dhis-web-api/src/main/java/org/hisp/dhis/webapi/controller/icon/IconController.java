@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -202,8 +201,6 @@ public class IconController {
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
-    } catch (NoSuchElementException ex) {
-      throw new NotFoundException(Icon.class, icon.getKey());
     } catch (IOException e) {
       log.error("Could not retrieve file.", e);
       throw new WebMessageException(
