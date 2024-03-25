@@ -47,6 +47,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -155,7 +156,7 @@ public class IconController {
 
   @PostMapping
   public WebMessage addIcon(HttpServletRequest request, @CurrentUser User user)
-      throws IOException, BadRequestException, NotFoundException, SQLException {
+      throws IOException, BadRequestException, NotFoundException, ConflictException {
     CustomIconRequest customIconRequest =
         renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
     Icon icon = iconMapper.to(customIconRequest);

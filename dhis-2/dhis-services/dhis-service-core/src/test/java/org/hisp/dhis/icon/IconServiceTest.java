@@ -43,6 +43,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
@@ -63,11 +64,12 @@ class IconServiceTest extends DhisConvenienceTest {
 
   @Mock private FileResourceService fileResourceService;
 
+  @Mock private FileResourceContentStore fileResourceContentStore;
+
   @Spy @InjectMocks private DefaultIconService iconService;
 
   @Test
-  void shouldSaveIconWhenIconHasNoDuplicatedKeyAndFileResourceExists()
-      throws BadRequestException, NotFoundException, SQLException {
+  void shouldSaveIconWhenIconHasNoDuplicatedKeyAndFileResourceExists() throws Exception {
     String uniqueKey = "key";
     String fileResourceUid = "12345";
     FileResource fileResource = createFileResource('A', "file".getBytes());
@@ -209,10 +211,9 @@ class IconServiceTest extends DhisConvenienceTest {
 
   @Test
   void shouldFailWhenDeletingNonExistingIcon() {
-    String key = "non-existent-icon";
     Icon nonExistentIcon =
         createIcon('I', Set.of("k1", "k2"), createFileResource('F', "123".getBytes()));
-    nonExistentIcon.setKey(key);
+    nonExistentIcon.setKey("non-existent-icon");
 
     when(iconStore.getIconByKey(anyString())).thenReturn(null);
 
@@ -220,7 +221,6 @@ class IconServiceTest extends DhisConvenienceTest {
         assertThrows(
             NotFoundException.class, () -> iconService.deleteIcon(nonExistentIcon.getKey()));
 
-    String expectedMessage = String.format("Icon not found: %s", key);
-    assertEquals(expectedMessage, exception.getMessage());
+    assertEquals("Icon with id non-existent-icon could not be found.", exception.getMessage());
   }
 }

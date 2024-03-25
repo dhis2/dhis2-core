@@ -118,7 +118,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public void save(Icon icon) throws SQLException {
+  public void save(Icon icon) {
     String sql =
         """
             INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom)

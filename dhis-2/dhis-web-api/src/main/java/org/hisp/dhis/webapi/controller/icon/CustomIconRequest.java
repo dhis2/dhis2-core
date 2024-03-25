@@ -41,11 +41,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 class CustomIconRequest {
 
-  @JsonProperty private String key;
+  @JsonProperty(required = true)
+  private String key;
 
   @JsonProperty private String description;
-
   @JsonProperty private Set<String> keywords = new HashSet<>();
 
-  @JsonProperty private String fileResourceId;
+  @JsonProperty(required = true)
+  private String fileResourceId;
 }

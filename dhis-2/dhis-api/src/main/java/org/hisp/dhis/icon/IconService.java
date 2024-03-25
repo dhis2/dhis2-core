@@ -94,8 +94,10 @@ public interface IconService {
    * @throws BadRequestException when an icon already exists with the same key or the file resource
    *     id is not specified
    * @throws NotFoundException when no file resource with the provided id exists
+   * @throws BadRequestException when another icon with the same key already exists
+   * @throws ConflictException when no file resource is provided
    */
-  void addIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException, SQLException;
+  void addIcon(@Nonnull Icon icon) throws BadRequestException, NotFoundException, ConflictException;
 
   /**
    * Updated the provided icon

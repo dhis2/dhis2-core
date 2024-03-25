@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -133,11 +132,14 @@ public class DefaultIconService implements IconService {
   public Icon getIcon(String key) throws NotFoundException {
     Icon icon = iconStore.getIconByKey(key);
     if (icon == null) throw new NotFoundException(Icon.class, key);
-    FileResource fr = icon.getFileResource();
-    if (fr == null) throw new NotFoundException(Icon.class, key);
-    if (!fileResourceContentStore.fileResourceContentExists(fr.getStorageKey()))
-      throw new NotFoundException(Icon.class, key);
+    checkFileExists(icon, icon.getFileResource());
     return icon;
+  }
+
+  private void checkFileExists(Icon icon, FileResource fr) throws NotFoundException {
+    if (fr == null) throw new NotFoundException(Icon.class, icon.getKey());
+    if (!fileResourceContentStore.fileResourceContentExists(fr.getStorageKey()))
+      throw new NotFoundException(Icon.class, icon.getKey());
   }
 
   @Override
@@ -153,7 +155,7 @@ public class DefaultIconService implements IconService {
   @Override
   @Transactional
   public void addIcon(@Nonnull Icon icon)
-      throws BadRequestException, NotFoundException, SQLException {
+      throws BadRequestException, NotFoundException, ConflictException {
 
     if (icon.getOrigin() == null && !icon.isCustom()) {
       throw new BadRequestException("Not allowed to create default icon");
@@ -162,11 +164,14 @@ public class DefaultIconService implements IconService {
     validateIconDoesNotExists(icon);
     validateIconKey(icon.getKey());
 
-    if (icon.getFileResource() != null) {
-      FileResource fileResource = getFileResource(icon.getFileResource().getUid());
-      fileResource.setAssigned(true);
-      fileResourceService.updateFileResource(fileResource);
-    }
+    FileResource fileResource = icon.getFileResource();
+    if (fileResource == null) throw new ConflictException("Icon requires a file resource");
+
+    FileResource fr = fileResourceService.getFileResource(fileResource.getUid());
+    checkFileExists(icon, fr);
+    icon.setFileResource(fr);
+    fr.setAssigned(true);
+    fileResourceService.updateFileResource(fr);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (currentUser != null) {
@@ -207,10 +212,11 @@ public class DefaultIconService implements IconService {
       throw new BadRequestException("Not allowed to delete default icon");
     }
 
-    FileResource fileResource = getFileResource(icon.getFileResource().getUid());
-    fileResource.setAssigned(false);
-    fileResourceService.updateFileResource(fileResource);
-
+    FileResource fr = icon.getFileResource();
+    if (fr != null) {
+      fr.setAssigned(false);
+      fileResourceService.updateFileResource(fr);
+    }
     iconStore.delete(icon);
   }
 
@@ -247,21 +253,6 @@ public class DefaultIconService implements IconService {
     }
 
     validateIconKey(key);
-  }
-
-  private FileResource getFileResource(String fileResourceUid)
-      throws BadRequestException, NotFoundException {
-    if (Strings.isNullOrEmpty(fileResourceUid)) {
-      throw new BadRequestException("FileResource id not specified.");
-    }
-
-    Optional<FileResource> fileResource =
-        fileResourceService.getFileResource(fileResourceUid, ICON);
-    if (fileResource.isEmpty()) {
-      throw new NotFoundException(String.format("FileResource %s does not exist", fileResourceUid));
-    }
-
-    return fileResource.get();
   }
 
   private Icon validateIconExists(String key) throws NotFoundException, BadRequestException {

@@ -37,7 +37,7 @@ public interface IconStore {
    *
    * @param icon to persist
    */
-  void save(Icon icon) throws SQLException;
+  void save(Icon icon);
 
   /**
    * Remove {@link Icon}

@@ -96,8 +96,7 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldGetIconsMatchingILikeKeyOrKeywords()
-      throws SQLException, BadRequestException, NotFoundException {
+  void shouldGetIconsMatchingILikeKeyOrKeywords() throws Exception {
     Icon icon1 = createIcon('I', keywords, createAndPersistFileResource('I'));
     Icon icon2 = createIcon('J', keywords, createAndPersistFileResource('J'));
     Icon icon3 = createIcon('J', Set.of("corona-ward"), createAndPersistFileResource('K'));
@@ -119,7 +118,7 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldSaveIconWithNoKeywords() throws BadRequestException, NotFoundException, SQLException {
+  void shouldSaveIconWithNoKeywords() throws Exception {
     FileResource fileResource = createAndPersistFileResource('D');
 
     Icon iconWithNoKeywords = new Icon("iconKey2", "description", null, true, fileResource);
