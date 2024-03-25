@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -240,9 +239,52 @@ class DorisSqlBuilderTest {
 
   @Test
   void testDropCatalogIfExists() {
-    String expected = """
-        drop catalog if exists `pg_dhis`;""";
+    String expected = "drop catalog if exists `pg_dhis`;";
 
     assertEquals(expected, sqlBuilder.dropCatalogIfExists());
   }
+  
+  @Test
+  void testRenameTable()
+  {
+    Table table = getTableA();
+    
+    String expected = """
+        alter table `immunization` rename `immunization_main`;""";
+    
+    assertEquals(expected, sqlBuilder.renameTable(table, "immunization_main"));
+  }
+
+  @Test
+  void testDropTableIfExists() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testDropTableIfExistsString() {
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
+  }
+
+  @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
 }
