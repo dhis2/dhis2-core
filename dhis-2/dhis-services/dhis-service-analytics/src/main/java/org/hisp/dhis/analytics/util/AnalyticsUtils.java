@@ -1153,8 +1153,10 @@ public class AnalyticsUtils {
    * @param original original sql string
    * @param replacement the replacement content
    */
-  public static String replaceStringBetween(String original, String startToken, String endToken, String replacement) {
-    Pattern pattern =  Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
+  public static String replaceStringBetween(
+      String original, String startToken, String endToken, String replacement) {
+    Pattern pattern =
+        Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
     Matcher matcher = pattern.matcher(original);
     return matcher.replaceAll(startToken + replacement + endToken);
   }
