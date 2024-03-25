@@ -29,19 +29,72 @@ package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.Column;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 class DorisSqlBuilderTest {
   private final SqlBuilder sqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
 
+  private Table getTableA() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("data", DataType.CHARACTER_11, Nullable.NOT_NULL),
+            new Column("period", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("created", DataType.TIMESTAMP),
+            new Column("user", DataType.JSONB),
+            new Column("value", DataType.DOUBLE));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("immunization", columns, primaryKey, Logged.LOGGED);
+  }
+
+  private Table getTableB() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("facility_type", DataType.VARCHAR_255, Nullable.NULL, Collation.C),
+            new Column("bcg_doses", DataType.DOUBLE));
+
+    List<String> checks = List.of("\"id\">0", "\"bcg_doses\">0");
+
+    return new Table("vaccination", columns, List.of(), checks, Logged.UNLOGGED);
+  }
+
+  private Table getTableC() {
+    List<Column> columns =
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("vitamin_a", DataType.BIGINT),
+            new Column("vitamin_d", DataType.BIGINT));
+
+    List<String> primaryKey = List.of("id");
+
+    return new Table("nutrition", columns, primaryKey, List.of(), Logged.LOGGED, getTableB());
+  }
+
   // Data types
 
   @Test
-  void testDataType() {
+  void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
     assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+  }
+
+  // Index types
+
+  @Test
+  void testIndexTypes() {
+    assertThrows(UnsupportedOperationException.class, () -> sqlBuilder.indexTypeBtree());
   }
 
   // Capabilities
@@ -54,31 +107,6 @@ class DorisSqlBuilderTest {
   @Test
   void testSupportsVacuum() {
     assertFalse(sqlBuilder.supportsVacuum());
-  }
-
-  @Test
-  void testSingleQuote() {
-    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
-    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
-    assertEquals("'Status \"not checked\"'", sqlBuilder.singleQuote("Status \"not checked\""));
-  }
-
-  @Test
-  void testEscape() {
-    assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
-    assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
-    assertEquals("C:\\\\Downloads\\\\File.doc", sqlBuilder.escape("C:\\Downloads\\File.doc"));
-  }
-
-  @Test
-  void testSinqleQuotedCommaDelimited() {
-    assertEquals(
-        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
-        sqlBuilder.singleQuotedCommaDelimited(
-            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
-    assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
-    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(List.of()));
-    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
   }
 
   // Utilities
@@ -106,10 +134,83 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testQuoteAx() {
+    assertEquals(
+        "ax.`Treated ``malaria`` at facility`",
+        sqlBuilder.quoteAx("Treated `malaria` at facility"));
+    assertEquals("ax.`quarterly`", sqlBuilder.quoteAx("quarterly"));
+    assertEquals("ax.`Fully immunized`", sqlBuilder.quoteAx("Fully immunized"));
+  }
+
+  @Test
+  void testSingleQuote() {
+    assertEquals("'jkhYg65ThbF'", sqlBuilder.singleQuote("jkhYg65ThbF"));
+    assertEquals("'Age ''<5'' years'", sqlBuilder.singleQuote("Age '<5' years"));
+    assertEquals("'Status \"not checked\"'", sqlBuilder.singleQuote("Status \"not checked\""));
+  }
+
+  @Test
+  void testEscape() {
+    assertEquals("Age group ''under 5'' years", sqlBuilder.escape("Age group 'under 5' years"));
+    assertEquals("Level ''high'' found", sqlBuilder.escape("Level 'high' found"));
+    assertEquals("C:\\\\Downloads\\\\File.doc", sqlBuilder.escape("C:\\Downloads\\File.doc"));
+  }
+
+  @Test
+  void testSinqleQuotedCommaDelimited() {
+    assertEquals(
+        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
+        sqlBuilder.singleQuotedCommaDelimited(
+            List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
+    assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(List.of()));
+    assertEquals("", sqlBuilder.singleQuotedCommaDelimited(null));
+  }
+
+  @Test
   void testQualifyTable() {
     assertEquals("pg_dhis.public.`category`", sqlBuilder.qualifyTable("category"));
     assertEquals(
         "pg_dhis.public.`categories_options`", sqlBuilder.qualifyTable("categories_options"));
+  }
+
+  // Statements
+
+  @Test
+  void testCreateTableA() {
+    Table table = getTableA();
+
+    String expected =
+        """
+        create table `immunization` (`id` bigint not null, \
+        `data` char(11) not null, `period` varchar(50) not null, \
+        `created` datetime null, `user` json null, `value` double null) \
+        engine = olap \
+        duplicate key (`id`) \
+        distributed by hash(`id`) \
+        buckets 10 \
+        properties ("replication_num" = "1");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
+  }
+
+  // void testCreateTableB()
+
+  @Test
+  void testCreateTableC() {
+    Table table = getTableC();
+
+    String expected =
+        """
+        create table `nutrition` (`id` bigint not null, \
+        `vitamin_a` bigint null, `vitamin_d` bigint null) \
+        engine = olap \
+        duplicate key (`id`) \
+        distributed by hash(`id`) \
+        buckets 10 \
+        properties ("replication_num" = "1");""";
+
+    assertEquals(expected, sqlBuilder.createTable(table));
   }
 
   @Test
@@ -136,9 +237,50 @@ class DorisSqlBuilderTest {
 
   @Test
   void testDropCatalogIfExists() {
-    String expected = """
-        drop catalog if exists `pg_dhis`;""";
+    String expected = "drop catalog if exists `pg_dhis`;";
 
     assertEquals(expected, sqlBuilder.dropCatalogIfExists());
+  }
+
+  @Test
+  void testRenameTable() {
+    Table table = getTableA();
+
+    String expected = """
+        alter table `immunization` rename `immunization_main`;""";
+
+    assertEquals(expected, sqlBuilder.renameTable(table, "immunization_main"));
+  }
+
+  @Test
+  void testDropTableIfExists() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists(table));
+  }
+
+  @Test
+  void testDropTableIfExistsString() {
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
+  }
+
+  @Test
+  void testDropTableIfExistsCascade() {
+    Table table = getTableA();
+
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
+  }
+
+  @Test
+  void testDropTableIfExistsCascadeString() {
+    String expected = "drop table if exists `immunization`;";
+
+    assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
   }
 }

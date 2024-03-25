@@ -109,7 +109,7 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
           and igsm.indicatorgroupsetid = ${groupSetId} \
           where igm.indicatorid = i.indicatorid limit 1) as ${groupSetName}, \
           (
-          select ig.uid from ${indicatorgroup ig \
+          select ig.uid from ${indicatorgroup} ig \
           inner join ${indicatorgroupmembers} igm on igm.indicatorgroupid = ig.indicatorgroupid \
           inner join ${indicatorgroupsetmembers} igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
           and igsm.indicatorgroupsetid = ${groupSetId} \

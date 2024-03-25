@@ -179,10 +179,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replace(
             """
             select dv.dataelementid \
-            from datavalue dv \
+            from ${datavalue} dv \
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
             limit 1;""",
-            Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
+            Map.of(
+                "startDate", toLongDate(startDate),
+                "endDate", toLongDate(endDate),
+                "datavalue", qualify("datavalue")));
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
 
@@ -203,17 +206,21 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             delete from ${tableName} ax \
             where ax.id in ( \
               select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
-              from datavalue dv \
-              inner join dataelement de on dv.dataelementid=de.dataelementid \
-              inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-              inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
-              inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-              inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+              from ${datavalue} dv \
+              inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
+			  inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+			  inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
+			  inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+			  inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
               where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
-                "tableName", quote(getAnalyticsTableType().getTableName()),
+                "tableName", qualify(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
-                "endDate", toLongDate(partition.getEndDate())));
+                "endDate", toLongDate(partition.getEndDate()),
+                "datavalue", qualify("datavalue"),
+                "dataelement", qualify("dataelement"),
+                "organisationunit", qualify("organisationunit"),
+                "categoryoptioncombo", qualify("categoryoptioncombo")));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }
@@ -320,25 +327,25 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalSelectExpression} \
+            ${approvalSelectExpression} \
             as approvallevel, \
             ${valueExpression} * ps.daysno as daysxvalue, \
-             ps.daysno as daysno, \
+            ps.daysno as daysno, \
             ${valueExpression} as value, \
             ${textValueExpression} as textvalue \
-            from datavalue dv \
-            inner join period pe on dv.periodid=pe.periodid \
+            from ${datavalue} dv \
+            inner join ${period} pe on dv.periodid=pe.periodid \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            left join periodtype pt on pe.periodtypeid = pt.periodtypeid \
-            inner join dataelement de on dv.dataelementid=de.dataelementid \
+            left join ${periodtype} pt on pe.periodtypeid = pt.periodtypeid \
+            inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
             inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
+            inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
             and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
-            inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-            inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+            inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
@@ -346,7 +353,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
-                "textValueExpression", textValueExpression)));
+                "textValueExpression", textValueExpression,
+                "datavalue", qualify("datavalue"),
+                "period", qualify("period"),
+                "periodtype", qualify("periodtype"),
+                "dataelement", qualify("dataelement"),
+                "organisationunit", qualify("organisationunit"),
+                "categoryoptioncombo", qualify("categoryoptioncombo"))));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());
@@ -583,11 +596,17 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             replace(
                 """
             select distinct(extract(year from pe.startdate)) \
-            from datavalue dv \
-            inner join period pe on dv.periodid=pe.periodid \
+            from ${datavalue} dv \
+            inner join ${period} pe on dv.periodid=pe.periodid \
             where pe.startdate is not null \
             and dv.lastupdated < '${startTime}'\s""",
-                Map.of("startTime", toLongDate(params.getStartTime()))));
+                Map.of(
+                    "startTime",
+                    toLongDate(params.getStartTime()),
+                    "datavalue",
+                    qualify("datavalue"),
+                    "period",
+                    qualify("period"))));
 
     if (params.getFromDate() != null) {
       sql.append(
