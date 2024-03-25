@@ -59,6 +59,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -121,7 +122,7 @@ import org.springframework.util.Assert;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsUtils {
+public final class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 
   private static final String KEY_AGG_VALUE = "[aggregated]";
@@ -1144,5 +1145,19 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  /**
+   * Retrieves the sql string with content replacement between for example select and from
+   *
+   * @param original original sql string
+   * @param replacement the replacement content
+   */
+  public static String replaceStringBetween(
+      String original, String startToken, String endToken, String replacement) {
+    Pattern pattern =
+        Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
+    Matcher matcher = pattern.matcher(original);
+    return matcher.replaceAll(startToken + replacement + endToken);
   }
 }

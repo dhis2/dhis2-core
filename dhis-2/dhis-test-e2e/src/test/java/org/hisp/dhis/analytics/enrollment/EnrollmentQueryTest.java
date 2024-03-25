@@ -61,7 +61,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             .add("stage=A03MvHHogjR")
             .add("displayProperty=NAME")
             .add("outputType=ENROLLMENT")
-            .add("asc=A03MvHHogjR.UXz7xuGCEhU")
+            .add("asc=A03MvHHogjR.UXz7xuGCEhU,lastupdated")
             .add("totalPages=false")
             .add("pageSize=100")
             .add("page=1")
@@ -160,50 +160,6 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         response,
         0,
         List.of(
-            "EbRsJr8LSSO",
-            "oi3PMIGYJH8",
-            "2022-07-02 02:00:00.0",
-            "2022-07-08 02:00:00.0",
-            "",
-            "",
-            "",
-            "2017-07-23 12:45:49.807",
-            "",
-            "",
-            "",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "DiszpKrYNg8",
-            "1231.0"));
-
-    validateRow(
-        response,
-        1,
-        List.of(
-            "XeuUO4RbQEb",
-            "AivS67mcmKY",
-            "2022-06-01 02:00:00.0",
-            "2022-05-01 02:00:00.0",
-            "",
-            "",
-            "",
-            "2017-11-15 17:48:49.132",
-            "",
-            "",
-            "",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "ACTIVE",
-            "DiszpKrYNg8",
-            "1234.0"));
-
-    validateRow(
-        response,
-        2,
-        List.of(
             "KxXkjF6buFN",
             "uhubxsfLanV",
             "2022-04-02 02:00:00.0",
@@ -221,6 +177,50 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "COMPLETED",
             "DiszpKrYNg8",
             "2313.0"));
+
+    validateRow(
+        response,
+        1,
+        List.of(
+            "xieBMWGVUhY",
+            "Ss42PAKPV4p",
+            "2022-01-09 12:05:00.0",
+            "2022-01-09 12:05:00.0",
+            "",
+            "",
+            "",
+            "2018-08-06 21:15:40.207",
+            "",
+            "",
+            "",
+            "Sienga CHP",
+            "Sierra Leone / Kailahun / Dea / Sienga CHP",
+            "OU_204921",
+            "ACTIVE",
+            "a1E6QWBTEwX",
+            "2500.0"));
+
+    validateRow(
+        response,
+        2,
+        List.of(
+            "B5X5DWgtrSu",
+            "bB8bbcI5hQO",
+            "2022-07-18 12:05:00.0",
+            "2022-07-18 12:05:00.0",
+            "",
+            "",
+            "",
+            "2018-08-06 21:15:41.333",
+            "",
+            "",
+            "",
+            "Masumana MCHP",
+            "Sierra Leone / Port Loko / Koya / Masumana MCHP",
+            "OU_254965",
+            "ACTIVE",
+            "UlgEReuUPM4",
+            "2500.0"));
   }
 
   @Test

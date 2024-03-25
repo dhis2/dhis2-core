@@ -35,7 +35,6 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
-import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
@@ -173,7 +172,7 @@ public class MetadataParamsHandler {
   private MetadataItem getMetadataWithCustomLabel(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
 
-    String customLabel = getCustomLabelOrHeaderColumnName(dimensionIdentifier, false);
+    String customLabel = getCustomLabelOrHeaderColumnName(dimensionIdentifier, false, true);
 
     MetadataItem metadataItem = new MetadataItem(customLabel);
     metadataItem.setDimensionType(
@@ -184,14 +183,6 @@ public class MetadataParamsHandler {
 
   private static Entry<String, Object> asEntryWithFullPrefix(
       DimensionIdentifier<DimensionParam> dimensionIdentifier, Entry<String, Object> entry) {
-    if (entry.getValue() instanceof MetadataItem metadataItem) {
-      MetadataItem clone =
-          new MetadataItem(
-              joinedWithPrefixesIfNeeded(dimensionIdentifier, metadataItem.getName(), false));
-      clone.setDimensionType(metadataItem.getDimensionType());
-      clone.setValueType(metadataItem.getValueType());
-      return Map.entry(dimensionIdentifier.getKeyNoOffset(), clone);
-    }
     return Map.entry(dimensionIdentifier.getKeyNoOffset(), entry.getValue());
   }
 

@@ -36,19 +36,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
@@ -136,47 +133,6 @@ class CsvMetadataImportTest extends SingleSetupIntegrationTestBase {
     assertEquals(3, optionSets.get(1).getOptions().size());
     assertEquals(3, optionSets.get(2).getOptions().size());
     assertEquals(3, optionSets.get(3).getOptions().size());
-  }
-
-  @Test
-  void testOptionSetMerge() throws IOException {
-    // Import 1 OptionSet with 3 Options
-    ImportReport importReport = runImport("metadata/optionSet_add.csv", CsvImportClass.OPTION_SET);
-    assertEquals(4, importReport.getStats().getCreated());
-    // Send payload with 2 new Options
-    importReport =
-        runImport(
-            "metadata/optionSet_update.csv",
-            CsvImportClass.OPTION_SET,
-            null,
-            params -> params.setMergeMode(MergeMode.MERGE));
-    assertEquals(2, importReport.getStats().getCreated());
-    OptionSet optionSet = optionService.getOptionSetByCode("COLOR");
-    // Total 5 options added
-    assertEquals(5, optionSet.getOptions().size());
-  }
-
-  @Test
-  void testOptionSetMergeDuplicate() throws IOException {
-    // Import 1 OptionSet with 3 Options
-    ImportReport importReport = runImport("metadata/optionSet_add.csv", CsvImportClass.OPTION_SET);
-    assertEquals(4, importReport.getStats().getCreated());
-    // Send payload with 5 Options, 2 new and 3 old from above
-    importReport =
-        runImport(
-            "metadata/optionSet_update_duplicate.csv",
-            CsvImportClass.OPTION_SET,
-            null,
-            params -> {
-              params.setIdentifier(PreheatIdentifier.CODE);
-              params.setMergeMode(MergeMode.MERGE);
-            });
-    // Only 2 new Options are added
-    assertEquals(2, importReport.getStats().getCreated());
-    OptionSet optionSet = optionService.getOptionSetByCode("COLOR");
-    // Total 5 Options added
-    List<Option> options = optionSet.getOptions();
-    assertEquals(5, options.size());
   }
 
   @Test

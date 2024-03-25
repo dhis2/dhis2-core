@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPOR
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -248,6 +249,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
     List<AnalyticsTableColumn> columns = new ArrayList<>(getFixedColumns());
 
+    String selectExpression =
+        """
+        \s exists(select 1 from enrollment pi_0 \
+        where pi_0.trackedentityid = tei.trackedentityid \
+        and pi_0.programid = ${programId})""";
+
     // Review this logic, it could result in many columns
     CollectionUtils.emptyIfNull(programsByTetUid.get(tet.getUid()))
         .forEach(
@@ -256,11 +263,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                     new AnalyticsTableColumn(
                         program.getUid(),
                         BOOLEAN,
-                        " exists(select 1 from enrollment pi_0"
-                            + " where pi_0.trackedentityid = tei.trackedentityid"
-                            + " and pi_0.programid = "
-                            + program.getId()
-                            + ")")));
+                        replace(
+                            selectExpression,
+                            Map.of("programId", String.valueOf(program.getId()))))));
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         programsByTetUid.containsKey(tet.getUid())
@@ -297,25 +302,25 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String castBasedOnType(ValueType valueType, String columnName) {
     if (valueType.isDecimal()) {
-      return "cast(" + columnName + " as double precision)";
+      return replace(" cast(${columnName} as double precision)", Map.of("columnName", columnName));
     }
     if (valueType.isInteger()) {
-      return "cast(" + columnName + " as bigint)";
+      return replace(" cast(${columnName} as bigint)", Map.of("columnName", columnName));
     }
     if (valueType.isBoolean()) {
-      return "case when "
-          + columnName
-          + " = 'true' then 1 when "
-          + columnName
-          + " = 'false' then 0 end";
+      return replace(
+          " case when ${columnName} = 'true' then 1 when ${columnName} = 'false' then 0 end ",
+          Map.of("columnName", columnName));
     }
     if (valueType.isDate()) {
-      return "cast(" + columnName + " as timestamp)";
+      return replace(" cast(${columnName} as timestamp)", Map.of("columnName", columnName));
     }
     if (valueType.isGeo() && isSpatialSupport()) {
-      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
-          + columnName
-          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+      return replace(
+          """
+    \s ST_GeomFromGeoJSON('{"type":"Point", "coordinates":' || (${columnName}) || ',
+    "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}')""",
+          Map.of("columnName", columnName));
     }
     return columnName;
   }
@@ -383,59 +388,45 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
-        .append(" from trackedentity tei")
-        .append(" left join organisationunit ou on tei.organisationunitid = ou.organisationunitid")
         .append(
-            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
-        .append(
-            " left join analytics_rs_organisationunitgroupsetstructure ougs "
-                + "on tei.organisationunitid = ougs.organisationunitid "
-                + "and (cast(date_trunc('month', tei.created) as date) = ougs.startdate "
-                + "or ougs.startdate is null)");
+            """
+      \s from trackedentity tei \
+      left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
+      left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+      left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
+      and (cast(date_trunc('month', tei.created) as date) = ougs.startdate \
+      or ougs.startdate is null)""");
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
         .forEach(
             tea ->
                 sql.append(
-                    " left join trackedentityattributevalue \""
-                        + tea.getUid()
-                        + "\""
-                        + " on \""
-                        + tea.getUid()
-                        + "\".trackedentityid = tei.trackedentityid"
-                        + " and \""
-                        + tea.getUid()
-                        + "\".trackedentityattributeid = "
-                        + tea.getId()));
-
-    sql.append(" where tei.trackedentitytypeid = " + trackedEntityType.getId())
-        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
-        .append(
-            " and exists ( select 1 from enrollment pi"
-                + " where pi.trackedentityid = tei.trackedentityid"
-                + " and exists ( select 1 from event psi"
-                + " where psi.enrollmentid = pi.enrollmentid"
-                + " and psi.status in ("
-                + join(",", EXPORTABLE_EVENT_STATUSES)
-                + ")"
-                + " and psi.deleted is false  ) )")
-        .append(" and tei.created is not null ")
-        .append(" and tei.deleted is false");
+                    replace(
+                        """
+                    \s left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
+                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
+                        Map.of(
+                            "teaUid", tea.getUid(),
+                            "teaId", String.valueOf(tea.getId())))));
+    sql.append(
+        replace(
+            """
+      \s where tei.trackedentitytypeid = ${tetId} \
+      and tei.lastupdated < '${startTime}' \
+      and exists (select 1 from enrollment pi \
+      where pi.trackedentityid = tei.trackedentityid \
+      and exists (select 1 from event psi \
+      where psi.enrollmentid = pi.enrollmentid \
+      and psi.status in (${statuses}) \
+      and psi.deleted is false)) \
+      and tei.created is not null \
+      and tei.deleted is false""",
+            Map.of(
+                "tetId", String.valueOf(trackedEntityType.getId()),
+                "startTime", toLongDate(params.getStartTime()),
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), tableName);
-  }
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
   }
 }

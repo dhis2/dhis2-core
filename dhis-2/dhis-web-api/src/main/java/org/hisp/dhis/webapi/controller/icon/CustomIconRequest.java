@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.webapi.controller.icon;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.AndCondition;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
+@Builder
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+class CustomIconRequest {
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValueIndicator extends BaseRenderable {
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+  @JsonProperty private String key;
 
-  @Override
-  @Nonnull
-  public String render() {
-    return AndCondition.of(
-                List.of(
-                    IsNotNullCondition.of(
-                        () -> doubleQuote(dimensionIdentifier.getProgram().toString())),
-                    IsNotNullCondition.of(
-                        () -> doubleQuote(dimensionIdentifier.getPrefix()) + "::varchar"),
-                    Field.of(
-                        doubleQuote(dimensionIdentifier.getPrefix()),
-                        () -> "eventdatavalues",
-                        EMPTY)))
-            .render()
-        + " ::jsonb ?? '"
-        + dimensionIdentifier.getDimension().getUid()
-        + "'";
-  }
+  @JsonProperty private String description;
+
+  @JsonProperty private Set<String> keywords = new HashSet<>();
+
+  @JsonProperty private String fileResourceId;
 }

@@ -27,16 +27,78 @@
  */
 package org.hisp.dhis.icon;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
 
-public interface Icon {
-  String getKey();
+/** Custom icons are uploaded by users and can be modified and deleted. */
+@Getter
+@Setter
+@Accessors(chain = true)
+@NoArgsConstructor
+@JacksonXmlRootElement(localName = "Icon", namespace = DxfNamespaces.DXF_2_0)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Icon implements Serializable {
 
-  String getDescription();
+  public static final String DEFAULT_FIELDS_PARAM = "key,description,keywords,href";
 
-  String[] getKeywords();
+  @EqualsAndHashCode.Include @JsonProperty private String key;
 
-  Date getCreated();
+  @JsonProperty private String description;
 
-  Date getLastUpdated();
+  @JsonProperty private Set<String> keywords = new HashSet<>();
+
+  @JsonProperty private boolean custom = true;
+
+  @JsonProperty private Date created;
+  @JsonProperty private Date lastUpdated;
+  @JsonProperty private User createdBy;
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  private FileResource fileResource;
+
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  private transient String href;
+
+  @JsonIgnore private transient DefaultIcon origin;
+
+  public Icon(
+      String key,
+      String description,
+      Set<String> keywords,
+      boolean custom,
+      FileResource fileResource) {
+    this.key = key;
+    this.description = description;
+    this.keywords = keywords;
+    this.custom = custom;
+    this.fileResource = fileResource;
+    this.setAutoFields();
+  }
+
+  public void setAutoFields() {
+
+    Date date = new Date();
+
+    if (created == null) {
+      created = date;
+    }
+
+    setLastUpdated(date);
+  }
 }

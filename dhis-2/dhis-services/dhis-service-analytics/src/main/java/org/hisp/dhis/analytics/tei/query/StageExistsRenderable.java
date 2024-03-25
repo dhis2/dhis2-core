@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,55 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.Date;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
-/** Custom icons are uploaded by users and can be modified and deleted. */
-@Getter
-@Setter
-@NoArgsConstructor
-@EqualsAndHashCode(of = {"key", "description", "keywords", "fileResourceUid", "createdByUserUid"})
-public class CustomIcon implements Icon {
-  private String key;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
 
-  private String description;
+@RequiredArgsConstructor(staticName = "of")
+public class StageExistsRenderable extends BaseRenderable {
 
-  private String[] keywords;
+  private static final String VARCHAR = "::varchar";
+  private final DimensionIdentifier<DimensionParam> dimId;
 
-  private String fileResourceUid;
-
-  private String createdByUserUid;
-
-  private Date created;
-
-  private Date lastUpdated;
-
-  public CustomIcon(
-      String key,
-      String description,
-      String[] keywords,
-      String fileResourceUid,
-      String createdByUserUid) {
-    this.key = key;
-    this.description = description;
-    this.keywords = keywords;
-    this.fileResourceUid = fileResourceUid;
-    this.createdByUserUid = createdByUserUid;
-    this.setAutoFields();
-  }
-
-  public void setAutoFields() {
-    Date date = new Date();
-
-    if (created == null) {
-      created = date;
-    }
-
-    lastUpdated = date;
+  @Override
+  @Nonnull
+  public String render() {
+    return AndCondition.of(
+            IsNotNullCondition.of(() -> doubleQuote(dimId.getProgram().toString()) + VARCHAR),
+            IsNotNullCondition.of(() -> doubleQuote(dimId.getPrefix()) + VARCHAR))
+        .render();
   }
 }

@@ -226,15 +226,24 @@ public class CommonParams {
    * @return the list of dimension identifiers
    */
   public List<DimensionIdentifier<DimensionParam>> getAllDimensionIdentifiers() {
-    return Stream.of(
-            dimensionIdentifiers.stream(),
-            parsedHeaders.stream(),
-            orderParams.stream().map(AnalyticsSortingParams::getOrderBy))
-        .flatMap(Function.identity())
+    return streamDimensions()
         .collect(Collectors.groupingBy(DimensionIdentifier::getKeyNoOffset))
         .values()
         .stream()
         .map(identifiers -> identifiers.get(0))
         .toList();
+  }
+
+  /**
+   * Gets a stream of all dimension identifiers, including parsed headers and order parameters.
+   *
+   * @return the stream of dimension identifiers
+   */
+  public Stream<DimensionIdentifier<DimensionParam>> streamDimensions() {
+    return Stream.of(
+            dimensionIdentifiers.stream(),
+            parsedHeaders.stream(),
+            orderParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .flatMap(Function.identity());
   }
 }

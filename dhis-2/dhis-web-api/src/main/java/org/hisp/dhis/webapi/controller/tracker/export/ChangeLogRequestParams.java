@@ -40,7 +40,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class ChangeLogRequestParams {
+public class ChangeLogRequestParams implements FieldsRequestParam {
 
   private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 

@@ -113,7 +113,7 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -338,7 +338,9 @@ public class UserController extends AbstractCrudController<User> {
 
     validateInviteUser(user, currentUser);
 
-    return postObject(inviteUser(user, currentUser, request));
+    ObjectReport objectReport = inviteUser(user, currentUser, request);
+
+    return postObject(objectReport);
   }
 
   @PostMapping(value = BULK_INVITE_PATH, consumes = APPLICATION_JSON_VALUE)
@@ -395,7 +397,7 @@ public class UserController extends AbstractCrudController<User> {
 
     if (!userService.sendRestoreOrInviteMessage(
         user,
-        ContextUtils.getContextPath(request),
+        HttpServletRequestPaths.getContextPath(request),
         userService.getRestoreOptions(user.getRestoreToken()))) {
       throw new WebMessageException(error("Failed to send invite message"));
     }
@@ -424,7 +426,9 @@ public class UserController extends AbstractCrudController<User> {
 
     userService.prepareUserForInvite(user);
     userService.sendRestoreOrInviteMessage(
-        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION);
+        user,
+        HttpServletRequestPaths.getContextPath(request),
+        RestoreOptions.RECOVER_PASSWORD_OPTION);
   }
 
   @SuppressWarnings("unchecked")
@@ -794,7 +798,7 @@ public class UserController extends AbstractCrudController<User> {
         && importReport.getStats().getCreated() == 1
         && objectReport != null) {
       userService.sendRestoreOrInviteMessage(
-          user, ContextUtils.getContextPath(request), restoreOptions);
+          user, HttpServletRequestPaths.getContextPath(request), restoreOptions);
 
       log.info(String.format("An invite email was successfully sent to: %s", user.getEmail()));
     }
