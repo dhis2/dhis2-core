@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
@@ -70,6 +71,18 @@ public interface AnalyticsTableManager {
    */
   default boolean validState() {
     return true;
+  }
+
+  /**
+   * Indicates whether data was created or updated for the given time range since last successful
+   * "latest" table partition update.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return true if updated data exists, false if not.
+   */
+  default boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+    return false;
   }
 
   /**

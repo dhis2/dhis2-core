@@ -32,7 +32,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -136,11 +135,6 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
   @Override
   public boolean validState() {
     return tableIsNotEmpty("event");
-  }
-
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    throw new IllegalStateException("This method should never be invoked");
   }
 
   /**

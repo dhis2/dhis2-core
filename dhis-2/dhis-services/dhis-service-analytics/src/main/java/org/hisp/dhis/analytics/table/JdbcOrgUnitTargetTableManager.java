@@ -121,11 +121,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
-
-  @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
@@ -153,10 +148,10 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     sql +=
         """
-            from orgunitgroupmembers ougm
-            inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
-            left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-            left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
+        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
     invokeTimeAndLog(sql, tableName);
   }

@@ -638,7 +638,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
-    // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
@@ -666,7 +665,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
-    // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
@@ -686,7 +684,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a SQL expression
    */
   private static String firstIfNotNullOrElse(String first, String second) {
-    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
+    return "case when " + first + " is not null then " + first + " else " + second + " end";
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
