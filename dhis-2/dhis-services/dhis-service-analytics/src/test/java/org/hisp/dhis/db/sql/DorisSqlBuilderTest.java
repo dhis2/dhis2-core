@@ -195,7 +195,12 @@ class DorisSqlBuilderTest {
 
   @Test
   void testCreateTableB() {
-    // TODO
+    // Complete this test
+    String expected =
+        """
+        """;
+    
+    assertEquals(expected, "");
   }
 
   @Test
