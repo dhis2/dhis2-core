@@ -94,8 +94,7 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
         coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
         from dataelement de \
         inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
-        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
-        """,
+        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
             "tableName",
             toStaging(TABLE_NAME));
 
