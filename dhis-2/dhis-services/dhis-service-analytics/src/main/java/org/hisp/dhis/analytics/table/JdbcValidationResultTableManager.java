@@ -169,18 +169,26 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        replace(
+        replaceQualify(
             """
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
-            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            inner join validationrule vr on vr.validationruleid=vrs.validationruleid
-            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
+            inner join ${analytics_rs_periodstructure} ps on vrs.periodid=ps.periodid
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid
+            inner join ${analytics_rs_organisationunitgroupsetstructure} ougs on vrs.organisationunitid=ougs.organisationunitid
             and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null)
-            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
-            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
+            left join ${analytics_rs_orgunitstructure} ous on vrs.organisationunitid=ous.organisationunitid
+            inner join ${analytics_rs_categorystructure} acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
+            List.of(
+                "validationresult",
+                "period",
+                "analytics_rs_periodstructure",
+                "validationrule",
+                "analytics_rs_organisationunitgroupsetstructure",
+                "analytics_rs_orgunitstructure",
+                "analytics_rs_categorystructure"),
             Map.of(
                 "startTime",
                 toLongDate(params.getStartTime()),
@@ -198,14 +206,15 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 "and pe.startdate >= '${fromDate}'",
                 Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     String sql =
-        replace(
+        replaceQualify(
             """
             select distinct(extract(year from pe.startdate))
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             where pe.startdate is not null
             and vrs.created < '${startTime}'
             ${fromDateClause}""",
+            List.of("validationresult", "period"),
             Map.of(
                 "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 
