@@ -192,17 +192,14 @@ public class IconController {
       throws NotFoundException, WebMessageException {
     FileResource fileResource =
         fileResourceService.getFileResource(icon.getFileResource().getUid());
-
     if (fileResource == null) {
       throw new NotFoundException(FileResource.class, icon.getFileResource().getUid());
     }
 
     response.setContentType(fileResource.getContentType());
-    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    response.setHeader(
-        HttpHeaders.CONTENT_LENGTH,
-        String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
+    response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileResource.getContentLength()));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
