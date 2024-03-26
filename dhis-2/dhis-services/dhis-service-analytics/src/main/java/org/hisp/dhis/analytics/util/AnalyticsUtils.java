@@ -195,7 +195,7 @@ public final class AnalyticsUtils {
     }
 
     sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.deleted = false " + "limit 100000";
+    sql += "and dv.deleted = false limit 100000";
 
     return sql;
   }

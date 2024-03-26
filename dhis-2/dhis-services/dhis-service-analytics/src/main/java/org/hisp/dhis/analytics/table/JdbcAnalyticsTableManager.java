@@ -629,7 +629,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update ${partitionName} set ");
+    StringBuilder sql = new StringBuilder("update ${tableName} set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
       int level = i + 1;
@@ -650,7 +650,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replace(
             sql.toString(),
             Map.of(
-                "partitionName", table.getName(),
+                "tableName", table.getName(),
                 "aggregationLevel", String.valueOf(aggregationLevel),
                 "dataElements", quotedCommaDelimitedString(dataElements)));
 

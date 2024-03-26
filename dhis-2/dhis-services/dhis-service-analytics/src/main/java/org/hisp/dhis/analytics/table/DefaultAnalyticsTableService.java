@@ -289,9 +289,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @param tables the list of {@link Table}.
    * @param progress the {@link JobProgress}.
    */
-  private void analyzeTables(List<? extends Table> partitions, JobProgress progress) {
+  private void analyzeTables(List<? extends Table> tables, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(), partitions, Table::getName, tableManager::analyzeTable);
+        getParallelJobs(), tables, Table::getName, tableManager::analyzeTable);
   }
 
   /**

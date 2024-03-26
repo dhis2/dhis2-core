@@ -116,8 +116,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-// import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */

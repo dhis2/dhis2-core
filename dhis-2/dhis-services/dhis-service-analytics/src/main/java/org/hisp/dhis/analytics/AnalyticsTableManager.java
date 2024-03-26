@@ -163,7 +163,7 @@ public interface AnalyticsTableManager {
   /**
    * Performs a vacuum operation on the given table.
    *
-   * @param name the {@Table}.
+   * @param table the {@Table}.
    */
   void vacuumTable(Table table);
 
@@ -177,7 +177,10 @@ public interface AnalyticsTableManager {
   /**
    * Applies aggregation level logic to the given table.
    *
-   * @param table the {@Table}.
+   * <p><<<<<<< HEAD
+   *
+   * @param table the {@Table}. =======
+   * @param table the {@link Table}. >>>>>>> master
    * @param dataElements the data element identifiers to apply aggregation levels for.
    * @param aggregationLevel the aggregation level.
    */
