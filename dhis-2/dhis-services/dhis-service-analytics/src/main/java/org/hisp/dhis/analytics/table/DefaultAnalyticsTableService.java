@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -225,9 +226,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @return the number of aggregation levels applied for data elements.
    */
   private int applyAggregationLevels(
-      AnalyticsTableType tableType,
-      List<AnalyticsTablePartition> partitions,
-      JobProgress progress) {
+      AnalyticsTableType tableType, List<? extends Table> tables, JobProgress progress) {
     int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
 
     int aggLevels = 0;
@@ -241,11 +240,11 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
       if (!dataElements.isEmpty()) {
         progress.startingStage(
-            "Applying aggregation level " + level + " " + tableType, partitions.size());
+            "Applying aggregation level " + level + " " + tableType, tables.size());
         progress.runStageInParallel(
             getParallelJobs(),
-            partitions,
-            AnalyticsTablePartition::getName,
+            tables,
+            Table::getName,
             partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
 
         aggLevels += dataElements.size();
@@ -255,25 +254,37 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     return aggLevels;
   }
 
-  /** Creates indexes on the given analytics tables. */
+  /**
+   * Creates indexes on the given tables.
+   *
+   * @param indexes the list of {@link Index}.
+   * @param progress the {@link JobProgress}.
+   */
   private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
         getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
-  /** Vacuums the given analytics tables. */
-  private void vacuumTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
+  /**
+   * Vacuums the given tables.
+   *
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
+   */
+  private void vacuumTables(List<? extends Table> tables, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(), partitions, AnalyticsTablePartition::getName, tableManager::vacuumTable);
+        getParallelJobs(), tables, Table::getName, tableManager::vacuumTable);
   }
 
-  /** Analyzes the given analytics tables. */
-  private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
+  /**
+   * Analyzes the given tables.
+   *
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
+   */
+  private void analyzeTables(List<? extends Table> tables, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(),
-        partitions,
-        AnalyticsTablePartition::getName,
-        tableManager::analyzeTable);
+        getParallelJobs(), tables, Table::getName, tableManager::analyzeTable);
   }
 
   /**
