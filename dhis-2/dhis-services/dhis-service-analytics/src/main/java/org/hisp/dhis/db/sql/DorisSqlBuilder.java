@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
@@ -220,6 +221,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createTable(Table table) {
+    Validate.isTrue(table.hasPrimaryKey() || table.hasColumns());
+
     StringBuilder sql =
         new StringBuilder("create table ").append(quote(table.getName())).append(" ");
 
@@ -241,6 +244,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Primary key
 
     if (table.hasPrimaryKey()) {
+      // If primary key exists, use it as keys with the unique model
       sql.append("unique key (");
 
       for (String columnName : table.getPrimaryKey()) {
@@ -249,6 +253,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
       removeLastComma(sql).append(") ");
     } else if (table.hasColumns()) {
+      // If columns exist, use first as key with the duplicate model
       String key = quote(table.getFirstColumn().getName());
 
       sql.append("duplicate key (").append(key).append(") ");
@@ -288,6 +293,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return sql.append(";").toString();
   }
 
+  /**
+   * Returns the distribution key. Uses the first primary key column name if any exists, or the
+   * first column name if any exists, otherwise null.
+   *
+   * @param table {@link Table}.
+   */
   private String getDistKey(Table table) {
     if (table.hasPrimaryKey()) {
       return table.getFirstPrimaryKey();
