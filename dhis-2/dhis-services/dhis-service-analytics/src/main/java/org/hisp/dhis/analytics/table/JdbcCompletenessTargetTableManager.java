@@ -77,6 +77,8 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
           new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"));
 
+  private static final List<String> PRIMARY_KEY = List.of("dx"); // Add id column
+
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -118,7 +120,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), PRIMARY_KEY, logged));
   }
 
   @Override

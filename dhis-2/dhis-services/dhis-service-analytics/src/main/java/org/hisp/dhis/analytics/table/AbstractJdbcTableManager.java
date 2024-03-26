@@ -356,14 +356,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected AnalyticsTable getRegularAnalyticsTable(
       AnalyticsTableUpdateParams params,
       List<Integer> dataYears,
-      List<AnalyticsTableColumn> columns) {
+      List<AnalyticsTableColumn> columns,
+      List<String> primaryKey) {
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, primaryKey, logged);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -384,7 +385,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param columns the list of {@link AnalyticsTableColumn}.
    */
   protected AnalyticsTable getLatestAnalyticsTable(
-      AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> columns) {
+      AnalyticsTableUpdateParams params,
+      List<AnalyticsTableColumn> columns,
+      List<String> primaryKey) {
     Date lastFullTableUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
     Date lastLatestPartitionUpdate =
@@ -400,7 +403,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, primaryKey, logged);
 
     if (hasUpdatedData) {
       table.addTablePartition(

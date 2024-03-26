@@ -81,6 +81,8 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
 
+  private static final List<String> PRIMARY_KEY = List.of("dx"); // Add id column
+
   public JdbcValidationResultTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -120,8 +122,9 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, List.of(), Logged.LOGGED)
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
+            ? new AnalyticsTable(
+                AnalyticsTableType.VALIDATION_RESULT, List.of(), List.of(), Logged.LOGGED)
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), PRIMARY_KEY);
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }

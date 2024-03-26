@@ -59,10 +59,12 @@ class AnalyticsTableTest {
           new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
           new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
 
+  private final List<String> primaryKeyA = List.of("id");
+
   @Test
   void testGetTableNameDataValue() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, primaryKeyA, Logged.UNLOGGED);
     assertEquals("analytics", table.getMainName());
     assertEquals("analytics_temp", table.getName());
   }
@@ -70,7 +72,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameCompleteness() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, primaryKeyA, Logged.UNLOGGED);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
   }
@@ -78,7 +80,8 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameValidationResult() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(
+            AnalyticsTableType.VALIDATION_RESULT, columnsA, primaryKeyA, Logged.UNLOGGED);
     assertEquals("analytics_validationresult", table.getMainName());
     assertEquals("analytics_validationresult_temp", table.getName());
   }
@@ -114,8 +117,10 @@ class AnalyticsTableTest {
             new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "value"),
             new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
 
+    List<String> primaryKey = List.of("dx");
+
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, primaryKey, Logged.UNLOGGED);
 
     assertEquals(3, table.getDimensionColumns().size());
     assertEquals("dx", table.getDimensionColumns().get(0).getName());
@@ -153,9 +158,9 @@ class AnalyticsTableTest {
   @Test
   void testEquals() {
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, primaryKeyA, Logged.UNLOGGED);
     AnalyticsTable tableB =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, primaryKeyA, Logged.UNLOGGED);
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);
