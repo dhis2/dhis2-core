@@ -32,6 +32,8 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
+
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,7 +46,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -57,9 +58,7 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
   private final int organisationUnitLevels;
 
   public OrganisationUnitGroupSetResourceTable(
-      Logged logged,
-      List<OrganisationUnitGroupSet> groupSets,
-      int organisationUnitLevels) {
+      Logged logged, List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels) {
     super(logged);
     this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;

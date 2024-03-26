@@ -32,10 +32,14 @@ import static java.util.Comparator.reverseOrder;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+
+import com.google.common.collect.Lists;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -72,9 +76,6 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -185,8 +186,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     checkYearsOffset(availableYears);
     resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(
-            analyticsTableSettings.getTableLogged(), availableYears));
+        new DatePeriodResourceTable(analyticsTableSettings.getTableLogged(), availableYears));
   }
 
   @Override
@@ -206,8 +206,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   public void generateDataApprovalRemapLevelTable() {
     resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(
-            analyticsTableSettings.getTableLogged()));
+        new DataApprovalRemapLevelResourceTable(analyticsTableSettings.getTableLogged()));
   }
 
   @Override
