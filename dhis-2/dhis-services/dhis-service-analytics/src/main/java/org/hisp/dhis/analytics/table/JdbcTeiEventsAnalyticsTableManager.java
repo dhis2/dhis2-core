@@ -262,8 +262,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
    * @param partition the {@link AnalyticsTablePartition} to populate.
    */
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);

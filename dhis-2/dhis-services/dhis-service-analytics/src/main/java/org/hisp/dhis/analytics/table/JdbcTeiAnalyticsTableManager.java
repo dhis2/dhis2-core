@@ -368,8 +368,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();

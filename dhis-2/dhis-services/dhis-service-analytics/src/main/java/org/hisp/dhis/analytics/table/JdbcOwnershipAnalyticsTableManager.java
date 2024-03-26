@@ -156,8 +156,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     Program program = partition.getMasterTable().getProgram();

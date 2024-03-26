@@ -410,8 +410,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);

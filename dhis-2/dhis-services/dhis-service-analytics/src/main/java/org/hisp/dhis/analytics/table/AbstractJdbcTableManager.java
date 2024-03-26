@@ -270,12 +270,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void populateTablePartition(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    populateTable(params, partition);
-  }
-
-  @Override
   public int invokeAnalyticsTableSqlHooks() {
     AnalyticsTableType type = getAnalyticsTableType();
     List<AnalyticsTableHook> hooks =
@@ -330,15 +324,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return the list of table partition checks.
    */
   protected abstract List<String> getPartitionChecks(Integer year, Date endDate);
-
-  /**
-   * Populates the given analytics table.
-   *
-   * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the {@link AnalyticsTablePartition} to populate.
-   */
-  protected abstract void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
   // -------------------------------------------------------------------------
   // Protected supportive methods
