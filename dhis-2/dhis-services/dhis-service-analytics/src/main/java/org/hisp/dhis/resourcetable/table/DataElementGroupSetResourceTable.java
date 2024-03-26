@@ -31,8 +31,6 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,8 +41,8 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -55,8 +53,8 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
   private final List<DataElementGroupSet> groupSets;
 
   public DataElementGroupSetResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<DataElementGroupSet> groupSets) {
-    super(sqlBuilder, logged);
+      Logged logged, List<DataElementGroupSet> groupSets) {
+    super(logged);
     this.groupSets = groupSets;
   }
 

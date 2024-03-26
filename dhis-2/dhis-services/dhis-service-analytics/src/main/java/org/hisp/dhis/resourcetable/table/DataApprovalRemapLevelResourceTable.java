@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,7 +37,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
@@ -60,8 +58,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
-  public DataApprovalRemapLevelResourceTable(SqlBuilder sqlBuilder, Logged logged) {
-    super(sqlBuilder, logged);
+  public DataApprovalRemapLevelResourceTable(Logged logged) {
+    super(logged);
   }
 
   @Override

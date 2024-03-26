@@ -28,8 +28,6 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,12 +40,12 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -57,8 +55,8 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
 
   private final List<Integer> years;
 
-  public DatePeriodResourceTable(SqlBuilder sqlBuilder, Logged logged, List<Integer> years) {
-    super(sqlBuilder, logged);
+  public DatePeriodResourceTable(Logged logged, List<Integer> years) {
+    super(logged);
     this.years = years;
   }
 
