@@ -133,19 +133,20 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   @Override
   public boolean validState() {
-    return tableIsNotEmpty("completedatasetregistration");
+    return tableIsNotEmpty(qualify("completedatasetregistration"));
   }
 
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
-        replace(
+        replaceQualify(
             """
         select cdr.datasetid \
-            from completedatasetregistration cdr \
+            from ${completedatasetregistration} cdr \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}' \
             limit 1;""",
+            List.of("completedatasetregistration"),
             Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
