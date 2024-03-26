@@ -44,7 +44,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import junit.framework.AssertionFailedError;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -263,7 +262,7 @@ class IconTest extends TrackerTest {
       String fileResourceUid = fileResourceService.syncSaveFileResource(fileResource, content);
       return fileResourceService.getFileResource(fileResourceUid);
     } catch (Exception ex) {
-      throw new AssertionFailedError(ex.getMessage());
+      throw new RuntimeException(ex.getMessage());
     }
   }
 
