@@ -39,6 +39,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -137,8 +138,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    String sql = replace(
-        """
+    String sql =
+        replace(
+            """
         select cdr.datasetid \
             from completedatasetregistration cdr \
             where cdr.lastupdated >= '${startDate}' \
@@ -165,7 +167,12 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}');""",
-            List.of("completedatasetregistration", "dataset", "analytics_rs_periodstructure", "organisationunit", "categoryoptioncombo"),
+            List.of(
+                "completedatasetregistration",
+                "dataset",
+                "analytics_rs_periodstructure",
+                "organisationunit",
+                "categoryoptioncombo"),
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -223,7 +230,15 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ${partitionClause} \
             and cdr.lastupdated < '${startTime}' \
             and cdr.completed = true""",
-            List.of("completedatasetregistration", "dataset", "period", "analytics_rs_periodstructure", "organisationunit", "analytics_rs_organisationunitgroupsetstructure", "analytics_rs_categorystructure", "categoryoptioncombo"),
+            List.of(
+                "completedatasetregistration",
+                "dataset",
+                "period",
+                "analytics_rs_periodstructure",
+                "organisationunit",
+                "analytics_rs_organisationunitgroupsetstructure",
+                "analytics_rs_categorystructure",
+                "categoryoptioncombo"),
             Map.of(
                 "partitionClause",
                 partitionClause,
