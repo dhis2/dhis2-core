@@ -31,7 +31,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
@@ -221,8 +220,6 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String createTable(Table table) {
-    Validate.isTrue(table.hasPrimaryKey());
-
     StringBuilder sql =
         new StringBuilder("create table ").append(quote(table.getName())).append(" ");
 
@@ -244,19 +241,23 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     // Primary key
 
     if (table.hasPrimaryKey()) {
-      sql.append("duplicate key (");
+      sql.append("unique key (");
 
       for (String columnName : table.getPrimaryKey()) {
         sql.append(quote(columnName) + ", ");
       }
 
       removeLastComma(sql).append(") ");
+    } else if (table.hasColumns()) {
+      String key = quote(table.getFirstColumn().getName());
+
+      sql.append("duplicate key (").append(key).append(") ");
     }
 
     // Partitions
 
     if (table.hasPartitions()) {
-      sql.append("partition by range(year) (");
+      sql.append("partition by range(year) ("); // Make configurable
 
       for (TablePartition partition : table.getPartitions()) {
         sql.append("partition ")
@@ -271,9 +272,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
     // Distribution
 
-    if (table.hasPrimaryKey()) {
+    if (table.hasPrimaryKey() || table.hasColumns()) {
+      String distKey = getDistKey(table);
+
       sql.append("distributed by hash(")
-          .append(quote(table.getFirstPrimaryKey()))
+          .append(quote(distKey))
           .append(") ")
           .append("buckets 10 "); // Verify this
     }
@@ -283,6 +286,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     sql.append("properties (\"replication_num\" = \"1\")");
 
     return sql.append(";").toString();
+  }
+
+  private String getDistKey(Table table) {
+    if (table.hasPrimaryKey()) {
+      return table.getFirstPrimaryKey();
+    } else if (table.hasColumns()) {
+      return table.getFirstColumn().getName();
+    }
+
+    return null;
   }
 
   @Override
