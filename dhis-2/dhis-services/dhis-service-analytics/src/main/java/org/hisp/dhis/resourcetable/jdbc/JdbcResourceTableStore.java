@@ -74,9 +74,9 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
     log.info("Generating resource table: '{}'", tableName);
 
-    jdbcTemplate.execute(sqlBuilder.dropTableIfExists(stagingTable));
+    dropTable(stagingTable);
 
-    jdbcTemplate.execute(sqlBuilder.createTable(stagingTable));
+    createTable(stagingTable);
 
     populateTable(resourceTable, stagingTable);
 
@@ -91,6 +91,28 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
     log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
+  }
+
+  /**
+   * Drops the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void dropTable(Table table) {
+    String sql = sqlBuilder.dropTableIfExists(table);
+    log.info("Drop table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Creates the given table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void createTable(Table table) {
+    String sql = sqlBuilder.createTable(table);
+    log.info("Create table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
   }
 
   /**
