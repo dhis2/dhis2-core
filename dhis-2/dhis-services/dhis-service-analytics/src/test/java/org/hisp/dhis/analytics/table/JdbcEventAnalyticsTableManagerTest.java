@@ -761,7 +761,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + getDateLinkedToStatus()
-                + ") > '1000-01-01' and psi.deleted is false ) "
+                + ") > '1000-01-01' and psi.deleted = false ) "
                 + "as temp where temp.supportedyear >= "
                 + startYear
                 + " and temp.supportedyear <= "
@@ -942,7 +942,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + getDateLinkedToStatus()
-                + ") > '1000-01-01' and psi.deleted is false and ("
+                + ") > '1000-01-01' and psi.deleted = false and ("
                 + getDateLinkedToStatus()
                 + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= "
@@ -1001,7 +1001,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + getDateLinkedToStatus()
             + ") is not null and ("
             + getDateLinkedToStatus()
-            + ") > '1000-01-01' and psi.deleted is false ";
+            + ") > '1000-01-01' and psi.deleted = false ";
 
     if (withExecutionDate) {
       sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";
