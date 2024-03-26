@@ -97,8 +97,7 @@ class AnalyticsIndexHelperTest {
   private AnalyticsTable stubAnalyticsTable() {
     List<AnalyticsTableColumn> columns =
         List.of(new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE));
-    List<String> primaryKey = List.of("column");
 
-    return new AnalyticsTable(EVENT, columns, primaryKey, Logged.UNLOGGED);
+    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
   }
 }

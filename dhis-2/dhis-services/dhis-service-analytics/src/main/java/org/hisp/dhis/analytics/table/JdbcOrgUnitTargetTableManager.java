@@ -71,8 +71,6 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(new AnalyticsTableColumn("oug", CHARACTER_11, NOT_NULL, "oug.uid"));
 
-  private static final List<String> PRIMARY_KEY = List.of("oug");
-
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -114,7 +112,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), PRIMARY_KEY, logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
   }
 
   @Override

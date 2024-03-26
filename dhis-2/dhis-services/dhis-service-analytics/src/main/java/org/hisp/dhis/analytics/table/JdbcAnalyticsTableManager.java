@@ -117,8 +117,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
           new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"));
 
-  private static final List<String> PRIMARY_KEY = List.of("id");
-
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -163,9 +161,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getColumns(params), PRIMARY_KEY)
-            : getRegularAnalyticsTable(
-                params, getDataYears(params), getColumns(params), PRIMARY_KEY);
+            ? getLatestAnalyticsTable(params, getColumns(params))
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(params));
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }

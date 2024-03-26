@@ -80,8 +80,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"));
 
-  private static final List<String> PRIMARY_KEY = List.of("id");
-
   public JdbcCompletenessTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
@@ -122,8 +120,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     AnalyticsTable table =
         params.isLatestUpdate()
-            ? getLatestAnalyticsTable(params, getColumns(), PRIMARY_KEY)
-            : getRegularAnalyticsTable(params, getDataYears(params), getColumns(), PRIMARY_KEY);
+            ? getLatestAnalyticsTable(params, getColumns())
+            : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasTablePartitions() ? List.of(table) : List.of();
   }

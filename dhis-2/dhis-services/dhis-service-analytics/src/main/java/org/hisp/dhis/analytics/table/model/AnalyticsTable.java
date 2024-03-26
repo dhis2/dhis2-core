@@ -73,15 +73,11 @@ public class AnalyticsTable extends Table {
    *
    * @param tableType the {@link AnalyticsTableType}.
    * @param columns the list of {@link Column}.
-   * @param primaryKey the primary key.
    * @param logged the {@link Logged} property.
    */
   public AnalyticsTable(
-      AnalyticsTableType tableType,
-      List<AnalyticsTableColumn> columns,
-      List<String> primaryKey,
-      Logged logged) {
-    super(toStaging(tableType.getTableName()), toColumns(columns), primaryKey, logged);
+      AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
+    super(toStaging(tableType.getTableName()), toColumns(columns), List.of(), logged);
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
   }
