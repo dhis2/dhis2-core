@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -152,14 +154,25 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        """
-        from analytics_rs_datasetorganisationunitcategory doc
-        inner join dataset ds on doc.datasetid=ds.datasetid
-        inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid
-        left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
-        left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
-        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""";
+        replace(
+            """
+        from ${analytics_rs_datasetorganisationunitcategory} doc
+        inner join ${dataset} ds on doc.datasetid=ds.datasetid
+        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid
+        left join ${analytics_rs_orgunitstructure} ous on doc.organisationunitid=ous.organisationunitid
+        left join ${analytics_rs_organisationunitgroupsetstructure} ougs on doc.organisationunitid=ougs.organisationunitid
+        left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
+        left join ${analytics_rs_categorystructure} acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid;""",
+            Map.of(
+                "analytics_rs_datasetorganisationunitcategory",
+                    qualify("analytics_rs_datasetorganisationunitcategory"),
+                "dataset", qualify("dataset"),
+                "organisationunit", qualify("organisationunit"),
+                "analytics_rs_orgunitstructure", qualify("analytics_rs_orgunitstructure"),
+                "analytics_rs_organisationunitgroupsetstructure",
+                    qualify("analytics_rs_organisationunitgroupsetstructure"),
+                "categoryoptioncombo", qualify("categoryoptioncombo"),
+                "analytics_rs_categorystructure", qualify("analytics_rs_categorystructure")));
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }

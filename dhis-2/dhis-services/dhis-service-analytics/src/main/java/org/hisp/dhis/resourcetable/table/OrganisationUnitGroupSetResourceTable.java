@@ -129,25 +129,22 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
             replace(
                 """
             (
-            select oug.name from ${orgunitgroup} oug \
-            inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            select oug.name from orgunitgroup oug \
+            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
             and ougsm.orgunitgroupsetid = ${groupSetId} \
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetName}, \
             (
-            select oug.uid from ${orgunitgroup} oug \
-            inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            select oug.uid from orgunitgroup oug \
+            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
             and ougsm.orgunitgroupsetid = ${groupSetId} \
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
             """,
                 Map.of(
                     "groupSetId", valueOf(groupSet.getId()),
                     "groupSetName", quote(groupSet.getName()),
-                    "groupSetUid", quote(groupSet.getUid()),
-                    "orgunitgroup", qualify("orgunitgroup"),
-                    "orgunitgroupmembers", qualify("orgunitgroupmembers"),
-                    "orgunitgroupsetmembers", qualify("orgunitgroupsetmembers")));
+                    "groupSetUid", quote(groupSet.getUid())));
       } else {
         sql += "coalesce(";
 
@@ -156,18 +153,15 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
               replace(
                   """
               (
-              select oug.name from ${orgunitgroup} oug \
-              inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              select oug.name from orgunitgroup oug \
+              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
-              inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
                       "level", valueOf(i),
-                      "groupSetId", valueOf(groupSet.getId()),
-                      "orgunitgroup", qualify("orgunitgroup"),
-                      "orgunitgroupmembers", qualify("orgunitgroupmembers"),
-                      "orgunitgroupsetmembers", qualify("orgunitgroupsetmembers")));
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
@@ -192,9 +186,9 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
                   Map.of(
                       "level", valueOf(i),
                       "groupSetId", valueOf(groupSet.getId()),
-                      "orgunitgroup", qualify("orgunitgroup"),
-                      "orgunitgroupmembers", qualify("orgunitgroupmembers"),
-                      "orgunitgroupsetmembers", qualify("orgunitgroupsetmembers")));
+                      "orgunitgroup", quote("orgunitgroup"),
+                      "orgunitgroupmembers", quote("orgunitgroupmembers"),
+                      "orgunitgroupsetmembers", quote("orgunitgroupsetmembers")));
         }
 
         if (organisationUnitLevels == 0) {

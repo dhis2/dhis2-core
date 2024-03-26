@@ -159,17 +159,22 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             delete from ${tableName} ax \
             where ax.id in ( \
             select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id \
-            from completedatasetregistration cdr \
-            inner join dataset ds on cdr.datasetid=ds.datasetid \
-            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-            inner join organisationunit ou on cdr.sourceid=ou.organisationunitid \
-            inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
+            from ${completedatasetregistration} cdr \
+            inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
+            inner join ${analytics_rs_periodstructure} ps on cdr.periodid=ps.periodid \
+            inner join ${organisationunit} ou on cdr.sourceid=ou.organisationunitid \
+            inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}');""",
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
-                "endDate", toLongDate(partition.getEndDate())));
+                "endDate", toLongDate(partition.getEndDate()),
+                "completedatasetregistration", qualify("completedatasetregistration"),
+                "dataset", qualify("dataset"),
+                "analytics_rs_periodstructure", qualify("analytics_rs_periodstructure"),
+                "organisationunit", qualify("organisationunit"),
+                "categoryoptioncombo", qualify("categoryoptioncombo")));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }

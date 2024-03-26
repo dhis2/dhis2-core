@@ -208,7 +208,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
             from ${datavalue} dv \
             inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
-            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            inner join ${analytics_rs_periodstructure} ps on dv.periodid=ps.periodid \
             inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
             inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
             inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
@@ -219,6 +219,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "endDate", toLongDate(partition.getEndDate()),
                 "datavalue", qualify("datavalue"),
                 "dataelement", qualify("dataelement"),
+                "analytics_rs_periodstructure", qualify("analytics_rs_periodstructure"),
                 "organisationunit", qualify("organisationunit"),
                 "categoryoptioncombo", qualify("categoryoptioncombo")));
 

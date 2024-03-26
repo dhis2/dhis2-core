@@ -85,20 +85,19 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
         (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
         select da.workflowid, da.periodid, da.organisationunitid, \
         da.attributeoptioncomboid, dal.level as minlevel \
-        from ${dataapproval} da \
+        from dataapproval da \
         inner join analytics_rs_dataapprovalremaplevel dal on \
-        dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid \
-        inner join analytics_rs_orgunitstructure ous on da.organisationunitid=ous.organisationunitid \
+        dal.workflowid = da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid \
+        inner join analytics_rs_orgunitstructure ous on da.organisationunitid = ous.organisationunitid \
         where not exists (
-        select 1 from ${dataapproval} da2 \
+        select 1 from dataapproval da2 \
         inner join analytics_rs_dataapprovalremaplevel dal2 on \
-        da2.workflowid=dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid \
-        where da.workflowid=da2.workflowid \
-        and da.periodid=da2.periodid \
-        and da.attributeoptioncomboid=da2.attributeoptioncomboid \
+        da2.workflowid = dal2.workflowid and da2.dataapprovallevelid = dal2.dataapprovallevelid \
+        where da.workflowid = da2.workflowid \
+        and da.periodid = da2.periodid \
+        and da.attributeoptioncomboid = da2.attributeoptioncomboid \
         and dal.level > dal2.level \
-        and (
-        """;
+        and (""";
 
     for (OrganisationUnitLevel level : levels) {
       sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
@@ -106,8 +105,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
 
     sql = TextUtils.removeLastOr(sql) + "));";
 
-    return Optional.of(
-        replace(sql, "tableName", toStaging(TABLE_NAME), "dataapproval", qualify("dataapproval")));
+    return Optional.of(replace(sql, "tableName", toStaging(TABLE_NAME)));
   }
 
   @Override

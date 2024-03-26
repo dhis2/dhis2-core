@@ -101,25 +101,22 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
           replace(
               """
           (
-          select deg.name from ${dataelementgroup} deg \
-          inner join ${dataelementgroupmembers} degm on degm.dataelementgroupid = deg.dataelementgroupid \
-          inner join ${dataelementgroupsetmembers} degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+          select deg.name from dataelementgroup deg \
+          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
           and degsm.dataelementgroupsetid = ${groupSetId} \
           where degm.dataelementid = d.dataelementid limit 1) as ${groupSetName}, \
           (
-          select deg.uid from ${dataelementgroup} deg \
-          inner join ${dataelementgroupmembers} degm on degm.dataelementgroupid = deg.dataelementgroupid \
-          inner join ${dataelementgroupsetmembers} degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+          select deg.uid from dataelementgroup deg \
+          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
           and degsm.dataelementgroupsetid = ${groupSetId} \
           where degm.dataelementid = d.dataelementid limit 1) as ${groupSetUid}, \
           """,
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
                   "groupSetName", quote(groupSet.getName()),
-                  "groupSetUid", quote(groupSet.getUid()),
-                  "dataelementgroup", qualify("dataelementgroup"),
-                  "dataelementgroupmembers", qualify("dataelementgroupmembers"),
-                  "dataelementgroupsetmembers", qualify("dataelementgroupsetmembers")));
+                  "groupSetUid", quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
