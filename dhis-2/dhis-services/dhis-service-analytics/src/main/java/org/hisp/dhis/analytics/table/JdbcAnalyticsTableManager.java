@@ -70,6 +70,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -627,7 +628,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
+      Table table, Collection<String> dataElements, int aggregationLevel) {
     StringBuilder sql = new StringBuilder("update ${partitionName} set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
@@ -649,7 +650,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replace(
             sql.toString(),
             Map.of(
-                "partitionName", partition.getName(),
+                "partitionName", table.getName(),
                 "aggregationLevel", String.valueOf(aggregationLevel),
                 "dataElements", quotedCommaDelimitedString(dataElements)));
 
