@@ -27,18 +27,24 @@
  */
 package org.hisp.dhis.icon;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
+import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import com.google.common.base.Strings;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
@@ -51,6 +57,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -63,9 +70,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.icon.IconService")
 public class DefaultIconService implements IconService {
 
-  private static final String CUSTOM_ICON_KEY_PATTERN = "^[a-zA-Z0-9_+-]+$";
-
-  private static final Pattern pattern = Pattern.compile(CUSTOM_ICON_KEY_PATTERN);
+  private static final String ICON_KEY_PATTERN_REGEX = "^[a-zA-Z0-9_+-]+$";
+  private static final Pattern ICON_KEY_PATTERN = Pattern.compile(ICON_KEY_PATTERN_REGEX);
 
   private static final String ICON_PATH = "SVGs";
   private static final String MEDIA_TYPE_SVG = "image/svg+xml";
@@ -77,17 +83,18 @@ public class DefaultIconService implements IconService {
 
   private final Set<DefaultIcon> ignoredAfterFailure = ConcurrentHashMap.newKeySet();
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> findNonExistingDefaultIcons() {
+  public Map<DefaultIcon, List<AddIconRequest>> findNonExistingDefaultIcons() {
     Set<String> existingKeys = Set.copyOf(iconStore.getAllKeys());
-    List<Icon> missingIcons = new ArrayList<>();
-    for (DefaultIcon icon : DefaultIcon.values()) {
-      if (!ignoredAfterFailure.contains(icon)
-          && icon.getVariantKeys().stream().anyMatch(key -> !existingKeys.contains(key))) {
-        for (Icon i : icon.toVariantIcons()) {
-          if (!existingKeys.contains(i.getKey())) {
-            missingIcons.add(i);
+    Map<DefaultIcon, List<AddIconRequest>> missingIcons = new HashMap<>();
+    for (DefaultIcon origin : DefaultIcon.values()) {
+      if (!ignoredAfterFailure.contains(origin)
+          && origin.getVariantKeys().stream().anyMatch(key -> !existingKeys.contains(key))) {
+        for (AddIconRequest add : origin.toVariantIcons()) {
+          if (!existingKeys.contains(add.getKey())) {
+            missingIcons.computeIfAbsent(origin, key -> new ArrayList<>(3)).add(add);
           }
         }
       }
@@ -95,56 +102,65 @@ public class DefaultIconService implements IconService {
     return missingIcons;
   }
 
+  @Nonnull
   @Override
   @Transactional
-  public String uploadDefaultIcon(Icon icon) throws ConflictException {
+  public String addDefaultIconImage(@Nonnull String key, @Nonnull DefaultIcon origin)
+      throws ConflictException {
     String fileResourceId = CodeGenerator.generateUid();
-    Resource resource = getDefaultIconResource(icon.getKey());
+    Resource resource = getDefaultIconResource(key);
     try {
-      FileResource fileResource = FileResource.ofKey(ICON, icon.getKey(), MEDIA_TYPE_SVG);
-      fileResource.setUid(fileResourceId);
-      fileResource.setAssigned(true);
+      FileResource fr = FileResource.ofKey(ICON, key, MEDIA_TYPE_SVG);
+      fr.setUid(fileResourceId);
+      fr.setAssigned(true);
       try (InputStream image = resource.getInputStream()) {
-        fileResourceService.syncSaveFileResource(fileResource, image);
+        fileResourceService.syncSaveFileResource(fr, image);
       }
-      icon.setFileResource(fileResource);
       return fileResourceId;
     } catch (IOException ex) {
-      ignoredAfterFailure.add(icon.getOrigin());
+      ignoredAfterFailure.add(origin);
       throw new ConflictException("Failed to create default icon resource: " + ex.getMessage());
     }
   }
 
+  private static Resource getDefaultIconResource(String key) {
+    return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
+  }
+
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public List<Icon> getIcons(IconQueryParams params) {
+  public List<Icon> getIcons(@Nonnull IconQueryParams params) throws BadRequestException {
+    validateQuery(params);
     return iconStore.getIcons(params);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public long count(IconQueryParams params) {
+  public long count(@Nonnull IconQueryParams params) throws BadRequestException {
+    validateQuery(params);
     return iconStore.count(params);
   }
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public Icon getIcon(String key) throws NotFoundException {
+  public Icon getIcon(@Nonnull String key) throws NotFoundException {
     Icon icon = iconStore.getIconByKey(key);
     if (icon == null) throw new NotFoundException(Icon.class, key);
     checkFileExists(icon, icon.getFileResource());
     return icon;
   }
 
-  private void checkFileExists(Icon icon, FileResource fr) throws NotFoundException {
-    if (fr == null) throw new NotFoundException(Icon.class, icon.getKey());
-    if (!fileResourceContentStore.fileResourceContentExists(fr.getStorageKey()))
+  private void checkFileExists(Icon icon, FileResource image) throws NotFoundException {
+    if (image == null) throw new NotFoundException(Icon.class, icon.getKey());
+    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey()))
       throw new NotFoundException(Icon.class, icon.getKey());
   }
 
   @Override
   @Transactional(readOnly = true)
-  public boolean iconExists(String key) {
+  public boolean iconExists(@Nonnull String key) {
     try {
       return getIcon(key) != null;
     } catch (NotFoundException ex) {
@@ -152,76 +168,74 @@ public class DefaultIconService implements IconService {
     }
   }
 
+  @Nonnull
   @Override
-  @Transactional
-  public void addIcon(@Nonnull Icon icon)
-      throws BadRequestException, NotFoundException, ConflictException {
+  public Icon addIcon(@Nonnull AddIconRequest request, @CheckForNull DefaultIcon origin)
+      throws BadRequestException, NotFoundException {
+    validateIconKey(request.getKey());
+    validateIconDoesNotExists(request.getKey());
 
-    if (icon.getOrigin() == null && !icon.isCustom()) {
-      throw new BadRequestException("Not allowed to create default icon");
-    }
+    Icon icon = new Icon();
+    icon.setKey(request.getKey());
+    icon.setDescription(request.getDescription());
+    icon.setKeywords(request.getKeywords());
+    icon.setCustom(origin == null);
 
-    validateIconDoesNotExists(icon);
-    validateIconKey(icon.getKey());
-
-    FileResource fileResource = icon.getFileResource();
-    if (fileResource == null) throw new ConflictException("Icon requires a file resource");
-
-    FileResource fr = fileResourceService.getFileResource(fileResource.getUid());
-    checkFileExists(icon, fr);
-    icon.setFileResource(fr);
-    fr.setAssigned(true);
-    fileResourceService.updateFileResource(fr);
+    FileResource image = fileResourceService.getFileResource(request.getFileResourceId());
+    checkFileExists(icon, image);
+    icon.setFileResource(image);
+    image.setAssigned(true);
+    fileResourceService.updateFileResource(image);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (currentUser != null) {
       icon.setCreatedBy(currentUser);
     }
 
-    if (icon.getKeywords() == null) {
-      icon.setKeywords(Set.of());
-    }
-
     icon.setAutoFields();
     iconStore.save(icon);
+    return icon;
   }
 
   @Override
   @Transactional
-  public void updateIcon(@Nonnull Icon icon) throws BadRequestException, SQLException {
-    if (!icon.isCustom()) {
-      throw new BadRequestException("Not allowed to update default icon");
-    }
+  public void updateIcon(@Nonnull String key, @Nonnull UpdateIconRequest request)
+      throws BadRequestException, NotFoundException {
+    Icon icon = getModifiableIcon(key, "Not allowed to update default icon");
 
-    validateIconKeyNotNullOrEmpty(icon.getKey());
-
-    if (icon.getKeywords() == null) {
-      icon.setKeywords(Set.of());
-    }
-
+    icon.setDescription(request.getDescription());
+    icon.setKeywords(request.getKeywords());
     icon.setAutoFields();
+
     iconStore.update(icon);
   }
 
   @Override
   @Transactional
-  public void deleteIcon(String key) throws BadRequestException, NotFoundException {
-    Icon icon = validateIconExists(key);
+  public void deleteIcon(@Nonnull String key) throws BadRequestException, NotFoundException {
+    Icon icon = getModifiableIcon(key, "Not allowed to delete default icon");
 
-    if (!icon.isCustom()) {
-      throw new BadRequestException("Not allowed to delete default icon");
-    }
-
-    FileResource fr = icon.getFileResource();
-    if (fr != null) {
-      fr.setAssigned(false);
-      fileResourceService.updateFileResource(fr);
+    FileResource image = icon.getFileResource();
+    if (image != null) {
+      image.setAssigned(false);
+      fileResourceService.updateFileResource(image);
     }
     iconStore.delete(icon);
   }
 
+  @Nonnull
+  private Icon getModifiableIcon(@Nonnull String key, String message)
+      throws NotFoundException, BadRequestException {
+    Icon icon = iconStore.getIconByKey(key);
+    if (icon == null) throw new NotFoundException(Icon.class, key);
+    if (!icon.isCustom()) throw new BadRequestException(message);
+    return icon;
+  }
+
   private void validateIconKey(String key) throws BadRequestException {
-    Matcher matcher = pattern.matcher(key.trim());
+    if (Strings.isNullOrEmpty(key)) throw new BadRequestException("Icon key not specified.");
+
+    Matcher matcher = ICON_KEY_PATTERN.matcher(key.trim());
 
     if (!matcher.matches()) {
       throw new BadRequestException(
@@ -231,36 +245,34 @@ public class DefaultIconService implements IconService {
     }
   }
 
-  private void validateIconDoesNotExists(Icon icon) throws BadRequestException {
-    if (icon == null) {
-      throw new BadRequestException("Icon cannot be null.");
-    }
-
-    validateIconDoesNotExists(icon.getKey());
-  }
-
   private void validateIconDoesNotExists(String key) throws BadRequestException {
-    validateIconKeyNotNullOrEmpty(key);
-
-    if (iconExists(key)) {
+    if (iconStore.getIconByKey(key) != null)
       throw new BadRequestException(String.format("Icon with key %s already exists.", key));
-    }
   }
 
-  private void validateIconKeyNotNullOrEmpty(String key) throws BadRequestException {
-    if (Strings.isNullOrEmpty(key)) {
-      throw new BadRequestException("Icon key not specified.");
-    }
+  private void validateQuery(IconQueryParams params) throws BadRequestException {
+    validateDate(params.getCreatedStartDate(), "createdStartDate %s is not valid");
+    validateDate(params.getCreatedEndDate(), "createdEndDate %s is not valid");
+    validateDate(params.getLastUpdatedStartDate(), "lastUpdatedStartDate %s is not valid");
+    validateDate(params.getLastUpdatedEndDate(), "lastUpdatedEndDate %s is not valid");
 
-    validateIconKey(key);
+    validateOrderBy(params);
   }
 
-  private Icon validateIconExists(String key) throws NotFoundException, BadRequestException {
-    validateIconKeyNotNullOrEmpty(key);
-    return getIcon(key);
+  private static void validateOrderBy(IconQueryParams params) throws BadRequestException {
+    List<OrderCriteria> orders = params.getOrder();
+    if (orders == null || orders.isEmpty()) return;
+    Set<String> valid = Set.of("created", "lastUpdated", "key");
+    for (OrderCriteria order : orders)
+      if (!valid.contains(order.getField()))
+        throw new BadRequestException(
+            "Not a valid order property %s, valid are: %s".formatted(order.getField(), valid));
+    if (orders.stream().map(OrderCriteria::getField).collect(toUnmodifiableSet()).size()
+        < orders.size()) throw new BadRequestException("Cannot use same order more than once");
   }
 
-  private static Resource getDefaultIconResource(String key) {
-    return new ClassPathResource(String.format("%s/%s.%s", ICON_PATH, key, DefaultIcon.SUFFIX));
+  private static void validateDate(Date date, String template) throws BadRequestException {
+    if (date != null && !dateTimeIsValid(toLongDate(date)))
+      throw new BadRequestException(String.format(template, date));
   }
 }

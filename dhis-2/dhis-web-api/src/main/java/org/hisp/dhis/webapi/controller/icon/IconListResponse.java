@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,18 @@
 package org.hisp.dhis.webapi.controller.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.Pager;
 
-@Builder
+/**
+ * @author Zubair Asghar
+ */
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
-class CustomIconRequest {
-
-  @JsonProperty(required = true)
-  private String key;
-
-  @JsonProperty private String description;
-  @JsonProperty private Set<String> keywords = new HashSet<>();
-
-  @JsonProperty(required = true)
-  private String fileResourceId;
+public class IconListResponse {
+  @JsonProperty private final Pager pager;
+  @JsonProperty private final List<ObjectNode> icons;
 }

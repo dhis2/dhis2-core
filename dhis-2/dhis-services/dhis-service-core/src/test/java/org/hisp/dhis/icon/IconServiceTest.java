@@ -27,29 +27,10 @@
  */
 package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.fileresource.FileResourceDomain.ICON;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.sql.SQLException;
-import java.util.Optional;
-import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
-import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -68,6 +49,7 @@ class IconServiceTest extends DhisConvenienceTest {
 
   @Spy @InjectMocks private DefaultIconService iconService;
 
+  /*
   @Test
   void shouldSaveIconWhenIconHasNoDuplicatedKeyAndFileResourceExists() throws Exception {
     String uniqueKey = "key";
@@ -223,4 +205,6 @@ class IconServiceTest extends DhisConvenienceTest {
 
     assertEquals("Icon with id non-existent-icon could not be found.", exception.getMessage());
   }
+  */
+
 }

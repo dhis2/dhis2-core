@@ -31,8 +31,10 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.AddIconRequest;
+import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.IconService;
 import org.springframework.stereotype.Component;
 
@@ -91,20 +93,25 @@ public class HousekeepingJob implements Job {
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
 
     progress.startingStage("Finding missing default icons", SKIP_STAGE);
-    List<Icon> missing = progress.runStage(List.of(), iconService::findNonExistingDefaultIcons);
+    Map<DefaultIcon, List<AddIconRequest>> missing =
+        progress.runStage(Map.of(), iconService::findNonExistingDefaultIcons);
     progress.startingStage("Insert default icons", missing.size(), SKIP_ITEM);
-    progress.runStage(missing, Icon::getKey, this::createDefaultIcon);
+    progress.runStage(missing.entrySet(), e -> e.getKey().getKeyPrefix(), this::createDefaultIcon);
 
     progress.completedProcess(null);
   }
 
-  private void createDefaultIcon(Icon icon) {
+  private void createDefaultIcon(Map.Entry<DefaultIcon, List<AddIconRequest>> icons) {
+    icons.getValue().forEach(request -> createDefaultIcon(request, icons.getKey()));
+  }
+
+  private void createDefaultIcon(AddIconRequest request, DefaultIcon origin) {
     try {
       // note that these are split in two to have independent TX boundaries
       // for file resource creation and icon creation
       // to make sure the file upload is complete before creating the icon
-      iconService.uploadDefaultIcon(icon);
-      iconService.addIcon(icon);
+      String fileResourceId = iconService.addDefaultIconImage(request.getKey(), origin);
+      iconService.addIcon(request.toBuilder().fileResourceId(fileResourceId).build(), origin);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

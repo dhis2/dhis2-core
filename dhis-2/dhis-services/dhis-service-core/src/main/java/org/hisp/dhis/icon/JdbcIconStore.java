@@ -34,7 +34,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
@@ -146,7 +145,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public void update(Icon icon) throws SQLException {
+  public void update(Icon icon) {
     String sql =
         """
             update icon set description = :description, keywords = cast(:keywords as jsonb), lastupdated = now() where iconkey = :key
@@ -175,9 +174,7 @@ public class JdbcIconStore implements IconStore {
     sql += orderByQuery(params.getOrder());
 
     if (params.isPaging()) {
-      sql =
-          getPaginatedQuery(
-              params.getPager().getPage(), params.getPager().getPageSize(), sql, parameterSource);
+      sql = getPaginatedQuery(params.getPage(), params.getPageSize(), sql, parameterSource);
     }
 
     return namedParameterJdbcTemplate
@@ -215,10 +212,10 @@ public class JdbcIconStore implements IconStore {
       parameterSource.addValue("createdEndDate", params.getCreatedEndDate(), Types.TIMESTAMP);
     }
 
-    if (params.hasCustom()) {
+    if (params.getType() != IconTypeFilter.ALL) {
       sql += hlp.whereAnd() + " c.custom = :custom ";
 
-      parameterSource.addValue("custom", params.getIncludeCustomIcon(), Types.BOOLEAN);
+      parameterSource.addValue("custom", params.getType() == IconTypeFilter.CUSTOM, Types.BOOLEAN);
     }
 
     if (params.hasKeywords()) {
@@ -291,7 +288,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   private String orderByQuery(List<OrderCriteria> orders) {
-    if (orders.isEmpty()) {
+    if (orders == null || orders.isEmpty()) {
       return " order by " + DEFAULT_ORDER;
     }
 
