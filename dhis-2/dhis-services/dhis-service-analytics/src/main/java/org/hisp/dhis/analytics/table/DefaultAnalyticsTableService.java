@@ -47,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.model.Index;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -226,12 +227,13 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /**
    * Applies aggregation levels to the given analytics tables.
    *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
    * @return the number of aggregation levels applied for data elements.
    */
   private int applyAggregationLevels(
-      AnalyticsTableType tableType,
-      List<AnalyticsTablePartition> partitions,
-      JobProgress progress) {
+      AnalyticsTableType tableType, List<? extends Table> tables, JobProgress progress) {
     int maxLevels = organisationUnitService.getNumberOfOrganisationalLevels();
 
     int aggLevels = 0;
@@ -245,11 +247,11 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
       if (!dataElements.isEmpty()) {
         progress.startingStage(
-            "Applying aggregation level " + level + " " + tableType, partitions.size());
+            "Applying aggregation level " + level + " " + tableType, tables.size());
         progress.runStageInParallel(
             getParallelJobs(),
-            partitions,
-            AnalyticsTablePartition::getName,
+            tables,
+            Table::getName,
             partition -> tableManager.applyAggregationLevels(partition, dataElements, level));
 
         aggLevels += dataElements.size();
