@@ -177,10 +177,7 @@ public interface AnalyticsTableManager {
   /**
    * Applies aggregation level logic to the given table.
    *
-   * <p><<<<<<< HEAD
-   *
-   * @param table the {@Table}. =======
-   * @param table the {@link Table}. >>>>>>> master
+   * @param table the {@link Table}.
    * @param dataElements the data element identifiers to apply aggregation levels for.
    * @param aggregationLevel the aggregation level.
    */
