@@ -175,7 +175,7 @@ public interface AnalyticsTableManager {
   void analyzeTable(Table table);
 
   /**
-   * Applies aggregation level logic to the analytics table.
+   * Applies aggregation level logic to the given table.
    *
    * @param table the {@Table}.
    * @param dataElements the data element identifiers to apply aggregation levels for.
