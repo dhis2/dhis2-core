@@ -49,6 +49,13 @@ public interface EnrollmentService {
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws BadRequestException, ForbiddenException;
 
+  /**
+   * Get all enrollments matching given params skipping enrollment data sharing and org unit
+   * ownership validations.
+   */
+  List<Enrollment> getEnrollmentsNoDataAcl(EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException;
+
   /** Get a page of enrollments matching given params. */
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;

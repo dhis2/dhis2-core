@@ -52,7 +52,7 @@ public interface TrackedEntityService {
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
   List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
