@@ -158,9 +158,8 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);

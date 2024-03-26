@@ -485,6 +485,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();
@@ -537,8 +538,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-
-    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));
