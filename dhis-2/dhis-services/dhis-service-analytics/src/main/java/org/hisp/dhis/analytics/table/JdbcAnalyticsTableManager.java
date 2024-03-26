@@ -169,7 +169,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public boolean validState() {
-    return tableIsNotEmpty(qualify("datavalue"))
+    return tableIsNotEmpty("datavalue")
         && organisationUnitService.getNumberOfOrganisationalLevels() > 0;
   }
 

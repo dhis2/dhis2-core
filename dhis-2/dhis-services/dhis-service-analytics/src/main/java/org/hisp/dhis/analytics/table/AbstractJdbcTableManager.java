@@ -546,7 +546,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if the table is not empty.
    */
   protected boolean tableIsNotEmpty(String name) {
-    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.quote(name));
+    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
   }
 

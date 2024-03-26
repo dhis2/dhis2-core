@@ -133,7 +133,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   @Override
   public boolean validState() {
-    return tableIsNotEmpty(qualify("completedatasetregistration"));
+    return tableIsNotEmpty("completedatasetregistration");
   }
 
   @Override
