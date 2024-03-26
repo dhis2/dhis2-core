@@ -93,11 +93,11 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         (workflowid,dataapprovallevelid,level) \
         select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
         from dataapprovalworkflowlevels w2 \
-        inner join dataapprovallevel l2 on l2.dataapprovallevelid=w2.dataapprovallevelid \
-        where w2.workflowid=w.workflowid \
+        inner join dataapprovallevel l2 on l2.dataapprovallevelid = w2.dataapprovallevelid \
+        where w2.workflowid = w.workflowid \
         and l2.level < l.level), 0) as level \
         from dataapprovalworkflowlevels w \
-        inner join dataapprovallevel l on l.dataapprovallevelid=w.dataapprovallevelid
+        inner join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid
         """,
             "tableName",
             toStaging(TABLE_NAME));

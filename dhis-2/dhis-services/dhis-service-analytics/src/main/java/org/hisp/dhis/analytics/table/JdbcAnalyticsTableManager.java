@@ -201,14 +201,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
             delete from ${tableName} ax \
             where ax.id in ( \
-              select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
-              from datavalue dv \
-              inner join dataelement de on dv.dataelementid=de.dataelementid \
-              inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-              inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
-              inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-              inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
-              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
+            select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
+            from datavalue dv \
+            inner join dataelement de on dv.dataelementid=de.dataelementid \
+            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
+            inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+            inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+            where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -319,10 +319,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalSelectExpression} \
+            ${approvalSelectExpression} \
             as approvallevel, \
             ${valueExpression} * ps.daysno as daysxvalue, \
-             ps.daysno as daysno, \
+            ps.daysno as daysno, \
             ${valueExpression} as value, \
             ${textValueExpression} as textvalue \
             from datavalue dv \
