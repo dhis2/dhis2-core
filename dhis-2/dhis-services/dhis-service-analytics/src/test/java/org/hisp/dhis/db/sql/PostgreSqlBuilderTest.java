@@ -89,21 +89,26 @@ class PostgreSqlBuilderTest {
 
   private Table getTableC() {
     List<Column> columns =
-        List.of(new Column("vitamin_a", DataType.BIGINT), new Column("vitamin_d", DataType.BIGINT));
+        List.of(
+            new Column("id", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("vitamin_a", DataType.BIGINT),
+            new Column("vitamin_d", DataType.BIGINT));
 
-    return new Table("nutrition", columns, List.of(), List.of(), Logged.LOGGED, getTableB());
+    List<String> primaryKey = List.of("id");
+
+    return new Table("nutrition", columns, primaryKey, List.of(), Logged.LOGGED, getTableB());
   }
 
   // Data types
 
   @Test
-  void testDataType() {
+  void testDataTypes() {
     assertEquals("double precision", sqlBuilder.dataTypeDouble());
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
   }
 
   @Test
-  void testIndexType() {
+  void testIndexTypes() {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
   }
@@ -214,8 +219,8 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create table "nutrition" ("vitamin_a" bigint null, \
-        "vitamin_d" bigint null) inherits ("vaccination");""";
+        create table "nutrition" ("id" bigint not null, "vitamin_a" bigint null, \
+        "vitamin_d" bigint null, primary key ("id")) inherits ("vaccination");""";
 
     assertEquals(expected, sqlBuilder.createTable(table));
   }
