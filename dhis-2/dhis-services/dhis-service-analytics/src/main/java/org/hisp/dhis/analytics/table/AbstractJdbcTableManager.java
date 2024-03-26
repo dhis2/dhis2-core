@@ -32,15 +32,14 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -59,6 +58,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
@@ -78,6 +78,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -574,6 +576,21 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String qualify(String name) {
     return sqlBuilder.qualifyTable(name);
+  }
+
+  /**
+   * Replaces variables in the given template string with the given variables to qualify and the
+   * given map of variable keys and values.
+   *
+   * @param template the template string.
+   * @param qualifyVariables the list of variables to qualify.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
+   */
+  protected String replaceQualify(String template, List<String> qualifyVariables, Map<String, String> variables) {
+    Map<String, String> map = new HashMap<>(variables);
+    qualifyVariables.forEach(var -> map.put(var, qualify(var)));
+    return TextUtils.replace(template, map);
   }
 
   // -------------------------------------------------------------------------

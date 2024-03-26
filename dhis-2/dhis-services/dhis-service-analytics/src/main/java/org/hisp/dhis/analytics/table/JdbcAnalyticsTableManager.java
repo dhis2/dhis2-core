@@ -40,8 +40,6 @@ import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -49,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -85,6 +82,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class manages the analytics tables. The analytics table is a denormalized table designed for
@@ -176,16 +175,16 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
-        replace(
+        replaceQualify(
             """
             select dv.dataelementid \
             from ${datavalue} dv \
             where dv.lastupdated >= '${startDate}' and dv.lastupdated < '${endDate}' \
             limit 1;""",
+            List.of("datavalue"),
             Map.of(
                 "startDate", toLongDate(startDate),
-                "endDate", toLongDate(endDate),
-                "datavalue", qualify("datavalue")));
+                "endDate", toLongDate(endDate)));
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
 
@@ -201,7 +200,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        replace(
+        replaceQualify(
             """
             delete from ${tableName} ax \
             where ax.id in ( \
@@ -213,15 +212,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
             inner join ${categoryoptioncombo} ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
+            List.of("datavalue", "dataelement", "analytics_rs_periodstructure", "organisationunit", "categoryoptioncombo"),
             Map.of(
                 "tableName", qualify(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
-                "endDate", toLongDate(partition.getEndDate()),
-                "datavalue", qualify("datavalue"),
-                "dataelement", qualify("dataelement"),
-                "analytics_rs_periodstructure", qualify("analytics_rs_periodstructure"),
-                "organisationunit", qualify("organisationunit"),
-                "categoryoptioncombo", qualify("categoryoptioncombo")));
+                "endDate", toLongDate(partition.getEndDate())));
 
     invokeTimeAndLog(sql, "Remove updated data values");
   }
@@ -326,7 +321,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     sql.append(
-        replace(
+        replaceQualify(
             """
             ${approvalSelectExpression} \
             as approvallevel, \
@@ -351,16 +346,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+            List.of("datavalue", "period", "periodtype", "dataelement", "organisationunit", "categoryoptioncombo"),
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
-                "textValueExpression", textValueExpression,
-                "datavalue", qualify("datavalue"),
-                "period", qualify("period"),
-                "periodtype", qualify("periodtype"),
-                "dataelement", qualify("dataelement"),
-                "organisationunit", qualify("organisationunit"),
-                "categoryoptioncombo", qualify("categoryoptioncombo"))));
+                "textValueExpression", textValueExpression)));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());
@@ -384,7 +374,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-               and (aon.startdate is null or aon.startdate <= pe.startdate) \
+              \s
+              and (aon.startdate is null or aon.startdate <= pe.startdate) \
               and (aon.enddate is null or aon.enddate >= pe.enddate) \
               and (con.startdate is null or con.startdate <= pe.startdate) \
               and (con.enddate is null or con.enddate >= pe.enddate)\s""");
@@ -594,20 +585,17 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     StringBuilder sql =
         new StringBuilder(
-            replace(
+            replaceQualify(
                 """
             select distinct(extract(year from pe.startdate)) \
             from ${datavalue} dv \
             inner join ${period} pe on dv.periodid=pe.periodid \
             where pe.startdate is not null \
             and dv.lastupdated < '${startTime}'\s""",
+            List.of("datavalue", "period"),
                 Map.of(
                     "startTime",
-                    toLongDate(params.getStartTime()),
-                    "datavalue",
-                    qualify("datavalue"),
-                    "period",
-                    qualify("period"))));
+                    toLongDate(params.getStartTime()))));
 
     if (params.getFromDate() != null) {
       sql.append(

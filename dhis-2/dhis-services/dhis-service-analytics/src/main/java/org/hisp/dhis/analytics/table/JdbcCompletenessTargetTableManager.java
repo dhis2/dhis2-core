@@ -28,13 +28,11 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -154,7 +152,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        replace(
+        replaceQualify(
             """
         from ${analytics_rs_datasetorganisationunitcategory} doc
         inner join ${dataset} ds on doc.datasetid=ds.datasetid
@@ -163,16 +161,9 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         left join ${analytics_rs_organisationunitgroupsetstructure} ougs on doc.organisationunitid=ougs.organisationunitid
         left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
         left join ${analytics_rs_categorystructure} acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid;""",
-            Map.of(
-                "analytics_rs_datasetorganisationunitcategory",
-                    qualify("analytics_rs_datasetorganisationunitcategory"),
-                "dataset", qualify("dataset"),
-                "organisationunit", qualify("organisationunit"),
-                "analytics_rs_orgunitstructure", qualify("analytics_rs_orgunitstructure"),
-                "analytics_rs_organisationunitgroupsetstructure",
-                    qualify("analytics_rs_organisationunitgroupsetstructure"),
-                "categoryoptioncombo", qualify("categoryoptioncombo"),
-                "analytics_rs_categorystructure", qualify("analytics_rs_categorystructure")));
+            List.of("analytics_rs_datasetorganisationunitcategory", "dataset", "organisationunit", "analytics_rs_orgunitstructure", 
+                "analytics_rs_organisationunitgroupsetstructure", "categoryoptioncombo", "analytics_rs_categorystructure"),
+            Map.of());
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
