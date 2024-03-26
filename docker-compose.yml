@@ -27,7 +27,7 @@ services:
   db:
     image: ghcr.io/baosystems/postgis:12-3.3
     ports:
-      - 127.0.0.1:5432:5432
+      - "127.0.0.1:5432:5432"
     volumes:
       - db-dump:/docker-entrypoint-initdb.d/
     environment:
@@ -58,20 +58,21 @@ services:
     image: quay.io/minio/minio
     command: server /data --console-address ":9090"
     ports:
-      - "9000:9000"
-      - "9090:9090"
+      - "127.0.0.1:9000:9000" # minio API
+      - "127.0.0.1:9090:9090" # minio UI
     volumes:
       - minio:/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: [ "CMD", "mc", "ready", "local" ]
       interval: 5s
-      timeout: 2s
-      retries: 3
+      timeout: 5s
+      retries: 5
     environment:
       MINIO_ROOT_USER: root
       MINIO_ROOT_PASSWORD: dhisdhis
 
-  ## Although buckets are created automatically, we want to create an unprivileged user with minimal access and use that. (Please change the passwords for production usage!)
+  # Although buckets are created automatically, we want to create an unprivileged user with minimal
+  # access and use that. (Please change the passwords for production usage!)
   create-bucket:
     image: minio/mc
     depends_on:
