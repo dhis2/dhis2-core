@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,7 +88,7 @@ public class DefaultIconService implements IconService {
   @Transactional(readOnly = true)
   public Map<DefaultIcon, List<AddIconRequest>> findNonExistingDefaultIcons() {
     Set<String> existingKeys = Set.copyOf(iconStore.getAllKeys());
-    Map<DefaultIcon, List<AddIconRequest>> missingIcons = new HashMap<>();
+    Map<DefaultIcon, List<AddIconRequest>> missingIcons = new EnumMap<>(DefaultIcon.class);
     for (DefaultIcon origin : DefaultIcon.values()) {
       if (!ignoredAfterFailure.contains(origin)
           && origin.getVariantKeys().stream().anyMatch(key -> !existingKeys.contains(key))) {
@@ -148,14 +148,11 @@ public class DefaultIconService implements IconService {
   public Icon getIcon(@Nonnull String key) throws NotFoundException {
     Icon icon = iconStore.getIconByKey(key);
     if (icon == null) throw new NotFoundException(Icon.class, key);
-    checkFileExists(icon, icon.getFileResource());
-    return icon;
-  }
-
-  private void checkFileExists(Icon icon, FileResource image) throws NotFoundException {
-    if (image == null) throw new NotFoundException(Icon.class, icon.getKey());
+    FileResource image = icon.getFileResource();
+    if (image == null) throw new NotFoundException(Icon.class, key);
     if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey()))
-      throw new NotFoundException(Icon.class, icon.getKey());
+      throw new NotFoundException(Icon.class, key);
+    return icon;
   }
 
   @Override
@@ -175,17 +172,21 @@ public class DefaultIconService implements IconService {
     validateIconKey(request.getKey());
     validateIconDoesNotExists(request.getKey());
 
+    String fileResourceId = request.getFileResourceId();
+    FileResource image = fileResourceService.getFileResource(fileResourceId);
+    if (image == null) throw new NotFoundException(FileResource.class, fileResourceId);
+    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey()))
+      throw new NotFoundException(FileResource.class, fileResourceId);
+
+    image.setAssigned(true);
+    fileResourceService.updateFileResource(image);
+
     Icon icon = new Icon();
     icon.setKey(request.getKey());
     icon.setDescription(request.getDescription());
     icon.setKeywords(request.getKeywords());
     icon.setCustom(origin == null);
-
-    FileResource image = fileResourceService.getFileResource(request.getFileResourceId());
-    checkFileExists(icon, image);
     icon.setFileResource(image);
-    image.setAssigned(true);
-    fileResourceService.updateFileResource(image);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     if (currentUser != null) {
