@@ -69,6 +69,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -359,7 +360,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             and de.domaintype = 'AGGREGATE' ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
-            and dv.deleted is false\s""",
+            and dv.deleted = false\s""",
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
@@ -598,8 +599,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update ${partitionName} set ");
+      Table table, Collection<String> dataElements, int aggregationLevel) {
+    StringBuilder sql = new StringBuilder("update ${tableName} set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
       int level = i + 1;
@@ -620,7 +621,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replace(
             sql.toString(),
             Map.of(
-                "partitionName", partition.getName(),
+                "tableName", table.getName(),
                 "aggregationLevel", String.valueOf(aggregationLevel),
                 "dataElements", quotedCommaDelimitedString(dataElements)));
 
