@@ -567,6 +567,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return sqlBuilder.singleQuotedCommaDelimited(items);
   }
 
+  /**
+   * Qualifies the given table name.
+   *
+   * @param name the table name.
+   * @return a fully qualified and quoted table reference which specifies the catalog, database and
+   *     table.
+   */
+  protected String qualify(String name) {
+    return sqlBuilder.qualifyTable(name);
+  }
+
   // -------------------------------------------------------------------------
   // Private supportive methods
   // -------------------------------------------------------------------------

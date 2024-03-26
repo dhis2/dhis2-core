@@ -119,6 +119,7 @@ class JdbcAnalyticsTableManagerTest {
     when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
     when(jdbcTemplate.queryForList(Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(dataYears);
+    when(analyticsTableSettings.getTableLogged()).thenReturn(UNLOGGED);
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
