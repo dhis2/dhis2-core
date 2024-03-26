@@ -261,25 +261,37 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     return aggLevels;
   }
 
-  /** Creates indexes on the given analytics tables. */
+  /**
+   * Creates indexes on the given tables.
+   *
+   * @param indexes the list of {@link Index}.
+   * @param progress the {@link JobProgress}.
+   */
   private void createIndexes(List<Index> indexes, JobProgress progress) {
     progress.runStageInParallel(
         getParallelJobs(), indexes, index -> index.getName(), tableManager::createIndex);
   }
 
-  /** Vacuums the given analytics tables. */
-  private void vacuumTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
+  /**
+   * Vacuums the given tables.
+   *
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
+   */
+  private void vacuumTables(List<? extends Table> tables, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(), partitions, AnalyticsTablePartition::getName, tableManager::vacuumTable);
+        getParallelJobs(), tables, Table::getName, tableManager::vacuumTable);
   }
 
-  /** Analyzes the given analytics tables. */
-  private void analyzeTables(List<AnalyticsTablePartition> partitions, JobProgress progress) {
+  /**
+   * Analyzes the given tables.
+   *
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
+   */
+  private void analyzeTables(List<? extends Table> partitions, JobProgress progress) {
     progress.runStageInParallel(
-        getParallelJobs(),
-        partitions,
-        AnalyticsTablePartition::getName,
-        tableManager::analyzeTable);
+        getParallelJobs(), partitions, Table::getName, tableManager::analyzeTable);
   }
 
   /**
