@@ -581,7 +581,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected String replaceQualify(
       String template, List<String> qualifyVariables, Map<String, String> variables) {
     Map<String, String> map = new HashMap<>(variables);
-    qualifyVariables.forEach(var -> map.put(var, qualify(var)));
+    qualifyVariables.forEach(v -> map.put(v, qualify(v)));
     return TextUtils.replace(template, map);
   }
 
