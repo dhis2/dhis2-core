@@ -91,10 +91,13 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " "
-            + "select d.dataelementid as dataelementid, d.name as dataelementname, ";
+        replace(
+            """
+            insert into ${table_name} \
+            select d.dataelementid as dataelementid, d.name as dataelementname, \
+            """,
+            "table_name",
+            toStaging(TABLE_NAME));
 
     for (DataElementGroupSet groupSet : groupSets) {
       sql +=

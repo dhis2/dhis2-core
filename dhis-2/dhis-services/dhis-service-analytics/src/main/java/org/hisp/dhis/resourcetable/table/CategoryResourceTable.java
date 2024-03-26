@@ -106,10 +106,13 @@ public class CategoryResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " "
-            + "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
+        replace(
+            """
+        insert into ${table_name} \
+        select coc.categoryoptioncomboid as cocid, coc.name as cocname, \
+        """,
+            "table_name",
+            toStaging(TABLE_NAME));
 
     for (Category category : categories) {
       sql +=
