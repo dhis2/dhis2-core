@@ -38,7 +38,7 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-public class AnalyticsPeriodCriteriaUtilsTest {
+class AnalyticsPeriodCriteriaUtilsTest {
   @Test
   void testDefineDefaultPeriodForCriteria_without_period() {
     // given
@@ -52,11 +52,11 @@ public class AnalyticsPeriodCriteriaUtilsTest {
 
     // then
     assertEquals(
-        criteria.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear(),
-        1975);
+        1975,
+        criteria.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear());
     assertEquals(
-        criteria.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear(),
-        now().plusYears(25).getYear());
+        now().plusYears(25).getYear(),
+        criteria.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear());
   }
 
   @Test
