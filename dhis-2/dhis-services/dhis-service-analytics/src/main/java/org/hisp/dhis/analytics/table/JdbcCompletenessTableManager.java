@@ -292,7 +292,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             """
             select distinct(extract(year from pe.startdate)) \
             from ${completedatasetregistration} cdr \
-            inner join {$period} pe on cdr.periodid=pe.periodid \
+            inner join ${period} pe on cdr.periodid=pe.periodid \
             where pe.startdate is not null \
             and cdr.date < '${startTime}'""",
             List.of("completedatasetregistration", "period"),
