@@ -209,7 +209,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     String fromClause =
         replaceQualify(
             """
-            \s from enrollment pi \
+            \s from ${enrollment} pi \
             inner join ${program} pr on pi.programid=pr.programid \
             left join ${trackedentity} tei on pi.trackedentityid=tei.trackedentityid and tei.deleted = false \
             left join ${organisationunit} registrationou on tei.organisationunitid=registrationou.organisationunitid \
