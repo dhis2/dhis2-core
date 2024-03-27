@@ -321,27 +321,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  private void validateAccessToTrackedEntity(
-      List<Enrollment> enrollments, TrackedEntity trackedEntity, String uid)
-      throws NotFoundException {
-    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-
-    if (enrollments.isEmpty()) {
-      if (!trackerAccessManager.canRead(userDetails, trackedEntity).isEmpty()) {
-        throw new NotFoundException(TrackedEntity.class, uid);
-      }
-    } else {
-      if (enrollments.stream()
-          .noneMatch(
-              e ->
-                  trackerAccessManager
-                      .canRead(userDetails, trackedEntity, e.getProgram(), false)
-                      .isEmpty())) {
-        throw new NotFoundException(TrackedEntity.class, uid);
-      }
-    }
-  }
-
   private TrackedEntity mapTrackedEntity(
       TrackedEntity trackedEntity,
       TrackedEntityParams params,
