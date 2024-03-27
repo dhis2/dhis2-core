@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -69,7 +67,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -221,8 +218,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
+    TrackedEntity trackedEntity;
     if (program != null) {
-      TrackedEntity trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
+      trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
 
       if (params.isIncludeProgramOwners()) {
         Set<TrackedEntityProgramOwner> filteredProgramOwners =
@@ -231,17 +229,19 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 .collect(Collectors.toSet());
         trackedEntity.setProgramOwners(filteredProgramOwners);
       }
-      return trackedEntity;
     } else {
-      EnrollmentOperationParams enrollmentOperationParams =
-          EnrollmentOperationParams.builder().trackedEntityUid(uid).orgUnitMode(ACCESSIBLE).build();
-      List<Enrollment> enrollments =
-          enrollmentService.getEnrollmentsNoDataAcl(enrollmentOperationParams);
-      TrackedEntity trackedEntity = getTrackedEntityNoDataAcl(uid);
-      validateAccessToTrackedEntity(enrollments, trackedEntity, uid);
+      UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
+      trackedEntity =
+          mapTrackedEntity(getTrackedEntityNoDataAcl(uid), params, userDetails, includeDeleted);
+      if (programService.getAllPrograms().stream()
+          .noneMatch(
+              p -> trackerAccessManager.canRead(userDetails, trackedEntity, p, false).isEmpty())) {
+        throw new ForbiddenException(TrackedEntity.class, uid);
+      }
 
-      return trackedEntity;
+      mapTrackedEntityTypeAttributes(trackedEntity);
     }
+    return trackedEntity;
   }
 
   /**
@@ -290,7 +290,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   /**
-   * Gets a tracked entity based on the program, skipping tracked entity and program data sharing
+   * Gets a tracked entity based on the program, skipping tracked entity and program data sharing,
    * and org unit ownership validations.
    *
    * @return the TE object if found, regardless of whether the user can access it or not.
@@ -304,6 +304,21 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return trackedEntity;
+  }
+
+  private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    if (trackedEntityType != null) {
+      Set<String> tetAttributes =
+          trackedEntityType.getTrackedEntityAttributes().stream()
+              .map(TrackedEntityAttribute::getUid)
+              .collect(Collectors.toSet());
+      Set<TrackedEntityAttributeValue> tetAttributeValues =
+          trackedEntity.getTrackedEntityAttributeValues().stream()
+              .filter(att -> tetAttributes.contains(att.getAttribute().getUid()))
+              .collect(Collectors.toCollection(LinkedHashSet::new));
+      trackedEntity.setTrackedEntityAttributeValues(tetAttributeValues);
+    }
   }
 
   private void validateAccessToTrackedEntity(

@@ -347,7 +347,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
             .error(HttpStatus.FORBIDDEN)
             .getMessage()
-            .contains("User has no read access to organisation unit"));
+            .contains("User has no access to TrackedEntity"));
   }
 
   @Test
@@ -361,7 +361,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
             .error(HttpStatus.FORBIDDEN)
             .getMessage()
-            .contains("User has no read access to organisation unit"));
+            .contains("User has no access to TrackedEntity"));
   }
 
   @Test
@@ -376,7 +376,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
             .error(HttpStatus.FORBIDDEN)
             .getMessage()
-            .contains("User has no data read access to tracked entity"));
+            .contains("User has no access to TrackedEntity"));
   }
 
   @Test

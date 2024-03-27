@@ -188,7 +188,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldHaveAccessToTEWhenProgramNotProvidedButTEEnrolledAndHasAccessToAtLeastOneProgram()
+  void shouldHaveAccessToTEWhenProgramNotProvidedButUserHasAccessToAtLeastOneProgram()
       throws ForbiddenException, NotFoundException, BadRequestException {
     injectSecurityContextUser(userA);
 
@@ -199,48 +199,20 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotHaveAccessToTEWhenProgramNotProvidedAndTEEnrolledButUserHasNoAccessToAnyProgram() {
+  void shouldNotHaveAccessToTEWhenProgramNotProvidedAndUserHasNoAccessToAnyProgram() {
     injectSecurityContextUser(userA);
     trackerOwnershipAccessManager.assignOwnership(
         entityInstanceA1, programA, organisationUnitB, false, true);
 
-    NotFoundException exception =
+    ForbiddenException exception =
         assertThrows(
-            NotFoundException.class,
+            ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
                     entityInstanceA1.getUid(), null, defaultParams, false));
 
     assertEquals(
-        String.format("TrackedEntity with id %s could not be found.", entityInstanceA1.getUid()),
-        exception.getMessage());
-  }
-
-  @Test
-  void
-      shouldHaveAccessToTEWhenProgramNotProvidedAndNotEnrolledToAnyProgramButRegisteringUnitInScope()
-          throws ForbiddenException, NotFoundException, BadRequestException {
-    injectSecurityContextUser(userB);
-
-    assertEquals(
-        entityInstanceB1,
-        trackedEntityService.getTrackedEntity(
-            entityInstanceB1.getUid(), null, defaultParams, false));
-  }
-
-  @Test
-  void
-      shouldNotHaveAccessToTEWhenProgramNotProvidedAndNotEnrolledToAnyProgramAndRegisteringUnitNotInScope() {
-    injectSecurityContextUser(userA);
-
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                trackedEntityService.getTrackedEntity(
-                    entityInstanceB1.getUid(), null, defaultParams, false));
-    assertEquals(
-        String.format("TrackedEntity with id %s could not be found.", entityInstanceB1.getUid()),
+        String.format("User has no access to TrackedEntity:%s", entityInstanceA1.getUid()),
         exception.getMessage());
   }
 
