@@ -212,8 +212,8 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         and tet.trackedentitytypeid = ${tetId} \
         and (${eventDateExpression}) is not null \
         and (${eventDateExpression}) > '1000-01-01' \
-        and psi.deleted is false \
-        and tei.deleted is false\s""",
+        and psi.deleted = false \
+        and tei.deleted = false\s""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
@@ -260,8 +260,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
    * @param partition the {@link AnalyticsTablePartition} to populate.
    */
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
@@ -284,9 +283,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                 """
         \s from event psi \
         inner join enrollment pi on pi.enrollmentid = psi.enrollmentid \
-        and pi.deleted is false \
+        and pi.deleted = false \
         inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid \
-        and tei.deleted is false \
+        and tei.deleted = false \
         and tei.trackedentitytypeid = ${tetId} \
         and tei.lastupdated < '${startTime}' \
         left join programstage ps on ps.programstageid = psi.programstageid \
@@ -295,7 +294,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
         where psi.status in (${statuses}) \
         ${partitionClause} \
-        and psi.deleted is false\s""",
+        and psi.deleted = false\s""",
                 Map.of(
                     "tetId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),

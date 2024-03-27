@@ -50,7 +50,7 @@ public interface AnalyticsTableManager {
   AnalyticsTableType getAnalyticsTableType();
 
   /**
-   * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
+   * Returns a {@link AnalyticsTable} with a list of yearly partitions.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @return the analytics table with partitions.
@@ -93,9 +93,9 @@ public interface AnalyticsTableManager {
   void preCreateTables(AnalyticsTableUpdateParams params);
 
   /**
-   * Removes updated and deleted data from tables for "latest" partition update.
+   * Removes updated and deleted data from the given tables for "latest" partition update.
    *
-   * @param tables tables to pick partitions from
+   * @param tables the list of {@link AnalyticsTable}.
    */
   default void removeUpdatedData(List<AnalyticsTable> tables) {}
 
@@ -125,12 +125,12 @@ public interface AnalyticsTableManager {
   void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table);
 
   /**
-   * Populats the analytics table.
+   * Populates the analytics table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the analytics table partition to populate.
+   * @param partition the {@link AnalyticsTablePartition}.
    */
-  void populateTablePartition(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
+  void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
   /**
    * Invokes analytics table SQL hooks for the table type.
@@ -163,7 +163,7 @@ public interface AnalyticsTableManager {
   /**
    * Performs a vacuum operation on the given table.
    *
-   * @param name the table name.
+   * @param table the {@Table}.
    */
   void vacuumTable(Table table);
 
@@ -175,12 +175,12 @@ public interface AnalyticsTableManager {
   void analyzeTable(Table table);
 
   /**
-   * Applies aggregation level logic to the analytics table.
+   * Applies aggregation level logic to the given table.
    *
-   * @param partition the analytics table partition.
+   * @param table the {@link Table}.
    * @param dataElements the data element identifiers to apply aggregation levels for.
    * @param aggregationLevel the aggregation level.
    */
   default void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {}
+      Table table, Collection<String> dataElements, int aggregationLevel) {}
 }
