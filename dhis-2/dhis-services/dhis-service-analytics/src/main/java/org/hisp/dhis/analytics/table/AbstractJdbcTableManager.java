@@ -36,7 +36,9 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +61,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
@@ -264,12 +267,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void populateTablePartition(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    populateTable(params, partition);
-  }
-
-  @Override
   public int invokeAnalyticsTableSqlHooks() {
     AnalyticsTableType type = getAnalyticsTableType();
     List<AnalyticsTableHook> hooks =
@@ -324,15 +321,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return the list of table partition checks.
    */
   protected abstract List<String> getPartitionChecks(Integer year, Date endDate);
-
-  /**
-   * Populates the given analytics table.
-   *
-   * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the {@link AnalyticsTablePartition} to populate.
-   */
-  protected abstract void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
   // -------------------------------------------------------------------------
   // Protected supportive methods
@@ -576,6 +564,22 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String qualify(String name) {
     return sqlBuilder.qualifyTable(name);
+  }
+
+  /**
+   * Replaces variables in the given template string with the given variables to qualify and the
+   * given map of variable keys and values.
+   *
+   * @param template the template string.
+   * @param qualifyVariables the list of variables to qualify.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
+   */
+  protected String replaceQualify(
+      String template, List<String> qualifyVariables, Map<String, String> variables) {
+    Map<String, String> map = new HashMap<>(variables);
+    qualifyVariables.forEach(v -> map.put(v, qualify(v)));
+    return TextUtils.replace(template, map);
   }
 
   // -------------------------------------------------------------------------

@@ -202,8 +202,10 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
 
     sql = removeLastComma(sql) + " ";
     sql +=
-        "from organisationunit ou "
-            + "inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
+        """
+        from organisationunit ou \
+        inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid;
+        """;
 
     return Optional.of(sql);
   }
