@@ -35,7 +35,6 @@ import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
 import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TIME;
 import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
@@ -43,6 +42,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -61,7 +61,8 @@ public enum ValueTypeMapping {
   DECIMAL(BigDecimal::new, NUMBER),
   STRING(s -> s),
   TEXT(s -> s),
-  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME),
+  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME),
+  TIME(s -> s, ValueType.TIME, s -> s.replace(".", ":"), "varchar"),
   BOOLEAN(
       ValueTypeMapping::booleanConverter,
       ValueTypeMapping::booleanSelectTransformer,
@@ -78,11 +79,15 @@ public enum ValueTypeMapping {
   private final Function<String, Object> converter;
   @Getter private final UnaryOperator<String> selectTransformer;
   private final ValueType[] valueTypes;
+  @Getter private final UnaryOperator<String> argumentTransformer;
+  @Getter private final String postgresCast;
 
   ValueTypeMapping(Function<String, Object> converter, ValueType... valueTypes) {
     this.converter = converter;
     this.valueTypes = valueTypes;
     this.selectTransformer = UnaryOperator.identity();
+    this.argumentTransformer = UnaryOperator.identity();
+    this.postgresCast = name();
   }
 
   ValueTypeMapping(
@@ -92,6 +97,20 @@ public enum ValueTypeMapping {
     this.converter = converter;
     this.valueTypes = valueTypes;
     this.selectTransformer = selectTransformer;
+    this.argumentTransformer = UnaryOperator.identity();
+    this.postgresCast = name();
+  }
+
+  ValueTypeMapping(
+      Function<String, Object> converter,
+      ValueType valueType,
+      UnaryOperator<String> argumentTransformer,
+      String postgresCast) {
+    this.converter = converter;
+    this.valueTypes = new ValueType[] {valueType};
+    this.selectTransformer = UnaryOperator.identity();
+    this.argumentTransformer = s -> Objects.nonNull(s) ? argumentTransformer.apply(s) : null;
+    this.postgresCast = postgresCast;
   }
 
   private static Date dateConverter(String dateAsString) {

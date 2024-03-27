@@ -62,6 +62,6 @@ public class RenderableDataValue extends BaseRenderable {
         + " -> '"
         + dataValue
         + "' ->> 'value')::"
-        + valueTypeMapping.name();
+        + valueTypeMapping.getPostgresCast();
   }
 }
