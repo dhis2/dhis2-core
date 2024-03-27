@@ -447,14 +447,15 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
   }
 
   /**
-   * When updating a data value with a specified created date, the specified created date should be
-   * used.
+   * When updating a data value with a specified created date, the current date should be used if
+   * the user does not have the ALL authority.
    *
-   * <p>When updating a data value without a specified created date, the existing created date
-   * should remain unchanged.
+   * <p>If the user is not a super user, the created date should remain unchanged while the
+   * lastupdated date should be updated to the current date even if it is specified in the payload.
    */
   @Test
   void testUpdateCreatedDate() {
+
     // Insert:
     // deC, peA, ouA created = 2010-01-01
     // deC, peA, ouB created = 2010-01-01
@@ -463,12 +464,70 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     // deC, peA, ouA created = not specified, should remain unchanged
     // deC, peA, ouB created = 2020-02-02
     dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+    String currentDate = getMediumDateString(new Date());
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+    DataValue dv1 = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
+    assertEquals(currentDate, getMediumDateString(dv1.getCreated()));
+    assertEquals(currentDate, getMediumDateString(dv1.getLastUpdated()));
+    assertEquals("A", dv1.getStoredBy());
+    DataValue dv2 = dataValueService.getDataValue(deC, peA, ouB, cc, cc);
+    assertEquals(currentDate, getMediumDateString(dv2.getCreated()));
+    assertEquals("A", dv2.getStoredBy());
+    assertEquals(currentDate, getMediumDateString(dv2.getLastUpdated()));
+  }
 
+  /**
+   * When updating a data value with a specified created date, the specified created date should be
+   * used when acting as a superuser.
+   *
+   * <p>When updating a data value without a specified created date, the existing created date
+   * should remain unchanged.
+   */
+  @Test
+  void testSuperUserCanAttributeData() {
+    injectSecurityContext(superUser);
+    // Insert:
+    // deC, peA, ouA created = 2010-01-01
+    // deC, peA, ouB created = 2010-01-01
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
+    // Update:
+    // deC, peA, ouA created = not specified, should remain unchanged
+    // deC, peA, ouB created = 2020-02-02, should be overridden
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+    Date currentDate = new Date();
     CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
     DataValue dv1 = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
     assertEquals("2010-01-01", getMediumDateString(dv1.getCreated()));
+    assertEquals("john", dv1.getStoredBy());
     DataValue dv2 = dataValueService.getDataValue(deC, peA, ouB, cc, cc);
     assertEquals("2020-02-02", getMediumDateString(dv2.getCreated()));
+    assertEquals("john", dv2.getStoredBy());
+  }
+
+  @Test
+  void testNormalUserCannotAttributeData() {
+    // Specify the created dates explicitly through the payload
+    injectSecurityContext(superUser);
+    // Insert:
+    // deC, peA, ouA created = 2010-01-01
+    // deC, peA, ouB created = 2010-01-01
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetB.xml"));
+    // Import an update as a normal user
+    injectSecurityContext(user);
+    // Update:
+    // deC, peA, ouA created = not specified, should remain unchanged
+    // deC, peA, ouB created = 2020-02-02, should also remain unchanged
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+    String currentDate = getMediumDateString(new Date());
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+    DataValue dv1 = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
+    assertEquals("2010-01-01", getMediumDateString(dv1.getCreated()));
+    assertEquals("A", dv1.getStoredBy());
+    assertEquals(currentDate, getMediumDateString(dv1.getLastUpdated()));
+    DataValue dv2 = dataValueService.getDataValue(deC, peA, ouB, cc, cc);
+    assertEquals("2010-01-01", getMediumDateString(dv2.getCreated()));
+    assertEquals("A", dv2.getStoredBy());
+    assertEquals(currentDate, getMediumDateString(dv2.getLastUpdated()));
   }
 
   /**
