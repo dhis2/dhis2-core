@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.icon;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
@@ -246,6 +248,8 @@ public class JdbcIconStore implements IconStore {
 
     sql = sql + " LIMIT :limit OFFSET :offset ";
 
+    page = max(1, page);
+    pageSize = max(1, min(500, pageSize));
     int offset = (page - 1) * pageSize;
 
     mapSqlParameterSource.addValue("limit", pageSize);
