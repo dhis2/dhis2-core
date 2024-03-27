@@ -690,9 +690,9 @@ class AnalyticsServiceTest extends IntegrationTestBase {
     inC_deB_deC_2017_Q01_keyValue.put("inabcdefghC-2017Q1", 258.50);
     inC_deB_deC_2017_Q01_keyValue.put("inabcdefghC-2017Q1-ouabcdefghA", 258.50);
     Map<String, Number> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
-    inD_deA_deB_deC_2017_Q01_keyValue.put("inabcdefghD-2017Q1", 29.8);
+    inD_deA_deB_deC_2017_Q01_keyValue.put("inabcdefghD-2017Q1", 29.79);
     Map<String, Number> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
-    inE_deA_reRateA_2017_Q01_keyValue.put("inabcdefghE-ouabcdefghD-2017Q1", 99.6);
+    inE_deA_reRateA_2017_Q01_keyValue.put("inabcdefghE-ouabcdefghD-2017Q1", 99.66);
     Map<String, Number> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
     inF_deA_reRateB_2017_Q01_keyValue.put("inabcdefghF-ouabcdefghD-2017Q1", 199.34);
     Map<String, Number> inG_deE_periodOffsets_2017_07_keyvalue = new HashMap<>();
@@ -709,7 +709,7 @@ class AnalyticsServiceTest extends IntegrationTestBase {
     Map<String, Number> reRate_2017_Q01_ouC_keyValue = new HashMap<>();
     reRate_2017_Q01_ouC_keyValue.put("a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100L);
     Map<String, Number> reRate_2017_Q01_ouD_keyValue = new HashMap<>();
-    reRate_2017_Q01_ouD_keyValue.put("a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.3);
+    reRate_2017_Q01_ouD_keyValue.put("a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.33);
     Map<String, Number> ou_2017_validationruleA_keyValue = new HashMap<>();
     ou_2017_validationruleA_keyValue.put("a234567vruA-ouabcdefghA-2017", 4L);
     ou_2017_validationruleA_keyValue.put("a234567vruA-ouabcdefghB-2017", 2L);
