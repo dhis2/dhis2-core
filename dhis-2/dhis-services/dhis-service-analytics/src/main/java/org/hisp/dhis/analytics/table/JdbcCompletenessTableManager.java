@@ -237,6 +237,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
                 "analytics_rs_periodstructure",
                 "organisationunit",
                 "analytics_rs_organisationunitgroupsetstructure",
+                "analytics_rs_orgunitstructure",
                 "analytics_rs_categorystructure",
                 "categoryoptioncombo"),
             Map.of(
