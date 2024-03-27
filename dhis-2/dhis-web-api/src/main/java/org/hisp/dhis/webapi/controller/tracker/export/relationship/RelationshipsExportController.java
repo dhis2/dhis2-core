@@ -94,7 +94,12 @@ class RelationshipsExportController {
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
-  @GetMapping(produces = APPLICATION_JSON_VALUE, headers = "Accept=text/html")
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
   ResponseEntity<Page<ObjectNode>> getRelationships(RelationshipRequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
