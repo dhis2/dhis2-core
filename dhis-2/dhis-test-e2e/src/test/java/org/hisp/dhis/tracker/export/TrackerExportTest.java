@@ -49,11 +49,14 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonObject;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.http.HttpHeaders;
 import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -542,6 +545,66 @@ public class TrackerExportTest extends TrackerApiTest {
         .body("trackedEntities", iterableWithSize(1))
         .body("trackedEntities[0].trackedEntity", equalTo(TE_POTENTIAL_DUPLICATE))
         .body("trackedEntities[0].potentialDuplicate", equalTo(true));
+  }
+
+  @Test
+  void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "events?event=" + event,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> events = response.extractList("events.event.flatten()");
+    assertEquals(
+        List.of(event),
+        events,
+        "Events do not default to application/json format when Accept header is html");
+  }
+
+  @Test
+  void whenGetTrackedEntitiesShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "trackedEntities?trackedEntities=" + trackedEntityA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> trackedEntities = response.extractList("trackedEntities.trackedEntity.flatten()");
+    assertEquals(
+        List.of(trackedEntityA),
+        trackedEntities,
+        "Tracked Entities do not default to application/json format when Accept header is html");
+  }
+
+  @Test
+  void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "enrollments?enrollments=" + enrollment,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> enrollments = response.extractList("enrollments.enrollment.flatten()");
+    assertEquals(
+        List.of(enrollment),
+        enrollments,
+        "Enrollments do not default to application/json format when Accept header is html");
+  }
+
+  @Test
+  void whenGetRelationshipsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "relationships?trackedEntity=" + trackedEntityA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> relationships = response.extractList("relationships.relationship.flatten()");
+    assertEquals(
+        List.of(trackedEntityToTrackedEntityRelationship),
+        relationships,
+        "Enrollments do not default to application/json format when Accept header is html");
   }
 
   private static QueryParamsBuilder paramsForTrackedEntitiesIncludingPotentialDuplicate() {
