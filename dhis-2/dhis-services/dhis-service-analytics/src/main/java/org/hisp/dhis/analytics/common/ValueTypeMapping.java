@@ -29,17 +29,12 @@ package org.hisp.dhis.analytics.common;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.common.ValueType.DATETIME;
-import static org.hisp.dhis.common.ValueType.INTEGER;
-import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
-import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
-import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -57,17 +52,16 @@ import org.hisp.dhis.common.ValueType;
  * a function where it can be converted into Java types.
  */
 public enum ValueTypeMapping {
-  NUMERIC(BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE),
-  DECIMAL(BigDecimal::new, NUMBER),
+  NUMERIC(BigInteger::new, Integer.class),
+  DECIMAL(BigDecimal::new, Double.class),
   STRING(s -> s),
   TEXT(s -> s),
-  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME),
+  DATE(ValueTypeMapping::dateConverter, LocalDate.class, LocalDateTime.class),
   TIME(s -> s, ValueType.TIME, s -> s.replace(".", ":"), "varchar"),
   BOOLEAN(
       ValueTypeMapping::booleanConverter,
       ValueTypeMapping::booleanSelectTransformer,
-      ValueType.BOOLEAN,
-      TRUE_ONLY);
+      Boolean.class);
 
   private static final UnaryOperator<String> BOOLEAN_SELECT_TRANSFORMER =
       columnName ->
@@ -82,20 +76,44 @@ public enum ValueTypeMapping {
   @Getter private final UnaryOperator<String> argumentTransformer;
   @Getter private final String postgresCast;
 
-  ValueTypeMapping(Function<String, Object> converter, ValueType... valueTypes) {
+  ValueTypeMapping(Function<String, Object> converter, Class... classes) {
     this.converter = converter;
-    this.valueTypes = valueTypes;
+    this.valueTypes = fromClasses(classes);
     this.selectTransformer = UnaryOperator.identity();
     this.argumentTransformer = UnaryOperator.identity();
     this.postgresCast = name();
   }
 
+  /**
+   * Converts the given {@link Class} array into an array of {@link ValueType} based on the
+   * supported classes.
+   *
+   * @param classes the classes to be converted
+   * @return the respective {@link ValueType} array
+   */
+  private ValueType[] fromClasses(Class... classes) {
+    return stream(ValueType.values())
+        .filter(valueType -> isAssignableFrom(classes, valueType))
+        .toArray(ValueType[]::new);
+  }
+
+  /**
+   * Checks if the given {@link ValueType} is assignable from the given classes.
+   *
+   * @param classes the classes to be checked
+   * @param valueType the {@link ValueType} to be checked
+   * @return true if the {@link ValueType} is assignable from the given classes, false otherwise
+   */
+  private static boolean isAssignableFrom(Class[] classes, ValueType valueType) {
+    return stream(classes).anyMatch(valueType.getJavaClass()::isAssignableFrom);
+  }
+
   ValueTypeMapping(
       Function<String, Object> converter,
       UnaryOperator<String> selectTransformer,
-      ValueType... valueTypes) {
+      Class... classes) {
     this.converter = converter;
-    this.valueTypes = valueTypes;
+    this.valueTypes = fromClasses(classes);
     this.selectTransformer = selectTransformer;
     this.argumentTransformer = UnaryOperator.identity();
     this.postgresCast = name();
