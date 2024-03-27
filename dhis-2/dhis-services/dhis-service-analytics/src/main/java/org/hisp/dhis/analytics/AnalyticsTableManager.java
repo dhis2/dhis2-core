@@ -125,12 +125,12 @@ public interface AnalyticsTableManager {
   void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table);
 
   /**
-   * Populats the analytics table.
+   * Populates the analytics table.
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the analytics table partition to populate.
+   * @param partition the {@link AnalyticsTablePartition}.
    */
-  void populateTablePartition(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
+  void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
 
   /**
    * Invokes analytics table SQL hooks for the table type.
