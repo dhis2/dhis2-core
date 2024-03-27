@@ -240,6 +240,7 @@ public class EventDataQueryRequest {
               .showHierarchy(criteria.isShowHierarchy())
               .skipRounding(criteria.isSkipRounding())
               .skipData(criteria.isSkipData())
+              .skipRounding(criteria.isSkipRounding())
               .skipMeta(criteria.isSkipMeta())
               .sortOrder(criteria.getSortOrder())
               .stage(criteria.getStage())
