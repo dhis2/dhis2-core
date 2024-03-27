@@ -126,8 +126,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));

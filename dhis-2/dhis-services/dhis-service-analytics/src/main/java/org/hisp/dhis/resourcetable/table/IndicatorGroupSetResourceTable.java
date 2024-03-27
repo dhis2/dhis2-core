@@ -92,10 +92,13 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " "
-            + "select i.indicatorid as indicatorid, i.name as indicatorname, ";
+        replace(
+            """
+        insert into ${table_name} \
+        select i.indicatorid as indicatorid, i.name as indicatorname, \
+        """,
+            "table_name",
+            toStaging(TABLE_NAME));
 
     for (IndicatorGroupSet groupSet : groupSets) {
       sql +=

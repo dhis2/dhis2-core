@@ -107,10 +107,13 @@ class PostgreSqlBuilderTest {
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
   }
 
+  // Index types
+
   @Test
   void testIndexTypes() {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
+    assertEquals("gin", sqlBuilder.indexTypeGin());
   }
 
   // Capabilities
