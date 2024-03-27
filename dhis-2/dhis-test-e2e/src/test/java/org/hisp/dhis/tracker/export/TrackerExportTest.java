@@ -76,6 +76,8 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerExportTest extends TrackerApiTest {
+  private static final String DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST =
+      "%s do not default to application/json format when the Accept header is html";
   private static final String TE = "Kj6vYde4LHh";
 
   private static final String TE_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
@@ -559,7 +561,7 @@ public class TrackerExportTest extends TrackerApiTest {
     assertEquals(
         List.of(event),
         events,
-        "Events do not default to application/json format when Accept header is html");
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Events"));
   }
 
   @Test
@@ -574,7 +576,7 @@ public class TrackerExportTest extends TrackerApiTest {
     assertEquals(
         List.of(trackedEntityA),
         trackedEntities,
-        "Tracked Entities do not default to application/json format when Accept header is html");
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Tracked Entities"));
   }
 
   @Test
@@ -589,7 +591,7 @@ public class TrackerExportTest extends TrackerApiTest {
     assertEquals(
         List.of(enrollment),
         enrollments,
-        "Enrollments do not default to application/json format when Accept header is html");
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Enrollments"));
   }
 
   @Test
@@ -604,7 +606,7 @@ public class TrackerExportTest extends TrackerApiTest {
     assertEquals(
         List.of(trackedEntityToTrackedEntityRelationship),
         relationships,
-        "Enrollments do not default to application/json format when Accept header is html");
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Relationships"));
   }
 
   private static QueryParamsBuilder paramsForTrackedEntitiesIncludingPotentialDuplicate() {
