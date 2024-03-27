@@ -214,16 +214,36 @@ class IconTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenUpdatingIconWithoutKey() {}
+  void shouldFailWhenUpdatingIconWithoutKey() {
+    UpdateIconRequest update =
+        UpdateIconRequest.builder()
+            .keywords(Set.of("new", "words"))
+            .description("description updated")
+            .build();
+
+    assertNotFoundException(
+        "Icon with id null could not be found.", () -> iconService.updateIcon(null, update));
+  }
 
   @Test
-  void shouldFailWhenDeletingNonExistingIcon() {}
+  void shouldFailWhenDeletingNonExistingIcon() {
+    assertNotFoundException(
+        "Icon with id unknown could not be found.", () -> iconService.deleteIcon("unknown"));
+  }
 
   @Test
-  void shouldFailWhenDeletingIconWithoutKey() {}
+  void shouldFailWhenDeletingIconWithoutKey() {
+    assertNotFoundException(
+        "Icon with id null could not be found.", () -> iconService.deleteIcon(null));
+  }
 
   @Test
-  void shouldDeleteIconWhenKeyPresentAndIconExists() {}
+  void shouldDeleteIconWhenKeyPresentAndIconExists() {
+    assertDoesNotThrow(() -> iconService.deleteIcon(icon.getKey()));
+
+    assertNotFoundException(
+        "Icon with id iconKey could not be found.", () -> iconService.getIcon(icon.getKey()));
+  }
 
   @Test
   void shouldCreateIconInDatabase() throws Exception {
