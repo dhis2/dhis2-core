@@ -367,8 +367,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
@@ -419,27 +418,14 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       and exists (select 1 from event psi \
       where psi.enrollmentid = pi.enrollmentid \
       and psi.status in (${statuses}) \
-      and psi.deleted is false)) \
+      and psi.deleted = false)) \
       and tei.created is not null \
-      and tei.deleted is false""",
+      and tei.deleted = false""",
             Map.of(
                 "tetId", String.valueOf(trackedEntityType.getId()),
                 "startTime", toLongDate(params.getStartTime()),
                 "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), tableName);
-  }
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
   }
 }

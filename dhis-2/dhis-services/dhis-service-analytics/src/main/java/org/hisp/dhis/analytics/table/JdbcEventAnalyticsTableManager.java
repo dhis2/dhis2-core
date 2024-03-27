@@ -409,8 +409,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
@@ -425,10 +424,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             \s from event psi \
             inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
             inner join programstage ps on psi.programstageid=ps.programstageid \
-            inner join program pr on pi.programid=pr.programid and pi.deleted is false \
+            inner join program pr on pi.programid=pr.programid and pi.deleted = false \
             inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid \
             left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
-            and tei.deleted is false \
+            and tei.deleted = false \
             left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
             inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
@@ -444,7 +443,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and psi.status in (${exportableEventStatues}) \
-            and psi.deleted is false""",
+            and psi.deleted = false""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
@@ -638,7 +637,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
-    // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
@@ -666,7 +664,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
-    // Add org unit name column
     String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
@@ -686,7 +683,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @return a SQL expression
    */
   private static String firstIfNotNullOrElse(String first, String second) {
-    return "CASE WHEN " + first + " IS NOT NULL THEN " + first + " ELSE " + second + " END";
+    return "case when " + first + " is not null then " + first + " else " + second + " end";
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
@@ -786,7 +783,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and pi.programid = ${programId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
-            and psi.deleted is false \
+            and psi.deleted = false \
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
             and temp.supportedyear <= ${latestDataYear}""",

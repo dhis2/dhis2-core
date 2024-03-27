@@ -121,18 +121,12 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
-
-  @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
@@ -153,10 +147,10 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     sql +=
         """
-            from orgunitgroupmembers ougm
-            inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
-            left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-            left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
+        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
     invokeTimeAndLog(sql, tableName);
   }

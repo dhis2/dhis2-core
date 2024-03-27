@@ -69,6 +69,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -173,7 +174,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+  public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
         replace(
             """
@@ -201,14 +202,14 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
             delete from ${tableName} ax \
             where ax.id in ( \
-              select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
-              from datavalue dv \
-              inner join dataelement de on dv.dataelementid=de.dataelementid \
-                  inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-                  inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
-                  inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-                  inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
-              where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
+            select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
+            from datavalue dv \
+            inner join dataelement de on dv.dataelementid=de.dataelementid \
+            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
+            inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
+            inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
+            where dv.lastupdated >= '${startDate}'and dv.lastupdated < '${endDate}');""",
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -225,8 +226,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     boolean skipDataTypeValidation =
         systemSettingManager.getBoolSetting(
             SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT);
@@ -319,10 +319,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalSelectExpression} \
+            ${approvalSelectExpression} \
             as approvallevel, \
             ${valueExpression} * ps.daysno as daysxvalue, \
-             ps.daysno as daysno, \
+            ps.daysno as daysno, \
             ${valueExpression} as value, \
             ${textValueExpression} as textvalue \
             from datavalue dv \
@@ -359,7 +359,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             and de.domaintype = 'AGGREGATE' ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
-            and dv.deleted is false\s""",
+            and dv.deleted = false\s""",
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
@@ -598,8 +598,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
   @Override
   public void applyAggregationLevels(
-      AnalyticsTablePartition partition, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update ${partitionName} set ");
+      Table table, Collection<String> dataElements, int aggregationLevel) {
+    StringBuilder sql = new StringBuilder("update ${tableName} set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
       int level = i + 1;
@@ -620,7 +620,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replace(
             sql.toString(),
             Map.of(
-                "partitionName", partition.getName(),
+                "tableName", table.getName(),
                 "aggregationLevel", String.valueOf(aggregationLevel),
                 "dataElements", quotedCommaDelimitedString(dataElements)));
 

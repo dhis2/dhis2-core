@@ -171,15 +171,17 @@ public class IconController {
     return ok(format("Icon with key %s deleted", key));
   }
 
-  private void downloadIconImage(Icon icon, HttpServletResponse response) throws ConflictException {
-    FileResource image = icon.getFileResource();
+  private void downloadIconImage(Icon icon, HttpServletResponse response)
+      throws NotFoundException, ConflictException {
+    FileResource image = fileResourceService.getFileResource(icon.getFileResource().getUid());
+    if (image == null) {
+      throw new NotFoundException(FileResource.class, icon.getFileResource().getUid());
+    }
 
     response.setContentType(image.getContentType());
-    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    response.setHeader(
-        HttpHeaders.CONTENT_LENGTH,
-        String.valueOf(fileResourceService.getFileResourceContentLength(image)));
+    response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(image.getContentLength()));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + image.getName());
+    response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
