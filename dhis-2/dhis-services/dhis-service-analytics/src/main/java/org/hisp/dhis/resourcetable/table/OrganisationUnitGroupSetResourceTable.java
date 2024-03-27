@@ -176,7 +176,7 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
           sql +=
               replace(
                   """
-                  (
+              (
               select oug.uid from ${orgunitgroup} oug \
               inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
