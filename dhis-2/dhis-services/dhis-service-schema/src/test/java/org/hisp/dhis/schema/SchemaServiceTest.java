@@ -40,6 +40,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.junit.jupiter.api.Test;
@@ -121,5 +122,14 @@ class SchemaServiceTest extends DhisSpringTest {
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
     assertEquals(4, schema.getProperties().size());
+  }
+
+  @Test
+  void testBulkSmsGatewayConfig() {
+    Schema schema = schemaService.getDynamicSchema(BulkSmsGatewayConfig.class);
+    Property isDefault = schema.getProperty("isDefault");
+    assertEquals(PropertyType.BOOLEAN, isDefault.getPropertyType());
+    assertNotNull(isDefault.getGetterMethod(), "getter is null");
+    assertNotNull(isDefault.getSetterMethod(), "setter is null");
   }
 }

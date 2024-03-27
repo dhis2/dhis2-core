@@ -83,8 +83,8 @@ public class SmsConfigurationController {
   // --------------------------------------------------------------------------
 
   @PutMapping
-  public @ResponseBody SmsConfiguration putSmsConfig(@RequestBody SmsConfiguration smsConfiguration)
-      throws Exception {
+  public @ResponseBody SmsConfiguration putSmsConfig(
+      @RequestBody SmsConfiguration smsConfiguration) {
     if (smsConfiguration == null) {
       throw new IllegalArgumentException("SMS configuration not set");
     }
