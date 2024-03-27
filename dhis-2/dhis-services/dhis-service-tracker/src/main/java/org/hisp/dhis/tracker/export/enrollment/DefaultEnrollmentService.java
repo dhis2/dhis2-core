@@ -197,13 +197,6 @@ class DefaultEnrollmentService
   }
 
   @Override
-  public List<Enrollment> getEnrollmentsNoDataAcl(EnrollmentOperationParams params)
-      throws ForbiddenException, BadRequestException {
-    EnrollmentQueryParams queryParams = paramsMapper.map(params);
-    return enrollmentStore.getEnrollments(queryParams);
-  }
-
-  @Override
   public Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params);
