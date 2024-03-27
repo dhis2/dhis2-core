@@ -86,6 +86,27 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component("org.hisp.dhis.analytics.TeiEventsAnalyticsTableManager")
 public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager {
+
+  private static final String EVENT_DATA_VALUE_REBUILDER =
+      """
+      (select json_object_agg(l2.key, l2.datavalue) as value
+              from (select l1.uid,
+                           l1.key,
+                           json_strip_nulls(json_build_object(
+                                   'value', l1.eventdatavalues -> l1.key ->> 'value',
+                                   'created', l1.eventdatavalues -> l1.key ->> 'created',
+                                   'storedBy', l1.eventdatavalues -> l1.key ->> 'storedBy',
+                                   'lastUpdated', l1.eventdatavalues -> l1.key ->> 'lastUpdated',
+                                   'providedElsewhere', l1.eventdatavalues -> l1.key -> 'providedElsewhere',
+                                   'value_name', (select ou.name
+                                                  from organisationunit ou
+                                                  where ou.uid = l1.eventdatavalues -> l1.key ->> 'value'))) as datavalue
+                    from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) key
+                          from event inner_evt) as l1) as l2
+              where l2.uid = psi.uid
+              group by l2.uid)::jsonb
+      """;
+
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
           new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
@@ -115,7 +136,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
           new AnalyticsTableColumn("ouname", VARCHAR_255, NULL, "ou.name"),
           new AnalyticsTableColumn("oucode", CHARACTER_32, NULL, "ou.code"),
           new AnalyticsTableColumn("oulevel", INTEGER, NULL, "ous.level"),
-          new AnalyticsTableColumn("eventdatavalues", JSONB, "psi.eventdatavalues"));
+          new AnalyticsTableColumn("eventdatavalues", JSONB, EVENT_DATA_VALUE_REBUILDER));
 
   private static final String AND = " and (";
 
