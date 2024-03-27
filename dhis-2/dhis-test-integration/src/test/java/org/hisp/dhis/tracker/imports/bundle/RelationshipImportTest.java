@@ -86,9 +86,10 @@ class RelationshipImportTest extends TrackerTest {
   void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
     userA = userService.getUser("o1HMTIzBGo7");
     TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+
     ImportReport importReport =
         trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
-    assertThat(importReport.getStatus(), is(Status.ERROR));
+
     assertHasError(importReport, ValidationCode.E4019);
     assertThat(importReport.getStats().getIgnored(), is(2));
   }

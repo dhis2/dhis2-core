@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Component;
 @Component(
     "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-@Slf4j
 class SecurityOwnershipValidator implements Validator<Relationship> {
 
   @Nonnull private final AclService aclService;
