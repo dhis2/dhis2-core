@@ -694,7 +694,7 @@ class AnalyticsServiceTest extends IntegrationTestBase {
     Map<String, Number> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
     inE_deA_reRateA_2017_Q01_keyValue.put("inabcdefghE-ouabcdefghD-2017Q1", 99.6);
     Map<String, Number> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
-    inF_deA_reRateB_2017_Q01_keyValue.put("inabcdefghF-ouabcdefghD-2017Q1", 199.4);
+    inF_deA_reRateB_2017_Q01_keyValue.put("inabcdefghF-ouabcdefghD-2017Q1", 199.34);
     Map<String, Number> inG_deE_periodOffsets_2017_07_keyvalue = new HashMap<>();
     // Indicators, default to ".0" decimal when no decimal digit is set.
     inG_deE_periodOffsets_2017_07_keyvalue.put("inabcdefghG-ouabcdefghA-201707", 3.0);
