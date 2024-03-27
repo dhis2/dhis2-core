@@ -184,6 +184,17 @@ public class JdbcIconStore implements IconStore {
         .toList();
   }
 
+  @Override
+  public int deleteOrphanDefaultIcons() {
+    String sql =
+        """
+      delete from icon i
+      where custom = false
+      and not exists(select 1 from fileresource fr where fr.fileresourceid = i.fileresourceid );
+      """;
+    return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource());
+  }
+
   private String buildIconQuery(
       IconQueryParams params, String sql, MapSqlParameterSource parameterSource) {
     SqlHelper hlp = new SqlHelper(true);

@@ -125,4 +125,10 @@ public interface IconService {
    * @throws NotFoundException when no icon with the provided key exists
    */
   void deleteIcon(@Nonnull String key) throws BadRequestException, NotFoundException;
+
+  /**
+   * @return number of icons deleted because they were not custom but refer to a non-existing {@link
+   *     org.hisp.dhis.fileresource.FileResource}
+   */
+  int deleteOrphanDefaultIcons();
 }

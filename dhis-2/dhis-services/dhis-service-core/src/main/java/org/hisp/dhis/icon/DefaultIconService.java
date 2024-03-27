@@ -224,6 +224,12 @@ public class DefaultIconService implements IconService {
     iconStore.delete(icon);
   }
 
+  @Override
+  @Transactional
+  public int deleteOrphanDefaultIcons() {
+    return iconStore.deleteOrphanDefaultIcons();
+  }
+
   @Nonnull
   private Icon getModifiableIcon(@Nonnull String key, String message)
       throws NotFoundException, BadRequestException {

@@ -80,4 +80,10 @@ public interface IconStore {
    * @return the custom icon matching the key, or null instead
    */
   Icon getIconByKey(String key);
+
+  /**
+   * @return number of icons deleted because they were not custom but refer to a non-existing {@link
+   *     org.hisp.dhis.fileresource.FileResource}
+   */
+  int deleteOrphanDefaultIcons();
 }

@@ -92,6 +92,9 @@ public class HousekeepingJob implements Job {
         "%d jobs were rescheduled"::formatted,
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
 
+    progress.startingStage("Deleting orphan default icons", SKIP_STAGE);
+    progress.runStage(0, "%d icons were deleted"::formatted, iconService::deleteOrphanDefaultIcons);
+
     progress.startingStage("Finding missing default icons", SKIP_STAGE);
     Map<DefaultIcon, List<AddIconRequest>> missing =
         progress.runStage(Map.of(), iconService::findNonExistingDefaultIcons);
