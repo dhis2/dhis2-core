@@ -361,15 +361,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private boolean hasUpdatedLatestData(Date startDate, Date endDate, Program program) {
     String sql =
-        replace(
+        replaceQualify(
             """
             select psi.eventid \
-            from event psi \
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
+            from ${event} psi \
+            inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
             where pi.programid = ${programId} \
             and psi.lastupdated >= '${startDate}' \
             and psi.lastupdated < '${endDate}' \
             limit 1;""",
+            List.of("event", "enrollment"),
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -384,17 +385,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTablePartition partition = table.getLatestTablePartition();
 
       String sql =
-          replace(
+          replaceQualify(
               """
               delete from ${tableName} ax \
               where ax.psi in ( \
-                select psi.uid \
-                from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-                where pi.programid = ${programId} \
-                and psi.lastupdated >= '${startDate}' \
-                and psi.lastupdated < '${endDate}');""",
+              select psi.uid \
+              from ${event} psi \
+              inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
+              where pi.programid = ${programId} \
+              and psi.lastupdated >= '${startDate}' \
+              and psi.lastupdated < '${endDate}');""",
+              List.of("event", "enrollment"),
               Map.of(
-                  "tableName", quote(table.getName()),
+                  "tableName", qualify(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
