@@ -32,6 +32,8 @@ import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -40,6 +42,7 @@ import org.hisp.dhis.util.PeriodCriteriaUtils;
 /**
  * Helper class that provides supportive methods to deal with analytics query criteria and periods.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AnalyticsPeriodCriteriaUtils {
 
   /**
