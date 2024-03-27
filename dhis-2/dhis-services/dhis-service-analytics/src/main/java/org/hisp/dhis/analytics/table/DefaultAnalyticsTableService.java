@@ -217,7 +217,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         parallelism,
         partitions,
         AnalyticsTablePartition::getName,
-        partition -> tableManager.populateTablePartition(params, partition));
+        partition -> tableManager.populateTable(params, partition));
   }
 
   /**
