@@ -606,7 +606,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     if (params.isTimely()) {
-      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " is true ");
+      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " = true ");
     }
 
     // ---------------------------------------------------------------------
