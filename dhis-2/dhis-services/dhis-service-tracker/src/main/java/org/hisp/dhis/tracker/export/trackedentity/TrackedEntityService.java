@@ -50,16 +50,9 @@ public interface TrackedEntityService {
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
       throws NotFoundException;
 
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
-
-  TrackedEntity getTrackedEntity(
-      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException;
-
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
   List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
