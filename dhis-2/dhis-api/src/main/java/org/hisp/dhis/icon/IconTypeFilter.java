@@ -28,28 +28,21 @@
 package org.hisp.dhis.icon;
 
 import java.util.Optional;
+import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Zubair Asghar
  */
+@RequiredArgsConstructor
 public enum IconTypeFilter {
   ALL("all"),
   CUSTOM("custom"),
   DEFAULT("default");
-  private String type;
 
-  IconTypeFilter(String type) {
-
-    this.type = type;
-  }
+  private final String type;
 
   public static Optional<IconTypeFilter> from(String iconType) {
-    for (IconTypeFilter type : IconTypeFilter.values()) {
-      if (type.type.equals(iconType)) {
-        return Optional.of(type);
-      }
-    }
-
-    return Optional.empty();
+    return Stream.of(IconTypeFilter.values()).filter(t -> t.type.equals(iconType)).findFirst();
   }
 }
