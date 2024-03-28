@@ -57,11 +57,8 @@ public class JsonGenerator {
     boolean newLineBeforeItem;
 
     boolean newLineAfterObjectStart;
-
     boolean newLineBeforeObjectEnd;
-
     boolean newLineAfterArrayStart;
-
     boolean newLineBeforeArrayEnd;
 
     /** 1 level of indent */
@@ -78,6 +75,9 @@ public class JsonGenerator {
             "",
             "]",
             "",
+            "[",
+            ",",
+            "]",
             "{",
             ":",
             "}",
@@ -98,6 +98,9 @@ public class JsonGenerator {
             "- ",
             "",
             "[]",
+            "[",
+            ",",
+            "]",
             "",
             ": ",
             "",
@@ -121,50 +124,34 @@ public class JsonGenerator {
                     .build());
 
     String arrayStart;
-
     String arrayItemStart;
-
     String arrayEnd;
-
     String arrayEmpty;
-
+    String arrayInlineStart;
+    String arrayInlineItemSeparator;
+    String arrayInlineEnd;
     String objectStart;
-
     String objectItemStart;
-
     String objectEnd;
-
     String objectEmpty;
-
-    String itemSeparator;
-
+    String objectItemSeparator;
     String stringStart;
-
     String stringEnd;
-
     UnaryOperator<String> escapeString;
-
     String textStart;
-
     String textEnd;
-
     boolean textIndent;
-
     Function<String, List<String>> escapeText;
-
     UnaryOperator<Format> adjustFormat;
   }
 
   private static final JsonStringEncoder JSON_ESCAPE_STRING = JsonStringEncoder.getInstance();
 
   private final StringBuilder out;
-
   private final Format format;
-
   private final Language language;
 
   private String indent = "";
-
   private boolean arrayItemLast = false;
 
   @Override
@@ -192,19 +179,26 @@ public class JsonGenerator {
   final void addObjectMember(String name, Runnable addMembers) {
     appendMemberName(name);
     out.append(language.objectStart);
-    if (format.isNewLineAfterObjectStart()) out.append('\n');
-    int length = out.length();
+    if (format.isNewLineAfterObjectStart()) appendNewline();
+    int lengthAfterStart = out.length();
     if (format.isNewLineBeforeItem()) indent += format.getItemIndent();
     appendItems(addMembers);
     if (format.isNewLineBeforeItem())
       indent = indent.substring(0, indent.length() - format.getItemIndent().length());
-    discardLastMemberSeparator(length, language.objectEmpty);
+    discardLastMemberSeparator(lengthAfterStart, language.objectEmpty);
     if (format.isNewLineBeforeObjectEnd()) {
-      out.append('\n');
+      appendNewline();
       appendMemberIndent();
     }
     out.append(language.objectEnd);
     appendMemberSeparator();
+  }
+
+  /**
+   * Newlines for format purposes, only append one if the last character was not a newline already
+   */
+  private void appendNewline() {
+    if (out.isEmpty() || out.charAt(out.length() - 1) != '\n') out.append('\n');
   }
 
   final void addArrayMember(String name, Collection<String> values) {
@@ -220,15 +214,26 @@ public class JsonGenerator {
   final void addArrayMember(String name, Runnable addElements) {
     appendMemberName(name);
     out.append(language.arrayStart);
-    if (format.isNewLineAfterArrayStart()) out.append('\n');
-    int length = out.length();
+    if (format.isNewLineAfterArrayStart()) appendNewline();
+    int lengthAfterStart = out.length();
     appendItems(addElements);
-    discardLastMemberSeparator(length, language.arrayEmpty);
+    discardLastMemberSeparator(lengthAfterStart, language.arrayEmpty);
     if (format.isNewLineBeforeArrayEnd()) {
-      out.append('\n');
+      appendNewline();
       appendMemberIndent();
     }
     out.append(language.arrayEnd);
+    appendMemberSeparator();
+  }
+
+  final void addInlineArrayMember(String name, List<String> values) {
+    appendMemberName(name);
+    out.append(language.arrayInlineStart);
+    for (int i = 0; i < values.size(); i++) {
+      if (i > 0) out.append(language.arrayInlineItemSeparator);
+      appendString(values.get(i));
+    }
+    out.append(language.arrayInlineEnd);
     appendMemberSeparator();
   }
 
@@ -309,14 +314,16 @@ public class JsonGenerator {
     }
     out.append(language.textStart);
     for (String line : language.escapeText.apply(str)) {
-      if (language.textIndent) out.append('\n').append(indent).append(format.itemIndent);
+      if (language.textIndent) {
+        out.append('\n').append(indent).append(format.itemIndent);
+      }
       out.append(line);
     }
     out.append(language.textEnd);
   }
 
   private void appendMemberName(String name) {
-    if (name == null && out.length() == 0) return;
+    if (name == null && out.isEmpty()) return;
     appendMemberIndent();
     if (name != null) {
       arrayItemLast = false;
@@ -328,17 +335,20 @@ public class JsonGenerator {
   }
 
   private void appendMemberIndent() {
-    if (!arrayItemLast && format.isNewLineBeforeItem()) out.append('\n').append(indent);
+    if (!arrayItemLast && format.isNewLineBeforeItem()) {
+      appendNewline();
+      out.append(indent);
+    }
   }
 
   private void appendMemberSeparator() {
     arrayItemLast = false;
-    out.append(language.itemSeparator);
+    out.append(language.objectItemSeparator);
   }
 
-  private void discardLastMemberSeparator(int length, String empty) {
-    if (out.length() > length) {
-      out.setLength(out.length() - language.itemSeparator.length()); // discard last ,
+  private void discardLastMemberSeparator(int lengthAfterStart, String empty) {
+    if (out.length() > lengthAfterStart) {
+      out.setLength(out.length() - language.objectItemSeparator.length()); // discard last ,
     } else {
       out.append(empty);
     }

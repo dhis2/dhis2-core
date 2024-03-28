@@ -257,9 +257,7 @@ public class OpenApiGenerator extends JsonGenerator {
   private static final String NO_DESCRIPTION = "[no description yet]";
 
   private final Api api;
-
   private final Info info;
-
   private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
 
   private OpenApiGenerator(
@@ -351,7 +349,7 @@ public class OpenApiGenerator extends JsonGenerator {
           addBooleanMember("deprecated", endpoint.getDeprecated());
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          addArrayMember("tags", tags);
+          addInlineArrayMember("tags", List.copyOf(tags));
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
           if (endpoint.getRequestBody().isPresent()) {
@@ -521,13 +519,13 @@ public class OpenApiGenerator extends JsonGenerator {
     if (schemaType == Api.Schema.Type.ENUM) {
       addStringMember("type", "string");
       if (defaultValue != null) addStringMember("default", defaultValue);
-      addArrayMember("enum", schema.getValues());
+      addInlineArrayMember("enum", schema.getValues());
       return;
     }
     if (type.isEnum()) {
       addStringMember("type", "string");
       if (defaultValue != null) addStringMember("default", defaultValue);
-      addArrayMember(
+      addInlineArrayMember(
           "enum", stream(type.getEnumConstants()).map(e -> ((Enum<?>) e).name()).toList());
       return;
     }
@@ -595,13 +593,13 @@ public class OpenApiGenerator extends JsonGenerator {
       }
     }
     if (simpleType.getEnums() != null) {
-      addArrayMember("enum", List.of(simpleType.getEnums()));
+      addInlineArrayMember("enum", List.of(simpleType.getEnums()));
     }
   }
 
   private void generateRefTypeSchema(Api.Schema schema) {
     addStringMember("type", "object");
-    addArrayMember("required", List.of("id"));
+    addInlineArrayMember("required", List.of("id"));
     addObjectMember("properties", () -> addObjectMember("id", () -> generateUidSchema(schema)));
     addTypeDescriptionMember(schema.getRawType(), "A UID reference to a %s  \n(Java name `%s`)");
   }

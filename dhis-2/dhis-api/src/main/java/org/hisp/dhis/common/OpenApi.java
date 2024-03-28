@@ -360,6 +360,13 @@ public @interface OpenApi {
     Pattern pattern() default Pattern.DEFAULT;
   }
 
+  @Target(ElementType.TYPE_USE)
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Description {
+
+    String[] value();
+  }
+
   /*
    * Repeater annotations (not for direct use)
    */

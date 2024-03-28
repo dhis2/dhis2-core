@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -38,6 +39,7 @@ import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -282,12 +284,27 @@ final class ApiAnalyse {
         });
     // error response(s) from annotated exception types in method signature and
     // error response(s) from annotations on exceptions in method signature
-    Stream.concat(stream(source.getExceptionTypes()), stream(source.getAnnotatedExceptionTypes()))
-        .map(ex -> ex.getAnnotationsByType(OpenApi.Response.class))
-        .flatMap(Stream::of)
-        .forEach(a -> res.putAll(analyseResponses(endpoint, a, produces, List.of(), null)));
-
+    for (AnnotatedType error : source.getAnnotatedExceptionTypes()) {
+      OpenApi.Response response =
+          error.getType() instanceof Class<?> t ? t.getAnnotation(OpenApi.Response.class) : null;
+      if (response == null) response = error.getAnnotation(OpenApi.Response.class);
+      if (response != null) {
+        Map<HttpStatus, Api.Response> responses =
+            analyseResponses(endpoint, response, produces, List.of(), null);
+        setDescription(error, responses.values(), Api.Response::getDescription);
+        res.putAll(responses);
+      }
+    }
     return res;
+  }
+
+  private static <T> void setDescription(
+      AnnotatedElement source,
+      Collection<T> target,
+      Function<T, Api.Maybe<String>> getDescription) {
+    String desc = Descriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
+    if (desc == null) return;
+    target.forEach(t -> getDescription.apply(t).setIfAbsent(desc));
   }
 
   private static Map<HttpStatus, Api.Response> analyseResponses(
@@ -316,7 +333,7 @@ final class ApiAnalyse {
     return statuses.stream()
         .collect(
             toMap(
-                Function.identity(),
+                identity(),
                 status ->
                     new Api.Response(status)
                         .add(

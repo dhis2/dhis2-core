@@ -139,6 +139,12 @@ public class Api {
       return getValue();
     }
 
+    public void setIfAbsent(T value) {
+      if (this.value == null) {
+        this.value = value;
+      }
+    }
+
     T orElse(T defaultValue) {
       return value != null ? value : defaultValue;
     }
