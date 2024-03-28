@@ -7,5 +7,9 @@
     "bundle-apps": "node ./scripts/bundle-apps.js"
   },
   "author": "Viktor Varland",
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "axios": "^1.6.7"
+  }
 }

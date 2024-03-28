@@ -60,9 +60,21 @@ function ex_clone_path (url) {
     return url.split('/').reverse()[0].split('.git')[0]
 }
 
+/**
+ *  Get the target destination for a given repo url
+ *
+ *  https://apps.dhis2.org/api/v2/apps/28823170-1203-46d1-81d5-eea67abae41c/download/app-management_100.2.32.zip => app-management
+ *  https://github.com/dhis2/capture-app/releases/download/v100.53.0/capture-100.53.0.zip => capture
+ *
+ */
+function ex_zip_path (url) {
+    return url.split('/').reverse()[0].split('.zip')[0]
+}
+
 module.exports = {
     scrub,
     sanitize_app_name,
     split_repo_path,
-    ex_clone_path
+    ex_clone_path,
+    ex_zip_path
 }
