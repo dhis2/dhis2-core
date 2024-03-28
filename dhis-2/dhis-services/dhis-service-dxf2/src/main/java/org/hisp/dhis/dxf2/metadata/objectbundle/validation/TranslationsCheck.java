@@ -50,6 +50,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TranslationsCheck implements ObjectValidationCheck {
+
   @Override
   public <T extends IdentifiableObject> void check(
       ObjectBundle bundle,
