@@ -507,8 +507,6 @@ public final class AnalyticsUtils {
     int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
     int vlInx = grid.getHeaderWidth() - 1;
 
-    String created = DateUtils.getMediumDateString();
-
     Grid dvs = new ListGrid();
 
     dvs.addHeader(new GridHeader("data_element", ValueType.TEXT));
@@ -532,9 +530,9 @@ public final class AnalyticsUtils {
       objects.add(row.get(coInx));
       objects.add(row.get(aoInx));
       objects.add(row.get(vlInx));
-      objects.add("");
-      objects.add(created);
-      objects.add(created);
+      objects.add(null);
+      objects.add(null);
+      objects.add(null);
       objects.add(KEY_AGG_VALUE);
       objects.add(false);
 
