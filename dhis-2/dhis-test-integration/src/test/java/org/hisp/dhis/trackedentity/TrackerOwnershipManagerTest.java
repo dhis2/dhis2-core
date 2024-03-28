@@ -307,8 +307,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programA.setAccessLevel(AccessLevel.OPEN);
     programService.updateProgram(programA);
 
-    assertEquals(entityInstanceA1, trackedEntityService.getTrackedEntity(
-        entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
+    assertEquals(
+        entityInstanceA1,
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
   }
 
   @Test
@@ -335,8 +337,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         entityInstanceA1, programA, organisationUnitB, true, true);
 
     injectSecurityContextUser(userB);
-    assertEquals(entityInstanceA1, trackedEntityService.getTrackedEntity(
-        entityInstanceA1.getUid(), null, defaultParams, false));
+    assertEquals(
+        entityInstanceA1,
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), null, defaultParams, false));
   }
 
   @Test
@@ -346,9 +350,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     ForbiddenException exception =
         assertThrows(
             ForbiddenException.class,
-            () -> trackedEntityService.getTrackedEntity(
-        entityInstanceA1.getUid(), null, defaultParams, false));
-    assertEquals(String.format("User has no access to TrackedEntity:%s", entityInstanceA1.getUid()), exception.getMessage());
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceA1.getUid(), null, defaultParams, false));
+    assertEquals(
+        String.format("User has no access to TrackedEntity:%s", entityInstanceA1.getUid()),
+        exception.getMessage());
   }
 
   @Test
@@ -356,8 +363,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     injectSecurityContextUser(userB);
 
-    assertEquals(entityInstanceB1, trackedEntityService.getTrackedEntity(
-        entityInstanceB1.getUid(), null, defaultParams, false));
+    assertEquals(
+        entityInstanceB1,
+        trackedEntityService.getTrackedEntity(
+            entityInstanceB1.getUid(), null, defaultParams, false));
   }
 
   @Test
@@ -367,8 +376,11 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     ForbiddenException exception =
         assertThrows(
             ForbiddenException.class,
-            () -> trackedEntityService.getTrackedEntity(
-                entityInstanceB1.getUid(), null, defaultParams, false));
-    assertEquals(String.format("User has no access to TrackedEntity:%s", entityInstanceB1.getUid()), exception.getMessage());
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceB1.getUid(), null, defaultParams, false));
+    assertEquals(
+        String.format("User has no access to TrackedEntity:%s", entityInstanceB1.getUid()),
+        exception.getMessage());
   }
 }
