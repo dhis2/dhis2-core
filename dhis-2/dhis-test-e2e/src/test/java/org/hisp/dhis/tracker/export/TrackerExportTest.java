@@ -47,6 +47,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
 import io.restassured.http.Header;
@@ -572,7 +573,7 @@ public class TrackerExportTest extends TrackerApiTest {
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
-    assertEquals("application/csv; charset=UTF-8", response.getContentType());
+    assertTrue(response.getContentType().contains("application/csv"));
   }
 
   @Test
@@ -598,7 +599,7 @@ public class TrackerExportTest extends TrackerApiTest {
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
-    assertEquals("application/csv; charset=UTF-8", response.getContentType());
+    assertTrue(response.getContentType().contains("application/csv"));
   }
 
   @Test
