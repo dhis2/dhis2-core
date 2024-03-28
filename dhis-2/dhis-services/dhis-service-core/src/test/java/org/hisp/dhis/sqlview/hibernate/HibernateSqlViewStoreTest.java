@@ -51,8 +51,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @ExtendWith(MockitoExtension.class)
 class HibernateSqlViewStoreTest {
 
-  @Mock
-  SessionFactory sessionFactory;
+  @Mock SessionFactory sessionFactory;
   @Mock JdbcTemplate jdbcTemplate;
   @Mock JdbcTemplate readOnlyJdbcTemplate;
   @Mock ApplicationEventPublisher publisher;
