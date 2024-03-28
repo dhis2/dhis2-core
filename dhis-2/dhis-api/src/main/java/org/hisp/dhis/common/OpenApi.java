@@ -360,7 +360,7 @@ public @interface OpenApi {
     Pattern pattern() default Pattern.DEFAULT;
   }
 
-  @Target(ElementType.TYPE_USE)
+  @Target({ElementType.TYPE_USE, ElementType.METHOD, ElementType.PARAMETER})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Description {
 

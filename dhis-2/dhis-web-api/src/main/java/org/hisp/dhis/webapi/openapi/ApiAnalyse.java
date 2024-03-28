@@ -261,27 +261,13 @@ final class ApiAnalyse {
     // response(s) declared via annotation(s)
     getAnnotations(source, OpenApi.Response.class)
         .forEach(
-            a ->
-                res.putAll(
-                    analyseResponses(
-                        endpoint,
-                        a,
-                        produces,
-                        List.of(signatureStatus),
-                        source.getGenericReturnType())));
+            a -> res.putAll(newAdditionalResponse(endpoint, source, a, signatureStatus, produces)));
     // response from method signature
-    Class<?> type = source.getReturnType();
+
     res.computeIfAbsent(
         signatureStatus,
         status -> {
-          Api.Response response = new Api.Response(status);
-          if (type != void.class && type != Void.class && type != ModelAndView.class) {
-            response.add(produces, analyseResponseSchema(endpoint, source.getGenericReturnType()));
-          }
-          response
-              .getDescription()
-              .setIfAbsent(analyseDescription(source.getAnnotatedReturnType()));
-          return response;
+          return newSuccessResponse(endpoint, source, status, produces);
         });
     // error response(s) from annotated exception types in method signature and
     // error response(s) from annotations on exceptions in method signature
@@ -290,19 +276,45 @@ final class ApiAnalyse {
           error.getType() instanceof Class<?> t ? t.getAnnotation(OpenApi.Response.class) : null;
       if (response == null) response = error.getAnnotation(OpenApi.Response.class);
       if (response != null) {
-        Map<HttpStatus, Api.Response> responses =
-            analyseResponses(endpoint, response, produces, List.of(), null);
-        if (responses.size() == 1)
-          responses
-              .values()
-              .iterator()
-              .next()
-              .getDescription()
-              .setIfAbsent(analyseDescription(error));
-        res.putAll(responses);
+        res.putAll(newErrorResponse(endpoint, error, response, produces));
       }
     }
     return res;
+  }
+
+  @Nonnull
+  private static Api.Response newSuccessResponse(
+      Api.Endpoint endpoint, Method source, HttpStatus status, Set<MediaType> produces) {
+    Class<?> type = source.getReturnType();
+    Api.Response response = new Api.Response(status);
+    if (type != void.class && type != Void.class && type != ModelAndView.class) {
+      response.add(produces, analyseResponseSchema(endpoint, source.getGenericReturnType()));
+    }
+    response.getDescription().setIfAbsent(analyseDescription(source.getAnnotatedReturnType()));
+    return response;
+  }
+
+  private static Map<HttpStatus, Api.Response> newAdditionalResponse(
+      Api.Endpoint endpoint,
+      Method source,
+      OpenApi.Response response,
+      HttpStatus status,
+      Set<MediaType> produces) {
+    return analyseResponses(
+        endpoint, response, produces, List.of(status), source.getGenericReturnType());
+  }
+
+  @Nonnull
+  private static Map<HttpStatus, Api.Response> newErrorResponse(
+      Api.Endpoint endpoint,
+      AnnotatedType source,
+      OpenApi.Response response,
+      Set<MediaType> produces) {
+    Map<HttpStatus, Api.Response> responses =
+        analyseResponses(endpoint, response, produces, List.of(), null);
+    if (responses.size() == 1)
+      responses.values().iterator().next().getDescription().setIfAbsent(analyseDescription(source));
+    return responses;
   }
 
   private static String analyseDescription(AnnotatedElement source) {
