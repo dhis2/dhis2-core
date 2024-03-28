@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Map;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -49,6 +50,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -107,6 +109,13 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     entityInstanceService.addTrackedEntity(entityInstanceA1);
     entityInstanceService.addTrackedEntity(entityInstanceB1);
 
+    userA = createUserWithAuth("userA");
+    userA.addOrganisationUnit(organisationUnitA);
+    userService.updateUser(userA);
+    userB = createUserWithAuth("userB");
+    userB.addOrganisationUnit(organisationUnitB);
+    userService.updateUser(userB);
+
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programService.addProgram(programA);
@@ -115,13 +124,12 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programB = createProgram('B');
     programB.setAccessLevel(AccessLevel.CLOSED);
     programService.addProgram(programB);
-
-    userA = createUserWithAuth("userA");
-    userA.addOrganisationUnit(organisationUnitA);
-    userService.updateUser(userA);
-    userB = createUserWithAuth("userB");
-    userB.addOrganisationUnit(organisationUnitB);
-    userService.updateUser(userB);
+    programB.setSharing(
+        Sharing.builder()
+            .publicAccess(AccessStringHelper.DEFAULT)
+            .users(Map.of(userB.getUid(), new UserAccess(userB, "r-r-----")))
+            .build());
+    programService.updateProgram(programB);
 
     userDetailsA = UserDetails.fromUser(userA);
     userDetailsB = UserDetails.fromUser(userB);
@@ -291,5 +299,76 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
                 trackedEntityService.getTrackedEntity(
                     entityInstanceA1.getUid(), programB.getUid(), defaultParams, false));
     assertEquals(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED, exception.getMessage());
+  }
+
+  @Test
+  void shouldHaveAccessWhenProgramOpenAndUserInScope()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    programA.setAccessLevel(AccessLevel.OPEN);
+    programService.updateProgram(programA);
+
+    assertEquals(entityInstanceA1, trackedEntityService.getTrackedEntity(
+        entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
+  }
+
+  @Test
+  void shouldNotHaveAccessWhenProgramOpenAndUserNotInSearchScope() {
+    programA.setAccessLevel(AccessLevel.OPEN);
+    programService.updateProgram(programA);
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitB, true, true);
+
+    injectSecurityContextUser(userA);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    entityInstanceA1.getUid(), programA.getUid(), defaultParams, false));
+    assertEquals(TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT, exception.getMessage());
+  }
+
+  @Test
+  void shouldHaveAccessWhenProgramNotProvidedAndTEEnrolledButHaveAccessToTEOwner()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitB, true, true);
+
+    injectSecurityContextUser(userB);
+    assertEquals(entityInstanceA1, trackedEntityService.getTrackedEntity(
+        entityInstanceA1.getUid(), null, defaultParams, false));
+  }
+
+  @Test
+  void shouldNotHaveAccessWhenProgramNotProvidedAndTEEnrolledAndNoAccessToTEOwner() {
+    injectSecurityContextUser(userB);
+
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> trackedEntityService.getTrackedEntity(
+        entityInstanceA1.getUid(), null, defaultParams, false));
+    assertEquals(String.format("User has no access to TrackedEntity:%s", entityInstanceA1.getUid()), exception.getMessage());
+  }
+
+  @Test
+  void shouldHaveAccessWhenProgramNotProvidedAndTENotEnrolledButHaveAccessToTeRegistrationUnit()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    injectSecurityContextUser(userB);
+
+    assertEquals(entityInstanceB1, trackedEntityService.getTrackedEntity(
+        entityInstanceB1.getUid(), null, defaultParams, false));
+  }
+
+  @Test
+  void shouldNotHaveAccessWhenProgramNotProvidedAndTENotEnrolledAndNoAccessToTeRegistrationUnit() {
+    injectSecurityContextUser(userA);
+
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> trackedEntityService.getTrackedEntity(
+                entityInstanceB1.getUid(), null, defaultParams, false));
+    assertEquals(String.format("User has no access to TrackedEntity:%s", entityInstanceB1.getUid()), exception.getMessage());
   }
 }

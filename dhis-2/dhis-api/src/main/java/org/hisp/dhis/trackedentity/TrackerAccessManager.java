@@ -48,6 +48,14 @@ public interface TrackerAccessManager {
   List<String> canRead(
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
+  /**
+   * Check if a user has access to the supplied program and tracked entity type
+   *
+   * @return empty list if access is granted, list with errors otherwise
+   */
+  List<String> canReadProgramAndTrackedEntityType(
+      UserDetails user, TrackedEntity trackedEntity, Program program);
+
   List<String> canWrite(
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
@@ -107,4 +115,12 @@ public interface TrackerAccessManager {
    *     return false
    */
   boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit);
+
+  /**
+   * Checks if the user has access to the TE org unit owner in the specified program
+   *
+   * @return an error if the TE is not accessible, null otherwise
+   */
+  String canAccessProgramOwner(
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 }
