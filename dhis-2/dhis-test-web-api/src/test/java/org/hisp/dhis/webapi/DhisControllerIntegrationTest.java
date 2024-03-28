@@ -102,7 +102,11 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
 
     TestUtils.executeStartupRoutines(webApplicationContext);
 
-    integrationTestBefore();
+    try {
+      integrationTestBefore();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     dbmsManager.flushSession();
     dbmsManager.clearSession();
@@ -145,7 +149,31 @@ public class DhisControllerIntegrationTest extends DhisControllerTestBase {
     return user;
   }
 
-  protected void integrationTestBefore() {
+  protected User createAndPersistDataEntryRole() {
+    UserRole role =
+        createUserRole("DataEntry_Test_" + CodeGenerator.generateUid(), "F_DATAVALUE_ADD");
+    role.setUid(CodeGenerator.generateUid());
+
+    manager.persist(role);
+
+    User user = new User();
+    user.setUid(CodeGenerator.generateUid());
+    user.setFirstName("DataEntry");
+    user.setSurname("User");
+    user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
+    user.setPassword(DEFAULT_ADMIN_PASSWORD);
+    user.getUserRoles().add(role);
+    user.setLastUpdated(new Date());
+    user.setCreated(new Date());
+
+    manager.persist(user);
+    lookUpInjectUserSecurityContext(user);
+
+    return user;
+  }
+
+  protected void integrationTestBefore() throws Exception {
+
     boolean enableQueryLogging =
         dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
     // Enable to query logger to log only what's happening inside the test

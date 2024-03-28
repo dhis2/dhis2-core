@@ -68,6 +68,11 @@ public interface DataValueEntry {
     return created != null && !created.isEmpty();
   }
 
+  default boolean hasStoredBy() {
+    String storedBy = getStoredBy();
+    return storedBy != null && !storedBy.isEmpty();
+  }
+
   default String getPrimaryKey() {
     return getDataElement()
         + getPeriod()
