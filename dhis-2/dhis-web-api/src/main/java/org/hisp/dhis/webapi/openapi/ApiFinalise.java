@@ -43,6 +43,7 @@ import java.util.TreeMap;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -421,32 +422,15 @@ public class ApiFinalise {
                   desc -> desc.replace("{entityType}", endpoint.getEntityTypeName());
               endpoint
                   .getDescription()
-                  .setValue(descriptions.get(subst, format("%s.description", name)));
+                  .setIfAbsent(descriptions.get(subst, format("%s.description", name)));
               endpoint
                   .getParameters()
                   .values()
                   .forEach(
-                      parameter -> {
-                        List<String> keys =
-                            parameter.isShared()
-                                ? List.of(
-                                    format(
-                                        "%s.parameter.%s.description",
-                                        name, parameter.getFullName()),
-                                    format(
-                                        "%s.parameter.%s.description",
-                                        name, getSharedNameForDeclaringType(parameter)),
-                                    format("*.parameter.%s.description", parameter.getFullName()),
-                                    format(
-                                        "*.parameter.%s.description",
-                                        getSharedNameForDeclaringType(parameter)),
-                                    format("*.parameter.*.%s.description", parameter.getName()))
-                                : List.of(
-                                    format(
-                                        "%s.parameter.%s.description", name, parameter.getName()),
-                                    format("*.parameter.%s.description", parameter.getName()));
-                        parameter.getDescription().setValue(descriptions.get(subst, keys));
-                      });
+                      p ->
+                          p.getDescription()
+                              .setIfAbsent(
+                                  descriptions.get(subst, getParameterKeySequence(name, p))));
               if (endpoint.getRequestBody().isPresent()) {
                 Api.Maybe<String> description =
                     endpoint.getRequestBody().getValue().getDescription();
@@ -461,12 +445,8 @@ public class ApiFinalise {
                         int statusCode = response.getStatus().value();
                         response
                             .getDescription()
-                            .setValue(
-                                descriptions.get(
-                                    subst,
-                                    List.of(
-                                        format("%s.response.%d.description", name, statusCode),
-                                        format("*.response.%d.description", statusCode))));
+                            .setIfAbsent(
+                                descriptions.get(subst, getResponseKeySequence(name, statusCode)));
                         Api.Schema schema = response.getContent().get(MediaType.APPLICATION_JSON);
                         if (schema != null && !schema.isShared()) {
                           schema
@@ -475,19 +455,44 @@ public class ApiFinalise {
                                   property ->
                                       property
                                           .getDescription()
-                                          .setValue(
+                                          .setIfAbsent(
                                               descriptions.get(
                                                   subst,
-                                                  List.of(
-                                                      format(
-                                                          "%s.response.%d.%s.description",
-                                                          name, statusCode, property.getName()),
-                                                      format(
-                                                          "*.response.%d.%s.description",
-                                                          statusCode, property.getName())))));
+                                                  getPropertyKeySequence(
+                                                      name, statusCode, property))));
                         }
                       });
             });
+  }
+
+  @Nonnull
+  private static List<String> getResponseKeySequence(String endpoint, int statusCode) {
+    return List.of(
+        format("%s.response.%d.description", endpoint, statusCode),
+        format("*.response.%d.description", statusCode));
+  }
+
+  @Nonnull
+  private static List<String> getPropertyKeySequence(
+      String endpoint, int statusCode, Api.Property property) {
+    return List.of(
+        format("%s.response.%d.%s.description", endpoint, statusCode, property.getName()),
+        format("*.response.%d.%s.description", statusCode, property.getName()));
+  }
+
+  @Nonnull
+  private static List<String> getParameterKeySequence(String endpoint, Parameter parameter) {
+    return parameter.isShared()
+        ? List.of(
+            format("%s.parameter.%s.description", endpoint, parameter.getFullName()),
+            format(
+                "%s.parameter.%s.description", endpoint, getSharedNameForDeclaringType(parameter)),
+            format("*.parameter.%s.description", parameter.getFullName()),
+            format("*.parameter.%s.description", getSharedNameForDeclaringType(parameter)),
+            format("*.parameter.*.%s.description", parameter.getName()))
+        : List.of(
+            format("%s.parameter.%s.description", endpoint, parameter.getName()),
+            format("*.parameter.%s.description", parameter.getName()));
   }
 
   private static void describeSchema(Api.Schema schema) {
