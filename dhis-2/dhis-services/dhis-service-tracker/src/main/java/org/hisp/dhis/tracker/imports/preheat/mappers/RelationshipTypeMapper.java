@@ -48,6 +48,7 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> 
   @Mapping(target = "fromConstraint", qualifiedByName = "constraintMapper")
   @Mapping(target = "toConstraint", qualifiedByName = "constraintMapper")
   @Mapping(target = "bidirectional")
+  @Mapping(target = "sharing")
   RelationshipType map(RelationshipType relationshipType);
 
   @Named("constraintMapper")
