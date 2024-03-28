@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -512,6 +513,61 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
     assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getLastUpdated()));
+  }
+
+  @Test
+  void testUserCannotAttributeData() {
+
+    String currentDate = toMediumDate(new Date());
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+
+    injectSecurityContextUser(user);
+    assertFalse(user.isAuthorized(Authorities.F_DATAVALUE_ATTRIBUTE));
+    // Update:
+    // deC, peA, ouA created = not specified, should be today's date
+    // deC, peA, ouB created = specified as 2020-02-02, should be today's date
+    // All values have storedby specified as john, but should be the current user
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+    DataValue dv1 = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
+    assertEquals(currentDate, toMediumDate(dv1.getCreated()));
+    assertEquals(user.getUsername(), dv1.getStoredBy());
+    assertEquals(currentDate, toMediumDate(dv1.getLastUpdated()));
+    DataValue dv2 = dataValueService.getDataValue(deC, peA, ouB, cc, cc);
+    assertEquals(currentDate, toMediumDate(dv2.getCreated()));
+    assertEquals(user.getUsername(), dv2.getStoredBy());
+    assertEquals(currentDate, toMediumDate(dv2.getLastUpdated()));
+  }
+
+  @Test
+  void testUserCanAttributeData() {
+    injectSecurityContextUser(superUser);
+    User userB = createAndAddUser(false, "B", null, Authorities.F_DATAVALUE_ATTRIBUTE.name());
+    userB.addOrganisationUnits(Sets.newHashSet(ouA, ouB));
+    userService.updateUser(userB);
+
+    enableDataSharing(userB, dsA, AccessStringHelper.DATA_READ_WRITE);
+    enableDataSharing(userB, categoryOptionA, AccessStringHelper.DATA_READ_WRITE);
+    enableDataSharing(userB, categoryOptionB, AccessStringHelper.DATA_READ_WRITE);
+    userService.updateUser(userB);
+    injectSecurityContextUser(userB);
+    assertTrue(userB.isAuthorized(Authorities.F_DATAVALUE_ATTRIBUTE));
+
+    String currentDate = toMediumDate(new Date());
+    CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+
+    // Update:
+    // deC, peA, ouA created = not specified, should be today's date
+    // deC, peA, ouB created = specified as 2020-02-02
+    // All values have storedby specified as john not the current user's username
+    dataValueSetService.importDataValueSetXml(readFile("datavalueset/dataValueSetBUpdate.xml"));
+    DataValue dv1 = dataValueService.getDataValue(deC, peA, ouA, cc, cc);
+    assertEquals(currentDate, toMediumDate(dv1.getCreated()));
+    assertEquals("john", dv1.getStoredBy());
+    assertEquals(currentDate, toMediumDate(dv1.getLastUpdated()));
+    DataValue dv2 = dataValueService.getDataValue(deC, peA, ouB, cc, cc);
+    assertEquals("2020-02-02", toMediumDate(dv2.getCreated()));
+    assertEquals("john", dv2.getStoredBy());
+    assertEquals(currentDate, toMediumDate(dv2.getLastUpdated()));
   }
 
   @Test

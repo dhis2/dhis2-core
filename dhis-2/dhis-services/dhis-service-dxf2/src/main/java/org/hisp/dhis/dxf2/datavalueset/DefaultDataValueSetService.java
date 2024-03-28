@@ -819,9 +819,9 @@ public class DefaultDataValueSetService implements DataValueSetService {
             ? context.getDataValueBatchHandler().findObject(internalValue)
             : null;
 
-    // -----------------------------------
-    // Preserve any existing created date
-    // -----------------------------------
+    // -------------------------------------------------------------------
+    // Preserve any existing created date regardless of the import payload
+    // --------------------------------------------------------------------
     if (existingValue != null) {
       internalValue.setCreated(existingValue.getCreated());
     }
@@ -1295,9 +1295,16 @@ public class DefaultDataValueSetService implements DataValueSetService {
     internalValue.setCategoryOptionCombo(valueContext.getCategoryOptionCombo());
     internalValue.setAttributeOptionCombo(valueContext.getAttrOptionCombo());
     internalValue.setValue(trimToNull(value));
-    internalValue.setStoredBy(context.getStoredBy(dataValue));
     internalValue.setCreated(now);
     internalValue.setLastUpdated(now);
+
+    if (context.currentUserCanAttributeData()) {
+      internalValue.setStoredBy(
+          dataValue.hasStoredBy() ? dataValue.getStoredBy() : context.getCurrentUserName());
+    } else {
+      internalValue.setStoredBy(context.getCurrentUserName());
+    }
+
     internalValue.setComment(trimToNull(dataValue.getComment()));
     internalValue.setFollowup(dataValue.getFollowup());
     internalValue.setDeleted(BooleanUtils.isTrue(dataValue.getDeleted()));
