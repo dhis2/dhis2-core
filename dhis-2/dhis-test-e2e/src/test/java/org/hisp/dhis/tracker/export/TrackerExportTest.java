@@ -565,6 +565,17 @@ public class TrackerExportTest extends TrackerApiTest {
   }
 
   @Test
+  void whenGetEventsCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "events.csv?event=" + event,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    assertEquals("application/csv; charset=UTF-8", response.getContentType());
+  }
+
+  @Test
   void whenGetTrackedEntitiesShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerImportExportActions.getWithHeaders(
@@ -577,6 +588,17 @@ public class TrackerExportTest extends TrackerApiTest {
         List.of(trackedEntityA),
         trackedEntities,
         String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Tracked Entities"));
+  }
+
+  @Test
+  void whenGetTrackedEntitiesCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerImportExportActions.getWithHeaders(
+            "trackedEntities.csv?trackedEntities=" + trackedEntityA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    assertEquals("application/csv; charset=UTF-8", response.getContentType());
   }
 
   @Test
