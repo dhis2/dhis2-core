@@ -43,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.TransactionMode;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -164,7 +165,7 @@ public class DefaultSqlViewService implements SqlViewService {
       Map<String, String> variables,
       List<String> filters,
       List<String> fields) {
-    return getGridData(sqlView, criteria, variables, filters, fields);
+    return getGridData(sqlView, criteria, variables, filters, fields, TransactionMode.READ);
   }
 
   @Override
@@ -175,7 +176,7 @@ public class DefaultSqlViewService implements SqlViewService {
       Map<String, String> variables,
       List<String> filters,
       List<String> fields) {
-    return getGridData(sqlView, criteria, variables, filters, fields);
+    return getGridData(sqlView, criteria, variables, filters, fields, TransactionMode.WRITE);
   }
 
   private Grid getGridData(
@@ -183,7 +184,8 @@ public class DefaultSqlViewService implements SqlViewService {
       Map<String, String> criteria,
       Map<String, String> variables,
       List<String> filters,
-      List<String> fields) {
+      List<String> fields,
+      TransactionMode transactionMode) {
     canAccess(sqlView);
     validateSqlView(sqlView, criteria, variables);
 
@@ -198,7 +200,7 @@ public class DefaultSqlViewService implements SqlViewService {
             ? getSqlForQuery(sqlView, criteria, variables, filters, fields)
             : getSqlForView(sqlView, criteria, filters, fields);
 
-    sqlViewStore.populateSqlViewGrid(grid, sql);
+    sqlViewStore.populateSqlViewGrid(grid, sql, transactionMode);
     return grid;
   }
 
