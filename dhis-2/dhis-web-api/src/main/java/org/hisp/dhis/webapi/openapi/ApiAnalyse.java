@@ -62,6 +62,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -211,15 +212,12 @@ final class ApiAnalyse {
       consumes.add(MediaType.APPLICATION_JSON);
     }
 
-    Api.Endpoint endpoint =
-        new Api.Endpoint(
-            controller,
-            source,
-            entityClass,
-            name,
-            ConsistentAnnotatedElement.of(source).isAnnotationPresent(Deprecated.class)
-                ? Boolean.TRUE
-                : null);
+    Boolean deprecated =
+        ConsistentAnnotatedElement.of(source).isAnnotationPresent(Deprecated.class)
+            ? Boolean.TRUE
+            : null;
+    Api.Endpoint endpoint = new Api.Endpoint(controller, source, entityClass, name, deprecated);
+    endpoint.getDescription().setIfAbsent(analyseDescription(source));
 
     whenAnnotated(source, OpenApi.Tags.class, a -> endpoint.getTags().addAll(List.of(a.value())));
     mapping.path().stream()
@@ -280,6 +278,9 @@ final class ApiAnalyse {
           if (type != void.class && type != Void.class && type != ModelAndView.class) {
             response.add(produces, analyseResponseSchema(endpoint, source.getGenericReturnType()));
           }
+          response
+              .getDescription()
+              .setIfAbsent(analyseDescription(source.getAnnotatedReturnType()));
           return response;
         });
     // error response(s) from annotated exception types in method signature and
@@ -291,20 +292,21 @@ final class ApiAnalyse {
       if (response != null) {
         Map<HttpStatus, Api.Response> responses =
             analyseResponses(endpoint, response, produces, List.of(), null);
-        setDescription(error, responses.values(), Api.Response::getDescription);
+        if (responses.size() == 1)
+          responses
+              .values()
+              .iterator()
+              .next()
+              .getDescription()
+              .setIfAbsent(analyseDescription(error));
         res.putAll(responses);
       }
     }
     return res;
   }
 
-  private static <T> void setDescription(
-      AnnotatedElement source,
-      Collection<T> target,
-      Function<T, Api.Maybe<String>> getDescription) {
-    String desc = Descriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
-    if (desc == null) return;
-    target.forEach(t -> getDescription.apply(t).setIfAbsent(desc));
+  private static String analyseDescription(AnnotatedElement source) {
+    return Descriptions.toMarkdown(source.getAnnotation(OpenApi.Description.class));
   }
 
   private static Map<HttpStatus, Api.Response> analyseResponses(
@@ -353,74 +355,69 @@ final class ApiAnalyse {
       if (p.isAnnotationPresent(OpenApi.Ignore.class)) {
         continue;
       }
+      Map<String, Api.Parameter> parameters = endpoint.getParameters();
       if (p.isAnnotationPresent(OpenApi.Param.class)) {
         OpenApi.Param a = p.getAnnotation(OpenApi.Param.class);
-        EndpointParam param = getParam(p);
-        String name = firstNonEmpty(a.name(), param == null ? "" : param.name(), p.getName());
-        Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.in();
-        boolean required = param == null ? a.required() : param.required();
+        ParameterDetails details = getParameterDetails(a, p);
         Api.Schema type = analyseParamSchema(endpoint, p.getParameterizedType(), a.value());
-        if (in != Api.Parameter.In.BODY) {
-          String fallbackDefaultValue = param != null ? param.defaultValue() : null;
-          String defaultValue =
-              !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
-          endpoint
-              .getParameters()
-              .computeIfAbsent(
-                  name,
-                  key -> {
-                    Api.Parameter parameter = new Api.Parameter(p, key, in, required, type);
-                    parameter.getDefaultValue().setValue(defaultValue);
-                    return parameter;
-                  });
+        if (details.in != Api.Parameter.In.BODY) {
+          parameters.computeIfAbsent(
+              details.name(), key -> newGenericParameter(p, key, details, type));
         } else {
           Api.RequestBody requestBody =
-              endpoint.getRequestBody().init(() -> new Api.RequestBody(p, required));
+              endpoint.getRequestBody().init(() -> new Api.RequestBody(p, details.required()));
+          requestBody.getDescription().setIfAbsent(analyseDescription(p));
           consumes.forEach(mediaType -> requestBody.getConsumes().putIfAbsent(mediaType, type));
         }
       } else if (p.isAnnotationPresent(PathVariable.class)) {
         PathVariable a = p.getAnnotation(PathVariable.class);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
-        endpoint
-            .getParameters()
-            .computeIfAbsent(
-                name,
-                key ->
-                    new Api.Parameter(
-                        p,
-                        key,
-                        Api.Parameter.In.PATH,
-                        a.required(),
-                        analyseInputSchema(endpoint, p.getParameterizedType())));
+        parameters.computeIfAbsent(
+            name, key -> newPathParameter(endpoint, p, key, getParameterDetails(a)));
       } else if (p.isAnnotationPresent(RequestParam.class) && p.getType() != Map.class) {
         RequestParam a = p.getAnnotation(RequestParam.class);
-        EndpointParam param = getParam(p);
         String name = firstNonEmpty(a.name(), a.value(), p.getName());
-        endpoint
-            .getParameters()
-            .computeIfAbsent(
-                name,
-                key -> {
-                  Api.Parameter parameter =
-                      new Api.Parameter(
-                          p,
-                          key,
-                          In.QUERY,
-                          param.required(),
-                          analyseInputSchema(endpoint, p.getParameterizedType()));
-                  parameter.getDefaultValue().setValue(param.defaultValue());
-                  return parameter;
-                });
+        parameters.computeIfAbsent(
+            name, key -> newQueryParameter(endpoint, p, key, getParameterDetails(a)));
       } else if (p.isAnnotationPresent(RequestBody.class)) {
         RequestBody a = p.getAnnotation(RequestBody.class);
         Api.RequestBody requestBody =
             endpoint.getRequestBody().init(() -> new Api.RequestBody(p, a.required()));
+        requestBody.getDescription().setIfAbsent(analyseDescription(p));
         Api.Schema type = analyseParamSchema(endpoint, p.getParameterizedType());
         consumes.forEach(mediaType -> requestBody.getConsumes().putIfAbsent(mediaType, type));
       } else if (isParams(p)) {
         analyseParams(endpoint, p.getType());
       }
     }
+  }
+
+  @Nonnull
+  private static Api.Parameter newGenericParameter(
+      Parameter p, String key, ParameterDetails details, Api.Schema type) {
+    Api.Parameter parameter = new Api.Parameter(p, key, details.in(), details.required(), type);
+    parameter.getDefaultValue().setValue(details.defaultValue());
+    parameter.getDescription().setIfAbsent(analyseDescription(p));
+    return parameter;
+  }
+
+  @Nonnull
+  private static Api.Parameter newPathParameter(
+      Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
+    Api.Schema type = analyseInputSchema(endpoint, source.getParameterizedType());
+    Api.Parameter res = new Api.Parameter(source, name, In.PATH, details.required(), type);
+    res.getDescription().setIfAbsent(analyseDescription(source));
+    return res;
+  }
+
+  @Nonnull
+  private static Api.Parameter newQueryParameter(
+      Api.Endpoint endpoint, Parameter source, String name, ParameterDetails details) {
+    Api.Schema type = analyseInputSchema(endpoint, source.getParameterizedType());
+    Api.Parameter res = new Api.Parameter(source, name, In.QUERY, details.required(), type);
+    res.getDefaultValue().setValue(details.defaultValue());
+    res.getDescription().setIfAbsent(analyseDescription(source));
+    return res;
   }
 
   private static void analyseParam(
@@ -874,25 +871,44 @@ final class ApiAnalyse {
     return null;
   }
 
-  private static EndpointParam getParam(Parameter source) {
-    if (source.isAnnotationPresent(PathVariable.class)) {
-      PathVariable a = source.getAnnotation(PathVariable.class);
-      return new EndpointParam(
-          Api.Parameter.In.PATH, firstNonEmpty(a.name(), a.value()), a.required(), null);
-    }
-    if (source.isAnnotationPresent(RequestParam.class)) {
-      RequestParam a = source.getAnnotation(RequestParam.class);
-      boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
-      boolean required = a.required() && !hasDefault;
-      String defaultValue = hasDefault ? a.defaultValue() : null;
-      return new EndpointParam(
-          Api.Parameter.In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
-    }
-    if (source.isAnnotationPresent(RequestBody.class)) {
-      RequestBody a = source.getAnnotation(RequestBody.class);
-      return new EndpointParam(Api.Parameter.In.BODY, "", a.required(), null);
-    }
+  private static ParameterDetails getParameterDetails(Parameter source) {
+    if (source.isAnnotationPresent(PathVariable.class))
+      return getParameterDetails(source.getAnnotation(PathVariable.class));
+    if (source.isAnnotationPresent(RequestParam.class))
+      return getParameterDetails(source.getAnnotation(RequestParam.class));
+    if (source.isAnnotationPresent(RequestBody.class))
+      return getParameterDetails(source.getAnnotation(RequestBody.class));
     return null;
+  }
+
+  @Nonnull
+  private static ParameterDetails getParameterDetails(OpenApi.Param a, Parameter source) {
+    ParameterDetails details = getParameterDetails(source);
+    String name = firstNonEmpty(a.name(), details == null ? "" : details.name(), source.getName());
+    Api.Parameter.In in = details == null ? Api.Parameter.In.QUERY : details.in();
+    boolean required = details == null ? a.required() : details.required();
+    String fallbackDefaultValue = details != null ? details.defaultValue() : null;
+    String defaultValue = !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
+    return new ParameterDetails(in, name, required, defaultValue);
+  }
+
+  @Nonnull
+  private static ParameterDetails getParameterDetails(RequestBody a) {
+    return new ParameterDetails(In.BODY, "", a.required(), null);
+  }
+
+  @Nonnull
+  private static ParameterDetails getParameterDetails(PathVariable a) {
+    return new ParameterDetails(In.PATH, firstNonEmpty(a.name(), a.value()), a.required(), null);
+  }
+
+  @Nonnull
+  private static ParameterDetails getParameterDetails(RequestParam a) {
+    boolean hasDefault = !a.defaultValue().equals("\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n");
+    boolean required = a.required() && !hasDefault;
+    String defaultValue = hasDefault ? a.defaultValue() : null;
+    return new ParameterDetails(
+        In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
   }
 
   /*
@@ -959,7 +975,8 @@ final class ApiAnalyse {
     }
   }
 
-  record EndpointParam(Api.Parameter.In in, String name, boolean required, String defaultValue) {}
+  record ParameterDetails(
+      Api.Parameter.In in, String name, boolean required, String defaultValue) {}
 
   /*
    * Helpers for working with annotations

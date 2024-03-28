@@ -122,26 +122,32 @@ public class JsonGenerator {
                     .newLineAfterObjectStart(false)
                     .newLineBeforeObjectEnd(false)
                     .build());
-
+    // block array syntax
     String arrayStart;
     String arrayItemStart;
     String arrayEnd;
     String arrayEmpty;
+    // inline array syntax
     String arrayInlineStart;
     String arrayInlineItemSeparator;
     String arrayInlineEnd;
+    // block object syntax
     String objectStart;
     String objectItemStart;
     String objectEnd;
     String objectEmpty;
+    // object member syntax
     String objectItemSeparator;
+    // (inline) string literal syntax
     String stringStart;
     String stringEnd;
     UnaryOperator<String> escapeString;
+    // (block) text block literal syntax
     String textStart;
     String textEnd;
     boolean textIndent;
     Function<String, List<String>> escapeText;
+    // initializer for language format defaults that differ from base format
     UnaryOperator<Format> adjustFormat;
   }
 
@@ -151,7 +157,10 @@ public class JsonGenerator {
   private final Format format;
   private final Language language;
 
+  /** Current line indent (increased and decreased when entering/exiting a block) */
   private String indent = "";
+
+  /** was the last appended output an array item? */
   private boolean arrayItemLast = false;
 
   @Override
@@ -226,6 +235,10 @@ public class JsonGenerator {
     appendMemberSeparator();
   }
 
+  /**
+   * Same as {@link #addArrayMember(String, Collection)} except that the array will be formatted as
+   * an inline array
+   */
   final void addInlineArrayMember(String name, List<String> values) {
     appendMemberName(name);
     out.append(language.arrayInlineStart);

@@ -175,45 +175,35 @@ public class Api {
     @EqualsAndHashCode.Include String name;
 
     Maybe<String> description = new Maybe<>();
-
     Maybe<String> externalDocsUrl = new Maybe<>();
-
     Maybe<String> externalDocsDescription = new Maybe<>();
   }
 
   @Value
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   static class Controller {
+
     @ToString.Exclude Api in;
-
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> source;
-
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityClass;
 
     String name;
-
     List<String> paths = new ArrayList<>();
-
     List<Endpoint> endpoints = new ArrayList<>();
-
     Set<String> tags = new LinkedHashSet<>();
   }
 
   @Value
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   static class Endpoint {
+
     @ToString.Exclude Controller in;
-
     @ToString.Exclude Method source;
-
     @ToString.Exclude Class<?> entityType;
 
     @EqualsAndHashCode.Include String name;
-
     Maybe<String> description = new Maybe<>();
-
     Set<String> tags = new LinkedHashSet<>();
-
     Boolean deprecated;
 
     @EqualsAndHashCode.Include Set<RequestMethod> methods = EnumSet.noneOf(RequestMethod.class);
@@ -243,12 +233,10 @@ public class Api {
   @Value
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
   static class RequestBody {
+
     @ToString.Exclude AnnotatedElement source;
-
     boolean required;
-
     Maybe<String> description = new Maybe<>();
-
     @EqualsAndHashCode.Include Map<MediaType, Schema> consumes = new TreeMap<>();
   }
 
@@ -270,11 +258,8 @@ public class Api {
     @ToString.Exclude AnnotatedElement source;
 
     @EqualsAndHashCode.Include String name;
-
     @EqualsAndHashCode.Include In in;
-
     boolean required;
-
     Schema type;
 
     /**
