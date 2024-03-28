@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -69,12 +70,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"),
           new AnalyticsTableColumn("ouopeningdate", DATE, "ou.openingdate"),
           new AnalyticsTableColumn("oucloseddate", DATE, "ou.closeddate"),
           new AnalyticsTableColumn("costartdate", DATE, "doc.costartdate"),
-          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"),
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"));
+          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"));
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -151,26 +152,35 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        """
-        from analytics_rs_datasetorganisationunitcategory doc
-        inner join dataset ds on doc.datasetid=ds.datasetid
-        inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid
-        left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
-        left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
-        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""";
+        replaceQualify(
+            """
+        from ${analytics_rs_datasetorganisationunitcategory} doc
+        inner join ${dataset} ds on doc.datasetid=ds.datasetid
+        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid
+        left join ${analytics_rs_orgunitstructure} ous on doc.organisationunitid=ous.organisationunitid
+        left join ${analytics_rs_organisationunitgroupsetstructure} ougs on doc.organisationunitid=ougs.organisationunitid
+        left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
+        left join ${analytics_rs_categorystructure} acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid;""",
+            List.of(
+                "analytics_rs_datasetorganisationunitcategory",
+                "dataset",
+                "organisationunit",
+                "analytics_rs_orgunitstructure",
+                "analytics_rs_organisationunitgroupsetstructure",
+                "categoryoptioncombo",
+                "analytics_rs_categorystructure"),
+            Map.of());
 
     invokeTimeAndLog(sql, String.format("Populate %s", tableName));
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryColumns());
-    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);

@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -42,7 +43,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
@@ -53,9 +53,8 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
 
   private final List<DataElementGroupSet> groupSets;
 
-  public DataElementGroupSetResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<DataElementGroupSet> groupSets) {
-    super(sqlBuilder, logged);
+  public DataElementGroupSetResourceTable(Logged logged, List<DataElementGroupSet> groupSets) {
+    super(logged);
     this.groupSets = groupSets;
   }
 
@@ -124,7 +123,8 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from dataelement d";
+
+    sql += format("from {} d;", qualify("dataelement"));
 
     return Optional.of(sql);
   }

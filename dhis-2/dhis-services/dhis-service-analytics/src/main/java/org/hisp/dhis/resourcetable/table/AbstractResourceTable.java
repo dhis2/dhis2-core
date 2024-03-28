@@ -29,6 +29,7 @@ package org.hisp.dhis.resourcetable.table;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 
@@ -37,7 +38,7 @@ import org.hisp.dhis.resourcetable.ResourceTable;
  */
 @RequiredArgsConstructor
 public abstract class AbstractResourceTable implements ResourceTable {
-  protected final SqlBuilder sqlBuilder;
+  protected final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   protected final Logged logged;
 

@@ -44,7 +44,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -59,11 +58,8 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
   private final int organisationUnitLevels;
 
   public OrganisationUnitGroupSetResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<OrganisationUnitGroupSet> groupSets,
-      int organisationUnitLevels) {
-    super(sqlBuilder, logged);
+      Logged logged, List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels) {
+    super(logged);
     this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;
   }
@@ -180,16 +176,19 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
           sql +=
               replace(
                   """
-                  (
-              select oug.uid from orgunitgroup oug \
-              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              (
+              select oug.uid from ${orgunitgroup} oug \
+              inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
-              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
                       "level", valueOf(i),
-                      "groupSetId", valueOf(groupSet.getId())));
+                      "groupSetId", valueOf(groupSet.getId()),
+                      "orgunitgroup", quote("orgunitgroup"),
+                      "orgunitgroupmembers", quote("orgunitgroupmembers"),
+                      "orgunitgroupsetmembers", quote("orgunitgroupsetmembers")));
         }
 
         if (organisationUnitLevels == 0) {
@@ -202,10 +201,13 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
 
     sql = removeLastComma(sql) + " ";
     sql +=
-        """
-        from organisationunit ou \
+        replace(
+            """
+        from ${organisationunit} ou \
         inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid;
-        """;
+        """,
+            "organisationunit",
+            qualify("organisationunit"));
 
     return Optional.of(sql);
   }

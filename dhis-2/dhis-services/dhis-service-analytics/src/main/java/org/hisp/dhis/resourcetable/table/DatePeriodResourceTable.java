@@ -42,7 +42,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -57,8 +56,8 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
 
   private final List<Integer> years;
 
-  public DatePeriodResourceTable(SqlBuilder sqlBuilder, Logged logged, List<Integer> years) {
-    super(sqlBuilder, logged);
+  public DatePeriodResourceTable(Logged logged, List<Integer> years) {
+    super(logged);
     this.years = years;
   }
 

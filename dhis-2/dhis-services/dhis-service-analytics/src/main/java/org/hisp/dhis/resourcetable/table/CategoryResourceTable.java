@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -43,7 +44,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
@@ -58,11 +58,8 @@ public class CategoryResourceTable extends AbstractResourceTable {
   private final List<CategoryOptionGroupSet> groupSets;
 
   public CategoryResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<Category> categories,
-      List<CategoryOptionGroupSet> groupSets) {
-    super(sqlBuilder, logged);
+      Logged logged, List<Category> categories, List<CategoryOptionGroupSet> groupSets) {
+    super(logged);
     this.categories = categories;
     this.groupSets = groupSets;
   }
@@ -135,9 +132,12 @@ public class CategoryResourceTable extends AbstractResourceTable {
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
               Map.of(
-                  "categoryId", valueOf(category.getId()),
-                  "categoryName", quote(category.getName()),
-                  "categoryUid", quote(category.getUid())));
+                  "categoryId",
+                  valueOf(category.getId()),
+                  "categoryName",
+                  quote(category.getName()),
+                  "categoryUid",
+                  quote(category.getUid())));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
@@ -166,7 +166,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from categoryoptioncombo coc ";
+    sql += format("from {} coc;", qualify("categoryoptioncombo"));
 
     return Optional.of(sql);
   }

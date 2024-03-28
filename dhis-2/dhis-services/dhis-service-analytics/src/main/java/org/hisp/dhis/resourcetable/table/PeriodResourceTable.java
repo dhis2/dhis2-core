@@ -46,7 +46,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
@@ -62,8 +61,8 @@ public class PeriodResourceTable extends AbstractResourceTable {
 
   private final List<Period> periods;
 
-  public PeriodResourceTable(SqlBuilder sqlBuilder, Logged logged, List<Period> periods) {
-    super(sqlBuilder, logged);
+  public PeriodResourceTable(Logged logged, List<Period> periods) {
+    super(logged);
     this.periods = periods;
   }
 

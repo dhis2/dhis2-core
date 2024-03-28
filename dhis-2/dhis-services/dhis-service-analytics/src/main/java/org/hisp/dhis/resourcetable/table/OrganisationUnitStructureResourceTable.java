@@ -43,7 +43,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -60,11 +59,8 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
   private final OrganisationUnitService organisationUnitService;
 
   public OrganisationUnitStructureResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      int organisationUnitLevels,
-      OrganisationUnitService organisationUnitService) {
-    super(sqlBuilder, logged);
+      Logged logged, int organisationUnitLevels, OrganisationUnitService organisationUnitService) {
+    super(logged);
     this.organisationUnitLevels = organisationUnitLevels;
     this.organisationUnitService = organisationUnitService;
   }

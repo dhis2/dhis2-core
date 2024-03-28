@@ -37,7 +37,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
@@ -59,8 +58,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
-  public DataApprovalRemapLevelResourceTable(SqlBuilder sqlBuilder, Logged logged) {
-    super(sqlBuilder, logged);
+  public DataApprovalRemapLevelResourceTable(Logged logged) {
+    super(logged);
   }
 
   @Override
@@ -97,7 +96,7 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         where w2.workflowid = w.workflowid \
         and l2.level < l.level), 0) as level \
         from dataapprovalworkflowlevels w \
-        inner join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid
+        inner join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid;
         """,
             "tableName",
             toStaging(TABLE_NAME));

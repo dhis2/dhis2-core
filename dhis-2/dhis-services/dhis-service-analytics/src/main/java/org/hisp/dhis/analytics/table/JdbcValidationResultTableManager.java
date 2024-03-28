@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -167,18 +168,26 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        replace(
+        replaceQualify(
             """
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
-            inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
-            inner join validationrule vr on vr.validationruleid=vrs.validationruleid
-            inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
+            inner join ${analytics_rs_periodstructure} ps on vrs.periodid=ps.periodid
+            inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid
+            inner join ${analytics_rs_organisationunitgroupsetstructure} ougs on vrs.organisationunitid=ougs.organisationunitid
             and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null)
-            left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
-            inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
+            left join ${analytics_rs_orgunitstructure} ous on vrs.organisationunitid=ous.organisationunitid
+            inner join ${analytics_rs_categorystructure} acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
+            List.of(
+                "validationresult",
+                "period",
+                "analytics_rs_periodstructure",
+                "validationrule",
+                "analytics_rs_organisationunitgroupsetstructure",
+                "analytics_rs_orgunitstructure",
+                "analytics_rs_categorystructure"),
             Map.of(
                 "startTime",
                 toLongDate(params.getStartTime()),
@@ -196,14 +205,15 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 "and pe.startdate >= '${fromDate}'",
                 Map.of("fromDate", DateUtils.toMediumDate(params.getFromDate())));
     String sql =
-        replace(
+        replaceQualify(
             """
             select distinct(extract(year from pe.startdate))
-            from validationresult vrs
-            inner join period pe on vrs.periodid=pe.periodid
+            from ${validationresult} vrs
+            inner join ${period} pe on vrs.periodid=pe.periodid
             where pe.startdate is not null
             and vrs.created < '${startTime}'
             ${fromDateClause}""",
+            List.of("validationresult", "period"),
             Map.of(
                 "startTime", toLongDate(params.getStartTime()), "fromDateClause", fromDateClause));
 
@@ -217,17 +227,17 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    return format("and ps.year = %d ", partition.getYear());
+    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+    return emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "vrs.created as value"));
 
     return filterDimensionColumns(columns);

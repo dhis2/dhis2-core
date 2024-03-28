@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -360,15 +361,16 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private boolean hasUpdatedLatestData(Date startDate, Date endDate, Program program) {
     String sql =
-        replace(
+        replaceQualify(
             """
             select psi.eventid \
-            from event psi \
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
+            from ${event} psi \
+            inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
             where pi.programid = ${programId} \
             and psi.lastupdated >= '${startDate}' \
             and psi.lastupdated < '${endDate}' \
             limit 1;""",
+            List.of("event", "enrollment"),
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startDate", toLongDate(startDate),
@@ -383,17 +385,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       AnalyticsTablePartition partition = table.getLatestTablePartition();
 
       String sql =
-          replace(
+          replaceQualify(
               """
               delete from ${tableName} ax \
               where ax.psi in ( \
-                select psi.uid \
-                from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-                where pi.programid = ${programId} \
-                and psi.lastupdated >= '${startDate}' \
-                and psi.lastupdated < '${endDate}');""",
+              select psi.uid \
+              from ${event} psi \
+              inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
+              where pi.programid = ${programId} \
+              and psi.lastupdated >= '${startDate}' \
+              and psi.lastupdated < '${endDate}');""",
+              List.of("event", "enrollment"),
               Map.of(
-                  "tableName", quote(table.getName()),
+                  "tableName", qualify(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
@@ -470,7 +474,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String partitionFilter =
         format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
 
-    return partition.isLatestPartition() ? latestFilter : partitionFilter;
+    return partition.isLatestPartition()
+        ? latestFilter
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   /**
@@ -481,6 +487,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();
@@ -533,8 +540,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-
-    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));

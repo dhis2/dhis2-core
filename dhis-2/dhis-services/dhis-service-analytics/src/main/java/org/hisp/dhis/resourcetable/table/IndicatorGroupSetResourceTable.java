@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -41,7 +42,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -53,9 +53,8 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
 
   private final List<IndicatorGroupSet> groupSets;
 
-  public IndicatorGroupSetResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<IndicatorGroupSet> groupSets) {
-    super(sqlBuilder, logged);
+  public IndicatorGroupSetResourceTable(Logged logged, List<IndicatorGroupSet> groupSets) {
+    super(logged);
     this.groupSets = groupSets;
   }
 
@@ -124,7 +123,7 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from indicator i";
+    sql += format("from {} i;", qualify("indicator"));
 
     return Optional.of(sql);
   }

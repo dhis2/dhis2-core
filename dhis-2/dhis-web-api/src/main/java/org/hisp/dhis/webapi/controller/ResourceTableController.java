@@ -158,7 +158,7 @@ public class ResourceTableController {
 
   private WebMessage execute(JobConfiguration configuration)
       throws ConflictException, NotFoundException {
-    log.debug("Executing requested job of type: '{}'", configuration.getJobType());
+    log.info("Executing requested job of type: '{}'", configuration.getJobType());
 
     jobSchedulerService.executeNow(jobConfigurationService.create(configuration));
 

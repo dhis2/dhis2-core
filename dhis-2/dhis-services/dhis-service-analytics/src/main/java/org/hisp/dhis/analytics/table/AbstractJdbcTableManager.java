@@ -179,7 +179,10 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   @Override
   public void createTable(AnalyticsTable table) {
     createAnalyticsTable(table);
-    createAnalyticsTablePartitions(table);
+
+    if (!sqlBuilder.supportsDeclarativePartitioning()) {
+      createAnalyticsTablePartitions(table);
+    }
   }
 
   /**
@@ -192,7 +195,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     String sql = sqlBuilder.createTable(table);
 
-    log.debug("Create table SQL: '{}'", sql);
+    log.info("Create table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql);
   }
@@ -531,7 +534,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if the table is not empty.
    */
   protected boolean tableIsNotEmpty(String name) {
-    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.quote(name));
+    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
   }
 
