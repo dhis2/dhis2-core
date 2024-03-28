@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.analytics;
 
-import lombok.Getter;
 
 /**
  * @author Lars Helge Overland
  */
-@Getter
 public enum AnalyticsTableType {
   DATA_VALUE("analytics", true, true),
   COMPLETENESS("analytics_completeness", true, true),
@@ -56,5 +54,21 @@ public enum AnalyticsTableType {
     this.tableName = tableName;
     this.periodDimension = periodDimension;
     this.latestPartition = latestPartition;
+  }
+
+  public String getTableName() {
+    return tableName;
+  }
+
+  public boolean hasPeriodDimension() {
+    return periodDimension;
+  }
+
+  public boolean hasLatestPartition() {
+    return latestPartition;
+  }
+
+  public String getTempTableName() {
+    return tableName + AnalyticsConstants.ANALYTICS_TBL_TEMP_SUFFIX;
   }
 }
