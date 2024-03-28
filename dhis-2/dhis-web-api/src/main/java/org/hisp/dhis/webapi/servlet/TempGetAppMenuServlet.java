@@ -25,9 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
-
-import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
+package org.hisp.dhis.webapi.servlet;
 
 import java.io.IOException;
 import javax.servlet.RequestDispatcher;
@@ -39,22 +37,14 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetAppMenuServlet extends HttpServlet {
+public class TempGetAppMenuServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
-    Object springSecurityContext = session().getAttribute("SPRING_SECURITY_CONTEXT");
-
-    if (springSecurityContext != null) {
-      resp.setContentType("application/json");
-      resp.setStatus(HttpServletResponse.SC_OK);
-
-      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
-
-      dispatcher.include(req, resp);
-    } else {
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
+    resp.setContentType("application/json");
+    resp.setStatus(HttpServletResponse.SC_OK);
+    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
+    dispatcher.include(req, resp);
   }
 }
