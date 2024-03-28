@@ -85,7 +85,7 @@
     <kotlinx-datetime.version>0.5.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
+    <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
     <dhis-json-tree.version>1.0</dhis-json-tree.version>
 
