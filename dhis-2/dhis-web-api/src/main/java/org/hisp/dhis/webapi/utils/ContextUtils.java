@@ -87,8 +87,6 @@ public class ContextUtils {
 
   public static final String CONTENT_TYPE_PNG = "image/png";
 
-  public static final String CONTENT_TYPE_JPG = "image/jpeg";
-
   public static final String CONTENT_TYPE_EXCEL = "application/vnd.ms-excel";
 
   public static final String CONTENT_TYPE_JAVASCRIPT = "application/javascript; charset=UTF-8";
@@ -101,8 +99,6 @@ public class ContextUtils {
 
   public static final String HEADER_LOCATION = "Location";
 
-  public static final String HEADER_EXPIRES = "Expires";
-
   public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
 
   public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
@@ -111,8 +107,6 @@ public class ContextUtils {
 
   public static final String HEADER_VALUE_NO_STORE =
       "no-cache, no-store, max-age=0, must-revalidate";
-
-  public static final String QUERY_PARAM_SEP = ";";
 
   public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
 

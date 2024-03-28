@@ -51,6 +51,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -93,8 +94,13 @@ class RelationshipsExportController {
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
-  @GetMapping
-  Page<ObjectNode> getRelationships(RelationshipRequestParams requestParams)
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<Page<ObjectNode>> getRelationships(RelationshipRequestParams requestParams)
       throws NotFoundException, BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     RelationshipOperationParams operationParams = mapper.map(requestParams);
@@ -111,7 +117,9 @@ class RelationshipsExportController {
               RELATIONSHIP_MAPPER.fromCollection(relationshipsPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes));
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes)));
     }
 
     List<org.hisp.dhis.relationship.Relationship> relationships =
@@ -120,7 +128,9 @@ class RelationshipsExportController {
         fieldFilterService.toObjectNodes(
             RELATIONSHIP_MAPPER.fromCollection(relationships), requestParams.getFields());
 
-    return Page.withoutPager(RELATIONSHIPS, objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager(RELATIONSHIPS, objectNodes));
   }
 
   @GetMapping("/{uid}")
