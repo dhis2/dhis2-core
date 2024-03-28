@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -252,9 +253,17 @@ public class AnalyticsTable extends Table {
         .orElse(null);
   }
 
+  // implement toString method
+
   @Override
   public String toString() {
-    return "[Table name: " + getName() + ", partitions: " + tablePartitions + "]";
+    return "[Table name: "
+        + getName()
+        + ", partitions: "
+        + (tablePartitions.isEmpty()
+            ? ""
+            : StringUtils.join(",", tablePartitions.stream().map(Table::getName).toArray()))
+        + "]";
   }
 
   @Override
