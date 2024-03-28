@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.TRACKED_E
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
+import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.GEOJSON;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -246,10 +247,10 @@ public class DimensionParam implements UidObject {
     OUCODE("Organisation Unit Code", TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
     OUNAMEHIERARCHY(
         "Organisation Unit Name Hierarchy", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
-    ENROLLMENTDATE("Enrollment Date", DATETIME, DimensionParamObjectType.PERIOD),
+    ENROLLMENTDATE("Enrollment Date", DATE, DimensionParamObjectType.PERIOD),
     ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
-    INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
-    OCCURREDDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
+    INCIDENTDATE("Incident Date", DATE, DimensionParamObjectType.PERIOD),
+    OCCURREDDATE("Execution Date", DATE, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
     LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),

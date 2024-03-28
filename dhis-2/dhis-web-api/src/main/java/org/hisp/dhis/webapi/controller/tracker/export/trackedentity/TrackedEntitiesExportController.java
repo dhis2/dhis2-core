@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
-import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
@@ -70,6 +69,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -126,6 +126,7 @@ class TrackedEntitiesExportController {
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   private final FieldFilterRequestHandler fieldFilterRequestHandler;
+  private final FileResourceRequestHandler fileResourceRequestHandler;
 
   public TrackedEntitiesExportController(
       TrackedEntityService trackedEntityService,
@@ -134,7 +135,8 @@ class TrackedEntitiesExportController {
       FieldFilterService fieldFilterService,
       TrackedEntityFieldsParamMapper fieldsMapper,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
-      FieldFilterRequestHandler fieldFilterRequestHandler) {
+      FieldFilterRequestHandler fieldFilterRequestHandler,
+      FileResourceRequestHandler fileResourceRequestHandler) {
     this.trackedEntityService = trackedEntityService;
     this.paramsMapper = paramsMapper;
     this.entityCsvService = csvEventService;
@@ -142,6 +144,7 @@ class TrackedEntitiesExportController {
     this.fieldsMapper = fieldsMapper;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
     this.fieldFilterRequestHandler = fieldFilterRequestHandler;
+    this.fileResourceRequestHandler = fileResourceRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "tracked entity",
@@ -299,7 +302,7 @@ class TrackedEntitiesExportController {
         "dimension",
         "Request parameter 'dimension' is only supported for images by API /tracker/trackedEntities/attributes/{attribute}/image");
 
-    return handleFileRequest(
+    return fileResourceRequestHandler.handle(
         request, trackedEntityService.getFileResource(trackedEntity, attribute, program));
   }
 
@@ -311,7 +314,7 @@ class TrackedEntitiesExportController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException {
-    return handleFileRequest(
+    return fileResourceRequestHandler.handle(
         request,
         trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));
   }

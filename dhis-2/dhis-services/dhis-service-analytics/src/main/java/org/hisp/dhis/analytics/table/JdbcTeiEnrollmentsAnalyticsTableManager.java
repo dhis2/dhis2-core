@@ -31,6 +31,7 @@ import static java.lang.String.join;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_32;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -46,6 +47,7 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -179,8 +181,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
    * @param partition the {@link AnalyticsTablePartition} to populate.
    */
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
@@ -198,39 +199,28 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
     }
 
     removeLastComma(sql)
-        .append(" from enrollment pi")
-        .append(" inner join trackedentity tei " + "on pi.trackedentityid = tei.trackedentityid")
-        .append(" and tei.deleted is false ")
         .append(
-            " and tei.trackedentitytypeid = "
-                + partition.getMasterTable().getTrackedEntityType().getId())
-        .append(" and tei.lastupdated < '" + toLongDate(params.getStartTime()) + "'")
-        .append(" left join program p on p.programid = pi.programid")
-        .append(" left join organisationunit ou on pi.organisationunitid = ou.organisationunitid")
-        .append(
-            " left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
-        .append(
-            " where exists ( select 1 from event psi where psi.deleted is false"
-                + " and psi.enrollmentid = pi.enrollmentid"
-                + " and psi.status in ("
-                + join(",", EXPORTABLE_EVENT_STATUSES)
-                + "))")
-        .append(" and pi.occurreddate is not null ")
-        .append(" and pi.deleted is false");
+            replace(
+                """
+        \s from enrollment pi \
+        inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
+        and tei.deleted = false \
+        and tei.trackedentitytypeid =${teiId} \
+        and tei.lastupdated < '${startTime}' \
+        left join program p on p.programid = pi.programid \
+        left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+        where exists ( select 1 from event psi where psi.deleted = false \
+        and psi.enrollmentid = pi.enrollmentid \
+        and psi.status in (${statuses})) \
+        and pi.occurreddate is not null \
+        and pi.deleted = false\s""",
+                Map.of(
+                    "teiId",
+                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "startTime", toLongDate(params.getStartTime()),
+                    "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
     invokeTimeAndLog(sql.toString(), tableName);
-  }
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
   }
 }

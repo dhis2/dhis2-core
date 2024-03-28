@@ -116,8 +116,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-// import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -330,11 +328,11 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "CASE WHEN psi.lastupdatedatclient IS NOT NULL THEN psi.lastupdatedatclient ELSE psi.lastupdated END"));
+            "case when psi.lastupdatedatclient is not null then psi.lastupdatedatclient else psi.lastupdated end"));
     assertThat(
         created.getSelectExpression(),
         is(
-            "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END"));
+            "case when psi.createdatclient is not null then psi.createdatclient else psi.created end"));
   }
 
   @Test
@@ -761,7 +759,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + getDateLinkedToStatus()
-                + ") > '1000-01-01' and psi.deleted is false ) "
+                + ") > '1000-01-01' and psi.deleted = false ) "
                 + "as temp where temp.supportedyear >= "
                 + startYear
                 + " and temp.supportedyear <= "
@@ -942,7 +940,7 @@ class JdbcEventAnalyticsTableManagerTest {
                 + ") is not null "
                 + "and ("
                 + getDateLinkedToStatus()
-                + ") > '1000-01-01' and psi.deleted is false and ("
+                + ") > '1000-01-01' and psi.deleted = false and ("
                 + getDateLinkedToStatus()
                 + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= "
@@ -1001,7 +999,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + getDateLinkedToStatus()
             + ") is not null and ("
             + getDateLinkedToStatus()
-            + ") > '1000-01-01' and psi.deleted is false ";
+            + ") > '1000-01-01' and psi.deleted = false ";
 
     if (withExecutionDate) {
       sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";

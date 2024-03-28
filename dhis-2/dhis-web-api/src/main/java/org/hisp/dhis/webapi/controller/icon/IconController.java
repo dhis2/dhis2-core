@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static java.lang.String.format;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
@@ -42,22 +43,22 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconQueryParams;
 import org.hisp.dhis.icon.IconService;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.icon.UpdateIconRequest;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -72,7 +73,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -89,50 +92,41 @@ public class IconController {
   private static final int TTL = 365;
 
   private final IconService iconService;
-
   private final FileResourceService fileResourceService;
-
   private final DhisConfigurationProvider dhisConfig;
-
-  private final RenderService renderService;
-
-  private final IconMapper iconMapper;
-
   private final FieldFilterService fieldFilterService;
-
   private final ContextService contextService;
-
   private final LinkService linkService;
 
-  private final IconRequestParamMapper iconRequestParamMapper;
-
   @GetMapping
-  public @ResponseBody PaginatedIconResponse getAllIcons(IconRequestParams iconRequestParams)
+  public @ResponseBody IconListResponse getAllIcons(
+      IconQueryParams params, @RequestParam(required = false) List<FieldPath> fields)
       throws BadRequestException {
-    IconQueryParams iconQueryParams = iconRequestParamMapper.map(iconRequestParams);
 
     Pager pager = null;
-    if (iconRequestParams.isPaging()) {
-      long total = iconService.count(iconQueryParams);
-      pager = new Pager(iconRequestParams.getPage(), total, iconRequestParams.getPageSize());
-      iconQueryParams.setPager(pager);
+    if (params.isPaging()) {
+      long total = iconService.count(params);
+      pager = new Pager(params.getPage(), total, params.getPageSize());
     }
 
-    List<Icon> icons = iconService.getIcons(iconQueryParams);
+    List<Icon> icons = iconService.getIcons(params);
     icons.forEach(i -> i.setHref(getIconHref(i.getKey())));
 
+    if (fields == null || fields.isEmpty()) {
+      fields = FieldFilterParser.parse("key,keywords,description,fileResource,createdBy,href");
+    }
     List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(icons.stream().toList(), iconRequestParams.getFields());
+        fieldFilterService.toObjectNodes(icons.stream().toList(), fields);
     linkService.generatePagerLinks(pager, Icon.class);
 
-    return new PaginatedIconResponse(pager, objectNodes);
+    return new IconListResponse(pager, objectNodes);
   }
 
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
-      throws NotFoundException, WebMessageException {
+      throws NotFoundException, ConflictException {
     Icon icon = iconService.getIcon(key);
-    downloadIconFile(icon, response);
+    downloadIconImage(icon, response);
   }
 
   @GetMapping(value = "/{key}")
@@ -147,37 +141,26 @@ public class IconController {
   public void getIconData(
       HttpServletResponse response, HttpServletRequest request, @PathVariable String key)
       throws IOException, NotFoundException {
-    if (!iconService.iconExists(key)) {
-      throw new NotFoundException(String.format("Icon with key %s not found", key));
-    }
+    if (!iconService.iconExists(key)) throw new NotFoundException(Icon.class, key);
 
     String location = response.encodeRedirectURL("/icons/" + key + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
   @PostMapping
-  public WebMessage addIcon(HttpServletRequest request, @CurrentUser User user)
-      throws IOException, BadRequestException, NotFoundException, SQLException {
-    CustomIconRequest customIconRequest =
-        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
-    Icon icon = iconMapper.to(customIconRequest);
-    icon.setCreatedBy(user);
-    iconService.addIcon(icon);
+  public WebMessage addIcon(@RequestBody AddIconRequest request)
+      throws BadRequestException, NotFoundException {
+    Icon icon = iconService.addIcon(request, null);
 
-    return WebMessageUtils.created(String.format("Icon created with key %s", icon.getKey()));
+    return created(format("Icon created with key %s", icon.getKey()));
   }
 
   @PutMapping(value = "/{key}")
-  public WebMessage updateIcon(@PathVariable String key, HttpServletRequest request)
-      throws IOException, NotFoundException, BadRequestException, SQLException {
-    Icon persisted = iconService.getIcon(key);
+  public WebMessage updateIcon(@PathVariable String key, @RequestBody UpdateIconRequest request)
+      throws NotFoundException, BadRequestException {
+    iconService.updateIcon(key, request);
 
-    CustomIconRequest customIconRequest =
-        renderService.fromJson(request.getInputStream(), CustomIconRequest.class);
-    iconMapper.merge(persisted, customIconRequest);
-    iconService.updateIcon(persisted);
-
-    return WebMessageUtils.ok(String.format("Icon with key %s updated", key));
+    return ok(format("Icon with key %s updated", key));
   }
 
   @DeleteMapping(value = "/{key}")
@@ -185,41 +168,36 @@ public class IconController {
       throws NotFoundException, BadRequestException {
     iconService.deleteIcon(key);
 
-    return WebMessageUtils.ok(String.format("Icon with key %s deleted", key));
+    return ok(format("Icon with key %s deleted", key));
   }
 
-  private void downloadIconFile(Icon icon, HttpServletResponse response)
-      throws NotFoundException, WebMessageException {
-    FileResource fileResource =
-        fileResourceService.getFileResource(icon.getFileResource().getUid());
-
-    if (fileResource == null) {
+  private void downloadIconImage(Icon icon, HttpServletResponse response)
+      throws NotFoundException, ConflictException {
+    FileResource image = fileResourceService.getFileResource(icon.getFileResource().getUid());
+    if (image == null) {
       throw new NotFoundException(FileResource.class, icon.getFileResource().getUid());
     }
 
-    response.setContentType(fileResource.getContentType());
+    response.setContentType(image.getContentType());
+    response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(image.getContentLength()));
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + image.getName());
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    response.setHeader(
-        HttpHeaders.CONTENT_LENGTH,
-        String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
-    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
     HeaderUtils.setSecurityHeaders(
         response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
     try {
-      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+      fileResourceService.copyFileResourceContent(image, response.getOutputStream());
     } catch (IOException e) {
       log.error("Could not retrieve file.", e);
-      throw new WebMessageException(
-          error(
-              "Failed fetching the file from storage",
+      throw new ConflictException("Failed fetching the file from storage")
+          .setDevMessage(
               "There was an exception when trying to fetch the file from the storage backend. "
-                  + "Depending on the provider the root cause could be network or file system related."));
+                  + "Depending on the provider the root cause could be network or file system related.");
     }
   }
 
   private String getIconHref(String key) {
-    return String.format(
+    return format(
         "%s%s/%s/icon", contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key);
   }
 }
