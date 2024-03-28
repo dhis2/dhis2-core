@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
@@ -35,17 +35,19 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Builder
+/** User input when creating a new {@link Icon} */
+@Builder(toBuilder = true)
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-class CustomIconRequest {
+public class AddIconRequest {
 
-  @JsonProperty private String key;
+  @JsonProperty(required = true)
+  private String key;
 
   @JsonProperty private String description;
-
   @JsonProperty private Set<String> keywords = new HashSet<>();
 
-  @JsonProperty private String fileResourceId;
+  @JsonProperty(required = true)
+  private String fileResourceId;
 }
