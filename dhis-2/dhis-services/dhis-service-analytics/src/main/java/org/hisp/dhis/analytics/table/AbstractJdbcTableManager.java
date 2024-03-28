@@ -57,6 +57,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -218,7 +219,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = tableExists(table.getName());
+    boolean tableExists = tableExists(table.getMainName());
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
@@ -226,14 +227,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         "Swapping table, master table exists: '{}', skip master table: '{}'",
         tableExists,
         skipMasterTable);
-
-    table.getTablePartitions().stream().forEach(p -> swapTable(p, p.getMainName()));
+    List<Table> swappedPartitions = new UniqueArrayList<>();
+    table.getTablePartitions().stream()
+        .forEach(p -> swappedPartitions.add(swapTable(p, p.getMainName())));
 
     if (!skipMasterTable) {
       swapTable(table, table.getMainName());
     } else {
-      table.getTablePartitions().stream()
-          .forEach(partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+      swappedPartitions.forEach(
+          partition -> swapInheritance(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
   }
@@ -286,15 +288,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private void swapTable(Table stagingTable, String mainTableName) {
+  private Table swapTable(Table stagingTable, String mainTableName) {
     executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    return stagingTable.swapFromStaging();
   }
 
   /**
    * Updates table inheritance of a table partition from the staging master table to the main master
    * table.
    *
-   * @param partitionTableName the partition table name.
    * @param stagingMasterName the staging master table name.
    * @param mainMasterName the main master table name.
    */
