@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.utils;
 
 import static org.apache.commons.io.FilenameUtils.getExtension;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 import static org.imgscalr.Scalr.resize;
@@ -46,6 +45,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -55,11 +55,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.scheduling.JobRunner;
 import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -74,8 +76,11 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class FileResourceUtils {
-  @Autowired private FileResourceService fileResourceService;
+
+  @Autowired private final JobRunner jobRunner;
+  @Autowired private final FileResourceService fileResourceService;
 
   private static final List<String> CUSTOM_ICON_VALID_ICON_EXTENSIONS = List.of("png");
 
@@ -167,12 +172,12 @@ public class FileResourceUtils {
   }
 
   public FileResource saveFileResource(MultipartFile file, FileResourceDomain domain)
-      throws WebMessageException, IOException {
+      throws IOException, ConflictException {
     return saveFileResource(null, file, domain);
   }
 
   public FileResource saveFileResource(String uid, MultipartFile file, FileResourceDomain domain)
-      throws WebMessageException, IOException {
+      throws IOException, ConflictException {
     String filename =
         StringUtils.defaultIfBlank(
             FilenameUtils.getName(file.getOriginalFilename()), FileResource.DEFAULT_FILENAME);
@@ -193,7 +198,7 @@ public class FileResourceUtils {
         contentLength);
 
     if (contentLength <= 0) {
-      throw new WebMessageException(conflict("Could not read file or file is empty."));
+      throw new ConflictException("Could not read file or file is empty.");
     }
 
     ByteSource bytes = new MultipartFileByteSource(file);
@@ -207,10 +212,13 @@ public class FileResourceUtils {
     File tmpFile = toTempFile(file);
 
     if (uid != null && fileResourceService.fileResourceExists(uid)) {
-      throw new WebMessageException(
-          conflict(ErrorCode.E1119, FileResource.class.getSimpleName(), uid));
+      throw new ConflictException(ErrorCode.E1119, FileResource.class.getSimpleName(), uid);
     }
-    fileResourceService.asyncSaveFileResource(fileResource, tmpFile);
+    if (!jobRunner.isScheduling()) {
+      fileResourceService.syncSaveFileResource(fileResource, Files.readAllBytes(tmpFile.toPath()));
+    } else {
+      fileResourceService.asyncSaveFileResource(fileResource, tmpFile);
+    }
     return fileResource;
   }
 
@@ -226,7 +234,7 @@ public class FileResourceUtils {
     }
 
     @Override
-    public InputStream openStream() throws IOException {
+    public InputStream openStream() {
       try {
         return file.getInputStream();
       } catch (IOException ioe) {

@@ -59,6 +59,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
@@ -191,7 +192,7 @@ public class DataValueController {
       @RequestParam(required = false) boolean force,
       @RequestParam(required = false) MultipartFile file,
       @CurrentUser UserDetails currentUser)
-      throws WebMessageException, IOException {
+      throws WebMessageException, IOException, ConflictException {
     DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto(cc, cp);
 
     FileResource fileResource =
