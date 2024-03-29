@@ -88,6 +88,7 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -107,6 +108,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -634,6 +636,23 @@ public class CrudControllerAdvice {
       message = message.substring(0, message.indexOf(';'));
     }
     return badRequest(message);
+  }
+
+  /**
+   * Handle exception thrown when bean validation is performed on method params. Errors are joined
+   * and returned as a string.
+   *
+   * @param exception MethodArgumentNotValidException
+   * @return WebMessage with errors
+   */
+  @ResponseBody
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  protected WebMessage handleJavaxConstraintException(MethodArgumentNotValidException exception) {
+    String collect =
+        exception.getFieldErrors().stream()
+            .map(DefaultMessageSourceResolvable::getDefaultMessage)
+            .collect(Collectors.joining(", "));
+    return badRequest(collect);
   }
 
   private String getExceptionMessage(Exception ex) {

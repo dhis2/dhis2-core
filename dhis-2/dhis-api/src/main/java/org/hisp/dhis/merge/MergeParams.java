@@ -29,6 +29,9 @@ package org.hisp.dhis.merge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -45,7 +48,17 @@ import org.hisp.dhis.common.UID;
 public class MergeParams {
   @JsonProperty private Set<UID> sources;
 
-  @JsonProperty private UID target;
+  @JsonProperty
+  @NotNull(message = "target cannot be null")
+  private UID target;
+
+  @JsonProperty
+  @NotEmpty(message = "test cannot be empty")
+  private String test;
+
+  @JsonProperty
+  @Size(min = 1, message = "numbers size should be 1 or more")
+  private int[] numbers;
 
   @JsonProperty private boolean deleteSources;
 

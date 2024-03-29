@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.indicator;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
@@ -66,7 +67,7 @@ public class IndicatorTypeController extends AbstractCrudController<IndicatorTyp
   @ResponseStatus(HttpStatus.OK)
   @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_TYPE_MERGE')")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody WebMessage mergeIndicatorTypes(@RequestBody MergeParams params)
+  public @ResponseBody WebMessage mergeIndicatorTypes(@Valid @RequestBody MergeParams params)
       throws ConflictException {
     log.info("Indicator type merge received");
     params.setMergeType(MergeType.INDICATOR_TYPE);
