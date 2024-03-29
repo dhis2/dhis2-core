@@ -28,11 +28,12 @@
 package org.hisp.dhis.tracker.imports.job;
 
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.programrule.engine.RuleActionImplementer;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.engine.NotificationAction;
+import org.hisp.dhis.programrule.engine.NotificationRuleActionExecutor;
+import org.hisp.dhis.programrule.engine.RuleActionScheduleMessageExecutor;
+import org.hisp.dhis.programrule.engine.RuleActionSendMessageExecutor;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -50,20 +51,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class TrackerRuleEngineThread extends SecurityContextRunnable {
-  private final List<RuleActionImplementer> ruleActionImplementers;
+  private final List<NotificationRuleActionExecutor> ruleActionExecutors;
 
   private final Notifier notifier;
 
   private TrackerSideEffectDataBundle sideEffectDataBundle;
 
   public TrackerRuleEngineThread(
-      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer")
-          RuleActionImplementer sendMessageRuleActionImplementer,
-      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer")
-          RuleActionImplementer scheduleMessageRuleActionImplementer,
+      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionSendMessageExecutor")
+          RuleActionSendMessageExecutor sendMessageExecutor,
+      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageExecutor")
+          RuleActionScheduleMessageExecutor scheduleMessageExecutor,
       Notifier notifier) {
-    this.ruleActionImplementers =
-        List.of(scheduleMessageRuleActionImplementer, sendMessageRuleActionImplementer);
+    this.ruleActionExecutors = List.of(scheduleMessageExecutor, sendMessageExecutor);
     this.notifier = notifier;
   }
 
@@ -73,27 +73,25 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
       return;
     }
 
-    Map<String, List<RuleEffect>> enrollmentRuleEffects =
-        sideEffectDataBundle.getEnrollmentRuleEffects();
-    Map<String, List<RuleEffect>> eventRuleEffects = sideEffectDataBundle.getEventRuleEffects();
-
-    for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
-      for (Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet()) {
+    for (NotificationRuleActionExecutor ruleActionExecutor : ruleActionExecutors) {
+      for (NotificationAction notificationAction :
+          sideEffectDataBundle.getEnrollmentNotificationActions()) {
         Enrollment enrollment = sideEffectDataBundle.getEnrollment();
         enrollment.setProgram(sideEffectDataBundle.getProgram());
 
-        entry.getValue().stream()
-            .filter(effect -> ruleActionImplementer.accept(effect.getRuleAction()))
-            .forEach(effect -> ruleActionImplementer.implement(effect, enrollment));
+        if (ruleActionExecutor.accept(notificationAction)) {
+          ruleActionExecutor.implement(notificationAction, enrollment);
+        }
       }
 
-      for (Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet()) {
+      for (NotificationAction notificationAction :
+          sideEffectDataBundle.getEventNotificationActions()) {
         Event event = sideEffectDataBundle.getEvent();
         event.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
 
-        entry.getValue().stream()
-            .filter(effect -> ruleActionImplementer.accept(effect.getRuleAction()))
-            .forEach(effect -> ruleActionImplementer.implement(effect, event));
+        if (ruleActionExecutor.accept(notificationAction)) {
+          ruleActionExecutor.implement(notificationAction, event);
+        }
       }
     }
 
