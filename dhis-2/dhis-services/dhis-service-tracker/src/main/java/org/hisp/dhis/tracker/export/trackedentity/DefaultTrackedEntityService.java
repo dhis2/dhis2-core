@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -306,11 +307,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    */
   private TrackedEntity getTrackedEntity(String uid) throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
+    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
     addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
+/*    for () {
+
+    }*/
+    
     if (programService.getAllPrograms().stream()
         .anyMatch(
             p ->
@@ -320,11 +326,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                         .isEmpty())) {
       return trackedEntity;
     }
-
-    /*    if (programService.getProgramsByTrackedEntityType(trackedEntity.getTrackedEntityType()).stream()
-        .anyMatch(p -> aclService.canRead(getCurrentUserDetails(), p))) {
-      return trackedEntity;
-    }*/
 
     throw new ForbiddenException(TrackedEntity.class, uid);
   }
