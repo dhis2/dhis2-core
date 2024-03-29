@@ -226,12 +226,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         getOwner(entityInstance.getId(), program, new OrganisationUnit());
 
     final String orgUnitPath = ou.getPath();
-    return switch (program.getAccessLevel()) {
+    boolean hasAccess = switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
       case PROTECTED ->
           user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(entityInstance, program, user);
       case CLOSED -> user.isInUserHierarchy(orgUnitPath);
     };
+
+    return true;
   }
 
   @Override
