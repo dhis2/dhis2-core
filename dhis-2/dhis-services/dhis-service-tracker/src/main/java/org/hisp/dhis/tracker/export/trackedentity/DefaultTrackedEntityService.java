@@ -307,18 +307,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    */
   private TrackedEntity getTrackedEntity(String uid) throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
     addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
+    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
 
     if (programService.getAllPrograms().stream()
         .anyMatch(
             p ->
                 p.getTrackedEntityType() == trackedEntity.getTrackedEntityType()
                     && trackerAccessManager
-                        .canRead(getCurrentUserDetails(), trackedEntity, p, false)
+                        .canRead(getCurrentUserDetails(), trackedEntity, p, organisationUnit, false)
                         .isEmpty())) {
       return trackedEntity;
     }

@@ -31,6 +31,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed
@@ -77,6 +78,13 @@ public interface TrackerOwnershipManager {
    * @return true if the user has access, false otherwise.
    */
   boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program);
+
+  @Transactional(readOnly = true)
+  boolean hasAccess(
+      UserDetails user,
+      TrackedEntity entityInstance,
+      Program program,
+      OrganisationUnit organisationUnit);
 
   boolean hasAccess(
       UserDetails user, String entityInstance, OrganisationUnit organisationUnit, Program program);
