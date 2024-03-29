@@ -321,7 +321,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       return trackedEntity;
     }
 
-/*    if (programService.getProgramsByTrackedEntityType(trackedEntity.getTrackedEntityType()).stream()
+    /*    if (programService.getProgramsByTrackedEntityType(trackedEntity.getTrackedEntityType()).stream()
         .anyMatch(p -> aclService.canRead(getCurrentUserDetails(), p))) {
       return trackedEntity;
     }*/
