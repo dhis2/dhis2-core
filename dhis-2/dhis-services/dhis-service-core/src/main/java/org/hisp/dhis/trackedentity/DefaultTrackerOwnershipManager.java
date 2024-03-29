@@ -288,8 +288,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
               .map(
                   tepo -> {
                     return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
-                  })
-              .orElseGet(null);
+                  }).orElse(new OrganisationUnit());
         });
   }
 
