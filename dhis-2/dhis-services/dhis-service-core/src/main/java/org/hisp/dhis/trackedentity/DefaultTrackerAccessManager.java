@@ -113,9 +113,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
     List<String> errors = canReadProgramAndTrackedEntityType(user, trackedEntity, program);
 
-/*    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
       errors.add(OWNERSHIP_ACCESS_DENIED);
-    }*/
+    }
 
     return errors;
   }
