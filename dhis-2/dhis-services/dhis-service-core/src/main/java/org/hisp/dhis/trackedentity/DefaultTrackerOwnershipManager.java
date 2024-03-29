@@ -223,9 +223,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return true;
     }
 
-/*    OrganisationUnit ou =
-        getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);*/
-    OrganisationUnit ou = entityInstance.getOrganisationUnit();
+    OrganisationUnit ou =
+        getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
@@ -287,9 +286,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
           return Optional.ofNullable(trackedEntityProgramOwner)
               .map(
-                  tepo -> {
-                    return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
-                  })
+                  tepo -> orgUnitIfMissingSupplier.get())
               .orElseGet(orgUnitIfMissingSupplier);
         });
   }
