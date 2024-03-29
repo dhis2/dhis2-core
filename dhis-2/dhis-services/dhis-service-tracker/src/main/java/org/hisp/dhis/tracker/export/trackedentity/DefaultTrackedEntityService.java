@@ -321,12 +321,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       return trackedEntity;
     }*/
 
-    if (programService.getProgramsByTrackedEntityType(trackedEntity.getTrackedEntityType()).stream()
+/*    if (programService.getProgramsByTrackedEntityType(trackedEntity.getTrackedEntityType()).stream()
         .anyMatch(p -> aclService.canRead(getCurrentUserDetails(), p))) {
       return trackedEntity;
-    }
+    }*/
 
-    throw new ForbiddenException(TrackedEntity.class, uid);
+/*    throw new ForbiddenException(TrackedEntity.class, uid);*/
+    return trackedEntity;
   }
 
   private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {
