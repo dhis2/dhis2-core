@@ -279,16 +279,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       Long entityInstanceId, Program program, Supplier<OrganisationUnit> orgUnitIfMissingSupplier) {
     return ownerCache.get(
         getOwnershipCacheKey(() -> entityInstanceId, program),
-        s -> {
-          TrackedEntityProgramOwner trackedEntityProgramOwner =
-              trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
-                  entityInstanceId, program.getId());
-
-          return Optional.ofNullable(trackedEntityProgramOwner)
-              .map(
-                  tepo -> orgUnitIfMissingSupplier.get())
-              .orElseGet(orgUnitIfMissingSupplier);
-        });
+        s -> orgUnitIfMissingSupplier.get());
   }
 
   /**
