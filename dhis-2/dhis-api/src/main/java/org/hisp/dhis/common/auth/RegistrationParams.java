@@ -28,9 +28,9 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,17 +40,11 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
-// @Validated
 public abstract class RegistrationParams {
 
-  @JsonProperty
-  @NotNull(message = "username cannot be null")
-  @NotEmpty
-  String username;
+  @JsonProperty String username;
 
-  @JsonProperty
-  @Min(20)
-  String firstName;
+  @JsonProperty String firstName;
 
   @JsonProperty String surname;
   @JsonProperty String password;

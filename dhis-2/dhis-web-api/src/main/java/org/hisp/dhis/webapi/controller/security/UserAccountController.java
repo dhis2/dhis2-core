@@ -31,14 +31,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.user.UserService.RECOVERY_LOCKOUT_MINS;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -183,7 +177,7 @@ public class UserAccountController {
   @PostMapping("/registration")
   @ResponseStatus(HttpStatus.CREATED)
   public WebMessageResponse registerUser(
-      @Valid @RequestBody UserRegistrationParams params, HttpServletRequest request)
+      @RequestBody UserRegistrationParams params, HttpServletRequest request)
       throws BadRequestException, IOException {
     log.info("Self registration received");
 
@@ -191,15 +185,6 @@ public class UserAccountController {
     userAccountService.registerUser(params, request);
 
     log.info("User registration successful");
-    return created("Account created");
-  }
-
-  @PostMapping("/params")
-  @ResponseStatus(HttpStatus.CREATED)
-  public WebMessageResponse params(@Valid @RequestBody Params params)
-      throws BadRequestException, IOException {
-    log.info("params received: {}", params);
-
     return created("Account created");
   }
 
@@ -243,18 +228,4 @@ public class UserAccountController {
 
     return user;
   }
-}
-
-@Data
-class Params {
-
-  @JsonProperty
-  @NotNull(message = "username cannot be null")
-  @NotEmpty
-  @Min(20)
-  String username;
-
-  @JsonProperty
-  @Min(20)
-  String firstName;
 }

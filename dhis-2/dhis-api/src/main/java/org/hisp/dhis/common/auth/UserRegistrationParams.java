@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.common.auth;
 
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,9 +36,4 @@ import lombok.Setter;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
-public class UserRegistrationParams extends RegistrationParams {
-
-  @NotNull(message = "test cant be null")
-  private String test;
-}
+public class UserRegistrationParams extends RegistrationParams {}
