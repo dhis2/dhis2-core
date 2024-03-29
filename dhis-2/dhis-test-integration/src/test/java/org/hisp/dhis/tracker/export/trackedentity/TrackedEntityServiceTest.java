@@ -1610,10 +1610,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldFailWhenRequestingSingleTEAndNoDataAccessToProvidedProgram() {
     injectSecurityContextUser(getAdminUser());
-    Program unaccessibleProgram = createProgram('U', new HashSet<>(), orgUnitA);
-    manager.save(unaccessibleProgram, false);
-    makeProgramMetadataAccessibleOnly(unaccessibleProgram);
-    manager.update(unaccessibleProgram);
+    Program inaccessibleProgram = createProgram('U', new HashSet<>(), orgUnitA);
+    manager.save(inaccessibleProgram, false);
+    makeProgramMetadataAccessibleOnly(inaccessibleProgram);
+    manager.update(inaccessibleProgram);
 
     injectSecurityContextUser(user);
     ForbiddenException exception =
@@ -1622,21 +1622,21 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             () ->
                 trackedEntityService.getTrackedEntity(
                     trackedEntityA.getUid(),
-                    unaccessibleProgram.getUid(),
+                    inaccessibleProgram.getUid(),
                     TrackedEntityParams.TRUE,
                     false));
     assertContains(
-        String.format("User has no data read access to program: %s", unaccessibleProgram.getUid()),
+        String.format("User has no data read access to program: %s", inaccessibleProgram.getUid()),
         exception.getMessage());
   }
 
   @Test
   void shouldFailWhenRequestingSingleTEAndTETNotAccessible() {
-    TrackedEntityType unaccessibleTrackedEntityType = createTrackedEntityType('U');
-    unaccessibleTrackedEntityType.setSharing(Sharing.builder().publicAccess("rw------").build());
-    manager.save(unaccessibleTrackedEntityType, false);
+    TrackedEntityType inaccessibleTrackedEntityType = createTrackedEntityType('U');
+    inaccessibleTrackedEntityType.setSharing(Sharing.builder().publicAccess("rw------").build());
+    manager.save(inaccessibleTrackedEntityType, false);
     TrackedEntity trackedEntity = createTrackedEntity(orgUnitA);
-    trackedEntity.setTrackedEntityType(unaccessibleTrackedEntityType);
+    trackedEntity.setTrackedEntityType(inaccessibleTrackedEntityType);
     manager.save(trackedEntity);
 
     ForbiddenException exception =
@@ -1648,19 +1648,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertContains(
         String.format(
             "User has no data read access to tracked entity type: %s",
-            unaccessibleTrackedEntityType.getUid()),
+            inaccessibleTrackedEntityType.getUid()),
         exception.getMessage());
   }
 
   @Test
   void shouldFailWhenRequestingSingleTEAndNoMetadataAccessToAnyProgram() {
     injectSecurityContextUser(getAdminUser());
-    programA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.update(programA);
-    programB.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.update(programB);
-    programC.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.update(programC);
+    makeProgramMetadataInaccessible(programA);
+    makeProgramMetadataInaccessible(programB);
+    makeProgramMetadataInaccessible(programC);
 
     injectSecurityContextUser(user);
     ForbiddenException exception =
@@ -1669,6 +1666,28 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             () ->
                 trackedEntityService.getTrackedEntity(
                     trackedEntityA.getUid(), null, TrackedEntityParams.TRUE, false));
+    assertContains(
+        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenRequestingSingleTEAndOnlyEventProgramAccessible() {
+    injectSecurityContextUser(getAdminUser());
+    makeProgramMetadataInaccessible(programA);
+    makeProgramMetadataInaccessible(programB);
+    makeProgramMetadataInaccessible(programC);
+    Program eventProgram = createProgramWithoutRegistration('E');
+    manager.save(eventProgram, false);
+
+    injectSecurityContextUser(user);
+    ForbiddenException exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackedEntityService.getTrackedEntity(
+                    trackedEntityA.getUid(), null, TrackedEntityParams.TRUE, false));
+
     assertContains(
         String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
         exception.getMessage());
@@ -1768,6 +1787,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private void makeProgramMetadataAccessibleOnly(Program program) {
     program.setSharing(Sharing.builder().publicAccess("rw------").build());
+    manager.update(program);
+  }
+
+  private void makeProgramMetadataInaccessible(Program program) {
+    program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(program);
   }
 }
