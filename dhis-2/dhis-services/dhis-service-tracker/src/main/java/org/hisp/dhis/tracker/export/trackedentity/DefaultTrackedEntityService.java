@@ -313,10 +313,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
-/*    for () {
-
-    }*/
-    
     if (programService.getAllPrograms().stream()
         .anyMatch(
             p ->
