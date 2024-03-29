@@ -31,7 +31,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Optional;
 import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
@@ -224,7 +223,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     OrganisationUnit ou =
-        getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);
+        getOwner(entityInstance.getId(), program, entityInstance.getOrganisationUnit());
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
@@ -276,7 +275,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
    * @return The owning organisation unit.
    */
   private OrganisationUnit getOwner(
-      Long entityInstanceId, Program program, Supplier<OrganisationUnit> orgUnitIfMissingSupplier) {
+      Long entityInstanceId, Program program, OrganisationUnit defaultOrgUnit) {
     return ownerCache.get(
         getOwnershipCacheKey(() -> entityInstanceId, program),
         s -> {
@@ -285,10 +284,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
                   entityInstanceId, program.getId());
 
           return Optional.ofNullable(trackedEntityProgramOwner)
-              .map(
-                  tepo -> {
-                    return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
-                  }).orElse(new OrganisationUnit());
+              .map(tepo -> recursivelyInitializeOrgUnit(tepo.getOrganisationUnit()))
+              .orElse(defaultOrgUnit);
         });
   }
 
