@@ -28,7 +28,9 @@
 package org.hisp.dhis.merge;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
 import java.util.Set;
+import javax.validation.constraints.Future;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -59,6 +61,10 @@ public class MergeParams {
   @JsonProperty
   @Size(min = 1, message = "numbers size should be 1 or more")
   private int[] numbers;
+
+  @JsonProperty
+  @Future(message = "date must be a future date")
+  private LocalDate date;
 
   @JsonProperty private boolean deleteSources;
 
