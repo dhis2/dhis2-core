@@ -2971,7 +2971,7 @@ public abstract class DhisConvenienceTest {
     entityManager.persist(role);
 
     User user = new User();
-    user.setUid("A_" + CodeGenerator.generateUid().substring(2));
+    user.setUid(CodeGenerator.generateUid());
     user.setFirstName("Admin");
     user.setSurname("User");
     user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());

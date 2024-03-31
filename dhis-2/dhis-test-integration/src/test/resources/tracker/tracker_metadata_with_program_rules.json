@@ -69,7 +69,7 @@
       "attributeValues": [],
       "userRoles": [
         {
-          "id": "yrB6vc5Ip3r"
+          "id": "yrB6vc5Ip33"
         }
       ],
       "userAccesses": [],
@@ -91,6 +91,7 @@
       "created": "2019-01-28T11:04:13.489",
       "lastUpdated": "2019-01-28T11:04:13.592",
       "name": "Country",
+      "code": "country_code",
       "id": "PlKwabX2xRW",
       "shortName": "Country",
       "path": "/PlKwabX2xRW",
@@ -132,6 +133,9 @@
         "id": "bjDvmb4bfuf"
       },
       "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "createdBy": {
         "id": "M5zQapPyTZI"
       },
       "user": {
@@ -201,7 +205,7 @@
       "created": "2019-01-28T11:03:39.381",
       "lastUpdated": "2019-01-28T11:03:39.381",
       "name": "Superuser",
-      "id": "yrB6vc5Ip3r",
+      "id": "yrB6vc5Ip33",
       "description": "Superuser",
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -295,6 +299,9 @@
       "programRuleActions": [
         {
           "id": "VzMCAo8HrpO"
+        },
+        {
+          "id": "XzMCAo8Hrp5"
         }
       ]
     }
@@ -307,6 +314,25 @@
       "programRuleActionType": "SCHEDULEMESSAGE",
       "data": "'2020-06-20'",
       "templateUid": "FdIeUL4gyoB",
+      "evaluationTime": "ALWAYS",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "programRule": {
+        "id": "lmgRJ5WF2x8"
+      },
+      "evaluationEnvironments": [
+        "ANDROID",
+        "WEB"
+      ]
+    },
+    {
+      "created": "2020-05-31T09:04:26.175",
+      "lastUpdated": "2020-05-31T11:58:16.304",
+      "id": "XzMCAo8Hrp5",
+      "programRuleActionType": "SENDMESSAGE",
+      "data": "'2020-06-20'",
+      "templateUid": "FdIeUL4gyoC",
       "evaluationTime": "ALWAYS",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
