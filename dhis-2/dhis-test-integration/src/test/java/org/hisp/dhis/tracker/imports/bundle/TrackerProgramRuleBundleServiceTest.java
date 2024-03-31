@@ -81,6 +81,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
         trackerBundleService.create(
             new TrackerImportParams(), trackerObjects, userService.getUser(ADMIN_USER_UID));
     trackerBundle = trackerBundleService.runRuleEngine(trackerBundle);
-    assertEquals(trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size());
+    assertEquals(
+        trackerBundle.getEvents().size(), trackerBundle.getEventNotificationActions().size());
   }
 }

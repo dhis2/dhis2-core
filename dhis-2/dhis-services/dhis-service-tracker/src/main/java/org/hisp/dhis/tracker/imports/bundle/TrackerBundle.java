@@ -43,6 +43,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.engine.NotificationAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.TrackerType;
@@ -122,12 +124,6 @@ public class TrackerBundle {
   @Builder.Default
   private Map<Event, List<RuleActionExecutor<Event>>> eventRuleActionExecutors = new HashMap<>();
 
-  /** Rule effects for Enrollments. */
-  @Builder.Default private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
-
-  /** Rule effects for Events. */
-  @Builder.Default private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
-
   @Builder.Default
   private Map<TrackerType, Map<String, TrackerImportStrategy>> resolvedStrategyMap =
       initStrategyMap();
@@ -171,16 +167,53 @@ public class TrackerBundle {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
   }
 
-  public Map<String, List<RuleEffect>> getEnrollmentRuleEffects() {
+  public Map<String, List<NotificationAction>> getEnrollmentNotificationActions() {
     return ruleEffects.stream()
         .filter(RuleEffects::isEnrollment)
-        .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+        .filter(
+            effects ->
+                effects.getRuleEffects().stream()
+                    .anyMatch(
+                        e ->
+                            e.getRuleAction()
+                                    .getType()
+                                    .equals(ProgramRuleActionType.SENDMESSAGE.name())
+                                || e.getRuleAction()
+                                    .getType()
+                                    .equals(ProgramRuleActionType.SCHEDULEMESSAGE.name())))
+        .collect(
+            Collectors.toMap(
+                RuleEffects::getTrackerObjectUid, effects -> map(effects.getRuleEffects())));
   }
 
-  public Map<String, List<RuleEffect>> getEventRuleEffects() {
+  private List<NotificationAction> map(List<RuleEffect> ruleEffects) {
+    return ruleEffects.stream()
+        .map(
+            e ->
+                new NotificationAction(
+                    e.getData(),
+                    e.getRuleAction().getValues().get("NOTIFICATION"),
+                    e.getRuleAction().getType()))
+        .toList();
+  }
+
+  public Map<String, List<NotificationAction>> getEventNotificationActions() {
     return ruleEffects.stream()
         .filter(RuleEffects::isEvent)
-        .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+        .filter(
+            effects ->
+                effects.getRuleEffects().stream()
+                    .anyMatch(
+                        e ->
+                            e.getRuleAction()
+                                    .getType()
+                                    .equals(ProgramRuleActionType.SENDMESSAGE.name())
+                                || e.getRuleAction()
+                                    .getType()
+                                    .equals(ProgramRuleActionType.SCHEDULEMESSAGE.name())))
+        .collect(
+            Collectors.toMap(
+                RuleEffects::getTrackerObjectUid, effects -> map(effects.getRuleEffects())));
   }
 
   public TrackerImportStrategy setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {

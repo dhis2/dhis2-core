@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.imports.job;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
@@ -41,7 +39,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.programrule.engine.NotificationAction;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 
@@ -69,10 +67,10 @@ public class TrackerSideEffectDataBundle implements Message {
   @JsonProperty private Event event;
 
   @JsonProperty @Builder.Default
-  private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
+  private List<NotificationAction> enrollmentNotificationActions = List.of();
 
   @JsonProperty @Builder.Default
-  private Map<String, List<RuleEffect>> eventRuleEffects = new HashMap<>();
+  private List<NotificationAction> eventNotificationActions = List.of();
 
   @JsonProperty private TrackerImportStrategy importStrategy;
 

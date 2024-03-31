@@ -107,8 +107,7 @@ public class EventPersister
   protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
-        .enrollmentRuleEffects(new HashMap<>())
-        .eventRuleEffects(bundle.getEventRuleEffects())
+        .eventNotificationActions(bundle.getEventNotificationActions().get(event.getUid()))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())

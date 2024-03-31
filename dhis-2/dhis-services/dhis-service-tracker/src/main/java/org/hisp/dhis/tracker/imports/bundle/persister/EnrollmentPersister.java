@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Objects;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.note.Note;
@@ -119,8 +118,8 @@ public class EnrollmentPersister
       TrackerBundle bundle, Enrollment enrollment) {
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
-        .eventRuleEffects(new HashMap<>())
+        .enrollmentNotificationActions(
+            bundle.getEnrollmentNotificationActions().get(enrollment.getUid()))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUsername())
