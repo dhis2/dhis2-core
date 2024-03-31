@@ -191,8 +191,8 @@ public class TrackerBundle {
         .map(
             e ->
                 new NotificationAction(
+                    e.getRuleAction().getValues().get("notification"),
                     e.getData(),
-                    e.getRuleAction().getValues().get("NOTIFICATION"),
                     e.getRuleAction().getType()))
         .toList();
   }

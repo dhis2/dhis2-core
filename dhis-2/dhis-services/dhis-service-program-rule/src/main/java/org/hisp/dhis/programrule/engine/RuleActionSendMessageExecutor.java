@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Objects;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -81,7 +82,7 @@ public class RuleActionSendMessageExecutor extends NotificationRuleActionExecuto
 
   @Override
   public boolean accept(NotificationAction ruleAction) {
-    return ruleAction.getActionType().equals(ProgramRuleActionType.SENDMESSAGE);
+    return Objects.equals(ruleAction.getActionType(), ProgramRuleActionType.SENDMESSAGE.name());
   }
 
   @Override

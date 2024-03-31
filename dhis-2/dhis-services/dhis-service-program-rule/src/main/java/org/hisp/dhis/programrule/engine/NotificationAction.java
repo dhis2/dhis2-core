@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,7 +36,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationAction {
-  private String notificationUid;
-  private String data;
-  private String actionType;
+  @JsonProperty private String notificationUid;
+  @JsonProperty private String data;
+  @JsonProperty private String actionType;
 }
