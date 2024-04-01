@@ -223,7 +223,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     OrganisationUnit ou =
-        getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);
+        getOwner(entityInstance.getId(), program, entityInstance.getOrganisationUnit());
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
