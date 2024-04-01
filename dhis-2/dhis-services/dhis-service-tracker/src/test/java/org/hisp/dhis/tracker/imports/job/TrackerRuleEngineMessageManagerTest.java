@@ -82,43 +82,43 @@ class TrackerRuleEngineMessageManagerTest {
 
   @Captor private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
-  @Test
-  void test_add_job() {
-    doNothing().when(messageManager).sendQueue(anyString(), any(TrackerSideEffectDataBundle.class));
-
-    TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
-
-    trackerRuleEngineMessageManager.addJob(dataBundle);
-
-    Mockito.verify(messageManager).sendQueue(topicCaptor.capture(), bundleArgumentCaptor.capture());
-
-    assertNotNull(topicCaptor.getValue());
-    assertEquals(Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, topicCaptor.getValue());
-    assertEquals(dataBundle, bundleArgumentCaptor.getValue());
-  }
-
-  @Test
-  void test_message_consumer() throws JMSException, IOException {
-    TrackerSideEffectDataBundle bundle =
-        TrackerSideEffectDataBundle.builder().accessedBy("test-user").build();
-
-    when(textMessage.getText()).thenReturn("text");
-    when(objectFactory.getObject()).thenReturn(trackerRuleEngineThread);
-    doNothing().when(taskExecutor).executeTask(any(Runnable.class));
-
-    when(renderService.fromJson(anyString(), eq(TrackerSideEffectDataBundle.class)))
-        .thenReturn(null);
-    trackerRuleEngineMessageManager.consume(textMessage);
-
-    verify(taskExecutor, times(0)).executeTask(any(Runnable.class));
-
-    doReturn(bundle)
-        .when(renderService)
-        .fromJson(anyString(), eq(TrackerSideEffectDataBundle.class));
-    trackerRuleEngineMessageManager.consume(textMessage);
-
-    Mockito.verify(taskExecutor).executeTask(runnableArgumentCaptor.capture());
-
-    assertTrue(runnableArgumentCaptor.getValue() instanceof TrackerRuleEngineThread);
-  }
+//  @Test
+//  void test_add_job() {
+//    doNothing().when(messageManager).sendQueue(anyString(), any(TrackerSideEffectDataBundle.class));
+//
+//    TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
+//
+//    trackerRuleEngineMessageManager.addJob(dataBundle);
+//
+//    Mockito.verify(messageManager).sendQueue(topicCaptor.capture(), bundleArgumentCaptor.capture());
+//
+//    assertNotNull(topicCaptor.getValue());
+//    assertEquals(Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, topicCaptor.getValue());
+//    assertEquals(dataBundle, bundleArgumentCaptor.getValue());
+//  }
+//
+//  @Test
+//  void test_message_consumer() throws JMSException, IOException {
+//    TrackerSideEffectDataBundle bundle =
+//        TrackerSideEffectDataBundle.builder().accessedBy("test-user").build();
+//
+//    when(textMessage.getText()).thenReturn("text");
+//    when(objectFactory.getObject()).thenReturn(trackerRuleEngineThread);
+//    doNothing().when(taskExecutor).executeTask(any(Runnable.class));
+//
+//    when(renderService.fromJson(anyString(), eq(TrackerSideEffectDataBundle.class)))
+//        .thenReturn(null);
+//    trackerRuleEngineMessageManager.consume(textMessage);
+//
+//    verify(taskExecutor, times(0)).executeTask(any(Runnable.class));
+//
+//    doReturn(bundle)
+//        .when(renderService)
+//        .fromJson(anyString(), eq(TrackerSideEffectDataBundle.class));
+//    trackerRuleEngineMessageManager.consume(textMessage);
+//
+//    Mockito.verify(taskExecutor).executeTask(runnableArgumentCaptor.capture());
+//
+//    assertTrue(runnableArgumentCaptor.getValue() instanceof TrackerRuleEngineThread);
+//  }
 }

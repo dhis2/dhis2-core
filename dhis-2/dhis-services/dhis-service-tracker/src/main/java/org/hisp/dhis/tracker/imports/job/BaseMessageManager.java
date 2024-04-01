@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.imports.job;
 import java.io.IOException;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
+
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.CodeGenerator;
@@ -40,39 +42,11 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
+@RequiredArgsConstructor
 public abstract class BaseMessageManager {
-  private final MessageManager messageManager;
-
   private final AsyncTaskExecutor taskExecutor;
-
-  private final RenderService renderService;
-
-  public BaseMessageManager(
-      MessageManager messageManager, AsyncTaskExecutor taskExecutor, RenderService renderService) {
-    this.messageManager = messageManager;
-    this.taskExecutor = taskExecutor;
-    this.renderService = renderService;
-  }
-
-  public String addJob(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    String jobId = CodeGenerator.generateUid();
-    sideEffectDataBundle.setJobId(jobId);
-
-    messageManager.sendQueue(getTopic(), sideEffectDataBundle);
-
-    return jobId;
-  }
 
   public void executeJob(Runnable runnable) {
     taskExecutor.executeTask(runnable);
   }
-
-  public TrackerSideEffectDataBundle toBundle(TextMessage message)
-      throws JMSException, IOException {
-    String payload = message.getText();
-
-    return renderService.fromJson(payload, TrackerSideEffectDataBundle.class);
-  }
-
-  public abstract String getTopic();
 }

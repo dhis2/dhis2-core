@@ -50,25 +50,13 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager {
   private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
 
   public TrackerRuleEngineMessageManager(
-      MessageManager messageManager,
       AsyncTaskExecutor taskExecutor,
-      RenderService renderService,
       ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory) {
-    super(messageManager, taskExecutor, renderService);
+    super(taskExecutor);
     this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
   }
 
-  @Override
-  public String getTopic() {
-    return Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME;
-  }
-
-  @JmsListener(
-      destination = Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME,
-      containerFactory = "jmsQueueListenerContainerFactory")
-  public void consume(TextMessage message) throws JMSException, IOException {
-    TrackerSideEffectDataBundle bundle = toBundle(message);
-
+  public void consume(TrackerSideEffectDataBundle bundle) {
     if (bundle == null) {
       return;
     }
