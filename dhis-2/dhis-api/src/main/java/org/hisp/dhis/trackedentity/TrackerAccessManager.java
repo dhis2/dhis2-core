@@ -48,6 +48,10 @@ public interface TrackerAccessManager {
   List<String> canRead(
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
+  List<String> canRead(
+      UserDetails user, TrackedEntity trackedEntity, Program program,
+      OrganisationUnit organisationUnit, boolean skipOwnershipCheck);
+
   /**
    * Check if a user has access to the supplied program and tracked entity type
    *

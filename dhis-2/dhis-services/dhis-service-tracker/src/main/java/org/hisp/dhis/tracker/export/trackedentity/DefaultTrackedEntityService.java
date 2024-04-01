@@ -316,7 +316,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             p ->
                 p.getTrackedEntityType() == trackedEntity.getTrackedEntityType()
                     && trackerAccessManager
-                        .canRead(getCurrentUserDetails(), trackedEntity, p, false)
+                        .canRead(getCurrentUserDetails(), trackedEntity, p, trackedEntity.getOrganisationUnit(), false)
                         .isEmpty())) {
       return trackedEntity;
     }
