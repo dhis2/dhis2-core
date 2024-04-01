@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.sideeffect;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
 import org.hisp.dhis.tracker.imports.job.TrackerRuleEngineMessageManager;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
@@ -41,6 +40,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService {
   private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
+
   @Override
   public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
     trackerRuleEngineMessageManager.consume(sideEffectDataBundle);
