@@ -302,14 +302,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return organisationUnit;
 */
 
-    Set<OrganisationUnit> orgUnits = program.getOrganisationUnits();
-
-    return ownerCache.get(
-        "",
-        s -> {
-
-          return organisationUnit;
-        });
+    return organisationUnit;
   }
 
   /**
