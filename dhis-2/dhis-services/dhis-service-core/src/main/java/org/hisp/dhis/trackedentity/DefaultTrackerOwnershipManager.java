@@ -29,7 +29,9 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.LongSupplier;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -296,7 +298,16 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
    */
   private OrganisationUnit getOwner(
       Long entityInstanceId, Program program, OrganisationUnit organisationUnit) {
-    return organisationUnit;
+    //return organisationUnit;
+
+    Set<OrganisationUnit> orgUnits = program.getOrganisationUnits();
+
+    return ownerCache.get(
+        getOwnershipCacheKey(() -> entityInstanceId, program),
+        s -> {
+
+          return organisationUnit;
+        });
   }
 
   /**
