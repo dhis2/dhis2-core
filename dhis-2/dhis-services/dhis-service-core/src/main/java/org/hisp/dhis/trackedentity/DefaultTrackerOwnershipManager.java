@@ -286,9 +286,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
           return Optional.ofNullable(trackedEntityProgramOwner)
               .map(
-                  tepo -> {
-                    return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
-                  })
+                  tepo -> new OrganisationUnit())
               .orElseGet(orgUnitIfMissingSupplier);
         });
   }
