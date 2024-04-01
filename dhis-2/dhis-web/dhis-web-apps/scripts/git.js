@@ -146,4 +146,4 @@ async function clone_app (repo, target, default_branch) {
     }
 }
 
-module.exports = { clone_app, get_sha }
+module.exports = { clone_app, get_sha, rename_app }
