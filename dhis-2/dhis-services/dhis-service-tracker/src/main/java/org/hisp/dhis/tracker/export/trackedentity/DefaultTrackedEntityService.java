@@ -311,7 +311,15 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
-    if (programService.getAllPrograms().stream()
+    List<Program> programs = programService.getAllPrograms().stream().filter(p -> p.getTrackedEntityType() == trackedEntity.getTrackedEntityType()).toList();
+
+    if (programs.stream().anyMatch(p -> trackerAccessManager
+        .canRead(getCurrentUserDetails(), trackedEntity, p, trackedEntity.getOrganisationUnit(), false)
+        .isEmpty())) {
+      return trackedEntity;
+    }
+
+/*    if (programService.getAllPrograms().stream()
         .anyMatch(
             p ->
                 p.getTrackedEntityType() == trackedEntity.getTrackedEntityType()
@@ -319,7 +327,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                         .canRead(getCurrentUserDetails(), trackedEntity, p, trackedEntity.getOrganisationUnit(), false)
                         .isEmpty())) {
       return trackedEntity;
-    }
+    }*/
 
     throw new ForbiddenException(TrackedEntity.class, uid);
   }
