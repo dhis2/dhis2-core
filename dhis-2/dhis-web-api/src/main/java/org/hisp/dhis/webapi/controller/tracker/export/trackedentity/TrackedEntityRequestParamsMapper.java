@@ -48,7 +48,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -199,17 +198,10 @@ class TrackedEntityRequestParamsMapper {
       }
     }
 
-    if (ObjectUtils.firstNonNull(
-                params.getEventStatus(),
-                params.getEventOccurredAfter(),
-                params.getEventOccurredBefore())
-            != null
-        && !ObjectUtils.allNonNull(
-            params.getEventStatus(),
-            params.getEventOccurredAfter(),
-            params.getEventOccurredBefore())) {
+    if (params.getEventStatus() != null
+        && (params.getEventOccurredAfter() == null || params.getEventOccurredBefore() == null)) {
       throw new BadRequestException(
-          "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together");
+          "`eventOccurredAfter` and `eventOccurredBefore` must be specified when `eventStatus` is specified");
     }
 
     if (params.getUpdatedWithin() != null
