@@ -50,25 +50,13 @@ public class TrackerNotificationMessageManager extends BaseMessageManager {
   private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
 
   public TrackerNotificationMessageManager(
-      MessageManager messageManager,
       AsyncTaskExecutor taskExecutor,
-      RenderService renderService,
       ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory) {
-    super(messageManager, taskExecutor, renderService);
+    super(taskExecutor);
     this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
   }
 
-  @Override
-  public String getTopic() {
-    return Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME;
-  }
-
-  @JmsListener(
-      destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME,
-      containerFactory = "jmsQueueListenerContainerFactory")
-  public void consume(TextMessage message) throws JMSException, IOException {
-    TrackerSideEffectDataBundle bundle = toBundle(message);
-
+  public void consume(TrackerSideEffectDataBundle bundle) {
     if (bundle == null) {
       return;
     }
