@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TableLoader {
-  private static final int PARTITION_SIZE = 500;
+  private static final int PARTITION_SIZE = 1000;
 
   private final SqlBuilder sqlBuilder;
 
@@ -75,8 +75,9 @@ public class TableLoader {
     List<List<String>> rowPartitions =
         ListUtils.partition(getInsertDataSql(table, data), PARTITION_SIZE);
 
+    log.info("Loading {} data rows from {} partitions", data.size(), rowPartitions.size());
+
     for (List<String> partition : rowPartitions) {
-      log.info("Loading data for rows: {}", partition.size());
       String sql = String.join(LF, partition);
       jdbcTemplate.execute(sql);
     }
