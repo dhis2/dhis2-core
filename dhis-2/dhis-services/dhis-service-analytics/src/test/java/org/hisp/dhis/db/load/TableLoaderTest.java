@@ -66,9 +66,15 @@ class TableLoaderTest {
 
   private List<Object[]> getData() {
     return List.of(
-        new Object[] {24, "bcg", "2024-03-01", 12.0},
-        new Object[] {24, "opv", "2024-05-02", 20.0},
-        new Object[] {24, "ipt", "2024-06-08", 34.0});
+        new Object[] {24, "BCG", "2024-03-01", 12.0},
+        new Object[] {45, "OPV", "2024-05-02", 20.0},
+        new Object[] {79, "IPT", "2024-06-08", 34.0});
+  }
+
+  @Test
+  void testGetValueSql() {
+    assertEquals("(24,'BCG','2024-03-01',12.0)", loader.getValueSql(getTable(), getData().get(0)));
+    assertEquals("(45,'OPV','2024-05-02',20.0)", loader.getValueSql(getTable(), getData().get(1)));
   }
 
   @Test

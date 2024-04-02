@@ -111,7 +111,7 @@ public class TableLoader {
       values.add(singleQuoteValue(column.getDataType(), objects[i]));
     }
 
-    return String.format("(%)", String.join(",", values));
+    return String.format("(%s)", String.join(",", values));
   }
 
   /**
