@@ -338,7 +338,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             from ${datavalue} dv \
             inner join ${period} pe on dv.periodid=pe.periodid \
             inner join ${analytics_rs_periodstructure} ps on dv.periodid=ps.periodid \
-            left join ${periodtype} pt on pe.periodtypeid = pt.periodtypeid \
             inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
             inner join ${analytics_rs_dataelementstructure} des on dv.dataelementid = des.dataelementid \
             inner join ${analytics_rs_dataelementgroupsetstructure} degs on dv.dataelementid=degs.dataelementid \
