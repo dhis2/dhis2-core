@@ -75,6 +75,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -104,6 +105,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   private final SqlBuilder sqlBuilder;
 
   @Override
+  @Transactional
   public void generateResourceTables() {
     for (ResourceTable table : getResourceTables()) {
       resourceTableStore.generateResourceTable(table);
@@ -111,6 +113,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   }
 
   @Override
+  @Transactional
   public void generateDataApprovalResourceTables() {
     for (ResourceTable table : getApprovalResourceTables()) {
       resourceTableStore.generateResourceTable(table);
