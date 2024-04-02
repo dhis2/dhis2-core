@@ -29,8 +29,7 @@ package org.hisp.dhis.db.load;
 
 import java.util.ArrayList;
 import java.util.List;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import java.util.Objects;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -38,27 +37,43 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@RequiredArgsConstructor
 public class TableLoader {
-  @NonNull private final Table table;
+  private final Table table;
 
-  @NonNull private final List<Object[]> records;
+  private final List<Object[]> records;
 
-  @NonNull private final SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder;
 
-  @NonNull private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
+
+  public TableLoader(
+      Table table, List<Object[]> records, SqlBuilder sqlBuilder, JdbcTemplate jdbcTemplate) {
+    this.table = table;
+    this.records = records;
+    this.sqlBuilder = sqlBuilder;
+    this.jdbcTemplate = jdbcTemplate;
+    this.validate();
+  }
+
+  /** Validates this object. */
+  private void validate() {
+    Objects.requireNonNull(table);
+    Validate.notEmpty(table.getColumns());
+    Objects.requireNonNull(records);
+    Objects.requireNonNull(sqlBuilder);
+    Objects.requireNonNull(jdbcTemplate);
+  }
 
   private String getInsert() {
-    Validate.notEmpty(table.getColumns());
-
     String tableName = sqlBuilder.quote(table.getName());
-    String columns =
-        String.join(
-            ",",
-            table.getColumns().stream()
-                .map(Column::getName)
-                .map(name -> sqlBuilder.quote(name))
-                .toList());
+
+    List<String> columnNames =
+        table.getColumns().stream()
+            .map(Column::getName)
+            .map(name -> sqlBuilder.quote(name))
+            .toList();
+
+    String columns = String.join(",", columnNames);
 
     String insert = String.format("insert into %s (%s) values ", tableName, columns);
 
