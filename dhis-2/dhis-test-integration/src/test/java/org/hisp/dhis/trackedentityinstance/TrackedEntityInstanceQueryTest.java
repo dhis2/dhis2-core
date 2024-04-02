@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentityinstance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -45,8 +46,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -77,10 +76,13 @@ class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase {
   @Test
   void shouldFailIfGivenStatusAndNotOccurredEventDates() {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setEventStatus( EventStatus.ACTIVE);
+    params.setEventStatus(EventStatus.ACTIVE);
 
-    IllegalQueryException exception = assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
-    assertEquals("`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together", exception.getMessage());
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together",
+        exception.getMessage());
   }
 
   @Test
@@ -89,8 +91,11 @@ class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase {
     params.setEventStatus(EventStatus.ACTIVE);
     params.setEventEndDate(new Date());
 
-    IllegalQueryException exception = assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
-    assertEquals("`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together", exception.getMessage());
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together",
+        exception.getMessage());
   }
 
   @Test
@@ -99,8 +104,11 @@ class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase {
     params.setEventStartDate(new Date());
     params.setEventEndDate(new Date());
 
-    IllegalQueryException exception = assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
-    assertEquals("`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together", exception.getMessage());
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together",
+        exception.getMessage());
   }
 
   @Test

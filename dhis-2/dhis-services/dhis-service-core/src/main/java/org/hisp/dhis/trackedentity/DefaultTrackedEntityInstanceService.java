@@ -79,7 +79,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -550,8 +549,12 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       violation = "Event start and end date must be specified when event status is specified";
     }
 
-    if (!((params.hasEventStatus() && params.hasEventStartDate() && params.hasEventEndDate()) || (!params.hasEventStatus() && !params.hasEventStartDate() && !params.hasEventEndDate()))) {
-      violation = "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together";
+    if (!((params.hasEventStatus() && params.hasEventStartDate() && params.hasEventEndDate())
+        || (!params.hasEventStatus()
+            && !params.hasEventStartDate()
+            && !params.hasEventEndDate()))) {
+      violation =
+          "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together";
     }
 
     if (params.isOrQuery() && params.hasFilters()) {
