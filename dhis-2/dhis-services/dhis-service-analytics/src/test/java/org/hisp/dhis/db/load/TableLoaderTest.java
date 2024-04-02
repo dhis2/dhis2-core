@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.db.load;
 
+import static org.apache.commons.lang3.StringUtils.LF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -81,6 +82,17 @@ class TableLoaderTest {
     tableLoader = new TableLoader(sqlBuilder, jdbcTemplate);
     table = getTable();
     data = getData();
+  }
+
+  @Test
+  void testStringJoin() {
+    List<String> list = List.of("select 1;", "select 2;", "select 3;");
+    String expected = """
+        select 1;
+        select 2;
+        select 3;""";
+
+    assertEquals(expected, String.join(LF, list));
   }
 
   @Test
