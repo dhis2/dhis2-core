@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.LF;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.Validate;
@@ -41,37 +42,25 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class TableLoader {
-  private final Table table;
-
-  private final List<Object[]> data;
+  private static final int PARTITION_SIZE = 500;
 
   private final SqlBuilder sqlBuilder;
 
   private final JdbcTemplate jdbcTemplate;
 
-  public TableLoader(
-      Table table, List<Object[]> data, SqlBuilder sqlBuilder, JdbcTemplate jdbcTemplate) {
-    this.table = table;
-    this.data = data;
-    this.sqlBuilder = sqlBuilder;
-    this.jdbcTemplate = jdbcTemplate;
-    this.validate();
-  }
-
-  /** Validates this object. */
-  private void validate() {
+  public void load(Table table, List<Object[]> data) {
     Objects.requireNonNull(table);
     Validate.notEmpty(table.getColumns());
     Objects.requireNonNull(data);
-    Objects.requireNonNull(sqlBuilder);
-    Objects.requireNonNull(jdbcTemplate);
-  }
 
-  public void load() {
-    List<List<String>> rowPartitions = ListUtils.partition(getInsertRowSql(), 1000);
+    List<List<String>> rowPartitions =
+        ListUtils.partition(getInsertRowSql(table, data), PARTITION_SIZE);
 
     for (List<String> partition : rowPartitions) {
       log.info("Loading data for rows: %d", partition.size());
@@ -80,15 +69,15 @@ public class TableLoader {
     }
   }
 
-  List<String> getInsertRowSql() {
-    return data.stream().map(this::getRowSql).toList();
+  List<String> getInsertRowSql(Table table, List<Object[]> data) {
+    return data.stream().map(row -> getInsertSql(table)).toList();
   }
 
-  String getRowSql(Object[] objects) {
-    return getInsertSql() + getValueSql(objects) + ";" + LF;
+  String getRowSql(Table table, Object[] objects) {
+    return getInsertSql(table) + getValueSql(table, objects) + ";" + LF;
   }
 
-  String getInsertSql() {
+  String getInsertSql(Table table) {
     List<String> columnNames =
         table.getColumns().stream()
             .map(Column::getName)
@@ -104,10 +93,11 @@ public class TableLoader {
   /**
    * Returns a SQL values clause for the given row value objects.
    *
+   * @param table the {@link Table}.
    * @param objects the row value objects.
    * @return a SQL values clause.
    */
-  String getValueSql(Object[] objects) {
+  String getValueSql(Table table, Object[] objects) {
     int columnCount = table.getColumns().size();
 
     Validate.isTrue(
@@ -118,7 +108,7 @@ public class TableLoader {
 
     for (int i = 0; i < columnCount; i++) {
       Column column = table.getColumns().get(i);
-      values.add(singleQuoteValue(column, objects[i]));
+      values.add(singleQuoteValue(column.getDataType(), objects[i]));
     }
 
     return String.format("(%)", String.join(",", values));
@@ -128,16 +118,15 @@ public class TableLoader {
    * Determines whether single quoting of the given value and corresponding column is necessary, and
    * if so, returns the single quoted value as string, if not, the value as string.
    *
-   * @param column the {@link Column}.
+   * @param dataType the {@link DataType}.
    * @param value the value.
    * @return the possibly quoted value as string.
    */
-  String singleQuoteValue(Column column, Object value) {
+  String singleQuoteValue(DataType dataType, Object value) {
     if (value == null) {
       return null;
     }
 
-    DataType dataType = column.getDataType();
     String string = String.valueOf(value);
 
     if (dataType.isNumeric() || dataType.isBoolean()) {
