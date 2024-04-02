@@ -85,7 +85,7 @@ class TableLoaderTest {
   }
 
   @Test
-  void testStringJoin() {
+  void testStringJoinLinefeed() {
     List<String> list = List.of("select 1;", "select 2;", "select 3;");
     String expected = """
         select 1;
