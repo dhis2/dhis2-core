@@ -379,7 +379,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalClause} \
+            ${approvalClause} \
             where de.valuetype in (${valTypes}) \
             and de.domaintype = 'AGGREGATE' \
             ${partitionClause} \
@@ -395,11 +395,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-              \s
-              and (aon.startdate is null or aon.startdate <= pe.startdate) \
-              and (aon.enddate is null or aon.enddate >= pe.enddate) \
-              and (con.startdate is null or con.startdate <= pe.startdate) \
-              and (con.enddate is null or con.enddate >= pe.enddate)\s""");
+          and (aon.startdate is null or aon.startdate <= pe.startdate) \
+          and (aon.enddate is null or aon.enddate >= pe.enddate) \
+          and (con.startdate is null or con.startdate <= pe.startdate) \
+          and (con.enddate is null or con.enddate >= pe.enddate)\s""");
     }
 
     if (whereClause != null) {
@@ -441,7 +440,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                left join analytics_rs_dataapprovalminlevel da \
               on des.workflowid=da.workflowid and da.periodid=dv.periodid \
               and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (\s""");
+              and (""");
 
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
@@ -758,6 +757,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "t3.attributeoptioncomboid) as stats "
         + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid\s";
   }
 }
