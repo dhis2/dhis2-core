@@ -581,6 +581,11 @@
         <version>${spring-security.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-test</artifactId>
+        <version>${spring-security.version}</version>
+      </dependency>
+      <dependency>
         <groupId>com.google.zxing</groupId>
         <artifactId>core</artifactId>
         <version>${com.google.zxing.core.version}</version>

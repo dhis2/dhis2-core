@@ -208,7 +208,7 @@ public class DhisWebApiWebSecurityConfig {
   @Bean
   public WebSecurityCustomizer webSecurityCustomizer() {
     return web ->
-        web.debug(true)
+        web.debug(false)
             .ignoring()
             .requestMatchers(
                 new AntPathRequestMatcher("/api/ping"),

@@ -41,6 +41,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 @Tag("uitests")
+@Disabled("Deprecated with Struts")
 class LoginPageTest {
   private WebDriver driver;
 
