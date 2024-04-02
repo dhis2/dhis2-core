@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.db.load.TableLoader;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -61,6 +62,8 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
+
+  private final TableLoader tableLoader;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -130,12 +133,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     } else if (populateTableContent.isPresent()) {
       List<Object[]> content = populateTableContent.get();
       log.debug("Populate table content rows: {}", content.size());
-
-      if (content.size() > 0) {
-        // new TableLoader(table, content, sqlBuilder, jdbcTemplate).load();
-        int columns = content.get(0).length;
-        batchUpdate(columns, table.getName(), content);
-      }
+      tableLoader.load(table, content);
     }
   }
 

@@ -55,8 +55,11 @@ public class TableLoader {
 
   public void load(Table table, List<Object[]> data) {
     Objects.requireNonNull(table);
-    Validate.notEmpty(table.getColumns());
     Objects.requireNonNull(data);
+
+    if (data.isEmpty()) {
+      return;
+    }
 
     List<List<String>> rowPartitions =
         ListUtils.partition(getInsertRowSql(table, data), PARTITION_SIZE);
