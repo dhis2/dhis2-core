@@ -77,6 +77,12 @@ public class TableLoader {
     return getInsertSql(table) + getValueSql(table, objects) + ";" + LF;
   }
 
+  /**
+   * Returns an insert SQL clause for the given table.
+   *
+   * @param table the {@link Table}.
+   * @return an insert SQL clause.
+   */
   String getInsertSql(Table table) {
     List<String> columnNames =
         table.getColumns().stream()
@@ -91,11 +97,11 @@ public class TableLoader {
   }
 
   /**
-   * Returns a SQL values clause for the given row value objects.
+   * Returns a values SQL clause for the given row value objects.
    *
    * @param table the {@link Table}.
    * @param objects the row value objects.
-   * @return a SQL values clause.
+   * @return a values SQL clause.
    */
   String getValueSql(Table table, Object[] objects) {
     int columnCount = table.getColumns().size();

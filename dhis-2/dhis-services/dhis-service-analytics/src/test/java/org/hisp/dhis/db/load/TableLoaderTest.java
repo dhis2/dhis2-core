@@ -37,6 +37,7 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,7 +50,11 @@ class TableLoaderTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  private final TableLoader loader = new TableLoader(sqlBuilder, jdbcTemplate);
+  private TableLoader tableLoader;
+
+  private Table table;
+
+  private List<Object[]> data;
 
   private Table getTable() {
     List<Column> columns =
@@ -71,21 +76,38 @@ class TableLoaderTest {
         new Object[] {79, "IPT", "2024-06-08", 34.0});
   }
 
+  @BeforeEach
+  void beforeEach() {
+    tableLoader = new TableLoader(sqlBuilder, jdbcTemplate);
+    table = getTable();
+    data = getData();
+  }
+
+  @Test
+  void getInsertSql() {
+    String expected =
+        """
+        insert into "immunization" ("id","data","created","value") values\s""";
+
+    assertEquals(expected, tableLoader.getInsertSql(table));
+  }
+
   @Test
   void testGetValueSql() {
-    assertEquals("(24,'BCG','2024-03-01',12.0)", loader.getValueSql(getTable(), getData().get(0)));
-    assertEquals("(45,'OPV','2024-05-02',20.0)", loader.getValueSql(getTable(), getData().get(1)));
+    assertEquals("(24,'BCG','2024-03-01',12.0)", tableLoader.getValueSql(table, data.get(0)));
+    assertEquals("(45,'OPV','2024-05-02',20.0)", tableLoader.getValueSql(table, data.get(1)));
   }
 
   @Test
   void testSingleQuoteValue() {
-    assertEquals("825", loader.singleQuoteValue(DataType.BIGINT, 825));
-    assertEquals("25.6", loader.singleQuoteValue(DataType.DOUBLE, 25.6));
-    assertEquals("true", loader.singleQuoteValue(DataType.BOOLEAN, true));
-    assertEquals("'wI2EftpJibz'", loader.singleQuoteValue(DataType.CHARACTER_11, "wI2EftpJibz"));
-    assertEquals("'2024-03-01'", loader.singleQuoteValue(DataType.DATE, "2024-03-01"));
+    assertEquals("825", tableLoader.singleQuoteValue(DataType.BIGINT, 825));
+    assertEquals("25.6", tableLoader.singleQuoteValue(DataType.DOUBLE, 25.6));
+    assertEquals("true", tableLoader.singleQuoteValue(DataType.BOOLEAN, true));
+    assertEquals(
+        "'wI2EftpJibz'", tableLoader.singleQuoteValue(DataType.CHARACTER_11, "wI2EftpJibz"));
+    assertEquals("'2024-03-01'", tableLoader.singleQuoteValue(DataType.DATE, "2024-03-01"));
     assertEquals(
         "'2024-03-01T14:52:46'",
-        loader.singleQuoteValue(DataType.TIMESTAMP, "2024-03-01T14:52:46"));
+        tableLoader.singleQuoteValue(DataType.TIMESTAMP, "2024-03-01T14:52:46"));
   }
 }
