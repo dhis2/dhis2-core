@@ -32,8 +32,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,8 +42,10 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -58,8 +58,8 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
   private final int organisationUnitLevels;
 
   public OrganisationUnitGroupSetResourceTable(
-      Logged logged, List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels) {
-    super(logged);
+      SqlBuilder sqlBuilder, Logged logged, List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels) {
+    super(sqlBuilder, logged);
     this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;
   }
@@ -126,42 +126,44 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
     for (OrganisationUnitGroupSet groupSet : groupSets) {
       if (!groupSet.isIncludeSubhierarchyInAnalytics()) {
         sql +=
-            replace(
-                """
+            replaceQualify(
+            """
             (
-            select oug.name from orgunitgroup oug \
-            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            select oug.name from ${orgunitgroup} oug \
+            inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
             and ougsm.orgunitgroupsetid = ${groupSetId} \
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetName}, \
             (
-            select oug.uid from orgunitgroup oug \
-            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            select oug.uid from ${orgunitgroup} oug \
+            inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
             and ougsm.orgunitgroupsetid = ${groupSetId} \
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
             """,
-                Map.of(
-                    "groupSetId", valueOf(groupSet.getId()),
-                    "groupSetName", quote(groupSet.getName()),
-                    "groupSetUid", quote(groupSet.getUid())));
+            List.of("orgunitgroup", "orgunitgroupmembers", "orgunitgroupsetmembers"),
+            Map.of(
+                "groupSetId", valueOf(groupSet.getId()),
+                "groupSetName", quote(groupSet.getName()),
+                "groupSetUid", quote(groupSet.getUid())));
       } else {
         sql += "coalesce(";
 
         for (int i = organisationUnitLevels; i > 0; i--) {
           sql +=
-              replace(
-                  """
+              replaceQualify(
+              """
               (
-              select oug.name from orgunitgroup oug \
-              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              select oug.name from ${orgunitgroup} oug \
+              inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
-              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
-                  Map.of(
-                      "level", valueOf(i),
-                      "groupSetId", valueOf(groupSet.getId())));
+              List.of("orgunitgroup", "orgunitgroupmembers", "orgunitgroupsetmembers"),
+              Map.of(
+                  "level", valueOf(i),
+                  "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {

@@ -30,7 +30,6 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +42,7 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -54,8 +54,8 @@ public class DataElementResourceTable extends AbstractResourceTable {
 
   private final List<DataElement> dataElements;
 
-  public DataElementResourceTable(Logged logged, List<DataElement> dataElements) {
-    super(logged);
+  public DataElementResourceTable(SqlBuilder sqlBuilder, Logged logged, List<DataElement> dataElements) {
+    super(sqlBuilder, logged);
     this.dataElements = dataElements;
   }
 

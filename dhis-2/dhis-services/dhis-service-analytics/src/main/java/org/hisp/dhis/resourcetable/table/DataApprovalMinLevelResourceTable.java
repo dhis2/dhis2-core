@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
@@ -38,6 +37,7 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -49,8 +49,8 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
 
   private final List<OrganisationUnitLevel> levels;
 
-  public DataApprovalMinLevelResourceTable(Logged logged, List<OrganisationUnitLevel> levels) {
-    super(logged);
+  public DataApprovalMinLevelResourceTable(SqlBuilder sqlBuilder, Logged logged, List<OrganisationUnitLevel> levels) {
+    super(sqlBuilder, logged);
     this.levels = levels;
   }
 
@@ -80,17 +80,18 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
+        replaceQualify(
         """
         insert into ${tableName} \
         (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
         select da.workflowid, da.periodid, da.organisationunitid, \
         da.attributeoptioncomboid, dal.level as minlevel \
-        from dataapproval da \
+        from ${dataapproval} da \
         inner join analytics_rs_dataapprovalremaplevel dal on \
         dal.workflowid = da.workflowid and dal.dataapprovallevelid = da.dataapprovallevelid \
         inner join analytics_rs_orgunitstructure ous on da.organisationunitid = ous.organisationunitid \
         where not exists (
-        select 1 from dataapproval da2 \
+        select 1 from ${dataapproval} da2 \
         inner join analytics_rs_dataapprovalremaplevel dal2 on \
         da2.workflowid = dal2.workflowid and da2.dataapprovallevelid = dal2.dataapprovallevelid \
         where da.workflowid = da2.workflowid \
@@ -98,7 +99,9 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
         and da.attributeoptioncomboid = da2.attributeoptioncomboid \
         and dal.level > dal2.level \
         and (
-        """;
+        """,
+        List.of("dataapproval"),
+        Map.of("tableName", toStaging(TABLE_NAME)));
 
     for (OrganisationUnitLevel level : levels) {
       sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
@@ -106,7 +109,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
 
     sql = TextUtils.removeLastOr(sql) + "));";
 
-    return Optional.of(replace(sql, "tableName", toStaging(TABLE_NAME)));
+    return Optional.of(sql);
   }
 
   @Override

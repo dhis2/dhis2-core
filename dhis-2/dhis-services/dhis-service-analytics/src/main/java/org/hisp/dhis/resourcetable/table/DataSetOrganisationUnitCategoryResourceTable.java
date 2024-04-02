@@ -28,8 +28,6 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -45,9 +43,11 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -60,8 +60,8 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
   private final CategoryOptionCombo defaultOptionCombo;
 
   public DataSetOrganisationUnitCategoryResourceTable(
-      Logged logged, List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo) {
-    super(logged);
+      SqlBuilder sqlBuilder, Logged logged, List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo) {
+    super(sqlBuilder, logged);
     this.dataSets = dataSets;
     this.defaultOptionCombo = defaultOptionCombo;
   }

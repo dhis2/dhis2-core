@@ -31,8 +31,6 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,8 +40,10 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -53,8 +53,8 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
 
   private final List<IndicatorGroupSet> groupSets;
 
-  public IndicatorGroupSetResourceTable(Logged logged, List<IndicatorGroupSet> groupSets) {
-    super(logged);
+  public IndicatorGroupSetResourceTable(SqlBuilder sqlBuilder, Logged logged, List<IndicatorGroupSet> groupSets) {
+    super(sqlBuilder, logged);
     this.groupSets = groupSets;
   }
 
@@ -101,25 +101,26 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
 
     for (IndicatorGroupSet groupSet : groupSets) {
       sql +=
-          replace(
-              """
+          replaceQualify(
+          """
           (
-          select ig.name from indicatorgroup ig \
-          inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid \
-          inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
+          select ig.name from ${indicatorgroup} ig \
+          inner join ${indicatorgroupmembers} igm on igm.indicatorgroupid = ig.indicatorgroupid \
+          inner join ${indicatorgroupsetmembers} igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
           and igsm.indicatorgroupsetid = ${groupSetId} \
           where igm.indicatorid = i.indicatorid limit 1) as ${groupSetName}, \
           (
-          select ig.uid from indicatorgroup ig \
-          inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid \
-          inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
+          select ig.uid from ${indicatorgroup} ig \
+          inner join ${indicatorgroupmembers} igm on igm.indicatorgroupid = ig.indicatorgroupid \
+          inner join ${indicatorgroupsetmembers} igsm on igsm.indicatorgroupid = igm.indicatorgroupid \
           and igsm.indicatorgroupsetid = ${groupSetId} \
           where igm.indicatorid = i.indicatorid limit 1) as ${groupSetUid}, \
           """,
-              Map.of(
-                  "groupSetId", valueOf(groupSet.getId()),
-                  "groupSetName", quote(groupSet.getName()),
-                  "groupSetUid", quote(groupSet.getUid())));
+          List.of("indicatorgroup", "indicatorgroupmembers", "indicatorgroupsetmembers"),
+          Map.of(
+              "groupSetId", valueOf(groupSet.getId()),
+              "groupSetName", quote(groupSet.getName()),
+              "groupSetUid", quote(groupSet.getUid())));
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
