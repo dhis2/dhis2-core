@@ -27,63 +27,27 @@
  */
 package org.hisp.dhis.db.model;
 
-import java.util.EnumSet;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Enumeration of database data types.
- *
- * @author Lars Helge Overland
- */
-public enum DataType {
-  SMALLINT,
-  BIGINT,
-  INTEGER,
-  DECIMAL,
-  FLOAT,
-  DOUBLE,
-  BOOLEAN,
-  CHARACTER_11,
-  CHARACTER_32,
-  VARCHAR_50,
-  VARCHAR_255,
-  TEXT,
-  DATE,
-  TIMESTAMP,
-  TIMESTAMPTZ,
-  GEOMETRY,
-  GEOMETRY_POINT,
-  JSONB;
+import org.junit.jupiter.api.Test;
 
-  private static final EnumSet<DataType> TYPES_NUMERIC =
-      EnumSet.of(SMALLINT, BIGINT, INTEGER, DECIMAL, FLOAT, DOUBLE);
-
-  private static final EnumSet<DataType> TYPES_CHARACTER =
-      EnumSet.of(CHARACTER_11, CHARACTER_32, VARCHAR_50, VARCHAR_255, TEXT);
-
-  /**
-   * Indicates if the data type is numeric.
-   *
-   * @return true if numeric.
-   */
-  public boolean isNumeric() {
-    return TYPES_NUMERIC.contains(this);
+class DataTypeTest {
+  @Test
+  void testIsNumeric() {
+    assertTrue(DataType.BIGINT.isNumeric());
+    assertFalse(DataType.CHARACTER_11.isNumeric());
   }
 
-  /**
-   * Indicates if the data type is boolean.
-   *
-   * @return true if boolean.
-   */
-  public boolean isBoolean() {
-    return BOOLEAN == this;
+  @Test
+  void testIsBoolean() {
+    assertTrue(DataType.BOOLEAN.isBoolean());
+    assertFalse(DataType.DOUBLE.isBoolean());
   }
 
-  /**
-   * Indicates if the data type is character based.
-   *
-   * @return true if character based.
-   */
-  public boolean isCharacter() {
-    return TYPES_CHARACTER.contains(this);
+  @Test
+  void testIsCharacter() {
+    assertTrue(DataType.VARCHAR_255.isCharacter());
+    assertFalse(DataType.DECIMAL.isCharacter());
   }
 }
