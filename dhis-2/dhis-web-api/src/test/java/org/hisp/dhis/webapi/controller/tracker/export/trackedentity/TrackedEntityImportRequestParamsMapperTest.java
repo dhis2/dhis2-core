@@ -276,6 +276,29 @@ class TrackedEntityImportRequestParamsMapperTest {
   }
 
   @Test
+  void shouldFailIfGivenStatusAndNotOccurredEventDates() {
+    trackedEntityRequestParams.setEventStatus(EventStatus.ACTIVE);
+
+    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
+  }
+
+  @Test
+  void shouldFailIfGivenStatusAndOccurredAfterEventDateButNoOccurredBeforeEventDate() {
+    trackedEntityRequestParams.setEventStatus(EventStatus.ACTIVE);
+    trackedEntityRequestParams.setEventOccurredAfter(new Date());
+
+    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
+  }
+
+  @Test
+  void shouldFailIfGivenOccurredEventDatesAndNotEventStatus() {
+    trackedEntityRequestParams.setEventOccurredBefore(new Date());
+    trackedEntityRequestParams.setEventOccurredAfter(new Date());
+
+    assertThrows(BadRequestException.class, () -> mapper.map(trackedEntityRequestParams, user));
+  }
+
+  @Test
   void shouldFailIfGivenOrgUnitAndOrgUnits() {
     trackedEntityRequestParams.setOrgUnit("IsdLBTOBzMi");
     trackedEntityRequestParams.setOrgUnits(Set.of(UID.of("IsdLBTOBzMi")));
