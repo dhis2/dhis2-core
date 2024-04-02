@@ -188,6 +188,11 @@ class PostgreSqlBuilderTest {
     assertEquals("\"categories_options\"", sqlBuilder.qualifyTable("categories_options"));
   }
 
+  void testDateTrunc() {
+    assertEquals(
+        "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
+  }
+
   // Statements
 
   @Test
