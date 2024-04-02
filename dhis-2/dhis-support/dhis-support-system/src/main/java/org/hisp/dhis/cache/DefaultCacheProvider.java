@@ -300,7 +300,7 @@ public class DefaultCacheProvider implements CacheProvider {
         this.<V>newBuilder()
             .forRegion(Region.programOwner.name())
             .expireAfterWrite(5, TimeUnit.MINUTES)
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
+            .withMaximumSize(0));
   }
 
   @Override
