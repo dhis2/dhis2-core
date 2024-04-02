@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.load;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.LF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +73,7 @@ public class TableLoader {
   }
 
   String getRowSql(Table table, Object[] objects) {
-    return getInsertSql(table) + getValueSql(table, objects) + ";" + LF;
+    return getInsertSql(table) + getValueSql(table, objects) + ";";
   }
 
   /**
