@@ -54,6 +54,12 @@ public enum DataType {
   GEOMETRY_POINT,
   JSONB;
 
+  private static final EnumSet<DataType> TYPES_NUMERIC =
+      EnumSet.of(SMALLINT, BIGINT, INTEGER, DECIMAL, FLOAT, DOUBLE);
+
+  private static final EnumSet<DataType> TYPES_CHARACTER =
+      EnumSet.of(CHARACTER_11, CHARACTER_32, VARCHAR_50, VARCHAR_255, TEXT);
+
   /**
    * Indicates if the data type is numeric.
    *
@@ -72,6 +78,12 @@ public enum DataType {
     return BOOLEAN == this;
   }
 
-  static final EnumSet<DataType> TYPES_NUMERIC =
-      EnumSet.of(SMALLINT, BIGINT, INTEGER, DECIMAL, FLOAT, DOUBLE);
+  /**
+   * Indicates if the data type is character based.
+   *
+   * @return true if character based.
+   */
+  public boolean isCharacter() {
+    return TYPES_CHARACTER.contains(this);
+  }
 }
