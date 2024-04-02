@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.load;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.LF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +85,7 @@ public class TableLoader {
   }
 
   String getRowSql(Object[] objects) {
-    return getInsertSql() + getValueSql(objects);
+    return getInsertSql() + getValueSql(objects) + ";" + LF;
   }
 
   String getInsertSql() {
@@ -120,9 +121,7 @@ public class TableLoader {
       values.add(singleQuoteValue(column, objects[i]));
     }
 
-    String row = String.join(",", values);
-
-    return String.format("(%)", row);
+    return String.format("(%)", String.join(",", values));
   }
 
   /**
