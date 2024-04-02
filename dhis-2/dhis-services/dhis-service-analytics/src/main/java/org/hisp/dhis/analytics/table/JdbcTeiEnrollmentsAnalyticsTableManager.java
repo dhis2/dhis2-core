@@ -163,10 +163,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
-    analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getOrganisationUnitNameHierarchyColumn());
 
-    return analyticsTableColumnList;
+    return columns;
   }
 
   @Override
