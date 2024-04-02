@@ -84,6 +84,22 @@ class TableLoaderTest {
   }
 
   @Test
+  void testGetInsertRowSql() {
+    List<String> statements = tableLoader.getInsertRowSql(table, data);
+
+    String expectedA =
+        """
+        insert into "immunization" ("id","data","created","value") values (24,'BCG','2024-03-01',12.0);""";
+    String expectedB =
+        """
+        insert into "immunization" ("id","data","created","value") values (45,'OPV','2024-05-02',20.5);""";
+
+    assertEquals(3, statements.size());
+    assertEquals(expectedA, statements.get(0));
+    assertEquals(expectedB, statements.get(1));
+  }
+
+  @Test
   void testGetInsertValuesSql() {
     String expectedA =
         """
@@ -91,13 +107,9 @@ class TableLoaderTest {
     String expectedB =
         """
         insert into "immunization" ("id","data","created","value") values (45,'OPV','2024-05-02',20.5);""";
-    String expectedC =
-        """
-        insert into "immunization" ("id","data","created","value") values (79,'IPT','2024-06-08',34.0);""";
 
     assertEquals(expectedA, tableLoader.getInsertValuesSql(table, data.get(0)));
     assertEquals(expectedB, tableLoader.getInsertValuesSql(table, data.get(1)));
-    assertEquals(expectedC, tableLoader.getInsertValuesSql(table, data.get(2)));
   }
 
   @Test

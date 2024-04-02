@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.db.load;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.LF;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class TableLoader {
 
     for (List<String> partition : rowPartitions) {
       log.info("Loading data for rows: %d", partition.size());
-      String sql = String.join(EMPTY, partition);
+      String sql = String.join(LF, partition);
       jdbcTemplate.execute(sql);
     }
   }
