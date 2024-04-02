@@ -383,9 +383,6 @@ public enum ConfigurationKey {
   /** Use unlogged tables during analytics export. (default: ON) */
   ANALYTICS_TABLE_UNLOGGED("analytics.table.unlogged", Constants.ON),
 
-  /** Order analytics tables data on insert. */
-  ANALYTICS_TABLE_ORDERING("analytics.table.ordering", Constants.OFF),
-
   /**
    * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded Artemis which lives in
    * the same process as your DHIS2 instance), NATIVE (connects to an external Artemis instance,

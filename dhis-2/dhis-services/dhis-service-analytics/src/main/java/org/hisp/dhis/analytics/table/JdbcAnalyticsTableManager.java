@@ -189,8 +189,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void preCreateTables(AnalyticsTableUpdateParams params) {
     if (isApprovalEnabled(null)) {
-      resourceTableService.generateDataApprovalRemapLevelTable();
-      resourceTableService.generateDataApprovalMinLevelTable();
+      resourceTableService.generateDataApprovalResourceTables();
     }
   }
 
@@ -233,6 +232,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     boolean includeZeroValues =
         systemSettingManager.getBoolSetting(SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS);
 
+    String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
         skipDataTypeValidation
             ? ""
@@ -255,7 +255,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     populateTable(
         params,
         partition,
-        "cast(dv.value as double precision)",
+        "cast(dv.value as " + doubleDataType + ")",
         "null",
         ValueType.NUMERIC_TYPES,
         intClause);
@@ -335,7 +335,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
             inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
@@ -345,7 +345,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
-                "textValueExpression", textValueExpression)));
+                "textValueExpression", textValueExpression,
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "pe.startdate"))));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());
@@ -377,10 +378,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     if (whereClause != null) {
       sql.append(" and " + whereClause + " ");
-    }
-
-    if (analyticsTableSettings.isTableOrdering()) {
-      sql.append(" order by de.uid, co.uid");
     }
 
     invokeTimeAndLog(sql.toString(), String.format("Populate %s %s", tableName, valueTypes));
