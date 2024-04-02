@@ -34,14 +34,20 @@ import org.junit.jupiter.api.Test;
 
 class DataTypeTest {
   @Test
-  void isNumeric() {
+  void testIsNumeric() {
     assertTrue(DataType.BIGINT.isNumeric());
     assertFalse(DataType.CHARACTER_11.isNumeric());
   }
 
   @Test
-  void isBoolean() {
+  void testIsBoolean() {
     assertTrue(DataType.BOOLEAN.isBoolean());
     assertFalse(DataType.DOUBLE.isBoolean());
+  }
+
+  @Test
+  void testIsCharacter() {
+    assertTrue(DataType.VARCHAR_255.isCharacter());
+    assertFalse(DataType.DECIMAL.isCharacter());
   }
 }
