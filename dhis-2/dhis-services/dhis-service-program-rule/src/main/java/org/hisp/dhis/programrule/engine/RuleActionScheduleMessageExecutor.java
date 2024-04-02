@@ -46,6 +46,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,12 +73,14 @@ public class RuleActionScheduleMessageExecutor extends NotificationRuleActionExe
       EnrollmentService enrollmentService,
       EventService eventService,
       ProgramNotificationInstanceService programNotificationInstanceService,
-      NotificationTemplateService notificationTemplateService) {
+      NotificationTemplateService notificationTemplateService,
+      AuthenticationService authenticationService) {
     super(
         programNotificationTemplateService,
         notificationLoggingService,
         enrollmentService,
-        eventService);
+        eventService,
+        authenticationService);
     this.programNotificationInstanceService = programNotificationInstanceService;
     this.notificationTemplateService = notificationTemplateService;
   }
@@ -111,19 +114,7 @@ public class RuleActionScheduleMessageExecutor extends NotificationRuleActionExe
     notificationInstance.setEvent(null);
     notificationInstance.setEnrollment(enrollment);
 
-    programNotificationInstanceService.save(notificationInstance);
-
-    log.info(String.format(LOG_MESSAGE, template.getUid()));
-
-    if (result.getLogEntry() != null) {
-      return;
-    }
-
-    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
-    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
-    entry.setAllowMultiple(template.isSendRepeatable());
-
-    notificationLoggingService.save(entry);
+    persistEntities(notificationInstance, template, result, key, NotificationTriggerEvent.PROGRAM);
   }
 
   @Override
@@ -157,19 +148,8 @@ public class RuleActionScheduleMessageExecutor extends NotificationRuleActionExe
     notificationInstance.setEvent(event);
     notificationInstance.setEnrollment(null);
 
-    programNotificationInstanceService.save(notificationInstance);
-
-    log.info(String.format(LOG_MESSAGE, template.getUid()));
-
-    if (result.getLogEntry() != null) {
-      return;
-    }
-
-    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
-    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
-    entry.setAllowMultiple(template.isSendRepeatable());
-
-    notificationLoggingService.save(entry);
+    persistEntities(
+        notificationInstance, template, result, key, NotificationTriggerEvent.PROGRAM_STAGE);
   }
 
   // -------------------------------------------------------------------------
@@ -201,5 +181,28 @@ public class RuleActionScheduleMessageExecutor extends NotificationRuleActionExe
 
   private boolean isInvalid(String date) {
     return !StringUtils.isNotBlank(date) || !DateUtils.dateIsValid(date);
+  }
+
+  private void persistEntities(
+      ProgramNotificationInstance notificationInstance,
+      ProgramNotificationTemplate template,
+      NotificationValidationResult result,
+      String key,
+      NotificationTriggerEvent triggerEvent) {
+    authenticationService.obtainSystemAuthentication();
+    programNotificationInstanceService.save(notificationInstance);
+
+    log.info(String.format(LOG_MESSAGE, template.getUid()));
+
+    if (result.getLogEntry() != null) {
+      return;
+    }
+
+    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
+    entry.setNotificationTriggeredBy(triggerEvent);
+    entry.setAllowMultiple(template.isSendRepeatable());
+
+    notificationLoggingService.save(entry);
+    authenticationService.clearAuthentication();
   }
 }

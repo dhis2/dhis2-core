@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +60,8 @@ public abstract class NotificationRuleActionExecutor {
   protected final EnrollmentService enrollmentService;
 
   protected final EventService eventService;
+
+  protected final AuthenticationService authenticationService;
 
   protected ExternalNotificationLogEntry createLogEntry(String key, String templateUid) {
     ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();

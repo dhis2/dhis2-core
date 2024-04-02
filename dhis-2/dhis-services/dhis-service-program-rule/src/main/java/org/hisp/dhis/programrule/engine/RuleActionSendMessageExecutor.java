@@ -43,6 +43,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,12 +72,14 @@ public class RuleActionSendMessageExecutor extends NotificationRuleActionExecuto
       NotificationLoggingService notificationLoggingService,
       EnrollmentService enrollmentService,
       EventService eventService,
-      ApplicationEventPublisher publisher) {
+      ApplicationEventPublisher publisher,
+      AuthenticationService authenticationService) {
     super(
         programNotificationTemplateService,
         notificationLoggingService,
         enrollmentService,
-        eventService);
+        eventService,
+        authenticationService);
     this.publisher = publisher;
   }
 
@@ -103,11 +106,7 @@ public class RuleActionSendMessageExecutor extends NotificationRuleActionExecuto
       return;
     }
 
-    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
-    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
-    entry.setAllowMultiple(template.isSendRepeatable());
-
-    notificationLoggingService.save(entry);
+    persistLogEntry(key, template, NotificationTriggerEvent.PROGRAM);
   }
 
   @Override
@@ -135,11 +134,18 @@ public class RuleActionSendMessageExecutor extends NotificationRuleActionExecuto
       return;
     }
 
+    persistLogEntry(key, template, NotificationTriggerEvent.PROGRAM_STAGE);
+  }
+
+  private void persistLogEntry(
+      String key, ProgramNotificationTemplate template, NotificationTriggerEvent triggerEvent) {
     ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
-    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
+    entry.setNotificationTriggeredBy(triggerEvent);
     entry.setAllowMultiple(template.isSendRepeatable());
 
+    authenticationService.obtainSystemAuthentication();
     notificationLoggingService.save(entry);
+    authenticationService.clearAuthentication();
   }
 
   private void handleSingleEvent(NotificationAction action, Event event) {
