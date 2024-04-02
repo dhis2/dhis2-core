@@ -380,10 +380,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(" and " + whereClause + " ");
     }
 
-    if (analyticsTableSettings.isTableOrdering()) {
-      sql.append(" order by de.uid, co.uid");
-    }
-
     invokeTimeAndLog(sql.toString(), String.format("Populate %s %s", tableName, valueTypes));
   }
 
