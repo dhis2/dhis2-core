@@ -84,12 +84,12 @@ class TableLoaderTest {
   }
 
   @Test
-  void testGetRowSql() {
+  void testGetInsertValuesSql() {
     String expected =
         """
         insert into "immunization" ("id","data","created","value") values (24,'BCG','2024-03-01',12.0);""";
 
-    assertEquals(expected, tableLoader.getRowSql(table, data.get(0)));
+    assertEquals(expected, tableLoader.getInsertValuesSql(table, data.get(0)));
   }
 
   @Test
