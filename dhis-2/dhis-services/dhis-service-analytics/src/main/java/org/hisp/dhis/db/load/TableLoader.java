@@ -65,16 +65,14 @@ public class TableLoader {
   }
 
   private String getInsert() {
-    String tableName = sqlBuilder.quote(table.getName());
-
     List<String> columnNames =
         table.getColumns().stream()
             .map(Column::getName)
             .map(name -> sqlBuilder.quote(name))
             .toList();
 
+    String tableName = sqlBuilder.quote(table.getName());
     String columns = String.join(",", columnNames);
-
     String insert = String.format("insert into %s (%s) values ", tableName, columns);
 
     List<String> rows = new ArrayList<>();
