@@ -72,7 +72,7 @@ class TableLoaderTest {
   private List<Object[]> getData() {
     return List.of(
         new Object[] {24, "BCG", "2024-03-01", 12.0},
-        new Object[] {45, "OPV", "2024-05-02", 20.0},
+        new Object[] {45, "OPV", "2024-05-02", 20.5},
         new Object[] {79, "IPT", "2024-06-08", 34.0});
   }
 
@@ -85,11 +85,19 @@ class TableLoaderTest {
 
   @Test
   void testGetInsertValuesSql() {
-    String expected =
+    String expectedA =
         """
         insert into "immunization" ("id","data","created","value") values (24,'BCG','2024-03-01',12.0);""";
+    String expectedB =
+        """
+        insert into "immunization" ("id","data","created","value") values (45,'OPV','2024-05-02',20.5);""";
+    String expectedC =
+        """
+        insert into "immunization" ("id","data","created","value") values (79,'IPT','2024-06-08',34.0);""";
 
-    assertEquals(expected, tableLoader.getInsertValuesSql(table, data.get(0)));
+    assertEquals(expectedA, tableLoader.getInsertValuesSql(table, data.get(0)));
+    assertEquals(expectedB, tableLoader.getInsertValuesSql(table, data.get(1)));
+    assertEquals(expectedC, tableLoader.getInsertValuesSql(table, data.get(2)));
   }
 
   @Test
@@ -104,7 +112,7 @@ class TableLoaderTest {
   @Test
   void testGetValueSql() {
     assertEquals("(24,'BCG','2024-03-01',12.0)", tableLoader.getValueSql(table, data.get(0)));
-    assertEquals("(45,'OPV','2024-05-02',20.0)", tableLoader.getValueSql(table, data.get(1)));
+    assertEquals("(45,'OPV','2024-05-02',20.5)", tableLoader.getValueSql(table, data.get(1)));
   }
 
   @Test
