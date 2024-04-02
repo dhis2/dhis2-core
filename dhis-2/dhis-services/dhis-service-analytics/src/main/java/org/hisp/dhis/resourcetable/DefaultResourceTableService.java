@@ -54,7 +54,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodService;
@@ -76,7 +75,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -106,137 +104,102 @@ public class DefaultResourceTableService implements ResourceTableService {
   private final SqlBuilder sqlBuilder;
 
   @Override
-  @Transactional
-  public void generateOrganisationUnitStructureTable() {
-    resourceTableStore.generateResourceTable(
-        new OrganisationUnitStructureResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            organisationUnitService.getNumberOfOrganisationalLevels(),
-            organisationUnitService));
+  public void generateResourceTables() {
+    for (ResourceTable table : getResourceTables()) {
+      resourceTableStore.generateResourceTable(table);
+    }
   }
 
   @Override
-  @Transactional
-  public void generateDataSetOrganisationUnitCategoryTable() {
-    resourceTableStore.generateResourceTable(
-        new DataSetOrganisationUnitCategoryResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(DataSet.class),
-            categoryService.getDefaultCategoryOptionCombo()));
-  }
-
-  @Override
-  @Transactional
-  public void generateCategoryOptionComboNameTable() {
-    resourceTableStore.generateResourceTable(
-        new CategoryOptionComboNameResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(CategoryCombo.class)));
-  }
-
-  @Override
-  @Transactional
-  public void generateDataElementGroupSetTable() {
-    resourceTableStore.generateResourceTable(
-        new DataElementGroupSetResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)));
-  }
-
-  @Override
-  @Transactional
-  public void generateIndicatorGroupSetTable() {
-    resourceTableStore.generateResourceTable(
-        new IndicatorGroupSetResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(IndicatorGroupSet.class)));
-  }
-
-  @Override
-  @Transactional
-  public void generateOrganisationUnitGroupSetTable() {
-    resourceTableStore.generateResourceTable(
-        new OrganisationUnitGroupSetResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
-            organisationUnitService.getNumberOfOrganisationalLevels()));
-  }
-
-  @Override
-  @Transactional
-  public void generateCategoryTable() {
-    resourceTableStore.generateResourceTable(
-        new CategoryResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getDataDimensionsNoAcl(Category.class),
-            idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)));
-  }
-
-  @Override
-  @Transactional
-  public void generateDataElementTable() {
-    resourceTableStore.generateResourceTable(
-        new DataElementResourceTable(
-            sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(DataElement.class)));
-  }
-
-  @Override
-  @Transactional
-  public void generateDatePeriodTable() {
-    List<Integer> availableYears =
-        periodDataProvider.getAvailableYears(
-            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
-    checkYearsOffset(availableYears);
-    resourceTableStore.generateResourceTable(
-        new DatePeriodResourceTable(
-            sqlBuilder, analyticsTableSettings.getTableLogged(), availableYears));
-  }
-
-  @Override
-  public void generatePeriodTable() {
-    resourceTableStore.generateResourceTable(
-        new PeriodResourceTable(
-            sqlBuilder, analyticsTableSettings.getTableLogged(), periodService.getAllPeriods()));
-  }
-
-  @Override
-  @Transactional
-  public void generateCategoryOptionComboTable() {
-    resourceTableStore.generateResourceTable(
-        new CategoryOptionComboResourceTable(sqlBuilder, analyticsTableSettings.getTableLogged()));
-  }
-
-  @Override
-  public void generateDataApprovalRemapLevelTable() {
-    resourceTableStore.generateResourceTable(
-        new DataApprovalRemapLevelResourceTable(
-            sqlBuilder, analyticsTableSettings.getTableLogged()));
-  }
-
-  @Override
-  public void generateDataApprovalMinLevelTable() {
-    List<OrganisationUnitLevel> orgUnitLevels =
-        Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels());
-
-    if (!orgUnitLevels.isEmpty()) {
-      resourceTableStore.generateResourceTable(
-          new DataApprovalMinLevelResourceTable(
-              sqlBuilder, analyticsTableSettings.getTableLogged(), orgUnitLevels));
+  public void generateDataApprovalResourceTables() {
+    for (ResourceTable table : getApprovalResourceTables()) {
+      resourceTableStore.generateResourceTable(table);
     }
   }
 
   /**
-   * This method checks if any of the year in the given list is within the offset defined in system
-   * settings. The constant where the offset is defined can be seen at {@link
+   * Returns a list of resource tables.
+   *
+   * @return a list of {@link ResourceTable}.
+   */
+  private final List<ResourceTable> getResourceTables() {
+    return List.of(
+        new OrganisationUnitStructureResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            organisationUnitService.getNumberOfOrganisationalLevels(),
+            organisationUnitService),
+        new DataSetOrganisationUnitCategoryResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(DataSet.class),
+            categoryService.getDefaultCategoryOptionCombo()),
+        new CategoryOptionComboNameResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(CategoryCombo.class)),
+        new DataElementGroupSetResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
+        new IndicatorGroupSetResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+        new OrganisationUnitGroupSetResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
+            organisationUnitService.getNumberOfOrganisationalLevels()),
+        new CategoryResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getDataDimensionsNoAcl(Category.class),
+            idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)),
+        new DataElementResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            idObjectManager.getAllNoAcl(DataElement.class)),
+        new DatePeriodResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            getAndValidateAvailableDataYears()),
+        new PeriodResourceTable(
+            sqlBuilder, analyticsTableSettings.getTableLogged(), periodService.getAllPeriods()),
+        new CategoryOptionComboResourceTable(sqlBuilder, analyticsTableSettings.getTableLogged()));
+  }
+
+  /**
+   * Returns a list of data approval resource tables.
+   *
+   * @return a lits of data approval {@link ResourceTable}.
+   */
+  private final List<ResourceTable> getApprovalResourceTables() {
+    return List.of(
+        new DataApprovalRemapLevelResourceTable(
+            sqlBuilder, analyticsTableSettings.getTableLogged()),
+        new DataApprovalMinLevelResourceTable(
+            sqlBuilder,
+            analyticsTableSettings.getTableLogged(),
+            Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels())));
+  }
+
+  /**
+   * Validates and returns the available data years.
+   *
+   * @return the list of available data years.
+   */
+  List<Integer> getAndValidateAvailableDataYears() {
+    List<Integer> availableYears =
+        periodDataProvider.getAvailableYears(
+            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+    validateYearsOffset(availableYears);
+    return availableYears;
+  }
+
+  /**
+   * This method validates if any of the year in the given list is within the offset defined in
+   * system settings. The constant where the offset is defined can be seen at {@link
    * SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
    *
    * <p>Based on the current year YYYY and the defined offset X. This method allows a range of X
@@ -245,7 +208,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    *
    * @param yearsToCheck the list of years to be checked.
    */
-  private void checkYearsOffset(List<Integer> yearsToCheck) {
+  private void validateYearsOffset(List<Integer> yearsToCheck) {
     Integer maxYearsOffset = analyticsTableSettings.getMaxPeriodYearsOffset();
 
     if (maxYearsOffset != null) {
@@ -256,15 +219,14 @@ public class DefaultResourceTableService implements ResourceTableService {
           yearsToCheck.stream().anyMatch(year -> year < minRangeAllowed || year > maxRangeAllowed);
 
       if (yearsOutOfRange) {
-        String errorMessage = "Your database contains years out of the allowed offset.";
-        errorMessage +=
-            "\n Range of years allowed (based on your system settings and existing data): "
+        String errorMessage =
+            "Your database contains years out of the allowed offset."
+                + "\n Range of years allowed (based on your system settings and existing data): "
                 + yearsToCheck.stream()
                     .filter(year -> year >= minRangeAllowed && year <= maxRangeAllowed)
                     .toList()
-                + ".";
-        errorMessage +=
-            "\n Years out of range found: "
+                + "."
+                + "\n Years out of range found: "
                 + yearsToCheck.stream()
                     .filter(year -> year < minRangeAllowed || year > maxRangeAllowed)
                     .toList()
