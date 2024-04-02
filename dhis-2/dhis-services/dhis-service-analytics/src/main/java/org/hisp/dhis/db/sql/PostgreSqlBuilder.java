@@ -220,6 +220,11 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return quote(name);
   }
 
+  @Override
+  public String dateTrunc(String text, String timestamp) {
+    return String.format("date_trunc(%s, %s)", singleQuote(text), timestamp);
+  }
+
   // Statements
 
   @Override

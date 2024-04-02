@@ -174,6 +174,12 @@ class DorisSqlBuilderTest {
         "pg_dhis.public.`categories_options`", sqlBuilder.qualifyTable("categories_options"));
   }
 
+  @Test
+  void testDateTrunc() {
+    assertEquals(
+        "date_trunc(pe.startdate, 'month')", sqlBuilder.dateTrunc("month", "pe.startdate"));
+  }
+
   // Statements
 
   @Test

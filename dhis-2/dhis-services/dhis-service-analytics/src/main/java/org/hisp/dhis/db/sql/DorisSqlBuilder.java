@@ -217,6 +217,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("%s.%s.%s", catalog, SCHEMA, quote(name));
   }
 
+  @Override
+  public String dateTrunc(String text, String timestamp) {
+    return String.format("date_trunc(%s, %s)", timestamp, singleQuote(text));
+  }
+
   // Statements
 
   @Override
