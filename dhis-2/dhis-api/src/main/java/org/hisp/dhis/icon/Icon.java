@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -75,8 +74,6 @@ public class Icon implements Serializable {
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   private transient String href;
 
-  @JsonIgnore private transient DefaultIcon origin;
-
   public Icon(
       String key,
       String description,
@@ -100,5 +97,9 @@ public class Icon implements Serializable {
     }
 
     setLastUpdated(date);
+
+    if (keywords == null) {
+      keywords = Set.of();
+    }
   }
 }
