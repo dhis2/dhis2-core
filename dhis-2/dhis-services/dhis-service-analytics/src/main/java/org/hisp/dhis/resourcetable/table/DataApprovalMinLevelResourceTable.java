@@ -99,14 +99,19 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
         and da.periodid = da2.periodid \
         and da.attributeoptioncomboid = da2.attributeoptioncomboid \
         and dal.level > dal2.level \
-        and (
         """;
 
-    for (OrganisationUnitLevel level : levels) {
-      sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
+    if (!levels.isEmpty()) {
+      sql += "and (";
+
+      for (OrganisationUnitLevel level : levels) {
+        sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
+      }
+
+      sql = TextUtils.removeLastOr(sql) + ")";
     }
 
-    sql = TextUtils.removeLastOr(sql) + "))";
+    sql += ")";
 
     return Optional.of(replace(sql, "tableName", toStaging(TABLE_NAME)));
   }
