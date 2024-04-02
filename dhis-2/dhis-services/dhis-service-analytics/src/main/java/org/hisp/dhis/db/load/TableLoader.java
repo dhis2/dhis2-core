@@ -69,11 +69,18 @@ public class TableLoader {
   }
 
   List<String> getInsertRowSql(Table table, List<Object[]> data) {
-    return data.stream().map(row -> getInsertSql(table)).toList();
+    return data.stream().map(row -> getInsertValuesSql(table, row)).toList();
   }
 
-  String getRowSql(Table table, Object[] objects) {
-    return getInsertSql(table) + getValueSql(table, objects) + ";";
+  /**
+   * Returns an insert values SQL statement for the given table and row value objects.
+   *
+   * @param table the {@link Table}.
+   * @param row the row value objects.
+   * @return an insert values SQL statement.
+   */
+  String getInsertValuesSql(Table table, Object[] row) {
+    return getInsertSql(table) + getValueSql(table, row) + ";";
   }
 
   /**
@@ -99,21 +106,21 @@ public class TableLoader {
    * Returns a values SQL clause for the given row value objects.
    *
    * @param table the {@link Table}.
-   * @param objects the row value objects.
+   * @param row the row value objects.
    * @return a values SQL clause.
    */
-  String getValueSql(Table table, Object[] objects) {
+  String getValueSql(Table table, Object[] row) {
     int columnCount = table.getColumns().size();
 
     Validate.isTrue(
-        objects.length == columnCount,
-        String.format("Column row count mismatch: %d/%d", objects.length, columnCount));
+        row.length == columnCount,
+        String.format("Column row count mismatch: %d/%d", row.length, columnCount));
 
     List<String> values = new ArrayList<>();
 
     for (int i = 0; i < columnCount; i++) {
       Column column = table.getColumns().get(i);
-      values.add(singleQuoteValue(column.getDataType(), objects[i]));
+      values.add(singleQuoteValue(column.getDataType(), row[i]));
     }
 
     return String.format("(%s)", String.join(",", values));
