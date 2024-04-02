@@ -155,30 +155,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     resourceTableService.dropAllSqlViews(progress);
 
     Map<String, Runnable> generators = new LinkedHashMap<>();
-    generators.put(
-        "generating OrganisationUnit structures",
-        resourceTableService::generateOrganisationUnitStructureTable);
-    generators.put(
-        "generating DataSetOrganisationUnitCategory table",
-        resourceTableService::generateDataSetOrganisationUnitCategoryTable);
-    generators.put(
-        "generating CategoryOptionCombo names",
-        resourceTableService::generateCategoryOptionComboNameTable);
-    generators.put(
-        "generating DataElementGroupSet table",
-        resourceTableService::generateDataElementGroupSetTable);
-    generators.put(
-        "generating IndicatorGroupSet table", resourceTableService::generateIndicatorGroupSetTable);
-    generators.put(
-        "generating OrganisationUnitGroupSet table",
-        resourceTableService::generateOrganisationUnitGroupSetTable);
-    generators.put("generating Category table", resourceTableService::generateCategoryTable);
-    generators.put("generating DataElement table", resourceTableService::generateDataElementTable);
-    generators.put("generating Period table", resourceTableService::generatePeriodTable);
-    generators.put("generating DatePeriod table", resourceTableService::generateDatePeriodTable);
-    generators.put(
-        "generating CategoryOptionCombo table",
-        resourceTableService::generateCategoryOptionComboTable);
+    generators.put("Generating resource tables", resourceTableService::generateResourceTables);
     progress.startingStage("Generating resource tables", generators.size(), SKIP_STAGE);
     progress.runStage(generators);
 

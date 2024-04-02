@@ -189,8 +189,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void preCreateTables(AnalyticsTableUpdateParams params) {
     if (isApprovalEnabled(null)) {
-      resourceTableService.generateDataApprovalRemapLevelTable();
-      resourceTableService.generateDataApprovalMinLevelTable();
+      resourceTableService.generateDataApprovalResourceTables();
     }
   }
 
