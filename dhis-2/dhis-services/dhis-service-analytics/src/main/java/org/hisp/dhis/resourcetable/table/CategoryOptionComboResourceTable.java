@@ -29,6 +29,7 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,7 +87,7 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         replaceQualify(
-        """
+            """
         insert into ${tableName} \
         (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
         select de.dataelementid as dataelementid, de.uid as dataelementuid, \
@@ -94,10 +95,8 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
         from ${dataelement} de \
         inner join ${categorycombos_optioncombos} cc on de.categorycomboid = cc.categorycomboid \
         inner join ${categoryoptioncombo} coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
-        List.of("dataelement", "categorycombos_optioncombos", "categoryoptioncombo"),
-        Map.of(
-            "tableName",
-            toStaging(TABLE_NAME)));
+            List.of("dataelement", "categorycombos_optioncombos", "categoryoptioncombo"),
+            Map.of("tableName", toStaging(TABLE_NAME)));
 
     return Optional.of(sql);
   }

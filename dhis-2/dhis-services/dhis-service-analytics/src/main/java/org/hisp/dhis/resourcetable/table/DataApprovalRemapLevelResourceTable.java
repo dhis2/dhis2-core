@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -87,7 +88,7 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         replaceQualify(
-        """
+            """
         insert into ${tableName} \
         (workflowid,dataapprovallevelid,level) \
         select w.workflowid, w.dataapprovallevelid, 1 + coalesce((select max(l2.level) \
@@ -98,10 +99,8 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         from dataapprovalworkflowlevels w \
         inner join dataapprovallevel l on l.dataapprovallevelid = w.dataapprovallevelid;
         """,
-        List.of("dataapprovalworkflowlevels", "dataapprovallevel"),
-        Map.of(
-            "tableName",
-            toStaging(TABLE_NAME)));
+            List.of("dataapprovalworkflowlevels", "dataapprovallevel"),
+            Map.of("tableName", toStaging(TABLE_NAME)));
 
     return Optional.of(sql);
   }

@@ -29,9 +29,11 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
@@ -41,7 +43,6 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -52,7 +53,8 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
 
   private final List<CategoryCombo> categoryCombos;
 
-  public CategoryOptionComboNameResourceTable(SqlBuilder sqlBuilder, Logged logged, List<CategoryCombo> categoryCombos) {
+  public CategoryOptionComboNameResourceTable(
+      SqlBuilder sqlBuilder, Logged logged, List<CategoryCombo> categoryCombos) {
     super(sqlBuilder, logged);
     this.categoryCombos = categoryCombos;
   }

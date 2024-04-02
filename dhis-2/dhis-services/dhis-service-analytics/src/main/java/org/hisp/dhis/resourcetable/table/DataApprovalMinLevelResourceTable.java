@@ -28,6 +28,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +50,8 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
 
   private final List<OrganisationUnitLevel> levels;
 
-  public DataApprovalMinLevelResourceTable(SqlBuilder sqlBuilder, Logged logged, List<OrganisationUnitLevel> levels) {
+  public DataApprovalMinLevelResourceTable(
+      SqlBuilder sqlBuilder, Logged logged, List<OrganisationUnitLevel> levels) {
     super(sqlBuilder, logged);
     this.levels = levels;
   }
@@ -81,7 +83,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         replaceQualify(
-        """
+            """
         insert into ${tableName} \
         (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
         select da.workflowid, da.periodid, da.organisationunitid, \
@@ -100,8 +102,8 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
         and dal.level > dal2.level \
         and (
         """,
-        List.of("dataapproval"),
-        Map.of("tableName", toStaging(TABLE_NAME)));
+            List.of("dataapproval"),
+            Map.of("tableName", toStaging(TABLE_NAME)));
 
     for (OrganisationUnitLevel level : levels) {
       sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";

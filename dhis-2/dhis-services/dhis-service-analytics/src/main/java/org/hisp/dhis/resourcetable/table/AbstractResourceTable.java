@@ -30,20 +30,20 @@ package org.hisp.dhis.resourcetable.table;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
 public abstract class AbstractResourceTable implements ResourceTable {
-  
+
   protected final SqlBuilder sqlBuilder;
-  
+
   protected final Logged logged;
 
   /**
