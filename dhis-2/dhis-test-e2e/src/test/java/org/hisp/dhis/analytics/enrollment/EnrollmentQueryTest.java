@@ -301,4 +301,40 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
             "25.0",
             ""));
   }
+
+  @Test
+  public void queryWithoutPeriodDimension() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("dimension=ou:USER_ORGUNIT,edqlbukwRfQ.vANAXwtLwcT")
+            .add("headers=ouname,edqlbukwRfQ.vANAXwtLwcT,enrollmentdate")
+            .add("pageSize=5")
+            .add("page=1");
+
+    // When
+    ApiResponse response = enrollmentsActions.query().get("WSGAb5XwJ3Y", JSON, JSON, params);
+    response.validate().statusCode(200).body("headers", hasSize(equalTo(3)));
+
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "edqlbukwRfQ.vANAXwtLwcT",
+        "WHOMCH Hemoglobin value",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeader(
+        response,
+        2,
+        "enrollmentdate",
+        "Date of first visit",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+  }
 }
