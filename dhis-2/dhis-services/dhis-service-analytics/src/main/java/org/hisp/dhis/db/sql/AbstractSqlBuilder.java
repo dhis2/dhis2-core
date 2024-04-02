@@ -102,47 +102,29 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return the database name of the given data type.
    */
   protected String getDataTypeName(DataType dataType) {
-    switch (dataType) {
-      case SMALLINT:
-        return dataTypeSmallInt();
-      case INTEGER:
-        return dataTypeInteger();
-      case BIGINT:
-        return dataTypeBigInt();
-      case DECIMAL:
-        return dataTypeDecimal();
-      case FLOAT:
-        return dataTypeFloat();
-      case DOUBLE:
-        return dataTypeDouble();
-      case BOOLEAN:
-        return dataTypeBoolean();
-      case CHARACTER_11:
-        return dataTypeCharacter(11);
-      case CHARACTER_32:
-        return dataTypeCharacter(32);
-      case VARCHAR_50:
-        return dataTypeVarchar(50);
-      case VARCHAR_255:
-        return dataTypeVarchar(255);
-      case TEXT:
-        return dataTypeText();
-      case DATE:
-        return dataTypeDate();
-      case TIMESTAMP:
-        return dataTypeTimestamp();
-      case TIMESTAMPTZ:
-        return dataTypeTimestampTz();
-      case GEOMETRY:
-        return dataTypeGeometry();
-      case GEOMETRY_POINT:
-        return dataTypeGeometryPoint();
-      case JSONB:
-        return dataTypeJson();
-      default:
-        throw new UnsupportedOperationException(
-            String.format("Unsuported data type: %s", dataType));
-    }
+    return switch (dataType) {
+      case SMALLINT -> dataTypeSmallInt();
+      case INTEGER -> dataTypeInteger();
+      case BIGINT -> dataTypeBigInt();
+      case DECIMAL -> dataTypeDecimal();
+      case FLOAT -> dataTypeFloat();
+      case DOUBLE -> dataTypeDouble();
+      case BOOLEAN -> dataTypeBoolean();
+      case CHARACTER_11 -> dataTypeCharacter(11);
+      case CHARACTER_32 -> dataTypeCharacter(32);
+      case VARCHAR_50 -> dataTypeVarchar(50);
+      case VARCHAR_255 -> dataTypeVarchar(255);
+      case TEXT -> dataTypeText();
+      case DATE -> dataTypeDate();
+      case TIMESTAMP -> dataTypeTimestamp();
+      case TIMESTAMPTZ -> dataTypeTimestampTz();
+      case GEOMETRY -> dataTypeGeometry();
+      case GEOMETRY_POINT -> dataTypeGeometryPoint();
+      case JSONB -> dataTypeJson();
+      default ->
+          throw new UnsupportedOperationException(
+              String.format("Unsuported data type: %s", dataType));
+    };
   }
 
   /**
@@ -152,15 +134,13 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return the database name of the given index function.
    */
   protected String getIndexFunctionName(IndexFunction indexFunction) {
-    switch (indexFunction) {
-      case UPPER:
-        return indexFunctionUpper();
-      case LOWER:
-        return indexFunctionLower();
-      default:
-        throw new UnsupportedOperationException(
-            String.format("Unsuported index function: %s", indexFunction));
-    }
+    return switch (indexFunction) {
+      case UPPER -> indexFunctionUpper();
+      case LOWER -> indexFunctionLower();
+      default ->
+          throw new UnsupportedOperationException(
+              String.format("Unsuported index function: %s", indexFunction));
+    };
   }
 
   /**
@@ -170,17 +150,14 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return the database name of the given index type.
    */
   protected String getIndexTypeName(IndexType indexType) {
-    switch (indexType) {
-      case BTREE:
-        return indexTypeBtree();
-      case GIST:
-        return indexTypeGist();
-      case GIN:
-        return indexTypeGin();
-      default:
-        throw new UnsupportedOperationException(
-            String.format("Unsuported index type: %s", indexType));
-    }
+    return switch (indexType) {
+      case BTREE -> indexTypeBtree();
+      case GIST -> indexTypeGist();
+      case GIN -> indexTypeGin();
+      default ->
+          throw new UnsupportedOperationException(
+              String.format("Unsuported index type: %s", indexType));
+    };
   }
 
   // Supportive
