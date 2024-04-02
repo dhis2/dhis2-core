@@ -262,13 +262,11 @@ final class ApiAnalyse {
     getAnnotations(source, OpenApi.Response.class)
         .forEach(
             a -> res.putAll(newAdditionalResponse(endpoint, source, a, signatureStatus, produces)));
-    // response from method signature
 
+    // response from method signature
     res.computeIfAbsent(
-        signatureStatus,
-        status -> {
-          return newSuccessResponse(endpoint, source, status, produces);
-        });
+        signatureStatus, status -> newSuccessResponse(endpoint, source, status, produces));
+
     // error response(s) from annotated exception types in method signature and
     // error response(s) from annotations on exceptions in method signature
     for (AnnotatedType error : source.getAnnotatedExceptionTypes()) {
