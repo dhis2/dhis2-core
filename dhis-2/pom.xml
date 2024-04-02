@@ -85,7 +85,7 @@
     <kotlinx-datetime.version>0.5.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
-    <dhis-hisp-quick.version>1.4.3</dhis-hisp-quick.version>
+    <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
     <dhis-json-tree.version>1.0</dhis-json-tree.version>
 
@@ -189,7 +189,7 @@
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.8.0</commons-validator.version>
-    <commons-io.version>2.15.1</commons-io.version>
+    <commons-io.version>2.16.0</commons-io.version>
     <commons-codec.version>1.16.1</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
@@ -231,7 +231,7 @@
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.5.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-    <dependency-check-maven.version>9.0.10</dependency-check-maven.version>
+    <dependency-check-maven.version>9.1.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.8.3.1</spotbugs-maven-plugin.version>
     <spotless.version>2.43.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>

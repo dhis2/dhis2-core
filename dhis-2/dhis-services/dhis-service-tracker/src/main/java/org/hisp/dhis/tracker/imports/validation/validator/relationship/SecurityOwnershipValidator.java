@@ -25,24 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import java.util.Optional;
-import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Zubair Asghar
- */
+@Component(
+    "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-public enum IconTypeFilter {
-  ALL("all"),
-  CUSTOM("custom"),
-  DEFAULT("default");
+class SecurityOwnershipValidator implements Validator<Relationship> {
 
-  private final String type;
+  @Nonnull private final AclService aclService;
 
-  public static Optional<IconTypeFilter> from(String iconType) {
-    return Stream.of(IconTypeFilter.values()).filter(t -> t.type.equals(iconType)).findFirst();
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+    RelationshipType relationshipType =
+        strategy.isUpdateOrDelete()
+            ? bundle.getPreheat().getRelationship(relationship).getRelationshipType()
+            : bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
+
+    if (!aclService.canDataWrite(bundle.getUser(), relationshipType)) {
+      reporter.addError(
+          relationship, ValidationCode.E4019, bundle.getUser(), relationship.getRelationshipType());
+    }
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
   }
 }

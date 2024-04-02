@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.icon;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
@@ -34,7 +36,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.List;
@@ -118,7 +119,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public void save(Icon icon) throws SQLException {
+  public void save(Icon icon) {
     String sql =
         """
             INSERT INTO icon (iconkey,description,keywords,fileresourceid,createdby,created,lastupdated,custom)
@@ -146,7 +147,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   @Override
-  public void update(Icon icon) throws SQLException {
+  public void update(Icon icon) {
     String sql =
         """
             update icon set description = :description, keywords = cast(:keywords as jsonb), lastupdated = now() where iconkey = :key
@@ -175,14 +176,23 @@ public class JdbcIconStore implements IconStore {
     sql += orderByQuery(params.getOrder());
 
     if (params.isPaging()) {
-      sql =
-          getPaginatedQuery(
-              params.getPager().getPage(), params.getPager().getPageSize(), sql, parameterSource);
+      sql = getPaginatedQuery(params.getPage(), params.getPageSize(), sql, parameterSource);
     }
 
     return namedParameterJdbcTemplate
         .queryForStream(sql, parameterSource, getIconRowMapper())
         .toList();
+  }
+
+  @Override
+  public int deleteOrphanDefaultIcons() {
+    String sql =
+        """
+      delete from icon i
+      where custom = false
+      and not exists(select 1 from fileresource fr where fr.fileresourceid = i.fileresourceid );
+      """;
+    return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource());
   }
 
   private String buildIconQuery(
@@ -215,10 +225,10 @@ public class JdbcIconStore implements IconStore {
       parameterSource.addValue("createdEndDate", params.getCreatedEndDate(), Types.TIMESTAMP);
     }
 
-    if (params.hasCustom()) {
+    if (params.getType() != IconTypeFilter.ALL) {
       sql += hlp.whereAnd() + " c.custom = :custom ";
 
-      parameterSource.addValue("custom", params.getIncludeCustomIcon(), Types.BOOLEAN);
+      parameterSource.addValue("custom", params.getType() == IconTypeFilter.CUSTOM, Types.BOOLEAN);
     }
 
     if (params.hasKeywords()) {
@@ -249,6 +259,8 @@ public class JdbcIconStore implements IconStore {
 
     sql = sql + " LIMIT :limit OFFSET :offset ";
 
+    page = max(1, page);
+    pageSize = max(1, min(500, pageSize));
     int offset = (page - 1) * pageSize;
 
     mapSqlParameterSource.addValue("limit", pageSize);
@@ -291,7 +303,7 @@ public class JdbcIconStore implements IconStore {
   }
 
   private String orderByQuery(List<OrderCriteria> orders) {
-    if (orders.isEmpty()) {
+    if (orders == null || orders.isEmpty()) {
       return " order by " + DEFAULT_ORDER;
     }
 

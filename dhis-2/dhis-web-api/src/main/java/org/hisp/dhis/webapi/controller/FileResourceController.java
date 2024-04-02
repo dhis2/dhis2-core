@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
@@ -166,7 +167,7 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
       @RequestParam MultipartFile file,
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
       @RequestParam(required = false) String uid)
-      throws WebMessageException, IOException {
+      throws IOException, ConflictException {
     FileResource fileResource;
     if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
