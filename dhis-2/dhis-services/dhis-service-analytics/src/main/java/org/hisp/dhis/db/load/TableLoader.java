@@ -43,6 +43,11 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * Component responsible for batch loading data into a table.
+ *
+ * @author Lars Helge Overland
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -53,6 +58,12 @@ public class TableLoader {
 
   private final JdbcTemplate jdbcTemplate;
 
+  /**
+   * Loads the given data rows into the given table.
+   *
+   * @param table the {@link Table}.
+   * @param data the rows of data.
+   */
   public void load(Table table, List<Object[]> data) {
     Objects.requireNonNull(table);
     Objects.requireNonNull(data);
