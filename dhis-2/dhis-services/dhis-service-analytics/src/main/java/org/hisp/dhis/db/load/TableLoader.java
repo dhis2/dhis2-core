@@ -96,6 +96,7 @@ public class TableLoader {
 
     String tableName = sqlBuilder.quote(table.getName());
     String columns = String.join(",", columnNames);
+
     return String.format("insert into %s (%s) values ", tableName, columns);
   }
 
