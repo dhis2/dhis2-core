@@ -28,7 +28,6 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +82,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
         replaceQualify(
-            """
+        """
         insert into ${tableName} \
         (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
         select da.workflowid, da.periodid, da.organisationunitid, \
@@ -100,16 +99,21 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
         and da.periodid = da2.periodid \
         and da.attributeoptioncomboid = da2.attributeoptioncomboid \
         and dal.level > dal2.level \
-        and (
         """,
-            List.of("dataapproval"),
-            Map.of("tableName", toStaging(TABLE_NAME)));
+        List.of("dataapproval"),
+        Map.of("tableName", toStaging(TABLE_NAME)));
 
-    for (OrganisationUnitLevel level : levels) {
-      sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
+    if (!levels.isEmpty()) {
+      sql += "and (";
+
+      for (OrganisationUnitLevel level : levels) {
+        sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
+      }
+
+      sql = TextUtils.removeLastOr(sql) + ")";
     }
 
-    sql = TextUtils.removeLastOr(sql) + "));";
+    sql += ");";
 
     return Optional.of(sql);
   }
