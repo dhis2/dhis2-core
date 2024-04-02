@@ -73,16 +73,23 @@ public class TableLoader {
     }
 
     List<List<String>> rowPartitions =
-        ListUtils.partition(getInsertRowSql(table, data), PARTITION_SIZE);
+        ListUtils.partition(getInsertDataSql(table, data), PARTITION_SIZE);
 
     for (List<String> partition : rowPartitions) {
-      log.info("Loading data for rows: %d", partition.size());
+      log.info("Loading data for rows: {}", partition.size());
       String sql = String.join(LF, partition);
       jdbcTemplate.execute(sql);
     }
   }
 
-  List<String> getInsertRowSql(Table table, List<Object[]> data) {
+  /**
+   * Returns a list of insert values SQL statements for the given table and data.
+   *
+   * @param table the {@link Table}.
+   * @param data the list of data rows.
+   * @return a list of insert values SQL statements.
+   */
+  List<String> getInsertDataSql(Table table, List<Object[]> data) {
     return data.stream().map(row -> getInsertValuesSql(table, row)).toList();
   }
 

@@ -96,8 +96,8 @@ class TableLoaderTest {
   }
 
   @Test
-  void testGetInsertRowSql() {
-    List<String> statements = tableLoader.getInsertRowSql(table, data);
+  void testGetInsertDataSql() {
+    List<String> statements = tableLoader.getInsertDataSql(table, data);
 
     String expectedA =
         """
