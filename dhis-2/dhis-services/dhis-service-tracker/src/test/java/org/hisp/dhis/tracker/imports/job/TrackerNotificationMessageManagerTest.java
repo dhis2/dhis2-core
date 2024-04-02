@@ -81,42 +81,42 @@ class TrackerNotificationMessageManagerTest {
 
   @Captor private ArgumentCaptor<Runnable> runnableCaptor;
 
-//  @Test
-//  void test_add_job() {
-//    doNothing().when(messageManager).sendQueue(anyString(), any(TrackerSideEffectDataBundle.class));
-//
-//    TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
-//
-//    trackerNotificationMessageManager.addJob(dataBundle);
-//
-//    Mockito.verify(messageManager).sendQueue(topicCaptor.capture(), bundleArgumentCaptor.capture());
-//
-//    assertEquals(Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, topicCaptor.getValue());
-//    assertEquals(dataBundle, bundleArgumentCaptor.getValue());
-//  }
+  @Test
+  void test_add_job() {
+    doNothing().when(messageManager).sendQueue(anyString(), any(TrackerSideEffectDataBundle.class));
 
-//  @Test
-//  void test_message_consumer() throws JMSException, IOException {
-//    TrackerSideEffectDataBundle bundle =
-//        TrackerSideEffectDataBundle.builder().accessedBy("test-user").build();
-//
-//    when(textMessage.getText()).thenReturn("text");
-//    when(objectFactory.getObject()).thenReturn(trackerNotificationThread);
-//    doNothing().when(taskExecutor).executeTask(any(Runnable.class));
-//
-//    when(renderService.fromJson(anyString(), eq(TrackerSideEffectDataBundle.class)))
-//        .thenReturn(null);
-//    trackerNotificationMessageManager.consume(textMessage);
-//
-//    verify(taskExecutor, times(0)).executeTask(any(Runnable.class));
-//
-//    doReturn(bundle)
-//        .when(renderService)
-//        .fromJson(anyString(), eq(TrackerSideEffectDataBundle.class));
-//    trackerNotificationMessageManager.consume(textMessage);
-//
-//    Mockito.verify(taskExecutor).executeTask(runnableCaptor.capture());
-//
-//    assertTrue(runnableCaptor.getValue() instanceof TrackerNotificationThread);
-//  }
+    TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
+
+    trackerNotificationMessageManager.addJob(dataBundle);
+
+    Mockito.verify(messageManager).sendQueue(topicCaptor.capture(), bundleArgumentCaptor.capture());
+
+    assertEquals(Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, topicCaptor.getValue());
+    assertEquals(dataBundle, bundleArgumentCaptor.getValue());
+  }
+
+  @Test
+  void test_message_consumer() throws JMSException, IOException {
+    TrackerSideEffectDataBundle bundle =
+        TrackerSideEffectDataBundle.builder().accessedBy("test-user").build();
+
+    when(textMessage.getText()).thenReturn("text");
+    when(objectFactory.getObject()).thenReturn(trackerNotificationThread);
+    doNothing().when(taskExecutor).executeTask(any(Runnable.class));
+
+    when(renderService.fromJson(anyString(), eq(TrackerSideEffectDataBundle.class)))
+        .thenReturn(null);
+    trackerNotificationMessageManager.consume(textMessage);
+
+    verify(taskExecutor, times(0)).executeTask(any(Runnable.class));
+
+    doReturn(bundle)
+        .when(renderService)
+        .fromJson(anyString(), eq(TrackerSideEffectDataBundle.class));
+    trackerNotificationMessageManager.consume(textMessage);
+
+    Mockito.verify(taskExecutor).executeTask(runnableCaptor.capture());
+
+    assertTrue(runnableCaptor.getValue() instanceof TrackerNotificationThread);
+  }
 }

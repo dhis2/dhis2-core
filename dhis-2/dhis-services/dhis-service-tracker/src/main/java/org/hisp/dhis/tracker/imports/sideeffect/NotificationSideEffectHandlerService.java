@@ -39,11 +39,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class NotificationSideEffectHandlerService implements SideEffectHandlerService {
-  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
+  private final TrackerNotificationMessageManager notificationMessageManager;
 
   @Override
   public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerNotificationMessageManager.consume(sideEffectDataBundle);
+    notificationMessageManager.addJob(sideEffectDataBundle);
   }
 
   @Override
