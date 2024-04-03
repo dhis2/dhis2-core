@@ -149,9 +149,18 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.eventStatus`
 
+Get tracked entities with an event with the given status. `eventStatus` must be specified together
+with `eventOccurredAfter` and `eventOccurredBefore`.
+
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
+Get tracked entities with an event occurred after given date. `eventOccurredAfter` must be specified together
+with `eventStatus` and `eventOccurredBefore`.
+
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
+
+Get tracked entities with an event occurred before given date. `eventOccurredBefore` must be specified together
+with `eventStatus` and `eventOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
