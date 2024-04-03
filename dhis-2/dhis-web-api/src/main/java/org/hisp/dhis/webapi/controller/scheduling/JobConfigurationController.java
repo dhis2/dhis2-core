@@ -87,10 +87,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @GetMapping("{uid}/errors")
   public JsonObject getJobRunErrors(
       @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid)
-      throws @OpenApi.Description({"When no such job exists", "foo"}) NotFoundException,
-          @OpenApi.Description(
-              "When the user lacks F_JOB_LOG_READ or F_PERFORM_MAINTENANCE authority")
-          ForbiddenException {
+      throws NotFoundException, ForbiddenException {
     checkExecutingUserOrAdmin(uid, true);
     List<JsonObject> errors =
         jobConfigurationService.findJobRunErrors(new JobRunErrorsParams().setJob(uid));
