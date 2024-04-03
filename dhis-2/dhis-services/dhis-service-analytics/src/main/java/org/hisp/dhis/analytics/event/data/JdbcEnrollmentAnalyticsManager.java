@@ -67,6 +67,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -88,7 +89,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String ANALYTICS_EVENT = "analytics_event_";
 
-  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate, created ";
+  private static final String DIRECTION_PLACEHOLDER = "#DIRECTION_PLACEHOLDER";
+
+  private static final String ORDER_BY_EXECUTION_DATE =
+      "order by occurreddate " + DIRECTION_PLACEHOLDER + ", created " + DIRECTION_PLACEHOLDER;
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -180,12 +184,29 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       for (int i = 0; i < grid.getHeaders().size(); ++i) {
         addGridValue(grid, grid.getHeaders().get(i), i + 1 + columnOffset, rowSet, params);
 
-        if (params.isRowContext()
-            && addValueMetaInfo(grid, rowSet, grid.getHeaders().get(i).getName())) {
-          ++columnOffset;
+        if (params.isRowContext()) {
+          addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
+          columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
         }
       }
     }
+  }
+
+  /**
+   * The method retrieves the amount of the supportive columns in database result set
+   *
+   * @param rowSet {@link SqlRowSet}.
+   * @param columnName The name of the investigated column.
+   * @return If the investigated column has some supportive columns lie .exists or .status, the
+   *     count of the columns is returned.
+   */
+  private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
+    return Arrays.stream(rowSet.getMetaData().getColumnNames())
+        .filter(
+            c ->
+                c.equalsIgnoreCase(columnName + ".exists")
+                    || c.equalsIgnoreCase(columnName + ".status"))
+        .count();
   }
 
   /**
@@ -195,23 +216,35 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param grid the {@link Grid}.
    * @param rowSet the {@link SqlRowSet}.
    * @param columnName the {@link String}.
-   * @return true when ValueMetaInfo added
+   * @return int, the amount of written info items
    */
-  private boolean addValueMetaInfo(Grid grid, SqlRowSet rowSet, String columnName) {
+  private boolean addValueOriginInfo(Grid grid, SqlRowSet rowSet, String columnName) {
     int gridRowIndex = grid.getRows().size() - 1;
 
-    Optional<String> valueMetaInfoColumnName =
+    Optional<String> existsMetaInfoColumnName =
         Arrays.stream(rowSet.getMetaData().getColumnNames())
             .filter((columnName + ".exists")::equalsIgnoreCase)
             .findFirst();
 
-    if (valueMetaInfoColumnName.isPresent()) {
+    if (existsMetaInfoColumnName.isPresent()) {
       try {
-        boolean isDefined = rowSet.getBoolean(valueMetaInfoColumnName.get());
+        Optional<String> statusMetaInfoColumnName =
+            Arrays.stream(rowSet.getMetaData().getColumnNames())
+                .filter((columnName + ".status")::equalsIgnoreCase)
+                .findFirst();
+
+        boolean isDefined = rowSet.getBoolean(existsMetaInfoColumnName.get());
 
         boolean isSet = rowSet.getObject(columnName) != null;
 
-        ValueStatus valueStatus = ValueStatus.of(isDefined, isSet);
+        boolean isScheduled = false;
+
+        if (statusMetaInfoColumnName.isPresent()) {
+          String status = rowSet.getString(statusMetaInfoColumnName.get());
+          isScheduled = "schedule".equalsIgnoreCase(status);
+        }
+
+        ValueStatus valueStatus = ValueStatus.of(isDefined, isSet, isScheduled);
 
         if (valueStatus == ValueStatus.SET) {
           return true;
@@ -519,8 +552,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + colName
               + IS_NOT_NULL
               + psCondition
-              + ORDER_BY_EXECUTION_DATE
-              + createOrderTypeAndOffset(item.getProgramStageOffset())
+              + " "
+              + createOrderType(item.getProgramStageOffset())
+              + " "
+              + createOffset(item.getProgramStageOffset())
               + " "
               + LIMIT_1
               + " )",
@@ -551,6 +586,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       colName = quote(colName + suffix);
 
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+      String excludingScheduledCondition =
+          eventTableName + ".psistatus != '" + EventStatus.SCHEDULE + "' and ";
 
       if (item.getProgramStage().getRepeatable()
           && item.hasRepeatableStageParams()
@@ -561,6 +598,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " from "
             + eventTableName
             + " where "
+            + excludingScheduledCondition
             + eventTableName
             + ".pi = "
             + ANALYTICS_TBL_ALIAS
@@ -571,8 +609,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + getExecutionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + ORDER_BY_EXECUTION_DATE
-            + createOrderTypeAndOffset(item.getProgramStageOffset())
+            + createOrderType(item.getProgramStageOffset())
+            + " "
+            + createOffset(item.getProgramStageOffset())
+            + " "
             + getLimit(item.getRepeatableStageParams().getCount())
             + " ) as t1)";
       }
@@ -583,6 +623,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " from "
             + eventTableName
             + " where "
+            + excludingScheduledCondition
             + eventTableName
             + ".pi = "
             + ANALYTICS_TBL_ALIAS
@@ -593,8 +634,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + getExecutionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + ORDER_BY_EXECUTION_DATE
-            + createOrderTypeAndOffset(item.getProgramStageOffset())
+            + createOrderType(item.getProgramStageOffset())
+            + " "
+            + createOffset(item.getProgramStageOffset())
             + " "
             + LIMIT_1
             + " )";
@@ -610,6 +652,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " from "
           + eventTableName
           + " where "
+          + excludingScheduledCondition
           + eventTableName
           + ".pi = "
           + ANALYTICS_TBL_ALIAS
@@ -620,8 +663,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + "and ps = '"
           + item.getProgramStage().getUid()
           + "' "
-          + ORDER_BY_EXECUTION_DATE
-          + createOrderTypeAndOffset(item.getProgramStageOffset())
+          + createOrderType(item.getProgramStageOffset())
+          + " "
+          + createOffset(item.getProgramStageOffset())
           + " "
           + LIMIT_1
           + " )";
@@ -677,14 +721,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return AnalyticsType.ENROLLMENT;
   }
 
-  private String createOrderTypeAndOffset(int offset) {
+  private String createOffset(int offset) {
     if (offset == 0) {
-      return "desc";
+      return EMPTY;
+    }
+
+    if (offset < 0) {
+      return "offset " + (-1 * offset);
+    } else {
+      return "offset " + (offset - 1);
+    }
+  }
+
+  private String createOrderType(int offset) {
+    if (offset == 0) {
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
     }
     if (offset < 0) {
-      return "desc offset " + (-1 * offset);
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
     } else {
-      return "asc offset " + (offset - 1);
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "asc");
     }
   }
 }

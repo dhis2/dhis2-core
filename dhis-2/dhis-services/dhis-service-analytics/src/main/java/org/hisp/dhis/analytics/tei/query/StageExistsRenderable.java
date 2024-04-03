@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class LogoutServlet extends HttpServlet {
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.query.AndCondition;
+import org.hisp.dhis.analytics.common.query.BaseRenderable;
+
+@RequiredArgsConstructor(staticName = "of")
+public class StageExistsRenderable extends BaseRenderable {
+
+  private static final String VARCHAR = "::varchar";
+  private final DimensionIdentifier<DimensionParam> dimId;
+
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    Object springSecurityContext = req.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-    if (springSecurityContext != null) {
-      SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
-
-      Authentication authentication = context.getAuthentication();
-      if (authentication != null) {
-        new SecurityContextLogoutHandler().logout(req, resp, authentication);
-      }
-
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect("/index.html");
-    } else {
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
+  @Nonnull
+  public String render() {
+    return AndCondition.of(
+            IsNotNullCondition.of(() -> doubleQuote(dimId.getProgram().toString()) + VARCHAR),
+            IsNotNullCondition.of(() -> doubleQuote(dimId.getPrefix()) + VARCHAR))
+        .render();
   }
 }

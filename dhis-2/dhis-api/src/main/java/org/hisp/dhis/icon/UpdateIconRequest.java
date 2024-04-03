@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.icon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
@@ -35,17 +35,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/** User input when updating an {@link Icon}. */
 @Builder
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-class CustomIconRequest {
+public class UpdateIconRequest {
 
-  @JsonProperty private String key;
+  @JsonProperty(required = true)
+  private String description;
 
-  @JsonProperty private String description;
-
-  @JsonProperty private Set<String> keywords = new HashSet<>();
-
-  @JsonProperty private String fileResourceId;
+  @JsonProperty(required = true)
+  private Set<String> keywords = new HashSet<>();
 }

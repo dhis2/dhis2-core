@@ -25,21 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.hisp.dhis.common.Pager;
-
-/**
- * @author Zubair Asghar
- */
-@Getter
-@AllArgsConstructor
-public class PaginatedIconResponse {
-  @JsonProperty private final Pager pager;
-  @JsonProperty private final List<ObjectNode> icons;
+public enum TransactionMode {
+  READ,
+  WRITE
 }

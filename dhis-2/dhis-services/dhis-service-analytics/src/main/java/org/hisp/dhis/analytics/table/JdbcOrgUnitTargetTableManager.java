@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -36,6 +37,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -119,21 +121,15 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
-    return false;
-  }
-
-  @Override
   protected List<String> getPartitionChecks(Integer year, Date endDate) {
     return List.of();
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    String sql = "insert into " + tableName + " (";
+    String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
@@ -150,19 +146,19 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        "from orgunitgroupmembers ougm "
-            + "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid "
-            + "left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
-            + "left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
+        """
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
+        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
     invokeTimeAndLog(sql, tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);

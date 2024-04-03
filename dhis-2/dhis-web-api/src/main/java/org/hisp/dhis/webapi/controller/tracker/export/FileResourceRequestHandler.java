@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.webapi.utils.HeaderUtils.X_CONTENT_TYPE_OPTIONS_VALUE;
+import static org.hisp.dhis.webapi.utils.HeaderUtils.X_XSS_PROTECTION_VALUE;
+
 import javax.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -39,29 +45,34 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
 /**
  * FileResourceRequestHandler serves files and images given a {@link FileResourceStream}. The {@link
  * FileResourceStream#contentSupplier()} will not be called if the client has an up-to-date file
  * according to its {@link FileResourceStream#uid()} value.
  */
+@Component
+@RequiredArgsConstructor
 public class FileResourceRequestHandler {
+  private final DhisConfigurationProvider dhisConfig;
 
   private static final CacheControl CACHE_CONTROL_DIRECTIVES =
       CacheControl.noCache().cachePrivate();
 
-  private FileResourceRequestHandler() {
-    throw new IllegalStateException("Utility class");
-  }
-
-  public static ResponseEntity<InputStreamResource> handleFileRequest(
+  public ResponseEntity<InputStreamResource> handle(
       HttpServletRequest request, FileResourceStream file)
       throws ConflictException, BadRequestException {
     final String etag = file.uid();
+    final String cspHeaders = dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE);
+
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
           .cacheControl(CACHE_CONTROL_DIRECTIVES)
           .eTag(etag)
+          .header("Content-Security-Policy", cspHeaders)
+          .header("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE)
+          .header("X-XSS-Protection", X_XSS_PROTECTION_VALUE)
           .build();
     }
 
@@ -69,6 +80,9 @@ public class FileResourceRequestHandler {
     return ResponseEntity.ok()
         .cacheControl(CACHE_CONTROL_DIRECTIVES)
         .eTag(etag)
+        .header("Content-Security-Policy", cspHeaders)
+        .header("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE)
+        .header("X-XSS-Protection", X_XSS_PROTECTION_VALUE)
         .contentType(MediaType.valueOf(file.contentType()))
         .header(
             HttpHeaders.CONTENT_DISPOSITION, ResponseHeader.contentDispositionInline(file.name()))

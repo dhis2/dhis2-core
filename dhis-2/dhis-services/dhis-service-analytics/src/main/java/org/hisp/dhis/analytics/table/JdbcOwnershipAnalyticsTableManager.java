@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -155,8 +156,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     Program program = partition.getMasterTable().getProgram();
@@ -234,38 +234,34 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     //
     // Rows in programownershiphistory that don't have organisationunitid
     // will be filtered out.
-
-    return sb.append(
-            " from ("
-                + "select h.trackedentityid, '"
-                + HISTORY_TABLE_ID
-                + "' as startdate, h.enddate as enddate, h.organisationunitid "
-                + "from programownershiphistory h "
-                + "where h.programid="
-                + program.getId()
-                + SPACE
-                + "and h.organisationunitid is not null "
-                + "union "
-                + "select o.trackedentityid, '"
-                + TEI_OWN_TABLE_ID
-                + "' as startdate, null as enddate, o.organisationunitid "
-                + "from trackedentityprogramowner o "
-                + "where o.programid="
-                + program.getId()
-                + SPACE
-                + "and exists (select 1 from programownershiphistory p "
-                + "where o.trackedentityid = p.trackedentityid "
-                + "and p.programid="
-                + program.getId()
-                + SPACE
-                + "and p.organisationunitid is not null)"
-                + ") a "
-                + "inner join trackedentity tei on a.trackedentityid = tei.trackedentityid "
-                + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
-                + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
-                + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
-                + "order by tei.uid, a.startdate, a.enddate")
-        .toString();
+    sb.append(
+        replace(
+            """
+                 from (\
+                select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
+                from programownershiphistory h \
+                where h.programid=${programId} \
+                and h.organisationunitid is not null \
+                union \
+                select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
+                from trackedentityprogramowner o \
+                where o.programid=${programId} \
+                and exists (\
+                select 1 from programownershiphistory p \
+                where o.trackedentityid = p.trackedentityid \
+                and p.programid=${programId} \
+                and p.organisationunitid is not null)) a \
+                inner join trackedentity tei on a.trackedentityid = tei.trackedentityid \
+                inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
+                order by tei.uid, a.startdate, a.enddate""",
+            Map.of(
+                "historyTableId", HISTORY_TABLE_ID,
+                "teiOwnTableId", TEI_OWN_TABLE_ID,
+                "programId", String.valueOf(program.getId()),
+                "TEI_OWN_TABLE_ID", TEI_OWN_TABLE_ID)));
+    return sb.toString();
   }
 
   private Map<String, Object> getRowMap(List<String> columnNames, ResultSet resultSet)

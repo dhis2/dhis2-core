@@ -546,7 +546,9 @@ public class TextUtils {
    * @return a resolved string.
    */
   public static String replace(String template, Map<String, String> variables) {
-    return new StringSubstitutor(variables).replace(template);
+    return new StringSubstitutor(variables)
+        .setEnableUndefinedVariableException(true)
+        .replace(template);
   }
 
   /**
@@ -559,6 +561,20 @@ public class TextUtils {
    */
   public static String replace(String template, String k1, String v1) {
     return replace(template, Map.of(k1, v1));
+  }
+
+  /**
+   * Replaces variables in the given template string with the given variable key and value.
+   *
+   * @param template the template string.
+   * @param k1 the variable key.
+   * @param v1 the variable value.
+   * @param k2 the variable key.
+   * @param v2 the variable value.
+   * @return a resolved string.
+   */
+  public static String replace(String template, String k1, String v1, String k2, String v2) {
+    return replace(template, Map.of(k1, v1, k2, v2));
   }
 
   /**

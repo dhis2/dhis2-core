@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table;
+package org.hisp.dhis.analytics.table.writer;
 
 import static java.util.Calendar.DECEMBER;
 import static java.util.Calendar.JANUARY;

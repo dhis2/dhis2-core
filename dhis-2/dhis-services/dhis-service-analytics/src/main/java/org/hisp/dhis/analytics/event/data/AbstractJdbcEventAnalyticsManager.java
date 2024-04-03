@@ -49,6 +49,7 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -395,11 +396,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       columns.add(columnAndAlias.asSql());
 
-      // asked for row context if allowed and needed
-      if (rowContextAllowedAndNeeded(params, queryItem)) {
-        String column = " exists (" + columnAndAlias.column + ")";
-        String alias = columnAndAlias.alias + ".exists";
-        columns.add((new ColumnAndAlias(column, alias)).asSql());
+      // asked for row context if allowed and needed based on column and its alias
+      if (rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias)) {
+        String columnForExists = " exists (" + columnAndAlias.column + ")";
+        String aliasForExists = columnAndAlias.alias + ".exists";
+        columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
+        String columnForStatus =
+            replaceStringBetween(columnAndAlias.column, "select", "from", " psistatus ");
+        String aliasForStatus = columnAndAlias.alias + ".status";
+        columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
     }
   }
@@ -449,7 +454,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
       } else {
-        return ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+        return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
@@ -465,6 +470,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return getColumnAndAlias(queryItem, isGroupByClause, "");
     }
+  }
+
+  /**
+   * The method create a ColumnAndAlias object for query item with repeatable stage and organization
+   * unit value type, will return f.e. select 'w75KJ2mc4zz' from..., '') as 'w75KJ2mc4zz'
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param queryItem the {@link QueryItem}.
+   * @return the {@link ColumnAndAlias}
+   */
+  private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
+      EventQueryParams params, QueryItem queryItem) {
+    return rowContextAllowedAndNeeded(params, queryItem)
+        ? ColumnAndAlias.ofColumnAndAlias(
+            getColumn(queryItem, OU_NAME_COL_SUFFIX),
+            getAlias(queryItem).orElse(queryItem.getItemName()))
+        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
   }
 
   /**

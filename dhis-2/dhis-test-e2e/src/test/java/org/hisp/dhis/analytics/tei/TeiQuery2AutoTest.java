@@ -124,4 +124,49 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
     validateRow(response, 1, List.of("1", "", "1", "2015-08-07 15:47:29.301"));
     validateRow(response, 2, List.of("0", "", "0", "2015-08-07 15:47:29.3"));
   }
+
+  @Test
+  public void queryTrackedEntityQueryHeaderEnrollmentDate() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=IpHINAT79UW.enrollmentdate,IpHINAT79UW.A03MvHHogjR.occurreddate")
+            .add("desc=IpHINAT79UW.enrollmentdate")
+            .add("lastUpdated=LAST_5_YEARS")
+            .add("relativePeriodDate=2023-06-01");
+
+    // When
+    ApiResponse response = actions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(2))
+        .body("headerWidth", equalTo(2));
+
+    // Assert headers.
+    validateHeader(
+        response,
+        0,
+        "IpHINAT79UW.enrollmentdate",
+        "Date of enrollment, Child Programme",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+
+    validateHeader(
+        response,
+        1,
+        "IpHINAT79UW.A03MvHHogjR.occurreddate",
+        "Report date, Child Programme, Birth",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+  }
 }

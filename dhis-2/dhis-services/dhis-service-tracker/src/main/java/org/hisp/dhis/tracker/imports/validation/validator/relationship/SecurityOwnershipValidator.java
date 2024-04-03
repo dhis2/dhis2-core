@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
-
-import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.AndCondition;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.springframework.stereotype.Component;
 
-@RequiredArgsConstructor(staticName = "of")
-public class RenderableDataValueIndicator extends BaseRenderable {
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+@Component(
+    "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
+@RequiredArgsConstructor
+class SecurityOwnershipValidator implements Validator<Relationship> {
+
+  @Nonnull private final AclService aclService;
 
   @Override
-  @Nonnull
-  public String render() {
-    return AndCondition.of(
-                List.of(
-                    IsNotNullCondition.of(
-                        () -> doubleQuote(dimensionIdentifier.getProgram().toString())),
-                    IsNotNullCondition.of(
-                        () -> doubleQuote(dimensionIdentifier.getPrefix()) + "::varchar"),
-                    Field.of(
-                        doubleQuote(dimensionIdentifier.getPrefix()),
-                        () -> "eventdatavalues",
-                        EMPTY)))
-            .render()
-        + " ::jsonb ?? '"
-        + dimensionIdentifier.getDimension().getUid()
-        + "'";
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+    RelationshipType relationshipType =
+        strategy.isUpdateOrDelete()
+            ? bundle.getPreheat().getRelationship(relationship).getRelationshipType()
+            : bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
+
+    if (!aclService.canDataWrite(bundle.getUser(), relationshipType)) {
+      reporter.addError(
+          relationship, ValidationCode.E4019, bundle.getUser(), relationship.getRelationshipType());
+    }
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
   }
 }

@@ -69,8 +69,8 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(4)))
-        .body("rows", hasSize(equalTo(79)))
-        .body("height", equalTo(79))
+        .body("rows", hasSize(equalTo(81)))
+        .body("height", equalTo(81))
         .body("width", equalTo(4))
         .body("headerWidth", equalTo(4));
 
@@ -141,7 +141,7 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("421", "O6uvpzGd5pu", "2023", "Female"));
     validateRow(response, List.of("452", "kJq2mPyFEHo", "2023", "Male"));
     validateRow(response, List.of("248", "kJq2mPyFEHo", "2022", "Female"));
-    validateRow(response, List.of("441", "O6uvpzGd5pu", "2023", "Male"));
+    validateRow(response, List.of("440", "O6uvpzGd5pu", "2023", "Male"));
     validateRow(response, List.of("421", "kJq2mPyFEHo", "2023", "Female"));
     validateRow(response, List.of("265", "O6uvpzGd5pu", "2022", "Male"));
     validateRow(response, List.of("262", "O6uvpzGd5pu", "2022", "Female"));
@@ -223,8 +223,8 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(5)))
-        .body("rows", hasSize(equalTo(13)))
-        .body("height", equalTo(13))
+        .body("rows", hasSize(equalTo(14)))
+        .body("height", equalTo(14))
         .body("width", equalTo(5))
         .body("headerWidth", equalTo(5));
 
@@ -253,16 +253,16 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
     // Assert rows.
     validateRow(response, List.of("2", "DiszpKrYNg8", "2022", "Female", "0"));
     validateRow(response, List.of("3", "DiszpKrYNg8", "2022", "Female", "1"));
-    validateRow(response, List.of("9", "DiszpKrYNg8", "2022", "Female", ""));
+    validateRow(response, List.of("7", "DiszpKrYNg8", "2022", "Female", ""));
     validateRow(response, List.of("4", "DiszpKrYNg8", "2022", "Male", "0"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "2022", "Male", "1"));
     validateRow(response, List.of("5", "DiszpKrYNg8", "2022", "Male", ""));
-    validateRow(response, List.of("2", "DiszpKrYNg8", "2022", "", ""));
+    validateRow(response, List.of("4", "DiszpKrYNg8", "2022", "", ""));
     validateRow(response, List.of("1", "DiszpKrYNg8", "2023", "Female", "0"));
     validateRow(response, List.of("3", "DiszpKrYNg8", "2023", "Female", "1"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "2023", "Female", ""));
     validateRow(response, List.of("2", "DiszpKrYNg8", "2023", "Male", "0"));
-    validateRow(response, List.of("3", "DiszpKrYNg8", "2023", "Male", "1"));
+    validateRow(response, List.of("2", "DiszpKrYNg8", "2023", "Male", "1"));
     validateRow(response, List.of("1", "DiszpKrYNg8", "2023", "Male", ""));
   }
 
@@ -288,8 +288,8 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(2)))
-        .body("height", equalTo(2))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
@@ -307,6 +307,6 @@ public class EnrollmentsAggregate3AutoTest extends AnalyticsApiTest {
 
     // Assert rows.
     validateRow(response, List.of("2023", "Female", "5"));
-    validateRow(response, List.of("2023", "Male", "6"));
+    validateRow(response, List.of("2023", "Male", "5"));
   }
 }

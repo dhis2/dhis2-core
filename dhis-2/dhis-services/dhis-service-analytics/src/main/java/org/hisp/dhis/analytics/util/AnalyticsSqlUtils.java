@@ -43,7 +43,7 @@ import org.hisp.dhis.system.util.SqlUtils;
  * @author Lars Helge Overland
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsSqlUtils {
+public final class AnalyticsSqlUtils {
   private static final String SEPARATOR = ".";
 
   /**

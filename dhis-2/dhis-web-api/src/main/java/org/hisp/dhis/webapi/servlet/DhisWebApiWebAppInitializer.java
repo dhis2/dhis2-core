@@ -97,7 +97,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/api/*");
-    dispatcher.addMapping("/uaa/*");
+
+    context.addServlet("RedirectRootServlet", RedirectRootServlet.class).addMapping("");
+
+    context
+        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
     context
         .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
@@ -123,6 +128,10 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    context
+        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context

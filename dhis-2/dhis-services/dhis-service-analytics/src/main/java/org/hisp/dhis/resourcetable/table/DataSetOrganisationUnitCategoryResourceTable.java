@@ -28,7 +28,6 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
-import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -43,11 +42,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -75,7 +72,7 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
 
   @Override
   public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), List.of(), logged);
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -87,14 +84,8 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
         new Column("coenddate", DataType.DATE));
   }
 
-  @Override
-  public List<Index> getIndexes() {
-    return List.of(
-        new Index(
-            appendRandom("in_datasetorganisationunitcategory"),
-            toStaging(TABLE_NAME),
-            Unique.UNIQUE,
-            List.of("datasetid", "organisationunitid", "attributeoptioncomboid")));
+  private List<String> getPrimaryKey() {
+    return List.of("datasetid", "organisationunitid", "attributeoptioncomboid");
   }
 
   @Override

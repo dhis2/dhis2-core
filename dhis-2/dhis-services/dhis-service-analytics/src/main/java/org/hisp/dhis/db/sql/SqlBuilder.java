@@ -37,6 +37,7 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 public interface SqlBuilder {
+
   // Data types
 
   /**
@@ -217,10 +218,16 @@ public interface SqlBuilder {
 
   /**
    * @param name the table name.
-   * @return a fully qualified and quoted table reference which specifies the catalog, database and
-   *     table.
+   * @return a fully qualified, quoted table reference specifying the catalog, database and table.
    */
   String qualifyTable(String name);
+
+  /**
+   * @param timeUnit the time unit as string, e.g. 'hour', 'day', 'year'.
+   * @param source the value expression as string of type timestamp or interval.
+   * @return a date truncate expression.
+   */
+  String dateTrunc(String timeUnit, String source);
 
   // Statements
 

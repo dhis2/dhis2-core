@@ -58,8 +58,7 @@ import org.hisp.dhis.period.WeeklyAbstractPeriodType;
  * @author Jim Grace
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class PeriodOffsetUtils {
-
+public final class PeriodOffsetUtils {
   /**
    * If the query parameters contain any dimensional item objects with a periodOffset, return query
    * parameters with the extra periods added.
