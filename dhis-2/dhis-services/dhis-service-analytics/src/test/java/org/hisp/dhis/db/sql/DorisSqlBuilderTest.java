@@ -30,7 +30,6 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -302,5 +301,34 @@ class DorisSqlBuilderTest {
     String expected = "drop table if exists `immunization`;";
 
     assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
+  }
+
+  @Test
+  void testSwapTable() {
+    String expected =
+        """
+        drop table if exists `vaccination`; \
+        alter table `immunization` rename `vaccination`;""";
+
+    assertEquals(expected, sqlBuilder.swapTable(getTableA(), "vaccination"));
+  }
+
+  @Test
+  void testTableExists() {
+    String expected =
+        """
+        select t.table_name from information_schema.tables t \
+        where t.table_schema = 'public' and t.table_name = 'immunization';""";
+
+    assertEquals(expected, sqlBuilder.tableExists("immunization"));
+  }
+  
+  @Test
+  void testCountRows() {
+    String expected =
+        """
+        select count(*) as row_count from `immunization`;""";
+    
+    assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
 }

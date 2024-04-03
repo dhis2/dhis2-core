@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.db.load;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -83,10 +85,24 @@ class TableLoaderIntegrationTest extends IntegrationTestBase {
   void testLoad() {
     String createSql = sqlBuilder.createTable(table);
 
-    jdbcTemplate.execute(createSql);
-
+    execute(createSql);
+    
+    assertTrue(tableExists(table));
+    
+    tableLoader.load(table, data);
+    
     String dropSql = sqlBuilder.dropTableIfExists(table);
 
-    jdbcTemplate.execute(dropSql);
+    execute(dropSql);
+
+    assertFalse(tableExists(table));    
+  }
+
+  private boolean tableExists(Table table) {
+    return jdbcTemplate.queryForList(sqlBuilder.tableExists(table), String.class).size() == 1;
+  }
+
+  private void execute(String sql) {
+    jdbcTemplate.execute(sql);
   }
 }
