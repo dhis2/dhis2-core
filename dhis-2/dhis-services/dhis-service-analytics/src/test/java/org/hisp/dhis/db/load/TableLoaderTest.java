@@ -80,7 +80,7 @@ class TableLoaderTest {
 
   @BeforeEach
   void beforeEach() {
-    tableLoader = new TableLoader(sqlBuilder, jdbcTemplate);
+    tableLoader = new TableLoader(jdbcTemplate, sqlBuilder);
     table = getTable();
     data = getData();
   }
