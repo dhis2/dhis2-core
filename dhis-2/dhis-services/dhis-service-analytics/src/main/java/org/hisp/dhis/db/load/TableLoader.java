@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.db.load;
 
-import static org.apache.commons.lang3.StringUtils.LF;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +51,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TableLoader {
-  private static final int PARTITION_SIZE = 1000;
+  private static final int PARTITION_SIZE = 200;
+  private static final String COMMA = ",";
 
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
@@ -64,7 +63,7 @@ public class TableLoader {
    * Loads the given data rows into the given table.
    *
    * @param table the {@link Table}.
-   * @param data the rows of data.
+   * @param data the data rows.
    */
   public void load(Table table, List<Object[]> data) {
     Objects.requireNonNull(table);
@@ -74,37 +73,29 @@ public class TableLoader {
       return;
     }
 
-    List<List<String>> rowPartitions =
-        ListUtils.partition(getInsertDataSql(table, data), PARTITION_SIZE);
+    List<String> valueStatements = getValueSql(table, data);
 
-    log.info("Loading {} data rows from {} partitions", data.size(), rowPartitions.size());
+    List<List<String>> valuePartitions = ListUtils.partition(valueStatements, PARTITION_SIZE);
 
-    for (List<String> partition : rowPartitions) {
-      String sql = String.join(LF, partition);
+    log.info("Loading {} data rows from {} partitions", data.size(), valuePartitions.size());
+
+    for (List<String> partition : valuePartitions) {
+      String sql = getInsertValueSql(table, partition);
       jdbcTemplate.execute(sql);
     }
   }
 
   /**
-   * Returns a list of insert values SQL statements for the given table and data.
+   * Returns an insert value SQL statement.
    *
    * @param table the {@link Table}.
-   * @param data the list of data rows.
-   * @return a list of insert values SQL statements.
+   * @param valueStatements the list of value SQL statements.
+   * @return an insert value SQL statement.
    */
-  List<String> getInsertDataSql(Table table, List<Object[]> data) {
-    return data.stream().map(row -> getInsertValuesSql(table, row)).toList();
-  }
-
-  /**
-   * Returns an insert values SQL statement for the given table and row value objects.
-   *
-   * @param table the {@link Table}.
-   * @param row the row value objects.
-   * @return an insert values SQL statement.
-   */
-  String getInsertValuesSql(Table table, Object[] row) {
-    return getInsertSql(table) + getValueSql(table, row) + ";";
+  String getInsertValueSql(Table table, List<String> valueStatements) {
+    String insertSql = getInsertSql(table);
+    String valueSql = String.join(COMMA, valueStatements);
+    return String.format("%s%s;", insertSql, valueSql);
   }
 
   /**
@@ -121,9 +112,20 @@ public class TableLoader {
             .toList();
 
     String tableName = sqlBuilder.quote(table.getName());
-    String columns = String.join(",", columnNames);
+    String columns = String.join(COMMA, columnNames);
 
     return String.format("insert into %s (%s) values ", tableName, columns);
+  }
+
+  /**
+   * Returns a list of value SQL clauses.
+   *
+   * @param table the {@link Table}.
+   * @param data the data rows.
+   * @return a list of value SQL clauses.
+   */
+  List<String> getValueSql(Table table, List<Object[]> data) {
+    return data.stream().map(row -> getValueSql(table, row)).toList();
   }
 
   /**
@@ -147,7 +149,7 @@ public class TableLoader {
       values.add(singleQuoteValue(column.getDataType(), row[i]));
     }
 
-    return String.format("(%s)", String.join(",", values));
+    return String.format("(%s)", String.join(COMMA, values));
   }
 
   /**

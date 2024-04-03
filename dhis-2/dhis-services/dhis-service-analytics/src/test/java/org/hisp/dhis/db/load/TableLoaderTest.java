@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.db.load;
 
-import static org.apache.commons.lang3.StringUtils.LF;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -89,40 +89,34 @@ class TableLoaderTest {
   void testStringJoinLinefeed() {
     List<String> list = List.of("select 1;", "select 2;", "select 3;");
     String expected = """
-        select 1;
-        select 2;
-        select 3;""";
+        select 1; select 2; select 3;""";
 
-    assertEquals(expected, String.join(LF, list));
+    assertEquals(expected, String.join(SPACE, list));
   }
 
   @Test
-  void testGetInsertDataSql() {
-    List<String> statements = tableLoader.getInsertDataSql(table, data);
-
-    String expectedA =
+  void testGetInsertValueSql() {
+    String expected =
         """
-        insert into "immunization" ("id","data","created","value") values (24,'BCG','2024-03-01',12.0);""";
-    String expectedB =
-        """
-        insert into "immunization" ("id","data","created","value") values (45,'OPV','2024-05-02',20.5);""";
+        insert into "immunization" ("id","data","created","value") values \
+        (24,'BCG','2024-03-01',12.0),\
+        (45,'OPV','2024-05-02',20.5),\
+        (79,'IPT','2024-06-08',34.0);""";
 
-    assertEquals(3, statements.size());
-    assertEquals(expectedA, statements.get(0));
-    assertEquals(expectedB, statements.get(1));
+    List<String> valueStatements = tableLoader.getValueSql(table, data);
+
+    assertEquals(3, valueStatements.size());
+
+    String sql = tableLoader.getInsertValueSql(table, valueStatements);
+
+    assertEquals(expected, sql);
   }
 
   @Test
-  void testGetInsertValuesSql() {
-    String expectedA =
-        """
-        insert into "immunization" ("id","data","created","value") values (24,'BCG','2024-03-01',12.0);""";
-    String expectedB =
-        """
-        insert into "immunization" ("id","data","created","value") values (45,'OPV','2024-05-02',20.5);""";
+  void testGetValueSqlList() {
+    List<String> valueStatements = tableLoader.getValueSql(table, data);
 
-    assertEquals(expectedA, tableLoader.getInsertValuesSql(table, data.get(0)));
-    assertEquals(expectedB, tableLoader.getInsertValuesSql(table, data.get(1)));
+    assertEquals(3, valueStatements.size());
   }
 
   @Test
