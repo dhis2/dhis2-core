@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -139,7 +140,7 @@ class StatusConditionTest {
       DimensionParam.StaticDimension dimension,
       List<String> items) {
     DimensionParam dimensionParam =
-        DimensionParam.ofObject(dimension.name(), DimensionParamType.DIMENSIONS, items);
+        DimensionParam.ofObject(dimension.name(), DimensionParamType.DIMENSIONS, UID, items);
 
     Program program = new Program();
     program.setUid(programUid);

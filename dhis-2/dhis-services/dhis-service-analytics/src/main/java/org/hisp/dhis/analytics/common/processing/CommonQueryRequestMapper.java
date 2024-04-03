@@ -78,6 +78,7 @@ import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
@@ -363,6 +364,7 @@ public class CommonQueryRequestMapper {
         dimensionParamType,
         queryRequest.getRelativePeriodDate(),
         queryRequest.getDisplayProperty(),
+        queryRequest.getOutputIdScheme(),
         programs,
         userOrgUnits);
   }
@@ -374,6 +376,7 @@ public class CommonQueryRequestMapper {
    * @param dimensionParamType the {@link DimensionParamType}.
    * @param relativePeriodDate the {@link Date} used to compute the relative period.
    * @param displayProperty the {@link DisplayProperty}.
+   * @param outputIdScheme the {@link IdScheme}.
    * @param programs the list of {@link Program}.
    * @param userOrgUnits the list of {@link OrganisationUnit}.
    * @return the {@link DimensionIdentifier}.
@@ -384,6 +387,7 @@ public class CommonQueryRequestMapper {
       DimensionParamType dimensionParamType,
       Date relativePeriodDate,
       DisplayProperty displayProperty,
+      IdScheme outputIdScheme,
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
     String dimensionId = getDimensionFromParam(dimensionOrFilter);
@@ -399,7 +403,8 @@ public class CommonQueryRequestMapper {
 
     // Then we check if it's a static dimension.
     if (staticDimension.isPresent()) {
-      return parseAsStaticDimension(dimensionParamType, stringDimensionIdentifier, items);
+      return parseAsStaticDimension(
+          dimensionParamType, stringDimensionIdentifier, outputIdScheme, items);
     }
 
     // Then we check if it's a DimensionalObject.
@@ -415,7 +420,7 @@ public class CommonQueryRequestMapper {
 
     if (Objects.nonNull(dimensionalObject)) {
       DimensionParam dimensionParam =
-          DimensionParam.ofObject(dimensionalObject, dimensionParamType, items);
+          DimensionParam.ofObject(dimensionalObject, dimensionParamType, outputIdScheme, items);
       return DimensionIdentifier.of(
           stringDimensionIdentifier.getProgram(),
           stringDimensionIdentifier.getProgramStage(),
@@ -457,7 +462,10 @@ public class CommonQueryRequestMapper {
             stringDimensionIdentifier.getProgram(),
             stringDimensionIdentifier.getProgramStage(),
             DimensionParam.ofObject(
-                queryItem, dimensionParamType, parseDimensionItems(dimensionOrFilter)));
+                queryItem,
+                dimensionParamType,
+                outputIdScheme,
+                parseDimensionItems(dimensionOrFilter)));
 
     /* DHIS2-16732 missing support for ProgramIndicators*/
     if (SqlQueryBuilders.isOfType(
@@ -529,11 +537,15 @@ public class CommonQueryRequestMapper {
   private static DimensionIdentifier<DimensionParam> parseAsStaticDimension(
       DimensionParamType dimensionParamType,
       DimensionIdentifier<StringUid> dimensionIdentifier,
+      IdScheme outputIdScheme,
       List<String> items) {
     return DimensionIdentifier.of(
         dimensionIdentifier.getProgram(),
         dimensionIdentifier.getProgramStage(),
         DimensionParam.ofObject(
-            dimensionIdentifier.getDimension().getUid(), dimensionParamType, items));
+            dimensionIdentifier.getDimension().getUid(),
+            dimensionParamType,
+            outputIdScheme,
+            items));
   }
 }

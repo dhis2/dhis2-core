@@ -100,6 +100,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                                    'providedElsewhere', l1.eventdatavalues -> l1.key -> 'providedElsewhere',
                                    'value_name', (select ou.name
                                                   from organisationunit ou
+                                                  where ou.uid = l1.eventdatavalues -> l1.key ->> 'value'),
+                                   'value_code', (select ou.code
+                                                  from organisationunit ou
                                                   where ou.uid = l1.eventdatavalues -> l1.key ->> 'value'))) as datavalue
                     from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) key
                           from event inner_evt) as l1) as l2

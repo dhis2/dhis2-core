@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -198,7 +199,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
             prg,
             programStage,
             DimensionParam.ofObject(
-                dimensionalObject, DimensionParamType.SORTING, List.of(StringUtils.EMPTY)));
+                dimensionalObject, DimensionParamType.SORTING, UID, List.of(StringUtils.EMPTY)));
 
     AnalyticsSortingParams analyticsSortingParams =
         AnalyticsSortingParams.builder()
