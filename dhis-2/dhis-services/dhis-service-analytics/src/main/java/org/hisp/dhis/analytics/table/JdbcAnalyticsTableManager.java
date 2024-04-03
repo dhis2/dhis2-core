@@ -325,9 +325,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ${valueExpression} as value, \
             ${textValueExpression} as textvalue \
             from datavalue dv \
-            inner join period pe on dv.periodid=pe.periodid \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            left join periodtype pt on pe.periodtypeid = pt.periodtypeid \
             inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
             left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
@@ -549,7 +547,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(
             "attributeoptioncomboid", INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
         new AnalyticsTableColumn("dataelementid", INTEGER, NOT_NULL, "dv.dataelementid"),
-        new AnalyticsTableColumn("petype", VARCHAR_255, "pt.name"),
+        new AnalyticsTableColumn("petype", VARCHAR_255, "ps.periodtypename"),
         new AnalyticsTableColumn("path", VARCHAR_255, "ous.path"),
         // mean
         new AnalyticsTableColumn("avg_middle_value", DOUBLE, "stats.avg_middle_value"),
