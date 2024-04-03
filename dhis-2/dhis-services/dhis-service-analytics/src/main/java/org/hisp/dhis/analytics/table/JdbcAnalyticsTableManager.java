@@ -357,7 +357,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
              ${approvalClause} \
             where de.valuetype in (${valTypes}) \
-            and de.domaintype = 'AGGREGATE' ${partitionClause} \
+            and de.domaintype = 'AGGREGATE' \
+            ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
             and dv.deleted = false\s""",
