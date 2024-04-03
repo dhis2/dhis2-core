@@ -316,11 +316,24 @@ public interface SqlBuilder {
   String swapParentTable(Table table, String parentName, String newParentName);
 
   /**
+   * @param table the {@link Table}.
+   * @return a statement which will return a single row with a single column with the table name if
+   *     the table exists.
+   */
+  String tableExists(Table table);
+
+  /**
    * @param name the table name.
    * @return a statement which will return a single row with a single column with the table name if
    *     the table exists.
    */
   String tableExists(String name);
+
+  /**
+   * @param table the {@link Table}.
+   * @return a count rows statement.
+   */
+  String countRows(Table table);
 
   /**
    * @param index the {@link Index}.
