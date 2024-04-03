@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +45,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -79,7 +78,8 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
         Lists.newArrayList(
             new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("organisationunituid", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
+            new Column("level", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("path", DataType.VARCHAR_255, Nullable.NULL));
 
     for (int k = 1; k <= organisationUnitLevels; k++) {
       columns.addAll(
@@ -131,6 +131,7 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
         values.add(unit.getId());
         values.add(unit.getUid());
         values.add(level);
+        values.add(unit.getPath());
 
         Map<Integer, Long> identifiers = new HashMap<>();
         Map<Integer, String> uids = new HashMap<>();

@@ -113,7 +113,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
           new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid"),
           new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"));
 
   public JdbcAnalyticsTableManager(
@@ -330,7 +330,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             left join periodtype pt on pe.periodtypeid = pt.periodtypeid \
             inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
@@ -450,7 +449,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
-    String idColAlias = "concat(des.dataelementuid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id ";
+    String idColAlias = "concat(des.dataelementuid,'-',ps.iso,'-',ous.organisationunituid,'-',co.uid,'-',ao.uid) as id ";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
@@ -551,7 +550,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             "attributeoptioncomboid", INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
         new AnalyticsTableColumn("dataelementid", INTEGER, NOT_NULL, "dv.dataelementid"),
         new AnalyticsTableColumn("petype", VARCHAR_255, "pt.name"),
-        new AnalyticsTableColumn("path", VARCHAR_255, "ou.path"),
+        new AnalyticsTableColumn("path", VARCHAR_255, "ous.path"),
         // mean
         new AnalyticsTableColumn("avg_middle_value", DOUBLE, "stats.avg_middle_value"),
         // median
