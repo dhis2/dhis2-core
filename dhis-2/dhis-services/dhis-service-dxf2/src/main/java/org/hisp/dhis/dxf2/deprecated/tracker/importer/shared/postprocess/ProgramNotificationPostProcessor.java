@@ -63,16 +63,13 @@ public class ProgramNotificationPostProcessor implements Processor {
             new ProgramStageCompletionNotificationEvent(this, programStageInstance.getId()));
         applicationEventPublisher.publishEvent(
             new StageCompletionEvaluationEvent(this, programStageInstance.getUid()));
+        applicationEventPublisher.publishEvent(new TrackerEventWebHookEvent(this, event.getEvent()));
       }
 
       if (SCHEDULE.equals(programStageInstance.getStatus())) {
         applicationEventPublisher.publishEvent(
             new StageScheduledEvaluationEvent(this, programStageInstance.getUid()));
       }
-
-      ctx.getServiceDelegator()
-          .getApplicationEventPublisher()
-          .publishEvent(new TrackerEventWebHookEvent(this, event.getEvent()));
     }
   }
 
