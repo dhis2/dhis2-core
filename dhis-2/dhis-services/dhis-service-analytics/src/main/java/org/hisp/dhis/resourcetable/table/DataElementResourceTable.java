@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
@@ -142,9 +143,9 @@ public class DataElementResourceTable extends AbstractResourceTable {
       values.add(dataElement.getId());
       values.add(dataElement.getUid());
       values.add(dataElement.getName());
-      values.add(dataElement.getAggregationType().name());
-      values.add(dataElement.getValueType().name());
-      values.add(dataElement.getDomainType().name());
+      values.add(valueOf(dataElement.getAggregationType()));
+      values.add(valueOf(dataElement.getValueType()));
+      values.add(valueOf(dataElement.getDomainType()));
       values.add(dataElement.isZeroIsSignificant());
       values.add(dataSet != null ? dataSet.getId() : null);
       values.add(dataSet != null ? dataSet.getUid() : null);
