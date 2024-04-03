@@ -27,43 +27,42 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.analytics.tei.query.DataElementCondition.getDataValueRenderable;
 
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.common.QueryItem;
 
 @RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
+public class DataElementWithStaticValuesCondition extends BaseRenderable {
   private final QueryContext queryContext;
 
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   @Override
   public String render() {
-    return hasLegendSet(dimensionIdentifier)
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
+    return AndCondition.of(
+            dimensionIdentifier.getDimension().getItems().stream().map(this::toCondition).toList())
+        .render();
   }
 
-  private boolean hasLegendSet(DimensionIdentifier<DimensionParam> dimId) {
-    return Optional.of(dimId)
-        .map(DimensionIdentifier::getDimension)
-        .map(DimensionParam::getQueryItem)
-        .filter(QueryItem::hasLegendSet)
-        .isPresent();
+  private ValueTypeMapping getValueTypeMapping() {
+    return ValueTypeMapping.fromValueType(dimensionIdentifier.getDimension().getValueType());
   }
 
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        doubleQuote(dimensionIdentifier.getPrefix()),
-        dimensionIdentifier.getDimension().getUid(),
-        valueTypeMapping);
+  private Renderable toCondition(DimensionParamItem item) {
+    return BinaryConditionRenderer.of(
+        getDataValueRenderable(dimensionIdentifier, getValueTypeMapping()),
+        item.getOperator(),
+        item.getValues(),
+        getValueTypeMapping(),
+        queryContext);
   }
 }
