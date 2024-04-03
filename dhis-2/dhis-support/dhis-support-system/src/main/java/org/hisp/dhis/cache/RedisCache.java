@@ -148,7 +148,7 @@ public class RedisCache<V> implements Cache<V> {
 
     return Optional.ofNullable(value).orElse(defaultValue);*/
 
-    return defaultValue;
+    return organisationUnit;
   }
 
   @Override
