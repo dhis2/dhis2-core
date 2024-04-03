@@ -152,7 +152,7 @@ public class RedisCache<V> implements Cache<V> {
     }
 */
 
-    redisTemplate.boundValueOps(redisKey).set(value);
+    redisTemplate.boundValueOps(redisKey).set(defaultValue);
     return Optional.ofNullable(value).orElse(defaultValue);
   }
 
