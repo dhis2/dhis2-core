@@ -109,8 +109,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid"),
           new AnalyticsTableColumn("co", CHARACTER_11, NOT_NULL, "co.uid", List.of("dx", "co")),
           new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid", List.of("dx", "ao")),
-          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
-          new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
+          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "ps.startdate"),
+          new AnalyticsTableColumn("peenddate", TIMESTAMP, "ps.enddate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
           new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso"),
           new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid"),
@@ -343,7 +343,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
                 "textValueExpression", textValueExpression,
-                "peStartDateMonth", sqlBuilder.dateTrunc("month", "pe.startdate"))));
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"))));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());
@@ -368,10 +368,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-           and (aon.startdate is null or aon.startdate <= pe.startdate) \
-          and (aon.enddate is null or aon.enddate >= pe.enddate) \
-          and (con.startdate is null or con.startdate <= pe.startdate) \
-          and (con.enddate is null or con.enddate >= pe.enddate)\s""");
+           and (aon.startdate is null or aon.startdate <= ps.startdate) \
+          and (aon.enddate is null or aon.enddate >= ps.enddate) \
+          and (con.startdate is null or con.startdate <= ps.startdate) \
+          and (con.enddate is null or con.enddate >= ps.enddate)\s""");
     }
 
     if (whereClause != null) {
