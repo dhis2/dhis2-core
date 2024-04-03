@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,12 +92,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     return String.join(
         " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
   }
-  
+
   @Override
   public String tableExists(Table table) {
     return tableExists(table.getName());
   }
-  
+
   @Override
   public String countRows(Table table) {
     return String.format("select count(*) as row_count from %s;", quote(table.getName()));

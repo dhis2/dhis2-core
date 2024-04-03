@@ -29,6 +29,7 @@ package org.hisp.dhis.db.sql;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -335,13 +336,12 @@ class PostgreSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
   }
-  
+
   @Test
   void testCountRows() {
-    String expected =
-        """
+    String expected = """
         select count(*) as row_count from "immunization";""";
-    
+
     assertEquals(expected, sqlBuilder.countRows(getTableA()));
   }
 
