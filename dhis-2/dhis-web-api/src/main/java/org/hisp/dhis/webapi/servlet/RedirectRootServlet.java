@@ -25,36 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
-
-import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
+package org.hisp.dhis.webapi.servlet;
 
 import java.io.IOException;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetAppMenuServlet extends HttpServlet {
+public class RedirectRootServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
-    Object springSecurityContext = session().getAttribute("SPRING_SECURITY_CONTEXT");
-
-    if (springSecurityContext != null) {
-      resp.setContentType("application/json");
-      resp.setStatus(HttpServletResponse.SC_OK);
-
-      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
-
-      dispatcher.include(req, resp);
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (hasCurrentUser) {
+      String referer = (String) req.getAttribute("origin");
+      req.setAttribute("origin", referer);
+      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard");
     } else {
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      resp.setContentType("text/html");
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.sendRedirect(req.getContextPath() + "/dhis-web-login");
     }
   }
 }
