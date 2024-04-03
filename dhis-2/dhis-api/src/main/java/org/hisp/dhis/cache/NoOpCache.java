@@ -76,6 +76,11 @@ public class NoOpCache<V> implements Cache<V> {
   }
 
   @Override
+  public V getOrgUnit(String key, V orgUnit) {
+    return null;
+  }
+
+  @Override
   public Stream<V> getAll() {
     return Stream.empty();
   }
