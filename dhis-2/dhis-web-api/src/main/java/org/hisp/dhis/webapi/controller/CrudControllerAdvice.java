@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.mergeReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validationReport;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import io.github.classgraph.ClassGraph;
@@ -72,7 +73,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
+import org.hisp.dhis.feedback.BeanValidationError;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.ValidationReport;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
@@ -88,7 +91,6 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -639,20 +641,24 @@ public class CrudControllerAdvice {
   }
 
   /**
-   * Handle exception thrown when bean validation is performed on method params. Errors are joined
-   * and returned as a string.
+   * Handle exception thrown when bean validation is performed on method params. Errors are returned
+   * in a {@link ValidationReport}.
    *
-   * @param exception MethodArgumentNotValidException
-   * @return WebMessage with errors
+   * @param ex MethodArgumentNotValidException thrown for bean validation
+   * @return WebMessage with {@link ValidationReport}
    */
-  @ResponseBody
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  protected WebMessage handleJavaxConstraintException(MethodArgumentNotValidException exception) {
-    String collect =
-        exception.getFieldErrors().stream()
-            .map(DefaultMessageSourceResolvable::getDefaultMessage)
-            .collect(Collectors.joining(", "));
-    return badRequest(collect);
+  @ResponseBody
+  public WebMessage handleBeanValidationErrors(MethodArgumentNotValidException ex) {
+    ValidationReport report = new ValidationReport();
+    ex.getFieldErrors()
+        .forEach(
+            e ->
+                report.addErrorMessage(
+                    new BeanValidationError(
+                        e.getField(), e.getDefaultMessage(), e.getRejectedValue())));
+
+    return validationReport(report);
   }
 
   private String getExceptionMessage(Exception ex) {

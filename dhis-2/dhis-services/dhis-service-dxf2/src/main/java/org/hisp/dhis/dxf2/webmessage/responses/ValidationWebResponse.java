@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.dxf2.webmessage.responses;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.ValidationReport;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 /**
- * An ADT interface for a collection of {@link ErrorMessage}s.
- *
  * @author david mackessy
  */
-public interface ErrorMessageContainer<T> {
+public class ValidationWebResponse implements WebMessageResponse {
+  @JsonProperty private ValidationReport validationReport;
 
-  boolean hasErrorMessages();
-
-  void addErrorMessage(T errorMessage);
+  public ValidationWebResponse(@Nonnull ValidationReport validationReport) {
+    this.validationReport = validationReport;
+  }
 }

@@ -578,7 +578,10 @@ public enum ErrorCode {
   E7709("Organisation unit could not be updated with new GeoJSON geometry"),
   E7710("User is not allowed to update the target organisation unit"),
   E7711("Organisation unit cannot be uniquely identified by its name"),
-  E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`");
+  E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
+
+  /* Bean validation */
+  E8000("Validation errors present, please check errors");
 
   private String message;
 

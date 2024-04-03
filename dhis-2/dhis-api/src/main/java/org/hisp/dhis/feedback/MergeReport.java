@@ -47,7 +47,7 @@ import org.hisp.dhis.merge.MergeType;
  * @author david mackessy
  */
 @Data
-public class MergeReport implements ErrorMessageContainer {
+public class MergeReport implements ErrorMessageContainer<ErrorMessage> {
 
   @JsonProperty private final List<ErrorMessage> mergeErrors = new ArrayList<>();
   @JsonProperty private MergeType mergeType;

@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.ValidationWebResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -51,6 +52,7 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.feedback.ValidationReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.http.HttpStatus;
 
@@ -229,6 +231,13 @@ public final class WebMessageUtils {
     return new WebMessage(Status.WARNING, HttpStatus.CONFLICT)
         .setMessage("One or more errors occurred, please see full details in merge report.")
         .setResponse(new MergeWebResponse(mergeReport));
+  }
+
+  public static WebMessage validationReport(ValidationReport validationReport) {
+    return new WebMessage(Status.ERROR, HttpStatus.BAD_REQUEST)
+        .setMessage(
+            "One or more validation errors occurred, please see full details in validation report")
+        .setResponse(new ValidationWebResponse(validationReport));
   }
 
   public static WebMessage jobConfigurationReport(JobConfiguration config) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,33 @@
  */
 package org.hisp.dhis.feedback;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+
 /**
- * An ADT interface for a collection of {@link ErrorMessage}s.
+ * Class representing bean validation errors <br>
+ *
+ * <ul>
+ *   <li>It contains {@link BeanValidationError}s
+ * </ul>
  *
  * @author david mackessy
  */
-public interface ErrorMessageContainer<T> {
+@Data
+public class ValidationReport implements ErrorMessageContainer<BeanValidationError> {
 
-  boolean hasErrorMessages();
+  @JsonProperty private final List<BeanValidationError> validationErrors = new ArrayList<>();
+  @JsonProperty private ErrorCode errorCode = ErrorCode.E8000;
 
-  void addErrorMessage(T errorMessage);
+  @Override
+  public boolean hasErrorMessages() {
+    return !validationErrors.isEmpty();
+  }
+
+  @Override
+  public void addErrorMessage(BeanValidationError errorMessage) {
+    validationErrors.add(errorMessage);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,24 @@
  */
 package org.hisp.dhis.feedback;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.ToString;
+
 /**
- * An ADT interface for a collection of {@link ErrorMessage}s.
- *
  * @author david mackessy
  */
-public interface ErrorMessageContainer<T> {
+@Getter
+@ToString
+public class BeanValidationError {
 
-  boolean hasErrorMessages();
+  @JsonProperty private String field;
+  @JsonProperty private String validationError;
+  @JsonProperty private Object rejectedValue;
 
-  void addErrorMessage(T errorMessage);
+  public BeanValidationError(String field, String validationError, Object rejectedValue) {
+    this.field = field;
+    this.validationError = validationError;
+    this.rejectedValue = rejectedValue != null ? rejectedValue : "null";
+  }
 }
