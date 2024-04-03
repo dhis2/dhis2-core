@@ -25,27 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.config;
+package org.hisp.dhis.webapi;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-/**
- * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all authentication and
- * authorization NOT on the /api endpoint.
- *
- * <p>Almost all /api/* endpoints are configured in {@code DhisWebApiWebSecurityConfig}
- *
- * <p>Most of the configuration here is related to Struts security.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
 @Configuration
-@Order(2000)
-@ImportResource(
-    locations = {
-      "classpath*:/META-INF/dhis/beans.xml",
-      "classpath*:/META-INF/dhis/beans-dataentry.xml",
-    })
-public class DhisWebCommonsWebSecurityConfig {}
+public class AuthConfigProviderConfiguration {
+  @Bean
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return web ->
+        web.debug(false)
+            .ignoring()
+            .requestMatchers(
+                new AntPathRequestMatcher("/api/ping"),
+                new AntPathRequestMatcher("/auth/login"),
+                new AntPathRequestMatcher("/*/service-worker.js.map"),
+                new AntPathRequestMatcher("/*/service-worker.js"),
+                new AntPathRequestMatcher("/favicon.ico"));
+  }
+}
