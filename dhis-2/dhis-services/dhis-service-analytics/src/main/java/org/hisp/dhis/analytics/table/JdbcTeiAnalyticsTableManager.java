@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
@@ -388,31 +389,42 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
+        .append(SPACE)
         .append(
-            """
-      \s from trackedentity tei \
-      left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
-      left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-      left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
+            replaceQualify(
+                """
+      from ${trackedentity} tei \
+      left join ${organisationunit} ou on tei.organisationunitid = ou.organisationunitid \
+      left join ${analytics_rs_orgunitstructure} ous on ous.organisationunitid = ou.organisationunitid \
+      left join ${analytics_rs_organisationunitgroupsetstructure} ougs on tei.organisationunitid = ougs.organisationunitid \
       and (cast(date_trunc('month', tei.created) as date) = ougs.startdate \
-      or ougs.startdate is null)""");
+      or ougs.startdate is null)\s""",
+                List.of(
+                    "trackedentity",
+                    "organisationunit",
+                    "analytics_rs_orgunitstructure",
+                    "analytics_rs_organisationunitgroupsetstructure"),
+                Map.of()));
 
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
         .forEach(
-            tea ->
-                sql.append(
-                    replace(
-                        """
-                    \s left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
-                        Map.of(
-                            "teaUid", tea.getUid(),
-                            "teaId", String.valueOf(tea.getId())))));
+            tea -> {
+              sql.append(
+                  replaceQualify(
+                      """
+                  left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
+                  and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
+                      List.of("trackedentityattributevalue"),
+                      Map.of(
+                          "teaUid", tea.getUid(),
+                          "teaId", String.valueOf(tea.getId()))));
+            });
+    sql.append(SPACE);
     sql.append(
         replace(
             """
-      \s where tei.trackedentitytypeid = ${tetId} \
+      where tei.trackedentitytypeid = ${tetId} \
       and tei.lastupdated < '${startTime}' \
       and exists (select 1 from enrollment pi \
       where pi.trackedentityid = tei.trackedentityid \
