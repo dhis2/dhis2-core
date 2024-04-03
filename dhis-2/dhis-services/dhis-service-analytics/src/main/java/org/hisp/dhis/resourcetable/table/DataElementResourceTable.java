@@ -71,6 +71,10 @@ public class DataElementResourceTable extends AbstractResourceTable {
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("dataelementname", DataType.VARCHAR_255, Nullable.NOT_NULL),
+        new Column("aggregationtype", DataType.VARCHAR_50, Nullable.NOT_NULL),
+        new Column("valuetype", DataType.VARCHAR_50, Nullable.NOT_NULL),
+        new Column("domaintype", DataType.VARCHAR_50, Nullable.NOT_NULL),
+        new Column("zeroissignificant", DataType.BOOLEAN, Nullable.NOT_NULL),
         new Column("datasetid", DataType.BIGINT),
         new Column("datasetuid", DataType.CHARACTER_11),
         new Column("datasetname", DataType.VARCHAR_255),
@@ -138,6 +142,10 @@ public class DataElementResourceTable extends AbstractResourceTable {
       values.add(dataElement.getId());
       values.add(dataElement.getUid());
       values.add(dataElement.getName());
+      values.add(dataElement.getAggregationType());
+      values.add(dataElement.getValueType());
+      values.add(dataElement.getDomainType());
+      values.add(dataElement.isZeroIsSignificant());
       values.add(dataSet != null ? dataSet.getId() : null);
       values.add(dataSet != null ? dataSet.getUid() : null);
       values.add(dataSet != null ? dataSet.getName() : null);

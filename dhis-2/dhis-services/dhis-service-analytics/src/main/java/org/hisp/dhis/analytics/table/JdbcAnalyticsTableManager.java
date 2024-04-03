@@ -108,7 +108,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "de.uid"),
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid"),
           new AnalyticsTableColumn("co", CHARACTER_11, NOT_NULL, "co.uid", List.of("dx", "co")),
           new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid", List.of("dx", "ao")),
           new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
@@ -205,9 +205,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
             delete from ${tableName} ax \
             where ax.id in ( \
-            select concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
+            select concat(des.dataelementuid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id \
             from ${datavalue} dv \
-            inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
             inner join ${analytics_rs_periodstructure} ps on dv.periodid=ps.periodid \
             inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
             inner join ${categoryoptioncombo} co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
@@ -249,11 +248,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             : replace(
                 "and dv.value ~* '${expression}'",
                 Map.of("expression", MathUtils.NUMERIC_LENIENT_REGEXP));
-    String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
+    String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
     String zeroValueClause =
         replace(
             """
-            (dv.value != '0' or de.aggregationtype in \
+            (dv.value != '0' or des.aggregationtype in \
             ('${aggregationTypeAverage}','${aggregationTypeAverageSumOrgUnit}') \
             ${zeroValueCondition})\s""",
             Map.of(
@@ -339,7 +338,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join ${period} pe on dv.periodid=pe.periodid \
             inner join ${analytics_rs_periodstructure} ps on dv.periodid=ps.periodid \
             left join periodtype pt on pe.periodtypeid = pt.periodtypeid \
-            inner join ${dataelement} de on dv.dataelementid=de.dataelementid \
             inner join ${analytics_rs_dataelementstructure} des on dv.dataelementid = des.dataelementid \
             inner join ${analytics_rs_dataelementgroupsetstructure} degs on dv.dataelementid=degs.dataelementid \
             inner join ${organisationunit} ou on dv.sourceid=ou.organisationunitid \
@@ -380,8 +378,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         replace(
             """
             ${approvalClause} \
-            where de.valuetype in (${valTypes}) \
-            and de.domaintype = 'AGGREGATE' \
+            where des.valuetype in (${valTypes}) \
+            and des.domaintype = 'AGGREGATE' \
             ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
@@ -478,7 +476,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
-    String idColAlias = "concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id ";
+    String idColAlias =
+        "concat(des.dataelementuid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id ";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
