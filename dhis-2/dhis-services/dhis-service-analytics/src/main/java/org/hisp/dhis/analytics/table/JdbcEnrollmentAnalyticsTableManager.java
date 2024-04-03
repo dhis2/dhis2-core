@@ -204,8 +204,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
@@ -214,7 +213,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             \s from enrollment pi \
             inner join program pr on pi.programid=pr.programid \
             left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
-            and tei.deleted is false \
+            and tei.deleted = false \
             left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
             inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on pi.organisationunitid=ous.organisationunitid \
@@ -225,7 +224,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and pi.organisationunitid is not null \
             and pi.lastupdated <= '${startTime}' \
             and pi.occurreddate is not null \
-            and pi.deleted is false\s""",
+            and pi.deleted = false\s""",
             Map.of(
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
@@ -235,13 +234,12 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(getOrganisationUnitNameHierarchyColumn());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getPeriodTypeColumns("dps"));
     columns.addAll(getTrackedEntityAttributeColumns(program));
-    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));

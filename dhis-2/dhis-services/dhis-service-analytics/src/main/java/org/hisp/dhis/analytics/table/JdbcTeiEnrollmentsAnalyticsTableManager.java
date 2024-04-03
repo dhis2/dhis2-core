@@ -163,10 +163,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
-    analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getOrganisationUnitNameHierarchyColumn());
 
-    return analyticsTableColumnList;
+    return columns;
   }
 
   @Override
@@ -181,8 +182,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
    * @param partition the {@link AnalyticsTablePartition} to populate.
    */
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
@@ -203,19 +203,19 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-        \s from enrollment pi \
+        \sfrom enrollment pi \
         inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
-        and tei.deleted is false \
+        and tei.deleted = false \
         and tei.trackedentitytypeid =${teiId} \
         and tei.lastupdated < '${startTime}' \
         left join program p on p.programid = pi.programid \
         left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
         left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-        where exists ( select 1 from event psi where psi.deleted is false \
+        where exists ( select 1 from event psi where psi.deleted = false \
         and psi.enrollmentid = pi.enrollmentid \
         and psi.status in (${statuses})) \
         and pi.occurreddate is not null \
-        and pi.deleted is false\s""",
+        and pi.deleted = false\s""",
                 Map.of(
                     "teiId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),

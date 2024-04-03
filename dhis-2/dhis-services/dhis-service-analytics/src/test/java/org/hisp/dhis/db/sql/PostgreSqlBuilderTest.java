@@ -107,10 +107,13 @@ class PostgreSqlBuilderTest {
     assertEquals("geometry", sqlBuilder.dataTypeGeometry());
   }
 
+  // Index types
+
   @Test
   void testIndexTypes() {
     assertEquals("btree", sqlBuilder.indexTypeBtree());
     assertEquals("gist", sqlBuilder.indexTypeGist());
+    assertEquals("gin", sqlBuilder.indexTypeGin());
   }
 
   // Capabilities
@@ -183,6 +186,12 @@ class PostgreSqlBuilderTest {
   void testQualifyTable() {
     assertEquals("\"category\"", sqlBuilder.qualifyTable("category"));
     assertEquals("\"categories_options\"", sqlBuilder.qualifyTable("categories_options"));
+  }
+
+  @Test
+  void testDateTrunc() {
+    assertEquals(
+        "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
   // Statements

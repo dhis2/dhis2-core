@@ -126,8 +126,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
@@ -158,9 +157,8 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);

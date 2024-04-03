@@ -69,12 +69,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"),
           new AnalyticsTableColumn("ouopeningdate", DATE, "ou.openingdate"),
           new AnalyticsTableColumn("oucloseddate", DATE, "ou.closeddate"),
           new AnalyticsTableColumn("costartdate", DATE, "doc.costartdate"),
-          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"),
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"));
+          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"));
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -131,8 +131,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     String sql = "insert into " + tableName + " (";
@@ -166,12 +165,11 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryColumns());
-    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);

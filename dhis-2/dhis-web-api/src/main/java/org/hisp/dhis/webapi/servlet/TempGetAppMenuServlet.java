@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.webapi.servlet;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.hisp.dhis.common.Pager;
+import java.io.IOException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author Zubair Asghar
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-@AllArgsConstructor
-public class PaginatedIconResponse {
-  @JsonProperty private final Pager pager;
-  @JsonProperty private final List<ObjectNode> icons;
+public class TempGetAppMenuServlet extends HttpServlet {
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException, ServletException {
+    resp.setContentType("application/json");
+    resp.setStatus(HttpServletResponse.SC_OK);
+    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
+    dispatcher.include(req, resp);
+  }
 }

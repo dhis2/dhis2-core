@@ -119,10 +119,13 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        "insert into "
-            + toStaging(TABLE_NAME)
-            + " "
-            + "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, ";
+        replace(
+            """
+        insert into ${table_name} \
+        select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, \
+        """,
+            "table_name",
+            toStaging(TABLE_NAME));
 
     for (OrganisationUnitGroupSet groupSet : groupSets) {
       if (!groupSet.isIncludeSubhierarchyInAnalytics()) {
@@ -199,8 +202,10 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
 
     sql = removeLastComma(sql) + " ";
     sql +=
-        "from organisationunit ou "
-            + "inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
+        """
+        from organisationunit ou \
+        inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid;
+        """;
 
     return Optional.of(sql);
   }

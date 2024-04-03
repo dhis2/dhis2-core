@@ -25,56 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.db.model;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.icon.IconTypeFilter;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Zubair Asghar
- */
-@Data
-@NoArgsConstructor
-public class IconRequestParams {
+import org.junit.jupiter.api.Test;
 
-  static final String DEFAULT_FIELDS_PARAM = "key,keywords,description,fileResource,createdBy,href";
-
-  private List<String> keys = new ArrayList<>();
-  private List<String> keywords = new ArrayList<>();
-  private List<OrderCriteria> order = new ArrayList<>();
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private IconTypeFilter type = IconTypeFilter.ALL;
-  private String search;
-  private boolean paging = true;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page = 1;
-
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
-
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
+class DataTypeTest {
+  @Test
+  void testIsNumeric() {
+    assertTrue(DataType.BIGINT.isNumeric());
+    assertFalse(DataType.CHARACTER_11.isNumeric());
   }
 
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
+  @Test
+  void testIsBoolean() {
+    assertTrue(DataType.BOOLEAN.isBoolean());
+    assertFalse(DataType.DOUBLE.isBoolean());
   }
 
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
+  @Test
+  void testIsCharacter() {
+    assertTrue(DataType.VARCHAR_255.isCharacter());
+    assertFalse(DataType.DECIMAL.isCharacter());
   }
 }

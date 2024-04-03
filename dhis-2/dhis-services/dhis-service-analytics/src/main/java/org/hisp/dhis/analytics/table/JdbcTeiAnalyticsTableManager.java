@@ -97,8 +97,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
 
   private static final List<AnalyticsTableColumn> FIXED_GROUP_BY_COLS =
       List.of(
-          new AnalyticsTableColumn("trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
           new AnalyticsTableColumn("trackedentityinstanceuid", CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn("trackedentityid", INTEGER, NOT_NULL, "tei.trackedentityid"),
           new AnalyticsTableColumn("created", TIMESTAMP, "tei.created"),
           new AnalyticsTableColumn("lastupdated", TIMESTAMP, "tei.lastupdated"),
           new AnalyticsTableColumn("inactive", BOOLEAN, "tei.inactive"),
@@ -347,11 +347,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    * @return a List of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getFixedColumns() {
-    List<AnalyticsTableColumn> allFixedColumns = new ArrayList<>(FIXED_GROUP_BY_COLS);
-    allFixedColumns.add(getOrganisationUnitNameHierarchyColumn());
-    allFixedColumns.addAll(FIXED_NON_GROUP_BY_COLS);
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_GROUP_BY_COLS);
+    columns.add(getOrganisationUnitNameHierarchyColumn());
+    columns.addAll(FIXED_NON_GROUP_BY_COLS);
 
-    return allFixedColumns;
+    return columns;
   }
 
   @Override
@@ -367,8 +368,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   @Override
   @SuppressWarnings("unchecked")
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
@@ -419,9 +419,9 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       and exists (select 1 from event psi \
       where psi.enrollmentid = pi.enrollmentid \
       and psi.status in (${statuses}) \
-      and psi.deleted is false)) \
+      and psi.deleted = false)) \
       and tei.created is not null \
-      and tei.deleted is false""",
+      and tei.deleted = false""",
             Map.of(
                 "tetId", String.valueOf(trackedEntityType.getId()),
                 "startTime", toLongDate(params.getStartTime()),

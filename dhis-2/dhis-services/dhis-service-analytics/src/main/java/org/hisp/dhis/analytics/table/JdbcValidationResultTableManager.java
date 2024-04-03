@@ -142,8 +142,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
     String partitionClause = getPartitionClause(partition);
 
@@ -223,12 +222,11 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
+    columns.addAll(FIXED_COLS);
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "vrs.created as value"));
 
     return filterDimensionColumns(columns);

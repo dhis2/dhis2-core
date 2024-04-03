@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.webapi.servlet;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.HashSet;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.user.CurrentUserUtil;
 
-@Builder
-@Getter
-@AllArgsConstructor
-@NoArgsConstructor
-class CustomIconRequest {
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class RedirectRootServlet extends HttpServlet {
 
-  @JsonProperty private String key;
-
-  @JsonProperty private String description;
-
-  @JsonProperty private Set<String> keywords = new HashSet<>();
-
-  @JsonProperty private String fileResourceId;
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException, ServletException {
+    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
+    if (hasCurrentUser) {
+      String referer = (String) req.getAttribute("origin");
+      req.setAttribute("origin", referer);
+      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard");
+    } else {
+      resp.setContentType("text/html");
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.sendRedirect(req.getContextPath() + "/dhis-web-login");
+    }
+  }
 }

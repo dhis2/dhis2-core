@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
-
-import java.io.IOException;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class GetAppMenuServlet extends HttpServlet {
-
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws IOException, ServletException {
-    Object springSecurityContext = session().getAttribute("SPRING_SECURITY_CONTEXT");
-
-    if (springSecurityContext != null) {
-      resp.setContentType("application/json");
-      resp.setStatus(HttpServletResponse.SC_OK);
-
-      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
-
-      dispatcher.include(req, resp);
-    } else {
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
-  }
+public enum TransactionMode {
+  READ,
+  WRITE
 }

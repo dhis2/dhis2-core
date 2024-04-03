@@ -409,8 +409,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   @Override
-  protected void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+  public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     List<Integer> availableDataYears =
         periodDataProvider.getAvailableYears(
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
@@ -425,10 +424,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             \s from event psi \
             inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
             inner join programstage ps on psi.programstageid=ps.programstageid \
-            inner join program pr on pi.programid=pr.programid and pi.deleted is false \
+            inner join program pr on pi.programid=pr.programid and pi.deleted = false \
             inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid \
             left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
-            and tei.deleted is false \
+            and tei.deleted = false \
             left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
             inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
@@ -444,7 +443,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and dps.year >= ${firstDataYear} \
             and dps.year <= ${latestDataYear} \
             and psi.status in (${exportableEventStatues}) \
-            and psi.deleted is false""",
+            and psi.deleted = false""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
@@ -482,6 +481,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();
@@ -515,7 +515,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-    ;
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -534,8 +533,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-
-    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));
@@ -784,7 +781,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and pi.programid = ${programId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
-            and psi.deleted is false \
+            and psi.deleted = false \
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
             and temp.supportedyear <= ${latestDataYear}""",

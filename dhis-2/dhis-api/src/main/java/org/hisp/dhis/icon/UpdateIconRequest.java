@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.icon;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class LogoutServlet extends HttpServlet {
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    Object springSecurityContext = req.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-    if (springSecurityContext != null) {
-      SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
+/** User input when updating an {@link Icon}. */
+@Builder
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class UpdateIconRequest {
 
-      Authentication authentication = context.getAuthentication();
-      if (authentication != null) {
-        new SecurityContextLogoutHandler().logout(req, resp, authentication);
-      }
+  @JsonProperty(required = true)
+  private String description;
 
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect("/dhis-web-login");
-    } else {
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
-  }
+  @JsonProperty(required = true)
+  private Set<String> keywords = new HashSet<>();
 }
