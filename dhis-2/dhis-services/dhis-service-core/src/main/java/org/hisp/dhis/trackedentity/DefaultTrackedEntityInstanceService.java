@@ -549,6 +549,14 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       violation = "Event start and end date must be specified when event status is specified";
     }
 
+    if (!((params.hasEventStatus() && params.hasEventStartDate() && params.hasEventEndDate())
+        || (!params.hasEventStatus()
+            && !params.hasEventStartDate()
+            && !params.hasEventEndDate()))) {
+      violation =
+          "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together";
+    }
+
     if (params.isOrQuery() && params.hasFilters()) {
       violation = "Query cannot be specified together with filters";
     }
