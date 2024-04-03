@@ -25,27 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.config;
+package org.hisp.dhis.webapi.servlet;
 
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.core.annotation.Order;
+import java.io.IOException;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all authentication and
- * authorization NOT on the /api endpoint.
- *
- * <p>Almost all /api/* endpoints are configured in {@code DhisWebApiWebSecurityConfig}
- *
- * <p>Most of the configuration here is related to Struts security.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Configuration
-@Order(2000)
-@ImportResource(
-    locations = {
-      "classpath*:/META-INF/dhis/beans.xml",
-      "classpath*:/META-INF/dhis/beans-dataentry.xml",
-    })
-public class DhisWebCommonsWebSecurityConfig {}
+public class TempGetAppMenuServlet extends HttpServlet {
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException, ServletException {
+    resp.setContentType("application/json");
+    resp.setStatus(HttpServletResponse.SC_OK);
+    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
+    dispatcher.include(req, resp);
+  }
+}

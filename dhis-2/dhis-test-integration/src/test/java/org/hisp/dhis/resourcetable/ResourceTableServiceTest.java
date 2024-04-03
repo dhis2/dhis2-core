@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -102,19 +101,6 @@ class ResourceTableServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGenerateAllResourceTables() {
-    List<Runnable> generators =
-        List.of(
-            resourceTableService::generateOrganisationUnitStructureTable,
-            resourceTableService::generateDataSetOrganisationUnitCategoryTable,
-            resourceTableService::generateCategoryOptionComboNameTable,
-            resourceTableService::generateDataElementGroupSetTable,
-            resourceTableService::generateIndicatorGroupSetTable,
-            resourceTableService::generateOrganisationUnitGroupSetTable,
-            resourceTableService::generateCategoryTable,
-            resourceTableService::generateDataElementTable,
-            resourceTableService::generatePeriodTable,
-            resourceTableService::generateDatePeriodTable,
-            resourceTableService::generateCategoryOptionComboTable);
-    generators.forEach(gen -> assertDoesNotThrow(gen::run));
+    assertDoesNotThrow(resourceTableService::generateResourceTables);
   }
 }

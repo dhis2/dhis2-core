@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.web.embeddedjetty;
+package org.hisp.dhis.db.model;
 
-import java.io.IOException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class LogoutServlet extends HttpServlet {
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    Object springSecurityContext = req.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
-    if (springSecurityContext != null) {
-      SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
+import org.junit.jupiter.api.Test;
 
-      Authentication authentication = context.getAuthentication();
-      if (authentication != null) {
-        new SecurityContextLogoutHandler().logout(req, resp, authentication);
-      }
+class DataTypeTest {
+  @Test
+  void testIsNumeric() {
+    assertTrue(DataType.BIGINT.isNumeric());
+    assertFalse(DataType.CHARACTER_11.isNumeric());
+  }
 
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect("/dhis-web-login");
-    } else {
-      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    }
+  @Test
+  void testIsBoolean() {
+    assertTrue(DataType.BOOLEAN.isBoolean());
+    assertFalse(DataType.DOUBLE.isBoolean());
+  }
+
+  @Test
+  void testIsCharacter() {
+    assertTrue(DataType.VARCHAR_255.isCharacter());
+    assertFalse(DataType.DECIMAL.isCharacter());
   }
 }
