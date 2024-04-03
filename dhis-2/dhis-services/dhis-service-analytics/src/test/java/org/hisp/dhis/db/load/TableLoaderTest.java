@@ -29,7 +29,6 @@ package org.hisp.dhis.db.load;
 
 import static org.apache.commons.lang3.StringUtils.LF;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.List;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -47,16 +46,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class TableLoaderTest {
+  
+  private Table table;
+
+  private List<Object[]> data;
+
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @Mock private JdbcTemplate jdbcTemplate;
 
   private TableLoader tableLoader;
-
-  private Table table;
-
-  private List<Object[]> data;
-
+  
   private Table getTable() {
     List<Column> columns =
         List.of(
