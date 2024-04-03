@@ -29,11 +29,14 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
+
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.db.model.Column;
@@ -49,8 +52,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.joda.time.DateTime;
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -79,9 +80,9 @@ public class PeriodResourceTable extends AbstractResourceTable {
             new Column("daysno", DataType.INTEGER, Nullable.NOT_NULL),
             new Column("startdate", DataType.DATE, Nullable.NOT_NULL),
             new Column("enddate", DataType.DATE, Nullable.NOT_NULL),
-            new Column("year", DataType.INTEGER, Nullable.NOT_NULL),
-            new Column("periodtypeid", DataType.BIGINT, Nullable.NOT_NULL),
-            new Column("periodtypename", DataType.VARCHAR_50, Nullable.NOT_NULL));
+            new Column("periodtypeid", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("periodtypename", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
 
     for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
       columns.add(new Column(periodType.getName().toLowerCase(), DataType.VARCHAR_50));

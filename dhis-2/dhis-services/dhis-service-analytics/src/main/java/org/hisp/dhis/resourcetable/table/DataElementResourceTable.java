@@ -30,6 +30,7 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -73,7 +74,7 @@ public class DataElementResourceTable extends AbstractResourceTable {
         new Column("aggregationtype", DataType.VARCHAR_50, Nullable.NOT_NULL),
         new Column("valuetype", DataType.VARCHAR_50, Nullable.NOT_NULL),
         new Column("domaintype", DataType.VARCHAR_50, Nullable.NOT_NULL),
-        new Column("zeroissignificant", DataType.BOOLEAN, Nullable.NOT_NULL),    
+        new Column("zeroissignificant", DataType.BOOLEAN, Nullable.NOT_NULL),
         new Column("datasetid", DataType.BIGINT),
         new Column("datasetuid", DataType.CHARACTER_11),
         new Column("datasetname", DataType.VARCHAR_255),
@@ -141,9 +142,9 @@ public class DataElementResourceTable extends AbstractResourceTable {
       values.add(dataElement.getId());
       values.add(dataElement.getUid());
       values.add(dataElement.getName());
-      values.add(dataElement.getAggregationType());
-      values.add(dataElement.getValueType());
-      values.add(dataElement.getDomainType());
+      values.add(dataElement.getAggregationType().name());
+      values.add(dataElement.getValueType().name());
+      values.add(dataElement.getDomainType().name());
       values.add(dataElement.isZeroIsSignificant());
       values.add(dataSet != null ? dataSet.getId() : null);
       values.add(dataSet != null ? dataSet.getUid() : null);
