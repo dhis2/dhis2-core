@@ -37,6 +37,7 @@ import org.hisp.dhis.resourcetable.ResourceTable;
  */
 @RequiredArgsConstructor
 public abstract class AbstractResourceTable implements ResourceTable {
+
   protected final SqlBuilder sqlBuilder;
 
   protected final Logged logged;

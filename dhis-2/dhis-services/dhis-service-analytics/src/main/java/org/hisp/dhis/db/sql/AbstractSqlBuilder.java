@@ -93,6 +93,16 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         " ", removeParentTable(table, parentName), setParentTable(table, newParentName));
   }
 
+  @Override
+  public String tableExists(Table table) {
+    return tableExists(table.getName());
+  }
+
+  @Override
+  public String countRows(Table table) {
+    return String.format("select count(*) as row_count from %s;", quote(table.getName()));
+  }
+
   // Mapping
 
   /**
