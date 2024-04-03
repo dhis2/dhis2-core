@@ -42,6 +42,8 @@ import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -65,14 +67,23 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {ConfigProviderConfiguration.class, WebMvcConfig.class})
+@ContextConfiguration(
+    classes = {
+      AuthConfigProviderConfiguration.class,
+      ConfigProviderConfiguration.class,
+      WebMvcConfig.class
+    })
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional
 public abstract class DhisAuthenticationApiTest extends DhisMockMvcControllerTest {
 
   @Autowired protected WebApplicationContext webApplicationContext;
-  @Autowired private FilterChainProxy springSecurityFilterChain;
+
+  @Autowired
+  @Qualifier("springSecurityFilterChain")
+  private FilterChainProxy springSecurityFilterChain;
+
   @Autowired private UserService _userService;
   @Autowired protected IdentifiableObjectManager manager;
   @Autowired EntityManager entityManager;
@@ -93,7 +104,7 @@ public abstract class DhisAuthenticationApiTest extends DhisMockMvcControllerTes
 
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .addFilter(springSecurityFilterChain)
+            .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))
             .build();
 
     injectSecurityContextUser(adminUser);

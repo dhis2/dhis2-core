@@ -521,7 +521,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-    ;
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
