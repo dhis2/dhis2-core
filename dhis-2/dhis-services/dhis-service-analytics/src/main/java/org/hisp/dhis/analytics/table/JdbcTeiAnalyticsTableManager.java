@@ -409,17 +409,16 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     ((List<TrackedEntityAttribute>)
             params.getExtraParam(trackedEntityType.getUid(), ALL_TET_ATTRIBUTES))
         .forEach(
-            tea -> {
-              sql.append(
-                  replaceQualify(
-                      """
+            tea ->
+                sql.append(
+                    replaceQualify(
+                        """
                   left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
                   and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
-                      List.of("trackedentityattributevalue"),
-                      Map.of(
-                          "teaUid", tea.getUid(),
-                          "teaId", String.valueOf(tea.getId()))));
-            });
+                        List.of("trackedentityattributevalue"),
+                        Map.of(
+                            "teaUid", tea.getUid(),
+                            "teaId", String.valueOf(tea.getId())))));
     sql.append(SPACE);
     sql.append(
         replace(

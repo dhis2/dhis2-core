@@ -28,13 +28,11 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
@@ -178,28 +176,5 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     if (sqlBuilder.supportsAnalyze()) {
       jdbcTemplate.execute(sqlBuilder.analyzeTable(table));
     }
-  }
-
-  /**
-   * Performs a batch update.
-   *
-   * @param columns the number of columns in the table to update.
-   * @param tableName the name of the table to update.
-   * @param batchArgs the arguments to use for the update statement.
-   */
-  private void batchUpdate(int columns, String tableName, List<Object[]> batchArgs) {
-    if (columns == 0 || StringUtils.isBlank(tableName)) {
-      return;
-    }
-
-    StringBuilder sql = new StringBuilder("insert into " + tableName + " values (");
-
-    for (int i = 0; i < columns; i++) {
-      sql.append("?,");
-    }
-
-    removeLastComma(sql).append(")");
-
-    jdbcTemplate.batchUpdate(sql.toString(), batchArgs);
   }
 }
