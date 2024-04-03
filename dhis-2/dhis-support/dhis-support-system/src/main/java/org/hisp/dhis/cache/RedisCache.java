@@ -114,9 +114,9 @@ public class RedisCache<V> implements Cache<V> {
 
       if (null != value) {
         if (expiryEnabled) {
-          redisTemplate.boundValueOps(redisKey).set(value, expiryInSeconds, SECONDS);
+          redisTemplate.boundValueOps(redisKey).set(defaultValue, expiryInSeconds, SECONDS);
         } else {
-          redisTemplate.boundValueOps(redisKey).set(value);
+          redisTemplate.boundValueOps(redisKey).set(defaultValue);
         }
       }
     }

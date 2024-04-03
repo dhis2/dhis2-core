@@ -121,19 +121,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(
-      UserDetails user, TrackedEntity trackedEntity, Program program, OrganisationUnit organisationUnit, boolean skipOwnershipCheck) {
-    List<String> errors = canReadProgramAndTrackedEntityType(user, trackedEntity, program);
-
-    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program, organisationUnit)) {
-      errors.add(OWNERSHIP_ACCESS_DENIED);
-    }
-
-    return errors;
-  }
-
-
-  @Override
   public List<String> canReadProgramAndTrackedEntityType(
       UserDetails user, TrackedEntity trackedEntity, Program program) {
     // always allow if user == null (internal process) or user is superuser

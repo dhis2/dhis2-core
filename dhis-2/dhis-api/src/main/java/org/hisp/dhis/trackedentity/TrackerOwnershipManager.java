@@ -79,10 +79,6 @@ public interface TrackerOwnershipManager {
    */
   boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program);
 
-  @Transactional(readOnly = true)
-  boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program,
-      OrganisationUnit organisationUnit);
-
   boolean hasAccess(
       UserDetails user, String entityInstance, OrganisationUnit organisationUnit, Program program);
 

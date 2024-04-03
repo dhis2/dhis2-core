@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
@@ -225,27 +226,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     OrganisationUnit ou =
-        getOwner(entityInstance.getId(), program, entityInstance.getOrganisationUnit());
-
-    final String orgUnitPath = ou.getPath();
-    return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
-      case PROTECTED ->
-          user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(entityInstance, program, user);
-      case CLOSED -> user.isInUserHierarchy(orgUnitPath);
-    };
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program,
-      OrganisationUnit organisationUnit) {
-    if (canSkipOwnershipCheck(user, program) || entityInstance == null) {
-      return true;
-    }
-
-    OrganisationUnit ou =
-        getOwner(entityInstance.getId(), program, organisationUnit);
+        getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
@@ -297,9 +278,21 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
    * @return The owning organisation unit.
    */
   private OrganisationUnit getOwner(
-      Long entityInstanceId, Program program, OrganisationUnit orgUnit) {
-    return ownerCache.getOrgUnit(
-        getOwnershipCacheKey(() -> entityInstanceId, program), orgUnit);
+      Long entityInstanceId, Program program, Supplier<OrganisationUnit> orgUnitIfMissingSupplier) {
+    return ownerCache.get(
+        getOwnershipCacheKey(() -> entityInstanceId, program),
+        s -> {
+          TrackedEntityProgramOwner trackedEntityProgramOwner =
+              trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
+                  entityInstanceId, program.getId());
+
+          return Optional.ofNullable(trackedEntityProgramOwner)
+              .map(
+                  tepo -> {
+                    return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
+                  })
+              .orElseGet(orgUnitIfMissingSupplier);
+        });
   }
 
   /**
