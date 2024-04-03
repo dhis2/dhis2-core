@@ -40,6 +40,7 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -54,9 +55,10 @@ import org.springframework.stereotype.Component;
 public class TableLoader {
   private static final int PARTITION_SIZE = 1000;
 
-  private final SqlBuilder sqlBuilder;
-
+  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
+
+  private final SqlBuilder sqlBuilder;
 
   /**
    * Loads the given data rows into the given table.
