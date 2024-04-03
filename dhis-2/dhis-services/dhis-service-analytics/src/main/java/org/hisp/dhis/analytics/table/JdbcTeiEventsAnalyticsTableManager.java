@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
@@ -201,20 +202,21 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params, TrackedEntityType tet) {
     StringBuilder sql = new StringBuilder();
     sql.append(
-        replace(
+        replaceQualify(
             """
         select temp.supportedyear from \
         (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-        from trackedentity tei \
-        inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
-        inner join enrollment pi on pi.trackedentityid = tei.trackedentityid \
-        inner join event psi on psi.enrollmentid = pi.enrollmentid \
+        from ${trackedentity} tei \
+        inner join ${trackedentitytype} tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
+        inner join ${enrollment} pi on pi.trackedentityid = tei.trackedentityid \
+        inner join ${event} psi on psi.enrollmentid = pi.enrollmentid \
         where psi.lastupdated <= '${startTime}' \
         and tet.trackedentitytypeid = ${tetId} \
         and (${eventDateExpression}) is not null \
         and (${eventDateExpression}) > '1000-01-01' \
         and psi.deleted = false \
         and tei.deleted = false\s""",
+            List.of("trackedentity", "trackedentitytype", "enrollment", "event"),
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
@@ -280,23 +282,32 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     }
 
     removeLastComma(sql)
+        .append(SPACE)
         .append(
-            replace(
+            replaceQualify(
                 """
-        \s from event psi \
-        inner join enrollment pi on pi.enrollmentid = psi.enrollmentid \
+        from ${event} psi \
+        inner join ${enrollment} pi on pi.enrollmentid = psi.enrollmentid \
         and pi.deleted = false \
-        inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid \
+        inner join ${trackedentity} tei on tei.trackedentityid = pi.trackedentityid \
         and tei.deleted = false \
         and tei.trackedentitytypeid = ${tetId} \
         and tei.lastupdated < '${startTime}' \
-        left join programstage ps on ps.programstageid = psi.programstageid \
-        left join program p on p.programid = ps.programid \
-        left join organisationunit ou on psi.organisationunitid = ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+        left join ${programstage} ps on ps.programstageid = psi.programstageid \
+        left join ${program} p on p.programid = ps.programid \
+        left join ${organisationunit} ou on psi.organisationunitid = ou.organisationunitid \
+        left join ${analytics_rs_orgunitstructure} ous on ous.organisationunitid = ou.organisationunitid \
         where psi.status in (${statuses}) \
         ${partitionClause} \
         and psi.deleted = false\s""",
+                List.of(
+                    "event",
+                    "enrollment",
+                    "trackedentity",
+                    "programstage",
+                    "program",
+                    "organisationunit",
+                    "analytics_rs_orgunitstructure"),
                 Map.of(
                     "tetId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),

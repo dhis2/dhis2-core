@@ -423,23 +423,23 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String partitionClause = getPartitionClause(partition);
 
     String fromClause =
-        replace(
+        replaceQualify(
             """
-            \s from event psi \
-            inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-            inner join programstage ps on psi.programstageid=ps.programstageid \
-            inner join program pr on pi.programid=pr.programid and pi.deleted = false \
-            inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid \
-            left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
+            \s from event ${psi} \
+            inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
+            inner join ${programstage} ps on psi.programstageid=ps.programstageid \
+            inner join ${program} pr on pi.programid=pr.programid and pi.deleted = false \
+            inner join ${categoryoptioncombo} ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid \
+            left join ${trackedentity} tei on pi.trackedentityid=tei.trackedentityid \
             and tei.deleted = false \
-            left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
-            inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid \
+            left join ${organisationunit} registrationou on tei.organisationunitid=registrationou.organisationunitid \
+            inner join ${organisationunit} ou on psi.organisationunitid=ou.organisationunitid \
+            left join ${analytics_rs_orgunitstructure} ous on psi.organisationunitid=ous.organisationunitid \
+            left join ${analytics_rs_organisationunitgroupsetstructure} ougs on psi.organisationunitid=ougs.organisationunitid \
             and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null) \
-            left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
-            inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
-            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+            left join ${organisationunit} enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
+            inner join ${analytics_rs_categorystructure} acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
+            left join ${analytics_rs_dateperiodstructure} dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             where psi.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and psi.organisationunitid is not null \
@@ -448,6 +448,18 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and dps.year <= ${latestDataYear} \
             and psi.status in (${exportableEventStatues}) \
             and psi.deleted = false""",
+            List.of(
+                "psi",
+                "enrollment",
+                "programstage",
+                "program",
+                "categoryoptioncombo",
+                "trackedentity",
+                "organisationunit",
+                "analytics_rs_orgunitstructure",
+                "analytics_rs_organisationunitgroupsetstructure",
+                "analytics_rs_categorystructure",
+                "analytics_rs_dateperiodstructure"),
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
@@ -579,8 +591,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String selectClause = getSelectClause(attribute.getValueType(), "value");
     String query =
         """
-          \s(select l.uid from maplegend l \
-          inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
+          \s(select l.uid from ${maplegend} l \
+          inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
           and l.endvalue > ${selectClause} \
           and l.maplegendsetid=${legendSetId} \
           and av.trackedentityid=pi.trackedentityid \
@@ -591,8 +603,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ls -> {
               String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
               String sql =
-                  replace(
+                  replaceQualify(
                       query,
+                      List.of("maplegend", "trackedentityattributevalue"),
                       Map.of(
                           "selectClause", selectClause,
                           "legendSetId", String.valueOf(ls.getId()),
@@ -709,13 +722,14 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
   private String selectForInsert(
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
-    return replace(
+    return replaceQualify(
         """
-            (select ${fromType} from trackedentityattributevalue \
+            (select ${fromType} from ${trackedentityattributevalue} \
             where trackedentityid=pi.trackedentityid \
             and trackedentityattributeid=${attributeId}\
             ${dataClause})\
             ${closingParentheses} as ${attributeUid}""",
+        List.of("trackedentityattributevalue"),
         Map.of(
             "fromType", fromType,
             "dataClause", dataClause,
@@ -728,8 +742,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-          (select l.uid from maplegend l
-          inner join event on l.startvalue <= ${select}
+          (select l.uid from ${maplegend} l
+          inner join ${event} on l.startvalue <= ${select}
           and l.endvalue > ${select}
           and l.maplegendsetid=${legendSetId}
           and eventid=psi.eventid ${dataClause}) as ${column}""";
@@ -738,8 +752,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ls -> {
               String column = dataElement.getUid() + PartitionUtils.SEP + ls.getUid();
               String sql =
-                  replace(
+                  replaceQualify(
                       query,
+                      List.of("maplegend", "event"),
                       Map.of(
                           "select", select,
                           "legendSetId", String.valueOf(ls.getId()),
@@ -778,12 +793,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     toMediumDate(params.getFromDate())))
             : "";
     String sql =
-        replace(
+        replaceQualify(
             """
             select temp.supportedyear from \
             (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-            from event psi \
-            inner join enrollment pi on psi.enrollmentid = pi.enrollmentid \
+            from ${event} psi \
+            inner join ${enrollment} pi on psi.enrollmentid = pi.enrollmentid \
             where psi.lastupdated <= '${startTime}' \
             and pi.programid = ${programId} \
             and (${eventDateExpression}) is not null \
@@ -792,6 +807,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             ${fromDateClause}) as temp \
             where temp.supportedyear >= ${firstDataYear} \
             and temp.supportedyear <= ${latestDataYear}""",
+            List.of("event", "enrollment"),
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
