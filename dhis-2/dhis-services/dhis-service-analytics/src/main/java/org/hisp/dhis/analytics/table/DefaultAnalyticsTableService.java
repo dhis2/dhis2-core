@@ -194,18 +194,34 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /** Drops the given analytics tables. */
+  /**
+   * Drops the given analytics tables.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param progress the {@link JobProgress}.
+   */
   private void dropTables(List<AnalyticsTable> tables, JobProgress progress) {
 
     progress.runStage(tables, AnalyticsTable::getName, tableManager::dropTable);
   }
 
-  /** Creates the given analytics tables. */
+  /**
+   * Creates the given analytics tables.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param progress the {@link JobProgress}.
+   */
   private void createTables(List<AnalyticsTable> tables, JobProgress progress) {
     progress.runStage(tables, AnalyticsTable::getName, tableManager::createTable);
   }
 
-  /** Populates the given analytics tables. */
+  /**
+   * Populates the given analytics tables.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param partitions the {@link AnalyticsTablePartition}.
+   * @param progress the {@link JobProgress}.
+   */
   private void populateTables(
       AnalyticsTableUpdateParams params,
       List<AnalyticsTablePartition> partitions,
@@ -223,6 +239,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /**
    * Applies aggregation levels to the given analytics tables.
    *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
    * @return the number of aggregation levels applied for data elements.
    */
   private int applyAggregationLevels(
@@ -292,6 +311,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param tables the list of {@link AnalyticsTable}.
+   * @param progress the {@link JobProgress}.
    */
   private void swapTables(
       AnalyticsTableUpdateParams params, List<AnalyticsTable> tables, JobProgress progress) {
