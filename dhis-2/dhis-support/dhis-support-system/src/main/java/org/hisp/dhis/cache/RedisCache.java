@@ -126,7 +126,7 @@ public class RedisCache<V> implements Cache<V> {
 
   public V getOrgUnit(String key, V organisationUnit) {
 
-    String redisKey = generateKey(key);
+/*    String redisKey = generateKey(key);
 
     if (expiryEnabled && refreshExpriryOnAccess) {
       redisTemplate.expire(redisKey, expiryInSeconds, SECONDS);
@@ -146,7 +146,9 @@ public class RedisCache<V> implements Cache<V> {
       }
     }
 
-    return Optional.ofNullable(value).orElse(defaultValue);
+    return Optional.ofNullable(value).orElse(defaultValue);*/
+
+    return defaultValue;
   }
 
   @Override
