@@ -30,8 +30,6 @@ package org.hisp.dhis.resourcetable.table;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +44,7 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -76,6 +75,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
     List<Column> columns =
         Lists.newArrayList(
             new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("categoryoptioncomboname", DataType.VARCHAR_255));
 
     UniqueNameContext nameContext = new UniqueNameContext();
@@ -112,7 +112,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
         replace(
             """
         insert into ${table_name} \
-        select coc.categoryoptioncomboid as cocid, coc.name as cocname, \
+        select coc.categoryoptioncomboid as cocid, coc.uid as cocuid, coc.name as cocname, \
         """,
             "table_name",
             toStaging(TABLE_NAME));
