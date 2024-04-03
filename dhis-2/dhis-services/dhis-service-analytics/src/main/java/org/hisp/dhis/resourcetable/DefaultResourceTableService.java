@@ -102,7 +102,7 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final PeriodDataProvider periodDataProvider;
 
-  protected final SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder;
 
   @Override
   @Transactional
