@@ -28,6 +28,7 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerCompleted;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerFailed;
@@ -93,7 +94,9 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     JobConfiguration config = jobConfigurationStore.getByUid(defaults.uid());
     if (config == null) {
       jobConfigurationService.createDefaultJob(JobType.HOUSEKEEPING, actingUser);
-    } else if (config.getJobStatus() != JobStatus.SCHEDULED) {
+    } else if (config.getJobStatus() != JobStatus.SCHEDULED
+        && (config.getLastAlive() == null
+            || currentTimeMillis() - config.getLastAlive().getTime() > 60_000)) {
       finishRunCancel(config.getUid());
     }
   }
