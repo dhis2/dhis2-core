@@ -96,7 +96,6 @@
     <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
     <cargo-maven2-plugin.version>1.7.7</cargo-maven2-plugin.version>
 
-
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
