@@ -80,6 +80,8 @@ public class PeriodResourceTable extends AbstractResourceTable {
             new Column("daysno", DataType.INTEGER, Nullable.NOT_NULL),
             new Column("startdate", DataType.DATE, Nullable.NOT_NULL),
             new Column("enddate", DataType.DATE, Nullable.NOT_NULL),
+            new Column("periodtypeid", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("periodtypename", DataType.VARCHAR_50, Nullable.NOT_NULL),
             new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
 
     for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
@@ -124,8 +126,8 @@ public class PeriodResourceTable extends AbstractResourceTable {
     for (Period period : periods) {
       if (period != null && period.isValid()) {
         final String isoDate = period.getIsoDate();
-
         final int year = resolveYearFromPeriod(period);
+        final PeriodType periodType = period.getPeriodType();
 
         if (!uniqueIsoDates.add(isoDate)) {
           // Protect against duplicates produced by calendars
@@ -141,6 +143,8 @@ public class PeriodResourceTable extends AbstractResourceTable {
         values.add(period.getDaysInPeriod());
         values.add(period.getStartDate());
         values.add(period.getEndDate());
+        values.add(periodType.getId());
+        values.add(periodType.getName());
         values.add(year);
 
         for (Period pe : PeriodType.getPeriodTypePeriods(period, calendar)) {

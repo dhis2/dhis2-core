@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -142,9 +142,9 @@ public class DataElementResourceTable extends AbstractResourceTable {
       values.add(dataElement.getId());
       values.add(dataElement.getUid());
       values.add(dataElement.getName());
-      values.add(dataElement.getAggregationType());
-      values.add(dataElement.getValueType());
-      values.add(dataElement.getDomainType());
+      values.add(valueOf(dataElement.getAggregationType()));
+      values.add(valueOf(dataElement.getValueType()));
+      values.add(valueOf(dataElement.getDomainType()));
       values.add(dataElement.isZeroIsSignificant());
       values.add(dataSet != null ? dataSet.getId() : null);
       values.add(dataSet != null ? dataSet.getUid() : null);
