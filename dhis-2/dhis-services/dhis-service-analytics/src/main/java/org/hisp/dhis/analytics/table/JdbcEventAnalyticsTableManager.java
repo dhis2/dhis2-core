@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -422,10 +423,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     Program program = partition.getMasterTable().getProgram();
     String partitionClause = getPartitionClause(partition);
 
-    String fromClause =
+    StringBuilder fromClause = new StringBuilder();
+    fromClause.append(SPACE);
+    fromClause.append(
         replaceQualify(
             """
-            \s from event ${psi} \
+            from ${event} psi \
             inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
             inner join ${programstage} ps on psi.programstageid=ps.programstageid \
             inner join ${program} pr on pi.programid=pr.programid and pi.deleted = false \
@@ -449,7 +452,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and psi.status in (${exportableEventStatues}) \
             and psi.deleted = false""",
             List.of(
-                "psi",
+                "event",
                 "enrollment",
                 "programstage",
                 "program",
@@ -467,9 +470,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "programId", String.valueOf(program.getId()),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
-                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
+                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES))));
 
-    populateTableInternal(partition, fromClause);
+    populateTableInternal(partition, fromClause.toString());
   }
 
   /**
@@ -588,14 +591,17 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
       TrackedEntityAttribute attribute, String numericClause) {
     String selectClause = getSelectClause(attribute.getValueType(), "value");
-    String query =
-        """
-          \s(select l.uid from ${maplegend} l \
+    StringBuilder query = new StringBuilder();
+    query
+        .append(SPACE)
+        .append(
+            """
+          (select l.uid from ${maplegend} l \
           inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
           and l.endvalue > ${selectClause} \
           and l.maplegendsetid=${legendSetId} \
           and av.trackedentityid=pi.trackedentityid \
-          and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
+          and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""");
 
     return attribute.getLegendSets().stream()
         .map(
@@ -603,7 +609,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               String column = attribute.getUid() + PartitionUtils.SEP + ls.getUid();
               String sql =
                   replaceQualify(
-                      query,
+                      query.toString(),
                       List.of("maplegend", "trackedentityattributevalue"),
                       Map.of(
                           "selectClause", selectClause,
@@ -644,17 +650,22 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
     if (isSpatialSupport()) {
-      String geoSql =
-          selectForInsert(
-              attribute,
-              "ou.geometry from organisationunit ou where ou.uid = (select value",
-              dataClause);
+      String fromTypeSql =
+          replaceQualify(
+              "ou.geometry from ${organisationunit} ou where ou.uid = (select value",
+              List.of("organisationunit"),
+              Map.of());
+      String geoSql = selectForInsert(attribute, fromTypeSql, dataClause);
+
       columns.add(
           new AnalyticsTableColumn(
               (attribute.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
-
-    String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+    String fromTypeSql =
+        replaceQualify(
+            "ou.name from ${organisationunit} ou where ou.uid = (select value",
+            List.of("organisationunit"),
+            Map.of());
     String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
     columns.add(
@@ -667,21 +678,29 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String dataClause) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-
     if (isSpatialSupport()) {
-      String geoSql =
-          selectForInsert(
-              dataElement,
-              "ou.geometry from organisationunit ou where ou.uid = (select " + columnName,
-              dataClause);
+      String fromTypeSql =
+          replaceQualify(
+              """
+              ou.geometry from ${organisationunit} ou \
+              where ou.uid = (select eventdatavalues #>> '{${dataElementUid}, value}'""",
+              List.of("organisationunit"),
+              Map.of("dataElementUid", dataElement.getUid()));
+      String geoSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
       columns.add(
           new AnalyticsTableColumn(
               (dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX), GEOMETRY, geoSql, IndexType.GIST));
     }
 
-    String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+    String fromTypeSql =
+        replaceQualify(
+            """
+            ou.name from ${organisationunit} ou \
+            where ou.uid = (select eventdatavalues #>> '{${dataElementUid}, value}'""",
+            List.of("organisationunit"),
+            Map.of("dataElementUid", dataElement.getUid()));
+
     String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
 
     columns.add(
@@ -704,10 +723,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   }
 
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
-    return replace(
+    return replaceQualify(
         """
-              (select ${fromType} from event \
+              (select ${fromType} from ${event} \
               where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+        List.of("event"),
         Map.of(
             "fromType",
             fromType,

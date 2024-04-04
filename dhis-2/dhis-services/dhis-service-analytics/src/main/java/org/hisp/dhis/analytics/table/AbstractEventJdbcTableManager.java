@@ -126,7 +126,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           + columnName
           + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
     } else if (valueType.isOrganisationUnit()) {
-      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+      return replaceQualify(
+          "ou.uid from ${organisationunit} ou where ou.uid = (select ${columnName}",
+          List.of("organisationunit"),
+          Map.of("columnName", columnName));
     } else {
       return columnName;
     }
