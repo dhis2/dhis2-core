@@ -1,8 +1,0 @@
-{ "dataElementCategoryCombo":
-  {
-    "id": "$!{dataElementCategoryCombo.id}",
-    "uid": "$!{dataElementCategoryCombo.uid}",
-    "name": "$encoder.jsonEncode( $!{dataElementCategoryCombo.name} )",
-    "dataElementCategoryCount": "$!{dataElementCategories.size()}"
-  }
-}
