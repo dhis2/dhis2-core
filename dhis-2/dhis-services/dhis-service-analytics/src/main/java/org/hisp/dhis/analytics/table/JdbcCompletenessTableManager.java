@@ -225,7 +225,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
                 "startTime",
                 toLongDate(params.getStartTime())));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   /**
