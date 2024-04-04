@@ -400,7 +400,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(" and " + whereClause + " ");
     }
 
-    invokeTimeAndLog(sql.toString(), String.format("Populate %s %s", tableName, valueTypes));
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
   }
 
   /**

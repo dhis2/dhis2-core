@@ -402,7 +402,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
 
-      invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
+      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
     }
   }
 

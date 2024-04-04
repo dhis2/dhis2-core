@@ -159,7 +159,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
                 "analytics_rs_organisationunitgroupsetstructure"),
             Map.of());
 
-    invokeTimeAndLog(sql, tableName);
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
