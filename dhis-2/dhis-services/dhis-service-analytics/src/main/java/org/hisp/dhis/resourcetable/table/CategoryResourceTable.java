@@ -76,6 +76,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
     List<Column> columns =
         Lists.newArrayList(
             new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+            new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL),
             new Column("categoryoptioncomboname", DataType.VARCHAR_255));
 
     UniqueNameContext nameContext = new UniqueNameContext();
@@ -112,7 +113,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
         replace(
             """
         insert into ${table_name} \
-        select coc.categoryoptioncomboid as cocid, coc.name as cocname, \
+        select coc.categoryoptioncomboid as cocid, coc.uid as cocuid, coc.name as cocname, \
         """,
             "table_name",
             toStaging(TABLE_NAME));
