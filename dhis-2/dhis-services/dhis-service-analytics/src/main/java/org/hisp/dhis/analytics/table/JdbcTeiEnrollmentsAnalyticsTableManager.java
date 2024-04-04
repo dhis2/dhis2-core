@@ -203,7 +203,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-        \s from enrollment pi \
+        \sfrom enrollment pi \
         inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
         and tei.deleted = false \
         and tei.trackedentitytypeid =${teiId} \

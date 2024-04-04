@@ -357,7 +357,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
              ${approvalClause} \
             where de.valuetype in (${valTypes}) \
-            and de.domaintype = 'AGGREGATE' ${partitionClause} \
+            and de.domaintype = 'AGGREGATE' \
+            ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
             and dv.deleted = false\s""",
@@ -415,7 +416,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                left join analytics_rs_dataapprovalminlevel da \
               on des.workflowid=da.workflowid and da.periodid=dv.periodid \
               and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (\s""");
+              and (""");
 
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
