@@ -34,5 +34,5 @@ public enum SideEffectTriggerEvent {
   ENROLLMENT,
   ENROLLMENT_COMPLETION,
   EVENT_COMPLETION,
-  NONE
+  EVENT_UPDATE
 }

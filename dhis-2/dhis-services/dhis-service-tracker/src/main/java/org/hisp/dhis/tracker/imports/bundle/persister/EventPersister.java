@@ -118,7 +118,7 @@ public class EventPersister
         .triggerEvent(
             event.isCompleted()
                 ? SideEffectTriggerEvent.EVENT_COMPLETION
-                : SideEffectTriggerEvent.NONE)
+                : SideEffectTriggerEvent.EVENT_UPDATE)
         .build();
   }
 

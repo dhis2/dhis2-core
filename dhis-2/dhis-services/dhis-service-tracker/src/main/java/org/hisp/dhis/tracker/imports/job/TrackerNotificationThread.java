@@ -69,7 +69,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
             SideEffectTriggerEvent.EVENT_COMPLETION,
                 programNotificationService::sendEventCompletionNotifications,
             SideEffectTriggerEvent.ENROLLMENT_COMPLETION,
-                programNotificationService::sendEnrollmentNotifications);
+                programNotificationService::sendEnrollmentCompletionNotifications);
   }
 
   @Override
