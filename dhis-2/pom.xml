@@ -250,6 +250,21 @@
       <!--DHIS -->
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-portal</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-commons-resources</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-apps</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-api</artifactId>
         <version>${project.version}</version>
       </dependency>
