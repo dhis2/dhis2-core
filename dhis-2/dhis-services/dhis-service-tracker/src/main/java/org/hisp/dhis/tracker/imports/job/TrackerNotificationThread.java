@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -56,7 +54,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
 
   private final IdentifiableObjectManager manager;
 
-  private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper;
+  private final Map<SideEffectTriggerEvent, Consumer<Long>> serviceMapper;
 
   public TrackerNotificationThread(
       ProgramNotificationService programNotificationService,
@@ -66,8 +64,12 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
     this.manager = manager;
     this.serviceMapper =
         Map.of(
-            Enrollment.class, programNotificationService::sendEnrollmentNotifications,
-            Event.class, programNotificationService::sendEventCompletionNotifications);
+            SideEffectTriggerEvent.ENROLLMENT,
+                programNotificationService::sendEnrollmentNotifications,
+            SideEffectTriggerEvent.EVENT_COMPLETION,
+                programNotificationService::sendEventCompletionNotifications,
+            SideEffectTriggerEvent.ENROLLMENT_COMPLETION,
+                programNotificationService::sendEnrollmentNotifications);
   }
 
   @Override
@@ -76,11 +78,11 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       return;
     }
 
-    if (serviceMapper.containsKey(sideEffectDataBundle.getKlass())) {
+    if (serviceMapper.containsKey(sideEffectDataBundle.getTriggerEvent())) {
       BaseIdentifiableObject object =
           manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
       if (object != null) {
-        serviceMapper.get(sideEffectDataBundle.getKlass()).accept(object.getId());
+        serviceMapper.get(sideEffectDataBundle.getTriggerEvent()).accept(object.getId());
       }
     }
 

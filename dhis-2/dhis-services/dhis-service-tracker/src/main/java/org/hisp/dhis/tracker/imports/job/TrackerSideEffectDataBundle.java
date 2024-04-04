@@ -68,6 +68,8 @@ public class TrackerSideEffectDataBundle implements Message {
 
   @JsonProperty private Event event;
 
+  @JsonProperty private SideEffectTriggerEvent triggerEvent;
+
   @JsonProperty @Builder.Default
   private Map<String, List<RuleEffect>> enrollmentRuleEffects = new HashMap<>();
 
