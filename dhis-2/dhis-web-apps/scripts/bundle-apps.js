@@ -9,7 +9,6 @@ const mkdir = promisify(require('fs').mkdir)
 
 const { clone_app, get_sha } = require('./git.js')
 const generate_index = require('./write-index-html.js')
-const generate_struts = require('./write-struts-xml.js')
 const generate_bundle = require('./write-bundle-json.js')
 
 
@@ -41,8 +40,7 @@ async function main(opts = {}) {
     const bundle_path = path.join(target_path, artifact, 'apps-bundle.json')
     const html_template_path = path.join(root, 'src', 'main', 'webapp', 'dhis-web-apps', 'template.html')
     const html_index_path = path.join(build_dir, artifact, artifact, 'index.html')
-    const xml_template_path = path.join(root, 'src', 'main', 'resources', 'struts.xml')
-    const xml_struts_path = path.join(build_dir, 'classes', 'struts.xml')
+    const xml_template_path = path.join(root, 'src', 'main', 'resources')
 
     try {
         await access(bundle_path)
@@ -75,7 +73,6 @@ async function main(opts = {}) {
     const core_sha = await get_sha(root)
 
     await generate_index(final, core_sha, html_template_path, html_index_path)
-    await generate_struts(final, xml_template_path, xml_struts_path)
     await generate_bundle(final, bundle_path)
 }
 

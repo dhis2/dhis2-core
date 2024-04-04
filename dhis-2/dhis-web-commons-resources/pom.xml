@@ -12,7 +12,7 @@
   <packaging>war</packaging>
   <name>DHIS Common Resources for Web</name>
   <properties>
-    <rootDir>../../</rootDir>
+    <rootDir>../</rootDir>
   </properties>
 
   <build>
