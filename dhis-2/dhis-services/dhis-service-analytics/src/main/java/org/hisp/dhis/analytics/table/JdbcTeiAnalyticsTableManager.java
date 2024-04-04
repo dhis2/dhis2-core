@@ -438,6 +438,6 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                 "startTime", toLongDate(params.getStartTime()),
                 "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 
-    invokeTimeAndLog(sql.toString(), tableName);
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
 }

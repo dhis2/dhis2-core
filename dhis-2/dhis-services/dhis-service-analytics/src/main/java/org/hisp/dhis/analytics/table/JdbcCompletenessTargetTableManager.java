@@ -171,7 +171,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
                 "analytics_rs_categorystructure"),
             Map.of());
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {

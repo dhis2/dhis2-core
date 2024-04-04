@@ -194,7 +194,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 "partitionClause",
                 partitionClause));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {

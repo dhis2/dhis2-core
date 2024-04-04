@@ -167,7 +167,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     sql += fromClause;
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {

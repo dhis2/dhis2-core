@@ -218,9 +218,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             """
             from ${completedatasetregistration} cdr \
             inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
-            inner join ${period} pe on cdr.periodid=pe.periodid \
             inner join ${analytics_rs_periodstructure} ps on cdr.periodid=ps.periodid \
-            inner join ${organisationunit} ou on cdr.sourceid=ou.organisationunitid \
             inner join ${analytics_rs_organisationunitgroupsetstructure} ougs on cdr.sourceid=ougs.organisationunitid \
             and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
             left join ${analytics_rs_orgunitstructure} ous on cdr.sourceid=ous.organisationunitid \
@@ -246,7 +244,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
                 "startTime",
                 toLongDate(params.getStartTime())));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   /**
@@ -269,8 +267,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id ";
-    String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
+    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
+    String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
     String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();

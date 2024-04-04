@@ -79,7 +79,8 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
         Lists.newArrayList(
             new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
             new Column("organisationunituid", DataType.CHARACTER_11, Nullable.NOT_NULL),
-            new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
+            new Column("level", DataType.INTEGER, Nullable.NOT_NULL),
+            new Column("path", DataType.VARCHAR_255, Nullable.NULL));
 
     for (int k = 1; k <= organisationUnitLevels; k++) {
       columns.addAll(
@@ -131,6 +132,7 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
         values.add(unit.getId());
         values.add(unit.getUid());
         values.add(level);
+        values.add(unit.getPath());
 
         Map<Integer, Long> identifiers = new HashMap<>();
         Map<Integer, String> uids = new HashMap<>();
