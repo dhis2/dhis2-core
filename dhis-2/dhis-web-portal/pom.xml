@@ -13,20 +13,6 @@
   <name>DHIS Web Portal</name>
   <properties>
     <rootDir>../</rootDir>
-
-    <jib.version>3.3.1</jib.version>
-    <jib.from.image>tomcat:9.0-jre17</jib.from.image>
-    <jib.to.image>dhis2/core-dev:local</jib.to.image>
-    <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
-    <jib.container.user>65534</jib.container.user>
-    <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
-
-    <useWarCompression>true</useWarCompression>
-    <tomcat.version>8.5.47</tomcat.version>
-    <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
-    <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
-    <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-    <cargo-maven2-plugin.version>1.7.7</cargo-maven2-plugin.version>
   </properties>
 
   <dependencies>
