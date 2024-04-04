@@ -220,7 +220,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
             inner join ${analytics_rs_periodstructure} ps on cdr.periodid=ps.periodid \
             inner join ${analytics_rs_organisationunitgroupsetstructure} ougs on cdr.sourceid=ougs.organisationunitid \
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(date_trunc('month', ps.startdate) as date)=ougs.startdate or ougs.startdate is null) \
             left join ${analytics_rs_orgunitstructure} ous on cdr.sourceid=ous.organisationunitid \
             inner join ${analytics_rs_categorystructure} acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
