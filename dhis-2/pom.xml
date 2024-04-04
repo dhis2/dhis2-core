@@ -41,6 +41,9 @@
     <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
+    <module>dhis-web-commons-resources</module>
+    <module>dhis-web-apps</module>
+    <module>dhis-web-portal</module>
   </modules>
 
   <scm>
@@ -124,8 +127,7 @@
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
-    <!-- Struts -->
-    <struts.version>2.5.33</struts.version>
+    <!-- Velocity -->
     <velocity.version>1.7</velocity.version>
     <velocity-tools.version>2.0</velocity-tools.version>
 
@@ -688,23 +690,7 @@
         <version>${kafka.version}</version>
       </dependency>
 
-      <!-- Struts -->
-      <dependency>
-        <groupId>org.apache.struts</groupId>
-        <artifactId>struts2-core</artifactId>
-        <version>${struts.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.struts</groupId>
-        <artifactId>struts2-spring-plugin</artifactId>
-        <version>${struts.version}</version>
-      </dependency>
+      <!-- Velocity -->
       <dependency>
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity</artifactId>
