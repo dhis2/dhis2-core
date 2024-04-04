@@ -29,9 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -286,12 +284,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
               trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
                   entityInstanceId, program.getId());
 
-          return Optional.ofNullable(trackedEntityProgramOwner)
+          return new OrganisationUnit();
+/*          return Optional.ofNullable(trackedEntityProgramOwner)
               .map(
                   tepo -> {
                     return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
                   })
-              .orElseGet(orgUnitIfMissingSupplier);
+              .orElseGet(orgUnitIfMissingSupplier);*/
         });
   }
 

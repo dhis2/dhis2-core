@@ -105,11 +105,6 @@ public class LocalCache<V> implements Cache<V> {
   }
 
   @Override
-  public V getOrgUnit(String key, V orgUnit) {
-    return null;
-  }
-
-  @Override
   public Stream<V> getAll() {
     return cache2kInstance.asMap().values().stream();
   }
