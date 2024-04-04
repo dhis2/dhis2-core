@@ -698,9 +698,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "percentile_cont(0.5) "
         + "within group (order by dv1.value::double precision) as percentile_middle_value "
         + "from datavalue dv1 "
-        + "join dataelement de on dv1.dataelementid = de.dataelementid "
         // Only numeric values (value is varchar or string) can be used for stats calculation.
-        + "where de.valuetype IN ('NUMBER', 'INTEGER', 'INTEGER_POSITIVE', 'INTEGER_ZERO_OR_POSITIVE', 'INTEGER_NEGATIVE')"
+        + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
         + "dv1.attributeoptioncomboid) t1 "
         + "join "
@@ -715,9 +714,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "dv1.value, "
         + "dv1.periodid "
         + "from datavalue dv1 "
-        + "join dataelement de on dv1.dataelementid = de.dataelementid "
         // Only numeric values (varchars) can be used for stats calculation.
-        + "where de.valuetype IN ('NUMBER', 'INTEGER', 'INTEGER_POSITIVE', 'INTEGER_ZERO_OR_POSITIVE', 'INTEGER_NEGATIVE')"
+        + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
         + "dv1.attributeoptioncomboid, dv1.value, dv1.periodid) t2 "
         + "on t1.sourceid = t2.sourceid "
