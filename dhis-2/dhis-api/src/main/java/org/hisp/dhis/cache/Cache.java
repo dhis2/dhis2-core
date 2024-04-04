@@ -68,8 +68,6 @@ public interface Cache<V> {
    */
   V get(String key, Function<String, V> mappingFunction);
 
-  V getOrgUnit(String key, V orgUnit);
-
   /**
    * Returns a collection of all the values in the cache
    *
