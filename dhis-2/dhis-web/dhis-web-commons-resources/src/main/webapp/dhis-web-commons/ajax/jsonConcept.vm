@@ -1,6 +1,0 @@
-{ "concept":
-  {
-    "id": "$!{concept.id}",
-	"name": "$encoder.jsonEncode( $!{concept.name} )"
-  }
-}
