@@ -303,7 +303,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
                     "partitionClause", partitionClause)));
 
-    invokeTimeAndLog(sql.toString(), tableName);
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }
 
   /**
