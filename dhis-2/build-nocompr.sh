@@ -4,4 +4,3 @@
 # Invokes the dev profile which skips tests and disables compression of war artifacts for a speedy build
 
 mvn clean install --batch-mode --no-transfer-progress -Pdev
-mvn clean install --batch-mode --no-transfer-progress -Pdev -f dhis-web/pom.xml -U
