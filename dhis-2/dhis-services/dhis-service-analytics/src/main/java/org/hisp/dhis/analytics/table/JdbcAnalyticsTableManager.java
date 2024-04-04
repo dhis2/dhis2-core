@@ -357,7 +357,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             """
              ${approvalClause} \
             where de.valuetype in (${valTypes}) \
-            and de.domaintype = 'AGGREGATE' ${partitionClause} \
+            and de.domaintype = 'AGGREGATE' \
+            ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
             and dv.deleted = false\s""",
@@ -370,10 +371,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-               and (aon.startdate is null or aon.startdate <= pe.startdate) \
-              and (aon.enddate is null or aon.enddate >= pe.enddate) \
-              and (con.startdate is null or con.startdate <= pe.startdate) \
-              and (con.enddate is null or con.enddate >= pe.enddate)\s""");
+           and (aon.startdate is null or aon.startdate <= pe.startdate) \
+          and (aon.enddate is null or aon.enddate >= pe.enddate) \
+          and (con.startdate is null or con.startdate <= pe.startdate) \
+          and (con.enddate is null or con.enddate >= pe.enddate)\s""");
     }
 
     if (whereClause != null) {
@@ -415,7 +416,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                left join analytics_rs_dataapprovalminlevel da \
               on des.workflowid=da.workflowid and da.periodid=dv.periodid \
               and da.attributeoptioncomboid=dv.attributeoptioncomboid \
-              and (\s""");
+              and (""");
 
       Set<OrganisationUnitLevel> levels =
           dataApprovalLevelService.getOrganisationUnitApprovalLevels();
@@ -451,9 +452,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
-    List<AnalyticsTableColumn> columns = new ArrayList<>();
-
     String idColAlias = "concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id ";
+
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
 
     List<DataElementGroupSet> dataElementGroupSets =
@@ -499,7 +501,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.addAll(FIXED_COLS);
 
     if (!params.isSkipOutliers()) {
       columns.addAll(getOutlierStatsColumns());
@@ -729,6 +730,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "t3.attributeoptioncomboid) as stats "
         + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
+        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid\s";
   }
 }

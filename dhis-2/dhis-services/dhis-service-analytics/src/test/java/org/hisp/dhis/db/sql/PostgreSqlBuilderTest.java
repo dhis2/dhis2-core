@@ -338,6 +338,14 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testCountRows() {
+    String expected = """
+        select count(*) as row_count from "immunization";""";
+
+    assertEquals(expected, sqlBuilder.countRows(getTableA()));
+  }
+
+  @Test
   void testCreateIndexA() {
     List<Index> indexes = getIndexesA();
 

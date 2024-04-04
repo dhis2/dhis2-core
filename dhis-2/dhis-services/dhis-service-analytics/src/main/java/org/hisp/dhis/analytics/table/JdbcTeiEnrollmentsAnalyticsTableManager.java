@@ -163,10 +163,11 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   }
 
   private List<AnalyticsTableColumn> getColumns() {
-    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(FIXED_COLS);
-    analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
+    columns.add(getOrganisationUnitNameHierarchyColumn());
 
-    return analyticsTableColumnList;
+    return columns;
   }
 
   @Override
@@ -202,7 +203,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-        \s from enrollment pi \
+        \sfrom enrollment pi \
         inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
         and tei.deleted = false \
         and tei.trackedentitytypeid =${teiId} \
