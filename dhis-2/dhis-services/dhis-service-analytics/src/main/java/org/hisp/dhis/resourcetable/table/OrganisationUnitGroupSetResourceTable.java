@@ -44,7 +44,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -59,11 +58,8 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
   private final int organisationUnitLevels;
 
   public OrganisationUnitGroupSetResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<OrganisationUnitGroupSet> groupSets,
-      int organisationUnitLevels) {
-    super(sqlBuilder, logged);
+      Logged logged, List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels) {
+    super(logged);
     this.groupSets = groupSets;
     this.organisationUnitLevels = organisationUnitLevels;
   }
@@ -130,22 +126,21 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
     for (OrganisationUnitGroupSet groupSet : groupSets) {
       if (!groupSet.isIncludeSubhierarchyInAnalytics()) {
         sql +=
-            replaceQualify(
+            replace(
                 """
             (
-            select oug.name from ${orgunitgroup} oug \
-            inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            select oug.name from orgunitgroup oug \
+            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
             and ougsm.orgunitgroupsetid = ${groupSetId} \
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetName}, \
             (
-            select oug.uid from ${orgunitgroup} oug \
-            inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+            select oug.uid from orgunitgroup oug \
+            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
             and ougsm.orgunitgroupsetid = ${groupSetId} \
             where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
             """,
-                List.of("orgunitgroup", "orgunitgroupmembers", "orgunitgroupsetmembers"),
                 Map.of(
                     "groupSetId", valueOf(groupSet.getId()),
                     "groupSetName", quote(groupSet.getName()),
@@ -155,16 +150,15 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
 
         for (int i = organisationUnitLevels; i > 0; i--) {
           sql +=
-              replaceQualify(
+              replace(
                   """
               (
-              select oug.name from ${orgunitgroup} oug \
-              inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              select oug.name from orgunitgroup oug \
+              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
-              inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
-                  List.of("orgunitgroup", "orgunitgroupmembers", "orgunitgroupsetmembers"),
                   Map.of(
                       "level", valueOf(i),
                       "groupSetId", valueOf(groupSet.getId())));
@@ -174,7 +168,7 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getName()) + ", ";
+        sql = removeLastComma(sql) + ") as " + quote(groupSet.getName()) + ", ";
 
         sql += "coalesce(";
 
@@ -183,10 +177,10 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
               replace(
                   """
               (
-              select oug.uid from ${orgunitgroup} oug \
-              inner join ${orgunitgroupmembers} ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+              select oug.uid from orgunitgroup oug \
+              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
-              inner join ${orgunitgroupsetmembers} ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
               and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
               """,
                   Map.of(
@@ -207,13 +201,10 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
 
     sql = removeLastComma(sql) + " ";
     sql +=
-        replace(
-            """
-        from ${organisationunit} ou \
+        """
+        from organisationunit ou \
         inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid;
-        """,
-            "organisationunit",
-            qualify("organisationunit"));
+        """;
 
     return Optional.of(sql);
   }

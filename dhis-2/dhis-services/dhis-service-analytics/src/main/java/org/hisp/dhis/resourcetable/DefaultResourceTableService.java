@@ -52,8 +52,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -104,12 +102,10 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
   @Override
   @Transactional
   public void generateResourceTables() {
-    for (ResourceTable table : getResourceTables(sqlBuilder)) {
+    for (ResourceTable table : getResourceTables()) {
       resourceTableStore.generateResourceTable(table);
     }
   }
@@ -117,7 +113,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   @Transactional
   public void generateDataApprovalResourceTables() {
-    for (ResourceTable table : getApprovalResourceTables(sqlBuilder)) {
+    for (ResourceTable table : getApprovalResourceTables()) {
       resourceTableStore.generateResourceTable(table);
     }
   }
@@ -125,57 +121,49 @@ public class DefaultResourceTableService implements ResourceTableService {
   /**
    * Returns a list of resource tables.
    *
-   * @param sqlBuilder the {@link SqlBuilder}.
    * @return a list of {@link ResourceTable}.
    */
-  private final List<ResourceTable> getResourceTables(SqlBuilder sqlBuilder) {
+  private final List<ResourceTable> getResourceTables() {
     Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
         new OrganisationUnitStructureResourceTable(
-            sqlBuilder,
             logged,
             organisationUnitService.getNumberOfOrganisationalLevels(),
             organisationUnitService),
         new DataSetOrganisationUnitCategoryResourceTable(
-            sqlBuilder,
             logged,
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo()),
         new CategoryOptionComboNameResourceTable(
-            sqlBuilder, logged, idObjectManager.getAllNoAcl(CategoryCombo.class)),
+            logged, idObjectManager.getAllNoAcl(CategoryCombo.class)),
         new DataElementGroupSetResourceTable(
-            sqlBuilder, logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
+            logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
-            sqlBuilder, logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+            logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
         new OrganisationUnitGroupSetResourceTable(
-            sqlBuilder,
             logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels()),
         new CategoryResourceTable(
-            sqlBuilder,
             logged,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)),
-        new DataElementResourceTable(
-            sqlBuilder, logged, idObjectManager.getAllNoAcl(DataElement.class)),
-        new DatePeriodResourceTable(sqlBuilder, logged, getAndValidateAvailableDataYears()),
-        new PeriodResourceTable(sqlBuilder, logged, periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(sqlBuilder, logged));
+        new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
+        new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
+        new PeriodResourceTable(logged, periodService.getAllPeriods()),
+        new CategoryOptionComboResourceTable(logged));
   }
 
   /**
    * Returns a list of data approval resource tables.
    *
-   * @param sqlBuilder the {@link SqlBuilder}.
-   * @return a lits of data approval {@link ResourceTable}.
+   * @return a list of data approval {@link ResourceTable}.
    */
-  private final List<ResourceTable> getApprovalResourceTables(SqlBuilder sqlBuilder) {
+  private final List<ResourceTable> getApprovalResourceTables() {
     Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
-        new DataApprovalRemapLevelResourceTable(sqlBuilder, logged),
+        new DataApprovalRemapLevelResourceTable(logged),
         new DataApprovalMinLevelResourceTable(
-            sqlBuilder,
             logged,
             Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels())));
   }

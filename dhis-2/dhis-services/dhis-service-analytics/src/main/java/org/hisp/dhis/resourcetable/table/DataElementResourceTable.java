@@ -44,7 +44,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -56,9 +55,8 @@ public class DataElementResourceTable extends AbstractResourceTable {
 
   private final List<DataElement> dataElements;
 
-  public DataElementResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<DataElement> dataElements) {
-    super(sqlBuilder, logged);
+  public DataElementResourceTable(Logged logged, List<DataElement> dataElements) {
+    super(logged);
     this.dataElements = dataElements;
   }
 

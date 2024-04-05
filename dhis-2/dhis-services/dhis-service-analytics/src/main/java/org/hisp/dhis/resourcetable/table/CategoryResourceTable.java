@@ -28,7 +28,6 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static java.lang.String.valueOf;
-import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
@@ -44,7 +43,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
 
@@ -59,11 +57,8 @@ public class CategoryResourceTable extends AbstractResourceTable {
   private final List<CategoryOptionGroupSet> groupSets;
 
   public CategoryResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<Category> categories,
-      List<CategoryOptionGroupSet> groupSets) {
-    super(sqlBuilder, logged);
+      Logged logged, List<Category> categories, List<CategoryOptionGroupSet> groupSets) {
+    super(logged);
     this.categories = categories;
     this.groupSets = groupSets;
   }
@@ -121,25 +116,21 @@ public class CategoryResourceTable extends AbstractResourceTable {
 
     for (Category category : categories) {
       sql +=
-          replaceQualify(
+          replace(
               """
             (
-              select co.name from ${categoryoptioncombos_categoryoptions} cocco \
-              inner join ${categoryoption} co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join ${categories_categoryoptions} cco on co.categoryoptionid = cco.categoryoptionid \
+              select co.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
               (
-              select co.uid from ${categoryoptioncombos_categoryoptions} cocco \
-              inner join ${categoryoption} co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join ${categories_categoryoptions} cco on co.categoryoptionid = cco.categoryoptionid \
+              select co.uid from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid
               and cco.categoryid = ${categoryId} limit 1) as ${categoryUid}, \
               """,
-              List.of(
-                  "categoryoptioncombos_categoryoptions",
-                  "categoryoption",
-                  "categories_categoryoptions"),
               Map.of(
                   "categoryId",
                   valueOf(category.getId()),
@@ -151,28 +142,23 @@ public class CategoryResourceTable extends AbstractResourceTable {
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
       sql +=
-          replaceQualify(
+          replace(
               """
             (
-              select cog.name from ${categoryoptioncombos_categoryoptions} cocco \
-              inner join ${categoryoptiongroupmembers} cogm on cocco.categoryoptionid = cogm.categoryoptionid \
-              inner join ${categoryoptiongroup} cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
-              inner join ${categoryoptiongroupsetmembers} cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              select cog.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
               (
-              select cog.uid from ${categoryoptioncombos_categoryoptions} cocco \
-              inner join ${categoryoptiongroupmembers} cogm on cocco.categoryoptionid = cogm.categoryoptionid \
-              inner join ${categoryoptiongroup} cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
-              inner join ${categoryoptiongroupsetmembers} cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              select cog.uid from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
               where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
               and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetUid}, \
               """,
-              List.of(
-                  "categoryoptioncombos_categoryoptions",
-                  "categoryoptiongroupmembers",
-                  "categoryoptiongroup",
-                  "categoryoptiongroupsetmembers"),
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
                   "groupSetName", quote(groupSet.getName()),
@@ -180,7 +166,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += format("from {} coc;", qualify("categoryoptioncombo"));
+    sql += "from categoryoptioncombo coc;";
 
     return Optional.of(sql);
   }

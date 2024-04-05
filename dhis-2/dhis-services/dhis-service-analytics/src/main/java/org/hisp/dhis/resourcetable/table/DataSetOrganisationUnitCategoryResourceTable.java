@@ -45,7 +45,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
@@ -61,11 +60,8 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
   private final CategoryOptionCombo defaultOptionCombo;
 
   public DataSetOrganisationUnitCategoryResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<DataSet> dataSets,
-      CategoryOptionCombo defaultOptionCombo) {
-    super(sqlBuilder, logged);
+      Logged logged, List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo) {
+    super(logged);
     this.dataSets = dataSets;
     this.defaultOptionCombo = defaultOptionCombo;
   }

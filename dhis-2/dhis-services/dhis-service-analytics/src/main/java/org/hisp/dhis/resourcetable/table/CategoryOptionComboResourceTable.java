@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
@@ -39,7 +40,6 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
@@ -48,8 +48,8 @@ import org.hisp.dhis.resourcetable.ResourceTableType;
 public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementcategoryoptioncombo";
 
-  public CategoryOptionComboResourceTable(SqlBuilder sqlBuilder, Logged logged) {
-    super(sqlBuilder, logged);
+  public CategoryOptionComboResourceTable(Logged logged) {
+    super(logged);
   }
 
   @Override
@@ -86,16 +86,15 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        replaceQualify(
+        replace(
             """
         insert into ${tableName} \
         (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
         select de.dataelementid as dataelementid, de.uid as dataelementuid, \
         coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
-        from ${dataelement} de \
-        inner join ${categorycombos_optioncombos} cc on de.categorycomboid = cc.categorycomboid \
-        inner join ${categoryoptioncombo} coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
-            List.of("dataelement", "categorycombos_optioncombos", "categoryoptioncombo"),
+        from dataelement de \
+        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
+        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
             Map.of("tableName", toStaging(TABLE_NAME)));
 
     return Optional.of(sql);

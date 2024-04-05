@@ -41,7 +41,6 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
@@ -53,9 +52,8 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
 
   private final List<CategoryCombo> categoryCombos;
 
-  public CategoryOptionComboNameResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<CategoryCombo> categoryCombos) {
-    super(sqlBuilder, logged);
+  public CategoryOptionComboNameResourceTable(Logged logged, List<CategoryCombo> categoryCombos) {
+    super(logged);
     this.categoryCombos = categoryCombos;
   }
 
