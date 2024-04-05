@@ -41,6 +41,9 @@
     <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
+    <module>dhis-web-commons-resources</module>
+    <module>dhis-web-apps</module>
+    <module>dhis-web-portal</module>
   </modules>
 
   <scm>
@@ -78,6 +81,21 @@
       is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
     <skipTests>false</skipTests>
 
+    <!-- *Build* -->
+    <jib.version>3.3.1</jib.version>
+    <jib.from.image>tomcat:9.0-jre17</jib.from.image>
+    <jib.to.image>dhis2/core-dev:local</jib.to.image>
+    <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
+    <jib.container.user>65534</jib.container.user>
+    <jib.container.appRoot>/usr/local/tomcat/webapps/ROOT</jib.container.appRoot>
+
+    <useWarCompression>true</useWarCompression>
+    <tomcat.version>8.5.47</tomcat.version>
+    <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
+    <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
+    <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
+    <cargo-maven2-plugin.version>1.7.7</cargo-maven2-plugin.version>
+
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
@@ -111,7 +129,7 @@
     <lettuce.version>6.3.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.10.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.11.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -124,8 +142,7 @@
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
-    <!-- Struts -->
-    <struts.version>2.5.33</struts.version>
+    <!-- Velocity -->
     <velocity.version>1.7</velocity.version>
     <velocity-tools.version>2.0</velocity-tools.version>
 
@@ -145,7 +162,7 @@
     <jclouds.version>2.6.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.20.0</jasperreports.version>
+    <jasperreports.version>6.21.2</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -246,6 +263,23 @@
   <dependencyManagement>
     <dependencies>
       <!--DHIS -->
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-portal</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-commons-resources</artifactId>
+        <version>${project.version}</version>
+        <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-apps</artifactId>
+        <version>${project.version}</version>
+        <type>war</type>
+      </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-api</artifactId>
@@ -688,23 +722,7 @@
         <version>${kafka.version}</version>
       </dependency>
 
-      <!-- Struts -->
-      <dependency>
-        <groupId>org.apache.struts</groupId>
-        <artifactId>struts2-core</artifactId>
-        <version>${struts.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.struts</groupId>
-        <artifactId>struts2-spring-plugin</artifactId>
-        <version>${struts.version}</version>
-      </dependency>
+      <!-- Velocity -->
       <dependency>
         <groupId>org.apache.velocity</groupId>
         <artifactId>velocity</artifactId>
@@ -2095,6 +2113,80 @@ jasperreports.version=${jasperreports.version}
     </pluginManagement>
 
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>${maven-war-plugin.version}</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <archiveClasses>true</archiveClasses>
+          <dependentWarExcludes>**/web.xml</dependentWarExcludes>
+          <archive>
+            <compress>${useWarCompression}</compress>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>${properties-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>set-system-properties</goal>
+            </goals>
+            <configuration>
+              <properties>
+                <property>
+                  <name>org.eclipse.jetty.util.log.IGNORED</name>
+                  <value>true</value>
+                </property>
+                <property>
+                  <name>log4j.configurationFile</name>
+                  <value>${project.baseUri}/../dhis-web-commons/src/main/resources/log4j2-jetty.xml</value>
+                </property>
+              </properties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven2-plugin</artifactId>
+        <version>${cargo-maven2-plugin.version}</version>
+        <configuration>
+          <container>
+            <containerId>tomcat8x</containerId>
+            <artifactInstaller>
+              <groupId>org.apache.tomcat</groupId>
+              <artifactId>tomcat</artifactId>
+              <version>${tomcat.version}</version>
+            </artifactInstaller>
+          </container>
+          <configuration>
+            <type>standalone</type>
+            <home>${project.build.directory}/apache-tomcat-${tomcat.version}</home>
+            <properties>
+              <cargo.servlet.port>8080</cargo.servlet.port>
+              <cargo.logging>low</cargo.logging>
+            </properties>
+          </configuration>
+          <deployables>
+            <deployable>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>${project.artifactId}</artifactId>
+              <type>war</type>
+              <properties>
+                <context>/</context>
+              </properties>
+            </deployable>
+          </deployables>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
