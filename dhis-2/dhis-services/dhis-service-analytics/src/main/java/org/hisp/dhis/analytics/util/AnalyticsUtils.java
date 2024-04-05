@@ -50,7 +50,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -488,6 +490,26 @@ public class AnalyticsUtils {
     }
 
     return dvs;
+  }
+
+  /**
+   * Retrieve fallback date parsed by dhis modified format yyyy-MM-dd'T'HH.mm or ..mm.ss
+   * 2024-04-04T15.00
+   *
+   * @param dateAsString
+   */
+  public static Date toAnalyticsFallbackDate(String dateAsString) {
+    try {
+      return org.apache.commons.lang3.time.DateUtils.parseDate(
+          dateAsString,
+          // known formats
+          "yyyy-MM-dd'T'HH.mm",
+          "yyyy-MM-dd'T'HH.mm.ss");
+    } catch (ParseException pe) {
+      throwIllegalQueryEx(ErrorCode.E7135, dateAsString);
+    }
+
+    return null;
   }
 
   /**
