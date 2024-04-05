@@ -421,7 +421,14 @@
       },
       "userGroupAccesses": [],
       "translations": [],
-      "userAccesses": []
+      "userAccesses": [],
+      "sharing": {
+        "public": "r-------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "lastUpdated": "2020-11-20T09:06:23.348",
@@ -450,7 +457,14 @@
           "id": "NpsdDv6kKSO"
         }
       },
-      "userGroupAccesses": []
+      "userGroupAccesses": [],
+      "sharing": {
+        "public": "r-------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "dataElements": [

@@ -40,7 +40,7 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "relationshipType", qualifiedByName = "typeMapper")
+  @Mapping(target = "relationshipType")
   @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
