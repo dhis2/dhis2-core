@@ -150,13 +150,9 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
             """
         from ${orgunitgroupmembers} ougm
         inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid
-        left join ${analytics_rs_orgunitstructure} ous on ougm.organisationunitid=ous.organisationunitid
-        left join ${analytics_rs_organisationunitgroupsetstructure} ougs on ougm.organisationunitid=ougs.organisationunitid""",
-            List.of(
-                "orgunitgroupmembers",
-                "orgunitgroup",
-                "analytics_rs_orgunitstructure",
-                "analytics_rs_organisationunitgroupsetstructure"),
+        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""",
+            List.of("orgunitgroupmembers", "orgunitgroup"),
             Map.of());
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);

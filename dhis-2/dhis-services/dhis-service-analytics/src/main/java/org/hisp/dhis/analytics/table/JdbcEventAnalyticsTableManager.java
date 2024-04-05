@@ -437,12 +437,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and tei.deleted = false \
             left join ${organisationunit} registrationou on tei.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on psi.organisationunitid=ou.organisationunitid \
-            left join ${analytics_rs_orgunitstructure} ous on psi.organisationunitid=ous.organisationunitid \
-            left join ${analytics_rs_organisationunitgroupsetstructure} ougs on psi.organisationunitid=ougs.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid \
             and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null) \
             left join ${organisationunit} enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
-            inner join ${analytics_rs_categorystructure} acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
-            left join ${analytics_rs_dateperiodstructure} dps on cast(${eventDateExpression} as date)=dps.dateperiod \
+            inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
+            left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
             where psi.lastupdated < '${startTime}' ${partitionClause} \
             and pr.programid=${programId} \
             and psi.organisationunitid is not null \
@@ -458,11 +458,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "program",
                 "categoryoptioncombo",
                 "trackedentity",
-                "organisationunit",
-                "analytics_rs_orgunitstructure",
-                "analytics_rs_organisationunitgroupsetstructure",
-                "analytics_rs_categorystructure",
-                "analytics_rs_dateperiodstructure"),
+                "organisationunit"),
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,

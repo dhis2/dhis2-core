@@ -252,16 +252,14 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 and p.organisationunitid is not null)) a \
                 inner join ${trackedentity} tei on a.trackedentityid = tei.trackedentityid \
                 inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
-                left join ${analytics_rs_orgunitstructure} ous on a.organisationunitid = ous.organisationunitid \
-                left join ${analytics_rs_organisationunitgroupsetstructure} ougs on a.organisationunitid = ougs.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
                 order by tei.uid, a.startdate, a.enddate""",
             List.of(
                 "programownershiphistory",
                 "trackedentityprogramowner",
                 "trackedentity",
-                "organisationunit",
-                "analytics_rs_orgunitstructure",
-                "analytics_rs_organisationunitgroupsetstructure"),
+                "organisationunit"),
             Map.of(
                 "historyTableId", HISTORY_TABLE_ID,
                 "teiOwnTableId", TEI_OWN_TABLE_ID,

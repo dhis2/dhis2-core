@@ -154,21 +154,14 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql +=
         replaceQualify(
             """
-        from ${analytics_rs_datasetorganisationunitcategory} doc
+        from analytics_rs_datasetorganisationunitcategory doc
         inner join ${dataset} ds on doc.datasetid=ds.datasetid
         inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid
-        left join ${analytics_rs_orgunitstructure} ous on doc.organisationunitid=ous.organisationunitid
-        left join ${analytics_rs_organisationunitgroupsetstructure} ougs on doc.organisationunitid=ougs.organisationunitid
+        left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
+        left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
         left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
-        left join ${analytics_rs_categorystructure} acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid;""",
-            List.of(
-                "analytics_rs_datasetorganisationunitcategory",
-                "dataset",
-                "organisationunit",
-                "analytics_rs_orgunitstructure",
-                "analytics_rs_organisationunitgroupsetstructure",
-                "categoryoptioncombo",
-                "analytics_rs_categorystructure"),
+        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid;""",
+            List.of("dataset", "organisationunit", "categoryoptioncombo"),
             Map.of());
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);

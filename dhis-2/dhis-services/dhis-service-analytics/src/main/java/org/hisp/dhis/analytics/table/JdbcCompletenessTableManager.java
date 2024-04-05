@@ -163,7 +163,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id \
             from ${completedatasetregistration} cdr \
             inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
-            inner join ${analytics_rs_periodstructure} ps on cdr.periodid=ps.periodid \
+            inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
             inner join ${organisationunit} ou on cdr.sourceid=ou.organisationunitid \
             inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
@@ -171,7 +171,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             List.of(
                 "completedatasetregistration",
                 "dataset",
-                "analytics_rs_periodstructure",
                 "organisationunit",
                 "categoryoptioncombo"),
             Map.of(

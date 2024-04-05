@@ -296,7 +296,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         left join ${programstage} ps on ps.programstageid = psi.programstageid \
         left join ${program} p on p.programid = ps.programid \
         left join ${organisationunit} ou on psi.organisationunitid = ou.organisationunitid \
-        left join ${analytics_rs_orgunitstructure} ous on ous.organisationunitid = ou.organisationunitid \
+        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
         where psi.status in (${statuses}) \
         ${partitionClause} \
         and psi.deleted = false\s""",
@@ -306,8 +306,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                     "trackedentity",
                     "programstage",
                     "program",
-                    "organisationunit",
-                    "analytics_rs_orgunitstructure"),
+                    "organisationunit"),
                 Map.of(
                     "tetId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
