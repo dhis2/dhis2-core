@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
+import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
@@ -104,17 +105,49 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     final Table table = resourceTable.getMainTable();
     final String tableName = table.getName();
 
-    String createSql = analyticsSqlBuilder.createTable(table);
-    log.info("Create analytics table SQL: '{}'", createSql);
-    analyticsJdbcTemplate.execute(createSql);
+    dropAnalyticsTable(table);
 
-    String replicateSql =
-        String.format(
-            "insert into %s select * from %s",
-            sqlBuilder.quote(tableName), sqlBuilder.qualifyTable(tableName));
-    analyticsJdbcTemplate.execute(replicateSql);
+    createAnalyticsTable(table);
+
+    replicateAnalyticsTable(table);
 
     log.info("Analytics resource table replication done: '{}' '{}'", tableName, clock.time());
+  }
+
+  /**
+   * Drops the given analytics database table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void dropAnalyticsTable(Table table) {
+    String sql = analyticsSqlBuilder.dropTableIfExists(table);
+    log.debug("Drop table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Creates the given analytics database table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void createAnalyticsTable(Table table) {
+    String sql = analyticsSqlBuilder.createTable(table);
+    log.debug("Create table SQL: '{}'", sql);
+    jdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Replicates the given table in the analytics database.
+   *
+   * @param table the {@link Table}.
+   */
+  private void replicateAnalyticsTable(Table table) {
+    String sql =
+        format(
+            "insert into %s select * from %s",
+            sqlBuilder.quote(table.getName()), sqlBuilder.qualifyTable(table.getName()));
+    log.info("Replicate table SQL: '{}'", sql);
+    analyticsJdbcTemplate.execute(sql);
   }
 
   /**
