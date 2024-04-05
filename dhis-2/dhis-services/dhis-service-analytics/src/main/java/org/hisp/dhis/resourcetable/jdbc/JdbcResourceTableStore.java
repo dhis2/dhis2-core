@@ -28,15 +28,16 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.db.load.TableLoader;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -60,8 +61,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
-
-  private final TableLoader tableLoader;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -131,7 +130,11 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     } else if (populateTableContent.isPresent()) {
       List<Object[]> content = populateTableContent.get();
       log.debug("Populate table content rows: {}", content.size());
-      tableLoader.load(table, content);
+
+      if (content.size() > 0) {
+        int columns = content.get(0).length;
+        batchUpdate(columns, table.getName(), content);
+      }
     }
   }
 
@@ -174,5 +177,28 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     if (sqlBuilder.supportsAnalyze()) {
       jdbcTemplate.execute(sqlBuilder.analyzeTable(table));
     }
+  }
+
+  /**
+   * Performs a batch update.
+   *
+   * @param columns the number of columns in the table to update.
+   * @param tableName the name of the table to update.
+   * @param batchArgs the arguments to use for the update statement.
+   */
+  private void batchUpdate(int columns, String tableName, List<Object[]> batchArgs) {
+    if (columns == 0 || StringUtils.isBlank(tableName)) {
+      return;
+    }
+
+    StringBuilder sql = new StringBuilder("insert into " + tableName + " values (");
+
+    for (int i = 0; i < columns; i++) {
+      sql.append("?,");
+    }
+
+    removeLastComma(sql).append(")");
+
+    jdbcTemplate.batchUpdate(sql.toString(), batchArgs);
   }
 }
