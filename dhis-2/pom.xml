@@ -82,7 +82,7 @@
     <skipTests>false</skipTests>
 
     <!-- *Build* -->
-    <jib.version>3.3.1</jib.version>
+    <jib.version>3.4.2</jib.version>
     <jib.from.image>tomcat:9.0-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
