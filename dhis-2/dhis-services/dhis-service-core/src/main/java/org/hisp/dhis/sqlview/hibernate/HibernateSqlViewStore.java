@@ -33,6 +33,7 @@ import static java.lang.String.format;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.TransactionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
@@ -131,8 +132,16 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   }
 
   @Override
-  public void populateSqlViewGrid(Grid grid, String sql) {
-    SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet(sql);
+  public void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode) {
+    SqlRowSet rs = null;
+    switch (transactionMode) {
+      case READ:
+        rs = readOnlyJdbcTemplate.queryForRowSet(sql);
+        break;
+      case WRITE:
+        rs = jdbcTemplate.queryForRowSet(sql);
+        break;
+    }
 
     int maxLimit = systemSettingManager.getIntSetting(SettingKey.SQL_VIEW_MAX_LIMIT);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,33 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sqlview;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.TransactionMode;
-
-/**
- * @author Dang Duy Hieu
- */
-public interface SqlViewStore extends IdentifiableObjectStore<SqlView> {
-  String ID = SqlViewStore.class.getName();
-
-  String createViewTable(SqlView sqlView);
-
-  void dropViewTable(SqlView sqlView);
-
-  /**
-   * This method will use the appropriate jdbcTemplate depending how DHIS2 has been setup.<br>
-   *
-   * <p>If DHIS2 has been set up using Postgres read replica, then the readOnlyJdbcTemplate will be
-   * used for the reads, otherwise the normal jdbcTemplate will be used for all reads/writes.
-   *
-   * @param grid the {@link Grid} to populate with the results of the sql query.
-   * @param sql the sql query to execute.
-   * @param transactionMode the {@link TransactionMode} to use for the query.
-   */
-  void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode);
-
-  boolean refreshMaterializedView(SqlView sqlView);
+public enum TransactionMode {
+  READ,
+  WRITE
 }
