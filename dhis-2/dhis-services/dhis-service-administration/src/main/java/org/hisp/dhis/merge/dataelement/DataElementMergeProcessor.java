@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.dataelement;
+
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.merge.MergeProcessor;
+import org.hisp.dhis.merge.MergeService;
+import org.springframework.stereotype.Component;
 
 /**
- * Enum for merge type.
+ * Implementation of {@link MergeProcessor} that currently only uses its default method.
  *
  * @author david mackessy
  */
-public enum MergeType {
-  ORG_UNIT,
+@Component
+@RequiredArgsConstructor
+public class DataElementMergeProcessor implements MergeProcessor {
 
-  INDICATOR_TYPE,
-  INDICATOR,
-  DATA_ELEMENT
+  /**
+   * Spring injects the correct service based on the variable name (when there are multiple
+   * implementations to choose from). So The {@link DataElementMergeService} gets injected here.
+   */
+  private final MergeService dataElementMergeService;
+
+  @Override
+  public MergeService getMergeService() {
+    return dataElementMergeService;
+  }
 }

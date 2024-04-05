@@ -172,6 +172,14 @@ public interface DataElementService {
    */
   List<DataElement> getDataElementsByAggregationLevel(int aggregationLevel);
 
+  /**
+   * Get all {@link DataElement}s by string value of {@link org.hisp.dhis.common.UID}
+   *
+   * @param dataElements
+   * @return
+   */
+  List<DataElement> getDataElementsByUid(List<String> dataElements);
+
   // -------------------------------------------------------------------------
   // DataElementGroup
   // -------------------------------------------------------------------------

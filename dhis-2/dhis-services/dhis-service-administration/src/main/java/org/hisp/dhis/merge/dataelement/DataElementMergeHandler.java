@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.dataelement;
+
+import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.indicator.Indicator;
 
 /**
- * Enum for merge type.
+ * Functional interface representing a {@link org.hisp.dhis.dataelement.DataElement} merge
+ * operation.
  *
  * @author david mackessy
  */
-public enum MergeType {
-  ORG_UNIT,
-
-  INDICATOR_TYPE,
-  INDICATOR,
-  DATA_ELEMENT
+@FunctionalInterface
+public interface DataElementMergeHandler {
+  void merge(List<DataElement> sources, DataElement target);
 }

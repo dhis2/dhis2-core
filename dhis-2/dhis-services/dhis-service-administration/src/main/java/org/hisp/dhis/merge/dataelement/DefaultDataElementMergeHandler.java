@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.merge;
+package org.hisp.dhis.merge.dataelement;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.springframework.stereotype.Service;
 
 /**
- * Enum for merge type.
+ * Merge handler for metadata entities.
  *
  * @author david mackessy
  */
-public enum MergeType {
-  ORG_UNIT,
+@Service
+@RequiredArgsConstructor
+public class DefaultDataElementMergeHandler {
 
-  INDICATOR_TYPE,
-  INDICATOR,
-  DATA_ELEMENT
+  private final DataElementService dataElementService;
+
+  public void handleMinMaxDataElement(List<DataElement> sources, DataElement target) {
+    //    Set<MinMaxDataElement> minMaxDataElements =
+    //        sources.stream()
+    //            .map(DataElement::mi)
+    //            .flatMap(Collection::stream)
+    //            .collect(Collectors.toSet());
+    //
+    //    dataSets.forEach(
+    //        ds -> {
+    //          ds.addIndicator(target);
+    //          ds.removeIndicators(sources);
+    //        });
+  }
 }
