@@ -66,7 +66,9 @@ public class DataElementController extends AbstractCrudController<DataElement> {
   private final MergeProcessor dataElementMergeProcessor;
 
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATA_ELEMENT_MERGE')")
+  //  @PreAuthorize("hasRole('ALL') or hasRole('F_DATA_ELEMENT_MERGE')")
+  @PreAuthorize(
+      "hasRole('ALL') or hasRole(T(org.hisp.dhis.security.Authorities).F_DATA_ELEMENT_MERGE.toString())")
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeDataElements(@RequestBody MergeParams params)
       throws ConflictException {
