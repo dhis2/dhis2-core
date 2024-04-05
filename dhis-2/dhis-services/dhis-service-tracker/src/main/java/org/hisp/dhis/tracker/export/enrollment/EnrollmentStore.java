@@ -34,7 +34,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
-interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
+public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
 
   /**

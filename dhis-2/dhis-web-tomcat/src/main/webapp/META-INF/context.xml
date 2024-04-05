@@ -1,5 +1,0 @@
-<Context>
-  <!-- don't persist sessions across tomcat restarts -->
-  <Manager pathname="" />
-</Context>
-

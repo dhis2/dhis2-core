@@ -60,12 +60,19 @@
       <artifactId>dhis-service-analytics</artifactId>
       <type>jar</type>
     </dependency>
-
     <dependency>
-      <groupId>org.apache.tomcat.embed</groupId>
-      <artifactId>tomcat-embed-jasper</artifactId>
-      <version>${tomcat.version}</version>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-tracker</artifactId>
+      <type>jar</type>
     </dependency>
+
+
+
+<!--    <dependency>-->
+<!--      <groupId>org.apache.tomcat.embed</groupId>-->
+<!--      <artifactId>tomcat-embed-jasper</artifactId>-->
+<!--      <version>${tomcat.version}</version>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.apache.tomcat.embed</groupId>
       <artifactId>tomcat-embed-core</artifactId>
