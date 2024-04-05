@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TIME;
 import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.toAnalyticsFallbackDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.math.BigDecimal;
@@ -95,7 +96,11 @@ public enum ValueTypeMapping {
   }
 
   private static Date dateConverter(String dateAsString) {
-    return toMediumDate(dateAsString);
+    try {
+      return toMediumDate(dateAsString);
+    } catch (Exception ignore) {
+      return toAnalyticsFallbackDate(dateAsString);
+    }
   }
 
   private static Object booleanConverter(String parameterInput) {
