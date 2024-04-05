@@ -29,6 +29,7 @@ package org.hisp.dhis.resourcetable.table;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.system.util.SqlUtils;
 
@@ -46,5 +47,14 @@ public abstract class AbstractResourceTable implements ResourceTable {
    */
   protected String quote(String relation) {
     return SqlUtils.quote(relation);
+  }
+
+  public Table getMainTable() {
+    Table staging = getTable();
+    return new Table(
+        Table.fromStaging(staging.getName()),
+        staging.getColumns(),
+        staging.getPrimaryKey(),
+        staging.getLogged());
   }
 }

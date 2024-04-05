@@ -86,6 +86,15 @@ public class AnalyticsTableSettings {
   }
 
   /**
+   * Indicates whether an analytics database instance is configured.
+   *
+   * @return true if an analytics database instance is configured.
+   */
+  public boolean isAnalyticsDatabaseConfigured() {
+    return config.isAnalyticsDatabaseConfigured();
+  }
+
+  /**
    * Returns the configured analytics {@link Database}. Default is {@link Database#POSTGRESQL}.
    *
    * @return the analytics {@link Database}.

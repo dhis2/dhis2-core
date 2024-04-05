@@ -36,6 +36,9 @@ public interface ResourceTableService {
   /** Generates resource tables. */
   void generateResourceTables();
 
+  /** Replicates resource tables in the analytics database. */
+  void replicateAnalyticsResourceTables();
+
   /** Generates data approval resource tables. */
   void generateDataApprovalResourceTables();
 

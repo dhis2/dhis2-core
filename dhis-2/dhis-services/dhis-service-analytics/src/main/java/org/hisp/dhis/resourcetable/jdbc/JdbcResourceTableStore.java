@@ -40,11 +40,13 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +62,12 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Qualifier("analyticsJdbcTemplate")
+  private final JdbcTemplate analyticsJdbcTemplate;
+
+  private final SqlBuilder analyticsSqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -89,6 +96,25 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
     log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
+  }
+
+  @Override
+  public void replicateAnalyticsResourceTable(ResourceTable resourceTable) {
+    final Clock clock = new Clock().startClock();
+    final Table table = resourceTable.getMainTable();
+    final String tableName = table.getName();
+
+    String createSql = analyticsSqlBuilder.createTable(table);
+    log.info("Create analytics table SQL: '{}'", createSql);
+    analyticsJdbcTemplate.execute(createSql);
+
+    String replicateSql =
+        String.format(
+            "insert into %s select * from %s",
+            sqlBuilder.quote(tableName), sqlBuilder.qualifyTable(tableName));
+    analyticsJdbcTemplate.execute(replicateSql);
+
+    log.info("Analytics resource table replication done: '{}' '{}'", tableName, clock.time());
   }
 
   /**

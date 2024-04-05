@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.OutliersCache;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -65,6 +66,8 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
   private final SystemSettingManager systemSettingManager;
 
+  private final AnalyticsTableSettings settings;
+
   private final AnalyticsCache analyticsCache;
 
   private final OutliersCache outliersCache;
@@ -72,7 +75,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // TODO introduce last successful timestamps per table type
 
   @Override
-  public void generateTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
+  public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     Clock clock = new Clock(log).startClock();
     Date lastSuccessfulUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
@@ -96,6 +99,11 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
+
+      if (settings.isAnalyticsDatabaseConfigured()) {
+        log.info("Replicating resource tables in analytics database");
+        resourceTableService.replicateAnalyticsResourceTables();
+      }
     }
 
     Set<AnalyticsTableType> skipTypes = emptyIfNull(params.getSkipTableTypes());
