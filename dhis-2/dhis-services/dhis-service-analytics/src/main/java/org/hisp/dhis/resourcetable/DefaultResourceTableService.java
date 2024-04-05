@@ -32,14 +32,10 @@ import static java.util.Comparator.reverseOrder;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
-
-import com.google.common.collect.Lists;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -51,6 +47,8 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -76,6 +74,9 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -102,12 +103,12 @@ public class DefaultResourceTableService implements ResourceTableService {
 
   private final PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @Override
   @Transactional
   public void generateResourceTables() {
-    for (ResourceTable table : getResourceTables()) {
+    for (ResourceTable table : getResourceTables(sqlBuilder)) {
       resourceTableStore.generateResourceTable(table);
     }
   }
@@ -115,7 +116,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   @Transactional
   public void generateDataApprovalResourceTables() {
-    for (ResourceTable table : getApprovalResourceTables()) {
+    for (ResourceTable table : getApprovalResourceTables(sqlBuilder)) {
       resourceTableStore.generateResourceTable(table);
     }
   }
@@ -123,67 +124,72 @@ public class DefaultResourceTableService implements ResourceTableService {
   /**
    * Returns a list of resource tables.
    *
+   * @param sqlBuilder the {@link SqlBuilder}.
    * @return a list of {@link ResourceTable}.
    */
-  private final List<ResourceTable> getResourceTables() {
+  private final List<ResourceTable> getResourceTables(SqlBuilder sqlBuilder) {
+    Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
         new OrganisationUnitStructureResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             organisationUnitService.getNumberOfOrganisationalLevels(),
             organisationUnitService),
         new DataSetOrganisationUnitCategoryResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo()),
         new CategoryOptionComboNameResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getAllNoAcl(CategoryCombo.class)),
         new DataElementGroupSetResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
         new OrganisationUnitGroupSetResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels()),
         new CategoryResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)),
         new DataElementResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getAllNoAcl(DataElement.class)),
         new DatePeriodResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             getAndValidateAvailableDataYears()),
         new PeriodResourceTable(
-            sqlBuilder, analyticsTableSettings.getTableLogged(), periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(sqlBuilder, analyticsTableSettings.getTableLogged()));
+            sqlBuilder, logged, periodService.getAllPeriods()),
+        new CategoryOptionComboResourceTable(sqlBuilder, logged));
   }
 
   /**
    * Returns a list of data approval resource tables.
    *
+   * @param sqlBuilder the {@link SqlBuilder}.
    * @return a lits of data approval {@link ResourceTable}.
    */
-  private final List<ResourceTable> getApprovalResourceTables() {
+  private final List<ResourceTable> getApprovalResourceTables(SqlBuilder sqlBuilder) {
+    Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
         new DataApprovalRemapLevelResourceTable(
-            sqlBuilder, analyticsTableSettings.getTableLogged()),
+            sqlBuilder, 
+            logged),
         new DataApprovalMinLevelResourceTable(
             sqlBuilder,
-            analyticsTableSettings.getTableLogged(),
+            logged,
             Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels())));
   }
 

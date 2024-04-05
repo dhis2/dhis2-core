@@ -28,11 +28,8 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
@@ -44,9 +41,10 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -58,7 +56,6 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
-  @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
