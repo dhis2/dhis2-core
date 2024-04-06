@@ -61,6 +61,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.format.FormatterRegistry;
@@ -90,6 +91,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  */
 @Configuration
 @Order(1000)
+@EnableAspectJAutoProxy
 @ComponentScan(basePackages = {"org.hisp.dhis"})
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebMvcConfig extends DelegatingWebMvcConfiguration {

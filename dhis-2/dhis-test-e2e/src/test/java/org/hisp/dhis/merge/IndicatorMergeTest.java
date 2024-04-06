@@ -43,9 +43,11 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -59,6 +61,8 @@ class IndicatorMergeTest extends ApiTest {
   private RestApiActions sectionActions;
   private RestApiActions configActions;
   private RestApiActions visualizationActions;
+  private UserActions userActions;
+  private LoginActions loginActions;
   private String sourceUid1;
   private String sourceUid2;
   private String targetUid;
@@ -77,7 +81,8 @@ class IndicatorMergeTest extends ApiTest {
 
   @BeforeAll
   public void before() {
-    LoginActions loginActions = new LoginActions();
+    userActions = new UserActions();
+    loginActions = new LoginActions();
     indicatorApiActions = new RestApiActions("indicators");
     indicatorTypeApiActions = new RestApiActions("indicatorTypes");
     formsActions = new RestApiActions("dataEntryForms");
@@ -87,6 +92,21 @@ class IndicatorMergeTest extends ApiTest {
     configActions = new RestApiActions("configuration");
     visualizationActions = new RestApiActions("visualizations");
     loginActions.loginAsSuperUser();
+
+    // add user with required merge auth
+    userActions.addUserFull(
+        "user",
+        "auth",
+        "userWithMergeAuth",
+        "Test1234!",
+        "F_INDICATOR_MERGE",
+        "F_INDICATOR_DELETE",
+        "F_INDICATOR_PUBLIC_ADD");
+  }
+
+  @BeforeEach
+  public void setup() {
+    loginActions.loginAsSuperUser();
   }
 
   @Test
@@ -95,6 +115,9 @@ class IndicatorMergeTest extends ApiTest {
   void testValidIndicatorMerge() {
     // given some indicators exist and have references with many other metadata types
     setupIndicatorData();
+
+    // login as user with merge auth
+    loginActions.loginAsUser("userWithMergeAuth", "Test1234!");
 
     // when an indicator type merge request is submitted, deleting sources
     ApiResponse response =
@@ -258,6 +281,27 @@ class IndicatorMergeTest extends ApiTest {
         .body("sorting", hasItem(allOf(hasEntry("dimension", targetUid))))
         .body("sorting", not(hasItem(allOf(hasEntry("dimension", sourceUid1)))))
         .body("sorting", not(hasItem(allOf(hasEntry("dimension", sourceUid2)))));
+  }
+
+  @Test
+  @DisplayName("Indicator merge fails when user has not got the required authority")
+  void testIndicatorMergeNoRequiredAuth() {
+    userActions.addUserFull("basic", "User", "basicUser", "Test1234!", "NO_AUTH");
+    loginActions.loginAsUser("basicUser", "Test1234!");
+
+    // when an indicator type merge request is submitted
+    ApiResponse response =
+        indicatorApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .validateStatus(403);
+
+    // then a forbidden response is received
+    response
+        .validate()
+        .statusCode(403)
+        .body("httpStatus", equalTo("Forbidden"))
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo("required authority missing"));
   }
 
   private void setupIndicatorData() {

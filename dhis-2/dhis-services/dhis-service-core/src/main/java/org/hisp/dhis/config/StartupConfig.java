@@ -48,13 +48,11 @@ import org.hisp.dhis.startup.SettingUpgrader;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
-@EnableAspectJAutoProxy
 public class StartupConfig {
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
   public PeriodTypePopulator periodTypePopulator(
