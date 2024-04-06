@@ -72,6 +72,11 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
   }
 
   @Override
+  protected String getName() {
+    return TABLE_NAME;
+  }
+
+  @Override
   protected List<Column> getColumns() {
     return List.of(
         new Column("datasetid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -81,7 +86,8 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
         new Column("coenddate", DataType.DATE));
   }
 
-  private List<String> getPrimaryKey() {
+  @Override
+  protected List<String> getPrimaryKey() {
     return List.of("datasetid", "organisationunitid", "attributeoptioncomboid");
   }
 

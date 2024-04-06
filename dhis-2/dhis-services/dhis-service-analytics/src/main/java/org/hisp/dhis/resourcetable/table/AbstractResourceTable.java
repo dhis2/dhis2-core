@@ -45,13 +45,15 @@ public abstract class AbstractResourceTable implements ResourceTable {
 
   @Override
   public Table getMainTable() {
-    Table staging = getTable();
-    return new Table(
-        Table.fromStaging(staging.getName()),
-        staging.getColumns(),
-        staging.getPrimaryKey(),
-        staging.getLogged());
+    return new Table(getName(), getColumns(), getPrimaryKey(), logged);
   }
+
+  /**
+   * Returns the table name.
+   *
+   * @return the table name.
+   */
+  protected abstract String getName();
 
   /**
    * Returns a list of table columns.
@@ -59,6 +61,13 @@ public abstract class AbstractResourceTable implements ResourceTable {
    * @return a list of {@link Column}.
    */
   protected abstract List<Column> getColumns();
+
+  /**
+   * Returns a list of primary key column names.
+   *
+   * @return a list of primary key column names.
+   */
+  protected abstract List<String> getPrimaryKey();
 
   /**
    * @param relation the relation to quote, e.g. a table or column name.

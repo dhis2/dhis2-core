@@ -62,6 +62,12 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
+  @Override
+  protected String getName() {
+    return TABLE_NAME;
+  }
+
+  @Override
   protected List<Column> getColumns() {
     return List.of(
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -71,7 +77,8 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
         new Column("enddate", DataType.DATE));
   }
 
-  private List<String> getPrimaryKey() {
+  @Override
+  protected List<String> getPrimaryKey() {
     return List.of("categoryoptioncomboid");
   }
 

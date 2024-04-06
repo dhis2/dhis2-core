@@ -70,6 +70,11 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
   }
 
   @Override
+  protected String getName() {
+    return TABLE_NAME;
+  }
+
+  @Override
   protected List<Column> getColumns() {
     List<Column> columns =
         Lists.newArrayList(
@@ -87,7 +92,8 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
     return columns;
   }
 
-  private List<String> getPrimaryKey() {
+  @Override
+  protected List<String> getPrimaryKey() {
     return List.of("organisationunitid");
   }
 

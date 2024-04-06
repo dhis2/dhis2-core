@@ -58,6 +58,11 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   }
 
   @Override
+  protected String getName() {
+    return TABLE_NAME;
+  }
+
+  @Override
   protected List<Column> getColumns() {
     return List.of(
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -66,7 +71,8 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 
-  private List<String> getPrimaryKey() {
+  @Override
+  protected List<String> getPrimaryKey() {
     return List.of("dataelementid", "categoryoptioncomboid");
   }
 

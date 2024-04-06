@@ -69,6 +69,11 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
   }
 
   @Override
+  protected String getName() {
+    return TABLE_NAME;
+  }
+
+  @Override
   protected List<Column> getColumns() {
     return List.of(
         new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -76,7 +81,8 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
         new Column("level", DataType.INTEGER, Nullable.NOT_NULL));
   }
 
-  private List<String> getPrimaryKey() {
+  @Override
+  protected List<String> getPrimaryKey() {
     return List.of("workflowid", "dataapprovallevelid");
   }
 
