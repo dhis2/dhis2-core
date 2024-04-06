@@ -41,7 +41,6 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.period.PeriodType;
@@ -58,11 +57,6 @@ public class DataElementResourceTable extends AbstractResourceTable {
   public DataElementResourceTable(Logged logged, List<DataElement> dataElements) {
     super(logged);
     this.dataElements = dataElements;
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override

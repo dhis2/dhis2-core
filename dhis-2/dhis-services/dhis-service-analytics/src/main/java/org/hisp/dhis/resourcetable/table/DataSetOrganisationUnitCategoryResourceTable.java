@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.db.model.Table.toStaging;
-
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +41,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -64,11 +61,6 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
     super(logged);
     this.dataSets = dataSets;
     this.defaultOptionCombo = defaultOptionCombo;
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override

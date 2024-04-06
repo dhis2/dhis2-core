@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
@@ -42,6 +44,11 @@ import org.hisp.dhis.system.util.SqlUtils;
 public abstract class AbstractResourceTable implements ResourceTable {
 
   protected final Logged logged;
+
+  @Override
+  public Table getTable() {
+    return new Table(toStaging(getName()), getColumns(), getPrimaryKey(), logged);
+  }
 
   @Override
   public Table getMainTable() {

@@ -39,7 +39,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -55,11 +54,6 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
   public IndicatorGroupSetResourceTable(Logged logged, List<IndicatorGroupSet> groupSets) {
     super(logged);
     this.groupSets = groupSets;
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override

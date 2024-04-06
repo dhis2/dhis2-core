@@ -40,7 +40,6 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -55,11 +54,6 @@ public class DataElementGroupSetResourceTable extends AbstractResourceTable {
   public DataElementGroupSetResourceTable(Logged logged, List<DataElementGroupSet> groupSets) {
     super(logged);
     this.groupSets = groupSets;
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override

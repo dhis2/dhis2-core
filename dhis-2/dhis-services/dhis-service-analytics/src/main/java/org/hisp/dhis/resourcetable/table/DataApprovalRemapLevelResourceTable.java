@@ -36,7 +36,6 @@ import java.util.Optional;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -61,11 +60,6 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
 
   public DataApprovalRemapLevelResourceTable(Logged logged) {
     super(logged);
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override

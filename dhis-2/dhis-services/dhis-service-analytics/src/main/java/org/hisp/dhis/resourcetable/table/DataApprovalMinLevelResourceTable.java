@@ -37,7 +37,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -53,11 +52,6 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   public DataApprovalMinLevelResourceTable(Logged logged, List<OrganisationUnitLevel> levels) {
     super(logged);
     this.levels = levels;
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
