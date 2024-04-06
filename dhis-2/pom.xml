@@ -222,6 +222,9 @@
     <log4j.version>2.23.1</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
+    <!-- AspectJ -->
+    <aspectj.version>1.9.19</aspectj.version>
+
     <!-- Test -->
     <junit.version>5.10.2</junit.version>
     <mockito.version>5.2.0</mockito.version>
@@ -1632,6 +1635,12 @@
         <groupId>io.debezium</groupId>
         <artifactId>debezium-connector-postgres</artifactId>
         <version>${version.debezium}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>${aspectj.version}</version>
       </dependency>
 
       <!-- Test -->
