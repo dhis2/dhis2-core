@@ -13,6 +13,14 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Aspect that gets invoked wherever the {@link HasAuthorities} is used. Checks that the {@link
+ * org.hisp.dhis.user.User} has whatever {@link org.hisp.dhis.security.Authorities} are passed in
+ * {@link HasAuthorities}.
+ *
+ * <p>Throws {@link AccessDeniedException} if {@link org.hisp.dhis.user.User} does not have the
+ * required {@link org.hisp.dhis.security.Authorities}
+ */
 @Slf4j
 @Aspect
 @Component
