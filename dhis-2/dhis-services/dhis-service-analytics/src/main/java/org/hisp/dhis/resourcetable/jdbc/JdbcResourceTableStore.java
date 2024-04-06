@@ -145,7 +145,8 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     String sql =
         format(
             "insert into %s select * from %s",
-            analyticsSqlBuilder.quote(table.getName()), sqlBuilder.qualifyTable(table.getName()));
+            analyticsSqlBuilder.quote(table.getName()),
+            analyticsSqlBuilder.qualifyTable(table.getName()));
     log.info("Replicate table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
