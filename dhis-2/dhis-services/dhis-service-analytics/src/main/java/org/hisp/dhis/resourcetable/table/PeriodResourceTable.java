@@ -43,7 +43,6 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
-import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.period.Period;
@@ -64,11 +63,6 @@ public class PeriodResourceTable extends AbstractResourceTable {
   public PeriodResourceTable(Logged logged, List<Period> periods) {
     super(logged);
     this.periods = periods;
-  }
-
-  @Override
-  public Table getTable() {
-    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
