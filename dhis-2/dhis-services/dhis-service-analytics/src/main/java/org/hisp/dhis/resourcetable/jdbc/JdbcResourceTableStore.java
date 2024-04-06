@@ -61,14 +61,14 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder analyticsSqlBuilder;
 
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate analyticsJdbcTemplate;
-
-  private final SqlBuilder analyticsSqlBuilder;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -122,7 +122,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   private void dropAnalyticsTable(Table table) {
     String sql = analyticsSqlBuilder.dropTableIfExists(table);
     log.debug("Drop table SQL: '{}'", sql);
-    jdbcTemplate.execute(sql);
+    analyticsJdbcTemplate.execute(sql);
   }
 
   /**
@@ -133,7 +133,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
   private void createAnalyticsTable(Table table) {
     String sql = analyticsSqlBuilder.createTable(table);
     log.debug("Create table SQL: '{}'", sql);
-    jdbcTemplate.execute(sql);
+    analyticsJdbcTemplate.execute(sql);
   }
 
   /**
