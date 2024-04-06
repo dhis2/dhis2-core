@@ -74,13 +74,23 @@ public class SixMonthlyAprilPeriodType extends SixMonthlyAbstractPeriodType {
       month = calendar.fromIso(dateTimeUnit).getMonth();
     }
 
+    if (month == 6) {
+      dateTimeUnit.setMonth(4);
+      month = dateTimeUnit.getMonth();
+    }
+
+    if (month == 12) {
+      dateTimeUnit.setMonth(10);
+      month = dateTimeUnit.getMonth();
+    }
+
     switch (month) {
       case 4:
         return dateTimeUnit.getYear() + "AprilS1";
       case 10:
         return dateTimeUnit.getYear() + "AprilS2";
       default:
-        throw new IllegalArgumentException("Month not valid [4,10]");
+        throw new IllegalArgumentException(String.format("Month not valid [4,10]: %d", month));
     }
   }
 

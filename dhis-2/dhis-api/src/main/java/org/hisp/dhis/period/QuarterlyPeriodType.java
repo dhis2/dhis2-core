@@ -88,6 +88,19 @@ public class QuarterlyPeriodType extends QuarterlyAbstractPeriodType {
       newUnit = calendar.fromIso(newUnit);
     }
 
+    if(newUnit.getMonth() == 9){
+      newUnit.setMonth(10);
+    }
+    if(newUnit.getMonth() == 3){
+      newUnit.setMonth(4);
+    }
+    if(newUnit.getMonth() == 12){
+      newUnit.setMonth(1);
+    }
+    if(newUnit.getMonth() == 6){
+      newUnit.setMonth(7);
+    }
+
     switch (newUnit.getMonth()) {
       case 1:
         return newUnit.getYear() + "Q1";

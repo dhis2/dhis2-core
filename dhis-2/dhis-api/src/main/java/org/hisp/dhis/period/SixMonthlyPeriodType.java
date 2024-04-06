@@ -73,6 +73,18 @@ public class SixMonthlyPeriodType extends SixMonthlyAbstractPeriodType {
       month = calendar.fromIso(dateTimeUnit).getMonth();
     }
 
+    if (month == 9) {
+      dateTimeUnit.setMonth(7);
+      month = dateTimeUnit.getMonth();
+    }
+
+
+    if (month == 3) {
+      dateTimeUnit.setMonth(1);
+      month = dateTimeUnit.getMonth();
+    }
+
+
     switch (month) {
       case 1:
         return dateTimeUnit.getYear() + "S1";
