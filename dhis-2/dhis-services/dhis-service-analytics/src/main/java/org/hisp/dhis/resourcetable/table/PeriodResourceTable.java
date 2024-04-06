@@ -71,7 +71,8 @@ public class PeriodResourceTable extends AbstractResourceTable {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
-  private List<Column> getColumns() {
+  @Override
+  protected List<Column> getColumns() {
     List<Column> columns =
         Lists.newArrayList(
             new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),

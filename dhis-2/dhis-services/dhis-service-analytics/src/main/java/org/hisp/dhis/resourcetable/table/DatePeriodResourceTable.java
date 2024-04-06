@@ -66,7 +66,8 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
-  private List<Column> getColumns() {
+  @Override
+  protected List<Column> getColumns() {
     List<Column> columns =
         Lists.newArrayList(
             new Column("dateperiod", DataType.DATE, Nullable.NOT_NULL),

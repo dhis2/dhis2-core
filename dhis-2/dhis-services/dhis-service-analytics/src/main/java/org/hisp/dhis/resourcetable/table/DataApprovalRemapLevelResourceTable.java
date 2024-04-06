@@ -68,7 +68,8 @@ public class DataApprovalRemapLevelResourceTable extends AbstractResourceTable {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
-  private List<Column> getColumns() {
+  @Override
+  protected List<Column> getColumns() {
     return List.of(
         new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("dataapprovallevelid", DataType.BIGINT, Nullable.NOT_NULL),

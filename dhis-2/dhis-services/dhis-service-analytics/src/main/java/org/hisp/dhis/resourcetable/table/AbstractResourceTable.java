@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.resourcetable.ResourceTable;
@@ -41,14 +43,7 @@ public abstract class AbstractResourceTable implements ResourceTable {
 
   protected final Logged logged;
 
-  /**
-   * @param relation the relation to quote, e.g. a table or column name.
-   * @return a double quoted relation.
-   */
-  protected String quote(String relation) {
-    return SqlUtils.quote(relation);
-  }
-
+  @Override
   public Table getMainTable() {
     Table staging = getTable();
     return new Table(
@@ -56,5 +51,20 @@ public abstract class AbstractResourceTable implements ResourceTable {
         staging.getColumns(),
         staging.getPrimaryKey(),
         staging.getLogged());
+  }
+
+  /**
+   * Returns a list of table columns.
+   *
+   * @return a list of {@link Column}.
+   */
+  protected abstract List<Column> getColumns();
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return SqlUtils.quote(relation);
   }
 }

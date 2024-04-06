@@ -57,7 +57,8 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
-  private List<Column> getColumns() {
+  @Override
+  protected List<Column> getColumns() {
     return List.of(
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),

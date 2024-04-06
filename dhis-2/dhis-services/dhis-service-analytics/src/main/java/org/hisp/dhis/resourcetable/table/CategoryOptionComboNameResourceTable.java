@@ -62,7 +62,7 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
-  private List<Column> getColumns() {
+  protected List<Column> getColumns() {
     return List.of(
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("categoryoptioncomboname", DataType.VARCHAR_255),
