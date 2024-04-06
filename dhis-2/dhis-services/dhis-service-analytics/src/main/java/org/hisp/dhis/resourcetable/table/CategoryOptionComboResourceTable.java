@@ -66,8 +66,8 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   protected List<Column> getColumns() {
     return List.of(
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 

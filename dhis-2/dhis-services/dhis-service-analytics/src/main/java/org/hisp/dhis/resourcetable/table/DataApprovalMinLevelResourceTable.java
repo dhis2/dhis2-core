@@ -70,8 +70,8 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
     return List.of(
         new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("minlevel", DataType.INTEGER, Nullable.NOT_NULL));
   }
 
