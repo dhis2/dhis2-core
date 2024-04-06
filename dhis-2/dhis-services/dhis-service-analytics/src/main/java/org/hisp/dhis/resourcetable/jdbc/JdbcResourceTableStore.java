@@ -121,7 +121,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    */
   private void dropAnalyticsTable(Table table) {
     String sql = analyticsSqlBuilder.dropTableIfExists(table);
-    log.debug("Drop table SQL: '{}'", sql);
+    log.info("Drop table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
 
@@ -132,7 +132,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    */
   private void createAnalyticsTable(Table table) {
     String sql = analyticsSqlBuilder.createTable(table);
-    log.debug("Create table SQL: '{}'", sql);
+    log.info("Create table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
 
@@ -145,7 +145,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     String sql =
         format(
             "insert into %s select * from %s",
-            sqlBuilder.quote(table.getName()), sqlBuilder.qualifyTable(table.getName()));
+            analyticsSqlBuilder.quote(table.getName()), sqlBuilder.qualifyTable(table.getName()));
     log.info("Replicate table SQL: '{}'", sql);
     analyticsJdbcTemplate.execute(sql);
   }
