@@ -32,14 +32,10 @@ import static java.util.Comparator.reverseOrder;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
-
-import com.google.common.collect.Lists;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -76,6 +72,9 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -143,11 +142,14 @@ public class DefaultResourceTableService implements ResourceTableService {
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo()),
         new CategoryOptionComboNameResourceTable(
-            logged, idObjectManager.getAllNoAcl(CategoryCombo.class)),
+            logged,
+            idObjectManager.getAllNoAcl(CategoryCombo.class)),
         new DataElementGroupSetResourceTable(
-            logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
+            logged,
+            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
-            logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+            logged,
+            idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
         new OrganisationUnitGroupSetResourceTable(
             logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
@@ -156,10 +158,14 @@ public class DefaultResourceTableService implements ResourceTableService {
             logged,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)),
-        new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
-        new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
-        new PeriodResourceTable(logged, periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(logged));
+        new DataElementResourceTable(
+            logged,
+            idObjectManager.getAllNoAcl(DataElement.class)),
+        new DatePeriodResourceTable(
+            logged, getAndValidateAvailableDataYears()),
+        new PeriodResourceTable(
+            logged, periodService.getAllPeriods()),
+        new CategoryOptionComboResourceTable(analyticsTableSettings.getTableLogged()));
   }
 
   /**
