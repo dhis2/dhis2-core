@@ -317,8 +317,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     StringBuilder sql =
         new StringBuilder(replace("insert into ${tableName} (", Map.of("tableName", tableName)));
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> dimensions = partition.getDimensionColumns();
+    List<AnalyticsTableColumn> columns = partition.getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql.append(quote(col.getName()) + ",");

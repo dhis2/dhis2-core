@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import org.hisp.dhis.db.model.Table;
 import lombok.Getter;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Class representing an analytics database table partition.
@@ -74,17 +74,10 @@ public class AnalyticsTablePartition extends AnalyticsTable {
   /**
    * Constructor. Sets the name to represent a staging table partition.
    *
-   * @param masterTable the master {@link AnalyticsTable}.
+   * @param maserTable the master {@link AnalyticsTable}.
    */
-  public AnalyticsTablePartition(AnalyticsTable masterTable) {
-    super(masterTable,
-        toStaging(getTableName(table.getMainName(), null)), checks);
-        List.of(),
-        List.of(),
-        List.of(),
-        table.getLogged(),
-        table);
-    this.masterTable = table;
+  public AnalyticsTablePartition(AnalyticsTable maserTable) {
+    super(maserTable, toStaging(getTableName(maserTable.getMainName(), null)), List.of());
     this.year = null;
     this.startDate = null;
     this.endDate = null;
