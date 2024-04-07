@@ -189,10 +189,7 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
               """,
                   Map.of(
                       "level", valueOf(i),
-                      "groupSetId", valueOf(groupSet.getId()),
-                      "orgunitgroup", quote("orgunitgroup"),
-                      "orgunitgroupmembers", quote("orgunitgroupmembers"),
-                      "orgunitgroupsetmembers", quote("orgunitgroupsetmembers")));
+                      "groupSetId", valueOf(groupSet.getId())));
         }
 
         if (organisationUnitLevels == 0) {
