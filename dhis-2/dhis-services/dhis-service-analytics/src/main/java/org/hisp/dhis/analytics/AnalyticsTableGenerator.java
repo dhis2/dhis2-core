@@ -42,7 +42,7 @@ public interface AnalyticsTableGenerator {
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param progress job progress tracking and control flow
    */
-  void generateTables(AnalyticsTableUpdateParams params, JobProgress progress);
+  void generateAnalyticsTables(AnalyticsTableUpdateParams params, JobProgress progress);
 
   /**
    * Generates all resource tables.

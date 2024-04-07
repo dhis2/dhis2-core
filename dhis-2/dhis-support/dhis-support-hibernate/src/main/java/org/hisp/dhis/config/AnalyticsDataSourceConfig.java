@@ -73,7 +73,7 @@ public class AnalyticsDataSourceConfig {
       @Qualifier("actualDataSource") DataSource actualDataSource) {
     if (config.isAnalyticsDatabaseConfigured()) {
       log.info(
-          "Analytics data source found, database: '{}', connection URL: '{}'",
+          "Analytics data source detected with database: '{}', connection URL: '{}'",
           config.getProperty(ANALYTICS_DATABASE),
           config.getProperty(ANALYTICS_CONNECTION_URL));
 
