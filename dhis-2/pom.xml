@@ -223,7 +223,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- AspectJ -->
-    <aspectj.version>1.9.20.1</aspectj.version>
+    <aspectj.version>1.9.22</aspectj.version>
 
     <!-- Test -->
     <junit.version>5.10.2</junit.version>

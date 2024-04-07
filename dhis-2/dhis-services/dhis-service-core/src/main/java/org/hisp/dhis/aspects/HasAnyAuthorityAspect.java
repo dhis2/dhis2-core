@@ -55,11 +55,13 @@ import org.springframework.stereotype.Component;
 public class HasAnyAuthorityAspect {
 
   @Before("@annotation(hasAnyAuthority)")
-  public void hasAuthorities(final JoinPoint joinPoint, final HasAnyAuthority hasAnyAuthority) {
+  public void hasAnyAuthority(final JoinPoint joinPoint, final HasAnyAuthority hasAnyAuthority) {
+    // get user authorities
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     Authentication authentication = securityContext.getAuthentication();
     Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
 
+    // check if user has any of the required authorities passed in
     if (Arrays.stream(hasAnyAuthority.authorities())
         .noneMatch(
             reqAuth ->
