@@ -33,10 +33,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Annotation that allows easy checking of authorities in endpoints */
+/**
+ * Annotation that takes in any number of {@link Authorities}. This allows us to check if a {@link
+ * org.hisp.dhis.user.User} has any of the {@link Authorities} passed in. Works in conjunction with
+ * Spring AOP.
+ */
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HasAuthorities {
+public @interface HasAnyAuthority {
   Authorities[] authorities();
 }

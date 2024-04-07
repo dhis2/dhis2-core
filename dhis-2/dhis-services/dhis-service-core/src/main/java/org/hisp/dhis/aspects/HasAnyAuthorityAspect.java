@@ -30,9 +30,10 @@ package org.hisp.dhis.aspects;
 import java.util.Arrays;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.hisp.dhis.security.HasAuthorities;
+import org.hisp.dhis.security.HasAnyAuthority;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -41,30 +42,34 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
- * Aspect that gets invoked wherever the {@link HasAuthorities} is used. Checks that the {@link
- * org.hisp.dhis.user.User} has whatever {@link org.hisp.dhis.security.Authorities} are passed in
- * {@link HasAuthorities}.
+ * Aspect which has a join point wherever the {@link HasAnyAuthority} is used. Checks that the
+ * {@link org.hisp.dhis.user.User} has any one of {@link org.hisp.dhis.security.Authorities} which
+ * are passed in {@link HasAnyAuthority} as args.
  *
- * <p>Throws {@link AccessDeniedException} if {@link org.hisp.dhis.user.User} does not have the
- * required {@link org.hisp.dhis.security.Authorities}
+ * <p>Throws {@link AccessDeniedException} if {@link org.hisp.dhis.user.User} does not have any of
+ * the passed-in {@link org.hisp.dhis.security.Authorities}.
  */
 @Slf4j
 @Aspect
 @Component
-public class HasAuthoritiesAspect {
+public class HasAnyAuthorityAspect {
 
-  @Before("@annotation(requiredAuthorities)")
-  public void hasAuthorities(final HasAuthorities requiredAuthorities) {
+  @Before("@annotation(hasAnyAuthority)")
+  public void hasAuthorities(final JoinPoint joinPoint, final HasAnyAuthority hasAnyAuthority) {
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     Authentication authentication = securityContext.getAuthentication();
     Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
 
-    if (Arrays.stream(requiredAuthorities.authorities())
+    if (Arrays.stream(hasAnyAuthority.authorities())
         .noneMatch(
             reqAuth ->
                 userAuthorities.stream()
                     .anyMatch(userAuth -> reqAuth.name().equals(userAuth.getAuthority())))) {
-      throw new AccessDeniedException("Required authority missing");
+      log.debug(
+          "User {} does not have the required authority for method {}",
+          authentication.getName(),
+          joinPoint.getSignature().toShortString());
+      throw new AccessDeniedException("Access is denied");
     }
   }
 }

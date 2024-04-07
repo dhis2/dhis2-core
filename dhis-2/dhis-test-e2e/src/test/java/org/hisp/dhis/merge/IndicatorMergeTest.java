@@ -301,7 +301,7 @@ class IndicatorMergeTest extends ApiTest {
         .statusCode(403)
         .body("httpStatus", equalTo("Forbidden"))
         .body("status", equalTo("ERROR"))
-        .body("message", equalTo("Required authority missing"));
+        .body("message", equalTo("Access is denied"));
   }
 
   private void setupIndicatorData() {

@@ -1641,6 +1641,7 @@
         <groupId>org.aspectj</groupId>
         <artifactId>aspectjweaver</artifactId>
         <version>${aspectj.version}</version>
+        <scope>runtime</scope>
       </dependency>
 
       <!-- Test -->
