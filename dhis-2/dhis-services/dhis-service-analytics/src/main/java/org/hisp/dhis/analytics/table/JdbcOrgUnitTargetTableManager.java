@@ -131,7 +131,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
 
     String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += quote(col.getName()) + ",";

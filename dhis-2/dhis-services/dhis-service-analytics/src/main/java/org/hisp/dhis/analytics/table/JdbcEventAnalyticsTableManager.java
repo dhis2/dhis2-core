@@ -420,7 +420,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
-    Program program = partition.getMasterTable().getProgram();
+    Program program = partition.getProgram();
     String partitionClause = getPartitionClause(partition);
 
     StringBuilder fromClause = new StringBuilder();

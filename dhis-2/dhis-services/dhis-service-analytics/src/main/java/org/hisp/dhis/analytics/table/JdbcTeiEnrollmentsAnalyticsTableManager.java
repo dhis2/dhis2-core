@@ -185,7 +185,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -217,8 +217,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         and pi.occurreddate is not null \
         and pi.deleted = false\s""",
                 Map.of(
-                    "teiId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "teiId", String.valueOf(partition.getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 

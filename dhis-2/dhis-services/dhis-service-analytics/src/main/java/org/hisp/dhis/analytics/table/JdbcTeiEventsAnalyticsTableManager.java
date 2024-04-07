@@ -266,7 +266,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
@@ -308,8 +308,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
                     "program",
                     "organisationunit"),
                 Map.of(
-                    "tetId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "tetId", String.valueOf(partition.getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
                     "partitionClause", partitionClause)));

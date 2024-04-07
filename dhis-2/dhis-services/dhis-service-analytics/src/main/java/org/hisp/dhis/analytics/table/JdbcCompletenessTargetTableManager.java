@@ -137,7 +137,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
 
     String sql = "insert into " + tableName + " (";
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getAnalyticsTableColumns();
 
     for (AnalyticsTableColumn col : columns) {
       sql += quote(col.getName()) + ",";

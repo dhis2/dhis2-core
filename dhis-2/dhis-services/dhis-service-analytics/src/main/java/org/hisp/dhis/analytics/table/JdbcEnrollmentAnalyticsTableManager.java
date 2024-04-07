@@ -204,7 +204,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
 
   @Override
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    Program program = partition.getMasterTable().getProgram();
+    Program program = partition.getProgram();
 
     String fromClause =
         replaceQualify(
