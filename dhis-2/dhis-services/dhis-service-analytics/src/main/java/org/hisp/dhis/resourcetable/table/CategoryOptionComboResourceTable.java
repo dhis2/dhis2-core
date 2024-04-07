@@ -65,8 +65,8 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
   private List<Column> getColumns() {
     return List.of(
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 
@@ -94,9 +94,9 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         replace(
             """
         insert into ${tableName} \
-        (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
-        select de.dataelementid as dataelementid, de.uid as dataelementuid, \
-        coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
+        (dataelementid, categoryoptioncomboid, dataelementuid, categoryoptioncombouid) \
+        select de.dataelementid as dataelementid, coc.categoryoptioncomboid as categoryoptioncomboid, \
+        de.uid as dataelementuid, coc.uid as categoryoptioncombouid \
         from dataelement de \
         inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
         inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
