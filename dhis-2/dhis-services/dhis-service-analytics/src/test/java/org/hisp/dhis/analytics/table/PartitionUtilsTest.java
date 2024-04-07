@@ -115,7 +115,8 @@ class PartitionUtilsTest {
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
         new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED);
-    List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(List.of(tA, tB));
+    List<AnalyticsTablePartition> partitions =
+        PartitionUtils.getTablePartitions(List.of(tA, tB), false);
 
     assertEquals(3, partitions.size());
   }

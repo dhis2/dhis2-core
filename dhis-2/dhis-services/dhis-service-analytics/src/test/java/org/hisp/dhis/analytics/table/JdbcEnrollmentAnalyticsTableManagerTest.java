@@ -129,7 +129,10 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
         AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
 
     subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+        params,
+        PartitionUtils.getTablePartitions(
+                subject.getAnalyticsTables(params), sqlBuilder.supportsDeclarativePartitioning())
+            .get(0));
 
     verify(jdbcTemplate).execute(sql.capture());
 

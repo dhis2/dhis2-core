@@ -205,13 +205,15 @@ public class PartitionUtils {
    * no partitions, a fake partition representing the master table is used.
    *
    * @param tables the list of {@link AnalyticsTable}.
+   * @param supportsDeclarativePartitioning indicates if declarative partitioning is supported.
    * @return a list of {@link AnalyticsTablePartition}.
    */
-  public static List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
+  public static List<AnalyticsTablePartition> getTablePartitions(
+      List<AnalyticsTable> tables, boolean supportsDeclarativePartitioning) {
     List<AnalyticsTablePartition> partitions = new ArrayList<>();
 
     for (AnalyticsTable table : tables) {
-      if (table.hasTablePartitions()) { // && supports declarative partitioning check
+      if (table.hasTablePartitions() && !supportsDeclarativePartitioning) {
         partitions.addAll(table.getTablePartitions());
       } else {
         // Fake partition representing the master table

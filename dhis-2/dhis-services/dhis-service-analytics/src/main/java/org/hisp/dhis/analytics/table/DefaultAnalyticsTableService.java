@@ -133,7 +133,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
-    List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(tables);
+    List<AnalyticsTablePartition> partitions =
+        PartitionUtils.getTablePartitions(tables, sqlBuilder.supportsDeclarativePartitioning());
 
     progress.startingStage("Populating analytics tables " + tableType, partitions.size());
     populateTables(params, partitions, progress);

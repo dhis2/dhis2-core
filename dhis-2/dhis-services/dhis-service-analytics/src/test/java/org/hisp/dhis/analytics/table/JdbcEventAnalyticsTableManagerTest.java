@@ -619,7 +619,8 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(List.of(2018, 2019));
 
     subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+        params,
+        PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params), false).get(0));
 
     verify(jdbcTemplate).execute(sql.capture());
 
@@ -669,7 +670,8 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(List.of(2018, 2019));
 
     subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+        params,
+        PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params), false).get(0));
 
     verify(jdbcTemplate).execute(sql.capture());
 
@@ -719,7 +721,10 @@ class JdbcEventAnalyticsTableManagerTest {
 
     // When
     subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+        params,
+        PartitionUtils.getTablePartitions(
+                subject.getAnalyticsTables(params), sqlBuilder.supportsDeclarativePartitioning())
+            .get(0));
 
     // Then
     verify(jdbcTemplate).execute(sql.capture());
@@ -958,7 +963,8 @@ class JdbcEventAnalyticsTableManagerTest {
             .build();
 
     subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+        params,
+        PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params), false).get(0));
 
     verify(jdbcTemplate).execute(sql.capture());
 
