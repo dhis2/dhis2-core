@@ -109,15 +109,6 @@ public class AnalyticsTablePartition extends AnalyticsTable {
   // -------------------------------------------------------------------------
 
   /**
-   * Returns the main table partition name.
-   *
-   * @return the main table partition name.
-   */
-  public String getMainName() {
-    return fromStaging(getName());
-  }
-
-  /**
    * Indicates whether this partition represents the latest data partition.
    *
    * @return true if this partition represents the latest data partition.
