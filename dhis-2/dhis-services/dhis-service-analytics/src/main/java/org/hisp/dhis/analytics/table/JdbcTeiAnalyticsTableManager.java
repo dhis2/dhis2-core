@@ -391,12 +391,12 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(
             replace(
                 """
-            \s from trackedentity tei \
-            left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-            left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
-            and (cast(${teiCreatedMonth} as date) = ougs.startdate \
-            or ougs.startdate is null)""",
+                \s from trackedentity tei \
+                left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
+                and (cast(${teiCreatedMonth} as date) = ougs.startdate \
+                or ougs.startdate is null)""",
                 Map.of("teiCreatedMonth", sqlBuilder.dateTrunc("month", "tei.created"))));
 
     ((List<TrackedEntityAttribute>)
@@ -414,16 +414,16 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-        \s where tei.trackedentitytypeid = ${tetId} \
-        and tei.lastupdated < '${startTime}' \
-        and exists (select 1 from enrollment pi \
-        where pi.trackedentityid = tei.trackedentityid \
-        and exists (select 1 from event psi \
-        where psi.enrollmentid = pi.enrollmentid \
-        and psi.status in (${statuses}) \
-        and psi.deleted = false)) \
-        and tei.created is not null \
-        and tei.deleted = false""",
+            \s where tei.trackedentitytypeid = ${tetId} \
+            and tei.lastupdated < '${startTime}' \
+            and exists (select 1 from enrollment pi \
+            where pi.trackedentityid = tei.trackedentityid \
+            and exists (select 1 from event psi \
+            where psi.enrollmentid = pi.enrollmentid \
+            and psi.status in (${statuses}) \
+            and psi.deleted = false)) \
+            and tei.created is not null \
+            and tei.deleted = false""",
             Map.of(
                 "tetId", String.valueOf(trackedEntityType.getId()),
                 "startTime", toLongDate(params.getStartTime()),
