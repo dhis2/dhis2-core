@@ -30,8 +30,7 @@ package org.hisp.dhis.resourcetable.table;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,33 +42,33 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.resourcetable.util.UniqueNameContext;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class CategoryResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class CategoryResourceTable implements ResourceTable {
   private static final String TABLE_NAME = "analytics_rs_categorystructure";
+
+  private final Logged logged;
 
   private final List<Category> categories;
 
   private final List<CategoryOptionGroupSet> groupSets;
 
-  public CategoryResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<Category> categories,
-      List<CategoryOptionGroupSet> groupSets) {
-    super(sqlBuilder, logged);
-    this.categories = categories;
-    this.groupSets = groupSets;
-  }
-
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
+  }
+
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -167,7 +166,7 @@ public class CategoryResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from categoryoptioncombo coc ";
+    sql += "from categoryoptioncombo coc;";
 
     return Optional.of(sql);
   }

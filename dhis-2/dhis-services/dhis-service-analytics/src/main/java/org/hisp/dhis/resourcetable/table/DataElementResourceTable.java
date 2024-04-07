@@ -31,7 +31,6 @@ import static java.lang.String.valueOf;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,27 +43,30 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataElementResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class DataElementResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementstructure";
 
-  private final List<DataElement> dataElements;
+  private final Logged logged;
 
-  public DataElementResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<DataElement> dataElements) {
-    super(sqlBuilder, logged);
-    this.dataElements = dataElements;
-  }
+  private final List<DataElement> dataElements;
 
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
+  }
+
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {

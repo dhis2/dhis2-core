@@ -32,8 +32,7 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,33 +43,33 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
+
+  private final Logged logged;
 
   private final List<OrganisationUnitGroupSet> groupSets;
 
   private final int organisationUnitLevels;
 
-  public OrganisationUnitGroupSetResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<OrganisationUnitGroupSet> groupSets,
-      int organisationUnitLevels) {
-    super(sqlBuilder, logged);
-    this.groupSets = groupSets;
-    this.organisationUnitLevels = organisationUnitLevels;
-  }
-
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
+  }
+
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -172,15 +171,15 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
           sql += "null";
         }
 
-        sql = removeLastComma(sql) + ") as " + sqlBuilder.quote(groupSet.getName()) + ", ";
+        sql = removeLastComma(sql) + ") as " + quote(groupSet.getName()) + ", ";
 
         sql += "coalesce(";
 
         for (int i = organisationUnitLevels; i > 0; i--) {
           sql +=
               replace(
-                  """
-                  (
+              """
+              (
               select oug.uid from orgunitgroup oug \
               inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
               and ougm.organisationunitid = ous.idlevel${level} \
@@ -204,8 +203,7 @@ public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable
     sql +=
         """
         from organisationunit ou \
-        inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid;
-        """;
+        inner join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid;""";
 
     return Optional.of(sql);
   }

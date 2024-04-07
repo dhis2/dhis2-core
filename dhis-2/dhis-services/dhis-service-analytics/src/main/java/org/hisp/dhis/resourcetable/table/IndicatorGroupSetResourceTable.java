@@ -30,8 +30,7 @@ package org.hisp.dhis.resourcetable.table;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,27 +40,31 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class IndicatorGroupSetResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_indicatorgroupsetstructure";
 
-  private final List<IndicatorGroupSet> groupSets;
+  private final Logged logged;
 
-  public IndicatorGroupSetResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<IndicatorGroupSet> groupSets) {
-    super(sqlBuilder, logged);
-    this.groupSets = groupSets;
-  }
+  private final List<IndicatorGroupSet> groupSets;
 
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
+  }
+
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {
@@ -124,7 +127,7 @@ public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
-    sql += "from indicator i";
+    sql += "from indicator i;";
 
     return Optional.of(sql);
   }

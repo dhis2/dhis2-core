@@ -29,11 +29,8 @@ package org.hisp.dhis.analytics.table.scheduling;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.Date;
 import java.util.Objects;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.common.TableInfoReader;
@@ -46,6 +43,8 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Job for continuous update of analytics tables. Performs analytics table update on a schedule
@@ -109,7 +108,7 @@ public class ContinuousAnalyticsTableJob implements Job {
               .build();
 
       try {
-        analyticsTableGenerator.generateTables(params, progress);
+        analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
         systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
@@ -128,7 +127,7 @@ public class ContinuousAnalyticsTableJob implements Job {
               .withStartTime(startTime)
               .build();
 
-      analyticsTableGenerator.generateTables(params, progress);
+      analyticsTableGenerator.generateAnalyticsTables(params, progress);
     }
   }
 

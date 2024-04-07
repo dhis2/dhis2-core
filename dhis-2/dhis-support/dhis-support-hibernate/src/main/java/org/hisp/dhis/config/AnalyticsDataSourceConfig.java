@@ -31,13 +31,9 @@ import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-
-import com.google.common.base.MoreObjects;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
@@ -51,6 +47,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import com.google.common.base.MoreObjects;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
@@ -73,7 +72,7 @@ public class AnalyticsDataSourceConfig {
       @Qualifier("actualDataSource") DataSource actualDataSource) {
     if (config.isAnalyticsDatabaseConfigured()) {
       log.info(
-          "Analytics data source found, database: '{}', connection URL: '{}'",
+          "Analytics data source detected with database: '{}', connection URL: '{}'",
           config.getProperty(ANALYTICS_DATABASE),
           config.getProperty(ANALYTICS_CONNECTION_URL));
 
