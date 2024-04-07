@@ -29,11 +29,15 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
+
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.db.model.Column;
@@ -49,9 +53,6 @@ import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.joda.time.DateTime;
-import com.google.common.collect.Lists;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +63,7 @@ public class PeriodResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_periodstructure";
 
   private final Logged logged;
-  
+
   private final List<Period> periods;
 
   @Override

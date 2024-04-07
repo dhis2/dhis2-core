@@ -29,9 +29,11 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
@@ -39,7 +41,6 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Remaps approval levels within a workflow for analytics tables approved data visibility. This
@@ -62,7 +63,7 @@ public class DataApprovalRemapLevelResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalremaplevel";
 
   private final Logged logged;
-  
+
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);

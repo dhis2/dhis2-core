@@ -29,9 +29,11 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
@@ -41,7 +43,6 @@ import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
@@ -51,7 +52,7 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalminlevel";
 
   private final Logged logged;
-  
+
   private final List<OrganisationUnitLevel> levels;
 
   @Override
