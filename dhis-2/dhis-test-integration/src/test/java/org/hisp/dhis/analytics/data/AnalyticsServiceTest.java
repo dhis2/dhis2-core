@@ -264,7 +264,7 @@ class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
             SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, Date.class));
     processStartTime = new Date();
     // Generate analytics tables
-    analyticsTableGenerator.generateTables(
+    analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(tenSecondsFromNow).build(),
         NoopJobProgress.INSTANCE);
   }
