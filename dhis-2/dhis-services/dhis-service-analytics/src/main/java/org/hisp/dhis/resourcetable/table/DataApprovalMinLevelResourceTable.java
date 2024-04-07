@@ -89,9 +89,9 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
         replace(
             """
         insert into ${tableName} \
-        (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
-        select da.workflowid, da.periodid, da.organisationunitid, \
-        da.attributeoptioncomboid, dal.level as minlevel \
+        (workflowid,periodid,attributeoptioncomboid,organisationunitid,minlevel) \
+        select da.workflowid, da.periodid, da.attributeoptioncomboid, \
+        da.organisationunitid, dal.level as minlevel \
         from dataapproval da \
         inner join analytics_rs_dataapprovalremaplevel dal on \
         dal.workflowid = da.workflowid and dal.dataapprovallevelid = da.dataapprovallevelid \

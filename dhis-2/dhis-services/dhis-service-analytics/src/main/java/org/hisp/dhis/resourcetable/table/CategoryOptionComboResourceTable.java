@@ -94,9 +94,9 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
         replace(
             """
         insert into ${tableName} \
-        (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
-        select de.dataelementid as dataelementid, de.uid as dataelementuid, \
-        coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
+        (dataelementid, categoryoptioncomboid, dataelementuid, categoryoptioncombouid) \
+        select de.dataelementid as dataelementid, coc.categoryoptioncomboid as categoryoptioncomboid, \
+        de.uid as dataelementuid, coc.uid as categoryoptioncombouid \
         from dataelement de \
         inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
         inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
