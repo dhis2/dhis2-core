@@ -299,8 +299,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
             + ") a "
             + "inner join \"trackedentity\" tei on a.trackedentityid = tei.trackedentityid "
             + "inner join \"organisationunit\" ou on a.organisationunitid = ou.organisationunitid "
-            + "left join \"analytics_rs_orgunitstructure\" ous on a.organisationunitid = ous.organisationunitid "
-            + "left join \"analytics_rs_organisationunitgroupsetstructure\" ougs on a.organisationunitid = ougs.organisationunitid "
+            + "left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+            + "left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
             + "order by tei.uid, a.startdate, a.enddate",
         sqlMasked);
 
