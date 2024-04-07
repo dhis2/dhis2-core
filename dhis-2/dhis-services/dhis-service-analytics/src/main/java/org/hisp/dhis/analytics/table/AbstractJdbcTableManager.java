@@ -437,6 +437,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
     Timer timer = new SystemTimer().start();
 
+    log.info("Populate table SQL: '{}'", sql);
+
     jdbcTemplate.execute(sql);
 
     String logMessage = TextUtils.format(logPattern, arguments);

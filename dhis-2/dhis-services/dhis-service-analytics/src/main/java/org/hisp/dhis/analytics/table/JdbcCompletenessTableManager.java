@@ -265,7 +265,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   private List<AnalyticsTableColumn> getColumns() {
     String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
     String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
-    String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
+    String timelyExpression = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
@@ -275,7 +275,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
-    columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyAlias));
+    columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyExpression));
     columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "cdr.date as value"));
 
     return filterDimensionColumns(columns);
