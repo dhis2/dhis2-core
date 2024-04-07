@@ -216,7 +216,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             inner join ${organisationunit} ou on pi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on pi.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid \
-            and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(${enrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join analytics_rs_dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod \
             where pr.programid=${programId}  \
             and pi.organisationunitid is not null \
@@ -225,6 +225,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and pi.deleted = false\s""",
             List.of("enrollment", "program", "trackedentity", "organisationunit"),
             Map.of(
+                "enrollmentDateMonth", sqlBuilder.dateTrunc("month", "pi.enrollmentdate"),
                 "programId", String.valueOf(program.getId()),
                 "startTime", toLongDate(params.getStartTime())));
 

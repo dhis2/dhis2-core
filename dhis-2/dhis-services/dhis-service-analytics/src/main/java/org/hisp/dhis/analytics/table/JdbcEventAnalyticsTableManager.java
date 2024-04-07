@@ -439,7 +439,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             inner join ${organisationunit} ou on psi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid \
-            and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(${eventDateMonth}) as date)=ougs.startdate or ougs.startdate is null) \
             left join ${organisationunit} enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
@@ -460,6 +460,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "trackedentity",
                 "organisationunit"),
             Map.of(
+                "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
                 "startTime", toLongDate(params.getStartTime()),

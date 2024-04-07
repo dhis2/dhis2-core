@@ -175,17 +175,16 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
             inner join ${validationrule} vr on vr.validationruleid=vrs.validationruleid
             inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null)
+            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
             left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
             inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
             List.of("validationresult", "period", "validationrule"),
             Map.of(
-                "startTime",
-                toLongDate(params.getStartTime()),
-                "partitionClause",
-                partitionClause));
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"),
+                "startTime", toLongDate(params.getStartTime()),
+                "partitionClause", partitionClause));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
