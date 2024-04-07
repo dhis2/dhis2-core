@@ -30,7 +30,6 @@ package org.hisp.dhis.resourcetable.table;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +37,7 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
@@ -52,12 +52,16 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
   }
 
   @Override
-  protected String getName() {
-    return TABLE_NAME;
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
-  protected List<Column> getColumns() {
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
+  private List<Column> getColumns() {
     return List.of(
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -65,8 +69,7 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 
-  @Override
-  protected List<String> getPrimaryKey() {
+  private List<String> getPrimaryKey() {
     return List.of("dataelementid", "categoryoptioncomboid");
   }
 

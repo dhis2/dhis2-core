@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.db.model.Table.toStaging;
 import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,11 +38,13 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -65,12 +65,16 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
   }
 
   @Override
-  protected String getName() {
-    return TABLE_NAME;
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
-  protected List<Column> getColumns() {
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
+  private List<Column> getColumns() {
     List<Column> columns =
         Lists.newArrayList(
             new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -89,8 +93,7 @@ public class OrganisationUnitStructureResourceTable extends AbstractResourceTabl
     return columns;
   }
 
-  @Override
-  protected List<String> getPrimaryKey() {
+  private List<String> getPrimaryKey() {
     return List.of("organisationunitid");
   }
 

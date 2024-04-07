@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.db.model.Table.toStaging;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -38,12 +38,14 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -59,12 +61,16 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
   }
 
   @Override
-  protected String getName() {
-    return TABLE_NAME;
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
-  protected List<Column> getColumns() {
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
+  private List<Column> getColumns() {
     List<Column> columns =
         Lists.newArrayList(
             new Column("dateperiod", DataType.DATE, Nullable.NOT_NULL),
@@ -77,8 +83,7 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
     return columns;
   }
 
-  @Override
-  protected List<String> getPrimaryKey() {
+  private List<String> getPrimaryKey() {
     return List.of("dateperiod");
   }
 

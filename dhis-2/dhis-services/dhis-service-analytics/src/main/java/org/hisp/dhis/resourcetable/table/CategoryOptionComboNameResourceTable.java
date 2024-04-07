@@ -28,18 +28,19 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
-
+import static org.hisp.dhis.db.model.Table.toStaging;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -56,12 +57,16 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
   }
 
   @Override
-  protected String getName() {
-    return TABLE_NAME;
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
-  protected List<Column> getColumns() {
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
+  private List<Column> getColumns() {
     return List.of(
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("categoryoptioncomboname", DataType.VARCHAR_255),
@@ -70,8 +75,7 @@ public class CategoryOptionComboNameResourceTable extends AbstractResourceTable 
         new Column("enddate", DataType.DATE));
   }
 
-  @Override
-  protected List<String> getPrimaryKey() {
+  private List<String> getPrimaryKey() {
     return List.of("categoryoptioncomboid");
   }
 

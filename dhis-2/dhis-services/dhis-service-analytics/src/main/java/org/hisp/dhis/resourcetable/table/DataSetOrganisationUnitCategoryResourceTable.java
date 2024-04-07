@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.db.model.Table.toStaging;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,10 +41,12 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -64,12 +66,16 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
   }
 
   @Override
-  protected String getName() {
-    return TABLE_NAME;
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
-  protected List<Column> getColumns() {
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
+  private List<Column> getColumns() {
     return List.of(
         new Column("datasetid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -78,8 +84,7 @@ public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResour
         new Column("coenddate", DataType.DATE));
   }
 
-  @Override
-  protected List<String> getPrimaryKey() {
+  private List<String> getPrimaryKey() {
     return List.of("datasetid", "organisationunitid", "attributeoptioncomboid");
   }
 

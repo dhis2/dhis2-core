@@ -29,7 +29,6 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +36,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTableType;
@@ -55,12 +55,16 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
   }
 
   @Override
-  protected String getName() {
-    return TABLE_NAME;
+  public Table getTable() {
+    return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
   @Override
-  protected List<Column> getColumns() {
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
+  private List<Column> getColumns() {
     return List.of(
         new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),
@@ -69,8 +73,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
         new Column("minlevel", DataType.INTEGER, Nullable.NOT_NULL));
   }
 
-  @Override
-  protected List<String> getPrimaryKey() {
+  private List<String> getPrimaryKey() {
     return List.of("workflowid", "periodid", "attributeoptioncomboid", "organisationunitid");
   }
 
