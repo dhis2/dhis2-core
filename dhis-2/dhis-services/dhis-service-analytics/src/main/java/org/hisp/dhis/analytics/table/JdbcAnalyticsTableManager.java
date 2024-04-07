@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -107,14 +108,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "de.uid"),
-          new AnalyticsTableColumn("co", CHARACTER_11, NOT_NULL, "co.uid", List.of("dx", "co")),
-          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid", List.of("dx", "ao")),
-          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "pe.startdate"),
-          new AnalyticsTableColumn("peenddate", TIMESTAMP, "pe.enddate"),
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid"),
+          new AnalyticsTableColumn(
+              "co", CHARACTER_11, NOT_NULL, "dcs.categoryoptioncombouid", List.of("dx", "co")),
+          new AnalyticsTableColumn(
+              "ao", CHARACTER_11, NOT_NULL, "acs.categoryoptioncombouid", List.of("dx", "ao")),
+          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "ps.startdate"),
+          new AnalyticsTableColumn("peenddate", TIMESTAMP, "ps.enddate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
           new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid"),
           new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"));
 
   public JdbcAnalyticsTableManager(
@@ -239,11 +242,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             : replace(
                 "and dv.value ~* '${expression}'",
                 Map.of("expression", MathUtils.NUMERIC_LENIENT_REGEXP));
-    String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
+    String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
     String zeroValueClause =
         replace(
             """
-            (dv.value != '0' or de.aggregationtype in \
+            (dv.value != '0' or des.aggregationtype in \
             ('${aggregationTypeAverage}','${aggregationTypeAverageSumOrgUnit}') \
             ${zeroValueCondition})\s""",
             Map.of(
@@ -326,18 +329,12 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             ${valueExpression} as value, \
             ${textValueExpression} as textvalue \
             from datavalue dv \
-            inner join period pe on dv.periodid=pe.periodid \
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            left join periodtype pt on pe.periodtypeid = pt.periodtypeid \
-            inner join dataelement de on dv.dataelementid=de.dataelementid \
             inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            inner join organisationunit ou on dv.sourceid=ou.organisationunitid \
-            left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
-            inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid \
-            inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid \
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
             inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
@@ -346,7 +343,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
                 "textValueExpression", textValueExpression,
-                "peStartDateMonth", sqlBuilder.dateTrunc("month", "pe.startdate"))));
+                "peStartDateMonth", sqlBuilder.dateTrunc("month", "ps.startdate"))));
 
     if (!params.isSkipOutliers()) {
       sql.append(getOutliersJoinStatement());
@@ -355,9 +352,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalClause} \
-            where de.valuetype in (${valTypes}) \
-            and de.domaintype = 'AGGREGATE' \
+            ${approvalClause} \
+            where des.valuetype in (${valTypes}) \
+            and des.domaintype = 'AGGREGATE' \
             ${partitionClause} \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
@@ -371,17 +368,17 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-           and (aon.startdate is null or aon.startdate <= pe.startdate) \
-          and (aon.enddate is null or aon.enddate >= pe.enddate) \
-          and (con.startdate is null or con.startdate <= pe.startdate) \
-          and (con.enddate is null or con.enddate >= pe.enddate)\s""");
+           and (aon.startdate is null or aon.startdate <= ps.startdate) \
+          and (aon.enddate is null or aon.enddate >= ps.enddate) \
+          and (con.startdate is null or con.startdate <= ps.startdate) \
+          and (con.enddate is null or con.enddate >= ps.enddate)\s""");
     }
 
     if (whereClause != null) {
       sql.append(" and " + whereClause + " ");
     }
 
-    invokeTimeAndLog(sql.toString(), String.format("Populate %s %s", tableName, valueTypes));
+    invokeTimeAndLog(sql.toString(), "Populating table: '{}' {}", tableName, valueTypes);
   }
 
   /**
@@ -442,17 +439,15 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        replace(
-            "and dv.lastupdated >= '${startDate}' ",
-            Map.of("startDate", toLongDate(partition.getStartDate())));
-    String partitionFilter =
-        replace("and ps.year = ${year} ", Map.of("year", partition.getYear().toString()));
+        format("and dv.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns(AnalyticsTableUpdateParams params) {
-    String idColAlias = "concat(de.uid,'-',ps.iso,'-',ou.uid,'-',co.uid,'-',ao.uid) as id ";
+    String idColAlias =
+        "concat(des.dataelementuid,'-',ps.iso,'-',ous.organisationunituid,'-',dcs.categoryoptioncombouid,'-',acs.categoryoptioncombouid) as id ";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
@@ -552,8 +547,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new AnalyticsTableColumn(
             "attributeoptioncomboid", INTEGER, NOT_NULL, "dv.attributeoptioncomboid"),
         new AnalyticsTableColumn("dataelementid", INTEGER, NOT_NULL, "dv.dataelementid"),
-        new AnalyticsTableColumn("petype", VARCHAR_255, "pt.name"),
-        new AnalyticsTableColumn("path", VARCHAR_255, "ou.path"),
+        new AnalyticsTableColumn("petype", VARCHAR_255, "ps.periodtypename"),
+        new AnalyticsTableColumn("path", VARCHAR_255, "ous.path"),
         // mean
         new AnalyticsTableColumn("avg_middle_value", DOUBLE, "stats.avg_middle_value"),
         // median
@@ -698,8 +693,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "percentile_cont(0.5) "
         + "within group (order by dv1.value::double precision) as percentile_middle_value "
         + "from datavalue dv1 "
-        + "inner join period pe on dv1.periodid = pe.periodid "
-        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (value is varchar or string) can be used for stats calculation.
         + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
@@ -716,8 +709,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "dv1.value, "
         + "dv1.periodid "
         + "from datavalue dv1 "
-        + "inner join period pe on dv1.periodid = pe.periodid "
-        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (varchars) can be used for stats calculation.
         + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
@@ -730,6 +721,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "t3.attributeoptioncomboid) as stats "
         + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid\s";
+        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
   }
 }

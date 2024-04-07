@@ -160,7 +160,7 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
         left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
         left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""";
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {

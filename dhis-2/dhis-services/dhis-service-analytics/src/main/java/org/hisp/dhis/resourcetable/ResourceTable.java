@@ -46,6 +46,13 @@ public interface ResourceTable {
   Table getTable();
 
   /**
+   * Returns the main table definition.
+   *
+   * @return the {@link Table}.
+   */
+  Table getMainTable();
+
+  /**
    * Returns the table indexes.
    *
    * @return a list of {@link Index}.

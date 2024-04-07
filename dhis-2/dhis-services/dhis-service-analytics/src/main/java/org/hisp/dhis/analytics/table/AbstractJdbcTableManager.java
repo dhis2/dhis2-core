@@ -431,10 +431,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param sql the SQL statement.
    * @param logMessage the custom log message to include in the log statement.
    */
-  protected void invokeTimeAndLog(String sql, String logMessage) {
+  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
     Timer timer = new SystemTimer().start();
 
     jdbcTemplate.execute(sql);
+
+    String logMessage = TextUtils.format(logPattern, arguments);
 
     log.info("{} in: {}", logMessage, timer.stop().toString());
   }
