@@ -39,22 +39,22 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-public class CategoryOptionComboNameResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class CategoryOptionComboNameResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_categoryoptioncomboname";
-
+  
+  private final Logged logged;
+  
   private final List<CategoryCombo> categoryCombos;
-
-  public CategoryOptionComboNameResourceTable(Logged logged, List<CategoryCombo> categoryCombos) {
-    super(logged);
-    this.categoryCombos = categoryCombos;
-  }
 
   @Override
   public Table getTable() {

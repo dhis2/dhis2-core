@@ -44,26 +44,24 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_datasetorganisationunitcategory";
 
+  private final Logged logged;
+  
   private final List<DataSet> dataSets;
 
   private final CategoryOptionCombo defaultOptionCombo;
-
-  public DataSetOrganisationUnitCategoryResourceTable(
-      Logged logged, List<DataSet> dataSets, CategoryOptionCombo defaultOptionCombo) {
-    super(logged);
-    this.dataSets = dataSets;
-    this.defaultOptionCombo = defaultOptionCombo;
-  }
 
   @Override
   public Table getTable() {

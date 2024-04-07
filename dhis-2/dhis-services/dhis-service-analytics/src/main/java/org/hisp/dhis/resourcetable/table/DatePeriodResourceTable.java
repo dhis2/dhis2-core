@@ -44,21 +44,21 @@ import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class DatePeriodResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class DatePeriodResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dateperiodstructure";
 
+  private final Logged logged;
+  
   private final List<Integer> years;
-
-  public DatePeriodResourceTable(Logged logged, List<Integer> years) {
-    super(logged);
-    this.years = years;
-  }
 
   @Override
   public Table getTable() {

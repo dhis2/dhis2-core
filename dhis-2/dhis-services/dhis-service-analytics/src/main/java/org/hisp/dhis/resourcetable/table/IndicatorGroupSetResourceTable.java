@@ -41,21 +41,21 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class IndicatorGroupSetResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class IndicatorGroupSetResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_indicatorgroupsetstructure";
 
+  private final Logged logged;
+  
   private final List<IndicatorGroupSet> groupSets;
-
-  public IndicatorGroupSetResourceTable(Logged logged, List<IndicatorGroupSet> groupSets) {
-    super(logged);
-    this.groupSets = groupSets;
-  }
 
   @Override
   public Table getTable() {

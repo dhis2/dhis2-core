@@ -39,20 +39,20 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class DataApprovalMinLevelResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalminlevel";
 
+  private final Logged logged;
+  
   private final List<OrganisationUnitLevel> levels;
-
-  public DataApprovalMinLevelResourceTable(Logged logged, List<OrganisationUnitLevel> levels) {
-    super(logged);
-    this.levels = levels;
-  }
 
   @Override
   public Table getTable() {

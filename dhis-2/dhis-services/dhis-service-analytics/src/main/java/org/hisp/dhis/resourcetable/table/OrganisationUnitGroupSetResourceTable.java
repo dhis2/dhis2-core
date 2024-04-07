@@ -44,25 +44,23 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 import org.hisp.dhis.db.model.constraint.Unique;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitGroupSetResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_organisationunitgroupsetstructure";
 
+  private final Logged logged;
+  
   private final List<OrganisationUnitGroupSet> groupSets;
 
   private final int organisationUnitLevels;
-
-  public OrganisationUnitGroupSetResourceTable(
-      Logged logged, List<OrganisationUnitGroupSet> groupSets, int organisationUnitLevels) {
-    super(logged);
-    this.groupSets = groupSets;
-    this.organisationUnitLevels = organisationUnitLevels;
-  }
 
   @Override
   public Table getTable() {
