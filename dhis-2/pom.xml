@@ -82,7 +82,7 @@
     <skipTests>false</skipTests>
 
     <!-- *Build* -->
-    <jib.version>3.3.1</jib.version>
+    <jib.version>3.4.2</jib.version>
     <jib.from.image>tomcat:9.0-jre17</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
     <!-- uid=65534(nobody) gid=65534(nogroup) present in Tomcat image -->
@@ -92,9 +92,9 @@
     <useWarCompression>true</useWarCompression>
     <tomcat.version>8.5.47</tomcat.version>
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
-    <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
-    <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-    <cargo-maven2-plugin.version>1.7.7</cargo-maven2-plugin.version>
+    <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
+    <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
+    <cargo-maven2-plugin.version>1.8.5</cargo-maven2-plugin.version>
 
     <!-- *Dependencies* -->
 
@@ -180,7 +180,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.33.0</artemis.version>
     <netty-all.version>4.1.108.Final</netty-all.version>
-    <classgraph.version>4.8.168</classgraph.version>
+    <classgraph.version>4.8.170</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
