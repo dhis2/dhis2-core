@@ -327,12 +327,12 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String end = toLongDate(partition.getEndDate());
     String latestFilter = format("and psi.lastupdated >= '{}' ", start);
     String partitionFilter =
-        replace(
-            "and (${eventDateExpression}) >= '${start}' and (${eventDateExpression}) < '${end}' ",
-            Map.of(
-                "eventDateExpression", eventDateExpression,
-                "start", start,
-                "end", end));
+        format(
+            "and ({}) >= '{}' and ({}) < '{}' ",
+            eventDateExpression,
+            start,
+            eventDateExpression,
+            end);
 
     return partition.isLatestPartition()
         ? latestFilter

@@ -252,10 +252,8 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        replace(
-            "and cdr.lastupdated >= '${startDate}'",
-            Map.of("startDate", toLongDate(partition.getStartDate())));
-    String partitionFilter = format("and ps.year = {}", partition.getYear());
+        format("and cdr.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
     return partition.isLatestPartition()
         ? latestFilter
