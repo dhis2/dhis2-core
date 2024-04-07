@@ -109,7 +109,7 @@ public class ContinuousAnalyticsTableJob implements Job {
               .build();
 
       try {
-        analyticsTableGenerator.generateTables(params, progress);
+        analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
         systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
@@ -128,7 +128,7 @@ public class ContinuousAnalyticsTableJob implements Job {
               .withStartTime(startTime)
               .build();
 
-      analyticsTableGenerator.generateTables(params, progress);
+      analyticsTableGenerator.generateAnalyticsTables(params, progress);
     }
   }
 
