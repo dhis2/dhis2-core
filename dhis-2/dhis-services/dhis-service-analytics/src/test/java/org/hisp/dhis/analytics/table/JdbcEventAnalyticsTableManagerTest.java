@@ -54,6 +54,7 @@ import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -78,7 +79,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -618,9 +618,11 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
-    subject.populateTable(
-        params,
-        PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params), false).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
+
+    subject.populateTable(params, partition);
 
     verify(jdbcTemplate).execute(sql.capture());
 
@@ -669,9 +671,11 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
-    subject.populateTable(
-        params,
-        PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params), false).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
+
+    subject.populateTable(params, partition);
 
     verify(jdbcTemplate).execute(sql.capture());
 
@@ -719,12 +723,12 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
+
     // When
-    subject.populateTable(
-        params,
-        PartitionUtils.getTablePartitions(
-                subject.getAnalyticsTables(params), sqlBuilder.supportsDeclarativePartitioning())
-            .get(0));
+    subject.populateTable(params, partition);
 
     // Then
     verify(jdbcTemplate).execute(sql.capture());
@@ -962,9 +966,11 @@ class JdbcEventAnalyticsTableManagerTest {
             .withToday(today)
             .build();
 
-    subject.populateTable(
-        params,
-        PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params), false).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
+
+    subject.populateTable(params, partition);
 
     verify(jdbcTemplate).execute(sql.capture());
 
