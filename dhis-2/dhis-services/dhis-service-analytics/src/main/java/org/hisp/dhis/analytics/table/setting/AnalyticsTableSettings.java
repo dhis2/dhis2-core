@@ -34,6 +34,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
+
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.db.model.Database;
@@ -41,7 +43,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for exposing analytics table settings. Provides settings living in
@@ -90,7 +91,7 @@ public class AnalyticsTableSettings {
   public boolean isAnalyticsDatabaseConfigured() {
     return config.isAnalyticsDatabaseConfigured();
   }
-  
+
   /**
    * Returns the configured analytics {@link Database}. Default is {@link Database#POSTGRESQL}.
    *
