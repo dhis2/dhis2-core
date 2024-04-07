@@ -236,25 +236,25 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     sb.append(
         replaceQualify(
             """
-                 from (\
-                select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
-                from ${programownershiphistory} h \
-                where h.programid=${programId} \
-                and h.organisationunitid is not null \
-                union \
-                select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
-                from ${trackedentityprogramowner} o \
-                where o.programid=${programId} \
-                and exists (\
-                select 1 from ${programownershiphistory} p \
-                where o.trackedentityid = p.trackedentityid \
-                and p.programid=${programId} \
-                and p.organisationunitid is not null)) a \
-                inner join ${trackedentity} tei on a.trackedentityid = tei.trackedentityid \
-                inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
-                left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
-                left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
-                order by tei.uid, a.startdate, a.enddate""",
+             from (\
+            select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
+            from ${programownershiphistory} h \
+            where h.programid=${programId} \
+            and h.organisationunitid is not null \
+            union \
+            select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
+            from ${trackedentityprogramowner} o \
+            where o.programid=${programId} \
+            and exists (\
+            select 1 from ${programownershiphistory} p \
+            where o.trackedentityid = p.trackedentityid \
+            and p.programid=${programId} \
+            and p.organisationunitid is not null)) a \
+            inner join ${trackedentity} tei on a.trackedentityid = tei.trackedentityid \
+            inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
+            left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
+            order by tei.uid, a.startdate, a.enddate""",
             List.of(
                 "programownershiphistory",
                 "trackedentityprogramowner",

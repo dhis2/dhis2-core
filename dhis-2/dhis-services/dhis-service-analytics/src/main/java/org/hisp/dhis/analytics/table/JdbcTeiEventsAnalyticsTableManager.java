@@ -204,18 +204,18 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     sql.append(
         replaceQualify(
             """
-        select temp.supportedyear from \
-        (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-        from ${trackedentity} tei \
-        inner join ${trackedentitytype} tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
-        inner join ${enrollment} pi on pi.trackedentityid = tei.trackedentityid \
-        inner join ${event} psi on psi.enrollmentid = pi.enrollmentid \
-        where psi.lastupdated <= '${startTime}' \
-        and tet.trackedentitytypeid = ${tetId} \
-        and (${eventDateExpression}) is not null \
-        and (${eventDateExpression}) > '1000-01-01' \
-        and psi.deleted = false \
-        and tei.deleted = false\s""",
+            select temp.supportedyear from \
+            (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+            from ${trackedentity} tei \
+            inner join ${trackedentitytype} tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
+            inner join ${enrollment} pi on pi.trackedentityid = tei.trackedentityid \
+            inner join ${event} psi on psi.enrollmentid = pi.enrollmentid \
+            where psi.lastupdated <= '${startTime}' \
+            and tet.trackedentitytypeid = ${tetId} \
+            and (${eventDateExpression}) is not null \
+            and (${eventDateExpression}) > '1000-01-01' \
+            and psi.deleted = false \
+            and tei.deleted = false\s""",
             List.of("trackedentity", "trackedentitytype", "enrollment", "event"),
             Map.of(
                 "eventDateExpression", eventDateExpression,
@@ -286,20 +286,20 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(
             replaceQualify(
                 """
-        from ${event} psi \
-        inner join ${enrollment} pi on pi.enrollmentid = psi.enrollmentid \
-        and pi.deleted = false \
-        inner join ${trackedentity} tei on tei.trackedentityid = pi.trackedentityid \
-        and tei.deleted = false \
-        and tei.trackedentitytypeid = ${tetId} \
-        and tei.lastupdated < '${startTime}' \
-        left join ${programstage} ps on ps.programstageid = psi.programstageid \
-        left join ${program} p on p.programid = ps.programid \
-        left join ${organisationunit} ou on psi.organisationunitid = ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-        where psi.status in (${statuses}) \
-        ${partitionClause} \
-        and psi.deleted = false\s""",
+                from ${event} psi \
+                inner join ${enrollment} pi on pi.enrollmentid = psi.enrollmentid \
+                and pi.deleted = false \
+                inner join ${trackedentity} tei on tei.trackedentityid = pi.trackedentityid \
+                and tei.deleted = false \
+                and tei.trackedentitytypeid = ${tetId} \
+                and tei.lastupdated < '${startTime}' \
+                left join ${programstage} ps on ps.programstageid = psi.programstageid \
+                left join ${program} p on p.programid = ps.programid \
+                left join ${organisationunit} ou on psi.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                where psi.status in (${statuses}) \
+                ${partitionClause} \
+                and psi.deleted = false\s""",
                 List.of(
                     "event",
                     "enrollment",
