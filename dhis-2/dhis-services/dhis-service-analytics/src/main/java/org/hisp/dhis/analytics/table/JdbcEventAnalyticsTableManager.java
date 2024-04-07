@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
@@ -35,6 +34,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -481,9 +481,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
     String statusDate = eventDateExpression;
-    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String latestFilter = format("and psi.lastupdated >= '{}' ", start);
     String partitionFilter =
-        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+        format("and ({}) >= '{}' and ({}) < '{}' ", statusDate, start, statusDate, end);
 
     return partition.isLatestPartition()
         ? latestFilter

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -220,7 +220,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    String partitionFilter = format("and ps.year = %d ", partition.getYear());
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
     return emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 

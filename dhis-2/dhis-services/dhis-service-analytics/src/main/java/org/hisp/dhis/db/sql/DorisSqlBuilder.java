@@ -28,13 +28,14 @@
 package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
+
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
