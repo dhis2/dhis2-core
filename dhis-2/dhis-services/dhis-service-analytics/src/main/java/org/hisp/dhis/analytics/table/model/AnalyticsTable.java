@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import lombok.Getter;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.db.model.Column;
@@ -39,6 +38,7 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table. Note that the table name initially represents a
@@ -124,6 +124,21 @@ public class AnalyticsTable extends Table {
     this.trackedEntityType = trackedEntityType;
   }
 
+  /**
+   * Constructor.
+   *
+   * @param masterTable the master {@link AnalyticsTable}.
+   * @param name the table name.
+   * @param checks the partition checks.
+   */
+  public AnalyticsTable(AnalyticsTable masterTable, String name, List<String> checks) {
+    super(name, masterTable.getColumns(), masterTable.getPrimaryKey(), checks, masterTable.getLogged());
+    this.tableType = masterTable.getTableType();
+    this.analyticsTableColumns = masterTable.getAnalyticsTableColumns();
+    this.program = masterTable.getProgram();
+    this.trackedEntityType = masterTable.getTrackedEntityType();
+  }
+  
   // -------------------------------------------------------------------------
   // Static methods
   // -------------------------------------------------------------------------

@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import lombok.Getter;
 import org.hisp.dhis.db.model.Table;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table partition.
@@ -39,11 +39,8 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 @Getter
-public class AnalyticsTablePartition extends Table {
+public class AnalyticsTablePartition extends AnalyticsTable {
   public static final Integer LATEST_PARTITION = 0;
-
-  /** The master analytics table for this partition. */
-  private final AnalyticsTable masterTable;
 
   /**
    * The year for which this partition may contain data, where 0 indicates the "latest" data stored
@@ -68,14 +65,7 @@ public class AnalyticsTablePartition extends Table {
    */
   public AnalyticsTablePartition(
       AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
-    super(
-        toStaging(getTableName(masterTable.getMainName(), year)),
-        List.of(),
-        List.of(),
-        checks,
-        masterTable.getLogged(),
-        masterTable);
-    this.masterTable = masterTable;
+    super(masterTable, toStaging(getTableName(masterTable.getMainName(), year)), checks);
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -84,11 +74,11 @@ public class AnalyticsTablePartition extends Table {
   /**
    * Constructor. Sets the name to represent a staging table partition.
    *
-   * @param table the master {@link Table} of this partition.
+   * @param masterTable the master {@link AnalyticsTable}.
    */
-  public AnalyticsTablePartition(AnalyticsTable table) {
-    super(
-        toStaging(getTableName(table.getMainName(), null)),
+  public AnalyticsTablePartition(AnalyticsTable masterTable) {
+    super(masterTable,
+        toStaging(getTableName(table.getMainName(), null)), checks);
         List.of(),
         List.of(),
         List.of(),
