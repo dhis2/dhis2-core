@@ -128,6 +128,7 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
     }
 
     sql = TextUtils.removeLastComma(sql) + " ";
+
     sql += "from dataelement d;";
 
     return Optional.of(sql);

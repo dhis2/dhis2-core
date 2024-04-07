@@ -51,6 +51,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -123,40 +124,35 @@ public class DefaultResourceTableService implements ResourceTableService {
    * @return a list of {@link ResourceTable}.
    */
   private final List<ResourceTable> getResourceTables() {
+    Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
         new OrganisationUnitStructureResourceTable(
-            analyticsTableSettings.getTableLogged(),
+            logged,
             organisationUnitService.getNumberOfOrganisationalLevels(),
             organisationUnitService),
         new DataSetOrganisationUnitCategoryResourceTable(
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getAllNoAcl(DataSet.class),
             categoryService.getDefaultCategoryOptionCombo()),
         new CategoryOptionComboNameResourceTable(
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(CategoryCombo.class)),
+            logged, idObjectManager.getAllNoAcl(CategoryCombo.class)),
         new DataElementGroupSetResourceTable(
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
+            logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
             analyticsTableSettings.getTableLogged(),
             idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
         new OrganisationUnitGroupSetResourceTable(
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
             organisationUnitService.getNumberOfOrganisationalLevels()),
         new CategoryResourceTable(
-            analyticsTableSettings.getTableLogged(),
+            logged,
             idObjectManager.getDataDimensionsNoAcl(Category.class),
             idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class)),
-        new DataElementResourceTable(
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(DataElement.class)),
-        new DatePeriodResourceTable(
-            analyticsTableSettings.getTableLogged(), getAndValidateAvailableDataYears()),
-        new PeriodResourceTable(
-            analyticsTableSettings.getTableLogged(), periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(analyticsTableSettings.getTableLogged()));
+        new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
+        new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
+        new PeriodResourceTable(logged, periodService.getAllPeriods()),
+        new CategoryOptionComboResourceTable(logged));
   }
 
   /**
@@ -165,10 +161,11 @@ public class DefaultResourceTableService implements ResourceTableService {
    * @return a lits of data approval {@link ResourceTable}.
    */
   private final List<ResourceTable> getApprovalResourceTables() {
+    Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
-        new DataApprovalRemapLevelResourceTable(analyticsTableSettings.getTableLogged()),
+        new DataApprovalRemapLevelResourceTable(logged),
         new DataApprovalMinLevelResourceTable(
-            analyticsTableSettings.getTableLogged(),
+            logged,
             Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels())));
   }
 

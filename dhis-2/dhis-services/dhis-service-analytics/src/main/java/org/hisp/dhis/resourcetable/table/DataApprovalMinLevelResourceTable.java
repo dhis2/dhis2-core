@@ -68,8 +68,8 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
     return List.of(
         new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("minlevel", DataType.INTEGER, Nullable.NOT_NULL));
   }
 
@@ -87,9 +87,9 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
     String sql =
         """
         insert into ${tableName} \
-        (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
-        select da.workflowid, da.periodid, da.organisationunitid, \
-        da.attributeoptioncomboid, dal.level as minlevel \
+        (workflowid,periodid,attributeoptioncomboid,organisationunitid,minlevel) \
+        select da.workflowid, da.periodid, da.attributeoptioncomboid, \
+        da.organisationunitid, dal.level as minlevel \
         from dataapproval da \
         inner join analytics_rs_dataapprovalremaplevel dal on \
         dal.workflowid = da.workflowid and dal.dataapprovallevelid = da.dataapprovallevelid \
