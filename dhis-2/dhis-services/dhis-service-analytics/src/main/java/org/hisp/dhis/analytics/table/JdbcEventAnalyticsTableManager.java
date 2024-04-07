@@ -742,7 +742,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         """
             (select ${fromType} from ${trackedentityattributevalue} \
             where trackedentityid=pi.trackedentityid \
-            and trackedentityattributeid=${attributeId} \
+            and trackedentityattributeid=${attributeId}\
             ${dataClause})\
             ${closingParentheses} as ${attributeUid}""",
         List.of("trackedentityattributevalue"),
