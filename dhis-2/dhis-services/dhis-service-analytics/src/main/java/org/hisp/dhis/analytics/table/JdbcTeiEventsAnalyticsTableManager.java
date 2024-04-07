@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -202,18 +202,18 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     sql.append(
         replace(
             """
-        select temp.supportedyear from \
-        (select distinct extract(year from ${eventDateExpression}) as supportedyear \
-        from trackedentity tei \
-        inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
-        inner join enrollment pi on pi.trackedentityid = tei.trackedentityid \
-        inner join event psi on psi.enrollmentid = pi.enrollmentid \
-        where psi.lastupdated <= '${startTime}' \
-        and tet.trackedentitytypeid = ${tetId} \
-        and (${eventDateExpression}) is not null \
-        and (${eventDateExpression}) > '1000-01-01' \
-        and psi.deleted = false \
-        and tei.deleted = false\s""",
+            select temp.supportedyear from \
+            (select distinct extract(year from ${eventDateExpression}) as supportedyear \
+            from trackedentity tei \
+            inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid \
+            inner join enrollment pi on pi.trackedentityid = tei.trackedentityid \
+            inner join event psi on psi.enrollmentid = pi.enrollmentid \
+            where psi.lastupdated <= '${startTime}' \
+            and tet.trackedentitytypeid = ${tetId} \
+            and (${eventDateExpression}) is not null \
+            and (${eventDateExpression}) > '1000-01-01' \
+            and psi.deleted = false \
+            and tei.deleted = false\s""",
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
@@ -282,20 +282,20 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(
             replace(
                 """
-        \s from event psi \
-        inner join enrollment pi on pi.enrollmentid = psi.enrollmentid \
-        and pi.deleted = false \
-        inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid \
-        and tei.deleted = false \
-        and tei.trackedentitytypeid = ${tetId} \
-        and tei.lastupdated < '${startTime}' \
-        left join programstage ps on ps.programstageid = psi.programstageid \
-        left join program p on p.programid = ps.programid \
-        left join organisationunit ou on psi.organisationunitid = ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-        where psi.status in (${statuses}) \
-        ${partitionClause} \
-        and psi.deleted = false\s""",
+                \s from event psi \
+                inner join enrollment pi on pi.enrollmentid = psi.enrollmentid \
+                and pi.deleted = false \
+                inner join trackedentity tei on tei.trackedentityid = pi.trackedentityid \
+                and tei.deleted = false \
+                and tei.trackedentitytypeid = ${tetId} \
+                and tei.lastupdated < '${startTime}' \
+                left join programstage ps on ps.programstageid = psi.programstageid \
+                left join program p on p.programid = ps.programid \
+                left join organisationunit ou on psi.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                where psi.status in (${statuses}) \
+                ${partitionClause} \
+                and psi.deleted = false\s""",
                 Map.of(
                     "tetId",
                         String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
@@ -315,14 +315,14 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
-    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String latestFilter = format("and psi.lastupdated >= '{}' ", start);
     String partitionFilter =
-        replace(
-            "and (${eventDateExpression}) >= '${start}' and (${eventDateExpression}) < '${end}' ",
-            Map.of(
-                "eventDateExpression", eventDateExpression,
-                "start", start,
-                "end", end));
+        format(
+            "and ({}) >= '{}' and ({}) < '{}' ",
+            eventDateExpression,
+            start,
+            eventDateExpression,
+            end);
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }

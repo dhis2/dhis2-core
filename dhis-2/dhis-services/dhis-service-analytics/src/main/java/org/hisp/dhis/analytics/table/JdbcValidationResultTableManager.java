@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -174,12 +174,14 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_periodstructure ps on vrs.periodid=ps.periodid
             inner join validationrule vr on vr.validationruleid=vrs.validationruleid
             inner join analytics_rs_organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null)
+            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null)
             left join analytics_rs_orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid
             inner join analytics_rs_categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid
             where vrs.created < '${startTime}'
             and vrs.created is not null ${partitionClause}""",
             Map.of(
+                "peStartDateMonth",
+                sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "startTime",
                 toLongDate(params.getStartTime()),
                 "partitionClause",
@@ -217,7 +219,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
    * @return a partition SQL clause.
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
-    return format("and ps.year = %d ", partition.getYear());
+    return format("and ps.year = {} ", partition.getYear());
   }
 
   private List<AnalyticsTableColumn> getColumns() {

@@ -588,7 +588,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
         Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
 
     // Generate resource tables and analytics tables
-    analyticsTableGenerator.generateTables(
+    analyticsTableGenerator.generateAnalyticsTables(
         AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
         NoopJobProgress.INSTANCE);
   }

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -331,7 +332,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
             inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
@@ -351,7 +352,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalClause} \
+            ${approvalClause} \
             where des.valuetype in (${valTypes}) \
             and des.domaintype = 'AGGREGATE' \
             ${partitionClause} \
@@ -438,11 +439,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        replace(
-            "and dv.lastupdated >= '${startDate}' ",
-            Map.of("startDate", toLongDate(partition.getStartDate())));
-    String partitionFilter =
-        replace("and ps.year = ${year} ", Map.of("year", partition.getYear().toString()));
+        format("and dv.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
