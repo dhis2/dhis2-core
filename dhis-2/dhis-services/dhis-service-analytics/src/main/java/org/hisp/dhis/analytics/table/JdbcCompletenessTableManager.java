@@ -255,7 +255,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             "and cdr.lastupdated >= '${startDate}'",
             Map.of("startDate", toLongDate(partition.getStartDate())));
     String partitionFilter =
-        replace("and ps.year = ${year}", Map.of("year", String.valueOf(partition.getYear())));
+        replace("and ps.year = ${year}", "year", String.valueOf(partition.getYear()));
 
     return partition.isLatestPartition()
         ? latestFilter

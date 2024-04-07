@@ -273,7 +273,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
         sql.append("partition ")
             .append(quote(partition.getName()))
             .append(" values less than(\"")
-            .append(partition.getValue())
+            .append(partition.getValue()) // Set last partition to max value
             .append("\"),");
       }
 
