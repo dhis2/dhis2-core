@@ -211,10 +211,7 @@ public class DhisWebApiWebSecurityConfig {
         web.debug(false)
             .ignoring()
             .requestMatchers(
-                new AntPathRequestMatcher("/api/ping"),
-                new AntPathRequestMatcher("/*/service-worker.js.map"),
-                new AntPathRequestMatcher("/*/service-worker.js"),
-                new AntPathRequestMatcher("/favicon.ico"));
+                new AntPathRequestMatcher("/api/ping"), new AntPathRequestMatcher("/favicon.ico"));
   }
 
   private void configureMatchers(HttpSecurity http) throws Exception {
@@ -312,10 +309,6 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(
                       new AntPathRequestMatcher("/dhis-web-commons/security/logo_mobile.png"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/*/service-worker.js.map"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/*/service-worker.js"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
                   .permitAll()
