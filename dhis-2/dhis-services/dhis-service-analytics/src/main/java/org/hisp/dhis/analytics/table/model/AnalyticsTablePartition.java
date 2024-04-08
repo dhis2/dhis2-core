@@ -39,8 +39,11 @@ import org.hisp.dhis.db.model.Table;
  * @author Lars Helge Overland
  */
 @Getter
-public class AnalyticsTablePartition extends AnalyticsTable {
+public class AnalyticsTablePartition extends Table {
   public static final Integer LATEST_PARTITION = 0;
+
+  /** The master analytics table for this partition. */
+  private final AnalyticsTable masterTable;
 
   /**
    * The year for which this partition may contain data, where 0 indicates the "latest" data stored
@@ -65,7 +68,14 @@ public class AnalyticsTablePartition extends AnalyticsTable {
    */
   public AnalyticsTablePartition(
       AnalyticsTable masterTable, List<String> checks, Integer year, Date startDate, Date endDate) {
-    super(masterTable, toStaging(getTableName(masterTable.getMainName(), year)), checks);
+    super(
+        toStaging(getTableName(masterTable.getMainName(), year)),
+        List.of(),
+        List.of(),
+        checks,
+        masterTable.getLogged(),
+        masterTable);
+    this.masterTable = masterTable;
     this.year = year;
     this.startDate = startDate;
     this.endDate = endDate;
@@ -76,8 +86,15 @@ public class AnalyticsTablePartition extends AnalyticsTable {
    *
    * @param masterTable the master {@link AnalyticsTable}.
    */
-  public AnalyticsTablePartition(AnalyticsTable masterTable) {
-    super(masterTable, toStaging(getTableName(masterTable.getMainName(), null)), List.of());
+  public AnalyticsTablePartition(AnalyticsTable table) {
+    super(
+        toStaging(getTableName(table.getMainName(), null)),
+        List.of(),
+        List.of(),
+        List.of(),
+        table.getLogged(),
+        table);
+    this.masterTable = table;
     this.year = null;
     this.startDate = null;
     this.endDate = null;
@@ -107,6 +124,15 @@ public class AnalyticsTablePartition extends AnalyticsTable {
   // -------------------------------------------------------------------------
   // Logic methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Returns the main table partition name.
+   *
+   * @return the main table partition name.
+   */
+  public String getMainName() {
+    return fromStaging(getName());
+  }
 
   /**
    * Indicates whether this partition represents the latest data partition.

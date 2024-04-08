@@ -372,7 +372,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    List<AnalyticsTableColumn> columns = partition.getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 
@@ -386,7 +386,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
       sql.append(col.getSelectExpression() + ",");
     }
 
-    TrackedEntityType trackedEntityType = partition.getTrackedEntityType();
+    TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
         .append(SPACE)

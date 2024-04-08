@@ -124,27 +124,6 @@ public class AnalyticsTable extends Table {
     this.trackedEntityType = trackedEntityType;
   }
 
-  /**
-   * Constructor.
-   *
-   * @param masterTable the master {@link AnalyticsTable}.
-   * @param name the table name.
-   * @param checks the partition checks.
-   */
-  public AnalyticsTable(AnalyticsTable masterTable, String name, List<String> checks) {
-    super(
-        name,
-        masterTable.getColumns(),
-        masterTable.getPrimaryKey(),
-        checks,
-        masterTable.getLogged(),
-        masterTable);
-    this.tableType = masterTable.getTableType();
-    this.analyticsTableColumns = masterTable.getAnalyticsTableColumns();
-    this.program = masterTable.getProgram();
-    this.trackedEntityType = masterTable.getTrackedEntityType();
-  }
-
   // -------------------------------------------------------------------------
   // Static methods
   // -------------------------------------------------------------------------
