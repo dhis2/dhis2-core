@@ -48,7 +48,6 @@ import java.util.zip.ZipFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.jclouds.JCloudsStore;
@@ -58,6 +57,7 @@ import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
+import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.http.HttpRequest;
 import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
@@ -87,19 +87,14 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     log.info("Starting JClouds discovery");
     for (StorageMetadata resource :
-        jCloudsStore
-            .getBlobStore()
-            .list(jCloudsStore.getBlobContainer(), prefix(APPS_DIR + "/").delimiter("/"))) {
-      log.info("Found potential app: " + resource.getName());
+        jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"))) {
+      log.info("Found potential app: {}", resource.getName());
 
       // Found potential app
-      Blob manifest =
-          jCloudsStore
-              .getBlobStore()
-              .getBlob(jCloudsStore.getBlobContainer(), resource.getName() + "manifest.webapp");
+      Blob manifest = jCloudsStore.getBlob(resource.getName() + "manifest.webapp");
 
       if (manifest == null) {
-        log.warn("Could not find manifest file of " + resource.getName());
+        log.warn("Could not find manifest file of {}", resource.getName());
         continue;
       }
 
@@ -114,7 +109,6 @@ public class JCloudsAppStorageService implements AppStorageService {
         handler.accept(app);
       } catch (IOException ex) {
         log.error("Could not read manifest file of " + resource.getName(), ex);
-        log.error(DebugUtils.getStackTrace(ex));
       }
     }
   }
@@ -128,7 +122,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       log.info("No apps found during JClouds discovery.");
     } else {
       apps.values()
-          .forEach(app -> log.info("Discovered app '" + app.getName() + "' from JClouds storage "));
+          .forEach(app -> log.info("Discovered app '{}' from JClouds storage ", app.getName()));
     }
 
     return apps;
@@ -178,7 +172,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public App installApp(File file, String filename, Cache<App> appCache) {
     App app = new App();
-    log.info("Installing new app: " + filename);
+    log.info("Installing new app: {}", filename);
 
     try (ZipFile zip = new ZipFile(file)) {
       // -----------------------------------------------------------------
@@ -186,7 +180,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       // -----------------------------------------------------------------
 
       String prefix = ZipFileUtils.getTopLevelDirectory(zip.entries().asIterator());
-      log.debug("Detected top-level directory '" + prefix + "' in zip");
+      log.debug("Detected top-level directory '{}' in zip", prefix);
 
       // -----------------------------------------------------------------
       // Parse manifest.webapp file from ZIP archive.
@@ -223,7 +217,7 @@ public class JCloudsAppStorageService implements AppStorageService {
           .forEach(
               (Consumer<ZipEntry>)
                   zipEntry -> {
-                    log.debug("Uploading zipEntry: " + zipEntry);
+                    log.debug("Uploading zipEntry: {}", zipEntry);
                     String name = zipEntry.getName().substring(prefix.length());
 
                     try {
@@ -236,11 +230,9 @@ public class JCloudsAppStorageService implements AppStorageService {
                               .payload(input)
                               .contentLength(zipEntry.getSize())
                               .build();
-
-                      jCloudsStore.getBlobStore().putBlob(jCloudsStore.getBlobContainer(), blob);
+                      jCloudsStore.putBlob(blob);
 
                       input.close();
-
                     } catch (IOException e) {
                       log.error("Unable to store app file '" + name + "'", e);
                     }
@@ -291,39 +283,32 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   @Override
   public void deleteApp(App app) {
-    log.info("Deleting app " + app.getName());
+    log.info("Deleting app {}", app.getName());
 
     // Delete all files related to app
     // fast but deprecated (works for local filestore):
-    jCloudsStore
-        .getBlobStore()
-        .deleteDirectory(jCloudsStore.getBlobContainer(), app.getFolderName());
+    jCloudsStore.deleteDirectory(app.getFolderName());
 
     // slower but works for S3:
     // delete the manifest file first in case the system crashes during deletion
     // and the manifest file is not deleted, resulting in an app that can't be installed
-    jCloudsStore
-        .getBlobStore()
-        .removeBlob(jCloudsStore.getBlobContainer(), app.getFolderName() + "/manifest.webapp");
+    jCloudsStore.removeBlob(app.getFolderName() + "/manifest.webapp");
     // Delete all files related to app
-    for (StorageMetadata resource :
-        jCloudsStore
-            .getBlobStore()
-            .list(jCloudsStore.getBlobContainer(), prefix(app.getFolderName()).recursive())) {
-      log.debug("Deleting app file: " + resource.getName());
+    ListContainerOptions options = prefix(app.getFolderName()).recursive();
+    for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
+      log.debug("Deleting app file: {}", resource.getName());
 
-      jCloudsStore.getBlobStore().removeBlob(jCloudsStore.getBlobContainer(), resource.getName());
+      jCloudsStore.removeBlob(resource.getName());
     }
-    log.info("Deleted app " + app.getName());
+    log.info("Deleted app {}", app.getName());
   }
 
   @Override
   public Resource getAppResource(App app, String pageName) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
-          "Can't look up resource "
-              + pageName
-              + ". The specified app was not found in JClouds storage.");
+          "Can't look up resource {}. The specified app was not found in JClouds storage.",
+          pageName);
       return null;
     }
 
@@ -344,8 +329,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
       if (res.isDirectory()) {
         String indexPath = pageName.replaceAll("/+$", "") + "/index.html";
-        log.info(
-            "Resource " + pageName + " (" + filepath + " is a directory, serving " + indexPath);
+        log.info("Resource {} ({} is a directory, serving {}", pageName, filepath, indexPath);
         return getAppResource(app, indexPath);
       } else if (res.exists()) {
         return new FileSystemResource(res);

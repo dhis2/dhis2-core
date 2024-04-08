@@ -67,10 +67,9 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
   @Override
   public InputStream getFileResourceContent(String key) {
-    final Blob blob = getBlob(key);
+    final Blob blob = jCloudsStore.getBlob(key);
 
     if (blob == null) {
-
       return null;
     }
 
@@ -86,7 +85,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
   @Override
   public long getFileResourceContentLength(String key) {
-    final Blob blob = getBlob(key);
+    final Blob blob = jCloudsStore.getBlob(key);
 
     if (blob == null) {
       return 0;
@@ -123,7 +122,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
     }
 
     try {
-      jCloudsStore.getBlobStore().putBlob(jCloudsStore.getBlobContainer(), blob);
+      jCloudsStore.putBlob(blob);
     } catch (Exception e) {
       log.error("File upload failed: ", e);
       return null;
@@ -156,7 +155,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
         HashCode hash = com.google.common.io.Files.asByteSource(file).hash(Hashing.md5());
         contentMd5 = hash.toString();
       } catch (IOException e) {
-        log.error("Hashing error: " + e.getMessage(), e);
+        log.error("Hashing error", e);
         return null;
       }
 
@@ -164,8 +163,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
       if (blob != null) {
         try {
-          jCloudsStore.getBlobStore().putBlob(jCloudsStore.getBlobContainer(), blob);
-
+          jCloudsStore.putBlob(blob);
           Files.deleteIfExists(file.toPath());
         } catch (ContainerNotFoundException e) {
           log.error("Container not found", e);
@@ -183,12 +181,12 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
   @Override
   public void deleteFileResourceContent(String key) {
-    deleteBlob(key);
+    jCloudsStore.removeBlob(key);
   }
 
   @Override
   public boolean fileResourceContentExists(String key) {
-    return blobExists(key);
+    return jCloudsStore.blobExists(key);
   }
 
   @Override
@@ -216,7 +214,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
       throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    try (InputStream in = getBlob(key).getPayload().openStream()) {
+    try (InputStream in = jCloudsStore.getBlob(key).getPayload().openStream()) {
       IOUtils.copy(in, output);
     }
   }
@@ -225,7 +223,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   public byte[] copyContent(String key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    try (InputStream in = getBlob(key).getPayload().openStream()) {
+    try (InputStream in = jCloudsStore.getBlob(key).getPayload().openStream()) {
       return IOUtils.toByteArray(in);
     }
   }
@@ -234,26 +232,13 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   public InputStream openStream(String key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    return getBlob(key).getPayload().openStream();
+    return jCloudsStore.getBlob(key).getPayload().openStream();
   }
 
   private void ensureBlobExists(String key) {
-    if (!blobExists(key)) {
+    if (!jCloudsStore.blobExists(key)) {
       throw new NoSuchElementException("key '" + key + "' not found.");
     }
-  }
-
-  private Blob getBlob(String key) {
-    return jCloudsStore.getBlobStore().getBlob(jCloudsStore.getBlobContainer(), key);
-  }
-
-  private boolean blobExists(String key) {
-    return key != null
-        && jCloudsStore.getBlobStore().blobExists(jCloudsStore.getBlobContainer(), key);
-  }
-
-  private void deleteBlob(String key) {
-    jCloudsStore.getBlobStore().removeBlob(jCloudsStore.getBlobContainer(), key);
   }
 
   private Blob createBlob(@Nonnull FileResource fileResource, @Nonnull byte[] bytes) {

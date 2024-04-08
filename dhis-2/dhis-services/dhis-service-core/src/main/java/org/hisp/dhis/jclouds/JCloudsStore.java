@@ -42,6 +42,10 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
 import org.jclouds.domain.LocationScope;
@@ -169,6 +173,30 @@ public class JCloudsStore {
   }
 
   private record FileStoreConfig(String provider, String location, String container) {}
+
+  public boolean blobExists(String key) {
+    return key != null && getBlobStore().blobExists(getBlobContainer(), key);
+  }
+
+  public Blob getBlob(String key) {
+    return getBlobStore().getBlob(getBlobContainer(), key);
+  }
+
+  public PageSet<? extends StorageMetadata> getBlobList(ListContainerOptions options) {
+    return getBlobStore().list(getBlobContainer(), options);
+  }
+
+  public void putBlob(Blob blob) {
+    getBlobStore().putBlob(getBlobContainer(), blob);
+  }
+
+  public void removeBlob(String key) {
+    getBlobStore().removeBlob(getBlobContainer(), key);
+  }
+
+  public void deleteDirectory(String dirName) {
+    getBlobStore().deleteDirectory(getBlobContainer(), dirName);
+  }
 
   public String getBlobContainer() {
     return fileStoreConfig.container;
