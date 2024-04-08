@@ -409,8 +409,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
                 sql.append(
                     replaceQualify(
                         """
-                    left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
+                        \s left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
+                        and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
                         List.of("trackedentityattributevalue"),
                         Map.of(
                             "teaUid", tea.getUid(),
