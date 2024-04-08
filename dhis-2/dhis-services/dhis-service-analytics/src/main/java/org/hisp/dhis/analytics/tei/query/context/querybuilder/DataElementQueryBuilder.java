@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
 import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
@@ -59,6 +60,7 @@ import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
 import org.springframework.stereotype.Service;
 
 /** Query builder for data elements. */
@@ -77,6 +79,9 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   @Getter
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(DataElementQueryBuilder::isDataElementOrder);
+
+  private static final List<ValueType> ID_SCHEME_SUPPORTING_VALUE_TYPES =
+      List.of(ORGANISATION_UNIT);
 
   @Override
   public RenderableSqlQuery buildSqlQuery(
@@ -164,7 +169,8 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   private static Field getRenderableDataValue(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     IdScheme idScheme = dimensionIdentifier.getDimension().getIdScheme();
-    if (idScheme == IdScheme.NAME || idScheme == IdScheme.CODE) {
+    if (ID_SCHEME_SUPPORTING_VALUE_TYPES.contains(dimensionIdentifier.getDimension().getValueType())
+        && (idScheme == IdScheme.NAME || idScheme == IdScheme.CODE)) {
       return ofUnquoted(
           EMPTY,
           SuffixedRenderableDataValue.of(
