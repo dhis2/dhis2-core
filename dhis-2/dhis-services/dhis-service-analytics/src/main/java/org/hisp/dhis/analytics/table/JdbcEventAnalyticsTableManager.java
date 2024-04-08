@@ -593,7 +593,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .append(SPACE)
         .append(
             """
-          (select l.uid from ${maplegend} l \
+          \s(select l.uid from ${maplegend} l \
           inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
           and l.endvalue > ${selectClause} \
           and l.maplegendsetid=${legendSetId} \
