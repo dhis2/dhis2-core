@@ -428,7 +428,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     fromClause.append(
         replaceQualify(
             """
-            from ${event} psi \
+            \s from ${event} psi \
             inner join ${enrollment} pi on psi.enrollmentid=pi.enrollmentid \
             inner join ${programstage} ps on psi.programstageid=ps.programstageid \
             inner join ${program} pr on pi.programid=pr.programid and pi.deleted = false \

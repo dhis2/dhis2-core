@@ -30,8 +30,8 @@ package org.hisp.dhis.analytics.table.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import org.hisp.dhis.db.model.Table;
 import lombok.Getter;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * Class representing an analytics database table partition.
