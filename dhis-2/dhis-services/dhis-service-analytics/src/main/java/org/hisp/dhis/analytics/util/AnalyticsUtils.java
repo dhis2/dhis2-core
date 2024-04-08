@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -1159,5 +1160,34 @@ public final class AnalyticsUtils {
         Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
     Matcher matcher = pattern.matcher(original);
     return matcher.replaceAll(startToken + replacement + endToken);
+  }
+
+  /**
+   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
+   * number of missing closing parenthesis in the argument string.
+   *
+   * <p>Example:
+   *
+   * <p>{@code} input: "((( ))" -> output: ")" {@code}
+   *
+   * @param str a string.
+   * @return a String containing 0 or more "closing" parenthesis
+   */
+  public static String getClosingParentheses(String str) {
+    if (StringUtils.isEmpty(str)) {
+      return EMPTY;
+    }
+
+    int open = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == '(') {
+        open++;
+      } else if (str.charAt(i) == ')' && open >= 1) {
+        open--;
+      }
+    }
+
+    return StringUtils.repeat(")", open);
   }
 }

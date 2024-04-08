@@ -692,7 +692,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
-    // Given fixtures/expectations
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
     when(databaseInfoProvider.getDatabaseInfo())
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
@@ -727,10 +726,8 @@ class JdbcEventAnalyticsTableManagerTest {
     assertFalse(analyticsTables.isEmpty());
     AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
-    // When
     subject.populateTable(params, partition);
 
-    // Then
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =
