@@ -130,8 +130,7 @@ public class DhisWebCommonsWebSecurityConfig {
 
     @Override
     public void configure(WebSecurity web) {
-      web.ignoring()
-          .antMatchers("/api/ping");
+      web.ignoring().antMatchers("/api/ping");
     }
 
     @Override
