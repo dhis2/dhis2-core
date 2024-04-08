@@ -286,7 +286,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         .append(
             replaceQualify(
                 """
-                from ${event} psi \
+                \s from ${event} psi \
                 inner join ${enrollment} pi on pi.enrollmentid = psi.enrollmentid \
                 and pi.deleted = false \
                 inner join ${trackedentity} tei on tei.trackedentityid = pi.trackedentityid \
