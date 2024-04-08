@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.mvc.interceptor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -36,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.HasAuthority;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,7 +47,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * Interceptor which checks that the {@link org.hisp.dhis.user.User} has any one of {@link
- * org.hisp.dhis.security.Authorities} which are passed in {@link HasAuthority} as an arg.
+ * org.hisp.dhis.security.Authorities} which are passed in {@link RequiresAuthority} as an arg.
  *
  * <p>Throws {@link AccessDeniedException} if {@link org.hisp.dhis.user.User} does not have any of
  * the passed-in {@link org.hisp.dhis.security.Authorities}.
@@ -67,15 +66,15 @@ public class AuthorityInterceptor implements HandlerInterceptor {
       @Nonnull Object handler) {
     HandlerMethod handlerMethod = (HandlerMethod) handler;
 
-    if (!handlerMethod.hasMethodAnnotation(HasAuthority.class)) {
+    if (!handlerMethod.hasMethodAnnotation(RequiresAuthority.class)) {
       return true;
     }
 
-    HasAuthority hasAuthority = handlerMethod.getMethodAnnotation(HasAuthority.class);
-    if (hasAuthority != null) {
+    RequiresAuthority requiresAuthority = handlerMethod.getMethodAnnotation(RequiresAuthority.class);
+    if (requiresAuthority != null) {
       // include 'ALL' authority in required authorities
       List<Authorities> requiredAuthorities = new ArrayList<>(List.of(Authorities.ALL));
-      requiredAuthorities.addAll(Arrays.stream(hasAuthority.anyOf()).toList());
+      requiredAuthorities.addAll(List.of(requiresAuthority.anyOf()));
 
       // get user authorities
       final SecurityContext securityContext = SecurityContextHolder.getContext();

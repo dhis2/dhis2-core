@@ -44,6 +44,6 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HasAuthority {
+public @interface RequiresAuthority {
   Authorities[] anyOf();
 }
