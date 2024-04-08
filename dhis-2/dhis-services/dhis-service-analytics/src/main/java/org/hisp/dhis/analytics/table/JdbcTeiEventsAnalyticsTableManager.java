@@ -89,25 +89,25 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
 
   private static final String EVENT_DATA_VALUE_REBUILDER =
       """
-      (select json_object_agg(l2.key, l2.datavalue) as value
-              from (select l1.uid,
-                           l1.key,
-                           json_strip_nulls(json_build_object(
-                                   'value', l1.eventdatavalues -> l1.key ->> 'value',
-                                   'created', l1.eventdatavalues -> l1.key ->> 'created',
-                                   'storedBy', l1.eventdatavalues -> l1.key ->> 'storedBy',
-                                   'lastUpdated', l1.eventdatavalues -> l1.key ->> 'lastUpdated',
-                                   'providedElsewhere', l1.eventdatavalues -> l1.key -> 'providedElsewhere',
-                                   'value_name', (select ou.name
-                                                  from organisationunit ou
-                                                  where ou.uid = l1.eventdatavalues -> l1.key ->> 'value'),
-                                   'value_code', (select ou.code
-                                                  from organisationunit ou
-                                                  where ou.uid = l1.eventdatavalues -> l1.key ->> 'value'))) as datavalue
-                    from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) key
-                          from event inner_evt) as l1) as l2
-              where l2.uid = psi.uid
-              group by l2.uid)::jsonb
+            (select json_object_agg(l2.keys, l2.datavalue) as value
+             from (select l1.uid,
+                          l1.keys,
+                          json_strip_nulls(json_build_object(
+                                  'value', l1.eventdatavalues -> l1.keys ->> 'value',
+                                  'created', l1.eventdatavalues -> l1.keys ->> 'created',
+                                  'storedBy', l1.eventdatavalues -> l1.keys ->> 'storedBy',
+                                  'lastUpdated', l1.eventdatavalues -> l1.keys ->> 'lastUpdated',
+                                  'providedElsewhere', l1.eventdatavalues -> l1.keys -> 'providedElsewhere',
+                                  'value_name', (select ou.name
+                                                 from organisationunit ou
+                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'),
+                                  'value_code', (select ou.code
+                                                 from organisationunit ou
+                                                 where ou.uid = l1.eventdatavalues -> l1.keys ->> 'value'))) as datavalue
+                   from (select inner_evt.*, jsonb_object_keys(inner_evt.eventdatavalues) keys
+                         from event inner_evt) as l1) as l2
+             where l2.uid = psi.uid
+             group by l2.uid)::jsonb
       """;
 
   private static final List<AnalyticsTableColumn> FIXED_COLS =
