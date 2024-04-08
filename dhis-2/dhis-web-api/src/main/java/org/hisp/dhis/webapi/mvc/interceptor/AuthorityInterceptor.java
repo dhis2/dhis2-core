@@ -70,7 +70,8 @@ public class AuthorityInterceptor implements HandlerInterceptor {
       return true;
     }
 
-    RequiresAuthority requiresAuthority = handlerMethod.getMethodAnnotation(RequiresAuthority.class);
+    RequiresAuthority requiresAuthority =
+        handlerMethod.getMethodAnnotation(RequiresAuthority.class);
     if (requiresAuthority != null) {
       // include 'ALL' authority in required authorities
       List<Authorities> requiredAuthorities = new ArrayList<>(List.of(Authorities.ALL));
