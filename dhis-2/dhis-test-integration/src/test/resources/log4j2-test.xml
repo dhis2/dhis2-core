@@ -31,14 +31,14 @@
         Check the log4j2 config documentation for more details. -->
         
         <!-- Uncomment to debug DHIS2 -->
-        <!--
+
         <Logger name="org.hisp.dhis.migration" level="info" additivity="false">
 			<AppenderRef ref="console"/>
 		</Logger>
 		<Logger name="org.hisp.dhis" level="debug" additivity="false">
 			<AppenderRef ref="console"/>
 		</Logger>
-		-->
+
 		
         <!-- Uncomment to debug testcontainers -->
         <!--
@@ -56,6 +56,7 @@
 			<AppenderRef ref="console"/>
 		</Logger>
         -->
+        
         <!-- Uncomment to debug JDBC template queries (SQL) -->
         <!--
         <Logger name="org.springframework.jdbc.core" level="debug" additivity="false">
