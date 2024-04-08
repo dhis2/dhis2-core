@@ -39,6 +39,8 @@ import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
 import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -82,6 +84,11 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
 
   private static final List<ValueType> ID_SCHEME_SUPPORTING_VALUE_TYPES =
       List.of(ORGANISATION_UNIT);
+
+  private static final Map<IdScheme, String> SUFFIX_BY_ID_SCHEME =
+      Map.of(
+          IdScheme.NAME, "_name",
+          IdScheme.CODE, "_code");
 
   @Override
   public RenderableSqlQuery buildSqlQuery(
@@ -169,15 +176,19 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   private static Field getRenderableDataValue(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
     IdScheme idScheme = dimensionIdentifier.getDimension().getIdScheme();
-    if (ID_SCHEME_SUPPORTING_VALUE_TYPES.contains(dimensionIdentifier.getDimension().getValueType())
-        && (idScheme == IdScheme.NAME || idScheme == IdScheme.CODE)) {
+    ValueType valueType = dimensionIdentifier.getDimension().getValueType();
+    if (Objects.nonNull(valueType)
+        && Objects.nonNull(idScheme)
+        && ID_SCHEME_SUPPORTING_VALUE_TYPES.contains(
+            dimensionIdentifier.getDimension().getValueType())
+        && SUFFIX_BY_ID_SCHEME.containsKey(idScheme)) {
       return ofUnquoted(
           EMPTY,
           SuffixedRenderableDataValue.of(
               doubleQuote(dimensionIdentifier.getPrefix()),
               dimensionIdentifier.getDimension().getUid(),
               fromValueType(dimensionIdentifier.getDimension().getValueType()),
-              idScheme),
+              SUFFIX_BY_ID_SCHEME.get(idScheme)),
           dimensionIdentifier.toString());
     }
     return ofUnquoted(

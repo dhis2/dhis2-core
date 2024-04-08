@@ -27,18 +27,13 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import java.util.Objects;
 import lombok.Getter;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.common.IdScheme;
 
 @Getter
 public class SuffixedRenderableDataValue extends RenderableDataValue {
 
   private final String valueSuffix;
-
-  private static final String NAME_SUFFIX = "_name";
-  private static final String CODE_SUFFIX = "_code";
 
   private SuffixedRenderableDataValue(
       String alias, String dataValue, ValueTypeMapping valueTypeMapping, String valueSuffix) {
@@ -47,15 +42,7 @@ public class SuffixedRenderableDataValue extends RenderableDataValue {
   }
 
   public static RenderableDataValue of(
-      String alias, String dataValue, ValueTypeMapping valueTypeMapping, IdScheme idScheme) {
-    if (Objects.nonNull(idScheme)) {
-      if (idScheme == IdScheme.NAME) {
-        return new SuffixedRenderableDataValue(alias, dataValue, valueTypeMapping, NAME_SUFFIX);
-      }
-      if (idScheme == IdScheme.CODE) {
-        return new SuffixedRenderableDataValue(alias, dataValue, valueTypeMapping, CODE_SUFFIX);
-      }
-    }
-    return RenderableDataValue.of(alias, dataValue, valueTypeMapping);
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping, String suffix) {
+    return new SuffixedRenderableDataValue(alias, dataValue, valueTypeMapping, suffix);
   }
 }
