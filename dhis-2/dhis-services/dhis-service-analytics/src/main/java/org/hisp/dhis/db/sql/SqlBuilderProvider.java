@@ -67,7 +67,7 @@ public class SqlBuilderProvider {
 
     return switch (database) {
       case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
-      case POSTGRESQL -> new PostgreSqlBuilder();
+      default -> new PostgreSqlBuilder();
     };
   }
 }
