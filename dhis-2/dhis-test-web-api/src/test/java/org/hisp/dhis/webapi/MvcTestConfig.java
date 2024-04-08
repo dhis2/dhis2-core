@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -50,6 +51,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
@@ -95,13 +97,14 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
  */
 @Configuration
 @EnableWebMvc
+@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired private UserSettingService userSettingService;
 
-  @Autowired public DefaultRequestInfoService requestInfoService;
-
-  @Autowired private MetadataExportService metadataExportService;
+  private final UserSettingService userSettingService;
+  private final DefaultRequestInfoService requestInfoService;
+  private final MetadataExportService metadataExportService;
+  private final AuthorityInterceptor authorityInterceptor;
 
   @Autowired
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -206,6 +209,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    registry.addInterceptor(authorityInterceptor);
   }
 
   @Bean
