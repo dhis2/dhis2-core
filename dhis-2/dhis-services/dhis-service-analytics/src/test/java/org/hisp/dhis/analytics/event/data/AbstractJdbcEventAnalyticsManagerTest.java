@@ -575,7 +575,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldEmpty() {
+  void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldIsEmpty() {
     String sql =
         this.eventSubject.getCoalesce(
             List.of(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
