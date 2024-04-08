@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.TimeField.ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -49,12 +48,16 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
+
+  private SqlBuilder sqlBuilder;
+
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 
   @Override
@@ -97,17 +100,17 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   private String getTimeCol(Optional<TimeField> timeField, EventOutputType outputType) {
     if (timeField.isPresent()) {
-      return quoteAlias(timeField.get().getField());
+      return sqlBuilder.quoteAx(timeField.get().getField());
     } else if (ENROLLMENT == outputType) {
-      return quoteAlias(ENROLLMENT_DATE.getField());
+      return sqlBuilder.quoteAx(ENROLLMENT_DATE.getField());
     } else {
       // EVENTS
-      return quoteAlias(EVENT_DATE.getField());
+      return sqlBuilder.quoteAx(EVENT_DATE.getField());
     }
   }
 
   private String toSqlCondition(Period period, TimeField timeField) {
-    String timeCol = quoteAlias(timeField.getField());
+    String timeCol = sqlBuilder.quoteAx(timeField.getField());
     return "( "
         + timeCol
         + " >= '"

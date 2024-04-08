@@ -83,6 +83,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryFilter;
@@ -571,6 +572,33 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String whereClause = this.eventSubject.getSelectClause(params);
 
     assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"psigeometry\")"));
+  }
+
+  @Test
+  void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldEmpty() {
+    String sql =
+        this.eventSubject.getCoalesce(
+            List.of(), FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+
+    assertEquals(FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sql);
+  }
+
+  @Test
+  void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldCollectionIsNull() {
+    String sqlSnippet =
+        this.eventSubject.getCoalesce(null, FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+
+    assertEquals(FallbackCoordinateFieldType.PSI_GEOMETRY.getValue(), sqlSnippet);
+  }
+
+  @Test
+  void testGetCoalesceReturnsCoalesceWhenCoordinateFieldCollectionIsNotEmpty() {
+    String sqlSnippet =
+        this.eventSubject.getCoalesce(
+            List.of("coorA", "coorB", "coorC"),
+            FallbackCoordinateFieldType.PSI_GEOMETRY.getValue());
+
+    assertEquals("coalesce(ax.\"coorA\",ax.\"coorB\",ax.\"coorC\")", sqlSnippet);
   }
 
   @Test
