@@ -136,6 +136,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    registry.addInterceptor(authorityInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
