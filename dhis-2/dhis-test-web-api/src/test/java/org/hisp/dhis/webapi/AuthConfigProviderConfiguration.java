@@ -42,8 +42,6 @@ public class AuthConfigProviderConfiguration {
             .requestMatchers(
                 new AntPathRequestMatcher("/api/ping"),
                 new AntPathRequestMatcher("/auth/login"),
-                new AntPathRequestMatcher("/*/service-worker.js.map"),
-                new AntPathRequestMatcher("/*/service-worker.js"),
                 new AntPathRequestMatcher("/favicon.ico"));
   }
 }
