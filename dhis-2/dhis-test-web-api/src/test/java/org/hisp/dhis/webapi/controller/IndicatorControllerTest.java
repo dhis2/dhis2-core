@@ -93,4 +93,23 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
     assertEquals(
         "TARGET indicator does not exist: `Uid00000012`", error2.getString("message").string());
   }
+
+  @Test
+  @DisplayName("invalid merge, missing required auth")
+  void testMergeNoAuth() {
+    switchToNewUser("noAuth", "NoAuth");
+    JsonMixed mergeResponse =
+        POST(
+                "/indicators/merge",
+                """
+        {
+            "sources": ["Uid00000010"],
+            "target": "Uid00000012",
+            "deleteSources": true
+        }""")
+            .content(HttpStatus.FORBIDDEN);
+    assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
+    assertEquals("ERROR", mergeResponse.getString("status").string());
+    assertEquals("Access is denied", mergeResponse.getString("message").string());
+  }
 }
