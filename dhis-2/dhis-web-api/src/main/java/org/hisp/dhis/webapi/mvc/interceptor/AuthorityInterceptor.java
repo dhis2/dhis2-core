@@ -88,10 +88,6 @@ public class AuthorityInterceptor implements HandlerInterceptor {
               reqAuth ->
                   userAuthorities.stream()
                       .anyMatch(userAuth -> reqAuth.name().equals(userAuth.getAuthority())))) {
-        log.info(
-            "User {} does not have the required authority for method {}",
-            authentication.getName(),
-            ((HandlerMethod) handler).getMethod().getName());
         throw new AccessDeniedException("Access is denied");
       }
     }

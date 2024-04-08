@@ -304,6 +304,29 @@ class IndicatorMergeTest extends ApiTest {
         .body("message", equalTo("Access is denied"));
   }
 
+  @Test
+  @DisplayName("User with ALL authority can attempt merge with invalid data")
+  void testIndicatorMergeAllAuth() {
+    userActions.addUserFull("all", "User", "allAuthUser", "Test1234!", "ALL");
+    loginActions.loginAsUser("allAuthUser", "Test1234!");
+
+    // when a user with ALL auth submits an indicator type merge request with invalid data
+    ApiResponse response =
+        indicatorApiActions
+            .post("merge", getMergeBody(sourceUid1, sourceUid2, targetUid, true))
+            .validateStatus(409);
+
+    // then a conflict response is received (access denied response is not received, no auth issue)
+    response
+        .validate()
+        .statusCode(409)
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("WARNING"))
+        .body(
+            "message",
+            equalTo("One or more errors occurred, please see full details in merge report."));
+  }
+
   private void setupIndicatorData() {
     // indicator types
     String indTypeUid1 =
