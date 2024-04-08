@@ -686,7 +686,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
-    // Given fixtures/expectations
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
     when(databaseInfoProvider.getDatabaseInfo())
         .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
@@ -717,11 +716,9 @@ class JdbcEventAnalyticsTableManagerTest {
             getYearQueryForCurrentYear(programA, true, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
 
-    // When
     subject.populateTable(
         params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
 
-    // Then
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =

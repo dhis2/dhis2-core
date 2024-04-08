@@ -175,7 +175,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   /**
    * Returns a list of data approval resource tables.
    *
-   * @return a lits of data approval {@link ResourceTable}.
+   * @return a list of data approval {@link ResourceTable}.
    */
   private final List<ResourceTable> getApprovalResourceTables() {
     return List.of(

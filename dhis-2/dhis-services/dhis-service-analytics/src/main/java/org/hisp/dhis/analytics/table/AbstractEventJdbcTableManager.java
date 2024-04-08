@@ -182,10 +182,10 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       String sql =
           TextUtils.replace(
               """
-                (select ${select} from trackedentityattributevalue \
-                where trackedentityid=pi.trackedentityid \
-                and trackedentityattributeid=${attributeId}\
-                ${dataClause})${closingParentheses} as ${attributeUid}""",
+              (select ${select} from trackedentityattributevalue \
+              where trackedentityid=pi.trackedentityid \
+              and trackedentityattributeid=${attributeId}\
+              ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
                   "select",
                   select,
