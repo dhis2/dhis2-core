@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-public class JobSchedulingControllerTest extends DhisControllerIntegrationTest {
+class JobSchedulingControllerTest extends DhisControllerIntegrationTest {
 
   @Test
   void testGetRunningProgressTypesOnly() {
