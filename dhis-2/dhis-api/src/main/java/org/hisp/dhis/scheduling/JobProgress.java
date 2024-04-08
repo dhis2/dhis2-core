@@ -650,6 +650,10 @@ public interface JobProgress {
       }
     }
 
+    public Progress withoutErrors() {
+      return new Progress(sequence, Map.of());
+    }
+
     public boolean hasErrors() {
       return !errors.isEmpty();
     }
