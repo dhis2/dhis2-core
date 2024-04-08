@@ -35,7 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -97,14 +96,15 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
  */
 @Configuration
 @EnableWebMvc
-@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class MvcTestConfig implements WebMvcConfigurer {
+  @Autowired private UserSettingService userSettingService;
 
-  private final UserSettingService userSettingService;
-  private final DefaultRequestInfoService requestInfoService;
-  private final MetadataExportService metadataExportService;
-  private final AuthorityInterceptor authorityInterceptor;
+  @Autowired public DefaultRequestInfoService requestInfoService;
+
+  @Autowired private MetadataExportService metadataExportService;
+
+  @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;

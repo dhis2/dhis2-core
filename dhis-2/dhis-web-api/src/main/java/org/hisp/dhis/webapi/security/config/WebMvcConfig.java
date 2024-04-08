@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -93,7 +92,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 @Order(1000)
 @ComponentScan(basePackages = {"org.hisp.dhis"})
-@RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   // Paths where XML should still be allowed.
@@ -114,12 +112,15 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
               "/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
 
   // tracker
-  private final CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
-  private final DefaultRequestInfoService requestInfoService;
-  private final UserSettingService userSettingService;
 
-  // auth
-  private final AuthorityInterceptor authorityInterceptor;
+  @Autowired
+  public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+
+  @Autowired public DefaultRequestInfoService requestInfoService;
+
+  @Autowired private UserSettingService userSettingService;
+
+  @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired
   @Qualifier("jsonMapper")
@@ -129,8 +130,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Qualifier("xmlMapper")
   private ObjectMapper xmlMapper;
 
-  private final MetadataExportService metadataExportService;
-  private final FieldFilterService fieldFilterService;
+  @Autowired private MetadataExportService metadataExportService;
+
+  @Autowired private FieldFilterService fieldFilterService;
 
   @Bean("multipartResolver")
   public MultipartResolver multipartResolver() {
