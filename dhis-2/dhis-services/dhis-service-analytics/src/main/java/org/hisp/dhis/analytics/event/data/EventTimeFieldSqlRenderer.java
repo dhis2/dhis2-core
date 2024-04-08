@@ -56,7 +56,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-  private SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder;
 
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 

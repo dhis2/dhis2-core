@@ -59,7 +59,7 @@ import org.springframework.util.Assert;
 @RequiredArgsConstructor
 class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-  private SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder;
 
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(TimeField.LAST_UPDATED);
 
