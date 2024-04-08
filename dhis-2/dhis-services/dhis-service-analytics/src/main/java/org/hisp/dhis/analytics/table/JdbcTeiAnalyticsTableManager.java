@@ -393,7 +393,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .append(
             replaceQualify(
                 """
-                from ${trackedentity} tei \
+                \s from ${trackedentity} tei \
                 left join ${organisationunit} ou on tei.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \

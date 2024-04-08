@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -441,7 +442,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     jdbcTemplate.execute(sql);
 
-    String logMessage = TextUtils.format(logPattern, arguments);
+    String logMessage = format(logPattern, arguments);
 
     log.info("{} in: {}", logMessage, timer.stop().toString());
   }
@@ -538,7 +539,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if the table is not empty.
    */
   protected boolean tableIsNotEmpty(String name) {
-    String sql = TextUtils.format("select 1 from {} limit 1;", sqlBuilder.qualifyTable(name));
+    String sql = format("select 1 from {} limit 1;", sqlBuilder.qualifyTable(name));
     return jdbcTemplate.queryForRowSet(sql).next();
   }
 
