@@ -33,35 +33,40 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class CategoryOptionComboResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class CategoryOptionComboResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataelementcategoryoptioncombo";
 
-  public CategoryOptionComboResourceTable(SqlBuilder sqlBuilder, Logged logged) {
-    super(sqlBuilder, logged);
-  }
+  private final Logged logged;
 
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
   private List<Column> getColumns() {
     return List.of(
         new Column("dataelementid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("categoryoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("dataelementuid", DataType.CHARACTER_11, Nullable.NOT_NULL),
         new Column("categoryoptioncombouid", DataType.CHARACTER_11, Nullable.NOT_NULL));
   }
 
@@ -89,13 +94,12 @@ public class CategoryOptionComboResourceTable extends AbstractResourceTable {
         replace(
             """
         insert into ${tableName} \
-        (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) \
-        select de.dataelementid as dataelementid, de.uid as dataelementuid, \
-        coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid \
+        (dataelementid, categoryoptioncomboid, dataelementuid, categoryoptioncombouid) \
+        select de.dataelementid as dataelementid, coc.categoryoptioncomboid as categoryoptioncomboid, \
+        de.uid as dataelementuid, coc.uid as categoryoptioncombouid \
         from dataelement de \
         inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
-        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;
-        """,
+        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
             "tableName",
             toStaging(TABLE_NAME));
 

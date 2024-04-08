@@ -32,41 +32,44 @@ import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class DataApprovalMinLevelResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_dataapprovalminlevel";
 
-  private final List<OrganisationUnitLevel> levels;
+  private final Logged logged;
 
-  public DataApprovalMinLevelResourceTable(
-      SqlBuilder sqlBuilder, Logged logged, List<OrganisationUnitLevel> levels) {
-    super(sqlBuilder, logged);
-    this.levels = levels;
-  }
+  private final List<OrganisationUnitLevel> levels;
 
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
   }
 
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
+  }
+
   private List<Column> getColumns() {
     return List.of(
         new Column("workflowid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("periodid", DataType.BIGINT, Nullable.NOT_NULL),
-        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("attributeoptioncomboid", DataType.BIGINT, Nullable.NOT_NULL),
+        new Column("organisationunitid", DataType.BIGINT, Nullable.NOT_NULL),
         new Column("minlevel", DataType.INTEGER, Nullable.NOT_NULL));
   }
 
@@ -84,9 +87,9 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
     String sql =
         """
         insert into ${tableName} \
-        (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) \
-        select da.workflowid, da.periodid, da.organisationunitid, \
-        da.attributeoptioncomboid, dal.level as minlevel \
+        (workflowid,periodid,attributeoptioncomboid,organisationunitid,minlevel) \
+        select da.workflowid, da.periodid, da.attributeoptioncomboid, \
+        da.organisationunitid, dal.level as minlevel \
         from dataapproval da \
         inner join analytics_rs_dataapprovalremaplevel dal on \
         dal.workflowid = da.workflowid and dal.dataapprovallevelid = da.dataapprovallevelid \
@@ -111,7 +114,7 @@ public class DataApprovalMinLevelResourceTable extends AbstractResourceTable {
       sql = TextUtils.removeLastOr(sql) + ")";
     }
 
-    sql += ")";
+    sql += ");";
 
     return Optional.of(replace(sql, "tableName", toStaging(TABLE_NAME)));
   }

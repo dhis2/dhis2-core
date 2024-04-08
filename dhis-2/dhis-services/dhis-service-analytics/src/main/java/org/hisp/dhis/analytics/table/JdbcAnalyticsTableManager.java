@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -331,7 +332,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
             inner join analytics_rs_dataelementstructure des on dv.dataelementid = des.dataelementid \
             inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            left join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
@@ -351,7 +352,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-             ${approvalClause} \
+            ${approvalClause} \
             where des.valuetype in (${valTypes}) \
             and des.domaintype = 'AGGREGATE' \
             ${partitionClause} \
@@ -438,11 +439,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        replace(
-            "and dv.lastupdated >= '${startDate}' ",
-            Map.of("startDate", toLongDate(partition.getStartDate())));
-    String partitionFilter =
-        replace("and ps.year = ${year} ", Map.of("year", partition.getYear().toString()));
+        format("and dv.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
@@ -695,8 +693,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "percentile_cont(0.5) "
         + "within group (order by dv1.value::double precision) as percentile_middle_value "
         + "from datavalue dv1 "
-        + "inner join period pe on dv1.periodid = pe.periodid "
-        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (value is varchar or string) can be used for stats calculation.
         + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
@@ -713,8 +709,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "dv1.value, "
         + "dv1.periodid "
         + "from datavalue dv1 "
-        + "inner join period pe on dv1.periodid = pe.periodid "
-        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (varchars) can be used for stats calculation.
         + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
@@ -727,6 +721,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "t3.attributeoptioncomboid) as stats "
         + "on dv.dataelementid = stats.dataelementid and dv.sourceid = stats.sourceid and "
         + "dv.categoryoptioncomboid = stats.categoryoptioncomboid and "
-        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid\s";
+        + "dv.attributeoptioncomboid = stats.attributeoptioncomboid ";
   }
 }
