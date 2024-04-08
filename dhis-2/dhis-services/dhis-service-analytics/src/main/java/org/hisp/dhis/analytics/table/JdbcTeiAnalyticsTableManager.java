@@ -419,7 +419,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     sql.append(
         replace(
             """
-            where tei.trackedentitytypeid = ${tetId} \
+            \s where tei.trackedentitytypeid = ${tetId} \
             and tei.lastupdated < '${startTime}' \
             and exists (select 1 from enrollment pi \
             where pi.trackedentityid = tei.trackedentityid \
