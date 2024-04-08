@@ -333,7 +333,6 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * no partitions, a fake partition representing the master table is used.
    *
    * @param tables the list of {@link AnalyticsTable}.
-   * @param supportsDeclarativePartitioning indicates if declarative partitioning is supported.
    * @return a list of {@link AnalyticsTablePartition}.
    */
   List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
