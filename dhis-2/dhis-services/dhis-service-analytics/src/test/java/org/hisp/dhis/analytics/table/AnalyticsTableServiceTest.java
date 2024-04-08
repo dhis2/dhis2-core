@@ -62,7 +62,6 @@ class AnalyticsTableServiceTest {
 
   @Test
   void testGetTablePartitions() {
-
     when(sqlBuilder.supportsDeclarativePartitioning()).thenReturn(false);
 
     List<AnalyticsTableColumn> columns =

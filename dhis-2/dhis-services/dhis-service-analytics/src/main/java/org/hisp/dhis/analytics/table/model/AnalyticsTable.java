@@ -137,7 +137,8 @@ public class AnalyticsTable extends Table {
         masterTable.getColumns(),
         masterTable.getPrimaryKey(),
         checks,
-        masterTable.getLogged());
+        masterTable.getLogged(),
+        masterTable);
     this.tableType = masterTable.getTableType();
     this.analyticsTableColumns = masterTable.getAnalyticsTableColumns();
     this.program = masterTable.getProgram();
