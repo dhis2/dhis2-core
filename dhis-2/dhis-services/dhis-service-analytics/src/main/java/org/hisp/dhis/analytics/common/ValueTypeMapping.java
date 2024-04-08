@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.toAnalyticsFallbackDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.math.BigDecimal;
@@ -132,7 +133,11 @@ public enum ValueTypeMapping {
   }
 
   private static Date dateConverter(String dateAsString) {
-    return toMediumDate(dateAsString);
+    try {
+      return toMediumDate(dateAsString);
+    } catch (Exception ignore) {
+      return toAnalyticsFallbackDate(dateAsString);
+    }
   }
 
   private static Object booleanConverter(String parameterInput) {
