@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
@@ -398,7 +398,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
 
-      invokeTimeAndLog(sql, format("Remove updated events for table: '%s'", table.getName()));
+      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
     }
   }
 
@@ -432,7 +432,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on psi.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid \
-            and (cast(date_trunc('month', ${eventDateExpression}) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(${eventDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid \
             inner join analytics_rs_categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
@@ -445,6 +445,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             and psi.status in (${exportableEventStatues}) \
             and psi.deleted = false""",
             Map.of(
+                "eventDateMonth", sqlBuilder.dateTrunc("month", eventDateExpression),
                 "eventDateExpression", eventDateExpression,
                 "partitionClause", partitionClause,
                 "startTime", toLongDate(params.getStartTime()),
@@ -466,9 +467,9 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String start = toLongDate(partition.getStartDate());
     String end = toLongDate(partition.getEndDate());
     String statusDate = eventDateExpression;
-    String latestFilter = format("and psi.lastupdated >= '%s' ", start);
+    String latestFilter = format("and psi.lastupdated >= '{}' ", start);
     String partitionFilter =
-        format("and (%s) >= '%s' and (%s) < '%s' ", statusDate, start, statusDate, end);
+        format("and ({}) >= '{}' and ({}) < '{}' ", statusDate, start, statusDate, end);
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
@@ -481,6 +482,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(FIXED_COLS);
 
     if (program.hasNonDefaultCategoryCombo()) {
       List<Category> categories = program.getCategoryCombo().getCategories();
@@ -514,7 +516,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             .map(de -> getColumnFromDataElement(de, true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-    ;
 
     columns.addAll(
         program.getNonConfidentialTrackedEntityAttributes().stream()
@@ -533,8 +534,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                         tea, getNumericClause(), getDateClause(), true))
             .flatMap(Collection::stream)
             .collect(Collectors.toList()));
-
-    columns.addAll(FIXED_COLS);
 
     if (program.isRegistration()) {
       columns.add(new AnalyticsTableColumn("tei", CHARACTER_11, "tei.uid"));

@@ -31,7 +31,6 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
@@ -72,10 +71,6 @@ public class AnalyticsTableSettings {
     return LOGGED;
   }
 
-  public boolean isTableOrdering() {
-    return config.isEnabled(ANALYTICS_TABLE_ORDERING);
-  }
-
   /**
    * Returns the years' offset defined for the period generation. See {@link
    * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
@@ -86,6 +81,15 @@ public class AnalyticsTableSettings {
     return systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
         ? null
         : systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+  }
+
+  /**
+   * Indicates whether an analytics database instance is configured.
+   *
+   * @return true if an analytics database instance is configured.
+   */
+  public boolean isAnalyticsDatabaseConfigured() {
+    return config.isAnalyticsDatabaseConfigured();
   }
 
   /**

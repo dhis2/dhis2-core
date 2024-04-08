@@ -67,6 +67,6 @@ public class AnalyticsTableJob implements Job {
             .withStartTime(new Date())
             .build();
 
-    analyticsTableGenerator.generateTables(params, progress);
+    analyticsTableGenerator.generateAnalyticsTables(params, progress);
   }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -209,11 +210,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             """
             from completedatasetregistration cdr \
             inner join dataset ds on cdr.datasetid=ds.datasetid \
-            inner join period pe on cdr.periodid=pe.periodid \
             inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-            inner join organisationunit ou on cdr.sourceid=ou.organisationunitid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid \
-            and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) \
+            and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
             inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
             inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
@@ -222,12 +221,14 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             and cdr.lastupdated < '${startTime}' \
             and cdr.completed = true""",
             Map.of(
+                "peStartDateMonth",
+                sqlBuilder.dateTrunc("month", "ps.startdate"),
                 "partitionClause",
                 partitionClause,
                 "startTime",
                 toLongDate(params.getStartTime())));
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   /**
@@ -238,22 +239,19 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
    */
   private String getPartitionClause(AnalyticsTablePartition partition) {
     String latestFilter =
-        replace(
-            "and cdr.lastupdated >= '${startDate}'",
-            Map.of("startDate", toLongDate(partition.getStartDate())));
-    String partitionFilter =
-        replace("and ps.year = ${year}", Map.of("year", String.valueOf(partition.getYear())));
+        format("and cdr.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
+    String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
     return partition.isLatestPartition() ? latestFilter : partitionFilter;
   }
 
   private List<AnalyticsTableColumn> getColumns() {
+    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',ao.uid) as id ";
+    String timelyDateDiff = "cast(cdr.date as date) - ps.enddate";
+    String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
+
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    String idColAlias = "concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id ";
-    String timelyDateDiff = "cast(cdr.date as date) - pe.enddate";
-    String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
-
+    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
@@ -261,7 +259,6 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
     columns.add(new AnalyticsTableColumn("timely", BOOLEAN, timelyAlias));
-    columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("value", DATE, NULL, FACT, "cdr.date as value"));
 
     return filterDimensionColumns(columns);
