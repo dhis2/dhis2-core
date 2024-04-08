@@ -31,7 +31,6 @@ import static org.jclouds.Constants.PROPERTY_ENDPOINT;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +46,6 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
 import org.jclouds.domain.LocationScope;
 import org.jclouds.filesystem.reference.FilesystemConstants;
-import org.jclouds.http.HttpResponseException;
-import org.jclouds.rest.AuthorizationException;
 import org.jclouds.s3.reference.S3Constants;
 import org.springframework.stereotype.Component;
 
@@ -59,8 +56,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class JCloudsStore {
-  private static final Pattern CONTAINER_NAME_PATTERN =
-      Pattern.compile("^(?![.-])(?=.{1,63})([.-]?[a-zA-Z0-9]+)+$");
 
   private static final String JCLOUDS_PROVIDER_KEY_FILESYSTEM = "filesystem";
   private static final String JCLOUDS_PROVIDER_KEY_AWS_S3 = "aws-s3";
@@ -82,9 +77,7 @@ public class JCloudsStore {
         validateProvider(configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER));
     String location = configurationProvider.getProperty(ConfigurationKey.FILESTORE_LOCATION);
     String endpoint = configurationProvider.getProperty(ConfigurationKey.FILESTORE_ENDPOINT);
-    String container =
-        validateContainerName(
-            configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER));
+    String container = configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
 
     fileStoreConfig = new FileStoreConfig(provider, location, container);
 
@@ -99,42 +92,19 @@ public class JCloudsStore {
 
   private String validateProvider(String provider) {
     if (!SUPPORTED_PROVIDERS.contains(provider)) {
-      log.warn(
-          "Configuration contains unsupported file store provider '{}'. Falling back to file system provider instead.",
-          provider);
-      return JCLOUDS_PROVIDER_KEY_FILESYSTEM;
+      throw new IllegalArgumentException(
+          "Configuration contains unsupported file store provider '"
+              + provider
+              + "'. Falling back to file system provider instead.");
     }
 
     if (JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(provider)
         && !locationManager.externalDirectorySet()) {
-      log.info(
-          "File system file store provider could not be configured; external directory is not set. "
-              + "Falling back to in-memory provider.");
-      return JCLOUDS_PROVIDER_KEY_TRANSIENT;
+      throw new IllegalArgumentException(
+          "File system file store provider could not be configured; external directory is not set. ");
     }
 
     return provider;
-  }
-
-  private static String validateContainerName(String container) {
-    if (isValidContainerName(container)) {
-      return container;
-    }
-
-    if (container != null) {
-      log.warn(
-          "Container name '{}' is illegal. "
-              + "Standard domain name naming conventions apply (no underscores allowed). "
-              + "Using default container name '{}'",
-          container,
-          ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue());
-    }
-
-    return ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue();
-  }
-
-  private static boolean isValidContainerName(String containerName) {
-    return containerName != null && CONTAINER_NAME_PATTERN.matcher(containerName).matches();
   }
 
   private Properties configureOverrides(String provider, String endpoint) {
@@ -162,32 +132,13 @@ public class JCloudsStore {
   @PostConstruct
   public void init() {
     Location location = createLocation(fileStoreConfig.provider, fileStoreConfig.location);
+    blobStoreContext.getBlobStore().createContainerInLocation(location, fileStoreConfig.container);
 
-    try {
-      blobStoreContext
-          .getBlobStore()
-          .createContainerInLocation(location, fileStoreConfig.container);
-
-      log.info(
-          "File store configured with provider: '{}', container: '{}' and location: '{}'.",
-          fileStoreConfig.provider,
-          fileStoreConfig.container,
-          fileStoreConfig.location);
-    } catch (HttpResponseException ex) {
-      log.error(
-          String.format(
-              "Could not configure file store with provider '%s' and container '%s'. "
-                  + "File storage will not be available.",
-              fileStoreConfig.provider, fileStoreConfig.container),
-          ex);
-    } catch (AuthorizationException ex) {
-      log.error(
-          String.format(
-              "Could not authenticate with file store provider '%s' and container '%s'. "
-                  + "File storage will not be available.",
-              fileStoreConfig.provider, fileStoreConfig.location),
-          ex);
-    }
+    log.info(
+        "File store configured with provider: '{}', container: '{}' and location: '{}'.",
+        fileStoreConfig.provider,
+        fileStoreConfig.container,
+        fileStoreConfig.location);
   }
 
   @PreDestroy
