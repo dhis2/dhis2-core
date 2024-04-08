@@ -151,7 +151,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EventTimeFieldSqlRenderer(),
+            new EventTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
             sqlBuilder);
 
@@ -160,7 +160,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(),
+            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
             sqlBuilder);
 
