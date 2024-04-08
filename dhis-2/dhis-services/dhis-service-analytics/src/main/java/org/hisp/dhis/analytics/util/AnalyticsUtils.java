@@ -1183,10 +1183,8 @@ public final class AnalyticsUtils {
     for (int i = 0; i < str.length(); i++) {
       if (str.charAt(i) == '(') {
         open++;
-      } else if (str.charAt(i) == ')') {
-        if (open >= 1) {
-          open--;
-        }
+      } else if (str.charAt(i) == ')' && open >= 1) {
+        open--;
       }
     }
 
