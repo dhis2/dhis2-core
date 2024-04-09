@@ -46,12 +46,6 @@ public interface MetadataDatastoreService {
   String METADATA_STORE_NS = "METADATASTORE";
 
   /**
-   * The authority required to read/write entries in the {@link
-   * MetadataDatastoreService#METADATA_STORE_NS}
-   */
-  String METADATA_SYNC_AUTHORITY = "F_METADATA_MANAGE";
-
-  /**
    * Retrieves an entry based key and {@link #METADATA_STORE_NS} namespace.
    *
    * @param key the key referencing the value.

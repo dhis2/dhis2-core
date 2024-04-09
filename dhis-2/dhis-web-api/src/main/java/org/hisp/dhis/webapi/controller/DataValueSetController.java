@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
@@ -71,6 +72,7 @@ import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -79,7 +81,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -228,7 +229,7 @@ public class DataValueSetController {
   // -------------------------------------------------------------------------
 
   @PostMapping(consumes = APPLICATION_XML_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postDxf2DataValueSet(ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
@@ -243,7 +244,7 @@ public class DataValueSetController {
   }
 
   @PostMapping(consumes = CONTENT_TYPE_XML_ADX)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postAdxDataValueSet(ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
@@ -258,7 +259,7 @@ public class DataValueSetController {
   }
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postJsonDataValueSet(ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
@@ -273,7 +274,7 @@ public class DataValueSetController {
   }
 
   @PostMapping(consumes = "application/csv")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postCsvDataValueSet(ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {
@@ -288,7 +289,7 @@ public class DataValueSetController {
   }
 
   @PostMapping(consumes = CONTENT_TYPE_PDF)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage postPdfDataValueSet(ImportOptions importOptions, HttpServletRequest request)
       throws IOException, ConflictException, @OpenApi.Ignore NotFoundException {

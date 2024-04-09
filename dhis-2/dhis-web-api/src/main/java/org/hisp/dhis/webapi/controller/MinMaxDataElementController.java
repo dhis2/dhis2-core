@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
+import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_DELETE;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
@@ -56,10 +58,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,7 +124,7 @@ public class MinMaxDataElementController {
   // --------------------------------------------------------------------------
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseBody
   public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
     MinMaxDataElement minMax =
@@ -151,7 +153,7 @@ public class MinMaxDataElementController {
   // --------------------------------------------------------------------------
 
   @DeleteMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_DELETE)
   @ResponseBody
   public WebMessage deleteObject(HttpServletRequest request) throws Exception {
     MinMaxDataElement minMax =

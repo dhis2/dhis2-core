@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_MERGE;
+import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_SPLIT;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -60,6 +62,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
 import org.hisp.dhis.user.CurrentUser;
@@ -72,7 +75,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,7 +101,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
   @Autowired private OrgUnitMergeService orgUnitMergeService;
 
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')")
+  @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_SPLIT)
   @PostMapping(value = "/split", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage splitOrgUnits(@RequestBody OrgUnitSplitQuery query) {
     orgUnitSplitService.split(orgUnitSplitService.getFromQuery(query));
@@ -108,7 +110,7 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')")
+  @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query) {
     orgUnitMergeService.merge(orgUnitMergeService.getFromQuery(query));

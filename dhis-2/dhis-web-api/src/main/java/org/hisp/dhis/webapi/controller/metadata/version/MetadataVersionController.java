@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.metadata.version;
 
+import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -52,13 +53,13 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -210,7 +211,7 @@ public class MetadataVersionController {
 
   // Creates version in versioning table, exports the metadata and saves the
   // snapshot in datastore
-  @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_MANAGE')")
+  @RequiresAuthority(anyOf = F_METADATA_MANAGE)
   @PostMapping(
       value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/create",
       produces = ContextUtils.CONTENT_TYPE_JSON)
@@ -237,7 +238,7 @@ public class MetadataVersionController {
   }
 
   // endpoint to download metadata
-  @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_MANAGE')")
+  @RequiresAuthority(anyOf = F_METADATA_MANAGE)
   @GetMapping(
       value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/{versionName}/data",
       produces = APPLICATION_JSON_VALUE)
@@ -264,7 +265,7 @@ public class MetadataVersionController {
   }
 
   // endpoint to download metadata in gzip format
-  @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_MANAGE')")
+  @RequiresAuthority(anyOf = F_METADATA_MANAGE)
   @GetMapping(
       value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/{versionName}/data.gz",
       produces = "*/*")

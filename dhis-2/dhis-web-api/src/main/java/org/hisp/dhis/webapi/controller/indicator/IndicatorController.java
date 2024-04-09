@@ -100,7 +100,7 @@ public class IndicatorController extends AbstractCrudController<Indicator> {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @RequiresAuthority(anyOf = {F_INDICATOR_MERGE})
+  @RequiresAuthority(anyOf = F_INDICATOR_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicators(@RequestBody MergeParams params)
       throws ConflictException {

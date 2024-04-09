@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
+import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 
 import java.util.Date;
 import java.util.List;
@@ -46,11 +47,11 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -72,7 +73,7 @@ public class PredictionController {
   private final JobSchedulerService jobSchedulerService;
 
   @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
   @ResponseBody
   public WebMessage runPredictors(
       @RequestParam Date startDate,

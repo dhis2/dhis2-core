@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -45,6 +46,7 @@ import org.hisp.dhis.analytics.outlier.service.AnalyticsOutlierService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,7 +71,7 @@ public class AnalyticsOutlierDetectionController {
   private final OutlierQueryParser queryParser;
   private final OutlierRequestValidator validator;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = RESOURCE_PATH + "/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})

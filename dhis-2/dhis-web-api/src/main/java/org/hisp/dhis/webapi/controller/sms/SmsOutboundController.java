@@ -31,6 +31,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SETTINGS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -42,12 +44,12 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,7 +85,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   // POST
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PostMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage sendSMSMessage(@RequestParam String recipient, @RequestParam String message) {
@@ -103,7 +105,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
     return error(status.getDescription());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage sendSMSMessage(HttpServletRequest request) throws IOException {
@@ -123,7 +125,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   // -------------------------------------------------------------------------
 
   @DeleteMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage deleteOutboundMessage(@PathVariable String uid) {
     OutboundSms sms = outboundSmsService.get(uid);
@@ -138,7 +140,7 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   }
 
   @DeleteMapping(produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SETTINGS)
   @ResponseBody
   public WebMessage deleteOutboundMessages(@RequestParam List<String> ids) {
     ids.forEach(outboundSmsService::delete);

@@ -28,6 +28,7 @@
 package org.hisp.dhis.datastore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
 
 import java.util.List;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
@@ -50,7 +51,7 @@ public class DefaultMetadataDatastoreService implements MetadataDatastoreService
           new DatastoreNamespaceProtection(
               MetadataDatastoreService.METADATA_STORE_NS,
               ProtectionType.HIDDEN,
-              MetadataDatastoreService.METADATA_SYNC_AUTHORITY));
+              F_METADATA_MANAGE.name()));
     }
   }
 

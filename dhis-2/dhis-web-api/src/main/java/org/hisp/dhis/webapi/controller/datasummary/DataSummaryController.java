@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.datasummary;
 
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +57,7 @@ public class DataSummaryController {
   @Autowired private DataStatisticsService dataStatisticsService;
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   public @ResponseBody DataSummary getStatistics() {
     return dataStatisticsService.getSystemStatisticsSummary();
   }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.hisp.dhis.security.Authorities.F_ORG_UNIT_PROFILE_ADD;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
@@ -37,9 +38,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfile;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileData;
 import org.hisp.dhis.orgunitprofile.OrgUnitProfileService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrganisationUnitProfileController {
   private final OrgUnitProfileService orgUnitProfileService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')")
+  @RequiresAuthority(anyOf = F_ORG_UNIT_PROFILE_ADD)
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public void saveProfile(@RequestBody OrgUnitProfile profile) throws BadRequestException {

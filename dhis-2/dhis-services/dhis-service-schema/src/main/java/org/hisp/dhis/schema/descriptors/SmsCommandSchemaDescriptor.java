@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
+
 import com.google.common.collect.Lists;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -48,8 +50,8 @@ public class SmsCommandSchemaDescriptor implements SchemaDescriptor {
     schema.setRelativeApiEndpoint(API_ENDPOINT);
     schema.setOrder(1509);
 
-    schema.add(new Authority(AuthorityType.CREATE, Lists.newArrayList("F_MOBILE_SENDSMS")));
-    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_MOBILE_SENDSMS")));
+    schema.add(new Authority(AuthorityType.CREATE, Lists.newArrayList(F_MOBILE_SENDSMS.name())));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList(F_MOBILE_SENDSMS.name())));
 
     return schema;
   }

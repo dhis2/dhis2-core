@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -39,9 +41,9 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,7 +73,7 @@ public class DeletedObjectController {
 
   @OpenApi.Response(DeletedObject[].class)
   @GetMapping
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   public RootNode getDeletedObjects(DeletedObjectQuery query) {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
     int totalDeletedObjects = deletedObjectService.countDeletedObjects(query);
