@@ -111,17 +111,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       List.of(
           new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid"),
           new AnalyticsTableColumn(
-              "co",
-              CHARACTER_11,
-              NOT_NULL,
-              "dcs.categoryoptioncombouid as co",
-              List.of("dx", "co")),
+              "co", CHARACTER_11, NOT_NULL, "dcs.categoryoptioncombouid", List.of("dx", "co")),
           new AnalyticsTableColumn(
-              "ao",
-              CHARACTER_11,
-              NOT_NULL,
-              "acs.categoryoptioncombouid as ao",
-              List.of("dx", "ao")),
+              "ao", CHARACTER_11, NOT_NULL, "acs.categoryoptioncombouid", List.of("dx", "ao")),
           new AnalyticsTableColumn("pestartdate", DATE, "ps.startdate as pestartdate"),
           new AnalyticsTableColumn("peenddate", DATE, "ps.enddate as pestartdate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
