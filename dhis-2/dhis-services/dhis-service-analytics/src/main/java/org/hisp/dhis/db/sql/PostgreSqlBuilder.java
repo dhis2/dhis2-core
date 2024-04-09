@@ -29,7 +29,6 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
@@ -241,86 +240,46 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Columns
     if (table.hasColumns()) {
-      sql.append(columnsStatement(table.getColumns()));
+      for (Column column : table.getColumns()) {
+        String dataType = getDataTypeName(column.getDataType());
+        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+        String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
+
+        sql.append(quote(column.getName()) + " ")
+            .append(dataType)
+            .append(nullable)
+            .append(collation)
+            .append(COMMA);
+      }
     }
 
     // Primary key
     if (table.hasPrimaryKey()) {
-      sql.append(primaryKeysStatement(table.getPrimaryKey()));
+      sql.append("primary key (");
+
+      for (String columnName : table.getPrimaryKey()) {
+        sql.append(quote(columnName)).append(COMMA);
+      }
+
+      removeLastComma(sql).append(")").append(COMMA);
     }
 
     // Checks
     if (table.hasChecks()) {
-      sql.append(checksStatement(table.getChecks()));
+      for (String check : table.getChecks()) {
+        sql.append("check(" + check + ")").append(COMMA);
+      }
     }
 
     removeLastComma(sql).append(")");
 
     // Parent
     // Only use partitioned (inherited) tables when we should not distribute the table.
-    if (!table.isTableDistributed() && table.hasParent()) {
+    if (!table.isDistributed() && table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 
     return sql.append(";").toString();
-  }
-
-  /**
-   * Returns the SQL statement for the given list of checks.
-   *
-   * @param checks the list of checks to append to the SQL statement.
-   * @return the SQL statement.
-   */
-  private static String checksStatement(List<String> checks) {
-    StringBuilder sql = new StringBuilder();
-
-    for (String check : checks) {
-      sql.append("check(" + check + ")").append(COMMA);
-    }
-
-    return sql.toString();
-  }
-
-  /**
-   * Returns the SQL statement for the given list of primaryKeys.
-   *
-   * @param primaryKeys the list of primaryKeys to append to the SQL statement.
-   * @return the SQL statement.
-   */
-  private String primaryKeysStatement(List<String> primaryKeys) {
-    StringBuilder sql = new StringBuilder("primary key (");
-
-    for (String columnName : primaryKeys) {
-      sql.append(quote(columnName)).append(COMMA);
-    }
-
-    removeLastComma(sql).append(")").append(COMMA);
-
-    return sql.toString();
-  }
-
-  /**
-   * Returns the SQL statement for the given list of columns.
-   *
-   * @param columns the list of columns to append to the SQL statement.
-   * @return the SQL statement.
-   */
-  private String columnsStatement(List<Column> columns) {
-    StringBuilder sql = new StringBuilder();
-
-    for (Column column : columns) {
-      String dataType = getDataTypeName(column.getDataType());
-      String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-      String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
-
-      sql.append(quote(column.getName()) + " ")
-          .append(dataType)
-          .append(nullable)
-          .append(collation)
-          .append(COMMA);
-    }
-
-    return sql.toString();
   }
 
   @Override

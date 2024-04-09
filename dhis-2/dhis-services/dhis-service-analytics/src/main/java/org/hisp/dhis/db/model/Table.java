@@ -56,7 +56,7 @@ public class Table {
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
 
-  @Getter @Setter private boolean tableDistributed = false;
+  @Getter @Setter private boolean distributed = false;
 
   /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;

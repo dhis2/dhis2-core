@@ -180,7 +180,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   private AnalyticsTable withDistributedFlag(
       AnalyticsTable analyticsTable, AnalyticsTableUpdateParams params) {
-    analyticsTable.setTableDistributed(
+    analyticsTable.setDistributed(
         params.isCitusExtensionEnabled() && analyticsTable.isTableTypeDistributed());
     return analyticsTable;
   }
