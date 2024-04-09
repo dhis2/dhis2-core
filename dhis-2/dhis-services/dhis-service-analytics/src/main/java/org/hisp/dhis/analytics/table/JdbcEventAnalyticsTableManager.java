@@ -593,12 +593,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         .append(SPACE)
         .append(
             """
-          \s(select l.uid from ${maplegend} l \
-          inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
-          and l.endvalue > ${selectClause} \
-          and l.maplegendsetid=${legendSetId} \
-          and av.trackedentityid=pi.trackedentityid \
-          and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""");
+            \s(select l.uid from ${maplegend} l \
+            inner join ${trackedentityattributevalue} av on l.startvalue <= ${selectClause} \
+            and l.endvalue > ${selectClause} \
+            and l.maplegendsetid=${legendSetId} \
+            and av.trackedentityid=pi.trackedentityid \
+            and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""");
 
     return attribute.getLegendSets().stream()
         .map(
@@ -758,11 +758,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-          (select l.uid from ${maplegend} l
-          inner join ${event} on l.startvalue <= ${select}
-          and l.endvalue > ${select}
-          and l.maplegendsetid=${legendSetId}
-          and eventid=psi.eventid ${dataClause}) as ${column}""";
+        (select l.uid from ${maplegend} l
+        inner join ${event} on l.startvalue <= ${select}
+        and l.endvalue > ${select}
+        and l.maplegendsetid=${legendSetId}
+        and eventid=psi.eventid ${dataClause}) as ${column}""";
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
