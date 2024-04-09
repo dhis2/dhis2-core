@@ -16,6 +16,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      minio:
+        condition: service_healthy
 
   db:
     image: postgis/postgis:13-3.4-alpine
@@ -26,7 +28,7 @@ services:
       POSTGRES_DB: dhis
       POSTGRES_PASSWORD: &postgres_password dhis
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
-      LC_COLLATE : C
+      LC_COLLATE: C
     healthcheck:
       test: [ "CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null" ]
       start_period: 120s
@@ -41,8 +43,23 @@ services:
     ports:
       - "6379"
 
-  selenium:
-    image: 'selenium/standalone-chrome:latest'
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9090"
     ports:
-      - '4444'
-      - '7900'
+      - "9000" # minio API
+      - "9090" # minio UI
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: dhisdhis
+
+  selenium:
+    image: "selenium/standalone-chrome:latest"
+    ports:
+      - "4444"
+      - "7900"
