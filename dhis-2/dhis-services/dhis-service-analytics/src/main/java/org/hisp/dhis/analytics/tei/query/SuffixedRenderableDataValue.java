@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,22 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
-import java.util.function.UnaryOperator;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.common.query.Field;
-import org.hisp.dhis.analytics.common.query.Renderable;
 
-@RequiredArgsConstructor
-public class RenderableDataValue extends BaseRenderable {
-  private final String alias;
+@Getter
+public class SuffixedRenderableDataValue extends RenderableDataValue {
 
-  private final String dataValue;
+  private final String valueSuffix;
 
-  private final ValueTypeMapping valueTypeMapping;
+  private SuffixedRenderableDataValue(
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping, String valueSuffix) {
+    super(alias, dataValue, valueTypeMapping);
+    this.valueSuffix = valueSuffix;
+  }
 
   public static RenderableDataValue of(
-      String alias, String dataValue, ValueTypeMapping valueTypeMapping) {
-    return new RenderableDataValue(alias, dataValue, valueTypeMapping);
-  }
-
-  public Renderable transformedIfNecessary() {
-    return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
-  }
-
-  public Renderable transformedIfNecessary(UnaryOperator<String> dataValueTransformer) {
-    RenderableDataValue withoutAsAlias = RenderableDataValue.of(alias, dataValue, valueTypeMapping);
-
-    return Field.ofUnquoted(
-        EMPTY, () -> dataValueTransformer.apply(withoutAsAlias.render()), EMPTY);
-  }
-
-  @Override
-  public String render() {
-    return "("
-        + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-        + " -> '"
-        + dataValue
-        + "' ->> '"
-        + "value"
-        + getValueSuffix()
-        + "')::"
-        + valueTypeMapping.getPostgresCast();
-  }
-
-  protected String getValueSuffix() {
-    return EMPTY;
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping, String suffix) {
+    return new SuffixedRenderableDataValue(alias, dataValue, valueTypeMapping, suffix);
   }
 }

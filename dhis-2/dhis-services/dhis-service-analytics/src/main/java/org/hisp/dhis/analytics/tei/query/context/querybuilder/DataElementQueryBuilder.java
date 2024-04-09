@@ -32,12 +32,15 @@ import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
 import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
 import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -53,10 +56,13 @@ import org.hisp.dhis.analytics.common.query.Order;
 import org.hisp.dhis.analytics.tei.query.DataElementCondition;
 import org.hisp.dhis.analytics.tei.query.RenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.StageExistsRenderable;
+import org.hisp.dhis.analytics.tei.query.SuffixedRenderableDataValue;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
 import org.springframework.stereotype.Service;
 
 /** Query builder for data elements. */
@@ -75,6 +81,14 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   @Getter
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(DataElementQueryBuilder::isDataElementOrder);
+
+  private static final List<ValueType> ID_SCHEME_SUPPORTING_VALUE_TYPES =
+      List.of(ORGANISATION_UNIT);
+
+  private static final Map<IdScheme, String> SUFFIX_BY_ID_SCHEME =
+      Map.of(
+          IdScheme.NAME, "_name",
+          IdScheme.CODE, "_code");
 
   @Override
   public RenderableSqlQuery buildSqlQuery(
@@ -156,17 +170,35 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   @Nonnull
   private static Stream<Field> getValueFields(
       List<DimensionIdentifier<DimensionParam>> dimensions) {
-    return dimensions.stream()
-        .map(
-            dimensionIdentifier ->
-                ofUnquoted(
-                    EMPTY,
-                    RenderableDataValue.of(
-                            doubleQuote(dimensionIdentifier.getPrefix()),
-                            dimensionIdentifier.getDimension().getUid(),
-                            fromValueType(dimensionIdentifier.getDimension().getValueType()))
-                        .transformedIfNecessary(),
-                    dimensionIdentifier.toString()));
+    return dimensions.stream().map(DataElementQueryBuilder::getRenderableDataValue);
+  }
+
+  private static Field getRenderableDataValue(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    IdScheme idScheme = dimensionIdentifier.getDimension().getIdScheme();
+    ValueType valueType = dimensionIdentifier.getDimension().getValueType();
+    if (Objects.nonNull(valueType)
+        && Objects.nonNull(idScheme)
+        && ID_SCHEME_SUPPORTING_VALUE_TYPES.contains(
+            dimensionIdentifier.getDimension().getValueType())
+        && SUFFIX_BY_ID_SCHEME.containsKey(idScheme)) {
+      return ofUnquoted(
+          EMPTY,
+          SuffixedRenderableDataValue.of(
+              doubleQuote(dimensionIdentifier.getPrefix()),
+              dimensionIdentifier.getDimension().getUid(),
+              fromValueType(dimensionIdentifier.getDimension().getValueType()),
+              SUFFIX_BY_ID_SCHEME.get(idScheme)),
+          dimensionIdentifier.toString());
+    }
+    return ofUnquoted(
+        EMPTY,
+        RenderableDataValue.of(
+                doubleQuote(dimensionIdentifier.getPrefix()),
+                dimensionIdentifier.getDimension().getUid(),
+                fromValueType(dimensionIdentifier.getDimension().getValueType()))
+            .transformedIfNecessary(),
+        dimensionIdentifier.toString());
   }
 
   /**

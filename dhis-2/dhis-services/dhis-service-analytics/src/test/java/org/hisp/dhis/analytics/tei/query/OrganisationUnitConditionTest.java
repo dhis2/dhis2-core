@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -358,6 +359,7 @@ class OrganisationUnitConditionTest {
             new BaseDimensionalObject(
                 "ou", ORGANISATION_UNIT, ous.stream().map(orgUnitCreator).toList()),
             DIMENSIONS,
+            UID,
             ous);
 
     ElementWithOffset<Program> program = emptyElementWithOffset();
