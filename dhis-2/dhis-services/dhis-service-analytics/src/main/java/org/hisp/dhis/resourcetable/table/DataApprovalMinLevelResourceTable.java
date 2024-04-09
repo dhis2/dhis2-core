@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -85,24 +86,26 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
   @Override
   public Optional<String> getPopulateTempTableStatement() {
     String sql =
-        """
-        insert into ${tableName} \
-        (workflowid,periodid,attributeoptioncomboid,organisationunitid,minlevel) \
-        select da.workflowid, da.periodid, da.attributeoptioncomboid, \
-        da.organisationunitid, dal.level as minlevel \
-        from dataapproval da \
-        inner join analytics_rs_dataapprovalremaplevel dal on \
-        dal.workflowid = da.workflowid and dal.dataapprovallevelid = da.dataapprovallevelid \
-        inner join analytics_rs_orgunitstructure ous on da.organisationunitid = ous.organisationunitid \
-        where not exists (
-        select 1 from dataapproval da2 \
-        inner join analytics_rs_dataapprovalremaplevel dal2 on \
-        da2.workflowid = dal2.workflowid and da2.dataapprovallevelid = dal2.dataapprovallevelid \
-        where da.workflowid = da2.workflowid \
-        and da.periodid = da2.periodid \
-        and da.attributeoptioncomboid = da2.attributeoptioncomboid \
-        and dal.level > dal2.level \
-        """;
+        replace(
+            """
+            insert into ${tableName} \
+            (workflowid,periodid,attributeoptioncomboid,organisationunitid,minlevel) \
+            select da.workflowid, da.periodid, da.attributeoptioncomboid, \
+            da.organisationunitid, dal.level as minlevel \
+            from dataapproval da \
+            inner join analytics_rs_dataapprovalremaplevel dal on \
+            dal.workflowid = da.workflowid and dal.dataapprovallevelid = da.dataapprovallevelid \
+            inner join analytics_rs_orgunitstructure ous on da.organisationunitid = ous.organisationunitid \
+            where not exists (
+            select 1 from dataapproval da2 \
+            inner join analytics_rs_dataapprovalremaplevel dal2 on \
+            da2.workflowid = dal2.workflowid and da2.dataapprovallevelid = dal2.dataapprovallevelid \
+            where da.workflowid = da2.workflowid \
+            and da.periodid = da2.periodid \
+            and da.attributeoptioncomboid = da2.attributeoptioncomboid \
+            and dal.level > dal2.level \
+            """,
+            Map.of("tableName", toStaging(TABLE_NAME)));
 
     if (!levels.isEmpty()) {
       sql += "and (";
@@ -116,7 +119,7 @@ public class DataApprovalMinLevelResourceTable implements ResourceTable {
 
     sql += ");";
 
-    return Optional.of(replace(sql, "tableName", toStaging(TABLE_NAME)));
+    return Optional.of(sql);
   }
 
   @Override
