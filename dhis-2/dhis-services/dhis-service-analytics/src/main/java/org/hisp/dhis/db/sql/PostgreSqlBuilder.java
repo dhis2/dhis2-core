@@ -31,7 +31,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -259,9 +258,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Parent
     // Only use partitioned (inherited) tables when we should not distribute the table.
-    if (table instanceof AnalyticsTable analyticsTable
-        && !analyticsTable.isTableDistributed()
-        && table.hasParent()) {
+    if (!table.isTableDistributed() && table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 

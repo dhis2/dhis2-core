@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
@@ -54,6 +55,8 @@ public class Table {
 
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
+
+  @Getter @Setter private boolean tableDistributed = false;
 
   /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;
