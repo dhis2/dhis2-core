@@ -33,10 +33,10 @@ import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
-import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
@@ -114,8 +114,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               "co", CHARACTER_11, NOT_NULL, "dcs.categoryoptioncombouid", List.of("dx", "co")),
           new AnalyticsTableColumn(
               "ao", CHARACTER_11, NOT_NULL, "acs.categoryoptioncombouid", List.of("dx", "ao")),
-          new AnalyticsTableColumn("pestartdate", DATE, "ps.startdate as pestartdate"),
-          new AnalyticsTableColumn("peenddate", DATE, "ps.enddate as pestartdate"),
+          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "ps.startdate as pestartdate"),
+          new AnalyticsTableColumn("peenddate", TIMESTAMP, "ps.enddate as pestartdate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
           new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso"),
           new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid"),
