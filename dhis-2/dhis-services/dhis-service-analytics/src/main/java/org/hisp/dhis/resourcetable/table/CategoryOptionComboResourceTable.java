@@ -93,13 +93,13 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-        insert into ${tableName} \
-        (dataelementid, categoryoptioncomboid, dataelementuid, categoryoptioncombouid) \
-        select de.dataelementid as dataelementid, coc.categoryoptioncomboid as categoryoptioncomboid, \
-        de.uid as dataelementuid, coc.uid as categoryoptioncombouid \
-        from dataelement de \
-        inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
-        inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
+            insert into ${tableName} \
+            (dataelementid, categoryoptioncomboid, dataelementuid, categoryoptioncombouid) \
+            select de.dataelementid as dataelementid, coc.categoryoptioncomboid as categoryoptioncomboid, \
+            de.uid as dataelementuid, coc.uid as categoryoptioncombouid \
+            from dataelement de \
+            inner join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid \
+            inner join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid;""",
             "tableName",
             toStaging(TABLE_NAME));
 

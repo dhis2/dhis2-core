@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table.util;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -198,28 +197,6 @@ public class PartitionUtils {
     }
 
     return map;
-  }
-
-  /**
-   * Returns a list of table partitions based on the given analytics tables. For master tables with
-   * no partitions, a fake partition representing the master table is used.
-   *
-   * @param tables the list of {@link AnalyticsTable}.
-   * @return a list of {@link AnalyticsTablePartition}.
-   */
-  public static List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
-    List<AnalyticsTablePartition> partitions = new ArrayList<>();
-
-    for (AnalyticsTable table : tables) {
-      if (table.hasTablePartitions()) {
-        partitions.addAll(table.getTablePartitions());
-      } else {
-        // Fake partition representing the master table
-        partitions.add(new AnalyticsTablePartition(table));
-      }
-    }
-
-    return partitions;
   }
 
   /**

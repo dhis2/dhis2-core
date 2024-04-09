@@ -121,9 +121,9 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-        insert into ${table_name} \
-        select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, \
-        """,
+            insert into ${table_name} \
+            select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, \
+            """,
             "table_name",
             toStaging(TABLE_NAME));
 
@@ -132,19 +132,19 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
         sql +=
             replace(
                 """
-            (
-            select oug.name from orgunitgroup oug \
-            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
-            and ougsm.orgunitgroupsetid = ${groupSetId} \
-            where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetName}, \
-            (
-            select oug.uid from orgunitgroup oug \
-            inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-            inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
-            and ougsm.orgunitgroupsetid = ${groupSetId} \
-            where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
-            """,
+                (
+                select oug.name from orgunitgroup oug \
+                inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+                inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+                and ougsm.orgunitgroupsetid = ${groupSetId} \
+                where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetName}, \
+                (
+                select oug.uid from orgunitgroup oug \
+                inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+                inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+                and ougsm.orgunitgroupsetid = ${groupSetId} \
+                where ougm.organisationunitid = ou.organisationunitid limit 1) as ${groupSetUid}, \
+                """,
                 Map.of(
                     "groupSetId", valueOf(groupSet.getId()),
                     "groupSetName", quote(groupSet.getName()),
@@ -156,13 +156,13 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
           sql +=
               replace(
                   """
-              (
-              select oug.name from orgunitgroup oug \
-              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-              and ougm.organisationunitid = ous.idlevel${level} \
-              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
-              and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
-              """,
+                  (
+                  select oug.name from orgunitgroup oug \
+                  inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+                  and ougm.organisationunitid = ous.idlevel${level} \
+                  inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+                  and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
+                  """,
                   Map.of(
                       "level", valueOf(i),
                       "groupSetId", valueOf(groupSet.getId())));
@@ -180,13 +180,13 @@ public class OrganisationUnitGroupSetResourceTable implements ResourceTable {
           sql +=
               replace(
                   """
-              (
-              select oug.uid from orgunitgroup oug \
-              inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
-              and ougm.organisationunitid = ous.idlevel${level} \
-              inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
-              and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
-              """,
+                  (
+                  select oug.uid from orgunitgroup oug \
+                  inner join orgunitgroupmembers ougm on ougm.orgunitgroupid = oug.orgunitgroupid \
+                  and ougm.organisationunitid = ous.idlevel${level} \
+                  inner join orgunitgroupsetmembers ougsm on ougsm.orgunitgroupid = ougm.orgunitgroupid \
+                  and ougsm.orgunitgroupsetid = ${groupSetId} limit 1), \
+                  """,
                   Map.of(
                       "level", valueOf(i),
                       "groupSetId", valueOf(groupSet.getId())));
