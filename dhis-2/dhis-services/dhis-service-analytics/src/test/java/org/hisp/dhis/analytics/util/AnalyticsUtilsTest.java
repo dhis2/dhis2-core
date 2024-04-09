@@ -729,4 +729,12 @@ class AnalyticsUtilsTest extends DhisConvenienceTest {
     assertNull(EnumUtils.getEnum(Database.class, "PostgreSQL"));
     assertNull(EnumUtils.getEnum(Database.class, "postgresql"));
   }
+
+  @Test
+  void testGetClosingParentheses() {
+    assertEquals("", AnalyticsUtils.getClosingParentheses(null));
+    assertEquals("", AnalyticsUtils.getClosingParentheses(""));
+    assertEquals(")", AnalyticsUtils.getClosingParentheses("from(select(select (*))"));
+    assertEquals("))", AnalyticsUtils.getClosingParentheses("(("));
+  }
 }
