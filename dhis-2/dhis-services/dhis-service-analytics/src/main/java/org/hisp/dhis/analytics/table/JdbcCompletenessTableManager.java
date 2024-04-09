@@ -39,7 +39,6 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -141,10 +140,10 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String sql =
         """
         select cdr.datasetid \
-            from completedatasetregistration cdr \
-            where cdr.lastupdated >= '${startDate}' \
-            and cdr.lastupdated < '${endDate}' \
-            limit 1;""";
+        from completedatasetregistration cdr \
+        where cdr.lastupdated >= '${startDate}' \
+        and cdr.lastupdated < '${endDate}' \
+        limit 1;""";
     replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
