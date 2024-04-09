@@ -109,7 +109,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid as dx"),
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid"),
           new AnalyticsTableColumn(
               "co",
               CHARACTER_11,
@@ -125,9 +125,9 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
           new AnalyticsTableColumn("pestartdate", DATE, "ps.startdate as pestartdate"),
           new AnalyticsTableColumn("peenddate", DATE, "ps.enddate as pestartdate"),
           new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
-          new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso as pe"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid as ou"),
-          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level as oulevel"));
+          new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid"),
+          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"));
 
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
