@@ -28,39 +28,40 @@
         Adding an AppenderRef is necessary to overrule the log level we have set on the Root AppenderRefs.
         Once you add an AppenderRef to a Logger you need to set additivity to false otherwise logs might appear twice
         as they propagate up from the Logger to its parent which is the Root.
-        Check the log4j2 config documentation for more details. -->
+        Check the log4j2 config documentation for more details. Uncommend the various loggers to debug the tests. -->
         
-        <!-- Uncomment to debug DHIS2 -->
-
+        
+        <!-- DHIS2 -->
+        <!--        
         <Logger name="org.hisp.dhis.migration" level="info" additivity="false">
-			<AppenderRef ref="console"/>
-		</Logger>
-		<Logger name="org.hisp.dhis" level="debug" additivity="false">
-			<AppenderRef ref="console"/>
-		</Logger>
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="org.hisp.dhis" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        -->
 
-		
-        <!-- Uncomment to debug testcontainers -->
+        <!-- Testcontainers -->
         <!--
-		<Logger name="org.testcontainers" level="debug" additivity="false">
-			<AppenderRef ref="console"/>
-		</Logger>
-		<Logger name="com.github.dockerjava" level="debug" additivity="false">
-        	<AppenderRef ref="console"/>
-		</Logger>
-		-->
-		
-        <!-- Uncomment to debug spring test context (cache) -->
+        <Logger name="org.testcontainers" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="com.github.dockerjava" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        -->
+
+        <!-- Spring test context (cache) -->
         <!--
         <Logger name="org.springframework.test.context.cache" level="debug" additivity="false">
-			<AppenderRef ref="console"/>
-		</Logger>
+            <AppenderRef ref="console"/>
+        </Logger>
         -->
-        
-        <!-- Uncomment to debug JDBC template queries (SQL) -->
+
+        <!-- JDBC template queries (SQL) -->
         <!--
         <Logger name="org.springframework.jdbc.core" level="debug" additivity="false">
-			<AppenderRef ref="console"/>
+            <AppenderRef ref="console"/>
         </Logger>
         -->
     </Loggers>
