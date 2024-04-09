@@ -824,7 +824,7 @@ class SchemeIdResponseMapperTest {
             ous.stream().map(item -> new BaseDimensionalItemObject(item)).toList(),
             TEXT);
 
-    DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);
+    DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, UID, ous);
 
     ElementWithOffset<Program> program = emptyElementWithOffset();
     ElementWithOffset<ProgramStage> programStage = emptyElementWithOffset();
