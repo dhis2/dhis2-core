@@ -623,7 +623,6 @@ class JdbcEventAnalyticsTableManagerTest {
     AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
     subject.populateTable(params, partition);
-
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
@@ -676,7 +675,6 @@ class JdbcEventAnalyticsTableManagerTest {
     AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
     subject.populateTable(params, partition);
-
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =

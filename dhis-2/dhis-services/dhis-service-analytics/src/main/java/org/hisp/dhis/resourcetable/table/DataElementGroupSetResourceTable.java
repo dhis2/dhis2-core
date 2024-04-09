@@ -108,19 +108,19 @@ public class DataElementGroupSetResourceTable implements ResourceTable {
       sql +=
           replace(
               """
-          (
-          select deg.name from dataelementgroup deg \
-          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
-          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
-          and degsm.dataelementgroupsetid = ${groupSetId} \
-          where degm.dataelementid = d.dataelementid limit 1) as ${groupSetName}, \
-          (
-          select deg.uid from dataelementgroup deg \
-          inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
-          inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
-          and degsm.dataelementgroupsetid = ${groupSetId} \
-          where degm.dataelementid = d.dataelementid limit 1) as ${groupSetUid}, \
-          """,
+              (
+              select deg.name from dataelementgroup deg \
+              inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+              inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+              and degsm.dataelementgroupsetid = ${groupSetId} \
+              where degm.dataelementid = d.dataelementid limit 1) as ${groupSetName}, \
+              (
+              select deg.uid from dataelementgroup deg \
+              inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid \
+              inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid \
+              and degsm.dataelementgroupsetid = ${groupSetId} \
+              where degm.dataelementid = d.dataelementid limit 1) as ${groupSetUid}, \
+              """,
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
                   "groupSetName", quote(groupSet.getName()),
