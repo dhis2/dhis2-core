@@ -124,7 +124,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               List.of("dx", "ao")),
           new AnalyticsTableColumn("pestartdate", DATE, "ps.startdate as pestartdate"),
           new AnalyticsTableColumn("peenddate", DATE, "ps.enddate as peenddate"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
+          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year as year"),
           new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso as pe"),
           new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid as ou"),
           new AnalyticsTableColumn("oulevel", INTEGER, "ous.level as oulevel"));
@@ -423,7 +423,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       StringBuilder sql =
           new StringBuilder(
               """
-               left join analytics_rs_dataapprovalminlevel da \
+              left join analytics_rs_dataapprovalminlevel da \
               on des.workflowid=da.workflowid and da.periodid=dv.periodid \
               and da.attributeoptioncomboid=dv.attributeoptioncomboid \
               and (""");

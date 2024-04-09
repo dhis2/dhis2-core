@@ -329,6 +329,8 @@ public enum ConfigurationKey {
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
 
+  FILESTORE_ENDPOINT("filestore.endpoint", "", false),
+
   /** Public identity / username. */
   FILESTORE_IDENTITY("filestore.identity", "", false),
 
