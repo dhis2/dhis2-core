@@ -722,8 +722,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
     return replaceQualify(
         """
-              (select ${fromType} from ${event} \
-              where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+        (select ${fromType} from ${event} \
+        where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
         List.of("event"),
         Map.of(
             "fromType",
@@ -740,11 +740,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replaceQualify(
         """
-            (select ${fromType} from ${trackedentityattributevalue} \
-            where trackedentityid=pi.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
+        (select ${fromType} from ${trackedentityattributevalue} \
+        where trackedentityid=pi.trackedentityid \
+        and trackedentityattributeid=${attributeId}\
+        ${dataClause})\
+        ${closingParentheses} as ${attributeUid}""",
         List.of("trackedentityattributevalue"),
         Map.of(
             "fromType", fromType,

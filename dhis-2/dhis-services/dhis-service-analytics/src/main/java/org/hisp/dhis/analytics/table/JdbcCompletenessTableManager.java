@@ -142,7 +142,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     String sql =
         replaceQualify(
             """
-        select cdr.datasetid \
+            select cdr.datasetid \
             from ${completedatasetregistration} cdr \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}' \
