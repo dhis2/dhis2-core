@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Lars Helge Overland
@@ -38,15 +39,18 @@ public enum AnalyticsTableType {
   COMPLETENESS("analytics_completeness", true, true),
   COMPLETENESS_TARGET("analytics_completenesstarget", false, false),
   ORG_UNIT_TARGET("analytics_orgunittarget", false, false),
-  EVENT("analytics_event", false, true),
-  ENROLLMENT("analytics_enrollment", false, false),
+  EVENT("analytics_event", false, true, "psi"),
+  ENROLLMENT("analytics_enrollment", false, false, "pi"),
   OWNERSHIP("analytics_ownership", false, false),
   VALIDATION_RESULT("analytics_validationresult", true, false),
-  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_tei_events", false, true),
-  TRACKED_ENTITY_INSTANCE_ENROLLMENTS("analytics_tei_enrollments", false, false),
-  TRACKED_ENTITY_INSTANCE("analytics_tei", false, false);
+  TRACKED_ENTITY_INSTANCE_EVENTS("analytics_tei_events", false, true, "trackedentityinstanceuid"),
+  TRACKED_ENTITY_INSTANCE_ENROLLMENTS(
+      "analytics_tei_enrollments", false, false, "trackedentityinstanceuid"),
+  TRACKED_ENTITY_INSTANCE("analytics_tei", false, false, "trackedentityinstanceuid");
 
-  private final String tableName;
+  @Getter private String tableName;
+
+  @Getter private String distributionColumn;
 
   private final boolean periodDimension;
 
@@ -56,5 +60,18 @@ public enum AnalyticsTableType {
     this.tableName = tableName;
     this.periodDimension = periodDimension;
     this.latestPartition = latestPartition;
+  }
+
+  AnalyticsTableType(
+      String tableName,
+      boolean periodDimension,
+      boolean latestPartition,
+      String distributionColumn) {
+    this(tableName, periodDimension, latestPartition);
+    this.distributionColumn = distributionColumn;
+  }
+
+  public boolean isDistributed() {
+    return StringUtils.isNotBlank(distributionColumn);
   }
 }

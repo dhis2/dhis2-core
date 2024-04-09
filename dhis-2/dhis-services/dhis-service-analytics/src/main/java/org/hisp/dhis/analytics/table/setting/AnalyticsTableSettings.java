@@ -36,8 +36,10 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.configuration.CitusSettings;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -56,6 +58,8 @@ public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
   private final SystemSettingManager systemSettings;
+
+  @Delegate private final CitusSettings citusSettings;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or

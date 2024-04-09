@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -61,6 +62,8 @@ public class AnalyticsTable extends Table {
 
   /** Tracked entity type of enrollments in analytics table. */
   private TrackedEntityType trackedEntityType;
+
+  @Getter @Setter private boolean tableDistributed = false;
 
   /** Analytics table partitions for this base analytics table. */
   private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
@@ -239,6 +242,10 @@ public class AnalyticsTable extends Table {
    */
   public boolean hasTablePartitions() {
     return !tablePartitions.isEmpty();
+  }
+
+  public boolean isTableTypeDistributed() {
+    return tableType.isDistributed();
   }
 
   /**

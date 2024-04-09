@@ -172,9 +172,15 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
   @Override
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    List<AnalyticsTable> tables = new ArrayList<>();
+
+    // Skipping if the latest partition is requested since it's not supported.
+    if (params.isLatestUpdate()) {
+      return tables;
+    }
+
     Calendar calendar = PeriodType.getCalendar();
     List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
-    List<AnalyticsTable> tables = new ArrayList<>();
     Logged logged = analyticsTableSettings.getTableLogged();
 
     for (TrackedEntityType tet : trackedEntityTypes) {
@@ -189,7 +195,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             List.of(), year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
-      if (table.hasTablePartitions()) {
+      if (table.hasTablePartitions() || params.isCitusExtensionEnabled()) {
         tables.add(table);
       }
     }
@@ -265,6 +271,10 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
+
+    if (params.isCitusExtensionEnabled()) {
+      partitionClause = eventDateExpression + " is not null";
+    }
 
     StringBuilder sql = new StringBuilder("insert into " + tableName + " (");
 

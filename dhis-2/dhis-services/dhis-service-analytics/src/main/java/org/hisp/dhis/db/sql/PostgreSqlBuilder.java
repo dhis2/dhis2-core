@@ -29,7 +29,9 @@ package org.hisp.dhis.db.sql;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
+import java.util.List;
 import java.util.stream.Collectors;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Index;
@@ -239,50 +241,61 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
             .append(" (");
 
     // Columns
-
     if (table.hasColumns()) {
-      for (Column column : table.getColumns()) {
-        String dataType = getDataTypeName(column.getDataType());
-        String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
-        String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
-
-        sql.append(quote(column.getName()) + " ")
-            .append(dataType)
-            .append(nullable)
-            .append(collation)
-            .append(COMMA);
-      }
+      appendColumns(table.getColumns(), sql);
     }
 
     // Primary key
-
     if (table.hasPrimaryKey()) {
-      sql.append("primary key (");
-
-      for (String columnName : table.getPrimaryKey()) {
-        sql.append(quote(columnName)).append(COMMA);
-      }
-
-      removeLastComma(sql).append(")").append(COMMA);
+      appendPrimaryKeys(table.getPrimaryKey(), sql);
     }
 
     // Checks
-
     if (table.hasChecks()) {
-      for (String check : table.getChecks()) {
-        sql.append("check(" + check + ")").append(COMMA);
-      }
+      appendChecks(table.getChecks(), sql);
     }
 
     removeLastComma(sql).append(")");
 
     // Parent
-
-    if (table.hasParent()) {
+    // Only use partitioned (inherited) tables when we should not distribute the table.
+    if (table instanceof AnalyticsTable analyticsTable
+        && !analyticsTable.isTableDistributed()
+        && table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 
     return sql.append(";").toString();
+  }
+
+  private static void appendChecks(List<String> checks, StringBuilder sql) {
+    for (String check : checks) {
+      sql.append("check(" + check + ")").append(COMMA);
+    }
+  }
+
+  private void appendPrimaryKeys(List<String> primaryKeys, StringBuilder sql) {
+    sql.append("primary key (");
+
+    for (String columnName : primaryKeys) {
+      sql.append(quote(columnName)).append(COMMA);
+    }
+
+    removeLastComma(sql).append(")").append(COMMA);
+  }
+
+  private void appendColumns(List<Column> columns, StringBuilder sql) {
+    for (Column column : columns) {
+      String dataType = getDataTypeName(column.getDataType());
+      String nullable = column.getNullable() == Nullable.NOT_NULL ? " not null" : " null";
+      String collation = column.getCollation() == Collation.C ? (" collate " + quote("C")) : "";
+
+      sql.append(quote(column.getName()) + " ")
+          .append(dataType)
+          .append(nullable)
+          .append(collation)
+          .append(COMMA);
+    }
   }
 
   @Override
