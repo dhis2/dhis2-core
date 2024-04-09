@@ -147,7 +147,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldSendTrackerNotificationAtEnrollment() {
-
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
@@ -164,12 +163,10 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         TrackerObjects.builder().enrollments(List.of(enrollment)).build());
 
     List<MessageConversation> messageConversations = messageService.getMessageConversations();
-    System.out.println(messageConversations);
   }
 
   @Test
   void shouldSendTrackerNotificationAtEnrollmentCompletion() {
-
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
@@ -186,12 +183,10 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         TrackerObjects.builder().enrollments(List.of(enrollment)).build());
 
     List<MessageConversation> messageConversations = messageService.getMessageConversations();
-    System.out.println(messageConversations);
   }
 
   @Test
   void shouldSendTrackerNotificationAtEventCompletion() {
-
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
@@ -217,9 +212,8 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
     trackerImportService.importTracker(
         TrackerImportParams.builder().userId(user.getUid()).build(),
         TrackerObjects.builder().enrollments(List.of(enrollment)).events(List.of(event)).build());
-    List<MessageConversation> messageConversations = messageService.getMessageConversations();
 
-    System.out.println(messageConversations);
+    List<MessageConversation> messageConversations = messageService.getMessageConversations();
   }
 
   private ProgramNotificationTemplate createProgramNotification(
