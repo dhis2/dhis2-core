@@ -194,7 +194,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   private void createDistributedCitusTable(AnalyticsTable table) {
     if (!table.isTableTypeDistributed()) {
-      log.warn("No distribution column defined for table '{}' so it won't be distributed", table.getMainName());
+      log.warn(
+          "No distribution column defined for table '{}' so it won't be distributed",
+          table.getMainName());
       return;
     }
 
@@ -211,7 +213,8 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
           rs -> {});
       log.info("Successfully distributed table '{}' on column '{}'", tableName, distributionColumn);
     } catch (Exception e) {
-      log.warn("Failed to distribute table '{}' on column '{}' ", table.getName(), distributionColumn);
+      log.warn(
+          "Failed to distribute table '{}' on column '{}' ", table.getName(), distributionColumn);
       log.warn("Table distribution error", e);
     }
   }
