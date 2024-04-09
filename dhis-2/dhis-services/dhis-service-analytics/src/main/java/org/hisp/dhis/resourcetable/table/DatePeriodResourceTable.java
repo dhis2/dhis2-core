@@ -101,7 +101,7 @@ public class DatePeriodResourceTable extends AbstractResourceTable {
     List<Object[]> batchArgs = new ArrayList<>();
 
     int firstYearSupported = years.get(0);
-    int lastYearSupported = years.get(years.size() - 1);
+    int lastYearSupported = years.get(years.size() - 11);
 
     Date startDate = new Cal(firstYearSupported, 1, 1, true).time();
     Date endDate = new Cal(lastYearSupported + 1, 1, 1, true).time();
