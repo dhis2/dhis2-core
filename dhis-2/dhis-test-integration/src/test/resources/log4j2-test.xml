@@ -37,7 +37,7 @@
             <AppenderRef ref="console"/>
         </Logger>
         <Logger name="org.hisp.dhis" level="debug" additivity="false">
-        	<AppenderRef ref="console"/>
+            <AppenderRef ref="console"/>
         </Logger>
         -->
 
