@@ -387,11 +387,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               """
               delete from ${tableName} ax \
               where ax.psi in ( \
-                select psi.uid \
-                from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
-                where pi.programid = ${programId} \
-                and psi.lastupdated >= '${startDate}' \
-                and psi.lastupdated < '${endDate}');""",
+              select psi.uid \
+              from event psi inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
+              where pi.programid = ${programId} \
+              and psi.lastupdated >= '${startDate}' \
+              and psi.lastupdated < '${endDate}');""",
               Map.of(
                   "tableName", quote(table.getName()),
                   "programId", String.valueOf(table.getProgram().getId()),
@@ -421,7 +421,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
     String fromClause =
         replace(
             """
-            \s from event psi \
+            \sfrom event psi \
             inner join enrollment pi on psi.enrollmentid=pi.enrollmentid \
             inner join programstage ps on psi.programstageid=ps.programstageid \
             inner join program pr on pi.programid=pr.programid and pi.deleted = false \
@@ -688,8 +688,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
   private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
     return replace(
         """
-              (select ${fromType} from event \
-              where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
+        (select ${fromType} from event \
+        where eventid=psi.eventid ${dataClause})${closingParentheses} as ${dataElementUid}""",
         Map.of(
             "fromType",
             fromType,
@@ -705,11 +705,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       TrackedEntityAttribute attribute, String fromType, String dataClause) {
     return replace(
         """
-            (select ${fromType} from trackedentityattributevalue \
-            where trackedentityid=pi.trackedentityid \
-            and trackedentityattributeid=${attributeId}\
-            ${dataClause})\
-            ${closingParentheses} as ${attributeUid}""",
+        (select ${fromType} from trackedentityattributevalue \
+        where trackedentityid=pi.trackedentityid \
+        and trackedentityattributeid=${attributeId}\
+        ${dataClause})\
+        ${closingParentheses} as ${attributeUid}""",
         Map.of(
             "fromType", fromType,
             "dataClause", dataClause,
@@ -722,11 +722,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       DataElement dataElement, String select, String dataClause) {
     String query =
         """
-          (select l.uid from maplegend l
-          inner join event on l.startvalue <= ${select}
-          and l.endvalue > ${select}
-          and l.maplegendsetid=${legendSetId}
-          and eventid=psi.eventid ${dataClause}) as ${column}""";
+        (select l.uid from maplegend l
+        inner join event on l.startvalue <= ${select}
+        and l.endvalue > ${select}
+        and l.maplegendsetid=${legendSetId}
+        and eventid=psi.eventid ${dataClause}) as ${column}""";
     return dataElement.getLegendSets().stream()
         .map(
             ls -> {
