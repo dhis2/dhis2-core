@@ -41,6 +41,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -80,6 +81,9 @@ public class AuthorityInterceptor implements HandlerInterceptor {
       // get user authorities
       final SecurityContext securityContext = SecurityContextHolder.getContext();
       Authentication authentication = securityContext.getAuthentication();
+      if (authentication == null)
+        throw new SessionAuthenticationException("Error trying to get user authentication details");
+
       Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
 
       // check if user has any of the required authorities passed in
