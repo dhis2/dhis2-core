@@ -32,10 +32,10 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePa
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
+import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
-import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
@@ -108,17 +108,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid"),
+          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "des.dataelementuid as dx"),
           new AnalyticsTableColumn(
-              "co", CHARACTER_11, NOT_NULL, "dcs.categoryoptioncombouid", List.of("dx", "co")),
+              "co",
+              CHARACTER_11,
+              NOT_NULL,
+              "dcs.categoryoptioncombouid as co",
+              List.of("dx", "co")),
           new AnalyticsTableColumn(
-              "ao", CHARACTER_11, NOT_NULL, "acs.categoryoptioncombouid", List.of("dx", "ao")),
-          new AnalyticsTableColumn("pestartdate", TIMESTAMP, "ps.startdate"),
-          new AnalyticsTableColumn("peenddate", TIMESTAMP, "ps.enddate"),
-          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year"),
-          new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso"),
-          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid"),
-          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level"));
+              "ao",
+              CHARACTER_11,
+              NOT_NULL,
+              "acs.categoryoptioncombouid as ao",
+              List.of("dx", "ao")),
+          new AnalyticsTableColumn("pestartdate", DATE, "ps.startdate as pestartdate"),
+          new AnalyticsTableColumn("peenddate", DATE, "ps.enddate as peenddate"),
+          new AnalyticsTableColumn("year", INTEGER, NOT_NULL, "ps.year as year"),
+          new AnalyticsTableColumn("pe", TEXT, NOT_NULL, "ps.iso as pe"),
+          new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ous.organisationunituid as ou"),
+          new AnalyticsTableColumn("oulevel", INTEGER, "ous.level as oulevel"));
 
   public JdbcAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -368,7 +376,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     if (respectStartEndDates) {
       sql.append(
           """
-           and (aon.startdate is null or aon.startdate <= ps.startdate) \
+          and (aon.startdate is null or aon.startdate <= ps.startdate) \
           and (aon.enddate is null or aon.enddate >= ps.enddate) \
           and (con.startdate is null or con.startdate <= ps.startdate) \
           and (con.enddate is null or con.enddate >= ps.enddate)\s""");
@@ -410,7 +418,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       StringBuilder sql =
           new StringBuilder(
               """
-               left join analytics_rs_dataapprovalminlevel da \
+              left join analytics_rs_dataapprovalminlevel da \
               on des.workflowid=da.workflowid and da.periodid=dv.periodid \
               and da.attributeoptioncomboid=dv.attributeoptioncomboid \
               and (""");
@@ -572,11 +580,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new StringBuilder(
             replace(
                 """
-            select distinct(extract(year from pe.startdate)) \
-            from datavalue dv \
-            inner join period pe on dv.periodid=pe.periodid \
-            where pe.startdate is not null \
-            and dv.lastupdated < '${startTime}'\s""",
+                select distinct(extract(year from pe.startdate)) \
+                from datavalue dv \
+                inner join period pe on dv.periodid=pe.periodid \
+                where pe.startdate is not null \
+                and dv.lastupdated < '${startTime}'\s""",
                 Map.of("startTime", toLongDate(params.getStartTime()))));
 
     if (params.getFromDate() != null) {
