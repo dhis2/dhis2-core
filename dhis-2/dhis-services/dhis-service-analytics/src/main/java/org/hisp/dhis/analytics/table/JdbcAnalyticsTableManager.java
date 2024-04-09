@@ -693,8 +693,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "percentile_cont(0.5) "
         + "within group (order by dv1.value::double precision) as percentile_middle_value "
         + "from datavalue dv1 "
-        + "inner join period pe on dv1.periodid = pe.periodid "
-        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (value is varchar or string) can be used for stats calculation.
         + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
@@ -711,8 +709,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         + "dv1.value, "
         + "dv1.periodid "
         + "from datavalue dv1 "
-        + "inner join period pe on dv1.periodid = pe.periodid "
-        + "inner join organisationunit ou on dv1.sourceid = ou.organisationunitid "
         // Only numeric values (varchars) can be used for stats calculation.
         + "where dv1.value ~ '^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$' "
         + "group by dv1.dataelementid, dv1.sourceid, dv1.categoryoptioncomboid, "
