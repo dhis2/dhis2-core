@@ -472,9 +472,15 @@ public enum DefaultIcon {
             .toList();
   }
 
-  public List<Icon> toVariantIcons() {
+  public List<AddIconRequest> toVariantIcons() {
     return getVariantKeys().stream()
-        .map(key -> new Icon(key, getDescription(), getKeywords(), false, null).setOrigin(this))
+        .map(
+            key ->
+                AddIconRequest.builder()
+                    .key(key)
+                    .description(getDescription())
+                    .keywords(getKeywords())
+                    .build())
         .toList();
   }
 }

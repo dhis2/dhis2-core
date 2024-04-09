@@ -25,56 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.icon;
+package org.hisp.dhis.icon;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.icon.IconTypeFilter;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-/**
- * @author Zubair Asghar
- */
-@Data
+/** User input when updating an {@link Icon}. */
+@Builder
+@Getter
+@AllArgsConstructor
 @NoArgsConstructor
-public class IconRequestParams {
+public class UpdateIconRequest {
 
-  static final String DEFAULT_FIELDS_PARAM = "key,keywords,description,fileResource,createdBy,href";
+  @JsonProperty(required = true)
+  private String description;
 
-  private List<String> keys = new ArrayList<>();
-  private List<String> keywords = new ArrayList<>();
-  private List<OrderCriteria> order = new ArrayList<>();
-  private Date createdStartDate;
-  private Date createdEndDate;
-  private Date lastUpdatedStartDate;
-  private Date lastUpdatedEndDate;
-  private IconTypeFilter type = IconTypeFilter.ALL;
-  private String search;
-  private boolean paging = true;
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-  private int page = 1;
-
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
-
-  public boolean hasCreatedStartDate() {
-    return createdStartDate != null;
-  }
-
-  public boolean hasCreatedEndDate() {
-    return createdEndDate != null;
-  }
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
+  @JsonProperty(required = true)
+  private Set<String> keywords = new HashSet<>();
 }
