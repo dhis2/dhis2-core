@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.common;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.toAnalyticsFallbackDate;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.INTEGER;
 import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
@@ -37,7 +38,6 @@ import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TIME;
 import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.toAnalyticsFallbackDate;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.math.BigDecimal;
