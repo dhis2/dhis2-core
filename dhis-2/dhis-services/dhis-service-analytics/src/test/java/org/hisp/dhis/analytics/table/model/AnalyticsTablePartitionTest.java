@@ -52,7 +52,7 @@ class AnalyticsTablePartitionTest {
   @Test
   void testGetName() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
 
     List<String> checks = List.of("value = 2023");
 
@@ -73,7 +73,7 @@ class AnalyticsTablePartitionTest {
   @Test
   void testIsLatestPartition() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, false);
 
     AnalyticsTablePartition partition =
         new AnalyticsTablePartition(

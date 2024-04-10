@@ -224,7 +224,8 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(
             tet ->
-                new AnalyticsTable(getAnalyticsTableType(), getColumns(params, tet), logged, tet))
+                new AnalyticsTable(getAnalyticsTableType(), getColumns(params, tet), logged, tet,
+                    analyticsTableSettings.isCitusExtensionEnabled()))
         .toList();
   }
 

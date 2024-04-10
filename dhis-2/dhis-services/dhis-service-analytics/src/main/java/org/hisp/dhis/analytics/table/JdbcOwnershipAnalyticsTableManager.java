@@ -146,7 +146,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
   private List<AnalyticsTable> getRegularAnalyticsTables() {
     Logged logged = analyticsTableSettings.getTableLogged();
     return idObjectManager.getAllNoAcl(Program.class).stream()
-        .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr))
+        .map(pr -> new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, pr,
+            analyticsTableSettings.isCitusExtensionEnabled()))
         .collect(toList());
   }
 

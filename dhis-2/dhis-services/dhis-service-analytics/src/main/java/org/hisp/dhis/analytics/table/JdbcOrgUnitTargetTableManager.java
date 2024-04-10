@@ -112,7 +112,12 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(
+            new AnalyticsTable(
+                getAnalyticsTableType(),
+                getColumns(),
+                logged,
+                analyticsTableSettings.isCitusExtensionEnabled()));
   }
 
   @Override

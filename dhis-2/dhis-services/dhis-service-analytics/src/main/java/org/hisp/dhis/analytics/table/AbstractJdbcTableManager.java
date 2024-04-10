@@ -386,7 +386,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
     Collections.sort(years);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table =
+        new AnalyticsTable(
+            getAnalyticsTableType(),
+            columns,
+            logged,
+            analyticsTableSettings.isCitusExtensionEnabled());
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -423,7 +428,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
-    AnalyticsTable table = new AnalyticsTable(getAnalyticsTableType(), columns, logged);
+    AnalyticsTable table =
+        new AnalyticsTable(
+            getAnalyticsTableType(),
+            columns,
+            logged,
+            analyticsTableSettings.isCitusExtensionEnabled());
 
     if (hasUpdatedData) {
       table.addTablePartition(
@@ -467,7 +477,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * Executes the given SQL statement. Logs and times the operation.
    *
    * @param sql the SQL statement.
-   * @param logMessage the custom log message to include in the log statement.
+   * @param logPattern the custom log message to include in the log statement.
    */
   protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
     Timer timer = new SystemTimer().start();

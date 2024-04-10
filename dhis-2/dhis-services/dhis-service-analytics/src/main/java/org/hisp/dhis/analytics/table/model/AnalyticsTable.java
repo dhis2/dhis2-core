@@ -77,8 +77,16 @@ public class AnalyticsTable extends Table {
    * @param logged the {@link Logged} property.
    */
   public AnalyticsTable(
-      AnalyticsTableType tableType, List<AnalyticsTableColumn> columns, Logged logged) {
-    super(toStaging(tableType.getTableName()), toColumns(columns), List.of(), logged);
+      AnalyticsTableType tableType,
+      List<AnalyticsTableColumn> columns,
+      Logged logged,
+      boolean distributed) {
+    super(
+        toStaging(tableType.getTableName()),
+        toColumns(columns),
+        List.of(),
+        logged,
+        getDistributedFlag(distributed, tableType.isDistributed()));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
   }
@@ -95,8 +103,14 @@ public class AnalyticsTable extends Table {
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
-      Program program) {
-    super(toStaging(getTableName(tableType, program)), toColumns(columns), List.of(), logged);
+      Program program,
+      boolean distributed) {
+    super(
+        toStaging(getTableName(tableType, program)),
+        toColumns(columns),
+        List.of(),
+        logged,
+        getDistributedFlag(distributed, tableType.isDistributed()));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.program = program;
@@ -114,12 +128,14 @@ public class AnalyticsTable extends Table {
       AnalyticsTableType tableType,
       List<AnalyticsTableColumn> columns,
       Logged logged,
-      TrackedEntityType trackedEntityType) {
+      TrackedEntityType trackedEntityType,
+      boolean distributed) {
     super(
         toStaging(getTableName(tableType, trackedEntityType)),
         toColumns(columns),
         List.of(),
-        logged);
+        logged,
+        getDistributedFlag(distributed, tableType.isDistributed()));
     this.tableType = tableType;
     this.analyticsTableColumns = columns;
     this.trackedEntityType = trackedEntityType;
@@ -128,6 +144,19 @@ public class AnalyticsTable extends Table {
   // -------------------------------------------------------------------------
   // Static methods
   // -------------------------------------------------------------------------
+
+  /**
+   * Checks both boolean flags. If both are true, it means that this table should be handled as a
+   * distributed table (type of Citus table).
+   *
+   * @param distributedTable if the table is distributed.
+   * @param distributedTableType flag to say if the table type is distributed.
+   * @return true if this is a distributed table, false otherwise.
+   */
+  private static boolean getDistributedFlag(
+      boolean distributedTable, boolean distributedTableType) {
+    return distributedTable && distributedTableType;
+  }
 
   /**
    * Converts the given list of analytics table columns to a list of columns.

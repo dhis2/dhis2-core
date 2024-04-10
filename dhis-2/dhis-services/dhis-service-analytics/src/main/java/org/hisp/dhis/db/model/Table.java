@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.Validate;
@@ -56,7 +55,7 @@ public class Table {
   /** Table name. Required. */
   @EqualsAndHashCode.Include private final String name;
 
-  @Getter @Setter private boolean distributed = false;
+  private boolean distributed = false;
 
   /** Table columns. At least one column required, unless a parent table is specified. */
   private final List<Column> columns;
@@ -101,13 +100,42 @@ public class Table {
    * @param primaryKey the primary key.
    * @param logged the {@link Logged} parameter.
    */
-  public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      Logged logged) {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
     this.checks = List.of();
     this.logged = logged;
     this.parent = null;
+    this.distributed = false;
+    this.validate();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the table name.
+   * @param columns the list of {@link Column}.
+   * @param primaryKey the primary key.
+   * @param logged the {@link Logged} parameter.
+   */
+  public Table(
+      String name,
+      List<Column> columns,
+      List<String> primaryKey,
+      Logged logged,
+      boolean distributed) {
+    this.name = name;
+    this.columns = columns;
+    this.primaryKey = primaryKey;
+    this.checks = List.of();
+    this.logged = logged;
+    this.parent = null;
+    this.distributed = distributed;
     this.validate();
   }
 

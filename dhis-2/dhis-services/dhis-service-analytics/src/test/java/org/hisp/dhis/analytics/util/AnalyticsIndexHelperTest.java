@@ -98,6 +98,6 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsTableColumn> columns =
         List.of(new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE));
 
-    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
+    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED, false);
   }
 }

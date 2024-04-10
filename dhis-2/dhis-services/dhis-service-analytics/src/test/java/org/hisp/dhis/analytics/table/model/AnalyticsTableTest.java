@@ -62,7 +62,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameDataValue() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
     assertEquals("analytics", table.getMainName());
     assertEquals("analytics_temp", table.getName());
   }
@@ -70,7 +70,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameCompleteness() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, false);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
   }
@@ -78,7 +78,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameValidationResult() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED, false);
     assertEquals("analytics_validationresult", table.getMainName());
     assertEquals("analytics_validationresult_temp", table.getName());
   }
@@ -88,7 +88,7 @@ class AnalyticsTableTest {
     Program program = new Program("ProgramA", "DescriptionA");
     program.setUid("rfT56YbgFeK");
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program);
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program, false);
     assertEquals("analytics_event_rft56ybgfek", table.getMainName());
     assertEquals("analytics_event_rft56ybgfek_temp", table.getName());
   }
@@ -99,7 +99,7 @@ class AnalyticsTableTest {
     trackedEntityType.setUid("k7GfrBE3rT5");
     AnalyticsTable table =
         new AnalyticsTable(
-            AnalyticsTableType.ENROLLMENT, columnsA, Logged.UNLOGGED, trackedEntityType);
+            AnalyticsTableType.ENROLLMENT, columnsA, Logged.UNLOGGED, trackedEntityType, false);
     assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getMainName());
     assertEquals("analytics_enrollment_k7gfrbe3rt5_temp", table.getName());
   }
@@ -115,7 +115,7 @@ class AnalyticsTableTest {
             new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
 
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, false);
 
     assertEquals(3, table.getDimensionColumns().size());
     assertEquals("dx", table.getDimensionColumns().get(0).getName());
@@ -137,7 +137,7 @@ class AnalyticsTableTest {
     Period periodA = new YearlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate());
     Period periodB = new YearlyPeriodType().createPeriod(new DateTime(2015, 1, 1, 0, 0).toDate());
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program);
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program, false);
     tableA.addTablePartition(List.of(), 2014, periodA.getStartDate(), periodA.getEndDate());
     tableA.addTablePartition(List.of(), 2015, periodB.getStartDate(), periodB.getEndDate());
     AnalyticsTablePartition partitionA = tableA.getTablePartitions().get(0);
@@ -153,9 +153,9 @@ class AnalyticsTableTest {
   @Test
   void testEquals() {
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
     AnalyticsTable tableB =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);

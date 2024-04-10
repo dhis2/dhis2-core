@@ -269,7 +269,8 @@ class JdbcAnalyticsTableManagerTest {
         new AnalyticsTable(
             AnalyticsTableType.DATA_VALUE,
             List.of(new AnalyticsTableColumn("year", DataType.INTEGER, "")),
-            LOGGED);
+            LOGGED,
+            false);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
