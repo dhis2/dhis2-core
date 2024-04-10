@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -73,6 +74,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   private final SystemSettingManager systemSettingManager;
 
   private final SqlBuilder sqlBuilder;
+
+  private final AnalyticsTableSettings analyticsTableSettings;
 
   @Override
   public AnalyticsTableType getAnalyticsTableType() {
@@ -174,14 +177,14 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   private List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     return tableManager.getAnalyticsTables(params).stream()
-        .map(analyticsTable -> withDistributedFlag(analyticsTable, params))
+        .map(analyticsTable -> withDistributedFlag(analyticsTable))
         .toList();
   }
 
-  private AnalyticsTable withDistributedFlag(
-      AnalyticsTable analyticsTable, AnalyticsTableUpdateParams params) {
+  private AnalyticsTable withDistributedFlag(AnalyticsTable analyticsTable) {
     analyticsTable.setDistributed(
-        params.isCitusExtensionEnabled() && analyticsTable.isTableTypeDistributed());
+        analyticsTableSettings.isCitusExtensionEnabled()
+            && analyticsTable.isTableTypeDistributed());
     return analyticsTable;
   }
 

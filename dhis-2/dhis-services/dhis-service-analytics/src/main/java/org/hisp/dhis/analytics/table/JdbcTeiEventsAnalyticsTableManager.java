@@ -195,7 +195,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             List.of(), year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
-      if (table.hasTablePartitions() || params.isCitusExtensionEnabled()) {
+      if (table.hasTablePartitions() || analyticsTableSettings.isCitusExtensionEnabled()) {
         tables.add(table);
       }
     }
@@ -272,7 +272,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
 
-    if (params.isCitusExtensionEnabled()) {
+    if (analyticsTableSettings.isCitusExtensionEnabled()) {
       partitionClause = eventDateExpression + " is not null";
     }
 

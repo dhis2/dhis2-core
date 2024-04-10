@@ -88,7 +88,6 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder(params0)
             .withLastSuccessfulUpdate(lastSuccessfulUpdate)
-            .withCitusEnabled(analyticsTableSettings.isCitusExtensionEnabled())
             .build();
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);

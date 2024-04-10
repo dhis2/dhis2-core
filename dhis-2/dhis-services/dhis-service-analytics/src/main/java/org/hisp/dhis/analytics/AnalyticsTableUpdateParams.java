@@ -81,9 +81,6 @@ public class AnalyticsTableUpdateParams {
   /** Current date, only used for testing */
   private Date today;
 
-  /** Is Citus enabled? */
-  @Getter private boolean citusExtensionEnabled = false;
-
   private final Map<String, Object> extraParameters = new HashMap<>();
 
   public void addExtraParam(String prefix, String key, Object value) {
@@ -174,7 +171,6 @@ public class AnalyticsTableUpdateParams {
     params.jobId = this.jobId;
     params.startTime = this.startTime;
     params.lastSuccessfulUpdate = this.lastSuccessfulUpdate;
-    params.citusExtensionEnabled = this.citusExtensionEnabled;
 
     return this;
   }
@@ -258,11 +254,6 @@ public class AnalyticsTableUpdateParams {
     public AnalyticsTableUpdateParams build() {
       checkNotNull(this.params.startTime);
       return this.params;
-    }
-
-    public Builder withCitusEnabled(boolean citusExtensionEnabled) {
-      this.params.citusExtensionEnabled = citusExtensionEnabled;
-      return this;
     }
   }
 }
