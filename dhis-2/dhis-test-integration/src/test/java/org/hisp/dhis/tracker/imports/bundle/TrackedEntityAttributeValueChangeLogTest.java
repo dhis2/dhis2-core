@@ -133,4 +133,33 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
                 .setAuditTypes(List.of(ChangeLogType.UPDATE)));
     assertEquals(1, attributeValueAudits.size());
   }
+
+  @Test
+  void shouldSeeOnlyTrackedEntityTypeAttributesWhenUserHasNoAccessToProgram() throws IOException {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(), fromJson("tracker/te_program_with_tea_data.json")));
+
+    List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
+    assertEquals(1, trackedEntities.size());
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertEquals(5, attributeValues.size());
+
+    List<TrackedEntityAttribute> attributes =
+        attributeValues.stream()
+            .map(TrackedEntityAttributeValue::getAttribute)
+            .collect(Collectors.toList());
+
+    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
+
+    List<TrackedEntityAttributeValueChangeLog> attributeValueAudits =
+        attributeValueAuditService.getTrackedEntityAttributeValueChangeLogs(
+            new TrackedEntityAttributeValueChangeLogQueryParams()
+                .setTrackedEntityAttributes(attributes)
+                .setTrackedEntities(trackedEntities)
+                .setAuditTypes(List.of(ChangeLogType.CREATE)));
+    assertEquals(3, attributeValueAudits.size());
+  }
 }

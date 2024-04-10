@@ -52,6 +52,26 @@
       ],
       "translations": [],
       "userAccesses": []
+    },
+    {
+      "id": "UbhT3bXWUyb",
+      "name": "Basic",
+      "created": "2020-04-17T14:32:31.826",
+      "lastUpdated": "2020-04-17T14:32:31.826",
+      "sharing": {
+        "public": "rw------",
+        "external": false
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "authorities": [
+        "M_dhis-web-capture",
+        "M_dhis-web-tracker-capture"
+      ]
     }
   ],
   "users": [
@@ -106,6 +126,25 @@
         }
       ],
       "attributeValues": []
+    },
+    {
+      "code": "regular-user",
+      "id": "o1HMTIzBGo7",
+      "firstName": "regular",
+      "surname": "user",
+      "name": "regular user",
+      "displayName": "regular user",
+      "username": "regular-user",
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "cNEZTkdAvmg"
+        }
+      ]
     }
   ],
   "organisationUnits": [
@@ -275,7 +314,18 @@
       "created": "2020-02-12T13:39:22.692",
       "name": "Program",
       "shortName": "Program",
-      "publicAccess": "rwrw----",
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "users": {
+          "M5zQapPyTZI": {
+            "displayName": "admin admin",
+            "access": "rwrw----",
+            "id": "M5zQapPyTZI"
+          }
+        },
+        "userGroups": {},
+        "public": "rw------"
+      },
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -283,7 +333,7 @@
       "displayFrontPageList": false,
       "onlyEnrollOnce": false,
       "programType": "WITH_REGISTRATION",
-      "accessLevel": "OPEN",
+      "accessLevel": "CLOSED",
       "version": 3,
       "maxTeiCountToReturn": 0,
       "selectIncidentDatesInFuture": false,
