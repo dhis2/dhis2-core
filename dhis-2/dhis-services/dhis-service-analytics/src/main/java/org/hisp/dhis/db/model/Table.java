@@ -100,11 +100,7 @@ public class Table {
    * @param primaryKey the primary key.
    * @param logged the {@link Logged} parameter.
    */
-  public Table(
-      String name,
-      List<Column> columns,
-      List<String> primaryKey,
-      Logged logged) {
+  public Table(String name, List<Column> columns, List<String> primaryKey, Logged logged) {
     this.name = name;
     this.columns = columns;
     this.primaryKey = primaryKey;
