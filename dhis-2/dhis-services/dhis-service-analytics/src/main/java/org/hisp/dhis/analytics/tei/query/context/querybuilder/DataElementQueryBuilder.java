@@ -225,7 +225,6 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
             .map(DimensionIdentifier::getDimension)
             .map(DimensionParam::getIdScheme)
             .orElse(nonNull(valueType) ? DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.get(valueType) : null);
-    ;
 
     if (nonNull(valueType)
         && nonNull(idScheme)
