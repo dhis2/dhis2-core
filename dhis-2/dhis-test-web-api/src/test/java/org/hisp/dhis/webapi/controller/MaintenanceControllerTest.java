@@ -72,7 +72,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testPruneDataByOrganisationUnit_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied",
+        "Access is denied, requires one Authority from [ALL]",
         POST("/maintenance/dataPruning/organisationUnits/xzy")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
@@ -118,7 +118,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testPruneDataByDataElement_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied",
+        "Access is denied, requires one Authority from [ALL]d",
         POST("/maintenance/dataPruning/dataElements/xzy").error(HttpStatus.FORBIDDEN).getMessage());
   }
 
@@ -131,7 +131,8 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testAppReload_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied", GET("/maintenance/appReload").error(HttpStatus.FORBIDDEN).getMessage());
+        "Access is denied, requires one Authority from [F_PERFORM_MAINTENANCE]",
+        GET("/maintenance/appReload").error(HttpStatus.FORBIDDEN).getMessage());
   }
 
   @Test
@@ -163,7 +164,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testUpdateCategoryOptionCombos_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied",
+        "Access is denied, requires one Authority from [F_PERFORM_MAINTENANCE]",
         POST("/maintenance/categoryOptionComboUpdate/categoryCombo/xyz")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
