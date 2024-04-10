@@ -102,11 +102,11 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/indicators/merge",
                 """
-            {
-                "sources": ["Uid00000010"],
-                "target": "Uid00000012",
-                "deleteSources": true
-            }""")
+        {
+            "sources": ["Uid00000010"],
+            "target": "Uid00000012",
+            "deleteSources": true
+        }""")
             .content(HttpStatus.FORBIDDEN);
     assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
     assertEquals("ERROR", mergeResponse.getString("status").string());
