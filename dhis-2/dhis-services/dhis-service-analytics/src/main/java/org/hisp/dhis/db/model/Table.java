@@ -227,6 +227,16 @@ public class Table {
     return isNotEmpty(partitions);
   }
 
+  public Table swapFromStaging() {
+    return new Table(
+        fromStaging(this.getName()),
+        this.getColumns(),
+        this.getPrimaryKey(),
+        this.getChecks(),
+        this.getLogged(),
+        this.getParent());
+  }
+
   /**
    * Adds a partition to this table.
    *

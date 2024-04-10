@@ -34,7 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -43,14 +45,18 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.DataType;
+import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -61,11 +67,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -85,7 +93,7 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private AnalyticsTableManager subject;
 
@@ -249,5 +257,31 @@ class JdbcAnalyticsTableManagerTest {
             SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
         .thenReturn(lastLatestPartitionUpdate);
     assertThrows(IllegalArgumentException.class, () -> subject.getAnalyticsTables(params));
+  }
+
+  @Test
+  @DisplayName(
+      "Verify if the method swapParentTable is called with the swapped table name not the staging table name")
+  void testSwapTable() {
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+    AnalyticsTable table =
+        new AnalyticsTable(
+            AnalyticsTableType.DATA_VALUE,
+            List.of(new AnalyticsTableColumn("year", DataType.INTEGER, "")),
+            LOGGED);
+    table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime(startTime)
+            .withLatestPartition()
+            .build();
+    when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytic")));
+
+    Table swappedPartition = table.getTablePartitions().get(0).swapFromStaging();
+    subject.swapTable(params, table);
+    assertEquals("analytics_2023_temp", table.getTablePartitions().get(0).getName());
+    assertEquals("analytics_2023", swappedPartition.getName());
+
+    verify(sqlBuilder).swapParentTable(swappedPartition, "analytics_temp", "analytics");
   }
 }
