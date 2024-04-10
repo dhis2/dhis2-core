@@ -27,43 +27,61 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import static org.hisp.dhis.analytics.common.ValueTypeMapping.DECIMAL;
+import static org.hisp.dhis.analytics.tei.query.DataElementCondition.getDataValueRenderable;
 
-import java.util.Optional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.params.dimension.AnalyticsQueryOperator;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParamItem;
+import org.hisp.dhis.analytics.common.query.AndCondition;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
+import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
+import org.hisp.dhis.analytics.common.query.OrCondition;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 
 @RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
+public class DataElementWithLegendSetCondition extends BaseRenderable {
   private final QueryContext queryContext;
 
   private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
   @Override
   public String render() {
-    return hasLegendSet(dimensionIdentifier)
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
+    LegendSet legendSet = dimensionIdentifier.getDimension().getQueryItem().getLegendSet();
+    return OrCondition.ofList(
+            dimensionIdentifier.getDimension().getItems().stream()
+                .map(item -> toCondition(item, legendSet))
+                .toList())
+        .render();
   }
 
-  private boolean hasLegendSet(DimensionIdentifier<DimensionParam> dimId) {
-    return Optional.of(dimId)
-        .map(DimensionIdentifier::getDimension)
-        .map(DimensionParam::getQueryItem)
-        .filter(QueryItem::hasLegendSet)
-        .isPresent();
-  }
-
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        doubleQuote(dimensionIdentifier.getPrefix()),
-        dimensionIdentifier.getDimension().getUid(),
-        valueTypeMapping);
+  private Renderable toCondition(DimensionParamItem dimensionParamItem, LegendSet legendSet) {
+    String legendUid = dimensionParamItem.getValues().get(0);
+    Legend legend = legendSet.getLegendByUid(legendUid);
+    Double startValue = legend.getStartValue();
+    Double endValue = legend.getEndValue();
+    Renderable greaterThanOrEqualsStartValueCondition =
+        BinaryConditionRenderer.of(
+            getDataValueRenderable(dimensionIdentifier, DECIMAL),
+            AnalyticsQueryOperator.of(QueryOperator.GE),
+            List.of(startValue.toString()),
+            DECIMAL,
+            queryContext);
+    Renderable lessThanEndValueCondition =
+        BinaryConditionRenderer.of(
+            getDataValueRenderable(dimensionIdentifier, DECIMAL),
+            AnalyticsQueryOperator.of(QueryOperator.LT),
+            List.of(endValue.toString()),
+            DECIMAL,
+            queryContext);
+    return AndCondition.of(
+        List.of(greaterThanOrEqualsStartValueCondition, lessThanEndValueCondition));
   }
 }

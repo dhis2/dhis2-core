@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.relationship.Relationship;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-
-@Mapper(uses = {DebugMapper.class, RelationshipTypeMapper.class, AttributeValueMapper.class})
-public interface RelationshipMapper extends PreheatMapper<Relationship> {
-  RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
-
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "relationshipType")
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "from")
-  @Mapping(target = "to")
-  @Mapping(target = "key")
-  @Mapping(target = "invertedKey")
-  @Mapping(target = "created")
-  @Mapping(target = "createdBy")
-  @Mapping(target = "lastUpdated")
-  @Mapping(target = "lastUpdatedBy")
-  @Mapping(target = "createdAtClient")
-  @Mapping(target = "deleted")
-  Relationship map(Relationship relationship);
+public enum TransactionMode {
+  READ,
+  WRITE
 }
