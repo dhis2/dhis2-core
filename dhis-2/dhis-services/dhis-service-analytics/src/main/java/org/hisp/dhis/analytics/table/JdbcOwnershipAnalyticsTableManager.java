@@ -237,7 +237,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     sb.append(
         replace(
             """
-             from (\
+            \sfrom (\
             select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
             from programownershiphistory h \
             where h.programid=${programId} \

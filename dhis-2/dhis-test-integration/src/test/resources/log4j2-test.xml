@@ -28,25 +28,41 @@
         Adding an AppenderRef is necessary to overrule the log level we have set on the Root AppenderRefs.
         Once you add an AppenderRef to a Logger you need to set additivity to false otherwise logs might appear twice
         as they propagate up from the Logger to its parent which is the Root.
-        Check the log4j2 config documentation for more details. -->
-        <!-- Uncomment if you want to debug DHIS2 -->
-        <!-- <Logger name="org.hisp.dhis" level="debug" additivity="false">-->
-        <!--     <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
-        <!-- Uncomment if you want to debug testcontainers -->
-        <!-- <Logger name="org.testcontainers" level="debug" additivity="false">-->
-        <!--     <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
-        <!-- <Logger name="com.github.dockerjava" level="all" additivity="false">-->
-        <!--     <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
-        <!-- Uncomment if you want to debug spring test context (cache) -->
-        <!-- <Logger name="org.springframework.test.context.cache" level="debug">-->
-        <!--     <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
-        <!-- Uncomment if you want to debug JDBC template queries (SQL) -->
-        <!-- <Logger name="org.springframework.jdbc.core" level="TRACE">-->
-        <!--    <AppenderRef ref="console"/>-->
-        <!-- </Logger>-->
+        Check the log4j2 config documentation for more details. Uncommend the various loggers to debug the tests. -->
+        
+        
+        <!-- DHIS2 -->
+        <!--        
+        <Logger name="org.hisp.dhis.migration" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="org.hisp.dhis" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        -->
+
+        <!-- Testcontainers -->
+        <!--
+        <Logger name="org.testcontainers" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="com.github.dockerjava" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        -->
+
+        <!-- Spring test context (cache) -->
+        <!--
+        <Logger name="org.springframework.test.context.cache" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        -->
+
+        <!-- JDBC template queries (SQL) -->
+        <!--
+        <Logger name="org.springframework.jdbc.core" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+        -->
     </Loggers>
 </Configuration>

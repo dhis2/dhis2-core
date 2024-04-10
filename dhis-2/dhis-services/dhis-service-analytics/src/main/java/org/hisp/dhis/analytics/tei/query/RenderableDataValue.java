@@ -36,13 +36,18 @@ import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor
 public class RenderableDataValue extends BaseRenderable {
   private final String alias;
 
   private final String dataValue;
 
   private final ValueTypeMapping valueTypeMapping;
+
+  public static RenderableDataValue of(
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping) {
+    return new RenderableDataValue(alias, dataValue, valueTypeMapping);
+  }
 
   public Renderable transformedIfNecessary() {
     return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
@@ -61,7 +66,14 @@ public class RenderableDataValue extends BaseRenderable {
         + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
         + " -> '"
         + dataValue
-        + "' ->> 'value')::"
+        + "' ->> '"
+        + "value"
+        + getValueSuffix()
+        + "')::"
         + valueTypeMapping.getPostgresCast();
+  }
+
+  protected String getValueSuffix() {
+    return EMPTY;
   }
 }
