@@ -60,6 +60,15 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class AuthorityInterceptor implements HandlerInterceptor {
 
+  /**
+   * Checks if the User has the required authority. Checks and executes at the method level first
+   * (matching Spring convention). If no method-level annotation then check at the class level.
+   *
+   * @param request http request
+   * @param response http response
+   * @param handler request handler
+   * @return boolean, indicating whether to proceed through the request chain or not
+   */
   @Override
   public boolean preHandle(
       @Nonnull HttpServletRequest request,
@@ -67,23 +76,20 @@ public class AuthorityInterceptor implements HandlerInterceptor {
       @Nonnull Object handler) {
     HandlerMethod handlerMethod = (HandlerMethod) handler;
 
-    // method level
+    // check if RequiresAuthority is at method level
     if (handlerMethod.hasMethodAnnotation(RequiresAuthority.class)) {
-      System.out.println("method level auth check found");
       RequiresAuthority requiresMethodAuthority =
           handlerMethod.getMethodAnnotation(RequiresAuthority.class);
-      return checkForRequiredAuthority(requiresMethodAuthority);
+      if (requiresMethodAuthority != null)
+        return checkForRequiredAuthority(requiresMethodAuthority);
     }
 
-    // class level
+    // heck if RequiresAuthority is at method level
     if (handlerMethod.getBeanType().isAnnotationPresent(RequiresAuthority.class)) {
-      System.out.println("class level auth check found");
       RequiresAuthority requiresClassAuthority =
           handlerMethod.getBeanType().getAnnotation(RequiresAuthority.class);
       return checkForRequiredAuthority(requiresClassAuthority);
     }
-
-    System.out.println("no auth annotation present, return true");
     return true;
   }
 
@@ -92,8 +98,6 @@ public class AuthorityInterceptor implements HandlerInterceptor {
     List<Authorities> requiredAuthorities = new ArrayList<>(List.of(Authorities.ALL));
     requiredAuthorities.addAll(List.of(requiresAuthority.anyOf()));
 
-    System.out.println("requires auth " + requiredAuthorities);
-
     // get user authorities
     final SecurityContext securityContext = SecurityContextHolder.getContext();
     Authentication authentication = securityContext.getAuthentication();
@@ -101,20 +105,13 @@ public class AuthorityInterceptor implements HandlerInterceptor {
       throw new SessionAuthenticationException("Error trying to get user authentication details");
 
     Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
-    System.out.println("user has auth " + userAuthorities);
 
     // check if user has any of the required authorities passed in
     if (requiredAuthorities.stream()
         .noneMatch(
-            reqAuth -> {
-              System.out.println("req auth " + reqAuth.toString());
-              return userAuthorities.stream()
-                  .anyMatch(
-                      userAuth -> {
-                        System.out.println("user auth " + userAuth);
-                        return reqAuth.toString().equals(userAuth.getAuthority());
-                      });
-            })) {
+            reqAuth ->
+                userAuthorities.stream()
+                    .anyMatch(userAuth -> reqAuth.toString().equals(userAuth.getAuthority())))) {
       throw new AccessDeniedException(
           "Access is denied, requires one Authority from [%s]"
               .formatted(StringUtils.join(requiresAuthority.anyOf(), ", ")));

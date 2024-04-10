@@ -40,6 +40,10 @@ import java.lang.annotation.Target;
  * <p>{@link Authorities#ALL} is automatically added to the check, as having this Authority allows
  * access to all methods by default. No need to pass {@link Authorities#ALL} in the arguments. See
  * {@link AuthorityInterceptor}.
+ *
+ * <p>Can be used at Class or Method level. Usage at the method level will always take precedence
+ * (matching how Spring works). Class level usage only applies if there is no usage at the method
+ * level.
  */
 @Documented
 @Target({ElementType.METHOD, ElementType.TYPE})

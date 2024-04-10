@@ -70,6 +70,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags("system")
 @Controller
 @RequestMapping(value = MaintenanceController.RESOURCE_PATH)
+@RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MaintenanceController {
   public static final String RESOURCE_PATH = "/maintenance";
@@ -97,7 +98,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/analyticsTablesClear",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void clearAnalyticsTables() {
     analyticsTableService.forEach(AnalyticsTableService::dropTables);
@@ -106,7 +106,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/analyticsTablesAnalyze",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void analyzeAnalyticsTables() {
     analyticsTableService.forEach(AnalyticsTableService::analyzeAnalyticsTables);
@@ -115,7 +114,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/expiredInvitationsClear",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void clearExpiredInvitations() {
     maintenanceService.removeExpiredInvitations();
@@ -124,7 +122,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/ouPathsUpdate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void forceUpdatePaths() {
     organisationUnitService.forceUpdatePaths();
@@ -133,7 +130,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/periodPruning",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void prunePeriods() {
     maintenanceService.prunePeriods();
@@ -142,7 +138,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/zeroDataValueRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteZeroDataValues() {
     maintenanceService.deleteZeroDataValues();
@@ -151,7 +146,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedDataValueRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedDataValues() {
     maintenanceService.deleteSoftDeletedDataValues();
@@ -164,7 +158,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedProgramStageInstanceRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEventsDeprecated() {
     maintenanceService.deleteSoftDeletedEvents();
@@ -173,7 +166,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedEventRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEvents() {
     maintenanceService.deleteSoftDeletedEvents();
@@ -182,7 +174,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedRelationshipRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedRelationships() {
     maintenanceService.deleteSoftDeletedRelationships();
@@ -195,7 +186,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedProgramInstanceRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEnrollmentsDeprecated() {
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -204,7 +194,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedEnrollmentRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEnrollments() {
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -217,7 +206,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedTrackedEntityInstanceRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedTrackedEntityInstancesDeprecated() {
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -226,7 +214,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedTrackedEntityRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedTrackedEntities() {
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -235,7 +222,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/sqlViewsCreate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void createSqlViews() {
     resourceTableService.createAllSqlViews(NoopJobProgress.INSTANCE);
@@ -244,7 +230,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/sqlViewsDrop",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void dropSqlViews() {
     resourceTableService.dropAllSqlViews(NoopJobProgress.INSTANCE);
@@ -253,7 +238,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/categoryOptionComboUpdate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCategoryOptionCombos() {
     categoryManager.addAndPruneAllOptionCombos();
@@ -262,7 +246,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/categoryOptionComboUpdate/categoryCombo/{uid}",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
   public WebMessage updateCategoryOptionCombos(@PathVariable String uid) {
     CategoryCombo categoryCombo = categoryService.getCategoryCombo(uid);
@@ -277,7 +260,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = {"/cacheClear", "/cache"},
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void clearCache() {
     maintenanceService.clearApplicationCaches();
@@ -318,7 +300,6 @@ public class MaintenanceController {
   }
 
   @GetMapping("/appReload")
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseBody
   public WebMessage appReload() {
     appManager.reloadApps();
@@ -326,7 +307,6 @@ public class MaintenanceController {
   }
 
   @RequestMapping(method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void performMaintenance(
       @RequestParam(required = false) boolean analyticsTableClear,
