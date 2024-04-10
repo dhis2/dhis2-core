@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
@@ -40,7 +41,7 @@ import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -81,8 +82,8 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(DataElementQueryBuilder::isDataElementOrder);
 
-  private static final List<ValueType> ID_SCHEME_SUPPORTING_VALUE_TYPES =
-      List.of(ORGANISATION_UNIT);
+  private static final Map<ValueType, IdScheme> DEFAULT_ID_SCHEMES_BY_VALUE_TYPE =
+      Map.of(ORGANISATION_UNIT, IdScheme.NAME);
 
   private static final Map<IdScheme, String> SUFFIX_BY_ID_SCHEME =
       Map.of(
@@ -216,12 +217,18 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
    */
   private static Renderable getRenderableDataValue(
       DimensionIdentifier<DimensionParam> dimensionIdentifier) {
-    IdScheme idScheme = dimensionIdentifier.getDimension().getIdScheme();
+
     ValueType valueType = dimensionIdentifier.getDimension().getValueType();
-    if (Objects.nonNull(valueType)
-        && Objects.nonNull(idScheme)
-        && ID_SCHEME_SUPPORTING_VALUE_TYPES.contains(
-            dimensionIdentifier.getDimension().getValueType())
+
+    IdScheme idScheme =
+        Optional.of(dimensionIdentifier)
+            .map(DimensionIdentifier::getDimension)
+            .map(DimensionParam::getIdScheme)
+            .orElse(nonNull(valueType) ? DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.get(valueType) : null);
+
+    if (nonNull(valueType)
+        && nonNull(idScheme)
+        && DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.containsKey(valueType)
         && SUFFIX_BY_ID_SCHEME.containsKey(idScheme)) {
       return SuffixedRenderableDataValue.of(
           doubleQuote(dimensionIdentifier.getPrefix()),
