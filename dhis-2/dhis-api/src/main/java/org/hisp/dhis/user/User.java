@@ -294,7 +294,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> auths = getAllAuthorities();
 
-    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
   }
 
   /**
@@ -322,7 +322,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> authorities = getAllAuthorities();
 
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -363,7 +363,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
     final Set<String> authorities = getAllAuthorities();
 
-    if (authorities.contains(UserRole.AUTHORITY_ALL)) {
+    if (authorities.contains(Authorities.ALL.toString())) {
       return true;
     }
 

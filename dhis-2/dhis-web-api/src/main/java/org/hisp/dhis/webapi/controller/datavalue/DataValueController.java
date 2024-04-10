@@ -464,8 +464,7 @@ public class DataValueController {
   // DELETE
   // ---------------------------------------------------------------------
 
-  @RequiresAuthority(
-      anyOf = F_DATAVALUE_ADD) // TODO should this be DATA_VALUE_DELETE? - which doesn't exist
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDataValue(

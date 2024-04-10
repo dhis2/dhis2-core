@@ -181,6 +181,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -2512,7 +2513,7 @@ public abstract class DhisConvenienceTest {
     Set<String> authorities = new HashSet<>();
 
     if (allAuth) {
-      authorities.add(UserRole.AUTHORITY_ALL);
+      authorities.add(Authorities.ALL.toString());
     }
 
     if (auths != null) {

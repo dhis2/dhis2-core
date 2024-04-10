@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.outlierdetection;
 
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
+import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_EXCEL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_HTML;
@@ -49,7 +50,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
+@RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class AnalyticsOutlierDetectionController {
   private static final String RESOURCE_PATH = "/analytics/outlierDetection";
   private final AnalyticsOutlierService outlierService;

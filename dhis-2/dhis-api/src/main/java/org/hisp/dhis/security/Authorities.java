@@ -32,7 +32,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * An enum of authorities. A {@link org.hisp.dhis.user.User} will usually have one or more of these.
+ * We perform programmatic checking throughout the system with these values (usually in Controllers
+ * or Services).
+ *
+ * <p>
+ *
+ * <p>
+ *
+ * <p>An Authority can be defined using the standard Java public static final constant format e.g.
+ * THIS_IS_AN_AUTHORITY. When used in this format (no string passed in the constructor), the {@link
+ * Authorities#name()} is used as the value when performing Authority checking in {@link
+ * AuthorityInterceptor}.
+ *
+ * <p>
+ *
+ * <p>
+ *
+ * <p>An Authority can also be declared using the standard Java public static final constant format
+ * along with a String value e.g. AUTHORITY_WITH_STRING("this value is used for auth checking").
+ * When used in this format (string passed in the constructor), the string passed in the constructor
+ * is used as the value when performing Authority checking in {@link AuthorityInterceptor}.
+ *
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author david mackessy
  */
 public enum Authorities {
   ALL,
@@ -83,9 +106,32 @@ public enum Authorities {
   F_LEGEND_SET_DELETE,
   F_MOBILE_SENDSMS,
   F_JOB_LOG_READ,
-  F_MOBILE_SETTINGS;
+  F_MOBILE_SETTINGS,
+  // bundled authority
+  M_DHIS_WEB_APP_MANAGEMENT("M_dhis-web-app-management");
+
+  private final String authorityName;
+
+  Authorities(String authority) {
+    this.authorityName = authority;
+  }
+
+  Authorities() {
+    this.authorityName = this.name();
+  }
 
   public static Set<String> getAllAuthorities() {
-    return Arrays.stream(Authorities.values()).map(Authorities::name).collect(Collectors.toSet());
+    return Arrays.stream(Authorities.values())
+        .map(Authorities::toString)
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * @return the string value held in {@link Authorities#authorityName}. The value held depends on
+   *     how the enum value is defined (with or without a string in the constructor).
+   */
+  @Override
+  public String toString() {
+    return this.authorityName;
   }
 }

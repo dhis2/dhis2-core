@@ -40,10 +40,11 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -80,7 +81,7 @@ public class AppHubController {
   }
 
   @PostMapping(value = "/{versionId}")
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = Authorities.M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void installAppFromAppHub(@PathVariable UUID versionId) throws ConflictException {
     AppStatus status = appManager.installApp(versionId);

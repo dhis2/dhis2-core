@@ -37,6 +37,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.Authorities;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
@@ -76,7 +77,7 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     final Set<String> auths = getAllAuthorities();
-    if (auths.contains(UserRole.AUTHORITY_ALL)) {
+    if (auths.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -99,6 +100,6 @@ public class UserDetailsImpl implements UserDetails {
       return false;
     }
     final Set<String> auths = getAllAuthorities();
-    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
   }
 }

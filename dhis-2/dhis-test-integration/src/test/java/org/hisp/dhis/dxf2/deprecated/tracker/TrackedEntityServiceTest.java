@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -75,6 +74,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
@@ -165,7 +165,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     fileResourceService.asyncSaveFileResource(fileResource, "fileResource".getBytes());
 
     userService = _userService;
-    user = createAndAddAdminUser(AUTHORITY_ALL);
+    user = createAndAddAdminUser(Authorities.ALL.toString());
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');

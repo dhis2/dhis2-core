@@ -46,12 +46,13 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -107,7 +108,7 @@ public class ValidationController {
   @RequestMapping(
       value = "/sendNotifications",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @RequiresAuthority(anyOf = Authorities.M_DHIS_WEB_APP_MANAGEMENT)
   public WebMessage runValidationNotificationsTask()
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);

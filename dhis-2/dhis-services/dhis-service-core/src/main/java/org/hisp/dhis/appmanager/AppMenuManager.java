@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 
@@ -101,6 +102,6 @@ public class AppMenuManager {
 
   private boolean hasAccess(String module) {
     return CurrentUserUtil.hasAnyAuthority(
-        List.of("ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, "M_" + module));
+        List.of("ALL", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), "M_" + module));
   }
 }

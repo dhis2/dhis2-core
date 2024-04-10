@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
  * {@link AuthorityInterceptor}.
  */
 @Documented
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequiresAuthority {
   Authorities[] anyOf();

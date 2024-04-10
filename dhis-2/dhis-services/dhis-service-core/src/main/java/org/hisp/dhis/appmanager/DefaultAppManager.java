@@ -64,6 +64,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
@@ -382,7 +383,7 @@ public class DefaultAppManager implements AppManager {
     return app.getKey().equals("login")
         || CurrentUserUtil.hasAnyAuthority(
             List.of(
-                "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()));
+                "ALL", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), app.getSeeAppAuthority()));
   }
 
   @Override
@@ -414,8 +415,10 @@ public class DefaultAppManager implements AppManager {
     if (namespace != null && !namespace.isEmpty()) {
       String[] authorities =
           app.getShortName() == null
-              ? new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY}
-              : new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()};
+              ? new String[] {Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString()}
+              : new String[] {
+                Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), app.getSeeAppAuthority()
+              };
       datastoreService.addProtection(
           new DatastoreNamespaceProtection(namespace, ProtectionType.RESTRICTED, authorities));
     }

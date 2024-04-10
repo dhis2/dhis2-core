@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.security.Authorities;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;
@@ -66,7 +67,7 @@ class UserTest {
     userRole2.setAuthorities(new HashSet<>(Arrays.asList("y1", "y2")));
     userRole1Super = new UserRole();
     userRole1Super.setUid("uid4");
-    userRole1Super.setAuthorities(new HashSet<>(Arrays.asList("z1", UserRole.AUTHORITY_ALL)));
+    userRole1Super.setAuthorities(new HashSet<>(Arrays.asList("z1", Authorities.ALL.toString())));
   }
 
   @Test
@@ -99,7 +100,8 @@ class UserTest {
     final User user = new User();
     user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole1Super)));
     Set<String> authorities1 = user.getAllAuthorities();
-    assertThat(authorities1, Matchers.containsInAnyOrder("x1", "x2", "z1", UserRole.AUTHORITY_ALL));
+    assertThat(
+        authorities1, Matchers.containsInAnyOrder("x1", "x2", "z1", Authorities.ALL.toString()));
     Set<String> authorities2 = user.getAllAuthorities();
     assertEquals(authorities1, authorities2);
   }
@@ -109,7 +111,8 @@ class UserTest {
     final User user = new User();
     user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole1Super)));
     Set<String> authorities1 = user.getAllAuthorities();
-    assertThat(authorities1, Matchers.containsInAnyOrder("x1", "x2", "z1", UserRole.AUTHORITY_ALL));
+    assertThat(
+        authorities1, Matchers.containsInAnyOrder("x1", "x2", "z1", Authorities.ALL.toString()));
     user.setUserRoles(new HashSet<>(Arrays.asList(userRole1, userRole2)));
     Set<String> authorities2 = user.getAllAuthorities();
     assertThat(authorities2, Matchers.containsInAnyOrder("x1", "x2", "y1", "y2"));
@@ -185,7 +188,7 @@ class UserTest {
   void testIsAuthorizedWhenUserHasAllAuthority() {
     final User user = new User();
     UserRole role = new UserRole();
-    role.setAuthorities(Set.of("AUTH1", UserRole.AUTHORITY_ALL));
+    role.setAuthorities(Set.of("AUTH1", Authorities.ALL.toString()));
     user.setUserRoles(Set.of(role));
     assertTrue(user.isAuthorized("AUTH9"));
   }
@@ -194,7 +197,7 @@ class UserTest {
   void testIsAuthorizedWhenAuthorityPassedIsNull() {
     final User user = new User();
     UserRole role = new UserRole();
-    role.setAuthorities(Set.of("AUTH1", UserRole.AUTHORITY_ALL));
+    role.setAuthorities(Set.of("AUTH1", Authorities.ALL.toString()));
     user.setUserRoles(Set.of(role));
     String auth = null;
     assertFalse(user.isAuthorized(auth));
@@ -219,7 +222,7 @@ class UserTest {
   void testCanIssueUserRoleWhenHasAllAuthority() {
     User user = new User();
     UserRole role = new UserRole();
-    role.setAuthorities(Set.of("AUTH1", UserRole.AUTHORITY_ALL));
+    role.setAuthorities(Set.of("AUTH1", Authorities.ALL.toString()));
     user.setUserRoles(Set.of(role));
     UserRole roleToCheck = new UserRole();
     assertTrue(user.canIssueUserRole(roleToCheck, true));
@@ -256,7 +259,7 @@ class UserTest {
   void testCanModifyUserUserHasAllAuthority() {
     User user = new User();
     UserRole role = new UserRole();
-    role.setAuthorities(Set.of(UserRole.AUTHORITY_ALL));
+    role.setAuthorities(Set.of(Authorities.ALL.toString()));
     user.setUserRoles(Set.of(role));
     User otherUser = new User();
     assertTrue(user.canModifyUser(otherUser));

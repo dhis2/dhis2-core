@@ -55,12 +55,12 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Disabled;
@@ -219,7 +219,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     organisationUnitService.addOrganisationUnit(sourceB);
     superUser =
         createAndAddUser(
-            true, "SuperUser", newHashSet(sourceA), newHashSet(sourceA), UserRole.AUTHORITY_ALL);
+            true, "SuperUser", newHashSet(sourceA), newHashSet(sourceA), Authorities.ALL.toString());
     userA = createAndAddUser(false, "UserA", sourceA, sourceA);
     userB = createAndAddUser(false, "UserB", sourceB, sourceB);
     userC = createAndAddUser(false, "UserC", sourceB, sourceB);

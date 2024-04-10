@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -42,6 +41,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -118,11 +118,14 @@ public class UserControllerUtils {
   private ArrayNode getWorkflowLevelNodes(User user, DataApprovalWorkflow workflow) {
     Set<String> authorities = user.getAllAuthorities();
 
-    boolean canApprove = authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_APPROVE);
+    boolean canApprove =
+        authorities.contains(Authorities.ALL.toString()) || authorities.contains(AUTH_APPROVE);
     boolean canApproveLowerLevels =
-        authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_APPROVE_LOWER_LEVELS);
+        authorities.contains(Authorities.ALL.toString())
+            || authorities.contains(AUTH_APPROVE_LOWER_LEVELS);
     boolean canAccept =
-        authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_ACCEPT_LOWER_LEVELS);
+        authorities.contains(Authorities.ALL.toString())
+            || authorities.contains(AUTH_ACCEPT_LOWER_LEVELS);
 
     boolean acceptConfigured =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
