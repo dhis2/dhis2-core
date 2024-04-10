@@ -28,8 +28,14 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.Set;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.junit.jupiter.api.Test;
 
 class RenderableDataValueTest {
@@ -61,5 +67,25 @@ class RenderableDataValueTest {
         RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.TIME);
     String result = renderableDataValue.transformedIfNecessary().render();
     assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::varchar", result);
+  }
+
+  @Test
+  void testRenderWithLegendSet() {
+    LegendSet legendSet = mock(LegendSet.class);
+    Legend legend = mock(Legend.class);
+    when(legendSet.getLegends()).thenReturn(Set.of(legend));
+
+    when(legend.getStartValue()).thenReturn(1.0);
+    when(legend.getEndValue()).thenReturn(2.0);
+
+    Renderable renderableDataValue =
+        RenderableDataValue.withLegendSet(
+            RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.STRING), legendSet);
+
+    String result = renderableDataValue.render();
+
+    assertEquals(
+        "CASE WHEN (alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::STRING BETWEEN '1.0' AND '2.0' THEN 'null' END",
+        result);
   }
 }

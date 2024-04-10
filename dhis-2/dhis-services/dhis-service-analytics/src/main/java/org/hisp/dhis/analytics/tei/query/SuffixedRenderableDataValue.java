@@ -25,46 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.analytics.tei.query;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import org.hisp.dhis.analytics.common.ValueTypeMapping;
 
-/** Provider of {@link SqlBuilder} implementations. */
-@Service
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
+@Getter
+public class SuffixedRenderableDataValue extends RenderableDataValue {
 
-  public SqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
+  private final String valueSuffix;
+
+  private SuffixedRenderableDataValue(
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping, String valueSuffix) {
+    super(alias, dataValue, valueTypeMapping);
+    this.valueSuffix = valueSuffix;
   }
 
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
-  }
-
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
-
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      default -> new PostgreSqlBuilder();
-    };
+  public static RenderableDataValue of(
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping, String suffix) {
+    return new SuffixedRenderableDataValue(alias, dataValue, valueTypeMapping, suffix);
   }
 }

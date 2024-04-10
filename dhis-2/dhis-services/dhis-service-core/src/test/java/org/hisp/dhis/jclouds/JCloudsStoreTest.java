@@ -25,46 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.jclouds;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.db.model.Database;
+import static org.hisp.dhis.utils.Assertions.assertContains;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.external.location.LocationManager;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Provider of {@link SqlBuilder} implementations. */
-@Service
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
+@ExtendWith(MockitoExtension.class)
+class JCloudsStoreTest {
+  @Mock private DhisConfigurationProvider configurationProvider;
+  @Mock private LocationManager locationManager;
 
-  public SqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
+  @Test
+  void failIfUnsupportedProviderIsConfigured() {
+    when(configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER))
+        .thenReturn("rackspace-cloudfiles-us");
+
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new JCloudsStore(configurationProvider, locationManager));
+
+    assertContains("unsupported file store provider", exception.getMessage());
   }
 
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
-  }
+  @Test
+  void failIfFilesystemProviderIsConfiguredButNoExternalDirectoryIsSet() {
+    when(configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER))
+        .thenReturn("filesystem");
+    when(locationManager.externalDirectorySet()).thenReturn(false);
 
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
+    IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new JCloudsStore(configurationProvider, locationManager));
 
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      default -> new PostgreSqlBuilder();
-    };
+    assertContains("external directory is not set", exception.getMessage());
   }
 }

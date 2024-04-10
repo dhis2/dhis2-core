@@ -139,8 +139,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementGroupSetResourceTable(
             logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+            logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
         new OrganisationUnitGroupSetResourceTable(
             logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),

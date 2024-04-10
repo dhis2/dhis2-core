@@ -152,4 +152,11 @@ public class DimensionIdentifier<D extends UidObject> implements IdentifiableKey
   public String getKeyNoOffset() {
     return withoutOffset().toString();
   }
+
+  public boolean hasLegendSet() {
+    if (dimension instanceof DimensionParam dimensionParam && dimensionParam.isQueryItem()) {
+      return dimensionParam.getQueryItem().hasLegendSet();
+    }
+    return false;
+  }
 }

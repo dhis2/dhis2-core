@@ -25,46 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.security;
 
-import java.util.Objects;
-import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/** Provider of {@link SqlBuilder} implementations. */
-@Service
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
-
-  public SqlBuilderProvider(AnalyticsTableSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
-  }
-
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
-  }
-
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(AnalyticsTableSettings config) {
-    Database database = config.getAnalyticsDatabase();
-
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      default -> new PostgreSqlBuilder();
-    };
-  }
+/**
+ * Annotation that takes in any number of {@link Authorities}. This allows us to check if a {@link
+ * org.hisp.dhis.user.User} has any of the {@link Authorities} passed in.
+ *
+ * <p>{@link Authorities#ALL} is automatically added to the check, as having this Authority allows
+ * access to all methods by default. No need to pass {@link Authorities#ALL} in the arguments. See
+ * {@link AuthorityInterceptor}.
+ */
+@Documented
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequiresAuthority {
+  Authorities[] anyOf();
 }
