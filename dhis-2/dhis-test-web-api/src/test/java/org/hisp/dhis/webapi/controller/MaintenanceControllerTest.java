@@ -118,7 +118,7 @@ class MaintenanceControllerTest extends DhisControllerConvenienceTest {
   void testPruneDataByDataElement_MissingAuthority() {
     switchToNewUser("guest");
     assertEquals(
-        "Access is denied, requires one Authority from [ALL]d",
+        "Access is denied, requires one Authority from [ALL]",
         POST("/maintenance/dataPruning/dataElements/xzy").error(HttpStatus.FORBIDDEN).getMessage());
   }
 
