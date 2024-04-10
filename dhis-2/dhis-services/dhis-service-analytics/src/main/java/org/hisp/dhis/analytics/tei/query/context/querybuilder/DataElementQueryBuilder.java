@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
+import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
@@ -40,7 +41,6 @@ import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -224,10 +224,11 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
         Optional.of(dimensionIdentifier)
             .map(DimensionIdentifier::getDimension)
             .map(DimensionParam::getIdScheme)
-            .orElse(DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.get(valueType));
+            .orElse(nonNull(valueType) ? DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.get(valueType) : null);
+    ;
 
-    if (Objects.nonNull(valueType)
-        && Objects.nonNull(idScheme)
+    if (nonNull(valueType)
+        && nonNull(idScheme)
         && DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.containsKey(valueType)
         && SUFFIX_BY_ID_SCHEME.containsKey(idScheme)) {
       return SuffixedRenderableDataValue.of(
