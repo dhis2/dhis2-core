@@ -69,7 +69,8 @@ class AnalyticsTableServiceTest {
             new AnalyticsTableColumn("dx", TEXT, "dx"),
             new AnalyticsTableColumn("value", DOUBLE, "value"));
 
-    AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, false);
+    AnalyticsTable tA =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, false);
     tA.addTablePartition(
         List.of(),
         2010,
