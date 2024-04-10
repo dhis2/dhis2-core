@@ -88,7 +88,7 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
    * @param authorities - varargs of {@link Authorities}
    * @return new {@link User}
    */
-  protected final User switchToNewUser(String username, Authorities... authorities) {
+  protected final User switchToNewUserWithAuthorities(String username, Authorities... authorities) {
     return switchToNewUser(username, AuthoritiesUtils.toStringArray(authorities));
   }
 

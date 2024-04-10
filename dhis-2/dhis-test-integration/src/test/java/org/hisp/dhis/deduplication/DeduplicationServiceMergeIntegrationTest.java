@@ -81,7 +81,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
       throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    User user = createUser(new HashSet<>(Collections.singletonList(ou)), Authorities.ALL.toString());
+    User user =
+        createUser(new HashSet<>(Collections.singletonList(ou)), Authorities.ALL.toString());
     injectSecurityContextUser(user);
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');

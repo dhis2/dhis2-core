@@ -219,7 +219,11 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest {
     organisationUnitService.addOrganisationUnit(sourceB);
     superUser =
         createAndAddUser(
-            true, "SuperUser", newHashSet(sourceA), newHashSet(sourceA), Authorities.ALL.toString());
+            true,
+            "SuperUser",
+            newHashSet(sourceA),
+            newHashSet(sourceA),
+            Authorities.ALL.toString());
     userA = createAndAddUser(false, "UserA", sourceA, sourceA);
     userB = createAndAddUser(false, "UserB", sourceB, sourceB);
     userC = createAndAddUser(false, "UserC", sourceB, sourceB);
