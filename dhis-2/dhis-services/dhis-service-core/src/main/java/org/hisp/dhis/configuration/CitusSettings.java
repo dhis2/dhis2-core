@@ -59,8 +59,9 @@ public class CitusSettings {
   private Boolean cachedValue = null;
 
   /**
-   * @return true if the citus extension is installed, enabled and database was created with citus
-   *     extension
+   * Checks if Citus is installed and enabled, and applied to the current database.
+   *
+   * @return true if the Citus extension is fully available, false otherwise.
    */
   public boolean isCitusExtensionEnabled() {
     synchronized (this) {
@@ -113,8 +114,10 @@ public class CitusSettings {
       return;
     }
     log.info(
-        "Citus extension software is not installed in the database. "
-            + "You need to install it first: https://docs.citusdata.com/en/latest/installation/multi_node.html");
+        """
+        Citus extension software is not installed in the database.
+        You need to install it first: https://docs.citusdata.com/en/latest/installation/multi_node.html
+        """);
   }
 
   /**
@@ -125,9 +128,7 @@ public class CitusSettings {
    */
   private List<PgExtension> getPostgresInstalledCitusExtensions() {
     return jdbcTemplate.query(
-        "select name, installed_version "
-            + "from pg_available_extensions "
-            + "where lower(name) like 'citus%'",
+        "select name, installed_version from pg_available_extensions where lower(name) like 'citus%'",
         new DataClassRowMapper<>(PgExtension.class));
   }
 
@@ -146,8 +147,9 @@ public class CitusSettings {
 
     if (!isCitusExtensionEnabled) {
       log.info(
-          "Citus extension was not created in the DHIS database. "
-              + "You need to run 'CREATE EXTENSION citus;' after the creation of the database");
+          """
+          Citus extension was not created in the DHIS database.
+          You need to run 'CREATE EXTENSION citus;' after the creation of the database""");
       return false;
     }
 
