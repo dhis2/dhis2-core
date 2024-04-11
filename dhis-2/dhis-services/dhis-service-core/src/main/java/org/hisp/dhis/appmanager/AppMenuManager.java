@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -102,6 +104,6 @@ public class AppMenuManager {
 
   private boolean hasAccess(String module) {
     return CurrentUserUtil.hasAnyAuthority(
-        List.of("ALL", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), "M_" + module));
+        List.of(ALL.toString(), Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(), "M_" + module));
   }
 }

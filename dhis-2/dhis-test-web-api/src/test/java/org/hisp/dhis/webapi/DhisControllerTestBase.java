@@ -80,9 +80,9 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
   }
 
   /**
-   * New method which allows passing in actual {@link Authorities}. It calls the existing method
-   * {@link DhisControllerTestBase#switchToNewUser(String, String...)} that accepts String
-   * authorities underneath.
+   * Method which allows passing in actual {@link Authorities}. It calls the existing method {@link
+   * DhisControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
+   * underneath.
    *
    * @param username - username
    * @param authorities - varargs of {@link Authorities}

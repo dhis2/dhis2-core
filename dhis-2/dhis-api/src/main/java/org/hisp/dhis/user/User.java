@@ -813,7 +813,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    * @param auth the {@link Authorities}.
    */
   public boolean isAuthorized(Authorities auth) {
-    return isAuthorized(auth.name());
+    return isAuthorized(auth.toString());
   }
 
   public Set<UserGroup> getManagedGroups() {

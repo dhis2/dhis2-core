@@ -201,6 +201,7 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.utils.AuthoritiesUtils;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -2807,12 +2808,25 @@ public abstract class DhisConvenienceTest {
     return createAndAddUser(false, userName, null);
   }
 
+  protected User createAndAddUserWithAuth(
+      Set<OrganisationUnit> organisationUnits,
+      Set<OrganisationUnit> dataViewOrganisationUnits,
+      Authorities... auths) {
+    return createAndAddUser(
+        organisationUnits, dataViewOrganisationUnits, AuthoritiesUtils.toStringArray(auths));
+  }
+
   protected User createAndAddUser(
       Set<OrganisationUnit> organisationUnits,
       Set<OrganisationUnit> dataViewOrganisationUnits,
       String... auths) {
     return createAndAddUser(
         false, CodeGenerator.generateUid(), organisationUnits, dataViewOrganisationUnits, auths);
+  }
+
+  protected User createAndAddUserWithAuth(
+      String userName, OrganisationUnit orgUnit, Authorities... auths) {
+    return createAndAddUser(userName, orgUnit, AuthoritiesUtils.toStringArray(auths));
   }
 
   protected User createAndAddUser(String userName, OrganisationUnit orgUnit, String... auths) {

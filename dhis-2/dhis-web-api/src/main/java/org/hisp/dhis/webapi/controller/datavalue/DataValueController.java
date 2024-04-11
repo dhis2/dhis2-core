@@ -464,8 +464,8 @@ public class DataValueController {
   // DELETE
   // ---------------------------------------------------------------------
 
-  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @DeleteMapping
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDataValue(
       DataValueQueryParams params,

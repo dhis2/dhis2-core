@@ -229,7 +229,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
         currentUser != null
             && (currentUser.isSuper()
                 || (!read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
-                || (read && currentUser.isAuthorized("F_JOB_LOG_READ"))
+                || (read && currentUser.isAuthorized(F_JOB_LOG_READ.toString()))
                 || currentUser.getUid().equals(obj.getExecutedBy()));
     if (!isAuthorized) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }

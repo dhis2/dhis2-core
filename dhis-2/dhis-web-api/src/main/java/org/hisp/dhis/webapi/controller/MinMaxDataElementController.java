@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
-import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_DELETE;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
@@ -153,7 +152,7 @@ public class MinMaxDataElementController {
   // --------------------------------------------------------------------------
 
   @DeleteMapping(consumes = APPLICATION_JSON_VALUE)
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_DELETE)
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseBody
   public WebMessage deleteObject(HttpServletRequest request) throws Exception {
     MinMaxDataElement minMax =

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataentry;
 
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
-import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_DELETE;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -71,7 +70,7 @@ public class MinMaxValueController {
     saveOrUpdateMinMaxDataElement(valueDto);
   }
 
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_DELETE)
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @DeleteMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void removeMinMaxValue(MinMaxValueQueryParams params) {

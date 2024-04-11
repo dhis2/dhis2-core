@@ -56,11 +56,12 @@ public class LegendSetSchemaDescriptor implements SchemaDescriptor {
 
     schema.add(
         new Authority(
-            AuthorityType.CREATE_PUBLIC, Lists.newArrayList(F_LEGEND_SET_PUBLIC_ADD.name())));
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList(F_LEGEND_SET_PUBLIC_ADD.toString())));
     schema.add(
         new Authority(
-            AuthorityType.CREATE_PRIVATE, Lists.newArrayList(F_LEGEND_SET_PRIVATE_ADD.name())));
-    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList(F_LEGEND_SET_DELETE.name())));
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList(F_LEGEND_SET_PRIVATE_ADD.toString())));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList(F_LEGEND_SET_DELETE.toString())));
 
     return schema;
   }

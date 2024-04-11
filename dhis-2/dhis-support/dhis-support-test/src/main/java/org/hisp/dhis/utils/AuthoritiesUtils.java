@@ -42,6 +42,10 @@ public class AuthoritiesUtils {
    * @return String[] of transformed authorities
    */
   public static String[] toStringArray(Authorities... authorities) {
+    if (authorities == null) {
+      return new String[0];
+    }
+
     List<String> authorityStrings = new ArrayList<>();
     for (Authorities auth : authorities) {
       authorityStrings.add(auth.toString());

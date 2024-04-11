@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
-import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
-import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -119,13 +119,14 @@ public class UserControllerUtils {
     Set<String> authorities = user.getAllAuthorities();
 
     boolean canApprove =
-        authorities.contains(Authorities.ALL.toString()) || authorities.contains(AUTH_APPROVE);
+        authorities.contains(Authorities.ALL.toString())
+            || authorities.contains(F_APPROVE_DATA.toString());
     boolean canApproveLowerLevels =
         authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(AUTH_APPROVE_LOWER_LEVELS);
+            || authorities.contains(F_APPROVE_DATA_LOWER_LEVELS);
     boolean canAccept =
         authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(AUTH_ACCEPT_LOWER_LEVELS);
+            || authorities.contains(F_ACCEPT_DATA_LOWER_LEVELS);
 
     boolean acceptConfigured =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);

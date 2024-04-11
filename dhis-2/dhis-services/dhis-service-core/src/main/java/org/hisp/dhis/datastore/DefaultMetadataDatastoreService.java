@@ -51,7 +51,7 @@ public class DefaultMetadataDatastoreService implements MetadataDatastoreService
           new DatastoreNamespaceProtection(
               MetadataDatastoreService.METADATA_STORE_NS,
               ProtectionType.HIDDEN,
-              F_METADATA_MANAGE.name()));
+              F_METADATA_MANAGE.toString()));
     }
   }
 

@@ -28,7 +28,6 @@
 package org.hisp.dhis.schema.descriptors;
 
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
-import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_DELETE;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -53,10 +52,11 @@ public class MinMaxDataElementSchemaDescriptor implements SchemaDescriptor {
     schema.setRelativeApiEndpoint(API_ENDPOINT);
 
     schema.add(
-        new Authority(AuthorityType.CREATE, Lists.newArrayList(F_MINMAX_DATAELEMENT_ADD.name())));
+        new Authority(
+            AuthorityType.CREATE, Lists.newArrayList(F_MINMAX_DATAELEMENT_ADD.toString())));
     schema.add(
         new Authority(
-            AuthorityType.DELETE, Lists.newArrayList(F_MINMAX_DATAELEMENT_DELETE.name())));
+            AuthorityType.DELETE, Lists.newArrayList(F_MINMAX_DATAELEMENT_ADD.toString())));
 
     return schema;
   }

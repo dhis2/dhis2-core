@@ -74,7 +74,6 @@ public enum Authorities {
   F_LOCALE_DELETE,
   F_GENERATE_MIN_MAX_VALUES,
   F_MINMAX_DATAELEMENT_ADD,
-  F_MINMAX_DATAELEMENT_DELETE,
   F_RUN_VALIDATION,
   F_PREDICTOR_RUN,
   F_SEND_EMAIL,
@@ -112,10 +111,20 @@ public enum Authorities {
 
   private final String authorityName;
 
+  /**
+   * Constructor with String param. The String passed in will be the value returned in {@link
+   * Authorities#toString()}
+   *
+   * @param authority authority
+   */
   Authorities(String authority) {
     this.authorityName = authority;
   }
 
+  /**
+   * Empty constructor. {@link Enum#name()} will be the value returned in {@link
+   * Authorities#toString()}
+   */
   Authorities() {
     this.authorityName = this.name();
   }

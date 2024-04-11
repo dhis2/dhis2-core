@@ -29,6 +29,7 @@ package org.hisp.dhis.message;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 import static org.hisp.dhis.commons.util.TextUtils.removeAnyTrailingSlash;
+import static org.hisp.dhis.security.Authorities.ALL;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -452,7 +453,7 @@ public class DefaultMessageService implements MessageService {
   public boolean hasAccessToManageFeedbackMessages(UserDetails userDetails) {
     userDetails = (userDetails != null ? userDetails : CurrentUserUtil.getCurrentUserDetails());
     return configurationService.isUserInFeedbackRecipientUserGroup(userDetails)
-        || userDetails.isAuthorized("ALL");
+        || userDetails.isAuthorized(ALL.toString());
   }
 
   // -------------------------------------------------------------------------
