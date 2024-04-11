@@ -50,6 +50,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -115,14 +116,11 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = analyticsTableSettings.getDistribution();
+
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(
-            new AnalyticsTable(
-                getAnalyticsTableType(),
-                getColumns(),
-                logged,
-                analyticsTableSettings.isCitusExtensionEnabled()));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, distribution));
   }
 
   @Override

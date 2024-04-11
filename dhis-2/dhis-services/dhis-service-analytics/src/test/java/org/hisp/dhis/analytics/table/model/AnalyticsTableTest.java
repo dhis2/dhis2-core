@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,7 +63,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameDataValue() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
     assertEquals("analytics", table.getMainName());
     assertEquals("analytics_temp", table.getName());
   }
@@ -70,7 +71,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameCompleteness() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, NONE);
     assertEquals("analytics_completeness", table.getMainName());
     assertEquals("analytics_completeness_temp", table.getName());
   }
@@ -78,7 +79,7 @@ class AnalyticsTableTest {
   @Test
   void testGetTableNameValidationResult() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.VALIDATION_RESULT, columnsA, Logged.UNLOGGED, NONE);
     assertEquals("analytics_validationresult", table.getMainName());
     assertEquals("analytics_validationresult_temp", table.getName());
   }
@@ -88,7 +89,7 @@ class AnalyticsTableTest {
     Program program = new Program("ProgramA", "DescriptionA");
     program.setUid("rfT56YbgFeK");
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program, false);
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program, NONE);
     assertEquals("analytics_event_rft56ybgfek", table.getMainName());
     assertEquals("analytics_event_rft56ybgfek_temp", table.getName());
   }
@@ -99,7 +100,7 @@ class AnalyticsTableTest {
     trackedEntityType.setUid("k7GfrBE3rT5");
     AnalyticsTable table =
         new AnalyticsTable(
-            AnalyticsTableType.ENROLLMENT, columnsA, Logged.UNLOGGED, trackedEntityType, false);
+            AnalyticsTableType.ENROLLMENT, columnsA, Logged.UNLOGGED, trackedEntityType, NONE);
     assertEquals("analytics_enrollment_k7gfrbe3rt5", table.getMainName());
     assertEquals("analytics_enrollment_k7gfrbe3rt5_temp", table.getName());
   }
@@ -115,7 +116,7 @@ class AnalyticsTableTest {
             new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
 
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, NONE);
 
     assertEquals(3, table.getDimensionColumns().size());
     assertEquals("dx", table.getDimensionColumns().get(0).getName());
@@ -137,7 +138,7 @@ class AnalyticsTableTest {
     Period periodA = new YearlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate());
     Period periodB = new YearlyPeriodType().createPeriod(new DateTime(2015, 1, 1, 0, 0).toDate());
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program, false);
+        new AnalyticsTable(AnalyticsTableType.EVENT, columnsA, Logged.UNLOGGED, program, NONE);
     tableA.addTablePartition(List.of(), 2014, periodA.getStartDate(), periodA.getEndDate());
     tableA.addTablePartition(List.of(), 2015, periodB.getStartDate(), periodB.getEndDate());
     AnalyticsTablePartition partitionA = tableA.getTablePartitions().get(0);
@@ -153,9 +154,9 @@ class AnalyticsTableTest {
   @Test
   void testEquals() {
     AnalyticsTable tableA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
     AnalyticsTable tableB =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
     List<AnalyticsTable> uniqueList = new UniqueArrayList<>();
     uniqueList.add(tableA);
     uniqueList.add(tableB);

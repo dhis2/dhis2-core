@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -70,7 +71,7 @@ class AnalyticsTableServiceTest {
             new AnalyticsTableColumn("value", DOUBLE, "value"));
 
     AnalyticsTable tA =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED, NONE);
     tA.addTablePartition(
         List.of(),
         2010,
@@ -82,7 +83,7 @@ class AnalyticsTableServiceTest {
         new DateTime(2011, 1, 1, 0, 0).toDate(),
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
-        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED, NONE);
     List<AnalyticsTablePartition> partitions = tableService.getTablePartitions(List.of(tA, tB));
 
     assertEquals(3, partitions.size());

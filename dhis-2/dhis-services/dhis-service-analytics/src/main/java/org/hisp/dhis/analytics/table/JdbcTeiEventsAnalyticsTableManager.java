@@ -44,6 +44,7 @@ import static org.hisp.dhis.db.model.DataType.JSONB;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
+import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
@@ -68,6 +69,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -206,6 +208,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     Calendar calendar = PeriodType.getCalendar();
     List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = analyticsTableSettings.getDistribution();
 
     for (TrackedEntityType tet : trackedEntityTypes) {
       List<Integer> dataYears = getDataYears(params, tet);
@@ -213,19 +216,14 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
       Collections.sort(dataYears);
 
       AnalyticsTable table =
-          new AnalyticsTable(
-              getAnalyticsTableType(),
-              getColumns(),
-              logged,
-              tet,
-              analyticsTableSettings.isCitusExtensionEnabled());
+          new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged, tet, distribution);
 
       for (Integer year : dataYears) {
         table.addTablePartition(
             List.of(), year, getStartDate(calendar, year), getEndDate(calendar, year));
       }
 
-      if (table.hasTablePartitions() || analyticsTableSettings.isCitusExtensionEnabled()) {
+      if (table.hasTablePartitions() || distribution == DISTRIBUTED) {
         tables.add(table);
       }
     }
@@ -301,8 +299,9 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
     String tableName = partition.getName();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String partitionClause = getPartitionClause(partition);
+    Distribution distribution = analyticsTableSettings.getDistribution();
 
-    if (analyticsTableSettings.isCitusExtensionEnabled()) {
+    if (distribution == DISTRIBUTED) {
       partitionClause = eventDateExpression + " is not null";
     }
 

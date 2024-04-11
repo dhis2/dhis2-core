@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Collection;
@@ -66,6 +67,7 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
@@ -183,7 +185,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     createAnalyticsTable(table);
     createAnalyticsTablePartitions(table);
 
-    if (analyticsTableSettings.isCitusExtensionEnabled()) {
+    if (analyticsTableSettings.getDistribution() == DISTRIBUTED) {
       createDistributedCitusTable(table);
     }
   }
@@ -384,15 +386,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     Calendar calendar = PeriodType.getCalendar();
     List<Integer> years = ListUtils.mutableCopy(dataYears);
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = analyticsTableSettings.getDistribution();
 
     Collections.sort(years);
 
     AnalyticsTable table =
-        new AnalyticsTable(
-            getAnalyticsTableType(),
-            columns,
-            logged,
-            analyticsTableSettings.isCitusExtensionEnabled());
+        new AnalyticsTable(getAnalyticsTableType(), columns, logged, distribution);
 
     for (Integer year : years) {
       List<String> checks = getPartitionChecks(year, getEndDate(calendar, year));
@@ -426,15 +425,12 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         "A full analytics table update must be run prior to a latest partition update");
 
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = analyticsTableSettings.getDistribution();
     Date endDate = params.getStartTime();
     boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate);
 
     AnalyticsTable table =
-        new AnalyticsTable(
-            getAnalyticsTableType(),
-            columns,
-            logged,
-            analyticsTableSettings.isCitusExtensionEnabled());
+        new AnalyticsTable(getAnalyticsTableType(), columns, logged, distribution);
 
     if (hasUpdatedData) {
       table.addTablePartition(

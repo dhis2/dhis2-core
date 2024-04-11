@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -270,7 +271,7 @@ class JdbcAnalyticsTableManagerTest {
             AnalyticsTableType.DATA_VALUE,
             List.of(new AnalyticsTableColumn("year", DataType.INTEGER, "")),
             LOGGED,
-            false);
+            NONE);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()

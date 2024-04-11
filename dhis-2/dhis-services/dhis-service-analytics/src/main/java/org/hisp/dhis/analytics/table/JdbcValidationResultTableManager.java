@@ -123,7 +123,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
                 AnalyticsTableType.VALIDATION_RESULT,
                 List.of(),
                 Logged.LOGGED,
-                analyticsTableSettings.isCitusExtensionEnabled())
+                analyticsTableSettings.getDistribution())
             : getRegularAnalyticsTable(params, getDataYears(params), getColumns());
 
     return table.hasTablePartitions() ? List.of(table) : List.of();

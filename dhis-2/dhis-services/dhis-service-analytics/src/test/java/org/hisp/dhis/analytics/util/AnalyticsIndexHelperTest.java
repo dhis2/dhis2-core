@@ -36,6 +36,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.IndexType.BTREE;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -98,6 +99,6 @@ class AnalyticsIndexHelperTest {
     List<AnalyticsTableColumn> columns =
         List.of(new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE));
 
-    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED, false);
+    return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED, NONE);
   }
 }

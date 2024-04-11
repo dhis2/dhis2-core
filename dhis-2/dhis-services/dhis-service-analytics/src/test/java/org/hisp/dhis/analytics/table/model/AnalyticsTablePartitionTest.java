@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.model;
 
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,7 +53,7 @@ class AnalyticsTablePartitionTest {
   @Test
   void testGetName() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columnsA, Logged.UNLOGGED, NONE);
 
     List<String> checks = List.of("value = 2023");
 
@@ -73,7 +74,7 @@ class AnalyticsTablePartitionTest {
   @Test
   void testIsLatestPartition() {
     AnalyticsTable table =
-        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, false);
+        new AnalyticsTable(AnalyticsTableType.COMPLETENESS, columnsA, Logged.UNLOGGED, NONE);
 
     AnalyticsTablePartition partition =
         new AnalyticsTablePartition(

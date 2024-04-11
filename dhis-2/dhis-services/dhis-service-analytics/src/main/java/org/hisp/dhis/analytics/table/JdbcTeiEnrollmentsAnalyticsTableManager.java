@@ -61,6 +61,7 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -158,15 +159,13 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
   @Transactional
   public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
     Logged logged = analyticsTableSettings.getTableLogged();
+    Distribution distribution = analyticsTableSettings.getDistribution();
+
     return trackedEntityTypeService.getAllTrackedEntityType().stream()
         .map(
             tet ->
                 new AnalyticsTable(
-                    getAnalyticsTableType(),
-                    getColumns(),
-                    logged,
-                    tet,
-                    analyticsTableSettings.isCitusExtensionEnabled()))
+                    getAnalyticsTableType(), getColumns(), logged, tet, distribution))
         .collect(Collectors.toList());
   }
 

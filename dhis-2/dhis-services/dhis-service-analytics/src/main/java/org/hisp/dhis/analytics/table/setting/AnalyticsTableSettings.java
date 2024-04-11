@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.table.setting;
 
 import static org.hisp.dhis.commons.util.TextUtils.format;
+import static org.hisp.dhis.db.model.Distribution.DISTRIBUTED;
+import static org.hisp.dhis.db.model.Distribution.NONE;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
@@ -36,11 +38,11 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET
 import static org.hisp.dhis.util.ObjectUtils.isNull;
 
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.configuration.CitusSettings;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.Distribution;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -59,7 +61,7 @@ public class AnalyticsTableSettings {
 
   private final SystemSettingManager systemSettings;
 
-  @Delegate private final CitusSettings citusSettings;
+  private final CitusSettings citusSettings;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -73,6 +75,20 @@ public class AnalyticsTableSettings {
     }
 
     return LOGGED;
+  }
+
+  /**
+   * Based on the settings defined, it returns the expected {@link Distribution} for analytics
+   * tables creation.
+   *
+   * @return the {@link Distribution}.
+   */
+  public Distribution getDistribution() {
+    if (citusSettings.isCitusExtensionEnabled()) {
+      return DISTRIBUTED;
+    }
+
+    return NONE;
   }
 
   /**
