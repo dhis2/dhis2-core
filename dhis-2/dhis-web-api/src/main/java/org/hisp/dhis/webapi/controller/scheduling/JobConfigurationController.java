@@ -166,6 +166,8 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
     checkModifiable(obj, "Job %s is a system job that cannot be modified.");
     if (!obj.isEnabled()) {
+      if (!obj.isReadyToRun())
+        throw new ConflictException("Job requires schedule setup before it can be enabled.");
       obj.setEnabled(true);
       jobConfigurationService.updateJobConfiguration(obj);
     }
