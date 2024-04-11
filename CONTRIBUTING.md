@@ -31,7 +31,7 @@ Go in the repo and run maven:
 
 Each project in the /dhis-2/dhis-web directory is an individual web module. The dhis-web-portal project is an assembly of all the individual web modules.
 
-This should create a ready to use war in /dhis-2/dhis-web/dhis-web-portal/target
+This should create a ready to use war in /dhis-2/dhis-web-portal/target
 
 ## Run locally
 
