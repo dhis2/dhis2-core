@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.servlet;
 
+import static org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME;
+
 import java.util.EnumSet;
+import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
@@ -91,7 +94,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
+
+
+
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
+    servlet.setEnvironment();
 
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
@@ -121,6 +128,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.setInitParameter("forceEncoding", "true");
     characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
+
+    context
+        .addFilter("springSecurityFilterChain",
+            new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
     context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))

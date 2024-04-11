@@ -31,7 +31,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
 
 /**
  * Configure content negotiation so that both path extensions {@code .json} and {@code .xml} can be
@@ -57,5 +59,16 @@ public class ContentNegotiationConfig implements WebMvcConfigurer {
   @Override
   public void configurePathMatch(PathMatchConfigurer config) {
     config.setUseSuffixPatternMatch(true);
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry
+        .addResourceHandler("/static/**")
+        .addResourceLocations("/resources/","/dhis/")
+        .setCachePeriod(3600)
+        .resourceChain(true)
+        .addResolver(new PathResourceResolver());
+    //, "classpath:/dhis-web-apps/"
   }
 }

@@ -40,6 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
 import org.apache.catalina.Executor;
@@ -71,9 +72,30 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
+@Slf4j
 public class Main {
 
   private static final int PORT = 8080;
+
+  private static DocumentRoot documentRoot = new DocumentRoot(log);
+
+  /**
+   * Returns the document root which will be used by the web context to serve static files.
+   *
+   * @return the document root
+   */
+  public static File getDocumentRoot() {
+    return documentRoot.getDirectory();
+  }
+
+//  private static void setDocumentRoot(File documentRoot) {
+//    documentRoot.setDirectory(documentRoot);
+//  }
+
+
+  protected static final File getValidDocumentRoot() {
+    return documentRoot.getValidDirectory();
+  }
 
   private static Context findContext(Tomcat tomcat) {
     for (Container child : tomcat.getHost().findChildren()) {
@@ -89,17 +111,19 @@ public class Main {
       File tempDir = Files.createTempDirectory(prefix + "." + "8081" + ".").toFile();
       tempDir.deleteOnExit();
       return tempDir;
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       throw new WebServerException(
-          "Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty("java.io.tmpdir"), ex);
+          "Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty(
+              "java.io.tmpdir"), ex);
     }
   }
 
   private static void configureTldPatterns(TomcatEmbeddedContext context) {
     StandardJarScanFilter filter = new StandardJarScanFilter();
-    filter.setTldSkip(StringUtils.collectionToCommaDelimitedString(new LinkedHashSet<>(TldPatterns.DEFAULT_SKIP)));
-    filter.setTldScan(StringUtils.collectionToCommaDelimitedString(new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN)));
+    filter.setTldSkip(StringUtils.collectionToCommaDelimitedString(
+        new LinkedHashSet<>(TldPatterns.DEFAULT_SKIP)));
+    filter.setTldScan(StringUtils.collectionToCommaDelimitedString(
+        new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN)));
     context.getJarScanner().setJarScanFilter(filter);
   }
 
@@ -110,8 +134,7 @@ public class Main {
           embeddedContext.deferredLoadOnStartup();
         }
       }
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       if (ex instanceof WebServerException webServerException) {
         throw webServerException;
       }
@@ -120,7 +143,7 @@ public class Main {
   }
 
 
-//  protected void customizeConnector(Connector connector) {
+  //  protected void customizeConnector(Connector connector) {
 //    int port = Math.max(PORT, 0);
 //    connector.setPort(port);
 //    if (StringUtils.hasText(getServerHeader())) {
@@ -145,12 +168,17 @@ public class Main {
 //      customizer.customize(connector);
 //    }
 //  }
-private static void registerConnectorExecutor(Tomcat tomcat, Connector connector) {
-  if (connector.getProtocolHandler().getExecutor() instanceof Executor executor) {
-    tomcat.getService().addExecutor(executor);
+  private static void registerConnectorExecutor(Tomcat tomcat, Connector connector) {
+    if (connector.getProtocolHandler().getExecutor() instanceof Executor executor) {
+      tomcat.getService().addExecutor(executor);
+    }
   }
-}
+
   public static void main(String[] args) throws Exception {
+
+    String docroot = "/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/";
+    documentRoot.setDirectory(new File(docroot));
+
     String appBase = ".";
     Tomcat tomcat = new Tomcat();
     tomcat.setBaseDir(createTempDir());
@@ -164,9 +192,14 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
 
-
     Host host = tomcat.getHost();
     host.setAutoDeploy(false);
+
+    File documentRoot = getValidDocumentRoot();
+    if (documentRoot == null) {
+      throw new Exception("Document root is not valid");
+    }
+
     TomcatEmbeddedContext context = new TomcatEmbeddedContext();
     TomcatStarter starter = new TomcatStarter();
     context.setStarter(starter);
@@ -174,7 +207,11 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
     context.setName("/");
     context.setDisplayName("/");
     context.setPath("");
-    context.setDocBase(createTempDir("tomcat-docbase").getAbsolutePath());
+
+    context.setDocBase(documentRoot.getAbsolutePath());
+
+//    context.setDocBase(createTempDir("tomcat-docbase").getAbsolutePath());
+
     context.setResources(new LoaderHidingResourceRoot(context));
 //    context.setResources(new StandardRoot(context));
     context.addLifecycleListener(new FixContextListener());
@@ -272,8 +309,7 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
       try {
         this.initInternal = LifecycleBase.class.getDeclaredMethod("initInternal");
         this.initInternal.setAccessible(true);
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
         throw new IllegalStateException(ex);
       }
     }
@@ -334,8 +370,7 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
       if (this.delegate instanceof LifecycleBase) {
         try {
           ReflectionUtils.invokeMethod(this.initInternal, this.delegate);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
           throw new LifecycleException(ex);
         }
       }
@@ -346,6 +381,7 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
   protected static final List<URL> getUrlsOfJarsWithMetaInfResources() {
     return staticResourceJars.getUrls();
   }
+
   private static final StaticResourceJars staticResourceJars = new StaticResourceJars();
 
   private static final class StaticResourceConfigurer implements LifecycleListener {
@@ -377,8 +413,7 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
             jar = "jar:" + jar + "!/";
           }
           addResourceSet(jar);
-        }
-        else {
+        } else {
           addResourceSet(url.toString());
         }
       }
@@ -394,12 +429,11 @@ private static void registerConnectorExecutor(Tomcat tomcat, Connector connector
         URL url = new URL(resource);
         if (isInsideNestedJar(resource)) {
           root.addJarResources(new NestedJarResourceSet(url, root, WEB_APP_MOUNT, INTERNAL_PATH));
+        } else {
+          root.createWebResourceSet(ResourceSetType.RESOURCE_JAR, WEB_APP_MOUNT, url,
+              INTERNAL_PATH);
         }
-        else {
-          root.createWebResourceSet(ResourceSetType.RESOURCE_JAR, WEB_APP_MOUNT, url, INTERNAL_PATH);
-        }
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
         // Ignore (probably not a directory)
       }
     }
