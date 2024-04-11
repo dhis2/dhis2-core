@@ -120,6 +120,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired private UserSettingService userSettingService;
 
+  @Autowired private AuthorityInterceptor authorityInterceptor;
+
   @Autowired
   @Qualifier("jsonMapper")
   private ObjectMapper jsonMapper;
@@ -244,7 +246,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
-    registry.addInterceptor(new AuthorityInterceptor());
+    registry.addInterceptor(authorityInterceptor);
   }
 
   private Map<String, MediaType> mediaTypeMap =
