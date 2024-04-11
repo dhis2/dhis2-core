@@ -57,11 +57,11 @@ public class CitusSettings {
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
-  private Boolean citusExtension = null;
+  private boolean citusExtension;
 
   @PostConstruct
   public void init() {
-    citusExtension = isCitusExtensionEnabledInternal();
+    citusExtension = isCitusExtensionEnabled();
   }
 
   /**
@@ -69,11 +69,11 @@ public class CitusSettings {
    *
    * @return true if the Citus extension is fully available, false otherwise.
    */
-  public boolean isCitusExtensionEnabled() {
+  public boolean isCitusEnabled() {
     return citusExtension;
   }
 
-  private boolean isCitusExtensionEnabledInternal() {
+  public boolean isCitusExtensionEnabled() {
     if (isCitusDisabledByConfig()) {
       log.info("Citus extension is disabled in dhis.conf");
       return false;
@@ -82,7 +82,7 @@ public class CitusSettings {
   }
 
   /**
-   * @return true if the citus extension is disabled in dhis configuration file
+   * @return true if the Citus extension is disabled in dhis configuration file.
    */
   private boolean isCitusDisabledByConfig() {
     return !dhisConfigurationProvider.isEnabled(CITUS_EXTENSION);
@@ -92,14 +92,14 @@ public class CitusSettings {
    * Returns true if the citus extension is installed and created in the database whose jdbcTemplate
    * refers to.
    *
-   * @return true if the citus extension is installed and created
+   * @return true if the Citus extension is installed and created.
    */
   private boolean isCitusExtensionInstalledAndCreated() {
     List<PgExtension> installedExtensions = getPostgresInstalledCitusExtensions();
 
     logFoundExtensions(installedExtensions);
 
-    return installedExtensions.stream().anyMatch(this::isCitusExtensionEnabled);
+    return installedExtensions.stream().anyMatch(this::isCitusEnabled);
   }
 
   /**
@@ -125,7 +125,7 @@ public class CitusSettings {
    * Returns the list of citus extensions installed, along with version, in the database whose
    * jdbcTemplate refers to.
    *
-   * @return the list of citus extensions installed
+   * @return the list of Citus extensions installed.
    */
   private List<PgExtension> getPostgresInstalledCitusExtensions() {
     return jdbcTemplate.query(
@@ -134,12 +134,12 @@ public class CitusSettings {
   }
 
   /**
-   * Returns true if the provided citus extension is enabled (version is not null)
+   * Returns true if the provided citus extension is enabled (version is not null).
    *
-   * @param pgExtension
-   * @return true if the provided citus extension is enabled
+   * @param pgExtension the {@link PgExtension} object.
+   * @return true if the provided citus extension is enabled.
    */
-  private boolean isCitusExtensionEnabled(PgExtension pgExtension) {
+  private boolean isCitusEnabled(PgExtension pgExtension) {
     boolean isCitusExtensionEnabled =
         Optional.of(pgExtension)
             .map(PgExtension::installedVersion)
@@ -158,6 +158,6 @@ public class CitusSettings {
     return true;
   }
 
-  /** Represents a citus extension installed in the database. */
+  /** Represents a Citus extension installed in the database. */
   public record PgExtension(String name, String installedVersion) {}
 }

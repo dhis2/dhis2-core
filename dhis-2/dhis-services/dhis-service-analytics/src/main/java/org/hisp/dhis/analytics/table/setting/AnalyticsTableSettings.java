@@ -84,7 +84,7 @@ public class AnalyticsTableSettings {
    * @return the {@link Distribution}.
    */
   public Distribution getDistribution() {
-    if (citusSettings.isCitusExtensionEnabled()) {
+    if (citusSettings.isCitusEnabled()) {
       return DISTRIBUTED;
     }
 

@@ -65,6 +65,8 @@ class AnalyticsTableSettingsTest {
   @BeforeEach
   public void before() {
     citusSettings = new CitusSettings(config, jdbcTemplate);
+    citusSettings.init();
+
     settings = new AnalyticsTableSettings(config, systemSettings, citusSettings);
   }
 
