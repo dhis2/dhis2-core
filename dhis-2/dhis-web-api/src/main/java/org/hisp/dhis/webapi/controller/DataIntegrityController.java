@@ -73,7 +73,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping("/dataIntegrity")
+@RequestMapping("/api/dataIntegrity")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class DataIntegrityController {

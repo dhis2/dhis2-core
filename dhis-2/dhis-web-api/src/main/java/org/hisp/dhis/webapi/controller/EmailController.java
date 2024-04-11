@@ -61,10 +61,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("messaging")
 @Controller
-@RequestMapping(value = EmailController.RESOURCE_PATH)
+@RequestMapping("/api/email")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class EmailController {
-  public static final String RESOURCE_PATH = "/email";
 
   private static final String SMTP_ERROR = "SMTP server not configured";
 

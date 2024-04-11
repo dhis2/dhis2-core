@@ -48,10 +48,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping(value = DataSummaryController.RESOURCE_PATH)
+@RequestMapping("/api/dataSummary")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSummaryController {
-  public static final String RESOURCE_PATH = "/dataSummary";
 
   @Autowired private DataStatisticsService dataStatisticsService;
 

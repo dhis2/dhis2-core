@@ -126,7 +126,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Deprecated(since = "2.41")
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = TrackedEntityInstanceController.RESOURCE_PATH)
+@RequestMapping("/api/trackedEntityInstances")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class TrackedEntityInstanceController {

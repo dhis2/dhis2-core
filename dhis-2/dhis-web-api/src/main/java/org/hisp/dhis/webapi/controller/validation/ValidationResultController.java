@@ -41,7 +41,6 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.schema.descriptors.ValidationResultSchemaDescriptor;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
@@ -63,7 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("data")
 @RestController
-@RequestMapping(value = ValidationResultSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/validationResults")
 @ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 public class ValidationResultController {
   private final FieldFilterService fieldFilterService;

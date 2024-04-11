@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Zubair <rajazubair.asghar@gmail.com> */
 @OpenApi.Tags("messaging")
 @RestController
-@RequestMapping(value = "/gateways")
+@RequestMapping("/api/gateways")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SmsGatewayController {
   // -------------------------------------------------------------------------

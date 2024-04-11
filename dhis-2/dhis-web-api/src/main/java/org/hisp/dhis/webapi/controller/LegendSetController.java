@@ -36,7 +36,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,7 +49,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = LegendSetSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/legendSets")
 public class LegendSetController extends AbstractCrudController<LegendSet> {
   @Override
   @PreAuthorize(

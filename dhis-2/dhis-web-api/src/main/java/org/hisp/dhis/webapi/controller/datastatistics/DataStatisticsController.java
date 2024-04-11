@@ -76,9 +76,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping(DataStatisticsController.RESOURCE_PATH)
+@RequestMapping("/api/dataStatistics")
 public class DataStatisticsController {
-  public static final String RESOURCE_PATH = "/dataStatistics";
 
   private final DataStatisticsService dataStatisticsService;
 

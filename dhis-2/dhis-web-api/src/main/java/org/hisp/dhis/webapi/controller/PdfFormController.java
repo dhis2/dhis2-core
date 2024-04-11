@@ -72,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = "/pdfForm")
+@RequestMapping("/api/pdfForm")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class PdfFormController {
   // -------------------------------------------------------------------------

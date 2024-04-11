@@ -94,7 +94,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(AppController.RESOURCE_PATH)
+@RequestMapping("/api/api/apps")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {

@@ -111,7 +111,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("messaging")
 @Controller
-@RequestMapping(value = MessageConversationSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/messageConversations")
 @RequiredArgsConstructor
 public class MessageConversationController
     extends AbstractCrudController<org.hisp.dhis.message.MessageConversation> {

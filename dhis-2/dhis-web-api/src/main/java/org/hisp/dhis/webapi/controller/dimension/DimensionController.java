@@ -89,10 +89,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = DimensionController.RESOURCE_PATH)
+@RequestMapping("/api/dimensions")
 @RequiredArgsConstructor
 public class DimensionController extends AbstractCrudController<DimensionalObject> {
-  public static final String RESOURCE_PATH = "/dimensions";
 
   // -------------------------------------------------------------------------
   // Dependencies

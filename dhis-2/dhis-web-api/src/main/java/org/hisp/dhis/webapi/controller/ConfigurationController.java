@@ -75,7 +75,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping("/configuration")
+@RequestMapping("/api/configuration")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ConfigurationController {
   @Autowired private ConfigurationService configurationService;

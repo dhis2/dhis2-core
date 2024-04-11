@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.schema.descriptors.ConstantSchemaDescriptor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -38,5 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = ConstantSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/constants")
 public class ConstantController extends AbstractCrudController<Constant> {}

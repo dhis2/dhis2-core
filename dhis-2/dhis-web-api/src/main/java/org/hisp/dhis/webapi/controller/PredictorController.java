@@ -47,7 +47,6 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
-import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,7 +65,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Tags("metadata")
 @Controller
 @Slf4j
-@RequestMapping(value = PredictorSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/predictors")
 public class PredictorController extends AbstractCrudController<Predictor> {
   @Autowired private PredictorService predictorService;
 

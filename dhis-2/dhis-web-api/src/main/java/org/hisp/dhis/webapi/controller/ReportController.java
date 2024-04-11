@@ -49,7 +49,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.report.ReportType;
-import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.joda.time.DateTime;
@@ -71,7 +70,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = ReportSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/reports")
 public class ReportController extends AbstractCrudController<Report> {
   @Autowired public ReportService reportService;
 

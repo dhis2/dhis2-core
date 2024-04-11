@@ -89,7 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = InterpretationSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/interpretations")
 public class InterpretationController extends AbstractCrudController<Interpretation> {
   @Autowired private InterpretationService interpretationService;
 

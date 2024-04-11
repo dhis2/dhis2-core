@@ -94,7 +94,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Tags("data")
 @Controller
 @RequiredArgsConstructor
-@RequestMapping(value = "/dataValueSets")
+@RequestMapping("/api/dataValueSets")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataValueSetController {
 

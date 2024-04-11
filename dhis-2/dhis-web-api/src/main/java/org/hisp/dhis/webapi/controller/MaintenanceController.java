@@ -67,10 +67,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping(value = MaintenanceController.RESOURCE_PATH)
+@RequestMapping("/api/maintenance")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MaintenanceController {
-  public static final String RESOURCE_PATH = "/maintenance";
 
   @Autowired private MaintenanceService maintenanceService;
 

@@ -66,10 +66,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = MinMaxValueGenerationController.RESOURCE_PATH)
+@RequestMapping("/api/minMaxValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MinMaxValueGenerationController {
-  public static final String RESOURCE_PATH = "/minMaxValues";
 
   @Autowired private MinMaxDataElementService minMaxDataElementService;
 

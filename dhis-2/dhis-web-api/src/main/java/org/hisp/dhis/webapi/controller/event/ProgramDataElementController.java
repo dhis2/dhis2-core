@@ -48,7 +48,6 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.descriptors.ProgramDataElementDimensionItemSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.PaginationUtils;
@@ -65,7 +64,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = ProgramDataElementDimensionItemSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramDataElementController {
   private final QueryService queryService;

@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("metadata")
 @RestController
-@RequestMapping("/metadata/sync")
+@RequestMapping("/api/metadata/sync")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MetadataSyncController {
   @Autowired private ContextService contextService;

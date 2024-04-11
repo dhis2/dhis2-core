@@ -79,7 +79,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"user"})
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j

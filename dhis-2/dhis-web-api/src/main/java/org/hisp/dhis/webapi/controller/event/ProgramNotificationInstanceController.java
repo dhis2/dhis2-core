@@ -55,7 +55,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;

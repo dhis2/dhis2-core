@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("messaging")
 @RestController
-@RequestMapping(value = "/sms/outbound")
+@RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   private final MessageSender smsSender;

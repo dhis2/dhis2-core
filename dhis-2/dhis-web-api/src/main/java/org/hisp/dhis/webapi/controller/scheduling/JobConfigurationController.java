@@ -48,7 +48,6 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobRunErrorsParams;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -71,7 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = JobConfigurationSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/jobConfigurations")
 @RequiredArgsConstructor
 public class JobConfigurationController extends AbstractCrudController<JobConfiguration> {
 

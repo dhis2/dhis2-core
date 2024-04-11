@@ -59,10 +59,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping(value = FileController.RESOURCE_PATH)
+@RequestMapping("/api/files")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class FileController {
-  public static final String RESOURCE_PATH = "/files";
 
   @Autowired private SystemSettingManager systemSettingManager;
 

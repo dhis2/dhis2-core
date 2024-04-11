@@ -55,7 +55,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -72,7 +71,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = MinMaxDataElementSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/minMaxDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MinMaxDataElementController {

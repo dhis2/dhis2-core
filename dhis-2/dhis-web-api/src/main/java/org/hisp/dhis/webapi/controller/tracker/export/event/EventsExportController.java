@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
@@ -86,7 +85,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(Event.class)
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
+@RequestMapping("/api/tracker/event")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class EventsExportController {
   protected static final String EVENTS = "events";

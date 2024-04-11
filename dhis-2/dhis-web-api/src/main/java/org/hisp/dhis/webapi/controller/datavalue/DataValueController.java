@@ -101,11 +101,10 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @OpenApi.Tags("data")
 @RestController
-@RequestMapping(value = DataValueController.RESOURCE_PATH)
+@RequestMapping("/api/dataValues")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DataValueController {
-  public static final String RESOURCE_PATH = "/dataValues";
 
   public static final String FILE_PATH = "/file";
 

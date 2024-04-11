@@ -87,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"login"})
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Order(2103)
 public class AuthenticationController {

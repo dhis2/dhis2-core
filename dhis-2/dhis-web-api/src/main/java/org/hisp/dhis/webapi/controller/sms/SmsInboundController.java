@@ -65,7 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Zubair <rajazubair.asghar@gmail.com> */
 @OpenApi.Tags("messaging")
 @RestController
-@RequestMapping(value = "/sms/inbound")
+@RequestMapping("/api/sms/inbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class SmsInboundController extends AbstractCrudController<IncomingSms> {
