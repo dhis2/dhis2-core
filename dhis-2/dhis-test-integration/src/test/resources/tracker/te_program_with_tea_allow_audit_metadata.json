@@ -333,7 +333,7 @@
       "displayFrontPageList": false,
       "onlyEnrollOnce": false,
       "programType": "WITH_REGISTRATION",
-      "accessLevel": "CLOSED",
+      "accessLevel": "OPEN",
       "version": 3,
       "maxTeiCountToReturn": 0,
       "selectIncidentDatesInFuture": false,
