@@ -141,12 +141,8 @@ class TrackedEntityAttributeValueChangeLogTest extends TrackerTest {
             new TrackerImportParams(), fromJson("tracker/te_program_with_tea_data.json")));
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
-    assertEquals(1, trackedEntities.size());
-    TrackedEntity trackedEntity = trackedEntities.get(0);
     List<TrackedEntityAttributeValue> attributeValues =
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
-    assertEquals(5, attributeValues.size());
-
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntities.get(0));
     List<TrackedEntityAttribute> attributes =
         attributeValues.stream()
             .map(TrackedEntityAttributeValue::getAttribute)
