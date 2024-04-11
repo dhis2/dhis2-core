@@ -87,7 +87,9 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
+import org.hisp.dhis.rules.models.RuleEnrollmentStatus;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleEventStatus;
 import org.hisp.dhis.rules.models.RuleValueType;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
@@ -230,7 +232,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             .getDate(),
         LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
             .getDate(),
-        RuleEnrollment.Status.valueOf(enrollment.getStatus().toString()),
+        RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
         orgUnit,
         orgUnitCode,
         ruleAttributeValues);
@@ -259,7 +261,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         eventToEvaluate.getUid(),
         eventToEvaluate.getProgramStage().getUid(),
         eventToEvaluate.getProgramStage().getName(),
-        RuleEvent.Status.valueOf(eventToEvaluate.getStatus().toString()),
+        RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
             ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
             : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
