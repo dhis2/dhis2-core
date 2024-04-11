@@ -118,7 +118,7 @@ class DataApprovalPermissionsEvaluator {
     ev.authorizedToApprove = ev.user.isAuthorized(F_APPROVE_DATA);
     ev.authorizedToApproveAtLowerLevels = ev.user.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
     ev.authorizedToAcceptAtLowerLevels = ev.user.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
-    Boolean authorizedToViewUnapprovedData = ev.user.isAuthorized(F_VIEW_UNAPPROVED_DATA);
+    boolean authorizedToViewUnapprovedData = ev.user.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     ev.mayViewLowerLevelUnapprovedData = !hideUnapprovedData || authorizedToViewUnapprovedData;
 

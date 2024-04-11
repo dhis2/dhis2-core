@@ -30,7 +30,6 @@ package org.hisp.dhis.appmanager;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.security.Authorities.ALL;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -384,7 +383,7 @@ public class DefaultAppManager implements AppManager {
     return app.getKey().equals("login")
         || CurrentUserUtil.hasAnyAuthority(
             List.of(
-                ALL.toString(),
+                Authorities.ALL.toString(),
                 Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString(),
                 app.getSeeAppAuthority()));
   }

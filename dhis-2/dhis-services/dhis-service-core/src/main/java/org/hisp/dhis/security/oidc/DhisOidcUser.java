@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -174,6 +175,11 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
 
   @Override
   public boolean isAuthorized(String auth) {
+    return false;
+  }
+
+  @Override
+  public boolean isAuthorized(Authorities auth) {
     return false;
   }
 

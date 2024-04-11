@@ -123,10 +123,10 @@ public class UserControllerUtils {
             || authorities.contains(F_APPROVE_DATA.toString());
     boolean canApproveLowerLevels =
         authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(F_APPROVE_DATA_LOWER_LEVELS);
+            || authorities.contains(F_APPROVE_DATA_LOWER_LEVELS.toString());
     boolean canAccept =
         authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(F_ACCEPT_DATA_LOWER_LEVELS);
+            || authorities.contains(F_ACCEPT_DATA_LOWER_LEVELS.toString());
 
     boolean acceptConfigured =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);

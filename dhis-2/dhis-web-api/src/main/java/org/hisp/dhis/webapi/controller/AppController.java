@@ -62,7 +62,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -185,7 +184,7 @@ public class AppController {
   }
 
   @PostMapping
-  @RequiresAuthority(anyOf = Authorities.M_DHIS_WEB_APP_MANAGEMENT)
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
@@ -304,7 +303,7 @@ public class AppController {
   }
 
   @DeleteMapping("/{app}")
-  @RequiresAuthority(anyOf = Authorities.M_DHIS_WEB_APP_MANAGEMENT)
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteApp(
       @PathVariable("app") String app, @RequestParam(required = false) boolean deleteAppData)
@@ -324,7 +323,7 @@ public class AppController {
 
   @SuppressWarnings("unchecked")
   @PostMapping(value = "/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
-  @RequiresAuthority(anyOf = Authorities.M_DHIS_WEB_APP_MANAGEMENT)
+  @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setConfig(HttpServletRequest request) throws IOException, WebMessageException {
     Map<String, String> config = renderService.fromJson(request.getInputStream(), Map.class);

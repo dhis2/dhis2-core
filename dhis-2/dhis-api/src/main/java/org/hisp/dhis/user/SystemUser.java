@@ -149,6 +149,11 @@ public class SystemUser implements UserDetails {
     return false;
   }
 
+  @Override
+  public boolean isAuthorized(Authorities auth) {
+    return false;
+  }
+
   @Nonnull
   @Override
   public Map<String, Serializable> getUserSettings() {

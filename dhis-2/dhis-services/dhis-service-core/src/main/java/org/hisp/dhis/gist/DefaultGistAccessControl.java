@@ -90,7 +90,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
 
   @Override
   public boolean canReadHQL() {
-    return isSuperuser() || currentUser.isAuthorized(F_METADATA_EXPORT.toString());
+    return isSuperuser() || currentUser.isAuthorized(F_METADATA_EXPORT);
   }
 
   @Override
