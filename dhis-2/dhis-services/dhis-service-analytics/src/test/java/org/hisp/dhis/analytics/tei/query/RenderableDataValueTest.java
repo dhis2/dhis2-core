@@ -62,6 +62,14 @@ class RenderableDataValueTest {
   }
 
   @Test
+  void testRenderTime() {
+    RenderableDataValue renderableDataValue =
+        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.TIME);
+    String result = renderableDataValue.transformedIfNecessary().render();
+    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::varchar", result);
+  }
+
+  @Test
   void testRenderWithLegendSet() {
     LegendSet legendSet = mock(LegendSet.class);
     Legend legend = mock(Legend.class);

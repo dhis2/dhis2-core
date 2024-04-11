@@ -77,4 +77,15 @@ class ConstantValuesRendererTest {
     assertEquals(":1", render);
     assertEquals(arguments.subList(0, 2), parameterManager.getParametersPlaceHolder().get("1"));
   }
+
+  @Test
+  void testTime() {
+    SqlParameterManager parameterManager = new SqlParameterManager();
+    QueryContext queryContext = QueryContext.of(null, parameterManager);
+    List<String> arguments = List.of("12.50", "13.00");
+    String render =
+        ConstantValuesRenderer.of(arguments, ValueTypeMapping.TIME, queryContext).render();
+    assertEquals(":1", render);
+    assertEquals(List.of("12:50", "13:00"), parameterManager.getParametersPlaceHolder().get("1"));
+  }
 }
