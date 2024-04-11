@@ -78,6 +78,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -153,8 +154,13 @@ class TrackedEntitiesExportController {
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  Page<ObjectNode> getTrackedEntities(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<Page<ObjectNode>> getTrackedEntities(
       TrackedEntityRequestParams requestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
     validatePaginationParameters(requestParams);
@@ -173,7 +179,9 @@ class TrackedEntitiesExportController {
               TRACKED_ENTITY_MAPPER.fromCollection(trackedEntitiesPage.getItems()),
               requestParams.getFields());
 
-      return Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes));
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes)));
     }
 
     List<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntities =
@@ -182,7 +190,9 @@ class TrackedEntitiesExportController {
         fieldFilterService.toObjectNodes(
             TRACKED_ENTITY_MAPPER.fromCollection(trackedEntities), requestParams.getFields());
 
-    return Page.withoutPager(TRACKED_ENTITIES, objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager(TRACKED_ENTITIES, objectNodes));
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
