@@ -54,4 +54,12 @@ class RenderableDataValueTest {
             + " end",
         result);
   }
+
+  @Test
+  void testRenderTime() {
+    RenderableDataValue renderableDataValue =
+        RenderableDataValue.of("alias", "dataValue", ValueTypeMapping.TIME);
+    String result = renderableDataValue.transformedIfNecessary().render();
+    assertEquals("(alias.\"eventdatavalues\" -> 'dataValue' ->> 'value')::varchar", result);
+  }
 }
