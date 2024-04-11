@@ -275,7 +275,7 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
 
     // Parent
     // Only use partitioned (inherited) tables when we should not distribute the table.
-    if (!table.isDistributed() && table.hasParent()) {
+    if (!table.isDistribution() && table.hasParent()) {
       sql.append(" inherits (").append(quote(table.getParent().getName())).append(")");
     }
 

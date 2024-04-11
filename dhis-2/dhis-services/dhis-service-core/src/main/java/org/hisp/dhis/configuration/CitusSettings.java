@@ -31,6 +31,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CITUS_EXTENSION;
 
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +57,12 @@ public class CitusSettings {
   @Qualifier("analyticsJdbcTemplate")
   private final JdbcTemplate jdbcTemplate;
 
-  private Boolean cachedValue = null;
+  private Boolean citusExtension = null;
+
+  @PostConstruct
+  public void init() {
+    citusExtension = isCitusExtensionEnabledInternal();
+  }
 
   /**
    * Checks if Citus is installed and enabled, and applied to the current database.
@@ -64,12 +70,7 @@ public class CitusSettings {
    * @return true if the Citus extension is fully available, false otherwise.
    */
   public boolean isCitusExtensionEnabled() {
-    synchronized (this) {
-      if (cachedValue == null) {
-        cachedValue = isCitusExtensionEnabledInternal();
-      }
-      return cachedValue;
-    }
+    return citusExtension;
   }
 
   private boolean isCitusExtensionEnabledInternal() {
