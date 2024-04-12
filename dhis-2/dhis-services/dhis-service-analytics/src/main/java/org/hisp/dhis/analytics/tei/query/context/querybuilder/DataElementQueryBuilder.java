@@ -194,9 +194,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   @Nonnull
   private static Stream<Field> getValueFields(
       List<DimensionIdentifier<DimensionParam>> dimensions) {
-    return dimensions.stream()
-        .map(DataElementQueryBuilder::toField)
-        .map(Field::asVirtual);
+    return dimensions.stream().map(DataElementQueryBuilder::toField).map(Field::asVirtual);
   }
 
   /**

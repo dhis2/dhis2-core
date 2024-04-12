@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.common;
 
+import static java.lang.String.format;
 import static java.util.Objects.isNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,6 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -51,6 +53,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+@Slf4j
 public class TeiListGrid extends ListGrid {
 
   private static final List<ValueType> ROUNDABLE_TYPES =
@@ -106,17 +109,26 @@ public class TeiListGrid extends ListGrid {
 
   private Object getValueAndRoundIfNecessary(SqlRowSet rs, String columnLabel) {
     ValueType valueType = getValueType(columnLabel);
+    Object value = rs.getObject(columnLabel);
     if (isNotRoundableType(valueType)) {
-      return rs.getObject(columnLabel);
+      return value;
     }
-    return roundIfNecessary(rs, columnLabel);
+    // if roundable type we try to parse from string into double and round it
+    try {
+      return roundIfNecessary(value);
+    } catch (Exception e) {
+      log.warn(
+          format("Failed to parse value as double: %s for column: %s ", value, columnLabel), e);
+      // as a fallback we return the value as is
+      return value;
+    }
   }
 
-  private Double roundIfNecessary(SqlRowSet rs, String columnLabel) {
-    if (isNull(rs.getObject(columnLabel))) {
+  private Double roundIfNecessary(Object value) {
+    if (isNull(value)) {
       return null;
     }
-    double doubleValue = rs.getDouble(columnLabel);
+    double doubleValue = Double.parseDouble(value.toString());
     if (teiQueryParams.getCommonParams().isSkipRounding()) {
       return doubleValue;
     }

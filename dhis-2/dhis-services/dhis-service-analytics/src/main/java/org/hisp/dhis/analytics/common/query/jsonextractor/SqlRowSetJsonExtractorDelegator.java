@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.common.query.jsonextractor;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
+import static java.util.Objects.nonNull;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -49,7 +51,11 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.query.jsonextractor.JsonEnrollment.JsonEvent;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.legend.LegendSet;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -60,6 +66,14 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
 
   private static final ObjectMapper OBJECT_MAPPER;
+
+  private static final Map<ValueType, IdScheme> DEFAULT_ID_SCHEMES_BY_VALUE_TYPE =
+      Map.of(ORGANISATION_UNIT, IdScheme.NAME);
+
+  private static final Map<IdScheme, String> SUFFIX_BY_ID_SCHEME =
+      Map.of(
+          IdScheme.NAME, "_name",
+          IdScheme.CODE, "_code");
 
   static {
     OBJECT_MAPPER = new ObjectMapper();
@@ -215,15 +229,26 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     }
     if (dimension.getDimensionParamObjectType().equals(DimensionParamObjectType.DATA_ELEMENT)) {
       // it is a data element dimension here
-      return jsonEvent ->
-          Optional.of(jsonEvent)
-              .map(JsonEvent::getEventDataValues)
-              .map(map -> map.get(dimension.getQueryItem().getItemId()))
-              .map(o -> (Map<String, Object>) o)
-              .map(map -> map.get("value"))
-              .map(Objects::toString)
-              .map(dimension::transformValue)
-              .orElse(null);
+      return jsonEvent -> {
+        String rawValue =
+            Optional.of(jsonEvent)
+                .map(JsonEvent::getEventDataValues)
+                .map(map -> map.get(dimension.getQueryItem().getItemId()))
+                .map(o -> (Map<String, Object>) o)
+                .map(map -> map.get(getValueFieldName(dimension)))
+                .map(Objects::toString)
+                .orElse(null);
+
+        if (Objects.isNull(rawValue)) {
+          return null;
+        }
+
+        // apply legendSet mapping if present
+        if (dimension.getQueryItem().hasLegendSet()) {
+          return mapByLegendSet(dimension.getQueryItem().getLegendSet(), rawValue);
+        }
+        return dimension.transformValue(rawValue);
+      };
     }
     if (dimension
         .getDimensionParamObjectType()
@@ -231,6 +256,31 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
       return JsonEvent::getOrgUnitUid;
     }
     throw new IllegalStateException("Unknown dimension identifier " + dimension);
+  }
+
+  private Object mapByLegendSet(LegendSet legendSet, String rawValue) {
+    // RawValue should be a double
+    double value = Double.parseDouble(rawValue);
+    return legendSet.getLegends().stream()
+        .filter(legend -> value >= legend.getStartValue() && value < legend.getEndValue())
+        .findFirst()
+        .map(BaseIdentifiableObject::getDisplayName)
+        .orElse(null);
+  }
+
+  private String getValueFieldName(DimensionParam dimension) {
+    ValueType valueType = dimension.getValueType();
+    IdScheme idScheme =
+        Optional.of(dimension)
+            .map(DimensionParam::getIdScheme)
+            .orElse(nonNull(valueType) ? DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.get(valueType) : null);
+    if (nonNull(valueType)
+        && nonNull(idScheme)
+        && DEFAULT_ID_SCHEMES_BY_VALUE_TYPE.containsKey(valueType)
+        && SUFFIX_BY_ID_SCHEME.containsKey(idScheme)) {
+      return "value" + SUFFIX_BY_ID_SCHEME.get(idScheme);
+    }
+    return "value";
   }
 
   /**

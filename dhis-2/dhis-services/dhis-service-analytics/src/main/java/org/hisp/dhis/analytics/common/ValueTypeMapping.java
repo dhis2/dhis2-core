@@ -60,17 +60,10 @@ public enum ValueTypeMapping {
   DATE(ValueTypeMapping::dateConverter, LocalDate.class, LocalDateTime.class),
   TIME(s -> s, ValueType.TIME, s -> s.replace(".", ":"), "varchar"),
   BOOLEAN(
-      ValueTypeMapping::booleanConverter,
-      ValueTypeMapping::booleanSelectTransformer,
-      Boolean.class);
+      ValueTypeMapping::booleanConverter, ValueTypeMapping::booleanJsonExtractor, Boolean.class);
 
   private static final UnaryOperator<String> BOOLEAN_JSON_EXTRACTOR =
-      value -> {
-        if (Objects.isNull(value)) {
-          return null;
-        }
-        return value.equalsIgnoreCase("true") ? "1" : "0";
-      };
+      value -> value.equalsIgnoreCase("true") ? "1" : "0";
 
   private final Function<String, Object> converter;
   @Getter private final UnaryOperator<String> selectTransformer;
@@ -116,7 +109,7 @@ public enum ValueTypeMapping {
       Class... classes) {
     this.converter = converter;
     this.valueTypes = fromClasses(classes);
-    this.selectTransformer = selectTransformer;
+    this.selectTransformer = s -> Objects.isNull(s) ? null : selectTransformer.apply(s);
     this.argumentTransformer = UnaryOperator.identity();
     this.postgresCast = name();
   }
