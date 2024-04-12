@@ -56,7 +56,6 @@ import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
 import org.hisp.dhis.webapi.security.switchuser.DhisSwitchUserFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -106,8 +105,6 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Autowired public DataSource dataSource;
-
-  @Autowired private ApplicationContext applicationContext;
 
   @Autowired private DhisConfigurationProvider dhisConfig;
 

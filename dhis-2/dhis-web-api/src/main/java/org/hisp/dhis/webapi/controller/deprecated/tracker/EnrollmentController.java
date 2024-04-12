@@ -98,6 +98,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/enrollments")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class EnrollmentController {
+  public static final String RESOURCE_PATH = "/enrollments";
 
   @Autowired
   private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService enrollmentService;

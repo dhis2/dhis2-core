@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -66,30 +67,19 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     }
 
     Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
-    Set<String> patterns = new HashSet<>();
+    Set<String> allPatterns = new HashSet<>();
 
     Set<DhisApiVersion> versions = getVersions(typeApiVersion, methodApiVersion);
 
     for (String pattern : rqmPatterns) {
       versions.stream()
           .filter(version -> !version.isIgnore())
-          .forEach(
-              version -> {
-                if (!pattern.startsWith(version.getVersionString())) {
-                  if (pattern.startsWith("/")) {
-                    patterns.add("/" + version.getVersion() + pattern);
-                  } else {
-                    patterns.add("/" + version.getVersion() + "/" + pattern);
-                  }
-                } else {
-                  patterns.add(pattern);
-                }
-              });
+          .forEach(addVersionPattern(pattern, allPatterns));
     }
 
     PatternsRequestCondition patternsRequestCondition =
         new PatternsRequestCondition(
-            patterns.toArray(new String[] {}), null, null, true, true, null);
+            allPatterns.toArray(new String[] {}), null, null, true, true, null);
 
     return new RequestMappingInfo(
         null,
@@ -100,6 +90,31 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
         info.getConsumesCondition(),
         info.getProducesCondition(),
         info.getCustomCondition());
+  }
+
+  private static Consumer<DhisApiVersion> addVersionPattern(
+      String pattern, Set<String> allPatterns) {
+
+    return version -> {
+      if (!(pattern.startsWith("/api/") || pattern.startsWith("api/"))) {
+        return;
+      }
+
+      if (pattern.startsWith("/api/" + version.getVersionString())
+          || pattern.startsWith("api/" + version.getVersionString())) {
+        allPatterns.add(pattern);
+        return;
+      }
+
+      String patterWithoutApiPart = pattern.replaceFirst("api/", "");
+
+      if (patterWithoutApiPart.startsWith("/")) {
+        allPatterns.add("/api/" + version.getVersion() + patterWithoutApiPart);
+
+      } else {
+        allPatterns.add("/api" + version.getVersion() + "/" + patterWithoutApiPart);
+      }
+    };
   }
 
   private Set<DhisApiVersion> getVersions(ApiVersion typeApiVersion, ApiVersion methodApiVersion) {

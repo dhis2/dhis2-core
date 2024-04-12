@@ -96,6 +96,7 @@ public class DimensionController extends AbstractCrudController<DimensionalObjec
   // -------------------------------------------------------------------------
   // Dependencies
   // -------------------------------------------------------------------------
+  public static final String RESOURCE_PATH = "/dimensions";
 
   private final DimensionService dimensionService;
 

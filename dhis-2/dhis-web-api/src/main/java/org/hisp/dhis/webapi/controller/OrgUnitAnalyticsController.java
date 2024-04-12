@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class OrgUnitAnalyticsController {
-  private static final String RESOURCE_PATH = "/orgUnitAnalytics";
+  private static final String RESOURCE_PATH = "/api/orgUnitAnalytics";
 
   @Autowired private OrgUnitAnalyticsService analyticsService;
 

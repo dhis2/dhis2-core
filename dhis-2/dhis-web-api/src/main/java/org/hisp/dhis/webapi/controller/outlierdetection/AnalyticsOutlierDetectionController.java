@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
 public class AnalyticsOutlierDetectionController {
-  private static final String RESOURCE_PATH = "/analytics/outlierDetection";
+  private static final String RESOURCE_PATH = "/api/analytics/outlierDetection";
   private final AnalyticsOutlierService outlierService;
   private final ContextUtils contextUtils;
   private final OutlierQueryParser queryParser;
