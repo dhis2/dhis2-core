@@ -2590,7 +2590,7 @@ public abstract class DhisConvenienceTest {
     return user;
   }
 
-  protected User createAndAddAdminUser(Authorities... authorities) {
+  protected User createAndAddAdminUserWithAuth(Authorities... authorities) {
     return createAndAddAdminUser(Authorities.toStringArray(authorities));
   }
 
