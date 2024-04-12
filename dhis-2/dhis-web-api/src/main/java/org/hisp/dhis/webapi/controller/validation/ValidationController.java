@@ -108,7 +108,7 @@ public class ValidationController {
   @RequestMapping(
       value = "/sendNotifications",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @RequiresAuthority(anyOf = Authorities.M_DHIS_WEB_APP_MANAGEMENT)
+  @RequiresAuthority(anyOf = Authorities.F_RUN_VALIDATION)
   public WebMessage runValidationNotificationsTask()
       throws ConflictException, @OpenApi.Ignore NotFoundException {
     JobConfiguration config = new JobConfiguration(JobType.VALIDATION_RESULTS_NOTIFICATION);
