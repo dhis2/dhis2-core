@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -99,7 +100,8 @@ class TrackedEntityInstanceSupportServiceTest {
 
   @Test
   void shouldValidateOwnershipWhenProgramProvided() {
-    when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), null, FALSE))
+    when(trackedEntityInstanceService.getTrackedEntityInstance(
+            entity.getUid(), CurrentUserUtil.getCurrentUserDetails(), FALSE))
         .thenReturn(new TrackedEntityInstance());
     when(programService.getProgram(program.getUid())).thenReturn(program);
 
