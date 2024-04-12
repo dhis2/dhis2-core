@@ -327,6 +327,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     throw new ForbiddenException(TrackedEntity.class, uid);
   }
 
+  /**
+   * The tracked entity org unit will be used as a fallback in case no owner is found. In that case,
+   * it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be loaded
+   * unless accessed. This is a problem because we save the object in the cache, and when we
+   * retrieve it, we can't get the value of the parents, since there's no session. We need the
+   * parents to build the org unit path, that later will be used to validate the ownership. Maybe we
+   * could store the path as a String instead of iterating through the parents.
+   */
   private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
     OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
     while (organisationUnit.getParent() != null) {

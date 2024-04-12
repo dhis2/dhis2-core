@@ -82,6 +82,7 @@ class TrackedEntityInstanceSupportServiceTest {
   @BeforeEach
   public void setUpTest() throws Exception {
     entity = new TrackedEntity();
+    entity.setUid("entity uid");
     program = new Program("A");
     program.setUid("A");
     user = UserDetails.fromUser(new User());
