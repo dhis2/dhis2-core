@@ -298,8 +298,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   /**
-   * Gets the requested tracked entity if the user has access to any program where it's enrolled in,
-   * or to its registering org unit, in case it's not enrolled in any.
+   * Gets the requested tracked entity if the user owns at least one TE/program pair, or has access
+   * to the TE registering org unit, in case it doesn't own any.
    *
    * @return the TE object if found and accessible by the user
    * @throws NotFoundException if TE does not exist

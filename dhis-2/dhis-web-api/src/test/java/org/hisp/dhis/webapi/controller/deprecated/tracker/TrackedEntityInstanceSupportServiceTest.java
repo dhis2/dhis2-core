@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams.FALSE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.program.Program;
@@ -40,6 +42,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
@@ -79,12 +82,18 @@ class TrackedEntityInstanceSupportServiceTest {
 
   private UserDetails user;
 
+  private TrackedEntityType trackedEntityType;
+
   @BeforeEach
   public void setUpTest() throws Exception {
+    trackedEntityType = new TrackedEntityType("TET", "desc");
+    trackedEntityType.setAutoFields();
     entity = new TrackedEntity();
-    entity.setUid("entity uid");
+    entity.setAutoFields();
+    entity.setTrackedEntityType(trackedEntityType);
     program = new Program("A");
     program.setUid("A");
+    program.setTrackedEntityType(trackedEntityType);
     user = UserDetails.fromUser(new User());
   }
 
@@ -101,9 +110,15 @@ class TrackedEntityInstanceSupportServiceTest {
   }
 
   @Test
-  void shouldValidateRegisteringOrgUnitWhenProgramNotProvided() {
+  void shouldValidateAllProgramsOwnershipWhenProgramNotProvided() {
+    TrackedEntityInstance tei = new TrackedEntityInstance();
+    tei.setTrackedEntityType(trackedEntityType.getUid());
+    tei.setTrackedEntityInstance(entity.getUid());
     when(trackedEntityInstanceService.getTrackedEntityInstance(entity.getUid(), FALSE))
-        .thenReturn(new TrackedEntityInstance());
+        .thenReturn(tei);
+    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(trackerAccessManager.canRead(any(), any(), any(Program.class), any(Boolean.class)))
+        .thenReturn(emptyList());
 
     trackedEntityInstanceSupportService.getTrackedEntityInstance(
         entity.getUid(), null, emptyList());

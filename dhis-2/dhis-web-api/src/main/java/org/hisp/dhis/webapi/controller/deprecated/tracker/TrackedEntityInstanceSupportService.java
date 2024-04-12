@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.google.common.base.Joiner;
 import java.util.List;
@@ -120,6 +121,24 @@ public class TrackedEntityInstanceSupportService {
       trackedEntityInstance =
           trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
       if (trackedEntityInstance == null) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
+      }
+
+      if (programService.getAllPrograms().stream()
+          .noneMatch(
+              p ->
+                  p.getTrackedEntityType() != null
+                      && p.getTrackedEntityType()
+                          .getUid()
+                          .equalsIgnoreCase(trackedEntityInstance.getTrackedEntityType())
+                      && trackerAccessManager
+                          .canRead(
+                              getCurrentUserDetails(),
+                              instanceService.getTrackedEntity(
+                                  trackedEntityInstance.getTrackedEntityInstance()),
+                              p,
+                              false)
+                          .isEmpty())) {
         throw new NotFoundException(TrackedEntityInstance.class, id);
       }
 
