@@ -380,6 +380,13 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         && queueName == null;
   }
 
+  public boolean isReadyToRun() {
+    return schedulingType == SchedulingType.ONCE_ASAP
+        || schedulingType == SchedulingType.CRON && cronExpression != null
+        || schedulingType == SchedulingType.FIXED_DELAY && delay != null
+        || queueName != null && queuePosition > 0;
+  }
+
   public boolean isDueBetween(
       @Nonnull Instant now, @Nonnull Instant then, @Nonnull Duration maxCronDelay) {
     Instant dueTime = nextExecutionTime(now, maxCronDelay);
