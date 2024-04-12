@@ -108,7 +108,7 @@ class TrackedEntityInstanceSupportServiceTest {
     trackedEntityInstanceSupportService.getTrackedEntityInstance(
         entity.getUid(), program.getUid(), emptyList());
     verify(trackedEntityInstanceService, times(1))
-        .getTrackedEntityInstance(entity.getUid(), null, FALSE);
+        .getTrackedEntityInstance(entity.getUid(), CurrentUserUtil.getCurrentUserDetails(), FALSE);
   }
 
   @Test
