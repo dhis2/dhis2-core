@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.function.UnaryOperator;
@@ -35,14 +36,43 @@ import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.legend.LegendSet;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor
 public class RenderableDataValue extends BaseRenderable {
   private final String alias;
 
   private final String dataValue;
 
   private final ValueTypeMapping valueTypeMapping;
+
+  public static RenderableDataValue of(
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping) {
+    return new RenderableDataValue(alias, dataValue, valueTypeMapping);
+  }
+
+  /**
+   * Returns a Renderable that transforms the data value using the provided legend set.
+   *
+   * @param renderableDataValue RenderableDataValue
+   * @param legendSet LegendSet
+   * @return Renderable with legend set transformation
+   */
+  public static Renderable withLegendSet(
+      RenderableDataValue renderableDataValue, LegendSet legendSet) {
+    return renderableDataValue.transformedIfNecessary(
+        value ->
+            legendSet.getLegends().stream()
+                .map(
+                    legend ->
+                        String.format(
+                            "WHEN %s BETWEEN '%s' AND '%s' THEN '%s'",
+                            value,
+                            legend.getStartValue(),
+                            legend.getEndValue(),
+                            legend.getDisplayName()))
+                .collect(joining(" ", "CASE ", " END")));
+  }
 
   public Renderable transformedIfNecessary() {
     return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
@@ -57,11 +87,15 @@ public class RenderableDataValue extends BaseRenderable {
 
   @Override
   public String render() {
-    return "("
-        + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-        + " -> '"
-        + dataValue
-        + "' ->> 'value')::"
-        + valueTypeMapping.getPostgresCast();
+    return String.format(
+        "(%s -> '%s' ->> 'value%s')::%s",
+        Field.of(alias, () -> "eventdatavalues", EMPTY).render(),
+        dataValue,
+        getValueSuffix(),
+        valueTypeMapping.getPostgresCast());
+  }
+
+  protected String getValueSuffix() {
+    return EMPTY;
   }
 }

@@ -125,7 +125,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     if (progress == null) return null;
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (user == null || !(user.isSuper() || user.isAuthorized("F_JOB_LOG_READ")))
-      progress.getErrors().clear();
+      return progress.withoutErrors();
     return progress;
   }
 

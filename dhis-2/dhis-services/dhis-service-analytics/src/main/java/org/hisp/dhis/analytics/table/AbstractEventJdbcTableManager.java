@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
@@ -164,7 +165,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
 
     sql += fromClause;
 
-    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   protected List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
@@ -180,12 +181,12 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       Skip skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
       String sql =
-          TextUtils.replace(
+          replace(
               """
-                (select ${select} from trackedentityattributevalue \
-                where trackedentityid=pi.trackedentityid \
-                and trackedentityattributeid=${attributeId}\
-                ${dataClause})${closingParentheses} as ${attributeUid}""",
+              (select ${select} from trackedentityattributevalue \
+              where trackedentityid=pi.trackedentityid \
+              and trackedentityattributeid=${attributeId}\
+              ${dataClause})${closingParentheses} as ${attributeUid}""",
               Map.of(
                   "select",
                   select,
