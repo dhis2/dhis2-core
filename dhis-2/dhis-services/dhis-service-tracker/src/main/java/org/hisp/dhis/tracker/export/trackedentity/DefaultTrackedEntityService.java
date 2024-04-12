@@ -328,12 +328,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   /**
-   * The tracked entity org unit will be used as a fallback in case no owner is found. In that case,
-   * it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be loaded
-   * unless accessed. This is a problem because we save the object in the cache, and when we
-   * retrieve it, we can't get the value of the parents, since there's no session. We need the
-   * parents to build the org unit path, that later will be used to validate the ownership. Maybe we
-   * could store the path as a String instead of iterating through the parents.
+   * TODO This is a temporary fix, a more permanent solution needs to be found, maybe store the org
+   * unit path directly in the cache as a string or avoid using an Hibernate object in the cache
+   *
+   * <p>The tracked entity org unit will be used as a fallback in case no owner is found. In that
+   * case, it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be
+   * loaded unless accessed. This is a problem because we save the org unit object in the cache, and
+   * when we retrieve it, we can't get the value of the parents, since there's no session. We need
+   * the parents to build the org unit path, that later will be used to validate the ownership.
    */
   private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
     OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
