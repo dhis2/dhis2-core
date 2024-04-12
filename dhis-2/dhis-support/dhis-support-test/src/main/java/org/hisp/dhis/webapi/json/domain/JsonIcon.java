@@ -28,7 +28,8 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -39,6 +40,10 @@ public interface JsonIcon extends JsonObject {
 
   default String getKey() {
     return getString("key").string();
+  }
+
+  default String getUid() {
+    return getString("id").string();
   }
 
   default String getHref() {
@@ -53,16 +58,16 @@ public interface JsonIcon extends JsonObject {
     return get("lastUpdated", JsonDate.class).date();
   }
 
-  default String getUserUid() {
-    return getString("userUid").string();
+  default JsonObject getUserUid() {
+    return getObject("createdBy");
   }
 
-  default String getFileResourceUid() {
-    return getString("fileResourceUid").string();
+  default JsonObject getFileResource() {
+    return getObject("fileResource");
   }
 
-  default List<String> getKeywords() {
-    return getArray("keywords").stringValues();
+  default Set<String> getKeywords() {
+    return new HashSet<>(getArray("keywords").stringValues());
   }
 
   default String getDescription() {

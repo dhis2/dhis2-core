@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getEndDate;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getStartDate;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -36,7 +37,9 @@ import static org.hisp.dhis.util.DateUtils.toLongDate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +60,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
@@ -218,7 +223,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
 
   @Override
   public void swapTable(AnalyticsTableUpdateParams params, AnalyticsTable table) {
-    boolean tableExists = tableExists(table.getName());
+    boolean tableExists = tableExists(table.getMainName());
     boolean skipMasterTable =
         params.isPartialUpdate() && tableExists && table.getTableType().isLatestPartition();
 
@@ -226,14 +231,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         "Swapping table, master table exists: '{}', skip master table: '{}'",
         tableExists,
         skipMasterTable);
-
-    table.getTablePartitions().stream().forEach(p -> swapTable(p, p.getMainName()));
+    List<Table> swappedPartitions = new UniqueArrayList<>();
+    table.getTablePartitions().stream()
+        .forEach(p -> swappedPartitions.add(swapTable(p, p.getMainName())));
 
     if (!skipMasterTable) {
       swapTable(table, table.getMainName());
     } else {
-      table.getTablePartitions().stream()
-          .forEach(partition -> swapInheritance(partition, table.getName(), table.getMainName()));
+      swappedPartitions.forEach(
+          partition -> swapInheritance(partition, table.getName(), table.getMainName()));
       dropTable(table);
     }
   }
@@ -264,12 +270,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   @Override
-  public void populateTablePartition(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
-    populateTable(params, partition);
-  }
-
-  @Override
   public int invokeAnalyticsTableSqlHooks() {
     AnalyticsTableType type = getAnalyticsTableType();
     List<AnalyticsTableHook> hooks =
@@ -286,15 +286,15 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param stagingTable the staging table.
    * @param mainTableName the main table name.
    */
-  private void swapTable(Table stagingTable, String mainTableName) {
+  private Table swapTable(Table stagingTable, String mainTableName) {
     executeSilently(sqlBuilder.swapTable(stagingTable, mainTableName));
+    return stagingTable.swapFromStaging();
   }
 
   /**
    * Updates table inheritance of a table partition from the staging master table to the main master
    * table.
    *
-   * @param partitionTableName the partition table name.
    * @param stagingMasterName the staging master table name.
    * @param mainMasterName the main master table name.
    */
@@ -324,25 +324,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return the list of table partition checks.
    */
   protected abstract List<String> getPartitionChecks(Integer year, Date endDate);
-
-  /**
-   * Populates the given analytics table.
-   *
-   * @param params the {@link AnalyticsTableUpdateParams}.
-   * @param partition the {@link AnalyticsTablePartition} to populate.
-   */
-  protected abstract void populateTable(
-      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition);
-
-  /**
-   * Indicates whether data was created or updated for the given time range since last successful
-   * "latest" table partition update.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return true if updated data exists.
-   */
-  protected abstract boolean hasUpdatedLatestData(Date startDate, Date endDate);
 
   // -------------------------------------------------------------------------
   // Protected supportive methods
@@ -453,10 +434,14 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @param sql the SQL statement.
    * @param logMessage the custom log message to include in the log statement.
    */
-  protected void invokeTimeAndLog(String sql, String logMessage) {
+  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
     Timer timer = new SystemTimer().start();
 
+    log.debug("Populate table SQL: '{}'", sql);
+
     jdbcTemplate.execute(sql);
+
+    String logMessage = format(logPattern, arguments);
 
     log.info("{} in: {}", logMessage, timer.stop().toString());
   }
@@ -553,7 +538,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * @return true if the table is not empty.
    */
   protected boolean tableIsNotEmpty(String name) {
-    String sql = String.format("select 1 from %s limit 1;", sqlBuilder.quote(name));
+    String sql = format("select 1 from {} limit 1;", sqlBuilder.quote(name));
     return jdbcTemplate.queryForRowSet(sql).next();
   }
 
@@ -575,6 +560,33 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    */
   protected String quotedCommaDelimitedString(Collection<String> items) {
     return sqlBuilder.singleQuotedCommaDelimited(items);
+  }
+
+  /**
+   * Qualifies the given table name.
+   *
+   * @param name the table name.
+   * @return a fully qualified and quoted table reference which specifies the catalog, database and
+   *     table.
+   */
+  protected String qualify(String name) {
+    return sqlBuilder.qualifyTable(name);
+  }
+
+  /**
+   * Replaces variables in the given template string with the given variables to qualify and the
+   * given map of variable keys and values.
+   *
+   * @param template the template string.
+   * @param qualifyVariables the list of variables to qualify.
+   * @param variables the map of variables and values.
+   * @return a resolved string.
+   */
+  protected String replaceQualify(
+      String template, List<String> qualifyVariables, Map<String, String> variables) {
+    Map<String, String> map = new HashMap<>(variables);
+    qualifyVariables.forEach(v -> map.put(v, qualify(v)));
+    return TextUtils.replace(template, map);
   }
 
   // -------------------------------------------------------------------------

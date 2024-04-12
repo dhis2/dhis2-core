@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew
@@ -83,7 +84,7 @@ public interface EnrollmentService {
    * @param enrollment the Enrollment to update.
    * @param user the current user.
    */
-  void updateEnrollment(Enrollment enrollment, User user);
+  void updateEnrollment(Enrollment enrollment, UserDetails user);
 
   /**
    * Returns a {@link Enrollment}.

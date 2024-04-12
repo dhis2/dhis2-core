@@ -1,8 +1,0 @@
-{ "option":
-  {
-    "id": "$option.id",
-	"uid": "$option.uid",
-	"code": "$!encoder.jsonEncode( ${option.code} )",
-	"name": "$!encoder.jsonEncode( ${option.displayName} )"
-  }
-}

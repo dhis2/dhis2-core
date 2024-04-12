@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -431,6 +432,30 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
     config = updateExpectSuccess(jobId, Map.of("name", "new_name2"));
     assertEquals("new_name2", config.getName());
     assertTrue(config.isEnabled(), "updating should not affect enabled");
+  }
+
+  @Test
+  void testEnableRequiresSchedule_Update() {
+    JsonJobConfiguration config = createExpectSuccess(Map.of());
+    assertTrue(config.isEnabled(), "newly created config should be enabled");
+    assertNotNull(config.getCronExpression());
+    String jobId = config.getId();
+
+    // create another job
+    String jobJson =
+        "{'name':'b','jobType':'DATA_INTEGRITY','cronExpression':'0 0 19 ? * MON-FRI'}";
+    String jobId2 = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", jobJson));
+    // make both part of a queue
+    String queueJson =
+        format("{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", jobId, jobId2);
+    assertStatus(HttpStatus.CREATED, POST("/scheduler/queues/testQueue", queueJson));
+    // delete the queue
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/scheduler/queues/testQueue"));
+
+    config = getJsonJobConfiguration(jobId);
+    assertNull(config.getCronExpression());
+
+    assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/enable"));
   }
 
   private JsonJobConfiguration createExpectSuccess(Map<String, Object> extra) {

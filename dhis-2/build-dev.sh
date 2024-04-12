@@ -25,8 +25,7 @@ echo "Building dhis2-core and Docker image..."
 
 export MAVEN_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
 mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/pom.xml" -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage
-mvn clean install --threads 2C -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhis-web/pom.xml"
-mvn -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhis-web/dhis-web-portal/pom.xml" jib:dockerBuild $JIB_PROFILE \
+mvn -DskipTests -Dmaven.test.skip=true -f "${DIR}/dhis-web-portal/pom.xml" jib:dockerBuild $JIB_PROFILE \
   -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"
 
 if test -z "$D2CLUSTER"; then

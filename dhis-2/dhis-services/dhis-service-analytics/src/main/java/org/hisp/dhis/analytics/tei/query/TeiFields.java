@@ -72,10 +72,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  */
 @NoArgsConstructor(access = PRIVATE)
 public class TeiFields {
-  private static final String EVENT_COLUMN_PREFIX = "Event";
-
-  private static final String ENROLLMENT_COLUMN_PREFIX = "Enrollment";
-
   /**
    * Retrieves all TEAs attributes from the given param encapsulating them into a stream of {@link
    * Field}.

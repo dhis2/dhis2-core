@@ -93,8 +93,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.TrackedEntityInstanceStrategyHandler;
 import org.hisp.dhis.webapi.controller.deprecated.tracker.imports.request.TrackerEntityInstanceRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -153,8 +152,6 @@ public class TrackedEntityInstanceController {
 
   private final TrackedEntityInstanceStrategyHandler trackedEntityInstanceStrategyHandler;
 
-  private final UserService userService;
-
   // -------------------------------------------------------------------------
   // READ
   // -------------------------------------------------------------------------
@@ -208,7 +205,7 @@ public class TrackedEntityInstanceController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletResponse response)
       throws WebMessageException, ConflictException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     TrackedEntity trackedEntity = instanceService.getTrackedEntity(teiId);
 
@@ -280,7 +277,7 @@ public class TrackedEntityInstanceController {
       @PathVariable("attributeId") String attributeId,
       HttpServletResponse response)
       throws WebMessageException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     TrackedEntity tei =
         Optional.ofNullable(instanceService.getTrackedEntity(teiId))
             .orElseThrow(

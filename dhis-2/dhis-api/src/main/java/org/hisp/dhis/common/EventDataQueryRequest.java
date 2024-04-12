@@ -321,6 +321,7 @@ public class EventDataQueryRequest {
               .desc(criteria.getDesc())
               .skipMeta(criteria.isSkipMeta())
               .skipData(criteria.isSkipData())
+              .skipRounding(criteria.isSkipRounding())
               .completedOnly(criteria.isCompletedOnly())
               .hierarchyMeta(criteria.isHierarchyMeta())
               .showHierarchy(criteria.isShowHierarchy())

@@ -364,7 +364,7 @@ public class DefaultAclService implements AclService {
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
     // TODO: MAS UserDetails.fromUser(user) needs further refactoring
-    return canDataRead(UserDetails.fromUser(user), object);
+    return canDataRead(UserDetails.fromUserDontLoadOrgUnits(user), object);
   }
 
   @Override

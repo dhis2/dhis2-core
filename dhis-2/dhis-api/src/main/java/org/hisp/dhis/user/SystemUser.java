@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
 import org.springframework.security.core.GrantedAuthority;
@@ -41,11 +42,13 @@ import org.springframework.security.core.GrantedAuthority;
  */
 public class SystemUser implements UserDetails {
 
+  @Nonnull
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return List.of((GrantedAuthority) Authorities.ALL::name);
   }
 
+  @Nonnull
   @Override
   public Set<String> getAllAuthorities() {
     return Set.of(Authorities.ALL.name());
@@ -112,13 +115,27 @@ public class SystemUser implements UserDetails {
     return "user";
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserGroupIds() {
     return Set.of();
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserOrgUnitIds() {
+    return Set.of();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserDataOrgUnitIds() {
+    return Set.of();
+  }
+
+  @Nonnull
+  @Override
+  public Set<String> getUserSearchOrgUnitIds() {
     return Set.of();
   }
 
@@ -132,11 +149,13 @@ public class SystemUser implements UserDetails {
     return false;
   }
 
+  @Nonnull
   @Override
   public Map<String, Serializable> getUserSettings() {
     return Map.of();
   }
 
+  @Nonnull
   @Override
   public Set<String> getUserRoleIds() {
     return Set.of();

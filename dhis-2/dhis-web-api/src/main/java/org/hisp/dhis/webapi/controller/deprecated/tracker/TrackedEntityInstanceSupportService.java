@@ -50,8 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -65,8 +64,6 @@ public class TrackedEntityInstanceSupportService {
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-  private final UserService userService;
-
   private final ProgramService programService;
 
   private final TrackerAccessManager trackerAccessManager;
@@ -77,7 +74,7 @@ public class TrackedEntityInstanceSupportService {
 
   @SneakyThrows
   public TrackedEntityInstance getTrackedEntityInstance(String id, String pr, List<String> fields) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     TrackedEntityInstanceParams trackedEntityInstanceParams =
         getTrackedEntityInstanceParams(fields);
 

@@ -98,14 +98,6 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
 
     setupServlets(context, webApplicationContext);
 
-    context
-        .addServlet("LogoutServlet", LogoutServlet.class)
-        .addMapping("/dhis-web-commons-security/logout.action");
-
-    context
-        .addServlet("GetModulesServlet", GetAppMenuServlet.class)
-        .addMapping("/dhis-web-commons/menu/getModules.action");
-
     context.addServlet("RootPageServlet", RootPageServlet.class).addMapping("/index.html");
 
     return contextHandler;

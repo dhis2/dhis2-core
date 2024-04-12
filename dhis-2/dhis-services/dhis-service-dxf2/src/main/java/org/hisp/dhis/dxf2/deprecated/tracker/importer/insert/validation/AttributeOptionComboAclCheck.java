@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,7 +52,8 @@ public class AttributeOptionComboAclCheck implements Checker {
     CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get(event.getUid());
 
     List<String> errors =
-        trackerAccessManager.canWrite(importOptions.getUser(), categoryOptionCombo);
+        trackerAccessManager.canWrite(
+            UserDetails.fromUser(importOptions.getUser()), categoryOptionCombo);
 
     if (!errors.isEmpty()) {
       importSummary.setStatus(ImportStatus.ERROR);

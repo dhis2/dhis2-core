@@ -33,7 +33,7 @@ import java.util.Set;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * This interface is responsible for retrieving tracked entities (TE). The query methods accepts a
@@ -192,7 +192,7 @@ public interface TrackedEntityService {
    */
   void updateTrackedEntity(TrackedEntity trackedEntity);
 
-  void updateTrackedEntity(TrackedEntity trackedEntity, User user);
+  void updateTrackedEntity(TrackedEntity trackedEntity, UserDetails user);
 
   /**
    * Updates a last sync timestamp on specified TrackedEntity
@@ -234,7 +234,7 @@ public interface TrackedEntityService {
    * @param user User
    * @return the TrackedEntity with the given UID, or null if no match.
    */
-  TrackedEntity getTrackedEntity(String uid, User user);
+  TrackedEntity getTrackedEntity(String uid, UserDetails user);
 
   /**
    * Checks for the existence of a TE by UID. Deleted values are not taken into account.
@@ -270,5 +270,5 @@ public interface TrackedEntityService {
   long createTrackedEntity(
       TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues);
 
-  List<TrackedEntity> getTrackedEntitiesByUid(List<String> uids, User user);
+  List<TrackedEntity> getTrackedEntitiesByUid(List<String> uids, UserDetails user);
 }

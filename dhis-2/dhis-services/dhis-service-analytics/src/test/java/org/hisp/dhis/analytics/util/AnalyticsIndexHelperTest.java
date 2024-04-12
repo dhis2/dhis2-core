@@ -95,12 +95,9 @@ class AnalyticsIndexHelperTest {
   }
 
   private AnalyticsTable stubAnalyticsTable() {
-    List<AnalyticsTableColumn> columns = List.of(stubAnalyticsTableColumn());
+    List<AnalyticsTableColumn> columns =
+        List.of(new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE));
 
     return new AnalyticsTable(EVENT, columns, Logged.UNLOGGED);
-  }
-
-  private AnalyticsTableColumn stubAnalyticsTableColumn() {
-    return new AnalyticsTableColumn("column", TEXT, "c", IndexType.BTREE);
   }
 }

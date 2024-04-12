@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -50,7 +51,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,6 +62,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -121,7 +125,7 @@ import org.springframework.util.Assert;
  */
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsUtils {
+public final class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 
   private static final String KEY_AGG_VALUE = "[aggregated]";
@@ -194,7 +198,7 @@ public class AnalyticsUtils {
     }
 
     sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.deleted is false " + "limit 100000";
+    sql += "and dv.deleted = false limit 100000";
 
     return sql;
   }
@@ -487,6 +491,26 @@ public class AnalyticsUtils {
     }
 
     return dvs;
+  }
+
+  /**
+   * Retrieve fallback date parsed by dhis modified format yyyy-MM-dd'T'HH.mm or ..mm.ss
+   * 2024-04-04T15.00
+   *
+   * @param dateAsString
+   */
+  public static Date toAnalyticsFallbackDate(String dateAsString) {
+    try {
+      return org.apache.commons.lang3.time.DateUtils.parseDate(
+          dateAsString,
+          // known formats
+          "yyyy-MM-dd'T'HH.mm",
+          "yyyy-MM-dd'T'HH.mm.ss");
+    } catch (ParseException pe) {
+      throwIllegalQueryEx(ErrorCode.E7135, dateAsString);
+    }
+
+    return null;
   }
 
   /**
@@ -1144,5 +1168,48 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  /**
+   * Retrieves the sql string with content replacement between for example select and from
+   *
+   * @param original original sql string
+   * @param replacement the replacement content
+   */
+  public static String replaceStringBetween(
+      String original, String startToken, String endToken, String replacement) {
+    Pattern pattern =
+        Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
+    Matcher matcher = pattern.matcher(original);
+    return matcher.replaceAll(startToken + replacement + endToken);
+  }
+
+  /**
+   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
+   * number of missing closing parenthesis in the argument string.
+   *
+   * <p>Example:
+   *
+   * <p>{@code} input: "((( ))" -> output: ")" {@code}
+   *
+   * @param str a string.
+   * @return a String containing 0 or more "closing" parenthesis
+   */
+  public static String getClosingParentheses(String str) {
+    if (StringUtils.isEmpty(str)) {
+      return EMPTY;
+    }
+
+    int open = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == '(') {
+        open++;
+      } else if (str.charAt(i) == ')' && open >= 1) {
+        open--;
+      }
+    }
+
+    return StringUtils.repeat(")", open);
   }
 }

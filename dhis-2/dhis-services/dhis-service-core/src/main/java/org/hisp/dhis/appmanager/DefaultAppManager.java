@@ -379,8 +379,10 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public boolean isAccessible(App app) {
-    return CurrentUserUtil.hasAnyAuthority(
-        List.of("ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()));
+    return app.getKey().equals("login")
+        || CurrentUserUtil.hasAnyAuthority(
+            List.of(
+                "ALL", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()));
   }
 
   @Override

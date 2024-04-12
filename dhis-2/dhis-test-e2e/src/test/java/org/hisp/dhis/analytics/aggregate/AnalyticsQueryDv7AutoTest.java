@@ -68,7 +68,7 @@ public class AnalyticsQueryDv7AutoTest extends AnalyticsApiTest {
             .add("relativePeriodDate=2022-01-01");
 
     // When
-    ApiResponse response = actions.get(params);
+    ApiResponse response = actions.get("", JSON, JSON, params);
 
     // Then
     response
@@ -92,42 +92,42 @@ public class AnalyticsQueryDv7AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("OdiHJayrsKo", "202101", "83.3"));
-    validateRow(response, List.of("OdiHJayrsKo", "202102", "98.8"));
-    validateRow(response, List.of("OdiHJayrsKo", "202103", "94.5"));
-    validateRow(response, List.of("OdiHJayrsKo", "202104", "91.8"));
-    validateRow(response, List.of("OdiHJayrsKo", "202105", "114.5"));
-    validateRow(response, List.of("OdiHJayrsKo", "202106", "119.2"));
-    validateRow(response, List.of("OdiHJayrsKo", "202107", "102.0"));
-    validateRow(response, List.of("OdiHJayrsKo", "202108", "98.5"));
-    validateRow(response, List.of("OdiHJayrsKo", "202109", "101.9"));
-    validateRow(response, List.of("OdiHJayrsKo", "202110", "77.8"));
-    validateRow(response, List.of("OdiHJayrsKo", "202111", "97.0"));
-    validateRow(response, List.of("OdiHJayrsKo", "202112", "73.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202101", "57.0"));
-    validateRow(response, List.of("sB79w2hiLp8", "202102", "64.5"));
-    validateRow(response, List.of("sB79w2hiLp8", "202103", "67.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202104", "62.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202105", "75.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "202106", "78.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202107", "71.7"));
-    validateRow(response, List.of("sB79w2hiLp8", "202108", "70.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "202109", "76.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202110", "57.1"));
-    validateRow(response, List.of("sB79w2hiLp8", "202111", "74.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202112", "51.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.7"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.4"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202104", "92.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202105", "142.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202106", "118.8"));
+    validateRow(response, List.of("OdiHJayrsKo", "202101", "83.35"));
+    validateRow(response, List.of("OdiHJayrsKo", "202102", "98.79"));
+    validateRow(response, List.of("OdiHJayrsKo", "202103", "94.47"));
+    validateRow(response, List.of("OdiHJayrsKo", "202104", "91.78"));
+    validateRow(response, List.of("OdiHJayrsKo", "202105", "114.51"));
+    validateRow(response, List.of("OdiHJayrsKo", "202106", "119.22"));
+    validateRow(response, List.of("OdiHJayrsKo", "202107", "101.98"));
+    validateRow(response, List.of("OdiHJayrsKo", "202108", "98.52"));
+    validateRow(response, List.of("OdiHJayrsKo", "202109", "101.91"));
+    validateRow(response, List.of("OdiHJayrsKo", "202110", "77.77"));
+    validateRow(response, List.of("OdiHJayrsKo", "202111", "97.02"));
+    validateRow(response, List.of("OdiHJayrsKo", "202112", "73.28"));
+    validateRow(response, List.of("sB79w2hiLp8", "202101", "56.97"));
+    validateRow(response, List.of("sB79w2hiLp8", "202102", "64.55"));
+    validateRow(response, List.of("sB79w2hiLp8", "202103", "67.25"));
+    validateRow(response, List.of("sB79w2hiLp8", "202104", "62.18"));
+    validateRow(response, List.of("sB79w2hiLp8", "202105", "75.77"));
+    validateRow(response, List.of("sB79w2hiLp8", "202106", "78.24"));
+    validateRow(response, List.of("sB79w2hiLp8", "202107", "71.68"));
+    validateRow(response, List.of("sB79w2hiLp8", "202108", "70.77"));
+    validateRow(response, List.of("sB79w2hiLp8", "202109", "76.34"));
+    validateRow(response, List.of("sB79w2hiLp8", "202110", "57.07"));
+    validateRow(response, List.of("sB79w2hiLp8", "202111", "74.19"));
+    validateRow(response, List.of("sB79w2hiLp8", "202112", "51.33"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.65"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.38"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.59"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202104", "92.64"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202105", "142.19"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202106", "118.76"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202107", "107.9"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202108", "106.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202109", "111.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202110", "86.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202111", "98.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202112", "79.4"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202109", "111.26"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202110", "86.52"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202111", "98.21"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202112", "79.37"));
   }
 
   @Test
@@ -3411,18 +3411,18 @@ public class AnalyticsQueryDv7AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("Tt5TAvdfdVK", "202101", "37.5"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202101", "37.55"));
     validateRow(response, List.of("Tt5TAvdfdVK", "202102", "30.7"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202103", "25.1"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202104", "25.3"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202105", "53.5"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202106", "56.1"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202107", "72.6"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202108", "64.9"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202109", "59.7"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202110", "23.6"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202103", "25.15"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202104", "25.26"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202105", "53.46"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202106", "56.13"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202107", "72.61"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202108", "64.89"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202109", "59.69"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202110", "23.64"));
     validateRow(response, List.of("Tt5TAvdfdVK", "202111", "36.9"));
-    validateRow(response, List.of("Tt5TAvdfdVK", "202112", "10.2"));
+    validateRow(response, List.of("Tt5TAvdfdVK", "202112", "10.22"));
   }
 
   @Test
@@ -4659,9 +4659,9 @@ public class AnalyticsQueryDv7AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("zgeAdnpSY5K", "2021S2", "144"));
     validateRow(response, List.of("nu3vYkWgl2x", "2021S2", "3"));
     validateRow(response, List.of("LSJ5mKpyEv1", "2021S1", "84"));
-    validateRow(response, List.of("q7QXzNnSstn", "2021S1", "953.3"));
+    validateRow(response, List.of("q7QXzNnSstn", "2021S1", "953.34"));
     validateRow(response, List.of("q7QXzNnSstn", "2021S2", "682"));
-    validateRow(response, List.of("Nz5YtOpDyuV", "2021S1", "395.5"));
+    validateRow(response, List.of("Nz5YtOpDyuV", "2021S1", "395.51"));
     validateRow(response, List.of("viFyEk7JmVd", "2021S1", "640"));
     validateRow(response, List.of("DUtltDE5ma1", "2021S2", "54"));
     validateRow(response, List.of("Nz5YtOpDyuV", "2021S2", "321"));

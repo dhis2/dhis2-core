@@ -91,7 +91,7 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.context.ApplicationEventPublisher;
@@ -1379,7 +1379,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   }
 
   @Override
-  public List<TrackedEntity> getTrackedEntityByUid(List<String> uids, User user) {
+  public List<TrackedEntity> getTrackedEntityByUid(List<String> uids, UserDetails user) {
     List<List<String>> uidPartitions = Lists.partition(uids, 20000);
 
     List<TrackedEntity> instances = new ArrayList<>();

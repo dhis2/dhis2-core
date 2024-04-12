@@ -115,16 +115,16 @@ public class HtmlPushAnalyticsJob implements Job {
           "Sending push analytics to %d receivers as viewed by themselves"
               .formatted(receiversEmailsByUsername.size()),
           SKIP_ITEM);
-      progress.runStage(
-          receiversEmailsByUsername.entrySet().stream(),
+      progress.runStageInParallel(
+          8,
+          receiversEmailsByUsername.entrySet(),
           e -> "For user %s (%s)".formatted(e.getKey(), url.replace("{username}", e.getKey())),
           e -> {
             String body =
                 progress.runStage(
                     () -> getPushAnalyticsHtmlBody(url.replace("{username}", e.getKey())));
             emailService.sendEmail(subject, body, Set.of(e.getValue()));
-          },
-          "%d successful, %d failed"::formatted);
+          });
     }
     progress.completedProcess(null);
   }

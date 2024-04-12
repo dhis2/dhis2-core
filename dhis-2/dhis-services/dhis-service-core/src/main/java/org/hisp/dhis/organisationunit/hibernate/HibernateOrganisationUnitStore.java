@@ -87,6 +87,35 @@ public class HibernateOrganisationUnitStore
   // -------------------------------------------------------------------------
 
   @Override
+  public List<String> getOrganisationUnitsUidsByUser(String username) {
+    String sql = getOrgUnitTablesUids(username, "usermembership");
+    return jdbcTemplate.queryForList(sql, String.class);
+  }
+
+  @Override
+  public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
+    String sql = getOrgUnitTablesUids(username, "userteisearchorgunits");
+    return jdbcTemplate.queryForList(sql, String.class);
+  }
+
+  @Override
+  public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
+    String sql = getOrgUnitTablesUids(username, "userdatavieworgunits");
+    return jdbcTemplate.queryForList(sql, String.class);
+  }
+
+  private static String getOrgUnitTablesUids(String username, String orgUnitTableName) {
+    return """
+        SELECT ou.uid
+        FROM organisationunit ou
+                 JOIN %s um ON ou.organisationunitid = um.organisationunitid
+                 JOIN userinfo ui ON um.userinfoid = ui.userinfoid
+        WHERE ui.username = '%s';
+        """
+        .formatted(orgUnitTableName, username);
+  }
+
+  @Override
   public List<OrganisationUnit> getAllOrganisationUnitsByLastUpdated(Date lastUpdated) {
     return getAllGeLastUpdated(lastUpdated);
   }

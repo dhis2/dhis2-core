@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.tei.query.context.TeiStaticField.TRACKED_E
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
+import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.GEOJSON;
 import static org.hisp.dhis.common.ValueType.TEXT;
@@ -63,6 +64,7 @@ import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
@@ -82,6 +84,8 @@ public class DimensionParam implements UidObject {
 
   private final DimensionParamType type;
 
+  private final IdScheme idScheme;
+
   @Builder.Default private final List<DimensionParamItem> items = new ArrayList<>();
 
   /**
@@ -99,6 +103,7 @@ public class DimensionParam implements UidObject {
   public static DimensionParam ofObject(
       Object dimensionalObjectOrQueryItem,
       DimensionParamType dimensionParamType,
+      IdScheme idScheme,
       List<String> items) {
     Objects.requireNonNull(dimensionalObjectOrQueryItem);
     Objects.requireNonNull(dimensionParamType);
@@ -110,7 +115,8 @@ public class DimensionParam implements UidObject {
     DimensionParamBuilder builder =
         DimensionParam.builder()
             .type(dimensionParamType)
-            .items(DimensionParamItem.ofStrings(items));
+            .items(DimensionParamItem.ofStrings(items))
+            .idScheme(idScheme);
 
     if (dimensionalObjectOrQueryItem instanceof DimensionalObject) {
       return builder.dimensionalObject((DimensionalObject) dimensionalObjectOrQueryItem).build();
@@ -251,10 +257,10 @@ public class DimensionParam implements UidObject {
     OUCODE("Organisation Unit Code", TEXT, ORGANISATION_UNIT, ORG_UNIT_CODE),
     OUNAMEHIERARCHY(
         "Organisation Unit Name Hierarchy", TEXT, ORGANISATION_UNIT, ORG_UNIT_NAME_HIERARCHY),
-    ENROLLMENTDATE("Enrollment Date", DATETIME, DimensionParamObjectType.PERIOD),
+    ENROLLMENTDATE("Enrollment Date", DATE, DimensionParamObjectType.PERIOD),
     ENDDATE("End Date", DATETIME, DimensionParamObjectType.PERIOD),
-    INCIDENTDATE("Incident Date", DATETIME, DimensionParamObjectType.PERIOD),
-    OCCURREDDATE("Execution Date", DATETIME, DimensionParamObjectType.PERIOD),
+    INCIDENTDATE("Incident Date", DATE, DimensionParamObjectType.PERIOD),
+    OCCURREDDATE("Execution Date", DATE, DimensionParamObjectType.PERIOD),
     LASTUPDATED(DATETIME, DimensionParamObjectType.PERIOD, TeiStaticField.LAST_UPDATED),
     LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),

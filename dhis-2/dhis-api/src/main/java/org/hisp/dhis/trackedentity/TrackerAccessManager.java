@@ -35,41 +35,41 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerAccessManager {
-  List<String> canRead(User user, TrackedEntity trackedEntity);
+  List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canWrite(User user, TrackedEntity trackedEntity);
+  List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
 
   List<String> canRead(
-      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
   List<String> canWrite(
-      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
-  List<String> canRead(User user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
-  List<String> canCreate(User user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
-  List<String> canUpdate(User user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canUpdate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
-  List<String> canDelete(User user, Enrollment enrollment, boolean skipOwnershipCheck);
+  List<String> canDelete(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
-  List<String> canRead(User user, Event event, boolean skipOwnershipCheck);
+  List<String> canRead(UserDetails user, Event event, boolean skipOwnershipCheck);
 
-  List<String> canCreate(User user, Event event, boolean skipOwnershipCheck);
+  List<String> canCreate(UserDetails user, Event event, boolean skipOwnershipCheck);
 
-  List<String> canUpdate(User user, Event event, boolean skipOwnershipCheck);
+  List<String> canUpdate(UserDetails user, Event event, boolean skipOwnershipCheck);
 
-  List<String> canDelete(User user, Event event, boolean skipOwnershipCheck);
+  List<String> canDelete(UserDetails user, Event event, boolean skipOwnershipCheck);
 
-  List<String> canRead(User user, Relationship relationship);
+  List<String> canRead(UserDetails user, Relationship relationship);
 
-  List<String> canWrite(User user, Relationship relationship);
+  List<String> canWrite(UserDetails user, Relationship relationship);
 
   /**
    * Checks the sharing read access to EventDataValue
@@ -79,7 +79,8 @@ public interface TrackerAccessManager {
    * @param dataElement DataElement of EventDataValue
    * @return Empty list if read access allowed, list of errors otherwise.
    */
-  List<String> canRead(User user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
+  List<String> canRead(
+      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
 
   /**
    * Checks the sharing write access to EventDataValue
@@ -90,11 +91,11 @@ public interface TrackerAccessManager {
    * @return Empty list if write access allowed, list of errors otherwise.
    */
   List<String> canWrite(
-      User user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
+      UserDetails user, Event event, DataElement dataElement, boolean skipOwnershipCheck);
 
-  List<String> canRead(User user, CategoryOptionCombo categoryOptionCombo);
+  List<String> canRead(UserDetails user, CategoryOptionCombo categoryOptionCombo);
 
-  List<String> canWrite(User user, CategoryOptionCombo categoryOptionCombo);
+  List<String> canWrite(UserDetails user, CategoryOptionCombo categoryOptionCombo);
 
   /**
    * Checks if user has access to organisation unit under defined tracker program protection level
@@ -105,5 +106,5 @@ public interface TrackerAccessManager {
    * @return true if user has access to the org unit under the mentioned program context, otherwise
    *     return false
    */
-  boolean canAccess(User user, Program program, OrganisationUnit orgUnit);
+  boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit);
 }

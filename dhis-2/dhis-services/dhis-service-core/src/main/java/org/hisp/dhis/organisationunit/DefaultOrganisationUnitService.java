@@ -641,6 +641,21 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   }
 
   @Override
+  public List<String> getOrganisationUnitsUidsByUser(String username) {
+    return organisationUnitStore.getOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
+  public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
+    return organisationUnitStore.getDataViewOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
+  public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
+    return organisationUnitStore.getSearchOrganisationUnitsUidsByUser(username);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public Integer getOrganisationUnitLevelByLevelOrUid(String level) {
     if (level.matches(ExpressionService.INT_EXPRESSION)) {

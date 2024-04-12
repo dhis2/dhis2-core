@@ -502,6 +502,11 @@ public class HibernateJobConfigurationStore
         set
           lastupdated = now(),
           jobstatus = 'SCHEDULED',
+          enabled = case
+            when cronexpression is not null then true
+            when delay is not null then true
+            when queueposition is not null then true
+            else false end,
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
@@ -513,7 +518,6 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and enabled = true
-        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         and now() > lastalive + :timeout * interval '1 minute'
         """;
     return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();

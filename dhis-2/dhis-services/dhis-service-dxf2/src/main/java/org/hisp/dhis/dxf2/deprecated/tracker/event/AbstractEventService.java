@@ -551,7 +551,7 @@ public abstract class AbstractEventService
                   () ->
                       organisationUnitService.getOrganisationUnit(trackedEntityOuInfo.orgUnitId()));
 
-      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
       if (trackerOwnershipAccessManager.hasAccess(
           currentUser, trackedEntityOuInfo.trackedEntityUid(), ou, program)) {
         eventRows.getEventRows().add(eventRow);
@@ -615,7 +615,7 @@ public abstract class AbstractEventService
       event.setAssignedUserSurname(programStageInstance.getAssignedUser().getSurname());
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
     List<String> errors =
@@ -822,7 +822,7 @@ public abstract class AbstractEventService
       return;
     }
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     List<String> errors = trackerAccessManager.canUpdate(currentUser, programStageInstance, false);
 
     if (!errors.isEmpty()) {
@@ -877,7 +877,7 @@ public abstract class AbstractEventService
     if (existsEvent) {
       Event event = eventService.getEvent(uid);
 
-      User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+      UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
       List<String> errors = trackerAccessManager.canDelete(currentUser, event, false);
 
       if (!errors.isEmpty()) {

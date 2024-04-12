@@ -269,7 +269,6 @@ class BodyConverter extends StdConverter<Body, Body> {
   private Event updateEventReferences(Event event, String enrollment) {
     event.setEvent(updateReference(event.getEvent()));
     event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
-    event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
     return event;
   }
 
