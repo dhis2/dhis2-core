@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
@@ -270,6 +271,16 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    */
   public boolean hasAnyAuthority(Collection<String> auths) {
     return getAllAuthorities().stream().anyMatch(auths::contains);
+  }
+
+  /**
+   * Tests whether this user has any of the {@link Authorities} in the given set.
+   *
+   * @param auths the {@link Authorities} to compare with.
+   * @return true or false.
+   */
+  public boolean hasAnyAuth(@Nonnull Collection<Authorities> auths) {
+    return hasAnyAuthority(auths.stream().map(Authorities::toString).toList());
   }
 
   /**
@@ -812,7 +823,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
    *
    * @param auth the {@link Authorities}.
    */
-  public boolean isAuthorized(Authorities auth) {
+  public boolean isAuthorized(@Nonnull Authorities auth) {
     return isAuthorized(auth.toString());
   }
 

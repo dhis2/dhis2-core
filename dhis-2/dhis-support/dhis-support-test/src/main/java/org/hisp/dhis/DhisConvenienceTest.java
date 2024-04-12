@@ -2556,6 +2556,10 @@ public abstract class DhisConvenienceTest {
     return createUserInternal(username, Optional.of(uid), null, authorities);
   }
 
+  protected User createUserWithAuthority(String username, Authorities... authorities) {
+    return createUserWithAuth(username, Authorities.toStringArray(authorities));
+  }
+
   protected User createUserWithAuth(String username, String... authorities) {
     return createUserInternal(username, Optional.empty(), null, authorities);
   }
