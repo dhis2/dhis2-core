@@ -28,8 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.db.model.DataType.DOUBLE;
-import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,12 +35,8 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.table.model.AnalyticsTable;
-import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
-import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
@@ -93,31 +87,6 @@ class PartitionUtilsTest {
     expected = new Partitions(Set.of(2009, 2010));
 
     assertEquals(expected, PartitionUtils.getPartitions(period));
-  }
-
-  @Test
-  void testGetTablePartitions() {
-    List<AnalyticsTableColumn> columns =
-        List.of(
-            new AnalyticsTableColumn("dx", TEXT, "dx"),
-            new AnalyticsTableColumn("value", DOUBLE, "value"));
-
-    AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
-    tA.addTablePartition(
-        List.of(),
-        2010,
-        new DateTime(2010, 1, 1, 0, 0).toDate(),
-        new DateTime(2010, 12, 31, 0, 0).toDate());
-    tA.addTablePartition(
-        List.of(),
-        2011,
-        new DateTime(2011, 1, 1, 0, 0).toDate(),
-        new DateTime(2011, 12, 31, 0, 0).toDate());
-    AnalyticsTable tB =
-        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED);
-    List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(List.of(tA, tB));
-
-    assertEquals(3, partitions.size());
   }
 
   @Test

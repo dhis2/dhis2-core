@@ -47,6 +47,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
@@ -118,6 +119,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired public DefaultRequestInfoService requestInfoService;
 
   @Autowired private UserSettingService userSettingService;
+
+  @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired
   @Qualifier("jsonMapper")
@@ -243,6 +246,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    registry.addInterceptor(authorityInterceptor);
   }
 
   private Map<String, MediaType> mediaTypeMap =

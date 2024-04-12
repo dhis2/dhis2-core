@@ -202,7 +202,7 @@ class PostgreSqlBuilderTest {
 
     String expected =
         """
-        create table \"immunization\" ("id" bigint not null, "data" char(11) not null, \
+        create table "immunization" ("id" bigint not null, "data" char(11) not null, \
         "period\" varchar(50) not null, "created" timestamp null, "user" jsonb null, \
         "value" double precision null, primary key ("id"));""";
 

@@ -152,7 +152,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
         left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
-    invokeTimeAndLog(sql, tableName);
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
