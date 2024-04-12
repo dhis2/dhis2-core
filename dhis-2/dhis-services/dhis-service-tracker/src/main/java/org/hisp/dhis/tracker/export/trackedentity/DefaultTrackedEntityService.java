@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -311,6 +312,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
+    initializeTrackedEntityOrgUnitParents(trackedEntity);
+
     if (programService.getAllPrograms().stream()
         .anyMatch(
             p ->
@@ -322,6 +325,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     throw new ForbiddenException(TrackedEntity.class, uid);
+  }
+
+  private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
+    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
+    while (organisationUnit.getParent() != null) {
+      organisationUnit = organisationUnit.getParent();
+    }
   }
 
   private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {
