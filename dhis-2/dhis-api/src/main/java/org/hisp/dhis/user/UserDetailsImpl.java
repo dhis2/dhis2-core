@@ -104,11 +104,7 @@ public class UserDetailsImpl implements UserDetails {
   }
 
   @Override
-  public boolean isAuthorized(Authorities auth) {
-    if (auth == null) {
-      return false;
-    }
-    final Set<String> auths = getAllAuthorities();
-    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth.toString());
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
   }
 }

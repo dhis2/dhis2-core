@@ -179,7 +179,7 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   }
 
   @Override
-  public boolean isAuthorized(Authorities auth) {
+  public boolean isAuthorized(@Nonnull Authorities auth) {
     return false;
   }
 

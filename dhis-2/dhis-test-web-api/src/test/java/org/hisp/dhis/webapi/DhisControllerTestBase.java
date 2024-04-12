@@ -37,7 +37,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.utils.AuthoritiesUtils;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.springframework.mock.web.MockHttpSession;
@@ -89,7 +88,7 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
    * @return new {@link User}
    */
   protected final User switchToNewUserWithAuthorities(String username, Authorities... authorities) {
-    return switchToNewUser(username, AuthoritiesUtils.toStringArray(authorities));
+    return switchToNewUser(username, Authorities.toStringArray(authorities));
   }
 
   protected final User switchToNewUser(String username, String... authorities) {

@@ -165,7 +165,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     fileResourceService.asyncSaveFileResource(fileResource, "fileResource".getBytes());
 
     userService = _userService;
-    user = createAndAddAdminUser(Authorities.ALL.toString());
+    user = createAndAddAdminUser(Authorities.ALL);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');

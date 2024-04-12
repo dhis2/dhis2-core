@@ -143,4 +143,17 @@ public enum Authorities {
   public String toString() {
     return this.authorityName;
   }
+
+  /**
+   * Util method to transform Authorities[] to String[]
+   *
+   * @param authorities - authorities
+   * @return String[] of transformed authorities
+   */
+  public static String[] toStringArray(Authorities... authorities) {
+    if (authorities == null) {
+      return new String[0];
+    }
+    return Arrays.stream(authorities).map(Authorities::toString).toList().toArray(new String[0]);
+  }
 }

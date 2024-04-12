@@ -41,7 +41,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -116,17 +115,9 @@ public class UserControllerUtils {
    * @return a node with the ordered list of data approval levels
    */
   private ArrayNode getWorkflowLevelNodes(User user, DataApprovalWorkflow workflow) {
-    Set<String> authorities = user.getAllAuthorities();
-
-    boolean canApprove =
-        authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(F_APPROVE_DATA.toString());
-    boolean canApproveLowerLevels =
-        authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(F_APPROVE_DATA_LOWER_LEVELS.toString());
-    boolean canAccept =
-        authorities.contains(Authorities.ALL.toString())
-            || authorities.contains(F_ACCEPT_DATA_LOWER_LEVELS.toString());
+    boolean canApprove = user.isAuthorized(F_APPROVE_DATA);
+    boolean canApproveLowerLevels = user.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);
+    boolean canAccept = user.isAuthorized(F_ACCEPT_DATA_LOWER_LEVELS);
 
     boolean acceptConfigured =
         systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);

@@ -234,7 +234,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean isAuthorized(String auth);
 
-  boolean isAuthorized(Authorities auth);
+  boolean isAuthorized(@Nonnull Authorities auth);
 
   @Nonnull
   Map<String, Serializable> getUserSettings();

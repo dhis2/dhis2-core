@@ -201,7 +201,6 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.utils.AuthoritiesUtils;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -2591,6 +2590,10 @@ public abstract class DhisConvenienceTest {
     return user;
   }
 
+  protected User createAndAddAdminUser(Authorities... authorities) {
+    return createAndAddAdminUser(Authorities.toStringArray(authorities));
+  }
+
   protected User createAndAddAdminUser(String... authorities) {
     checkUserServiceWasInjected();
 
@@ -2813,7 +2816,7 @@ public abstract class DhisConvenienceTest {
       Set<OrganisationUnit> dataViewOrganisationUnits,
       Authorities... auths) {
     return createAndAddUser(
-        organisationUnits, dataViewOrganisationUnits, AuthoritiesUtils.toStringArray(auths));
+        organisationUnits, dataViewOrganisationUnits, Authorities.toStringArray(auths));
   }
 
   protected User createAndAddUser(
@@ -2826,7 +2829,7 @@ public abstract class DhisConvenienceTest {
 
   protected User createAndAddUserWithAuth(
       String userName, OrganisationUnit orgUnit, Authorities... auths) {
-    return createAndAddUser(userName, orgUnit, AuthoritiesUtils.toStringArray(auths));
+    return createAndAddUser(userName, orgUnit, Authorities.toStringArray(auths));
   }
 
   protected User createAndAddUser(String userName, OrganisationUnit orgUnit, String... auths) {

@@ -25,31 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.utils;
+package org.hisp.dhis.security;
 
-import java.util.ArrayList;
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import java.util.List;
-import org.hisp.dhis.security.Authorities;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-public class AuthoritiesUtils {
+class AuthoritiesTest {
 
-  private AuthoritiesUtils() {}
+  @ParameterizedTest
+  @MethodSource("authsInputOutput")
+  @DisplayName("Converting from Authorities[] to String[] is successful")
+  void convertAuthoritiesToStringsTest(
+      Authorities[] input, int expectedArraySize, List<String> output) {
+    String[] outputStrings = Authorities.toStringArray(input);
+    assertNotNull(outputStrings);
+    assertEquals(expectedArraySize, outputStrings.length);
+    assertTrue(List.of(outputStrings).containsAll(output));
+  }
 
-  /**
-   * Util method to transform Authorities[] to String[]
-   *
-   * @param authorities - authorities
-   * @return String[] of transformed authorities
-   */
-  public static String[] toStringArray(Authorities... authorities) {
-    if (authorities == null) {
-      return new String[0];
-    }
-
-    List<String> authorityStrings = new ArrayList<>();
-    for (Authorities auth : authorities) {
-      authorityStrings.add(auth.toString());
-    }
-    return authorityStrings.toArray(new String[0]);
+  private static Stream<Arguments> authsInputOutput() {
+    return Stream.of(
+        arguments(null, 0, List.of()),
+        arguments(new Authorities[0], 0, List.of()),
+        arguments(
+            new Authorities[] {ALL, F_SYSTEM_SETTING},
+            2,
+            List.of(ALL.toString(), F_SYSTEM_SETTING.toString())));
   }
 }

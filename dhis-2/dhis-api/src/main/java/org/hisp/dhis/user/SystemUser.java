@@ -150,7 +150,7 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
-  public boolean isAuthorized(Authorities auth) {
+  public boolean isAuthorized(@Nonnull Authorities auth) {
     return false;
   }
 

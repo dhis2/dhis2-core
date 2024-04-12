@@ -42,14 +42,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class AuthoritiesUtilsTest {
+class AuthoritiesTest {
 
   @ParameterizedTest
   @MethodSource("authsInputOutput")
   @DisplayName("Converting from Authorities[] to String[] is successful")
   void convertAuthoritiesToStringsTest(
       Authorities[] input, int expectedArraySize, List<String> output) {
-    String[] outputStrings = AuthoritiesUtils.toStringArray(input);
+    String[] outputStrings = Authorities.toStringArray(input);
     assertNotNull(outputStrings);
     assertEquals(expectedArraySize, outputStrings.length);
     assertTrue(List.of(outputStrings).containsAll(output));
