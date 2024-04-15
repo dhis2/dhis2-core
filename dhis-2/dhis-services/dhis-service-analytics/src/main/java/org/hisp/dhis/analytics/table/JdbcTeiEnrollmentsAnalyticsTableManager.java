@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
+import static java.lang.String.valueOf;
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
@@ -203,22 +204,21 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
         .append(
             replace(
                 """
-        \sfrom enrollment pi \
-        inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
-        and tei.deleted = false \
-        and tei.trackedentitytypeid =${teiId} \
-        and tei.lastupdated < '${startTime}' \
-        left join program p on p.programid = pi.programid \
-        left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
-        left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
-        where exists ( select 1 from event psi where psi.deleted = false \
-        and psi.enrollmentid = pi.enrollmentid \
-        and psi.status in (${statuses})) \
-        and pi.occurreddate is not null \
-        and pi.deleted = false\s""",
+                \sfrom enrollment pi \
+                inner join trackedentity tei on pi.trackedentityid = tei.trackedentityid \
+                and tei.deleted = false \
+                and tei.trackedentitytypeid =${teiId} \
+                and tei.lastupdated < '${startTime}' \
+                left join program p on p.programid = pi.programid \
+                left join organisationunit ou on pi.organisationunitid = ou.organisationunitid \
+                left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
+                where exists ( select 1 from event psi where psi.deleted = false \
+                and psi.enrollmentid = pi.enrollmentid \
+                and psi.status in (${statuses})) \
+                and pi.occurreddate is not null \
+                and pi.deleted = false\s""",
                 Map.of(
-                    "teiId",
-                        String.valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
+                    "teiId", valueOf(partition.getMasterTable().getTrackedEntityType().getId()),
                     "startTime", toLongDate(params.getStartTime()),
                     "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
 

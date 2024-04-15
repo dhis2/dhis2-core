@@ -132,7 +132,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(),
+            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
             executionPlanStore,
             sqlBuilder);
   }

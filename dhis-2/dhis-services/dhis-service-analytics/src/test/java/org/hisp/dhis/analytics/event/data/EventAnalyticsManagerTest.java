@@ -126,7 +126,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @BeforeEach
   public void setUp() {
-    EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer();
+    EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(sqlBuilder);
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
