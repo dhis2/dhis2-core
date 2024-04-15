@@ -66,6 +66,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -107,8 +108,13 @@ public class TrackerEventsExportController {
 
   private final ObjectMapper objectMapper;
 
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public PagingWrapper<ObjectNode> getEvents(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  public ResponseEntity<PagingWrapper<ObjectNode>> getEvents(
       TrackerEventCriteria eventCriteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
     EventQueryParams eventQueryParams = requestToSearchParams.map(eventCriteria);
@@ -118,7 +124,9 @@ public class TrackerEventsExportController {
     eventQueryParams.setIncludeRelationships(eventParams.isIncludeRelationships());
 
     if (areAllEnrollmentsInvalid(eventCriteria, eventQueryParams)) {
-      return new PagingWrapper<ObjectNode>().withInstances(Collections.emptyList());
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(new PagingWrapper<ObjectNode>().withInstances(Collections.emptyList()));
     }
 
     Events events = eventService.getEvents(eventQueryParams);
@@ -132,7 +140,9 @@ public class TrackerEventsExportController {
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(EVENTS_MAPPER.fromCollection(events.getEvents()), fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(pagingWrapper.withInstances(objectNodes));
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
