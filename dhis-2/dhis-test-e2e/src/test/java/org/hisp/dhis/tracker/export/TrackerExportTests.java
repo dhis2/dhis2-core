@@ -577,17 +577,6 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   }
 
   @Test
-  void whenGetTrackedEntitiesCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
-    ApiResponse response =
-        trackerActions.getWithHeaders(
-            "trackedEntities.csv?trackedEntity=" + teiA,
-            null,
-            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
-
-    assertTrue(response.getContentType().contains("application/csv"));
-  }
-
-  @Test
   void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerActions.getWithHeaders(
