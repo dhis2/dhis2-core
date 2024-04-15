@@ -317,7 +317,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (programService.getAllPrograms().stream()
         .anyMatch(
             p ->
-                p.getTrackedEntityType() == trackedEntity.getTrackedEntityType()
+                p.getTrackedEntityType() != null
+                    && p.getTrackedEntityType()
+                        .getUid()
+                        .equals(trackedEntity.getTrackedEntityType().getUid())
                     && trackerAccessManager
                         .canRead(getCurrentUserDetails(), trackedEntity, p, false)
                         .isEmpty())) {

@@ -74,6 +74,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
 
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
   private TrackedEntity entityInstanceA1;
 
   private TrackedEntity entityInstanceB1;
@@ -104,8 +106,15 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    trackedEntityType.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+
     entityInstanceA1 = createTrackedEntity(organisationUnitA);
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
     entityInstanceB1 = createTrackedEntity(organisationUnitB);
+    entityInstanceB1.setTrackedEntityType(trackedEntityType);
     entityInstanceService.addTrackedEntity(entityInstanceA1);
     entityInstanceService.addTrackedEntity(entityInstanceB1);
 
@@ -118,6 +127,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     programA = createProgram('A');
     programA.setAccessLevel(AccessLevel.PROTECTED);
+    programA.setTrackedEntityType(trackedEntityType);
     programService.addProgram(programA);
     programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     programService.updateProgram(programA);
