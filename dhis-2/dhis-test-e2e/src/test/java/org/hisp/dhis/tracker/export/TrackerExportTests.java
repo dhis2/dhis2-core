@@ -516,12 +516,12 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @Test
   void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
-        teiActions.getWithHeaders(
+        trackerActions.getWithHeaders(
             "events?event=" + event,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
-    List<String> events = response.extractList("events.event.flatten()");
+    List<String> events = response.extractList("instances.event.flatten()");
     assertEquals(
         List.of(event),
         events,
@@ -531,7 +531,7 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @Test
   void whenGetEventsCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
-        teiActions.getWithHeaders(
+        trackerActions.getWithHeaders(
             "events.csv?event=" + event,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
@@ -542,12 +542,12 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @Test
   void whenGetTrackedEntitiesShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
-        teiActions.getWithHeaders(
+        trackerActions.getWithHeaders(
             "trackedEntities?trackedEntity=" + teiA,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
-    List<String> trackedEntities = response.extractList("trackedEntities.trackedEntity.flatten()");
+    List<String> trackedEntities = response.extractList("instances.trackedEntity.flatten()");
     assertEquals(
         List.of(teiA),
         trackedEntities,
@@ -557,7 +557,7 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @Test
   void whenGetTrackedEntitiesCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
-        teiActions.getWithHeaders(
+        trackerActions.getWithHeaders(
             "trackedEntities.csv?trackedEntity=" + teiA,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
@@ -568,12 +568,12 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @Test
   void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
-        teiActions.getWithHeaders(
+        trackerActions.getWithHeaders(
             "enrollments?enrollment=" + enrollment,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
-    List<String> enrollments = response.extractList("enrollments.enrollment.flatten()");
+    List<String> enrollments = response.extractList("instances.enrollment.flatten()");
     assertEquals(
         List.of(enrollment),
         enrollments,
@@ -583,12 +583,12 @@ public class TrackerExportTests extends TrackerNtiApiTest {
   @Test
   void whenGetRelationshipsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
-        teiActions.getWithHeaders(
+        trackerActions.getWithHeaders(
             "relationships?trackedEntity=" + teiA,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
-    List<String> relationships = response.extractList("relationships.relationship.flatten()");
+    List<String> relationships = response.extractList("instances.relationship.flatten()");
     assertEquals(
         List.of(teiToTeiRelationship),
         relationships,
