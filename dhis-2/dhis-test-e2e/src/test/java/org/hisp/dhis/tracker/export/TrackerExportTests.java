@@ -47,8 +47,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonObject;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +77,10 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerExportTests extends TrackerNtiApiTest {
+
+  private static final String DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST =
+      "%s do not default to application/json format when the Accept header is html";
+
   private static String teiA;
 
   private static String teiB;
@@ -552,6 +560,88 @@ public class TrackerExportTests extends TrackerNtiApiTest {
         .body("trackedEntityInstances", iterableWithSize(1))
         .body("trackedEntityInstances[0].trackedEntityInstance", equalTo(TEI_POTENTIAL_DUPLICATE))
         .body("trackedEntityInstances[0].potentialDuplicate", equalTo(true));
+  }
+
+  @Test
+  void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerActions.getWithHeaders(
+            "events?event=" + event,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> events = response.extractList("instances.event.flatten()");
+    assertEquals(
+        List.of(event),
+        events,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Events"));
+  }
+
+  @Test
+  void whenGetEventsCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerActions.getWithHeaders(
+            "events.csv?event=" + event,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    assertTrue(response.getContentType().contains("application/csv"));
+  }
+
+  @Test
+  void whenGetTrackedEntitiesShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerActions.getWithHeaders(
+            "trackedEntities?trackedEntity=" + teiA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> trackedEntities = response.extractList("instances.trackedEntity.flatten()");
+    assertEquals(
+        List.of(teiA),
+        trackedEntities,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Tracked Entities"));
+  }
+
+  @Test
+  void whenGetTrackedEntitiesCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerActions.getWithHeaders(
+            "trackedEntities.csv?trackedEntity=" + teiA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    assertTrue(response.getContentType().contains("application/csv"));
+  }
+
+  @Test
+  void whenGetEnrollmentsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerActions.getWithHeaders(
+            "enrollments?enrollment=" + enrollment,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> enrollments = response.extractList("instances.enrollment.flatten()");
+    assertEquals(
+        List.of(enrollment),
+        enrollments,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Enrollments"));
+  }
+
+  @Test
+  void whenGetRelationshipsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
+    ApiResponse response =
+        trackerActions.getWithHeaders(
+            "relationships?trackedEntity=" + teiA,
+            null,
+            new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
+
+    List<String> relationships = response.extractList("instances.relationship.flatten()");
+    assertEquals(
+        List.of(teiToTeiRelationship),
+        relationships,
+        String.format(DEFAULT_JSON_CONTENT_TYPE_WITH_HTML_REQUEST, "Relationships"));
   }
 
   private static QueryParamsBuilder teiParamsBuilder() {
