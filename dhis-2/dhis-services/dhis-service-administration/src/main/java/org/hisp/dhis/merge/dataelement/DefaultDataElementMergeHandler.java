@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,18 +45,11 @@ import org.springframework.stereotype.Service;
 public class DefaultDataElementMergeHandler {
 
   private final DataElementService dataElementService;
+  private final MinMaxDataElementService minMaxDataElementService;
 
   public void handleMinMaxDataElement(List<DataElement> sources, DataElement target) {
-    //    Set<MinMaxDataElement> minMaxDataElements =
-    //        sources.stream()
-    //            .map(DataElement::mi)
-    //            .flatMap(Collection::stream)
-    //            .collect(Collectors.toSet());
-    //
-    //    dataSets.forEach(
-    //        ds -> {
-    //          ds.addIndicator(target);
-    //          ds.removeIndicators(sources);
-    //        });
+    List<MinMaxDataElement> minMaxDataElements =
+        minMaxDataElementService.getAllByDataElement(sources);
+    minMaxDataElements.forEach(mmde -> mmde.setDataElement(target));
   }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
+import static org.hisp.dhis.security.Authorities.F_DATA_ELEMENT_MERGE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.RequiredArgsConstructor;
@@ -42,9 +43,9 @@ import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,7 +67,7 @@ public class DataElementController extends AbstractCrudController<DataElement> {
   private final MergeProcessor dataElementMergeProcessor;
 
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATA_ELEMENT_MERGE')")
+  @RequiresAuthority(anyOf = F_DATA_ELEMENT_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeDataElements(@RequestBody MergeParams params)
       throws ConflictException {
