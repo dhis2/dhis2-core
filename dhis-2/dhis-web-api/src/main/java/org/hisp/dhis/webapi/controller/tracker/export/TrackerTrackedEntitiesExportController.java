@@ -60,6 +60,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -109,8 +110,13 @@ public class TrackerTrackedEntitiesExportController {
   private static final String GZIP_EXT = ".gz";
   private static final String ZIP_EXT = ".zip";
 
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getInstances(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<PagingWrapper<ObjectNode>> getInstances(
       TrackerTrackedEntityCriteria criteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException, ForbiddenException {
@@ -130,19 +136,29 @@ public class TrackerTrackedEntitiesExportController {
       if (criteria.isTotalPages()) {
         long count =
             trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
-        return PagingWrapper.withPager(
-            objectNodes,
-            queryParams.getPageWithDefault(),
-            queryParams.getPageSizeWithDefault(),
-            count);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                PagingWrapper.withPager(
+                    objectNodes,
+                    queryParams.getPageWithDefault(),
+                    queryParams.getPageSizeWithDefault(),
+                    count));
       }
 
-      return PagingWrapper.withPager(
-          objectNodes, queryParams.getPageWithDefault(), queryParams.getPageSizeWithDefault());
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              PagingWrapper.withPager(
+                  objectNodes,
+                  queryParams.getPageWithDefault(),
+                  queryParams.getPageSizeWithDefault()));
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
-    return PagingWrapper.withoutPager(objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(PagingWrapper.withoutPager(objectNodes));
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
