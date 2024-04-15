@@ -27,9 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
  * Tests the {@link PdfFormController} using (mocked) REST requests.
@@ -46,5 +54,19 @@ class PdfFormControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "An error occurred, please check import summary.",
         POST("/pdfForm/dataSet", "{}").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  @DisplayName("Should not return Http Error 500 if the DB_Locale is null.")
+  void testGetDataSetPdfForm() {
+    assertTrue(GET("/userSettings/keyDbLocale").content().isNull());
+
+    PeriodType periodType = PeriodType.getPeriodTypeByName(MonthlyPeriodType.NAME);
+    DataSet dataSet = createDataSet('A');
+
+    dataSet.setPeriodType(periodType);
+    manager.save(dataSet);
+    assertFalse(
+        GET("/pdfForm/dataSet/" + dataSet.getUid()).content(MediaType.APPLICATION_PDF).isEmpty());
   }
 }

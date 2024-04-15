@@ -34,6 +34,7 @@ import com.lowagie.text.pdf.PdfWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -49,6 +50,7 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -106,9 +108,9 @@ public class PdfFormController {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PdfWriter writer = PdfWriter.getInstance(document, baos);
-
-    PdfFormFontSettings pdfFormFontSettings =
-        new PdfFormFontSettings(UserContext.getUserSetting(UserSettingKey.DB_LOCALE));
+    Locale locale =
+        UserContext.getUserSetting(UserSettingKey.UI_LOCALE, LocaleManager.DEFAULT_LOCALE);
+    PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings(locale);
 
     PdfDataEntryFormUtil.setDefaultFooterOnDocument(
         document,

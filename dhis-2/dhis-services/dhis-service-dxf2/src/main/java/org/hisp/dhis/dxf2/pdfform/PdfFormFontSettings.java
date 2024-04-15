@@ -34,6 +34,7 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import javax.annotation.Nonnull;
 
 /**
  * @author James Chang
@@ -67,7 +68,7 @@ public class PdfFormFontSettings {
 
   private final Map<Integer, Font> fontTypeMap = new HashMap<>();
 
-  public PdfFormFontSettings(Locale locale) {
+  public PdfFormFontSettings(@Nonnull Locale locale) {
     fontTypeMap.put(FONTTYPE_BODY, createFont(locale, FONTTYPE_BODY));
     fontTypeMap.put(FONTTYPE_TITLE, createFont(locale, FONTTYPE_TITLE));
     fontTypeMap.put(FONTTYPE_DESCRIPTION, createFont(locale, FONTTYPE_DESCRIPTION));
@@ -84,10 +85,7 @@ public class PdfFormFontSettings {
   }
 
   private Font createFont(Locale locale, int fontType) {
-    Font font =
-        ARABIC_FONT_CODE.equals(locale.getLanguage())
-            ? FontFactory.getFont(ARABIC_FONT, BaseFont.IDENTITY_H, true)
-            : FontFactory.getFont(FONTFAMILY, FontFactory.defaultEncoding, true);
+    Font font = getFont(locale);
 
     switch (fontType) {
       case FONTTYPE_BODY:
@@ -117,5 +115,20 @@ public class PdfFormFontSettings {
     }
 
     return font;
+  }
+
+  /**
+   * Create the {@link Font} based on given {@link Locale}.
+   *
+   * <p>In some languages such as Arabic, a font file *.ttf need to be provided.
+   *
+   * @param locale the {@link Locale} to be used for creation of the {@link Font}.
+   * @return the {@link Font} to be used for generating PDF file.
+   */
+  private Font getFont(Locale locale) {
+    if (locale.getLanguage().equals(ARABIC_FONT_CODE)) {
+      return FontFactory.getFont(ARABIC_FONT, BaseFont.IDENTITY_H, true);
+    }
+    return FontFactory.getFont(FONTFAMILY, FontFactory.defaultEncoding, true);
   }
 }

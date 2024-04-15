@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
@@ -40,6 +41,7 @@ import org.hisp.dhis.user.UserSettingKey;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class UserContext {
+
   private static final ThreadLocal<User> threadUser = new ThreadLocal<>();
 
   private static final ThreadLocal<Map<String, Serializable>> threadUserSettings =
@@ -91,6 +93,12 @@ public final class UserContext {
     return threadUserSettings.get() != null
         ? (T) threadUserSettings.get().get(key.getName())
         : null;
+  }
+
+  public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
+    T value =
+        threadUserSettings.get() != null ? (T) threadUserSettings.get().get(key.getName()) : null;
+    return value != null ? value : defaultValue;
   }
 
   public static void setUserSettings(List<UserSetting> userSettings) {
