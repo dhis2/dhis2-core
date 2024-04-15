@@ -54,6 +54,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EnrollmentFie
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,8 +82,13 @@ public class TrackerEnrollmentsExportController {
 
   private final EnrollmentFieldsParamMapper fieldsMapper;
 
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getInstances(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<PagingWrapper<ObjectNode>> getInstances(
       TrackerEnrollmentCriteria trackerEnrollmentCriteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
@@ -120,7 +126,9 @@ public class TrackerEnrollmentsExportController {
 
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(ENROLLMENT_MAPPER.fromCollection(enrollmentList), fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(pagingWrapper.withInstances(objectNodes));
   }
 
   @GetMapping(value = "{id}")
