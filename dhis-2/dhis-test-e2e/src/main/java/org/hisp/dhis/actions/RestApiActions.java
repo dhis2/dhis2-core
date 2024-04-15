@@ -181,8 +181,6 @@ public class RestApiActions {
       String resourceId, QueryParamsBuilder queryParamsBuilder, Headers headers) {
     String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
-    addCoverage("GET", resourceId + path);
-
     Response response =
         this.given().contentType(ContentType.TEXT).headers(headers).when().get(resourceId + path);
 
