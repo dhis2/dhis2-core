@@ -63,11 +63,14 @@ public class JCloudsStore {
 
   private static final String JCLOUDS_PROVIDER_KEY_FILESYSTEM = "filesystem";
   private static final String JCLOUDS_PROVIDER_KEY_AWS_S3 = "aws-s3";
+  private static final String JCLOUDS_PROVIDER_KEY_S3 =
+      "s3"; // for s3 compatible API providers like Minio
   private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
   private static final List<String> SUPPORTED_PROVIDERS =
       List.of(
           JCLOUDS_PROVIDER_KEY_FILESYSTEM,
           JCLOUDS_PROVIDER_KEY_AWS_S3,
+          JCLOUDS_PROVIDER_KEY_S3,
           JCLOUDS_PROVIDER_KEY_TRANSIENT);
 
   private final LocationManager locationManager;
@@ -121,6 +124,12 @@ public class JCloudsStore {
     }
 
     if (JCLOUDS_PROVIDER_KEY_AWS_S3.equals(provider)) {
+      Properties overrides = new Properties();
+      overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
+      return overrides;
+    }
+
+    if (JCLOUDS_PROVIDER_KEY_S3.equals(provider)) {
       Properties overrides = new Properties();
       overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
 
