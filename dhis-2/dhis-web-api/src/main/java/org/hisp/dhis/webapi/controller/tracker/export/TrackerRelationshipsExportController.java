@@ -68,6 +68,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerRelations
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -148,8 +149,13 @@ public class TrackerRelationshipsExportController {
             .build();
   }
 
-  @GetMapping
-  PagingWrapper<ObjectNode> getInstances(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<PagingWrapper<ObjectNode>> getInstances(
       TrackerRelationshipCriteria criteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws WebMessageException {
@@ -173,16 +179,27 @@ public class TrackerRelationshipsExportController {
                     () -> notFound("No " + identifierName + " '" + identifier + "' found."),
                     null)
                 .size();
-        return PagingWrapper.withPager(
-            objectNodes, criteria.getPageWithDefault(), criteria.getPageSizeWithDefault(), count);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                PagingWrapper.withPager(
+                    objectNodes,
+                    criteria.getPageWithDefault(),
+                    criteria.getPageSizeWithDefault(),
+                    count));
       }
 
-      return PagingWrapper.withPager(
-          objectNodes, criteria.getPageWithDefault(), criteria.getPageSizeWithDefault());
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              PagingWrapper.withPager(
+                  objectNodes, criteria.getPageWithDefault(), criteria.getPageSizeWithDefault()));
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(relationships, fields);
-    return PagingWrapper.withoutPager(objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(PagingWrapper.withoutPager(objectNodes));
   }
 
   @GetMapping("{id}")
