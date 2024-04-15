@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.tei.query;
+package org.hisp.dhis.security;
 
-import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.analytics.common.ValueTypeMapping;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
-import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
-import org.hisp.dhis.analytics.common.query.BaseRenderable;
-import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
-
-@RequiredArgsConstructor(staticName = "of")
-public class DataElementCondition extends BaseRenderable {
-  private final QueryContext queryContext;
-
-  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
-
-  @Override
-  public String render() {
-    return dimensionIdentifier.hasLegendSet()
-        ? DataElementWithLegendSetCondition.of(queryContext, dimensionIdentifier).render()
-        : DataElementWithStaticValuesCondition.of(queryContext, dimensionIdentifier).render();
-  }
-
-  static RenderableDataValue getDataValueRenderable(
-      DimensionIdentifier<DimensionParam> dimensionIdentifier, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(
-        doubleQuote(dimensionIdentifier.getPrefix()),
-        dimensionIdentifier.getDimension().getUid(),
-        valueTypeMapping);
-  }
+/**
+ * Annotation that takes in any number of {@link Authorities}. This allows us to check if a {@link
+ * org.hisp.dhis.user.User} has any of the {@link Authorities} passed in.
+ *
+ * <p>{@link Authorities#ALL} is automatically added to the check, as having this Authority allows
+ * access to all methods by default. No need to pass {@link Authorities#ALL} in the arguments. See
+ * {@link AuthorityInterceptor}.
+ */
+@Documented
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequiresAuthority {
+  Authorities[] anyOf();
 }
