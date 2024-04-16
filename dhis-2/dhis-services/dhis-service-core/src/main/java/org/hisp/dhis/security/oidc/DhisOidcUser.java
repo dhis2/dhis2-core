@@ -174,7 +174,7 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
 
   @Override
   public boolean isAuthorized(String auth) {
-    return false;
+    return user.isAuthorized(auth);
   }
 
   @Nonnull
