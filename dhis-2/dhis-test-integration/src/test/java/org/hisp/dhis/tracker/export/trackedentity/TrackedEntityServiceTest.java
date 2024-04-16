@@ -1581,7 +1581,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndProvidedProgramDoesNotExist() {
-    String programUid = "made up program";
+    String programUid = "madeUpPrUid";
     NotFoundException exception =
         assertThrows(
             NotFoundException.class,
@@ -1752,7 +1752,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
                 trackedEntityService.getTrackedEntity(
                     trackedEntityA.getUid(), null, TrackedEntityParams.TRUE, false));
 
-    assertContains(
+    assertEquals(
         String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
         exception.getMessage());
   }
