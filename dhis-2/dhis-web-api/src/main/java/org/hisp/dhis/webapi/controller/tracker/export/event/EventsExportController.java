@@ -32,7 +32,6 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
-import static org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler.handleFileRequest;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
@@ -71,6 +70,7 @@ import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
+import org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -119,6 +119,8 @@ class EventsExportController {
 
   private final FieldFilterRequestHandler fieldFilterRequestHandler;
 
+  private final FileResourceRequestHandler fileResourceRequestHandler;
+
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
@@ -127,7 +129,8 @@ class EventsExportController {
       EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
       EventChangeLogService eventChangeLogService,
-      FieldFilterRequestHandler fieldFilterRequestHandler) {
+      FieldFilterRequestHandler fieldFilterRequestHandler,
+      FileResourceRequestHandler fileResourceRequestHandler) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
@@ -136,6 +139,7 @@ class EventsExportController {
     this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
     this.fieldFilterRequestHandler = fieldFilterRequestHandler;
+    this.fileResourceRequestHandler = fileResourceRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -304,7 +308,8 @@ class EventsExportController {
         "dimension",
         "Request parameter 'dimension' is only supported for images by API /tracker/event/dataValues/{dataElement}/image");
 
-    return handleFileRequest(request, eventService.getFileResource(event, dataElement));
+    return fileResourceRequestHandler.handle(
+        request, eventService.getFileResource(event, dataElement));
   }
 
   @GetMapping("/{event}/dataValues/{dataElement}/image")
@@ -314,7 +319,7 @@ class EventsExportController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException {
-    return handleFileRequest(
+    return fileResourceRequestHandler.handle(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
