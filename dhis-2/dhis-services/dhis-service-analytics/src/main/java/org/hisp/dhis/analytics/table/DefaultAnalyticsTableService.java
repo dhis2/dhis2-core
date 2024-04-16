@@ -32,6 +32,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -133,7 +133,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
-    List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(tables);
+    List<AnalyticsTablePartition> partitions = getTablePartitions(tables);
 
     progress.startingStage("Populating analytics tables " + tableType, partitions.size());
     populateTables(params, partitions, progress);
@@ -194,18 +194,34 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /** Drops the given analytics tables. */
+  /**
+   * Drops the given analytics tables.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param progress the {@link JobProgress}.
+   */
   private void dropTables(List<AnalyticsTable> tables, JobProgress progress) {
 
     progress.runStage(tables, AnalyticsTable::getName, tableManager::dropTable);
   }
 
-  /** Creates the given analytics tables. */
+  /**
+   * Creates the given analytics tables.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @param progress the {@link JobProgress}.
+   */
   private void createTables(List<AnalyticsTable> tables, JobProgress progress) {
     progress.runStage(tables, AnalyticsTable::getName, tableManager::createTable);
   }
 
-  /** Populates the given analytics tables. */
+  /**
+   * Populates the given analytics tables.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param partitions the {@link AnalyticsTablePartition}.
+   * @param progress the {@link JobProgress}.
+   */
   private void populateTables(
       AnalyticsTableUpdateParams params,
       List<AnalyticsTablePartition> partitions,
@@ -223,6 +239,9 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
   /**
    * Applies aggregation levels to the given analytics tables.
    *
+   * @param tableType the {@link AnalyticsTableType}.
+   * @param tables the list of {@link Table}.
+   * @param progress the {@link JobProgress}.
    * @return the number of aggregation levels applied for data elements.
    */
   private int applyAggregationLevels(
@@ -292,6 +311,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    *
    * @param params the {@link AnalyticsTableUpdateParams}.
    * @param tables the list of {@link AnalyticsTable}.
+   * @param progress the {@link JobProgress}.
    */
   private void swapTables(
       AnalyticsTableUpdateParams params, List<AnalyticsTable> tables, JobProgress progress) {
@@ -302,6 +322,28 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         tables, AnalyticsTable::getName, table -> tableManager.swapTable(params, table));
 
     resourceTableService.createAllSqlViews(progress);
+  }
+
+  /**
+   * Returns a list of table partitions based on the given analytics tables. For master tables with
+   * no partitions, a fake partition representing the master table is used.
+   *
+   * @param tables the list of {@link AnalyticsTable}.
+   * @return a list of {@link AnalyticsTablePartition}.
+   */
+  List<AnalyticsTablePartition> getTablePartitions(List<AnalyticsTable> tables) {
+    List<AnalyticsTablePartition> partitions = new ArrayList<>();
+
+    for (AnalyticsTable table : tables) {
+      if (table.hasTablePartitions() && !sqlBuilder.supportsDeclarativePartitioning()) {
+        partitions.addAll(table.getTablePartitions());
+      } else {
+        // Fake partition representing the master table
+        partitions.add(new AnalyticsTablePartition(table));
+      }
+    }
+
+    return partitions;
   }
 
   /**

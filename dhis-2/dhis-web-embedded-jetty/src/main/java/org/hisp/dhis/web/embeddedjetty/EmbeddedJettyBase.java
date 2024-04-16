@@ -54,7 +54,7 @@ import org.springframework.core.io.ClassPathResource;
 
 @Slf4j
 public abstract class EmbeddedJettyBase {
-  private String resourceBase = "./dhis-web/dhis-web-portal/target/dhis";
+  private String resourceBase = "./dhis-web-portal/target/dhis";
 
   protected EmbeddedJettyBase() {
     Thread.currentThread()

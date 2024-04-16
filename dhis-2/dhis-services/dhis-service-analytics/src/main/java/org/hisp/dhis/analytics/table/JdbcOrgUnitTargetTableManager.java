@@ -152,14 +152,13 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
         left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
 
-    invokeTimeAndLog(sql, tableName);
+    invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
 
   private List<AnalyticsTableColumn> getColumns() {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-    columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(FIXED_COLS);
+    columns.addAll(getOrganisationUnitLevelColumns());
     columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
 
     return filterDimensionColumns(columns);

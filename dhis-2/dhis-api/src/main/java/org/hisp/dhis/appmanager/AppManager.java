@@ -74,11 +74,7 @@ public interface AppManager {
           "translations",
           "usage-analytics",
           "user",
-          "user-profile",
-          // Struts apps
-          "approval",
-          "dataentry",
-          "maintenance-mobile");
+          "user-profile");
 
   static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
 
