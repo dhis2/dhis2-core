@@ -54,6 +54,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -174,8 +175,7 @@ public class DefaultIconService implements IconService {
 
     String fileResourceId = request.getFileResourceId();
     FileResource image = fileResourceService.getFileResource(fileResourceId);
-    if (image == null) throw new NotFoundException(FileResource.class, fileResourceId);
-    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey()))
+    if (image == null || FileResourceStorageStatus.PENDING == image.getStorageStatus())
       throw new NotFoundException(FileResource.class, fileResourceId);
 
     image.setAssigned(true);
