@@ -173,6 +173,21 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     }
   }
 
+  static class MyResourceTransformer extends ResourceTransformerSupport {
+    @Override
+    public Resource transform(
+        HttpServletRequest request, Resource resource, ResourceTransformerChain transformerChain)
+        throws IOException {
+
+      resource = transformerChain.transform(request, resource);
+      if (!"fileExtension".equals(StringUtils.getFilenameExtension(resource.getFilename()))) {
+        return resource;
+      }
+
+      return resource;
+    }
+  }
+
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry
@@ -180,10 +195,11 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .addResourceHandler("/**")
         .addResourceLocations("/resources/", "/dhis/", "classpath:/static/")
         //
-        // "file:../dhis-web-portal/target/dhis/")
+        // "file:/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/dhis/")
         //        .setCachePeriod(3600)
         .resourceChain(false)
-        .addResolver(new IndexFallbackResourceResolver());
+        .addResolver(new IndexFallbackResourceResolver())
+        .addTransformer(new MyResourceTransformer());
   }
 
   //  setOrder(Ordered.LOWEST_PRECEDENCE)
