@@ -452,7 +452,7 @@ public class DefaultMessageService implements MessageService {
   public boolean hasAccessToManageFeedbackMessages(UserDetails userDetails) {
     userDetails = (userDetails != null ? userDetails : CurrentUserUtil.getCurrentUserDetails());
     return configurationService.isUserInFeedbackRecipientUserGroup(userDetails)
-        || userDetails.isAuthorized("ALL");
+        || userDetails.isAuthorized("ALL"); //
   }
 
   // -------------------------------------------------------------------------
