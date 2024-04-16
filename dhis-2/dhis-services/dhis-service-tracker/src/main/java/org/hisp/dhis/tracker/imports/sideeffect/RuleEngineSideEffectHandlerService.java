@@ -42,12 +42,7 @@ public class RuleEngineSideEffectHandlerService implements SideEffectHandlerServ
   private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
 
   @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerRuleEngineMessageManager.consume(sideEffectDataBundle);
-  }
-
-  @Override
   public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
+    sideEffectDataBundles.forEach(trackerRuleEngineMessageManager::notify);
   }
 }

@@ -42,12 +42,7 @@ public class NotificationSideEffectHandlerService implements SideEffectHandlerSe
   private final TrackerNotificationMessageManager trackerNotificationMessageManager;
 
   @Override
-  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerNotificationMessageManager.consume(sideEffectDataBundle);
-  }
-
-  @Override
   public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
-    sideEffectDataBundles.forEach(this::handleSideEffect);
+    sideEffectDataBundles.forEach(trackerNotificationMessageManager::notify);
   }
 }

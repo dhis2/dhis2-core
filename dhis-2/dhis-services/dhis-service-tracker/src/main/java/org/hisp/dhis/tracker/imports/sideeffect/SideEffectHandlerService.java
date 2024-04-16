@@ -37,7 +37,5 @@ import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
  * @author Zubair Asghar
  */
 public interface SideEffectHandlerService {
-  void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle);
-
   void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles);
 }
