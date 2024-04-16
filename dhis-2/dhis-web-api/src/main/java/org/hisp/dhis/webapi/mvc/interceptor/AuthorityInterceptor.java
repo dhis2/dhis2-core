@@ -65,8 +65,12 @@ public class AuthorityInterceptor implements HandlerInterceptor {
       @Nonnull HttpServletRequest request,
       @Nonnull HttpServletResponse response,
       @Nonnull Object handler) {
-    HandlerMethod handlerMethod = (HandlerMethod) handler;
 
+    if (!(handler instanceof HandlerMethod)) {
+      return true;
+    }
+
+    HandlerMethod handlerMethod = (HandlerMethod) handler;
     if (!handlerMethod.hasMethodAnnotation(RequiresAuthority.class)) {
       return true;
     }

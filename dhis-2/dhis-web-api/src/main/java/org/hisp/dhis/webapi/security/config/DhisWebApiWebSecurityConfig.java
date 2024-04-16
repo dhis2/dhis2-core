@@ -311,6 +311,8 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
                   .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/static/**"))
+                  .permitAll()
 
                   ///////////////////////////////////////////////////////////////////////////////////////////////
 

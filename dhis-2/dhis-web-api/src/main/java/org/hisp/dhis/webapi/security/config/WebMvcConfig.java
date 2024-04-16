@@ -31,11 +31,13 @@ import static org.springframework.http.MediaType.parseMediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -63,7 +65,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -76,6 +80,7 @@ import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConve
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -84,7 +89,12 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+import org.springframework.web.servlet.resource.ResourceResolverChain;
+import org.springframework.web.servlet.resource.ResourceTransformerChain;
+import org.springframework.web.servlet.resource.ResourceTransformerSupport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -134,6 +144,49 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Autowired private FieldFilterService fieldFilterService;
 
+  static class IndexFallbackResourceResolver extends PathResourceResolver {
+    @Override
+    protected Resource resolveResourceInternal(
+        HttpServletRequest request,
+        String requestPath,
+        List<? extends Resource> locations,
+        ResourceResolverChain chain) {
+      Resource resource = super.resolveResourceInternal(request, requestPath, locations, chain);
+      if (resource == null) {
+        // try with /index.html
+        resource =
+            super.resolveResourceInternal(request, requestPath + "/index.html", locations, chain);
+      }
+      return resource;
+    }
+
+    @Override
+    protected String resolveUrlPathInternal(
+        String resourcePath, List<? extends Resource> locations, ResourceResolverChain chain) {
+      return super.resolveUrlPathInternal(resourcePath, locations, chain);
+    }
+
+    @Override
+    public String resolveUrlPath(
+        String resourceUrlPath, List<? extends Resource> locations, ResourceResolverChain chain) {
+      return super.resolveUrlPath(resourceUrlPath, locations, chain);
+    }
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry
+        .setOrder(Ordered.LOWEST_PRECEDENCE)
+        .addResourceHandler("/**")
+        .addResourceLocations("/resources/", "/dhis/", "classpath:/static/")
+        //
+        // "file:../dhis-web-portal/target/dhis/")
+        //        .setCachePeriod(3600)
+        .resourceChain(false)
+        .addResolver(new IndexFallbackResourceResolver());
+  }
+
+  //  setOrder(Ordered.LOWEST_PRECEDENCE)
   @Bean("multipartResolver")
   public MultipartResolver multipartResolver() {
     return new CommonsMultipartResolver();
