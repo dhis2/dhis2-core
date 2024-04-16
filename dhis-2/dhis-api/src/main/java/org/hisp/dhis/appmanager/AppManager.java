@@ -60,7 +60,6 @@ public interface AppManager {
           "event-visualizer",
           "import-export",
           "interpretation",
-          "login",
           "maintenance",
           "maps",
           "menu-management",
