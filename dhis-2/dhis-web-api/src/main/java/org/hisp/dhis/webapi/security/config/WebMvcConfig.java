@@ -154,35 +154,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
       }
       return resource;
     }
-
-    @Override
-    protected String resolveUrlPathInternal(
-        String resourcePath, List<? extends Resource> locations, ResourceResolverChain chain) {
-      return super.resolveUrlPathInternal(resourcePath, locations, chain);
-    }
-
-    @Override
-    public String resolveUrlPath(
-        String resourceUrlPath, List<? extends Resource> locations, ResourceResolverChain chain) {
-      return super.resolveUrlPath(resourceUrlPath, locations, chain);
-    }
   }
 
-  //  static class MyResourceTransformer extends ResourceTransformerSupport {
-  //    @Override
-  //    public Resource transform(
-  //        HttpServletRequest request, Resource resource, ResourceTransformerChain
-  // transformerChain)
-  //        throws IOException {
-  //      resource = transformerChain.transform(request, resource);
-  //      if (!"fileExtension".equals(StringUtils.getFilenameExtension(resource.getFilename()))) {
-  //        return resource;
-  //      }
-  //      return resource;
-  //    }
-  //  }
-
-  @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry
         .setOrder(Ordered.LOWEST_PRECEDENCE)
@@ -196,7 +169,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         // .setCachePeriod(3600)
         .resourceChain(false)
         .addResolver(new IndexFallbackResourceResolver());
-    //        .addTransformer(new MyResourceTransformer());
   }
 
   @Bean("multipartResolver")

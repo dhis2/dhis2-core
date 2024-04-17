@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RouteController extends AbstractCrudController<Route> {
   private final RouteService routeService;
 
-  @RequestMapping("/api/{id}/run")
+  @RequestMapping("/{id}/run")
   public ResponseEntity<String> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
@@ -67,7 +67,7 @@ public class RouteController extends AbstractCrudController<Route> {
     return runWithSubpath(id, currentUser, request);
   }
 
-  @RequestMapping("/api/{id}/run/**")
+  @RequestMapping("/{id}/run/**")
   public ResponseEntity<String> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
