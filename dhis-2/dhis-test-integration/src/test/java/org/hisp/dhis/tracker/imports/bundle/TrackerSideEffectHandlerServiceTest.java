@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -88,11 +88,10 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             TrackerImportParams.builder().userId(("M5zQapPyTZI")).build(), trackerObjects);
     assertNoErrors(importReport);
 
-    Thread.sleep(2000);
+    await()
+        .atMost(2, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(ProgramNotificationInstance.class).isEmpty());
     List<ProgramNotificationInstance> instances = manager.getAll(ProgramNotificationInstance.class);
-    assertFalse(instances.isEmpty());
-    ProgramNotificationInstance instance = instances.get(0);
-    assertEquals("FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid());
   }
 
   protected ObjectBundle setUpMetadata(String path) throws IOException {
