@@ -43,7 +43,7 @@ public class NotificationSideEffectHandlerService implements SideEffectHandlerSe
 
   @Override
   public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    trackerNotificationMessageManager.consume(sideEffectDataBundle);
+    trackerNotificationMessageManager.sendNotifications(sideEffectDataBundle);
   }
 
   @Override

@@ -27,17 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
-import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,7 +49,7 @@ public class TrackerRuleEngineMessageManager extends BaseMessageManager {
     this.trackerRuleEngineThreadObjectFactory = trackerRuleEngineThreadObjectFactory;
   }
 
-  public void consume(TrackerSideEffectDataBundle bundle) {
+  public void sendRuleEngineNotifications(TrackerSideEffectDataBundle bundle) {
     if (bundle == null) {
       return;
     }
