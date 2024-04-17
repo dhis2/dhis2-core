@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -104,8 +105,13 @@ class UserRoleTest extends SingleSetupIntegrationTestBase {
     assertEquals(dhisOidcUser, principal);
 
     Collection<? extends GrantedAuthority> authorities = oidc.getAuthorities();
+
     for (GrantedAuthority authority : authorities) {
       assertTrue(oidc.isAuthorized(authority.getAuthority()));
+    }
+
+    for (GrantedAuthority authority : authorities) {
+      assertTrue(oidc.hasAnyAuthority(Set.of(authority.getAuthority())));
     }
   }
 }
