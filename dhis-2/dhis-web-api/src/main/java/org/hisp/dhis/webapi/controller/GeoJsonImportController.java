@@ -32,6 +32,7 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.hisp.dhis.common.IdentifiableProperty.UID;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 import java.io.IOException;
@@ -52,11 +53,11 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -125,7 +126,7 @@ public class GeoJsonImportController {
     return toWebMessage(geoJsonService.importGeoData(params, request.getInputStream()));
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @DeleteMapping(value = "/geometry")
   public WebMessage deleteImport(@RequestParam(required = false) String attributeId) {
     return toWebMessage(geoJsonService.deleteGeoData(attributeId));

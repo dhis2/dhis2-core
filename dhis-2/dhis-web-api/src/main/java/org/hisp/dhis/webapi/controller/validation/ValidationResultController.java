@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.google.common.collect.Lists;
@@ -42,6 +43,7 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.ValidationResultSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
@@ -49,7 +51,6 @@ import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -114,7 +115,7 @@ public class ValidationResultController {
     return result;
   }
 
-  @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @DeleteMapping(value = "/{id}")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void delete(@PathVariable int id) throws WebMessageException {
@@ -123,7 +124,7 @@ public class ValidationResultController {
     validationResultService.deleteValidationResult(result);
   }
 
-  @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @DeleteMapping
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void deleteValidationResults(ValidationResultsDeletionRequest request) {

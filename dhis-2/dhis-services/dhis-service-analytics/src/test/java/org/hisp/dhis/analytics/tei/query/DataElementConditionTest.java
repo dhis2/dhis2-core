@@ -97,6 +97,7 @@ class DataElementConditionTest {
     DimensionParam dimensionParam = mock(DimensionParam.class);
     QueryItem queryItem = mock(QueryItem.class);
     DimensionParamItem dimensionParamItem = mock(DimensionParamItem.class);
+    when(dimensionIdentifier.hasLegendSet()).thenReturn(true);
     when(dimensionIdentifier.getDimension()).thenReturn(dimensionParam);
 
     when(dimensionParam.getQueryItem()).thenReturn(queryItem);

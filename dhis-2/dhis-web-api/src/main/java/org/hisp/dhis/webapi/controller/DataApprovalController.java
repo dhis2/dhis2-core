@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,6 +73,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -83,7 +87,6 @@ import org.hisp.dhis.webapi.webdomain.approval.ApprovalsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -395,8 +398,7 @@ public class DataApprovalController {
   // Post, approval
   // -------------------------------------------------------------------------
 
-  @PreAuthorize(
-      "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')")
+  @RequiresAuthority(anyOf = {F_APPROVE_DATA, F_APPROVE_DATA_LOWER_LEVELS})
   @PostMapping(value = APPROVALS_PATH)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void saveApproval(
@@ -445,7 +447,7 @@ public class DataApprovalController {
   // Post, acceptance
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')")
+  @RequiresAuthority(anyOf = F_ACCEPT_DATA_LOWER_LEVELS)
   @PostMapping(ACCEPTANCES_PATH)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void acceptApproval(
@@ -495,8 +497,7 @@ public class DataApprovalController {
   // Delete
   // -------------------------------------------------------------------------
 
-  @PreAuthorize(
-      "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')")
+  @RequiresAuthority(anyOf = {F_APPROVE_DATA, F_APPROVE_DATA_LOWER_LEVELS})
   @DeleteMapping(APPROVALS_PATH)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeApproval(
@@ -534,7 +535,7 @@ public class DataApprovalController {
     dataApprovalService.unapproveData(dataApprovalList);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')")
+  @RequiresAuthority(anyOf = F_ACCEPT_DATA_LOWER_LEVELS)
   @DeleteMapping(ACCEPTANCES_PATH)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void unacceptApproval(

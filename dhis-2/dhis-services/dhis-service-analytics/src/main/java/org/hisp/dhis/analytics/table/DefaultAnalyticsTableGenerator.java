@@ -72,7 +72,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // TODO introduce last successful timestamps per table type
 
   @Override
-  public void generateTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
+  public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     Clock clock = new Clock(log).startClock();
     Date lastSuccessfulUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);

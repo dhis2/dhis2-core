@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.tei.query;
 
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -73,6 +74,7 @@ class TeiAttributeConditionTest {
                 DimensionType.PROGRAM_ATTRIBUTE,
                 items.stream().map(BaseDimensionalItemObject::new).toList()),
             DimensionParamType.DIMENSIONS,
+            UID,
             items);
 
     return DimensionIdentifier.of(

@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -49,7 +50,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -81,7 +81,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase {
       throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    User user = createUser(new HashSet<>(Collections.singletonList(ou)), UserRole.AUTHORITY_ALL);
+    User user =
+        createUser(new HashSet<>(Collections.singletonList(ou)), Authorities.ALL.toString());
     injectSecurityContextUser(user);
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');

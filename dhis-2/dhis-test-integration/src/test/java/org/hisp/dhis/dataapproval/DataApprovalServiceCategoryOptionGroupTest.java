@@ -33,7 +33,6 @@ import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_VIEW_UNAPPROVED_DATA;
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,6 +61,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -302,7 +302,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase {
     userA = makeUser("A");
     userService.addUser(userA);
     dateA = new Date();
-    superUser = createAndAddUser(true, "SuperUser", global, AUTHORITY_ALL);
+    superUser = createAndAddUser(true, "SuperUser", global, Authorities.ALL.toString());
     globalConsultant =
         createAndAddUser(
             "GlobalConsultant",

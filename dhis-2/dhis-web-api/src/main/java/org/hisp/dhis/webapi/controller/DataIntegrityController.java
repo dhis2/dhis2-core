@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 
 import java.util.Collection;
 import java.util.Map;
@@ -55,10 +56,10 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityDetailsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,7 +83,7 @@ public class DataIntegrityController {
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping
   @ResponseBody
   public WebMessage runDataIntegrity(
@@ -143,7 +144,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getCompletedSummaryChecks();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/summary")
   @ResponseBody
   public Map<String, DataIntegritySummary> getSummaries(
@@ -152,7 +153,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("/summary")
   @ResponseBody
   public WebMessage runSummariesCheck(
@@ -177,7 +178,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getCompletedDetailsChecks();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/details")
   @ResponseBody
   public Map<String, DataIntegrityDetails> getDetails(
@@ -186,7 +187,7 @@ public class DataIntegrityController {
     return dataIntegrityService.getDetails(getCheckNames(checks), timeout);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("/details")
   @ResponseBody
   public WebMessage runDetailsCheck(
@@ -199,7 +200,7 @@ public class DataIntegrityController {
         .setLocation("/dataIntegrity/details?checks=" + toChecksList(names));
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/{check}/summary")
   @ResponseBody
   public DataIntegritySummary getSummary(
@@ -210,7 +211,7 @@ public class DataIntegrityController {
     return summaries.isEmpty() ? null : summaries.iterator().next();
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @GetMapping("/{check}/details")
   @ResponseBody
   public DataIntegrityDetails getDetails(

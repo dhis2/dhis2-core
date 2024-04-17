@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_EXPORT_DATA;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -40,9 +42,9 @@ import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,7 +68,7 @@ public class SynchronizationController {
   private final DhisConfigurationProvider configProvider;
   private final RestTemplate restTemplate;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
+  @RequiresAuthority(anyOf = F_EXPORT_DATA)
   @PostMapping(value = "/dataPush", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportConflicts execute() throws IOException {
@@ -82,7 +84,7 @@ public class SynchronizationController {
    * @param url to retrieve metadata from
    * @return import report
    */
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
