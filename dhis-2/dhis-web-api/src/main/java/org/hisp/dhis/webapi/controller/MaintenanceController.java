@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -49,10 +51,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,6 +70,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags("system")
 @Controller
 @RequestMapping("/api/maintenance")
+@RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MaintenanceController {
 
@@ -94,7 +97,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/analyticsTablesClear",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void clearAnalyticsTables() {
     analyticsTableService.forEach(AnalyticsTableService::dropTables);
@@ -103,7 +105,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/analyticsTablesAnalyze",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void analyzeAnalyticsTables() {
     analyticsTableService.forEach(AnalyticsTableService::analyzeAnalyticsTables);
@@ -112,7 +113,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/expiredInvitationsClear",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void clearExpiredInvitations() {
     maintenanceService.removeExpiredInvitations();
@@ -121,7 +121,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/ouPathsUpdate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void forceUpdatePaths() {
     organisationUnitService.forceUpdatePaths();
@@ -130,7 +129,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/periodPruning",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void prunePeriods() {
     maintenanceService.prunePeriods();
@@ -139,7 +137,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/zeroDataValueRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteZeroDataValues() {
     maintenanceService.deleteZeroDataValues();
@@ -148,7 +145,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedDataValueRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedDataValues() {
     maintenanceService.deleteSoftDeletedDataValues();
@@ -161,7 +157,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedProgramStageInstanceRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEventsDeprecated() {
     maintenanceService.deleteSoftDeletedEvents();
@@ -170,7 +165,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedEventRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEvents() {
     maintenanceService.deleteSoftDeletedEvents();
@@ -179,7 +173,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedRelationshipRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedRelationships() {
     maintenanceService.deleteSoftDeletedRelationships();
@@ -192,7 +185,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedProgramInstanceRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEnrollmentsDeprecated() {
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -201,7 +193,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedEnrollmentRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEnrollments() {
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -214,7 +205,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedTrackedEntityInstanceRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedTrackedEntityInstancesDeprecated() {
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -223,7 +213,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/softDeletedTrackedEntityRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedTrackedEntities() {
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -232,7 +221,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/sqlViewsCreate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void createSqlViews() {
     resourceTableService.createAllSqlViews(NoopJobProgress.INSTANCE);
@@ -241,7 +229,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/sqlViewsDrop",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void dropSqlViews() {
     resourceTableService.dropAllSqlViews(NoopJobProgress.INSTANCE);
@@ -250,7 +237,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/categoryOptionComboUpdate",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCategoryOptionCombos() {
     categoryManager.addAndPruneAllOptionCombos();
@@ -259,7 +245,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/categoryOptionComboUpdate/categoryCombo/{uid}",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
   public WebMessage updateCategoryOptionCombos(@PathVariable String uid) {
     CategoryCombo categoryCombo = categoryService.getCategoryCombo(uid);
@@ -274,7 +259,6 @@ public class MaintenanceController {
   @RequestMapping(
       value = {"/cacheClear", "/cache"},
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void clearCache() {
     maintenanceService.clearApplicationCaches();
@@ -283,7 +267,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/dataPruning/organisationUnits/{uid}",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseBody
   public WebMessage pruneDataByOrganisationUnit(@PathVariable String uid) {
     OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(uid);
@@ -300,7 +284,7 @@ public class MaintenanceController {
   @RequestMapping(
       value = "/dataPruning/dataElements/{uid}",
       method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseBody
   public WebMessage pruneDataByDataElement(@PathVariable String uid) {
     DataElement dataElement = dataElementService.getDataElement(uid);
@@ -315,7 +299,6 @@ public class MaintenanceController {
   }
 
   @GetMapping("/appReload")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseBody
   public WebMessage appReload() {
     appManager.reloadApps();
@@ -323,7 +306,6 @@ public class MaintenanceController {
   }
 
   @RequestMapping(method = {RequestMethod.PUT, RequestMethod.POST})
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void performMaintenance(
       @RequestParam(required = false) boolean analyticsTableClear,

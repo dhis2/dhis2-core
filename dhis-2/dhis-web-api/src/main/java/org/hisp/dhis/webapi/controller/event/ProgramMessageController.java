@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
+import static org.hisp.dhis.security.Authorities.F_SEND_EMAIL;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -52,11 +54,11 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,7 +88,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   // GET
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getProgramMessages(
@@ -124,7 +126,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
     return programMessageService.getProgramMessages(params);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public List<ProgramMessage> getScheduledSentMessage(
@@ -165,7 +167,7 @@ public class ProgramMessageController extends AbstractCrudController<ProgramMess
   // POST
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
+  @RequiresAuthority(anyOf = {F_MOBILE_SENDSMS, F_SEND_EMAIL})
   @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public BatchResponseStatus sendMessages(HttpServletRequest request, HttpServletResponse response)

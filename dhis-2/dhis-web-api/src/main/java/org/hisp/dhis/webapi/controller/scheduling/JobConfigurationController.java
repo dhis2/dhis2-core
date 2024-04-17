@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
+import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -48,12 +50,13 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
 import org.hisp.dhis.scheduling.JobRunErrorsParams;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,7 +80,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_JOB_LOG_READ')")
+  @RequiresAuthority(anyOf = F_JOB_LOG_READ)
   @GetMapping("/errors")
   public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
@@ -151,7 +154,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     return jobSchedulerService.getErrors(uid.getValue());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("clean")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDoneJobs(@RequestParam int minutes) {
@@ -228,7 +231,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
         currentUser != null
             && (currentUser.isSuper()
                 || (!read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
-                || (read && currentUser.isAuthorized("F_JOB_LOG_READ"))
+                || (read && currentUser.isAuthorized(F_JOB_LOG_READ.toString()))
                 || currentUser.getUid().equals(obj.getExecutedBy()));
     if (!isAuthorized) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }

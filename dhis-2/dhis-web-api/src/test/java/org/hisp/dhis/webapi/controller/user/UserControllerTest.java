@@ -55,6 +55,7 @@ import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -197,7 +198,7 @@ class UserControllerTest {
     addUserTo(user);
     addUserTo(currentUser);
     // make current user have ALL authority
-    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    setUpUserAuthority(currentUser, Authorities.ALL.toString());
 
     injectSecurityContext(UserDetails.fromUser(currentUser));
 
@@ -275,7 +276,7 @@ class UserControllerTest {
   void updateUserExpireRequiresShareBasedAuthority() {
     addUserTo(user);
     addUserTo(currentUser);
-    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    setUpUserAuthority(currentUser, Authorities.ALL.toString());
     injectSecurityContext(UserDetails.fromUser(currentUser));
     when(aclService.canUpdate(any(UserDetails.class), any())).thenReturn(false);
     lenient().when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);

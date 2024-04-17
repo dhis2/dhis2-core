@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.util.DateUtils.toIso8601NoTz;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -86,6 +85,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -253,7 +253,7 @@ class EventImportTest extends TransactionalIntegrationTest {
     enrollment.setUid(CodeGenerator.generateUid());
     manager.save(enrollment);
     event = createEvent("eventUid001");
-    superUser = createAndAddAdminUser(AUTHORITY_ALL);
+    superUser = createAndAddAdminUser(Authorities.ALL.toString());
     injectSecurityContextUser(superUser);
   }
 

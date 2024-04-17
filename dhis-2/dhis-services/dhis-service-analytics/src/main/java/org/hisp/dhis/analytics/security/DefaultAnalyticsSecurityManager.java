@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.security;
 
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,7 +53,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -241,7 +241,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
     boolean canViewUnapprovedData =
-        currentUser == null || currentUser.isAuthorized(DataApproval.AUTH_VIEW_UNAPPROVED_DATA);
+        currentUser == null || currentUser.isAuthorized(F_VIEW_UNAPPROVED_DATA);
 
     if (hideUnapprovedData && currentUser != null) {
       Map<OrganisationUnit, Integer> approvalLevels = null;

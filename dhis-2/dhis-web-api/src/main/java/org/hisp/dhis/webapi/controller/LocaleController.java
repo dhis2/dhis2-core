@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_LOCALE_ADD;
+import static org.hisp.dhis.security.Authorities.F_LOCALE_DELETE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Comparator;
@@ -45,6 +47,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.LocaleUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -52,7 +55,6 @@ import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -128,7 +130,7 @@ public class LocaleController {
     return locale;
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_LOCALE_ADD')")
+  @RequiresAuthority(anyOf = F_LOCALE_ADD)
   @PostMapping(value = "/dbLocales")
   @ResponseBody
   public WebMessage addLocale(
@@ -154,7 +156,7 @@ public class LocaleController {
     return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_LOCALE_DELETE')")
+  @RequiresAuthority(anyOf = F_LOCALE_DELETE)
   @DeleteMapping(path = "/dbLocales/{uid}")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void delete(@PathVariable String uid) throws Exception {
