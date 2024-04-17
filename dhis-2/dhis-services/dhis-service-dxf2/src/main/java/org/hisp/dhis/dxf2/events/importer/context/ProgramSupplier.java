@@ -260,7 +260,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>> {
             + "LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
             + "LEFT JOIN programstage ps on p.programid = ps.programid "
-            + "group by p.programid, tet.trackedentitytypeid, c.categorycomboid, ps.programstageid, ps.sort_order";
+            + "order by p.programid";
 
     return jdbcTemplate.query(
         sql,
