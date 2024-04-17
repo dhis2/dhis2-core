@@ -31,7 +31,6 @@ import static org.springframework.http.MediaType.parseMediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -80,7 +79,6 @@ import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConve
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -93,8 +91,6 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 import org.springframework.web.servlet.resource.ResourceResolverChain;
-import org.springframework.web.servlet.resource.ResourceTransformerChain;
-import org.springframework.web.servlet.resource.ResourceTransformerSupport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -121,8 +117,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
       List.of(
           Pattern.compile(
               "/api/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
-
-  // tracker
 
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -174,36 +168,37 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     }
   }
 
-  static class MyResourceTransformer extends ResourceTransformerSupport {
-    @Override
-    public Resource transform(
-        HttpServletRequest request, Resource resource, ResourceTransformerChain transformerChain)
-        throws IOException {
-
-      resource = transformerChain.transform(request, resource);
-      if (!"fileExtension".equals(StringUtils.getFilenameExtension(resource.getFilename()))) {
-        return resource;
-      }
-
-      return resource;
-    }
-  }
+  //  static class MyResourceTransformer extends ResourceTransformerSupport {
+  //    @Override
+  //    public Resource transform(
+  //        HttpServletRequest request, Resource resource, ResourceTransformerChain
+  // transformerChain)
+  //        throws IOException {
+  //      resource = transformerChain.transform(request, resource);
+  //      if (!"fileExtension".equals(StringUtils.getFilenameExtension(resource.getFilename()))) {
+  //        return resource;
+  //      }
+  //      return resource;
+  //    }
+  //  }
 
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry
         .setOrder(Ordered.LOWEST_PRECEDENCE)
         .addResourceHandler("/**")
-        .addResourceLocations("/resources/", "/dhis/", "classpath:/static/")
-        //
-        // "file:/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/dhis/")
-        //        .setCachePeriod(3600)
+        .addResourceLocations(
+            "/resources/",
+            "/dhis/",
+            "classpath:/static/",
+            "file:./dhis-web-apps/target/dhis-web-apps/",
+            "file:./dhis-web-commons-resources/src/main/webapp/")
+        // .setCachePeriod(3600)
         .resourceChain(false)
-        .addResolver(new IndexFallbackResourceResolver())
-        .addTransformer(new MyResourceTransformer());
+        .addResolver(new IndexFallbackResourceResolver());
+    //        .addTransformer(new MyResourceTransformer());
   }
 
-  //  setOrder(Ordered.LOWEST_PRECEDENCE)
   @Bean("multipartResolver")
   public MultipartResolver multipartResolver() {
     return new CommonsMultipartResolver();

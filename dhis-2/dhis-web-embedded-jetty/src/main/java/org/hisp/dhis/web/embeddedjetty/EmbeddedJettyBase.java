@@ -37,8 +37,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
-import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -47,14 +45,13 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.core.io.ClassPathResource;
 
 @Slf4j
 public abstract class EmbeddedJettyBase {
-  private String resourceBase = "./dhis-web-portal/target/dhis";
+  //  private String resourceBase = "./dhis-web-portal/target/dhis";
 
   protected EmbeddedJettyBase() {
     Thread.currentThread()
@@ -73,19 +70,21 @@ public abstract class EmbeddedJettyBase {
     Server server = new Server(threadPool);
     server.addBean(new org.eclipse.jetty.util.thread.ScheduledExecutorScheduler());
 
-    ResourceHandler resourceHandler = new ResourceHandler();
-    resourceHandler.setDirectoriesListed(false);
-    resourceHandler.setResourceBase(resourceBase);
-
-    RewriteHandler rewrite = new RewriteHandler();
-    rewrite.setHandler(resourceHandler);
-    RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
-    rewritePatternRule.setPattern("");
-    rewritePatternRule.setLocation("/dhis-web-login");
-    rewrite.addRule(rewritePatternRule);
+    //    ResourceHandler resourceHandler = new ResourceHandler();
+    //    resourceHandler.setDirectoriesListed(false);
+    //    resourceHandler.setResourceBase(resourceBase);
+    //
+    //    RewriteHandler rewrite = new RewriteHandler();
+    //    rewrite.setHandler(resourceHandler);
+    //    RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
+    //    rewritePatternRule.setPattern("");
+    //    rewritePatternRule.setLocation("/dhis-web-login");
+    //    rewrite.addRule(rewritePatternRule);
 
     HandlerList handlers = new HandlerList();
-    handlers.setHandlers(new Handler[] {rewrite, getServletContextHandler(), new DefaultHandler()});
+    //    handlers.setHandlers(new Handler[] {rewrite, getServletContextHandler(), new
+    // DefaultHandler()});
+    handlers.setHandlers(new Handler[] {getServletContextHandler(), new DefaultHandler()});
     server.setHandler(handlers);
 
     final HttpConfiguration httpConfig = getHttpConfiguration();

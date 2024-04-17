@@ -46,11 +46,7 @@ public class HttpServletRequestPaths {
       version = "/" + matcher.group(2);
     }
 
-    return getServletPath(request) + version;
-  }
-
-  public static String getServletPath(HttpServletRequest request) {
-    return getContextPath(request) + request.getServletPath();
+    return getContextPath(request) + request.getServletPath() + "/api" + version;
   }
 
   public static String getContextPath(HttpServletRequest request) {
@@ -81,6 +77,7 @@ public class HttpServletRequestPaths {
     }
 
     builder.append(request.getContextPath());
+
     return builder.toString();
   }
 }
