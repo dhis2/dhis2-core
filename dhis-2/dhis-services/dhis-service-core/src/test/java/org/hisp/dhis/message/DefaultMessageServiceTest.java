@@ -37,10 +37,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.hibernate.HibernateMessageConversationStore;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserSettingService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -64,6 +68,7 @@ class DefaultMessageServiceTest {
   @Mock private HibernateMessageConversationStore messageConversationStore;
   @Mock private UserSettingService userSettingService;
   @Mock private I18nManager i18nManager;
+  @Mock private ConfigurationService configurationService;
 
   @ParameterizedTest
   @MethodSource("provideArgCombos")
@@ -100,6 +105,13 @@ class DefaultMessageServiceTest {
     String footer = footerCaptor.getValue();
     assertTrue(
         footer.contains("https://dhis2.org/dhis-web-messaging/#/" + messageType + "/" + uid));
+  }
+
+  @Test
+  @DisplayName("SystemUser is authorized by default")
+  void systemUserIsAuthorizedByDefaultTest() {
+    SystemUser systemUser = new SystemUser();
+    assertTrue(messageService.hasAccessToManageFeedbackMessages(systemUser));
   }
 
   private static Stream<Arguments> provideArgCombos() {
