@@ -91,7 +91,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     injectSecurityContextUser(userA);
 
     mvc.perform(
-            get("/2fa/qrCode")
+            get("/api/2fa/qrCode")
                 .header("Authorization", "Basic dXNlcmE6ZGlzdHJpY3Q=")
                 .contentType("application/octet-stream")
                 .accept("application/octet-stream"))

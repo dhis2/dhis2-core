@@ -176,7 +176,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 2,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())));
   }
 
@@ -202,7 +202,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 1,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())),
         () ->
             assertPagerLink(
@@ -210,7 +210,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 3,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())));
   }
 
@@ -236,7 +236,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 2,
                 1,
                 String.format(
-                    "http://localhost/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())),
         () -> assertHasNoMember(pager, "nextPage"));
   }

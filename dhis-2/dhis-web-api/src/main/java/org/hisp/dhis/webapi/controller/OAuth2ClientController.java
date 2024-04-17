@@ -37,5 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Tags({"user", "login"})
 @Controller
-@RequestMapping("/api/oauth2Clients")
+@RequestMapping("/api/oAuth2Clients")
 public class OAuth2ClientController extends AbstractCrudController<OAuth2Client> {}

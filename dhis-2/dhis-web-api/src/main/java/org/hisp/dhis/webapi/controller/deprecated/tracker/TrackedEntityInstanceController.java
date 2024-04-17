@@ -130,7 +130,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class TrackedEntityInstanceController {
-  public static final String RESOURCE_PATH = "/trackedEntityInstances";
+  public static final String RESOURCE_PATH = "/api/trackedEntityInstances";
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 

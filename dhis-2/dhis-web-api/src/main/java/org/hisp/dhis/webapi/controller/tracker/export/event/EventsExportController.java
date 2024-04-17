@@ -87,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(Event.class)
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping("/api/tracker/event")
+@RequestMapping("/api/tracker/events")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class EventsExportController {
   protected static final String EVENTS = "events";

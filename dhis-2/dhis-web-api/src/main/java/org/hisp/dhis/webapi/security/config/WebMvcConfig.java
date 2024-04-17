@@ -107,19 +107,20 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   // Paths where XML should still be allowed.
   public static final List<Pattern> XML_PATTERNS =
       List.of(
-          Pattern.compile("/(\\d\\d/)?relationships(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?enrollments(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?events(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?relationships(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?enrollments(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?events(.xml)?(.+)?"),
           Pattern.compile(
-              "/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with old
+              "/api/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with
+          // old
           // tracker
-          Pattern.compile("/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
+          Pattern.compile("/api/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
 
   public static final List<Pattern> CSV_PATTERNS =
       List.of(
           Pattern.compile(
-              "/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
+              "/api/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
 
   // tracker
 
