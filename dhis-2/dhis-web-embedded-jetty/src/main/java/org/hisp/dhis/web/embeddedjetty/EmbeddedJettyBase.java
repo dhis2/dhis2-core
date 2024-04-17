@@ -51,8 +51,6 @@ import org.springframework.core.io.ClassPathResource;
 
 @Slf4j
 public abstract class EmbeddedJettyBase {
-  //  private String resourceBase = "./dhis-web-portal/target/dhis";
-
   protected EmbeddedJettyBase() {
     Thread.currentThread()
         .setUncaughtExceptionHandler(EmbeddedJettyUncaughtExceptionHandler.systemExit(log));
@@ -70,20 +68,7 @@ public abstract class EmbeddedJettyBase {
     Server server = new Server(threadPool);
     server.addBean(new org.eclipse.jetty.util.thread.ScheduledExecutorScheduler());
 
-    //    ResourceHandler resourceHandler = new ResourceHandler();
-    //    resourceHandler.setDirectoriesListed(false);
-    //    resourceHandler.setResourceBase(resourceBase);
-    //
-    //    RewriteHandler rewrite = new RewriteHandler();
-    //    rewrite.setHandler(resourceHandler);
-    //    RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
-    //    rewritePatternRule.setPattern("");
-    //    rewritePatternRule.setLocation("/dhis-web-login");
-    //    rewrite.addRule(rewritePatternRule);
-
     HandlerList handlers = new HandlerList();
-    //    handlers.setHandlers(new Handler[] {rewrite, getServletContextHandler(), new
-    // DefaultHandler()});
     handlers.setHandlers(new Handler[] {getServletContextHandler(), new DefaultHandler()});
     server.setHandler(handlers);
 
