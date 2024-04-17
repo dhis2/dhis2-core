@@ -847,6 +847,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     switch (property) {
+      case ID:
       case UID:
         return store.getByUid(identifiers);
       case CODE:
