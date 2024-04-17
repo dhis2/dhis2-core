@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -54,12 +55,33 @@ class AuthoritiesTest {
     assertTrue(List.of(outputStrings).containsAll(output));
   }
 
+  @ParameterizedTest
+  @MethodSource("authsInputOutputList")
+  @DisplayName("Converting from Collection<Authorities> to List<String> is successful")
+  void convertAuthoritiesToStringListTest(
+      Collection<Authorities> input, int expectedListSize, List<String> output) {
+    List<String> outputStrings = Authorities.toStringList(input);
+    assertNotNull(outputStrings);
+    assertEquals(expectedListSize, outputStrings.size());
+    assertTrue(outputStrings.containsAll(output));
+  }
+
   private static Stream<Arguments> authsInputOutput() {
     return Stream.of(
         arguments(null, 0, List.of()),
         arguments(new Authorities[0], 0, List.of()),
         arguments(
             new Authorities[] {ALL, F_SYSTEM_SETTING},
+            2,
+            List.of(ALL.toString(), F_SYSTEM_SETTING.toString())));
+  }
+
+  private static Stream<Arguments> authsInputOutputList() {
+    return Stream.of(
+        arguments(null, 0, List.of()),
+        arguments(List.of(), 0, List.of()),
+        arguments(
+            List.of(ALL, F_SYSTEM_SETTING),
             2,
             List.of(ALL.toString(), F_SYSTEM_SETTING.toString())));
   }

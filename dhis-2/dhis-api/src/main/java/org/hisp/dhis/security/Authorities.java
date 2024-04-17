@@ -28,6 +28,8 @@
 package org.hisp.dhis.security;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -155,5 +157,19 @@ public enum Authorities {
       return new String[0];
     }
     return Arrays.stream(authorities).map(Authorities::toString).toList().toArray(new String[0]);
+  }
+
+  /**
+   * Util method to transform {@link Collection}<{@link Authorities}> to its String alternative
+   * {@link List}<{@link String}>
+   *
+   * @param authorities {@link Collection}<{@link Authorities}>
+   * @return {@link List}<{@link String}> of transformed authorities to their string values
+   */
+  public static List<String> toStringList(Collection<Authorities> authorities) {
+    if (authorities == null) {
+      return List.of();
+    }
+    return authorities.stream().map(Authorities::toString).toList();
   }
 }

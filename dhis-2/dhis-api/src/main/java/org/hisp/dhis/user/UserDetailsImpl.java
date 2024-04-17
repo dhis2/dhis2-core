@@ -95,6 +95,11 @@ public class UserDetailsImpl implements UserDetails {
   }
 
   @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return hasAnyAuthority(Authorities.toStringList(auths));
+  }
+
+  @Override
   public boolean isAuthorized(String auth) {
     if (auth == null) {
       return false;

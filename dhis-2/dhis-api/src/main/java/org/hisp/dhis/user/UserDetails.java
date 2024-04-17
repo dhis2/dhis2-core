@@ -232,6 +232,8 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean hasAnyAuthority(Collection<String> auths);
 
+  boolean hasAnyAuthorities(Collection<Authorities> auths);
+
   boolean isAuthorized(String auth);
 
   boolean isAuthorized(@Nonnull Authorities auth);

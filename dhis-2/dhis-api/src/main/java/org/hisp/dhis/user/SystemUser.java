@@ -145,13 +145,18 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return true;
+  }
+
+  @Override
   public boolean isAuthorized(String auth) {
     return true;
   }
 
   @Override
   public boolean isAuthorized(@Nonnull Authorities auth) {
-    return false;
+    return true;
   }
 
   @Nonnull
