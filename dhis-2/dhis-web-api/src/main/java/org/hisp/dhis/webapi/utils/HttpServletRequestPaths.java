@@ -49,6 +49,10 @@ public class HttpServletRequestPaths {
     return getContextPath(request) + request.getServletPath() + "/api" + version;
   }
 
+  public static String getServletPath(HttpServletRequest request) {
+    return getContextPath(request) + request.getServletPath();
+  }
+
   public static String getContextPath(HttpServletRequest request) {
     StringBuilder builder = new StringBuilder();
     String xForwardedProto = request.getHeader("X-Forwarded-Proto");

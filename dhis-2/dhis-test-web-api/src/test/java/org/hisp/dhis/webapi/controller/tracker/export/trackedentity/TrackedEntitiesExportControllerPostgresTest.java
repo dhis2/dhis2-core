@@ -158,7 +158,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
       shouldGetChangeLogPagerWithNextAttributeWhenMultipleAttributesImportedAndFirstPageRequested() {
     JsonPage changeLogs =
         GET(
-                "/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                "40/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
                 "1",
                 "1")
@@ -176,7 +176,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
                 2,
                 1,
                 String.format(
-                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/40/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())));
   }
 
