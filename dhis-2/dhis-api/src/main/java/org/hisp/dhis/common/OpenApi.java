@@ -214,6 +214,8 @@ public @interface OpenApi {
 
     boolean required() default false;
 
+    boolean deprecated() default false;
+
     /**
      * When not empty the parameter is wrapped in an object having a single member with the provided
      * property name.

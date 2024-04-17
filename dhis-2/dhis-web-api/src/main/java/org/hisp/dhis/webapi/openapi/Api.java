@@ -271,6 +271,8 @@ public class Api {
 
     Schema type;
 
+    Boolean deprecated;
+
     /**
      * The default value in its string form.
      *
@@ -288,6 +290,10 @@ public class Api {
      * step.
      */
     Maybe<String> sharedName = new Maybe<>();
+
+    boolean isDeprecated() {
+      return Boolean.TRUE == deprecated;
+    }
 
     /**
      * @return true, if this parameter is one or many in a complex parameter object, false, if this

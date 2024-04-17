@@ -336,14 +336,15 @@ final class ApiAnalyse {
       if (p.isAnnotationPresent(OpenApi.Ignore.class)) {
         continue;
       }
+      boolean deprecated = p.isAnnotationPresent(Deprecated.class);
       if (p.isAnnotationPresent(OpenApi.Param.class)) {
         OpenApi.Param a = p.getAnnotation(OpenApi.Param.class);
         EndpointParam param = getParam(p);
         String name = firstNonEmpty(a.name(), param == null ? "" : param.name(), p.getName());
-        Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.in();
+        In in = param == null ? In.QUERY : param.in();
         boolean required = param == null ? a.required() : param.required();
         Api.Schema type = analyseParamSchema(endpoint, p.getParameterizedType(), a.value());
-        if (in != Api.Parameter.In.BODY) {
+        if (in != In.BODY) {
           String fallbackDefaultValue = param != null ? param.defaultValue() : null;
           String defaultValue =
               !a.defaultValue().isEmpty() ? a.defaultValue() : fallbackDefaultValue;
@@ -352,7 +353,8 @@ final class ApiAnalyse {
               .computeIfAbsent(
                   name,
                   key -> {
-                    Api.Parameter parameter = new Api.Parameter(p, key, in, required, type);
+                    Api.Parameter parameter =
+                        new Api.Parameter(p, key, in, required, type, deprecated);
                     parameter.getDefaultValue().setValue(defaultValue);
                     return parameter;
                   });
@@ -372,9 +374,10 @@ final class ApiAnalyse {
                     new Api.Parameter(
                         p,
                         key,
-                        Api.Parameter.In.PATH,
+                        In.PATH,
                         a.required(),
-                        analyseInputSchema(endpoint, p.getParameterizedType())));
+                        analyseInputSchema(endpoint, p.getParameterizedType()),
+                        deprecated));
       } else if (p.isAnnotationPresent(RequestParam.class) && p.getType() != Map.class) {
         RequestParam a = p.getAnnotation(RequestParam.class);
         EndpointParam param = getParam(p);
@@ -390,7 +393,8 @@ final class ApiAnalyse {
                           key,
                           In.QUERY,
                           param.required(),
-                          analyseInputSchema(endpoint, p.getParameterizedType()));
+                          analyseInputSchema(endpoint, p.getParameterizedType()),
+                          deprecated);
                   parameter.getDefaultValue().setValue(param.defaultValue());
                   return parameter;
                 });
@@ -422,12 +426,10 @@ final class ApiAnalyse {
       endpoint.getRequestBody().setValue(requestBody);
       return;
     }
-    endpoint
-        .getParameters()
-        .put(
-            name,
-            new Api.Parameter(
-                endpoint.getSource(), name, Api.Parameter.In.QUERY, required, wrapped));
+    boolean deprecated = param.deprecated();
+    Api.Parameter parameter =
+        new Api.Parameter(endpoint.getSource(), name, In.QUERY, required, wrapped, deprecated);
+    endpoint.getParameters().put(name, parameter);
   }
 
   private static void analyseParams(Api.Endpoint endpoint, OpenApi.Params params) {
@@ -473,7 +475,10 @@ final class ApiAnalyse {
         type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null
             ? analyseGeneratorSchema(endpoint, type, annotated.value())
             : analyseInputSchema(endpoint, getSubstitutedType(endpoint, property, member));
-    Api.Parameter param = new Api.Parameter(member, property.getName(), In.QUERY, false, schema);
+    boolean deprecated =
+        ((AnnotatedElement) property.getSource()).isAnnotationPresent(Deprecated.class);
+    Api.Parameter param =
+        new Api.Parameter(member, property.getName(), In.QUERY, false, schema, deprecated);
     Object defaultValue = property.getDefaultValue();
     if (defaultValue != null) {
       param.getDefaultValue().setValue(defaultValue.toString());
@@ -860,8 +865,7 @@ final class ApiAnalyse {
   private static EndpointParam getParam(Parameter source) {
     if (source.isAnnotationPresent(PathVariable.class)) {
       PathVariable a = source.getAnnotation(PathVariable.class);
-      return new EndpointParam(
-          Api.Parameter.In.PATH, firstNonEmpty(a.name(), a.value()), a.required(), null);
+      return new EndpointParam(In.PATH, firstNonEmpty(a.name(), a.value()), a.required(), null);
     }
     if (source.isAnnotationPresent(RequestParam.class)) {
       RequestParam a = source.getAnnotation(RequestParam.class);
@@ -869,11 +873,11 @@ final class ApiAnalyse {
       boolean required = a.required() && !hasDefault;
       String defaultValue = hasDefault ? a.defaultValue() : null;
       return new EndpointParam(
-          Api.Parameter.In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
+          In.QUERY, firstNonEmpty(a.name(), a.value()), required, defaultValue);
     }
     if (source.isAnnotationPresent(RequestBody.class)) {
       RequestBody a = source.getAnnotation(RequestBody.class);
-      return new EndpointParam(Api.Parameter.In.BODY, "", a.required(), null);
+      return new EndpointParam(In.BODY, "", a.required(), null);
     }
     return null;
   }
@@ -899,12 +903,12 @@ final class ApiAnalyse {
   }
 
   private static String firstNonEmpty(String a, String b) {
-    return a.length() == 0 ? b : a;
+    return a.isEmpty() ? b : a;
   }
 
   private static String firstNonEmpty(String a, String b, String c) {
     String ab = firstNonEmpty(a, b);
-    return ab.length() > 0 ? ab : c;
+    return !ab.isEmpty() ? ab : c;
   }
 
   @SafeVarargs
@@ -942,7 +946,7 @@ final class ApiAnalyse {
     }
   }
 
-  record EndpointParam(Api.Parameter.In in, String name, boolean required, String defaultValue) {}
+  record EndpointParam(In in, String name, boolean required, String defaultValue) {}
 
   /*
    * Helpers for working with annotations

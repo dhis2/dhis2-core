@@ -248,6 +248,16 @@ public class JsonGenerator {
     }
   }
 
+  /**
+   * Only adds a member if the value is {@link Boolean#TRUE}.
+   *
+   * <p>The main reason is to omit members that already have a implied default of false and thereby
+   * stating this does not add information but increates the size of the document.
+   */
+  final void addTrueMember(String name, Boolean value) {
+    if (value == Boolean.TRUE) addBooleanMember(name, true);
+  }
+
   final void addBooleanMember(String name, Boolean value) {
     if (value != null) {
       addBooleanMember(name, value.booleanValue());

@@ -348,7 +348,7 @@ public class OpenApiGenerator extends JsonGenerator {
     addObjectMember(
         method.name().toLowerCase(),
         () -> {
-          addBooleanMember("deprecated", endpoint.getDeprecated());
+          addTrueMember("deprecated", endpoint.getDeprecated());
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
           addArrayMember("tags", tags);
@@ -390,7 +390,8 @@ public class OpenApiGenerator extends JsonGenerator {
           addStringMember("in", parameter.getIn().name().toLowerCase());
           addStringMultilineMember(
               "description", parameter.getDescription().orElse(NO_DESCRIPTION));
-          addBooleanMember("required", parameter.isRequired());
+          addTrueMember("required", parameter.isRequired());
+          addTrueMember("deprecated", parameter.getDeprecated());
           String defaultValue = parameter.getDefaultValue().orElse(null);
           addObjectMember("schema", () -> generateSchemaOrRef(parameter.getType(), defaultValue));
         });
@@ -398,7 +399,7 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateRequestBody(Api.RequestBody requestBody) {
     addStringMultilineMember("description", requestBody.getDescription().orElse(NO_DESCRIPTION));
-    addBooleanMember("required", requestBody.isRequired());
+    addTrueMember("required", requestBody.isRequired());
     addObjectMember(
         "content",
         () ->
