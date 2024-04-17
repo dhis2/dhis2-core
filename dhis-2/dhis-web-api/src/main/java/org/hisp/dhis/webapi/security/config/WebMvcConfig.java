@@ -156,6 +156,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     }
   }
 
+  @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry
         .setOrder(Ordered.LOWEST_PRECEDENCE)
