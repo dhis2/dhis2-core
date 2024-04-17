@@ -30,6 +30,7 @@ package org.hisp.dhis.gist;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
+import static org.hisp.dhis.security.Authorities.F_METADATA_EXPORT;
 
 import java.util.HashSet;
 import java.util.List;
@@ -89,7 +90,7 @@ public class DefaultGistAccessControl implements GistAccessControl {
 
   @Override
   public boolean canReadHQL() {
-    return isSuperuser() || currentUser.isAuthorized("F_METADATA_EXPORT");
+    return isSuperuser() || currentUser.isAuthorized(F_METADATA_EXPORT);
   }
 
   @Override

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.security.Authorities.F_GENERATE_MIN_MAX_VALUES;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Collection;
@@ -44,12 +45,12 @@ import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValueParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,7 +83,7 @@ public class MinMaxValueGenerationController {
   @Autowired private SystemSettingManager systemSettingManager;
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')")
+  @RequiresAuthority(anyOf = F_GENERATE_MIN_MAX_VALUES)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void generateMinMaxValue(@RequestBody MinMaxValueParams minMaxValueParams)
       throws WebMessageException {
@@ -113,7 +114,7 @@ public class MinMaxValueGenerationController {
   }
 
   @DeleteMapping("/{ou}")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')")
+  @RequiresAuthority(anyOf = F_GENERATE_MIN_MAX_VALUES)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeMinMaxValue(
       @PathVariable("ou") String organisationUnitId, @RequestParam("ds") List<String> dataSetIds)

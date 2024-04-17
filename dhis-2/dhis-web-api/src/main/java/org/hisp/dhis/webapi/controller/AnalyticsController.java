@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -49,10 +50,10 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -85,7 +86,7 @@ public class AnalyticsController {
   // Resources
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = RESOURCE_PATH + EXPLAIN_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})

@@ -33,6 +33,7 @@ import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_CHART_V
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_REPORT_VIEW;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_VISUALIZATION_VIEW;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -53,12 +54,12 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -162,7 +163,7 @@ public class DataStatisticsController {
     return dataStatisticsService.getFavoriteStatistics(uid);
   }
 
-  @PreAuthorize("hasRole('ALL')")
+  @RequiresAuthority(anyOf = ALL)
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping("/snapshot")
   public void saveSnapshot() {

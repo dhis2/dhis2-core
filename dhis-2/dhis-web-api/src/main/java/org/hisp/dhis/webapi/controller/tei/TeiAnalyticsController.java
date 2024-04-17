@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tei;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.hisp.dhis.system.grid.GridUtils.toCsv;
 import static org.hisp.dhis.system.grid.GridUtils.toHtml;
 import static org.hisp.dhis.system.grid.GridUtils.toHtmlCss;
@@ -64,12 +65,12 @@ import org.hisp.dhis.analytics.tei.TeiQueryRequestMapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.TeiAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -113,7 +114,7 @@ class TeiAnalyticsController {
         trackedEntityType, teiQueryRequest, commonQueryRequest, teiAnalyticsQueryService::getGrid);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = "/query/{trackedEntityType}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})

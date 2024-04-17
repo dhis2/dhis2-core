@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
@@ -75,6 +76,19 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest {
   protected final User switchToSuperuser() {
     switchContextToUser(userService.getUser(superUser.getUid()));
     return superUser;
+  }
+
+  /**
+   * Method which allows passing in actual {@link Authorities}. It calls the existing method {@link
+   * DhisControllerTestBase#switchToNewUser(String, String...)} that accepts String authorities
+   * underneath.
+   *
+   * @param username - username
+   * @param authorities - varargs of {@link Authorities}
+   * @return new {@link User}
+   */
+  protected final User switchToNewUserWithAuthorities(String username, Authorities... authorities) {
+    return switchToNewUser(username, Authorities.toStringArray(authorities));
   }
 
   protected final User switchToNewUser(String username, String... authorities) {
