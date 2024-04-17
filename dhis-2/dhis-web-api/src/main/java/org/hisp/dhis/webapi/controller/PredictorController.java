@@ -48,7 +48,6 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
-import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -80,7 +80,7 @@ public class AuthorityInterceptor implements HandlerInterceptor {
     }
 
     HandlerMethod handlerMethod = (HandlerMethod) handler;
-// check if RequiresAuthority is at method level
+    // check if RequiresAuthority is at method level
     if (handlerMethod.hasMethodAnnotation(RequiresAuthority.class)) {
       RequiresAuthority requiresMethodAuthority =
           handlerMethod.getMethodAnnotation(RequiresAuthority.class);
