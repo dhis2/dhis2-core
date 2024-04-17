@@ -40,6 +40,8 @@ public interface TrackerOwnershipManager {
 
   String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
 
+  String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
+
   /**
    * @param entityInstance The tracked entity instance object
    * @param program The program object

@@ -84,7 +84,7 @@ public class AnalyticsTablePartition extends Table {
   /**
    * Constructor. Sets the name to represent a staging table partition.
    *
-   * @param table the master {@link Table} of this partition.
+   * @param table the master {@link AnalyticsTable} of this partition.
    */
   public AnalyticsTablePartition(AnalyticsTable table) {
     super(

@@ -1,0 +1,488 @@
+@charset "UTF-8";
+/* CSS Document */
+/*
+ * RESET
+ *
+ */
+
+html, body, div, span, object, blockquote, pre,
+abbr, acronym, address, big, cite, code, dfn, em, font, img, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center, dl, dt, dd, fieldset, form, label, legend,
+caption, tr, th, td {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font-weight: normal;
+	vertical-align: baseline;
+	background: transparent;
+}
+
+p {
+	border: 0;
+	font-size: 100%;
+	font-weight: normal;
+	vertical-align: baseline;
+	background: transparent;
+}
+a {
+	margin: 0;
+	padding: 0;
+	font-weight: normal;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	vertical-align: baseline;
+	background: transparent;
+}
+
+body table {
+	margin: 0;
+	padding: 0;
+	font-size: 100%;
+	font-weight: normal;
+	vertical-align: baseline;
+	background: transparent;
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/*
+ * DEFAULT STYLES
+ * 
+ */
+body {
+	color: #333333;
+	font-weight: normal;
+	font-family: sans-serif;
+}
+/*removes horizontal overflow on certain devices*/
+body div#wrap {
+	width: 100%;
+	overflow: hidden;
+	position: absolute;
+	left: 0;
+	padding: 0;
+}
+/*
+ * HEADER
+ * 
+ */
+body div#header {
+	height:	17px;
+	background-color: #1d5288;
+	border-bottom: 4px solid #184572;
+	padding: 4px;
+	margin-bottom: .5em;
+}
+
+body div#header span {
+	font-size: 1.5em;
+	font-weight: bold;
+	padding-left: 2%;
+	padding-right: 2%;
+	color: blue;
+	margin-bottom: .4em;
+	margin-top: .4em;
+}
+
+body div#header a {
+	border: none;
+}
+
+/*
+ * FOOTER
+ * 
+ */
+body div#footer {
+	background-color: #F6F6F6;
+	border-top: 1px solid #D8D8D8;
+	padding: .7em 0em;
+	clear: both;
+	height: 1.5em;
+	display: block;
+}
+
+body div#footer ul {
+	margin-left: 2em;
+	padding-left: 0;
+	margin-bottom: 0;
+	margin-top: 0;
+}
+
+body div#footer ul li {
+	margin-left: 0;
+	padding-left: 0;
+}
+
+body div#footer p {
+	margin-left: 2%;
+	margin-top: .3em;
+	padding: 0;
+}
+
+body div#footer ul li {
+	list-style-type: none;
+	text-align: right;
+	padding-right: 1em;
+}
+
+/*
+ * BASIC ELEMENTS
+ * 
+ */
+ 
+/*body required as early browsers don't understand p by itself */
+body p {
+	margin-top: 0;
+	margin-bottom: 0.6em;
+	padding: 0 2% 0 2%;
+	font-size: 100%;
+}
+
+strong {
+	font-weight: bold;
+}
+em {
+	font-style: normal;
+	font-weight: bold;
+}
+/*
+ * LINK STATES
+ * 
+ */
+a:link {
+	color:#003399;
+}
+
+a:visited {
+	color:#006600;
+}
+a:hover {
+	color:#FF9900;
+}
+
+a:active {
+	color:#990000;
+}
+
+/*
+ * HEADERS
+ * 
+ */
+body h1 {
+	font-size: 1.0em;
+	padding-left: 2%;
+	padding-right: 2%;
+	margin-top: 0;
+	margin-bottom: 0.4em;
+	line-height: normal;
+	clear: both;
+}
+
+body h2 {
+	font-size: 0.9em;
+	padding-left: 2%;
+	padding-right: 2%;
+	color: black;
+	background-color: #F6F6F6;
+	border-top: 1px solid #D8D8D8;
+	border-bottom: 2px solid #D8D8D8;
+	margin-top: 0;
+	margin-bottom: 0.4em;
+	line-height: normal;
+	clear: both;
+}
+
+body h3 {
+	font-size: 0.8em;
+	border: 2px solid #D8D8D8;
+	width: 95%;
+	margin: 0em auto;
+	padding: 0.3em 0.3em;
+	background-color: #F6F6F6;
+	margin-bottom: 0.4em;
+	color: black;
+}
+
+body h4 {
+	font-size: 0.7em;
+	padding-left: 2%;
+	padding-right: 2%;
+	color: #CC0066;
+	margin-top: 0;
+	margin-bottom: 0.4em;
+	font-weight: bold;
+}
+
+body h5 {
+	font-size: 0.6em;
+	background-color: #F6F6F6;
+	border-bottom: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
+	padding-left: 2%;
+	padding-right: 2%;
+	padding-top: .3em;
+	padding-bottom: .3em;
+	margin-top: 0;
+	margin-bottom: 0.6em;
+}
+
+body h6 {
+	font-size: 0.5em;
+	background-color: #F6F6F6;
+	border-bottom: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
+	padding-left: 2%;
+	padding-right: 2%;
+	padding-top: .3em;
+	padding-bottom: .3em;
+	margin-top: 0;
+	margin-bottom: 0.6em;
+}
+
+/*
+ * IMAGE WITH OPTIONAL CAPTION
+ * 
+ */
+body img.captioned {
+	margin: 0 0 0 2%;
+}
+
+body p.caption-image {
+	font-size: small;
+	margin-top: 0;
+	margin-bottom: 0.6em;
+	padding-left: 2%;
+}
+/*
+ * BLOCKQUOTE
+ * 
+ */
+blockquote {
+	margin: 0 4% 0.4em 4%;
+	padding: .6em 0 .3em 0;
+	border-top: 1px solid #D8D8D8;
+	border-bottom: 1px solid #D8D8D8;
+}
+blockquote p {
+	margin: .0;
+	padding: 0 0 0.6em 0;
+	border-bottom: 1px solid #D8D8D8;
+}
+/*
+ * LISTS
+ * 
+ */
+/* compensates for smaller Opera Mini margins */
+ol, ul, dl {
+	margin-left: 2%;
+	padding-left: 5px;
+}
+
+ul li {
+	list-style-type: none;	
+}
+
+dd {
+	margin-left: 2%;
+}
+/*forces native margin*/
+body ul, body ol, body dl {
+	margin-top: 0;
+	margin-bottom: 0.6em;
+	font-size: 100%;
+}
+/*
+ * BREADCRUMBS
+ * 
+ */
+body ul.breadcrumbs {
+	padding-top: 0;
+	padding-bottom: .5em;
+	padding-left: 0;
+	padding-right: .5em;
+	font-size: small;
+	list-style-type: none;
+	margin-bottom: 0.6em;
+	margin-top: 0;
+	margin-left: 2%;
+}
+
+body ul.breadcrumbs li {
+	display: inline;
+	line-height: 1em;
+}
+/*
+ * FORMS
+ * 
+ */
+body fieldset {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+body form {
+	font-size: 1.0em;
+	margin: 0;
+	color: #333333;
+}
+
+body form label {
+	font-size: 1.1em;
+	width: 100%;
+	margin-bottom: .5em;
+	margin-top: .5em;
+}
+
+body form input {
+	width: 100%;
+	font-size: 1.15em;
+}
+
+body input[type='text'] { 
+	padding: 0.2em;
+	margin-bottom: .5em;
+	display: block;
+}
+
+body textarea { 
+	padding: 0.2em;
+	margin-bottom: .7em;
+	display: block;
+}
+
+body form input[type='radio'], body form input[type='checkbox'] { 
+	margin:0.1em 0em;
+	padding: 0;
+}
+
+body select {
+	margin-bottom: 0;
+}
+
+body input[type='button'] {
+	font-size: 1.15em;
+	padding: 1em 1.3em;
+	color: #D8D8D8;
+	margin: 1em 0em;
+}
+
+/*
+ * TABLES
+ * 
+ */
+body table {
+	border: 1px solid #D8D8D8;
+	margin: 0;
+	width: 100%;
+	color: #333333;
+	font-size: 80%;
+}
+
+body td {
+	padding-left: .3em;
+	padding-right: .3em;
+	padding-top: .2em;
+	padding-bottom: .2em;
+	line-height: 1.5em;
+	border: 1px solid #D8D8D8;
+}
+
+/*compensates for lack of consistent header support*/
+body td.table-header {
+	color: #0033CC;
+	font-weight: bold;
+	background-color: #F6F6F6;
+}
+
+body tr {
+	height: 1.5em;
+}
+
+body table td.odd {
+	background-color: #F6F6F6;
+}
+
+/*caption-side unlikely to be supported*/
+body caption {
+	caption-side: bottom;
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
+	margin-left: .5em;
+	font-size: small;
+	text-align: left;
+	font-style: normal;
+}
+
+/*
+ * CONTAINER BOXES
+ * 
+ */
+body div.box p.box-text {
+	border: 1px solid #D8D8D8;
+	width: 92%;
+	margin: 0 auto 0.6em auto;
+	padding: 0.4em 0.4em;
+	background-color: #F6F6F6;
+}
+
+body div.header-box p {
+	font-size: 0.8em;
+	border: 1px solid #D8D8D8;
+	width: 92%;
+	margin: 0 auto 0.6em auto;
+	padding: 0.4em 0.4em;
+	background-color: #F6F6F6;
+}
+
+/* 2px border is required to ensure header is flush with the box */
+body div.header-box h3 {
+	font-size: 1.15em;
+    font-weight: bold;
+	border: 2px solid #1D5287;
+	width: 92%;
+	margin: 0em auto;
+	padding: 0.3em 0.3em;
+	background-color: #1d5288;
+	color: white;
+}
+
+/*
+ * BACK TO TOP/HOME
+ * 
+ */
+p.top {
+	font-size: small;
+	background-color: #F6F6F6;
+	border-bottom: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
+	padding-top: .3em;
+	padding-bottom: .3em;
+	margin-top: 0;
+	margin-bottom: 0.6em;
+	clear: both;
+}
+p.home {
+	font-size: small;
+	background-color: #F6F6F6;
+	border-bottom: 1px solid #D8D8D8;
+	border-top: 1px solid #D8D8D8;
+	padding-top: .3em;
+	padding-bottom: .3em;
+	margin-top: 0;
+	margin-bottom: 0.6em;
+	clear: both;
+}
+p.top a, p.home a {
+	color: #333333;
+	text-decoration: none;
+	width: 100%;
+	display: block;
+}
+

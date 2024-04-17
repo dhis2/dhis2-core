@@ -1421,6 +1421,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
+   * Returns a coalesce expression for coordinates fallback.
+   *
+   * @param fields Collection of coordinate fields.
+   * @param defaultColumnName Default coordinate field
+   * @return a coalesce expression for coordinates fallback.
+   */
+  protected String getCoalesce(List<String> fields, String defaultColumnName) {
+    if (fields == null) {
+      return defaultColumnName;
+    }
+
+    String args =
+        fields.stream()
+            .filter(f -> f != null && !f.isBlank())
+            .map(f -> sqlBuilder.quoteAx(f))
+            .collect(Collectors.joining(","));
+
+    return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
+  }
+
+  /**
    * Returns a select SQL clause for the given query.
    *
    * @param params the {@link EventQueryParams}.
