@@ -88,6 +88,7 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void deleteUserGroup(UserGroup userGroup) {
     userGroupStore.delete(userGroup);
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -98,6 +99,7 @@ public class DefaultUserGroupService implements UserGroupService {
     // Clear query cache due to sharing and user group membership
 
     cacheManager.clearQueryCache();
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -150,6 +152,7 @@ public class DefaultUserGroupService implements UserGroupService {
         userGroupStore.updateNoAcl(userGroup);
       }
     }
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
@@ -162,6 +165,7 @@ public class DefaultUserGroupService implements UserGroupService {
         userGroupStore.updateNoAcl(userGroup);
       }
     }
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   @Override
