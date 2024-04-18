@@ -179,9 +179,9 @@ jobs:
   trigger-cypress-tests:
     needs: [unit-test, integration-test, integration-h2-test]
     runs-on: ubuntu-latest
+    if: success() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/trigger-external-apps-test' || github.event_name == 'release')
     env:
       DEFAULT_DHIS2_VERSION: ${{ env.DEFAULT_DHIS2_VERSION }}
-    if: success() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/trigger-external-apps-test' || github.event_name == 'release')
     steps:
       - name: Determine DHIS2 Version
         id: set-version
@@ -194,7 +194,7 @@ jobs:
             echo "::set-output name=VERSION::${{ github.event.inputs.dhis2_version }}"
           else
             echo "Defaulting DHIS2_VERSION"
-            echo "::set-output name=VERSION::$DEFAULT_DHIS2_VERSION"
+            echo "::set-output name=VERSION::${{ env.DEFAULT_DHIS2_VERSION }}"
           fi
       - name: Trigger Cypress Tests in line-listing-app
         uses: peter-evans/repository-dispatch@v3
