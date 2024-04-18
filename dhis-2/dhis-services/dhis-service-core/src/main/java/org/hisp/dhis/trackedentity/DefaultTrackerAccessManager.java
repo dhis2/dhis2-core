@@ -32,7 +32,10 @@ import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCE
 import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -42,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -60,9 +64,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final AclService aclService;
 
   private final TrackerOwnershipManager ownershipAccessManager;
+  private final ProgramService programService;
 
   private final OrganisationUnitService organisationUnitService;
 
+  /**
+   * Check the data read permissions and ownership of a tracked entity given the programs for which
+   * the user has metadata access to.
+   *
+   * @return No errors if a user has access to at least one program
+   */
   @Override
   public List<String> canRead(User user, TrackedEntity trackedEntity) {
     List<String> errors = new ArrayList<>();
@@ -72,20 +83,66 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return errors;
     }
 
-    OrganisationUnit ou = trackedEntity.getOrganisationUnit();
-    // ou should never be null, but needs to be checked for legacy reasons
-    if (ou != null && !organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
-      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
+    return new ArrayList<>(canRead(user, trackedEntity, programService.getAllPrograms()));
+  }
+
+  private Set<String> canRead(User user, TrackedEntity trackedEntity, List<Program> programs) {
+
+    if (null == trackedEntity) {
+      return Set.of();
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
     if (!aclService.canDataRead(user, trackedEntityType)) {
-      errors.add(
+      return Set.of(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
+    initializeTrackedEntityOrgUnitParents(trackedEntity);
+
+    Set<String> errors = new HashSet<>();
+
+    List<Program> tetPrograms =
+        programs.stream()
+            .filter(
+                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+            .toList();
+
+    if (tetPrograms.isEmpty()) {
+      return Set.of(OWNERSHIP_ACCESS_DENIED);
+    }
+
+    for (Program program : tetPrograms) {
+      List<String> e = canRead(user, trackedEntity, program);
+      if (e.isEmpty()) {
+        return Set.of();
+      } else {
+        errors.addAll(e);
+      }
+    }
     return errors;
+  }
+
+  /** Check Program data read access and Tracked Entity Program Ownership */
+  private List<String> canRead(User user, TrackedEntity trackedEntity, Program program) {
+    List<String> errors = new ArrayList<>();
+
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
+    }
+
+    if (!ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+      errors.add(OWNERSHIP_ACCESS_DENIED);
+    }
+    return errors;
+  }
+
+  private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
+    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
+    while (organisationUnit.getParent() != null) {
+      organisationUnit = organisationUnit.getParent();
+    }
   }
 
   @Override
@@ -550,31 +607,29 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(User user, Relationship relationship) {
-    List<String> errors = new ArrayList<>();
-    RelationshipType relationshipType;
-    RelationshipItem from;
-    RelationshipItem to;
-
+  public Set<String> canRead(User user, Relationship relationship) {
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || relationship == null) {
-      return errors;
+      return Set.of();
     }
 
-    relationshipType = relationship.getRelationshipType();
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    Set<String> errors = new HashSet<>();
 
     if (!aclService.canDataRead(user, relationshipType)) {
       errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
     }
 
-    from = relationship.getFrom();
-    to = relationship.getTo();
+    List<Program> programs = programService.getAllPrograms();
 
-    errors.addAll(canRead(user, from.getTrackedEntity()));
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+
+    errors.addAll(canRead(user, from.getTrackedEntity(), programs));
     errors.addAll(canRead(user, from.getEnrollment(), false));
     errors.addAll(canRead(user, from.getEvent(), false));
 
-    errors.addAll(canRead(user, to.getTrackedEntity()));
+    errors.addAll(canRead(user, to.getTrackedEntity(), programs));
     errors.addAll(canRead(user, to.getEnrollment(), false));
     errors.addAll(canRead(user, to.getEvent(), false));
 
