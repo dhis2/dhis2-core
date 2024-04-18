@@ -281,7 +281,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  public void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
       throws ForbiddenException, NotFoundException {
     injectSecurityContextUser(getAdminUser());
 
@@ -327,7 +327,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  public void shouldNotReturnRelationshipWhenUserHasNoMetadataAccessToProgram()
+  void shouldNotReturnRelationshipWhenUserHasNoMetadataAccessToProgram()
       throws ForbiddenException, NotFoundException {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
@@ -370,7 +370,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  public void shouldNotReturnRelationshipWhenUserHasNoDataReadAccessToProgram() {
+  void shouldNotReturnRelationshipWhenUserHasNoDataReadAccessToProgram() {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
 
