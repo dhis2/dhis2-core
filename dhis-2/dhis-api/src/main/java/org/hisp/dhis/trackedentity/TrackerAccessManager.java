@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -82,7 +83,7 @@ public interface TrackerAccessManager {
 
   List<String> canDelete(UserDetails user, Event event, boolean skipOwnershipCheck);
 
-  List<String> canRead(UserDetails user, Relationship relationship);
+  Set<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canWrite(UserDetails user, Relationship relationship);
 

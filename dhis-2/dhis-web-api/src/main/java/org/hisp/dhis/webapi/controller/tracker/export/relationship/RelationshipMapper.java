@@ -32,7 +32,6 @@ import static java.util.Map.entry;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;

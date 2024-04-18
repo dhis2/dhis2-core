@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -442,7 +443,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
   @Transactional(readOnly = true)
   public Optional<Relationship> findRelationship(
       org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, UserDetails user) {
-    List<String> errors = trackerAccessManager.canRead(user, dao);
+    Set<String> errors = trackerAccessManager.canRead(user, dao);
 
     if (!errors.isEmpty()) {
       // Dont include relationship
@@ -455,8 +456,12 @@ public abstract class AbstractRelationshipService implements RelationshipService
     relationship.setRelationshipType(dao.getRelationshipType().getUid());
     relationship.setRelationshipName(dao.getRelationshipType().getName());
 
-    relationship.setFrom(includeRelationshipItem(dao.getFrom(), !params.isIncludeFrom()));
-    relationship.setTo(includeRelationshipItem(dao.getTo(), !params.isIncludeTo()));
+    relationship.setFrom(
+        includeRelationshipItem(
+            dao.getFrom(), !params.isIncludeFrom(), dao.getRelationshipType().getFromConstraint()));
+    relationship.setTo(
+        includeRelationshipItem(
+            dao.getTo(), !params.isIncludeTo(), dao.getRelationshipType().getToConstraint()));
 
     relationship.setBidirectional(dao.getRelationshipType().isBidirectional());
 
@@ -472,7 +477,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
   }
 
   private org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem
-      includeRelationshipItem(RelationshipItem dao, boolean uidOnly) {
+      includeRelationshipItem(
+          RelationshipItem dao, boolean uidOnly, RelationshipConstraint constraint) {
     org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem relationshipItem =
         new org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem();
 
