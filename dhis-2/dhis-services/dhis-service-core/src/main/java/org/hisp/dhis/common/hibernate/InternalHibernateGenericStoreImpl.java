@@ -339,9 +339,13 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
   }
 
   @Override
+  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUid) {
+    return aclService.getCurrentUserGroupInfo(userUid, this::fetchCurrentUserGroupInfo);
+  }
+
   // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
   // users are get invalidated when group changes
-  public CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID) {
+  private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUID) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
     Root<User> root = query.from(User.class);
@@ -349,7 +353,7 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
     query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
 
     Session session = getSession();
-    List<Object[]> results = session.createQuery(query).getResultList();
+    List<Object[]> results = session.createQuery(query).setCacheable(true).getResultList();
 
     CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
 

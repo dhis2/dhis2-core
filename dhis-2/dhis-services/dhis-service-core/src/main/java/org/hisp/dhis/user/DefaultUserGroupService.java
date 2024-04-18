@@ -195,6 +195,7 @@ public class DefaultUserGroupService implements UserGroupService {
             userGroupStore.updateNoAcl(userGroup);
           }
         });
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {
