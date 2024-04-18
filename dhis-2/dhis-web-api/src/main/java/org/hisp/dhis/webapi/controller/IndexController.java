@@ -64,18 +64,18 @@ public class IndexController {
   @GetMapping("/api")
   public void getIndex(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    String location = response.encodeRedirectURL("/resources");
+    String location = response.encodeRedirectURL("/api/resources");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
   @GetMapping("/")
   public void getIndexWithSlash(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
-    String location = response.encodeRedirectURL("/resources");
+    String location = response.encodeRedirectURL("/api/resources");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 
-  @GetMapping("/resources")
+  @GetMapping("/api/resources")
   public @ResponseBody IndexResources getResources() {
     return createIndexResources();
   }
