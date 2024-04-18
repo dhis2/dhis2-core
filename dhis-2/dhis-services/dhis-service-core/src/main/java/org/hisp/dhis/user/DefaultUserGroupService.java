@@ -80,7 +80,7 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public long addUserGroup(UserGroup userGroup) {
     userGroupStore.save(userGroup);
-
+    aclService.invalidateCurrentUserGroupInfoCache();
     return userGroup.getId();
   }
 

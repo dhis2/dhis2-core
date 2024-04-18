@@ -52,6 +52,8 @@ public interface AclService {
 
   void invalidateCurrentUserGroupInfoCache();
 
+  void invalidateCurrentUserGroupInfoCache(String userUid);
+
   /**
    * Is type supported for acl?
    *

@@ -83,6 +83,11 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
+  public void invalidateCurrentUserGroupInfoCache(String userUid) {
+    userGroupInfoCache.invalidate(userUid);
+  }
+
+  @Override
   public boolean isSupported(String type) {
     return schemaService.getSchemaBySingularName(type) != null;
   }

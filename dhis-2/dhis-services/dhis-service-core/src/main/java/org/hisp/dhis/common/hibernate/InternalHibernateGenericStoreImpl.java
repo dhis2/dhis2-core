@@ -345,28 +345,25 @@ public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
 
   // TODO: MAS can this be removed and we rely on first fetch on login? make sure current logged in
   // users are get invalidated when group changes
-  private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUID) {
+  private CurrentUserGroupInfo fetchCurrentUserGroupInfo(String userUid) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Object[]> query = builder.createQuery(Object[].class);
     Root<User> root = query.from(User.class);
-    query.where(builder.equal(root.get("uid"), userUID));
+    query.where(builder.equal(root.get("uid"), userUid));
     query.select(builder.array(root.get("uid"), root.join("groups", JoinType.LEFT).get("uid")));
 
     Session session = getSession();
-    List<Object[]> results = session.createQuery(query).setCacheable(true).getResultList();
+    List<Object[]> results = session.createQuery(query).getResultList();
 
     CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
+    currentUserGroupInfo.setUserUID(userUid);
 
     if (CollectionUtils.isEmpty(results)) {
-      currentUserGroupInfo.setUserUID(userUID);
+      currentUserGroupInfo.setUserUID(userUid);
       return currentUserGroupInfo;
     }
 
     for (Object[] result : results) {
-      if (currentUserGroupInfo.getUserUID() == null) {
-        currentUserGroupInfo.setUserUID(result[0].toString());
-      }
-
       if (result[1] != null) {
         currentUserGroupInfo.getUserGroupUIDs().add(result[1].toString());
       }
