@@ -181,7 +181,7 @@ jobs:
     runs-on: ubuntu-latest
     if: success() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/trigger-external-apps-test' || github.event_name == 'release')
     env:
-      DEFAULT_DHIS2_VERSION: ${{ env.DEFAULT_DHIS2_VERSION }}
+      DEFAULT_DHIS2_VERSION: "2.40"
     steps:
       - name: Determine DHIS2 Version
         id: set-version
