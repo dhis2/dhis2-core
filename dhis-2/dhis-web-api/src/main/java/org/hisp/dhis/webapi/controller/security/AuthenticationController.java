@@ -197,6 +197,10 @@ public class AuthenticationController {
     String redirectUrl =
         request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
 
+    if (!redirectUrl.endsWith("/")) {
+      redirectUrl += "/";
+    }
+
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {
       DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
