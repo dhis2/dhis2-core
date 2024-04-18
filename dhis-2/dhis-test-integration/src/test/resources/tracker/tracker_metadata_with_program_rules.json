@@ -109,9 +109,7 @@
   ],
   "programs": [
     {
-      "lastUpdated": "2019-01-28T11:23:20.906",
       "id": "BFcipDERJne",
-      "created": "2019-01-28T11:23:20.906",
       "name": "ProgramA",
       "shortName": "ProgramA",
       "completeEventsExpiryDays": 0,
@@ -131,12 +129,6 @@
       "useFirstStageDuringRegistration": false,
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
-      },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "createdBy": {
-        "id": "M5zQapPyTZI"
       },
       "user": {
         "id": "M5zQapPyTZI"

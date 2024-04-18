@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -39,15 +40,10 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public class TrackerNotificationMessageManager extends BaseMessageManager {
+@RequiredArgsConstructor
+public class TrackerNotificationMessageManager {
   private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
-
-  public TrackerNotificationMessageManager(
-      AsyncTaskExecutor taskExecutor,
-      ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory) {
-    super(taskExecutor);
-    this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
-  }
+  private final AsyncTaskExecutor taskExecutor;
 
   public void sendNotifications(TrackerSideEffectDataBundle bundle) {
     if (bundle == null) {
@@ -64,6 +60,6 @@ public class TrackerNotificationMessageManager extends BaseMessageManager {
 
     notificationThread.setSideEffectDataBundle(bundle);
 
-    executeJob(notificationThread);
+    taskExecutor.executeTask(notificationThread);
   }
 }
