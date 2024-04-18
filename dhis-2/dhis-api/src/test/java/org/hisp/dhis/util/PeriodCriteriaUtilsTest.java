@@ -204,6 +204,19 @@ class PeriodCriteriaUtilsTest {
     assertNull(enrollmentsAnalyticsQueryCriteria.getDesc());
   }
 
+  @Test
+  void testCriteriaHasPeriodWhenDimensionNull() {
+    // given
+    EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
+
+    // when
+    criteria.setDimension(null);
+    criteria.setEventDate("2020-12-01");
+
+    // then
+    assertTrue(PeriodCriteriaUtils.hasPeriod(criteria));
+  }
+
   private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithPeriod(
       String period) {
     EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria =
