@@ -65,11 +65,9 @@ public class DefaultAclService implements AclService {
 
   private final SchemaService schemaService;
   private final Cache<CurrentUserGroupInfo> userGroupInfoCache;
-  private final CacheProvider cacheProvider;
 
   public DefaultAclService(SchemaService schemaService, CacheProvider cacheProvider) {
     this.schemaService = schemaService;
-    this.cacheProvider = cacheProvider;
     this.userGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
   }
 
