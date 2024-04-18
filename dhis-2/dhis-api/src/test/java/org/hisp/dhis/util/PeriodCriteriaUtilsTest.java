@@ -205,7 +205,7 @@ class PeriodCriteriaUtilsTest {
   }
 
   @Test
-  void testCriteriaWithoutDimension() {
+  void testCriteriaHasPeriodWhenDimensionNull() {
     // given
     EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
 
