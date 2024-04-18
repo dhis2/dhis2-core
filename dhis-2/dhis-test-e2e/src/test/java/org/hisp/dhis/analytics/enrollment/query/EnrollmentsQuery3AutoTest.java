@@ -54,15 +54,15 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("headers=ouname,EPEcjy3FWmI.lJTx9EZ1dk1,enrollmentdate")
+            .add("headers=ouname,EPEcjy3FWmI[-1].lJTx9EZ1dk1,enrollmentdate")
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("enrollmentDate=2022")
             .add("rowContext=true")
             .add("outputType=ENROLLMENT")
-            .add("pageSize=100")
+            .add("pageSize=5")
             .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,EPEcjy3FWmI.lJTx9EZ1dk1:IN:NV");
+            .add("dimension=ou:USER_ORGUNIT,EPEcjy3FWmI[-1].lJTx9EZ1dk1:IN:NV");
 
     // When
     ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
@@ -89,7 +89,7 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
     validateHeader(
         response,
         1,
-        "EPEcjy3FWmI.lJTx9EZ1dk1",
+        "EPEcjy3FWmI[-1].lJTx9EZ1dk1",
         "Tb lab Glucose",
         "TRUE_ONLY",
         "java.lang.Boolean",
@@ -253,9 +253,9 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rowContext
-    validateRowContext(response, 0, 1, "NS");
+    validateRowContext(response, 0, 2, "NS");
 
     // Assert rows.
-    validateRow(response, 0, List.of("Motorbong MCHP", "", "1", "2022-02-18 12:27:49.129"));
+    validateRow(response, 0, List.of("Motorbong MCHP", "1", "", "2022-02-18 12:27:49.129"));
   }
 }
