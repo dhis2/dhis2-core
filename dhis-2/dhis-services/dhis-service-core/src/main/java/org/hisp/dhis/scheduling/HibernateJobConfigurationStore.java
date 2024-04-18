@@ -313,7 +313,7 @@ public class HibernateJobConfigurationStore
         and jobstatus != 'RUNNING'
         and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         """;
-    return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+    return nativeUpdateQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
   @Override
@@ -340,7 +340,7 @@ public class HibernateJobConfigurationStore
           and j2.jobstatus = 'RUNNING'
         )
         """;
-    return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+    return nativeUpdateQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
   @Override
@@ -370,7 +370,7 @@ public class HibernateJobConfigurationStore
           jobstatus = 'SCHEDULED' and schedulingtype = 'ONCE_ASAP'
           )
         """;
-    return nativeQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
+    return nativeUpdateQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
   @Override
@@ -399,7 +399,7 @@ public class HibernateJobConfigurationStore
         where uid = :id
         and jobstatus = 'RUNNING'
         """;
-    return nativeQuery(sql)
+    return nativeUpdateQuery(sql)
             .setParameter("id", jobId)
             .setParameter("status", status.name())
             .executeUpdate()
@@ -427,7 +427,7 @@ public class HibernateJobConfigurationStore
           lastexecuted is null
           or lastexecuted < (select lastexecuted from jobconfiguration where queuename = :queue and queueposition = 0 limit 1))
         """;
-    return nativeQuery(sql).setParameter("queue", queue).executeUpdate() > 0;
+    return nativeUpdateQuery(sql).setParameter("queue", queue).executeUpdate() > 0;
   }
 
   @Override
@@ -443,7 +443,7 @@ public class HibernateJobConfigurationStore
           progress = cast(:json as jsonb)
         where uid = :id
         """;
-    nativeQuery(sql)
+    nativeUpdateQuery(sql)
         .setParameter("id", jobId)
         .setParameter("json", progressJson)
         .setParameter("errors", errorCodes)
@@ -462,7 +462,7 @@ public class HibernateJobConfigurationStore
         where jobstatus = 'SCHEDULED'
         and enabled = false
         """;
-    return nativeQuery(sql).executeUpdate();
+    return nativeUpdateQuery(sql).executeUpdate();
   }
 
   @Override
@@ -478,7 +478,8 @@ public class HibernateJobConfigurationStore
         and lastfinished is not null
         and now() > lastfinished + :ttl * interval '1 minute'
         """;
-    int deletedCount = nativeQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
+    int deletedCount =
+        nativeUpdateQuery(sql).setParameter("ttl", max(1, ttlMinutes)).executeUpdate();
     if (deletedCount == 0) return 0;
     // jobs have the same UID as their respective FR
     // so if no job exists with the same UID the FR is not assigned
@@ -489,7 +490,7 @@ public class HibernateJobConfigurationStore
         where domain = 'JOB_DATA'
         and uid not in (select uid from jobconfiguration where schedulingtype = 'ONCE_ASAP')
         """;
-    nativeQuery(sql).executeUpdate();
+    nativeUpdateQuery(sql).executeUpdate();
     return deletedCount;
   }
 
@@ -520,7 +521,7 @@ public class HibernateJobConfigurationStore
         and enabled = true
         and now() > lastalive + :timeout * interval '1 minute'
         """;
-    return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();
+    return nativeUpdateQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();
   }
 
   private NativeQuery<?> nativeQuery(String sql) {
