@@ -37,7 +37,6 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -108,10 +107,5 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         .template(template)
         .logEntry(logEntry)
         .build();
-  }
-
-  protected void checkNulls(RuleEffect ruleEffect, Event event) {
-    checkNotNull(ruleEffect, "Rule Effect cannot be null");
-    checkNotNull(event, "Event cannot be null");
   }
 }
