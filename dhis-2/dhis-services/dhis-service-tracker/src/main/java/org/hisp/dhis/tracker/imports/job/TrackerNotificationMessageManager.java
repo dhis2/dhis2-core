@@ -27,17 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
-import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.artemis.Topics;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,29 +40,12 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar
  */
 @Component
-public class TrackerNotificationMessageManager extends BaseMessageManager {
+@RequiredArgsConstructor
+public class TrackerNotificationMessageManager {
   private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
+  private final AsyncTaskExecutor taskExecutor;
 
-  public TrackerNotificationMessageManager(
-      MessageManager messageManager,
-      AsyncTaskExecutor taskExecutor,
-      RenderService renderService,
-      ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory) {
-    super(messageManager, taskExecutor, renderService);
-    this.trackerNotificationThreadObjectFactory = trackerNotificationThreadObjectFactory;
-  }
-
-  @Override
-  public String getTopic() {
-    return Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME;
-  }
-
-  @JmsListener(
-      destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME,
-      containerFactory = "jmsQueueListenerContainerFactory")
-  public void consume(TextMessage message) throws JMSException, IOException {
-    TrackerSideEffectDataBundle bundle = toBundle(message);
-
+  public void sendNotifications(TrackerSideEffectDataBundle bundle) {
     if (bundle == null) {
       return;
     }
@@ -83,6 +60,6 @@ public class TrackerNotificationMessageManager extends BaseMessageManager {
 
     notificationThread.setSideEffectDataBundle(bundle);
 
-    executeJob(notificationThread);
+    taskExecutor.executeTask(notificationThread);
   }
 }
