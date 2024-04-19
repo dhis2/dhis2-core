@@ -106,7 +106,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
             .toList();
 
     if (tetPrograms.isEmpty()) {
-      return Set.of(OWNERSHIP_ACCESS_DENIED);
+      return Set.of("User has no access to any program");
     }
 
     for (Program program : tetPrograms) {
@@ -123,7 +123,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   /** Check Program data read access and Tracked Entity Program Ownership */
   private List<String> canRead(UserDetails user, TrackedEntity trackedEntity, Program program) {
     List<String> errors = new ArrayList<>();
-
     if (!aclService.canDataRead(user, program)) {
       errors.add("User has no data read access to program: " + program.getUid());
     }
