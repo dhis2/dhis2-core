@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -194,6 +195,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   @Test
   void checkAccessPermissionForTeWhenTeOuInSearchScope() {
     programA.setPublicAccess(AccessStringHelper.FULL);
+    programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
@@ -209,14 +211,14 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   @Test
   void checkAccessPermissionForTeWhenTeOuOutsideSearchScope() {
     programA.setPublicAccess(AccessStringHelper.FULL);
+    programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
     TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUid());
     // Cannot Read
-    assertHasError(
-        trackerAccessManager.canRead(user, te), "User has no read access to organisation unit:");
+    assertHasError(trackerAccessManager.canRead(user, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
     assertHasError(
         trackerAccessManager.canWrite(user, te), "User has no write access to organisation unit:");
