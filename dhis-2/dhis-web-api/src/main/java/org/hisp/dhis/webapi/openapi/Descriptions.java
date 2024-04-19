@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.joining;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -38,10 +39,11 @@ import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * Reads CommonMark markdown files into key-value pairs.
@@ -159,7 +161,7 @@ final class Descriptions {
     return stream(line.split(" "))
         .map(String::trim)
         .map(Descriptions::toKeySegment)
-        .collect(Collectors.joining("."));
+        .collect(joining("."));
   }
 
   private static String toKeySegment(String str) {
@@ -250,5 +252,13 @@ final class Descriptions {
       }
     }
     return null;
+  }
+
+  static String toMarkdown(OpenApi.Description desc) {
+    if (desc == null) return null;
+    String[] items = desc.value();
+    if (items.length == 0) return null;
+    if (items.length == 1) return items[0];
+    return Stream.of(items).map(line -> "\n* " + line).collect(joining());
   }
 }

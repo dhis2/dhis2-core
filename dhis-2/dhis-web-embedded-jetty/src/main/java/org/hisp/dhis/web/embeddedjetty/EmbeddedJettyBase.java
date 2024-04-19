@@ -54,7 +54,8 @@ import org.springframework.core.io.ClassPathResource;
 
 @Slf4j
 public abstract class EmbeddedJettyBase {
-  private String resourceBase = "./dhis-web-portal/target/dhis";
+  private String resourceBase =
+      "/home/jan/proj/work/jbee/dhis2-core/dhis-2/dhis-web-portal/target/dhis";
 
   protected EmbeddedJettyBase() {
     Thread.currentThread()

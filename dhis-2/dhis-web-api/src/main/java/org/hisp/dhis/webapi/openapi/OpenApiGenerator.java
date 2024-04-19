@@ -34,27 +34,14 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.Serializable;
-import java.net.URI;
-import java.net.URL;
-import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Value;
@@ -62,18 +49,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.node.config.InclusionStrategy;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.webmessage.WebMessageResponse;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Generates a <a href= "https://github.com/OAI/OpenAPI-Specification/blob/main/versions/">OpenAPI
@@ -114,113 +91,6 @@ public class OpenApiGenerator extends JsonGenerator {
     String contactEmail;
   }
 
-  @Value
-  @Builder
-  private static class SimpleType {
-    Class<?> source;
-
-    /*
-     * OpenAPI properties below:
-     */
-
-    String type;
-    String format;
-    String pattern;
-    Boolean nullable;
-    Integer minLength;
-    Integer maxLength;
-    String[] enums;
-  }
-
-  private static final Map<Class<?>, List<SimpleType>> SIMPLE_TYPES = new IdentityHashMap<>();
-
-  public static boolean isSimpleType(Class<?> type) {
-    return SIMPLE_TYPES.containsKey(type);
-  }
-
-  private static void addSimpleType(
-      Class<?> source, Consumer<SimpleType.SimpleTypeBuilder> schema) {
-    SimpleType.SimpleTypeBuilder b = new SimpleType.SimpleTypeBuilder();
-    b.source(source);
-    schema.accept(b);
-    SimpleType s = b.build();
-    SIMPLE_TYPES.computeIfAbsent(s.source, key -> new ArrayList<>()).add(s);
-  }
-
-  static {
-    addSimpleType(byte.class, schema -> schema.type("integer").format("int8").nullable(false));
-    addSimpleType(byte[].class, schema -> schema.type("string").format("binary").nullable(false));
-    addSimpleType(int.class, schema -> schema.type("integer").format("int32").nullable(false));
-    addSimpleType(long.class, schema -> schema.type("integer").format("int64").nullable(false));
-    addSimpleType(float.class, schema -> schema.type("number").format("float").nullable(false));
-    addSimpleType(double.class, schema -> schema.type("number").format("double").nullable(false));
-    addSimpleType(boolean.class, schema -> schema.type("boolean").nullable(false));
-    addSimpleType(
-        char.class, schema -> schema.type("string").nullable(false).minLength(1).maxLength(1));
-    addSimpleType(Integer.class, schema -> schema.type("integer").format("int32").nullable(true));
-    addSimpleType(Long.class, schema -> schema.type("integer").format("int64").nullable(true));
-    addSimpleType(Float.class, schema -> schema.type("number").format("float").nullable(true));
-    addSimpleType(Double.class, schema -> schema.type("number").format("double").nullable(true));
-    addSimpleType(Boolean.class, schema -> schema.type("boolean").nullable(true));
-    addSimpleType(
-        Character.class, schema -> schema.type("string").nullable(true).minLength(1).maxLength(1));
-    addSimpleType(String.class, schema -> schema.type("string").nullable(true));
-    addSimpleType(Class.class, schema -> schema.type("string").format("class").nullable(false));
-    addSimpleType(Date.class, schema -> schema.type("string").format("date-time").nullable(true));
-    addSimpleType(URI.class, schema -> schema.type("string").format("uri").nullable(true));
-    addSimpleType(URL.class, schema -> schema.type("string").format("url").nullable(true));
-    addSimpleType(
-        UUID.class,
-        schema ->
-            schema
-                .type("string")
-                .format("uuid")
-                .nullable(true)
-                .pattern(
-                    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"));
-    addSimpleType(
-        UID.class,
-        schema ->
-            schema.type("string").format("uid").nullable(true).pattern(CodeGenerator.UID_REGEXP));
-    addSimpleType(Locale.class, schema -> schema.type("string").nullable(true));
-    addSimpleType(Instant.class, schema -> schema.type("string").format("date-time"));
-    addSimpleType(Instant.class, schema -> schema.type("integer").format("int64"));
-    addSimpleType(Serializable.class, schema -> schema.type("string"));
-    addSimpleType(Serializable.class, schema -> schema.type("number"));
-    addSimpleType(Serializable.class, schema -> schema.type("boolean"));
-
-    addSimpleType(Period.class, schema -> schema.type("string").format("period"));
-    addSimpleType(
-        PeriodType.class,
-        schema ->
-            schema
-                .type("string")
-                .enums(
-                    stream(PeriodTypeEnum.values())
-                        .map(PeriodTypeEnum::getName)
-                        .toArray(String[]::new)));
-    addSimpleType(
-        InclusionStrategy.class,
-        schema ->
-            schema
-                .type("string")
-                .enums(
-                    stream(InclusionStrategy.Include.values())
-                        .map(Enum::name)
-                        .toArray(String[]::new)));
-    addSimpleType(MultipartFile.class, schema -> schema.type("string").format("binary"));
-
-    addSimpleType(JsonNode.class, schema -> schema.type("object"));
-    addSimpleType(ObjectNode.class, schema -> schema.type("object"));
-    addSimpleType(ArrayNode.class, schema -> schema.type("array"));
-    addSimpleType(RootNode.class, schema -> schema.type("object"));
-    addSimpleType(JsonPointer.class, schema -> schema.type("string"));
-
-    addSimpleType(Geometry.class, schema -> schema.type("object"));
-    addSimpleType(WebMessageResponse.class, schema -> schema.type("object"));
-    addSimpleType(JobParameters.class, schema -> schema.type("object"));
-  }
-
   public static String generateJson(Api api, String serverUrl) {
     return generateJson(
         api, Format.PRETTY_PRINT, Info.DEFAULT.toBuilder().serverUrl(serverUrl).build());
@@ -257,9 +127,7 @@ public class OpenApiGenerator extends JsonGenerator {
   private static final String NO_DESCRIPTION = "[no description yet]";
 
   private final Api api;
-
   private final Info info;
-
   private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
 
   private OpenApiGenerator(
@@ -344,14 +212,13 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generatePathMethod(RequestMethod method, Api.Endpoint endpoint) {
     Set<String> tags = mergeTags(endpoint.getIn().getTags(), endpoint.getTags());
-    if (endpoint.isSynthetic()) tags.add("synthetic");
     addObjectMember(
         method.name().toLowerCase(),
         () -> {
           addTrueMember("deprecated", endpoint.getDeprecated());
           addStringMultilineMember("description", endpoint.getDescription().orElse(NO_DESCRIPTION));
           addStringMember("operationId", getUniqueOperationId(endpoint));
-          addArrayMember("tags", tags);
+          addInlineArrayMember("tags", List.copyOf(tags));
           addArrayMember(
               "parameters", endpoint.getParameters().values(), this::generateParameterOrRef);
           if (endpoint.getRequestBody().isPresent()) {
@@ -483,7 +350,7 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateSchema(Api.Schema schema, String defaultValue) {
     Class<?> type = schema.getRawType();
-    List<SimpleType> types = SIMPLE_TYPES.get(type);
+    List<SimpleType> types = SimpleType.of(type);
     if (types != null) {
       if (types.size() == 1) {
         generateSimpleTypeSchema(types.get(0), defaultValue);
@@ -522,13 +389,13 @@ public class OpenApiGenerator extends JsonGenerator {
     if (schemaType == Api.Schema.Type.ENUM) {
       addStringMember("type", "string");
       if (defaultValue != null) addStringMember("default", defaultValue);
-      addArrayMember("enum", schema.getValues());
+      addInlineArrayMember("enum", schema.getValues());
       return;
     }
     if (type.isEnum()) {
       addStringMember("type", "string");
       if (defaultValue != null) addStringMember("default", defaultValue);
-      addArrayMember(
+      addInlineArrayMember(
           "enum", stream(type.getEnumConstants()).map(e -> ((Enum<?>) e).name()).toList());
       return;
     }
@@ -553,7 +420,7 @@ public class OpenApiGenerator extends JsonGenerator {
               "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
         return;
       }
-      addArrayMember("required", schema.getRequiredProperties());
+      addInlineArrayMember("required", schema.getRequiredProperties());
       addObjectMember(
           "properties",
           schema.getProperties(),
@@ -592,17 +459,17 @@ public class OpenApiGenerator extends JsonGenerator {
         default ->
             log.warn(
                 "Unsupported default value provided for type %s of %s: %s"
-                    .formatted(type, simpleType.source.getSimpleName(), defaultValue));
+                    .formatted(type, simpleType.getSource().getSimpleName(), defaultValue));
       }
     }
     if (simpleType.getEnums() != null) {
-      addArrayMember("enum", List.of(simpleType.getEnums()));
+      addInlineArrayMember("enum", List.of(simpleType.getEnums()));
     }
   }
 
   private void generateRefTypeSchema(Api.Schema schema) {
     addStringMember("type", "object");
-    addArrayMember("required", List.of("id"));
+    addInlineArrayMember("required", List.of("id"));
     addObjectMember("properties", () -> addObjectMember("id", () -> generateUidSchema(schema)));
     addTypeDescriptionMember(schema.getRawType(), "A UID reference to a %s  \n(Java name `%s`)");
   }
