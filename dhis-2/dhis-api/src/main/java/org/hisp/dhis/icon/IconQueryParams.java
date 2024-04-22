@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
@@ -37,33 +36,24 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
- * Represents query parameters sent to {@link Icon}.
- *
  * @author Zubair Asghar
  */
 @Data
 @NoArgsConstructor
 public class IconQueryParams {
 
-  private List<String> keys = new ArrayList<>();
-  private List<String> keywords = new ArrayList<>();
-  private List<OrderCriteria> order = new ArrayList<>();
+  private List<String> keys;
+  private List<String> keywords;
+  private List<OrderCriteria> order;
   private Date createdStartDate;
   private Date createdEndDate;
   private Date lastUpdatedStartDate;
   private Date lastUpdatedEndDate;
-  private Boolean includeCustomIcon = null;
+  private IconTypeFilter type = IconTypeFilter.ALL;
   private String search;
   private boolean paging = true;
-  private Pager pager = new Pager();
-
-  public boolean hasLastUpdatedStartDate() {
-    return lastUpdatedStartDate != null;
-  }
-
-  public boolean hasLastUpdatedEndDate() {
-    return lastUpdatedEndDate != null;
-  }
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int page = 1;
 
   public boolean hasCreatedStartDate() {
     return createdStartDate != null;
@@ -73,16 +63,20 @@ public class IconQueryParams {
     return createdEndDate != null;
   }
 
+  public boolean hasLastUpdatedStartDate() {
+    return lastUpdatedStartDate != null;
+  }
+
+  public boolean hasLastUpdatedEndDate() {
+    return lastUpdatedEndDate != null;
+  }
+
   public boolean hasKeywords() {
-    return !keywords.isEmpty();
+    return keywords != null && !keywords.isEmpty();
   }
 
   public boolean hasKeys() {
-    return !keys.isEmpty();
-  }
-
-  public boolean hasCustom() {
-    return includeCustomIcon != null;
+    return keys != null && !keys.isEmpty();
   }
 
   public boolean hasSearch() {

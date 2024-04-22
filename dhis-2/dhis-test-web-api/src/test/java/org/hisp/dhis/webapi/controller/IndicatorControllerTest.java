@@ -102,14 +102,16 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/indicators/merge",
                 """
-            {
-                "sources": ["Uid00000010"],
-                "target": "Uid00000012",
-                "deleteSources": true
-            }""")
+        {
+            "sources": ["Uid00000010"],
+            "target": "Uid00000012",
+            "deleteSources": true
+        }""")
             .content(HttpStatus.FORBIDDEN);
     assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
     assertEquals("ERROR", mergeResponse.getString("status").string());
-    assertEquals("Access is denied", mergeResponse.getString("message").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_INDICATOR_MERGE]",
+        mergeResponse.getString("message").string());
   }
 }

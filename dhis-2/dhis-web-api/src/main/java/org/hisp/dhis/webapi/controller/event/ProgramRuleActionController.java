@@ -39,7 +39,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleValidationResult;
-import org.hisp.dhis.schema.descriptors.ProgramRuleActionSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -54,7 +53,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = ProgramRuleActionSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programRuleActions")
 public class ProgramRuleActionController extends AbstractCrudController<ProgramRuleAction> {
   private final I18nManager i18nManager;
 

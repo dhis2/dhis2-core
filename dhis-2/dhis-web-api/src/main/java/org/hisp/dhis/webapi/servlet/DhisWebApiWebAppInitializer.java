@@ -91,13 +91,16 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
-    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
-    dispatcher.addMapping("/api/*");
-    dispatcher.addMapping("/uaa/*");
+    dispatcher.addMapping("/*");
+
+    context
+        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
     context
         .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))

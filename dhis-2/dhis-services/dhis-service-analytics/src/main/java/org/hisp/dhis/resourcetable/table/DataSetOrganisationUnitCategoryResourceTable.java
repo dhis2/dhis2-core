@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -45,34 +46,32 @@ import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataSetOrganisationUnitCategoryResourceTable extends AbstractResourceTable {
+@RequiredArgsConstructor
+public class DataSetOrganisationUnitCategoryResourceTable implements ResourceTable {
   public static final String TABLE_NAME = "analytics_rs_datasetorganisationunitcategory";
+
+  private final Logged logged;
 
   private final List<DataSet> dataSets;
 
   private final CategoryOptionCombo defaultOptionCombo;
 
-  public DataSetOrganisationUnitCategoryResourceTable(
-      SqlBuilder sqlBuilder,
-      Logged logged,
-      List<DataSet> dataSets,
-      CategoryOptionCombo defaultOptionCombo) {
-    super(sqlBuilder, logged);
-    this.dataSets = dataSets;
-    this.defaultOptionCombo = defaultOptionCombo;
-  }
-
   @Override
   public Table getTable() {
     return new Table(toStaging(TABLE_NAME), getColumns(), getPrimaryKey(), logged);
+  }
+
+  @Override
+  public Table getMainTable() {
+    return new Table(TABLE_NAME, getColumns(), getPrimaryKey(), logged);
   }
 
   private List<Column> getColumns() {

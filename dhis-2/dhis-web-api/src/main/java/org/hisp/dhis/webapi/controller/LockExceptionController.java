@@ -89,10 +89,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping(LockExceptionController.RESOURCE_PATH)
+@RequestMapping("/api/lockExceptions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LockExceptionController extends AbstractGistReadOnlyController<LockException> {
-  public static final String RESOURCE_PATH = "/lockExceptions";
 
   @Autowired private ContextService contextService;
 

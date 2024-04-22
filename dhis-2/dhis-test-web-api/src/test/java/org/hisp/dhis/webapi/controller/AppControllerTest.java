@@ -32,8 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -55,5 +58,25 @@ class AppControllerTest extends DhisControllerConvenienceTest {
     HttpResponse response = GET("/apps?key=xyz");
     assertEquals(HttpStatus.NOT_FOUND, response.status());
     assertFalse(response.hasBody());
+  }
+
+  @Test
+  @DisplayName(
+      "Requesting to reload the apps while missing the required auth results in an exception")
+  void testReloadAppsNoAuth() {
+    switchToNewUser("noAuth", "NoAuth");
+    JsonMixed mergeResponse = PUT("/apps").content(HttpStatus.FORBIDDEN);
+    assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
+    assertEquals("ERROR", mergeResponse.getString("status").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [M_dhis-web-app-management]",
+        mergeResponse.getString("message").string());
+  }
+
+  @Test
+  @DisplayName("Requesting to reload the apps with the required auth results in success")
+  void testReloadAppsWithAuth() {
+    switchToNewUser("hasAuth", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());
+    assertEquals(HttpStatus.NO_CONTENT, PUT("/apps").status());
   }
 }

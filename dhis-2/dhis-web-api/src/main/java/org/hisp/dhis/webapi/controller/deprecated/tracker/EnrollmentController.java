@@ -95,7 +95,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Deprecated(since = "2.41")
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = EnrollmentController.RESOURCE_PATH)
+@RequestMapping("/api/enrollments")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class EnrollmentController {
   public static final String RESOURCE_PATH = "/enrollments";

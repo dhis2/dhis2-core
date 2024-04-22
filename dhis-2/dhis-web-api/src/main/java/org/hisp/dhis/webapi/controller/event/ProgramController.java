@@ -53,7 +53,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -74,7 +73,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = ProgramSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programs")
 @RequiredArgsConstructor
 public class ProgramController extends AbstractCrudController<Program> {
   private final ProgramService programService;

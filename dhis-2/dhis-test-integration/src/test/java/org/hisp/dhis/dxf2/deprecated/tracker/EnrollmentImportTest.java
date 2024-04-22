@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker;
 
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -53,6 +52,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -116,7 +116,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest {
     enrollment.enrollTrackedEntity(trackedEntity, program);
     manager.save(enrollment);
 
-    user = createAndAddAdminUser(AUTHORITY_ALL);
+    user = createAndAddAdminUser(Authorities.ALL.toString());
   }
 
   @Test

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
@@ -41,6 +40,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON_ZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -76,6 +76,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -86,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(Event.class)
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
+@RequestMapping("/api/tracker/events")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class EventsExportController {
   protected static final String EVENTS = "events";
@@ -144,8 +145,13 @@ class EventsExportController {
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
-  @GetMapping(produces = "application/json")
-  Page<ObjectNode> getEvents(EventRequestParams requestParams)
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<Page<ObjectNode>> getEvents(EventRequestParams requestParams)
       throws BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
@@ -161,7 +167,9 @@ class EventsExportController {
           fieldFilterService.toObjectNodes(
               EVENTS_MAPPER.fromCollection(eventsPage.getItems()), requestParams.getFields());
 
-      return Page.withPager(EVENTS, eventsPage.withItems(objectNodes));
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(Page.withPager(EVENTS, eventsPage.withItems(objectNodes)));
     }
 
     List<org.hisp.dhis.program.Event> events = eventService.getEvents(eventOperationParams);
@@ -169,7 +177,9 @@ class EventsExportController {
         fieldFilterService.toObjectNodes(
             EVENTS_MAPPER.fromCollection(events), requestParams.getFields());
 
-    return Page.withoutPager(EVENTS, objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager(EVENTS, objectNodes));
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)

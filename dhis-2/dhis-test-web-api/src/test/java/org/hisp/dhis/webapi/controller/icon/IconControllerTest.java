@@ -45,6 +45,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
@@ -108,8 +109,8 @@ class IconControllerTest extends DhisControllerIntegrationTest {
     createIcon(keywordsList1, key1);
 
     assertEquals(
-        String.format("Icon not found: %s", "key-not-existent"),
-        PUT(String.format("/icons/%s", "key-not-existent"))
+        "Icon with id key-not-existent could not be found.",
+        PUT("/icons/key-not-existent", "{'keywords':[], 'description':''}")
             .error(HttpStatus.NOT_FOUND)
             .getMessage());
   }
@@ -233,8 +234,8 @@ class IconControllerTest extends DhisControllerIntegrationTest {
   }
 
   private JsonWebMessage createIcon(String fileResourceId, Set<String> keywords, String key) {
-    CustomIconRequest request =
-        CustomIconRequest.builder()
+    AddIconRequest request =
+        AddIconRequest.builder()
             .key(key)
             .fileResourceId(fileResourceId)
             .keywords(keywords)
