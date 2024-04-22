@@ -579,10 +579,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates an INNER JOIN for organisation units. If a program is specified, we join on program
-   * ownership (PO), if not we join by tracked entity (TE). Based on the ouMode, they will boil down
-   * to either DESCENDANTS (requiring matching on the org unit's PATH), CHILDREN (matching on the
-   * org unit's PATH or any of its immediate children), SELECTED (matching the specified org unit
-   * id) or ALL (no constraints).
+   * ownership (PO), if not we check whether the user has access to the TE/program pair owner. Based
+   * on the ouMode, they will boil down to either DESCENDANTS (requiring matching on the org unit's
+   * PATH), CHILDREN (matching on the org unit's PATH or any of its immediate children), SELECTED
+   * (matching the specified org unit id) or ALL (no constraints).
    *
    * @return a SQL INNER JOIN for organisation units
    */
@@ -614,6 +614,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return orgUnits.toString();
   }
 
+  /**
+   * In case of a regular user, generates a subquery to find the TE/program pair owner. It will
+   * return the TE registering org unit if none found. In case of a superuser, will return the TE
+   * registering org unit directly.
+   */
   private String getOwnerOrgUnitsForAccessibleTrackedEntityPrograms(
       TrackedEntityQueryParams params) {
     if (skipOwnershipCheck(params)) {
