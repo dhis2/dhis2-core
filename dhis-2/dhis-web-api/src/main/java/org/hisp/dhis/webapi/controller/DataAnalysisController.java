@@ -112,12 +112,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping(value = DataAnalysisController.RESOURCE_PATH)
+@RequestMapping("/api/dataAnalysis")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j
 @RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class DataAnalysisController {
-  public static final String RESOURCE_PATH = "/dataAnalysis";
 
   private static final String KEY_ANALYSIS_DATA_VALUES = "analysisDataValues";
 

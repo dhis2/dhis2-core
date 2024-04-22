@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = "/scheduling")
+@RequestMapping("/api/scheduling")
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SchedulingController {

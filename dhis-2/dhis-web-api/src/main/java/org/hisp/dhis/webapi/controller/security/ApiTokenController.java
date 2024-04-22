@@ -51,7 +51,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -69,8 +68,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags({"user", "login"})
 @Controller
-@RequestMapping(
-    value = {ApiTokenSchemaDescriptor.API_ENDPOINT_OLD, ApiTokenSchemaDescriptor.API_ENDPOINT_NEW})
+@RequestMapping({"/api/apiToken", "/api/apiTokens"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ApiTokenController extends AbstractCrudController<ApiToken> {

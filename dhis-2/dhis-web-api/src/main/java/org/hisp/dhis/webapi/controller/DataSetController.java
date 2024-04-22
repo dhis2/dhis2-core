@@ -90,7 +90,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
@@ -116,7 +115,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = DataSetSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/dataSets")
 public class DataSetController extends AbstractCrudController<DataSet> {
   public static final String DSD_TRANSFORM = "/templates/metadata2dsd.xsl";
 

@@ -91,11 +91,11 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping(RESOURCE_PATH)
+@RequestMapping("/api/staticContent")
 @Slf4j
 @ApiVersion({DEFAULT, ALL})
 public class StaticContentController {
-  protected static final String RESOURCE_PATH = "/staticContent";
+  protected static final String RESOURCE_PATH = "";
 
   private SystemSettingManager systemSettingManager;
 

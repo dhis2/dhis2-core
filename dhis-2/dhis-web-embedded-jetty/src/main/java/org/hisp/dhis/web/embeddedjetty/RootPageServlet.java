@@ -48,7 +48,7 @@ public class RootPageServlet extends HttpServlet {
     if (springSecurityContext != null) {
       String referer = (String) req.getAttribute("origin");
       req.setAttribute("origin", referer);
-      resp.sendRedirect("/dhis-web-dashboard");
+      resp.sendRedirect("/dhis-web-dashboard/");
     } else {
       String content = getResourceFileAsString("login.html");
       resp.setContentType("text/html");

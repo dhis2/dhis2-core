@@ -18,11 +18,6 @@
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-apps</artifactId>
-      <type>war</type>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
     </dependency>
     <dependency>
@@ -131,6 +126,22 @@
           <archive>
             <compress>${useWarCompression}</compress>
           </archive>
+          <webResources>
+            <resource>
+              <directory>../dhis-web-commons-resources/src/main/webapp</directory>
+              <targetPath>WEB-INF/classes/static</targetPath>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </resource>
+            <resource>
+              <directory>../dhis-web-apps/target/dhis-web-apps</directory>
+              <targetPath>WEB-INF/classes/static</targetPath>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </resource>
+          </webResources>
         </configuration>
       </plugin>
 

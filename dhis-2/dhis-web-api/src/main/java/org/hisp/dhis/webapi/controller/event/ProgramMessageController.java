@@ -69,7 +69,7 @@ import org.springframework.web.bind.annotation.RestController;
 /** Zubair <rajazubair.asghar@gmail.com> */
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = "/messages")
+@RequestMapping("/api/messages")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
   // -------------------------------------------------------------------------

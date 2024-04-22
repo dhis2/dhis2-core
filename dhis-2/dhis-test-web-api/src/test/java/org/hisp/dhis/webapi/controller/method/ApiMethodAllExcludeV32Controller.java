@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping("/method/testAllExcludeV32")
+@RequestMapping("/api/method/testAllExcludeV32")
 public class ApiMethodAllExcludeV32Controller {
   @GetMapping("a")
   @ApiVersion(value = DhisApiVersion.ALL, exclude = DhisApiVersion.V32)

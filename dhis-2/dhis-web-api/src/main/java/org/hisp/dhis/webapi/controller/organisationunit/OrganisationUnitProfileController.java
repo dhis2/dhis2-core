@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping(value = "/organisationUnitProfile")
+@RequestMapping("/api/organisationUnitProfile")
 public class OrganisationUnitProfileController {
   private final OrgUnitProfileService orgUnitProfileService;
 

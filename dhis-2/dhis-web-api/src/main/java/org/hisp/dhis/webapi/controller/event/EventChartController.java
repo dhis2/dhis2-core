@@ -53,7 +53,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -80,7 +79,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @OpenApi.Ignore
 @Deprecated
 @Controller
-@RequestMapping(value = EventChartSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/eventCharts")
 public class EventChartController extends AbstractCrudController<EventChart> {
   @Autowired private EventChartService eventChartService;
 

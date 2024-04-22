@@ -103,7 +103,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
-    dispatcher.addMapping("/api/*");
+    dispatcher.addMapping("/*");
 
     context.addServlet("RedirectRootServlet", RedirectRootServlet.class).addMapping("");
 

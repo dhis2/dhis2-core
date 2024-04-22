@@ -40,7 +40,6 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.schema.descriptors.PredictorGroupSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -55,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = PredictorGroupSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/predictorGroups")
 public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {
   @Autowired private PredictionService predictionService;
 

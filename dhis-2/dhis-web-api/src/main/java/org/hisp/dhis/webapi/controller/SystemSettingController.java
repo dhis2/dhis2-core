@@ -81,7 +81,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping("/systemSettings")
+@RequestMapping("/api/systemSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class SystemSettingController {
