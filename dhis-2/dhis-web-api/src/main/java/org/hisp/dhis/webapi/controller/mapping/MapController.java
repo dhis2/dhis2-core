@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.mapping;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.awt.image.BufferedImage;
@@ -147,7 +148,8 @@ public class MapController extends AbstractCrudController<Map> {
             .setSkipSharing(params.isSkipSharing())
             .setSkipTranslation(params.isSkipTranslation()));
     mappingService.updateMap(map);
-    return null;
+
+    return ok();
   }
 
   @Override
