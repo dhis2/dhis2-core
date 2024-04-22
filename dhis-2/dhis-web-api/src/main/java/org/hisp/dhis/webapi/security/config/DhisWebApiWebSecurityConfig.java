@@ -56,7 +56,6 @@ import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
 import org.hisp.dhis.webapi.security.switchuser.DhisSwitchUserFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -106,8 +105,6 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   @Autowired public DataSource dataSource;
-
-  @Autowired private ApplicationContext applicationContext;
 
   @Autowired private DhisConfigurationProvider dhisConfig;
 
@@ -186,12 +183,12 @@ public class DhisWebApiWebSecurityConfig {
   private void configureFormLogin(HttpSecurity http) throws Exception {
     http.formLogin()
         .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-        .loginPage("/dhis-web-login")
+        .loginPage("/dhis-web-login/")
         .usernameParameter("j_username")
         .passwordParameter("j_password")
         .loginProcessingUrl("/api/authentication/login")
-        .failureUrl("/dhis-web-login?error=true")
-        .defaultSuccessUrl("/dhis-web-dashboard", true)
+        .failureUrl("/dhis-web-login/?error=true")
+        .defaultSuccessUrl("/dhis-web-dashboard/", true)
         .permitAll();
   }
 
@@ -314,6 +311,8 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
                   .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/static/**"))
+                  .permitAll()
 
                   ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -384,7 +383,7 @@ public class DhisWebApiWebSecurityConfig {
                     .tokenEndpoint()
                     .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
                     .and()
-                    .failureUrl("/dhis-web-login?oidcFailure=true")
+                    .failureUrl("/dhis-web-login/?oidcFailure=true")
                     .clientRegistrationRepository(dhisOidcProviderRepository)
                     .loginProcessingUrl("/oauth2/code/*")
                     .authorizationEndpoint()
@@ -429,7 +428,7 @@ public class DhisWebApiWebSecurityConfig {
   public Http401LoginUrlAuthenticationEntryPoint entryPoint() {
     // Converts to a HTTP basic login if "XMLHttpRequest".equals(
     // request.getHeader( "X-Requested-With" ) )
-    return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-login");
+    return new Http401LoginUrlAuthenticationEntryPoint("/dhis-web-login/");
   }
 
   @Bean
@@ -535,8 +534,8 @@ public class DhisWebApiWebSecurityConfig {
         new AntPathRequestMatcher("/impersonate", "POST", true, new UrlPathHelper()));
     filter.setExitUserMatcher(
         new AntPathRequestMatcher("/impersonateExit", "POST", true, new UrlPathHelper()));
-    filter.setSwitchFailureUrl("/dhis-web-dashboard");
-    filter.setTargetUrl("/dhis-web-dashboard");
+    filter.setSwitchFailureUrl("/dhis-web-dashboard/");
+    filter.setTargetUrl("/dhis-web-dashboard/");
     return filter;
   }
 

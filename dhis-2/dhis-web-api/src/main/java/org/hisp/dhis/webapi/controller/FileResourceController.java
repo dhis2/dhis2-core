@@ -55,7 +55,6 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceOwner;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -78,7 +77,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = FileResourceSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/fileResources")
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor

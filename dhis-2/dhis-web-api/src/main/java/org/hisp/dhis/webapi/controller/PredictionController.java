@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = "/predictions")
+@RequestMapping("/api/predictions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class PredictionController {

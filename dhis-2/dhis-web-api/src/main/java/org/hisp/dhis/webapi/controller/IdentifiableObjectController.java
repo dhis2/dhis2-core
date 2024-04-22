@@ -49,9 +49,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = IdentifiableObjectController.RESOURCE_PATH)
+@RequestMapping("/api/identifiableObjects")
 public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
-  public static final String RESOURCE_PATH = "/identifiableObjects";
 
   @Override
   @SuppressWarnings("unchecked")

@@ -58,11 +58,10 @@ import org.springframework.web.client.RestTemplate;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping(value = SynchronizationController.RESOURCE_PATH)
+@RequestMapping("/api/synchronization")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class SynchronizationController {
-  public static final String RESOURCE_PATH = "/synchronization";
 
   private final SynchronizationManager synchronizationManager;
   private final DhisConfigurationProvider configProvider;

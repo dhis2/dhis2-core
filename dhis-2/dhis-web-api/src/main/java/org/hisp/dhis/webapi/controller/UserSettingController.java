@@ -73,7 +73,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"user", "management"})
 @RestController
-@RequestMapping("/userSettings")
+@RequestMapping("/api/userSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class UserSettingController {
   @Autowired private UserSettingService userSettingService;

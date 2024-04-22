@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"user", "query"})
 @RestController
-@RequestMapping(value = "/authorities")
+@RequestMapping("/api/authorities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AuthoritiesController {
   @Autowired private I18nManager i18nManager;

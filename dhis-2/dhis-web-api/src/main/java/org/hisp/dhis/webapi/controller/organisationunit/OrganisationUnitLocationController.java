@@ -54,9 +54,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = OrganisationUnitLocationController.RESOURCE_PATH)
+@RequestMapping("/api/organisationUnitLocations")
 public class OrganisationUnitLocationController {
-  public static final String RESOURCE_PATH = "/organisationUnitLocations";
 
   private static final String ORGUNIGROUP_SYMBOL = "orgUnitGroupSymbol";
 

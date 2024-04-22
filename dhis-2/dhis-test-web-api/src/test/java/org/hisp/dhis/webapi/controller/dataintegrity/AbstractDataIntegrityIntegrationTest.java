@@ -60,7 +60,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
   final void postDetails(String check) {
     HttpResponse trigger = POST("/dataIntegrity/details?checks=" + check);
     assertStatus(HttpStatus.OK, trigger);
-    assertEquals("http://localhost/dataIntegrity/details?checks=" + check, trigger.location());
+    assertEquals("http://localhost/api/dataIntegrity/details?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
 
@@ -76,7 +76,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
   public final void postSummary(String check) {
     HttpResponse trigger = POST("/dataIntegrity/summary?checks=" + check);
     assertStatus(HttpStatus.OK, trigger);
-    assertEquals("http://localhost/dataIntegrity/summary?checks=" + check, trigger.location());
+    assertEquals("http://localhost/api/dataIntegrity/summary?checks=" + check, trigger.location());
     assertTrue(trigger.content().isA(JsonWebMessage.class));
   }
 

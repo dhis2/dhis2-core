@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping("/method/testV31V32")
+@RequestMapping("/api/method/testV31V32")
 public class ApiMethodV31V32Controller {
   @GetMapping("a")
   @ApiVersion(DhisApiVersion.V31)

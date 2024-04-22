@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class AnalyticsController {
-  private static final String RESOURCE_PATH = "/analytics";
+  private static final String RESOURCE_PATH = "/api/analytics";
 
   private static final String EXPLAIN_PATH = "/explain";
 
