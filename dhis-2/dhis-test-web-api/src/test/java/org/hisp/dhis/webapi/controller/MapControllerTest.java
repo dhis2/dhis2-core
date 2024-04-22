@@ -60,7 +60,7 @@ class MapControllerTest extends DhisControllerConvenienceTest {
             + "'";
 
     assertStatus(
-        HttpStatus.NO_CONTENT,
+        HttpStatus.OK,
         PUT("/maps/" + mapId, "{'name':'My updated map'," + mandatoryProperties + "}"));
 
     map = GET("/maps/{uid}", mapId).content();
