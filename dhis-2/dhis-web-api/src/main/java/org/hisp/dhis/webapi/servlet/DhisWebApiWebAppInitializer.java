@@ -95,10 +95,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
-
-
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
-    servlet.setEnvironment();
 
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
