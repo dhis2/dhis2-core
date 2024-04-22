@@ -104,7 +104,7 @@ class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest 
   }
 
   private void assertClearsFileResourceDataValue(Runnable clearRequest) {
-    String url = format("/dataValues/file?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc);
+    String url = format("/api/dataValues/file?de=%s&pe=%s&ou=%s&co=%s", de, pe, ou, coc);
     MockMultipartFile image =
         new MockMultipartFile(
             "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());

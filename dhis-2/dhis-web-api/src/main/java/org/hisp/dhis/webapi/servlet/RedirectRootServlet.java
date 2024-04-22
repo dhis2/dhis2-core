@@ -46,11 +46,11 @@ public class RedirectRootServlet extends HttpServlet {
     if (hasCurrentUser) {
       String referer = (String) req.getAttribute("origin");
       req.setAttribute("origin", referer);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard");
+      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard/");
     } else {
       resp.setContentType("text/html");
       resp.setStatus(HttpServletResponse.SC_OK);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-login");
+      resp.sendRedirect(req.getContextPath() + "/dhis-web-login/");
     }
   }
 }

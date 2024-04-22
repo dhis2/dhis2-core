@@ -49,7 +49,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -67,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping(value = IndicatorSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/indicators")
 public class IndicatorController extends AbstractCrudController<Indicator> {
   private final ExpressionService expressionService;
 
@@ -100,7 +99,7 @@ public class IndicatorController extends AbstractCrudController<Indicator> {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @RequiresAuthority(anyOf = {F_INDICATOR_MERGE})
+  @RequiresAuthority(anyOf = F_INDICATOR_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicators(@RequestBody MergeParams params)
       throws ConflictException {

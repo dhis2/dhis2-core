@@ -47,10 +47,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = MenuController.RESOURCE_PATH)
+@RequestMapping("/api/menu")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MenuController {
-  public static final String RESOURCE_PATH = "/menu";
 
   @Autowired private UserService userService;
 

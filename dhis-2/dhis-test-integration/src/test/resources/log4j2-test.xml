@@ -62,7 +62,16 @@
         <!--
         <Logger name="org.springframework.jdbc.core" level="debug" additivity="false">
             <AppenderRef ref="console"/>
-        </Logger>
-        -->
+        </Logger>-->
+
+        <!-- Hibernate queries (SQL) -->
+        <!--<Logger name="org.hibernate.SQL" level="TRACE">
+               <AppenderRef ref="console"/>
+        </Logger>-->
+
+        <!-- Hibernate binding parameters -->
+        <!--<Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE">
+               <AppenderRef ref="console"/>
+        </Logger>-->
     </Loggers>
 </Configuration>

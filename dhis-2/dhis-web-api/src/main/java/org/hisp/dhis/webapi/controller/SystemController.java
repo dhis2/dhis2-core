@@ -91,10 +91,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping(value = SystemController.RESOURCE_PATH)
+@RequestMapping("/api/system")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SystemController {
-  public static final String RESOURCE_PATH = "/system";
 
   @Autowired private SystemService systemService;
 

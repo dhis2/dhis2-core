@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping("/method/testAll")
+@RequestMapping("/api/method/testAll")
 public class ApiMethodAllController {
   @GetMapping("a")
   @ApiVersion(DhisApiVersion.ALL)
