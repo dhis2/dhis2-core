@@ -182,6 +182,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
         .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -222,25 +223,6 @@ class TrackedEntityOperationParamsMapperTest {
     assertThat(
         params.getAssignedUserQueryParam().getMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertThat(params.isIncludeDeleted(), is(true));
-  }
-
-  @Test
-  void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-      throws BadRequestException, ForbiddenException {
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
-    when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
-        .thenReturn(trackedEntityType);
-
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .trackedEntityTypeUid(trackedEntityType.getUid())
-            .build();
-
-    mapper.map(operationParams);
-
-    verifyNoInteractions(programService);
   }
 
   @Test
