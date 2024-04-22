@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.servlet;
 
-import static org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME;
-
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
@@ -127,8 +125,8 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
-        .addFilter("springSecurityFilterChain",
-            new DelegatingFilterProxy("springSecurityFilterChain"))
+        .addFilter(
+            "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
     context

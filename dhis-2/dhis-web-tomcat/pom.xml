@@ -92,8 +92,9 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-<!--        <version>2.7.10</version> &lt;!&ndash; Update to the desired Spring Boot version &ndash;&gt;-->
-        <version>3.2.4</version> <!-- Update to the desired Spring Boot version -->
+        <!--        <version>2.7.10</version> &lt;!&ndash; Update to the desired Spring Boot version &ndash;&gt;-->
+        <version>3.2.4</version>
+        <!-- Update to the desired Spring Boot version -->
         <configuration>
           <executable>true</executable>
         </configuration>

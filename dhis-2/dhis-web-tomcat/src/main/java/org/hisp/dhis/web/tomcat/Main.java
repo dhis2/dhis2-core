@@ -28,7 +28,6 @@
 package org.hisp.dhis.web.tomcat;
 
 import java.io.File;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -55,22 +54,16 @@ import org.apache.catalina.WebResourceRoot.ResourceSetType;
 import org.apache.catalina.WebResourceSet;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
-import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.Tomcat.FixContextListener;
 import org.apache.catalina.util.LifecycleBase;
 import org.apache.catalina.webresources.AbstractResourceSet;
-import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
 import org.apache.catalina.webresources.StandardRoot;
-import org.apache.coyote.AbstractProtocol;
-import org.apache.coyote.http2.Http2Protocol;
 import org.apache.tomcat.util.scan.StandardJarScanFilter;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 @Slf4j
 public class Main {
@@ -88,10 +81,9 @@ public class Main {
     return documentRoot.getDirectory();
   }
 
-//  private static void setDocumentRoot(File documentRoot) {
-//    documentRoot.setDirectory(documentRoot);
-//  }
-
+  //  private static void setDocumentRoot(File documentRoot) {
+  //    documentRoot.setDirectory(documentRoot);
+  //  }
 
   protected static final File getValidDocumentRoot() {
     return documentRoot.getValidDirectory();
@@ -113,17 +105,20 @@ public class Main {
       return tempDir;
     } catch (IOException ex) {
       throw new WebServerException(
-          "Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty(
-              "java.io.tmpdir"), ex);
+          "Unable to create tempDir. java.io.tmpdir is set to "
+              + System.getProperty("java.io.tmpdir"),
+          ex);
     }
   }
 
   private static void configureTldPatterns(TomcatEmbeddedContext context) {
     StandardJarScanFilter filter = new StandardJarScanFilter();
-    filter.setTldSkip(StringUtils.collectionToCommaDelimitedString(
-        new LinkedHashSet<>(TldPatterns.DEFAULT_SKIP)));
-    filter.setTldScan(StringUtils.collectionToCommaDelimitedString(
-        new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN)));
+    filter.setTldSkip(
+        StringUtils.collectionToCommaDelimitedString(
+            new LinkedHashSet<>(TldPatterns.DEFAULT_SKIP)));
+    filter.setTldScan(
+        StringUtils.collectionToCommaDelimitedString(
+            new LinkedHashSet<>(TldPatterns.DEFAULT_SCAN)));
     context.getJarScanner().setJarScanFilter(filter);
   }
 
@@ -142,32 +137,32 @@ public class Main {
     }
   }
 
-
   //  protected void customizeConnector(Connector connector) {
-//    int port = Math.max(PORT, 0);
-//    connector.setPort(port);
-//    if (StringUtils.hasText(getServerHeader())) {
-//      connector.setProperty("server", getServerHeader());
-//    }
-//    if (connector.getProtocolHandler() instanceof AbstractProtocol<?> abstractProtocol) {
-//      customizeProtocol(abstractProtocol);
-//    }
-//    invokeProtocolHandlerCustomizers(connector.getProtocolHandler());
-//    if (getUriEncoding() != null) {
-//      connector.setURIEncoding(getUriEncoding().name());
-//    }
-//    if (getHttp2() != null && getHttp2().isEnabled()) {
-//      connector.addUpgradeProtocol(new Http2Protocol());
-//    }
-//    if (Ssl.isEnabled(getSsl())) {
-//      customizeSsl(connector);
-//    }
-//    TomcatConnectorCustomizer compression = new CompressionConnectorCustomizer(getCompression());
-//    compression.customize(connector);
-//    for (TomcatConnectorCustomizer customizer : this.tomcatConnectorCustomizers) {
-//      customizer.customize(connector);
-//    }
-//  }
+  //    int port = Math.max(PORT, 0);
+  //    connector.setPort(port);
+  //    if (StringUtils.hasText(getServerHeader())) {
+  //      connector.setProperty("server", getServerHeader());
+  //    }
+  //    if (connector.getProtocolHandler() instanceof AbstractProtocol<?> abstractProtocol) {
+  //      customizeProtocol(abstractProtocol);
+  //    }
+  //    invokeProtocolHandlerCustomizers(connector.getProtocolHandler());
+  //    if (getUriEncoding() != null) {
+  //      connector.setURIEncoding(getUriEncoding().name());
+  //    }
+  //    if (getHttp2() != null && getHttp2().isEnabled()) {
+  //      connector.addUpgradeProtocol(new Http2Protocol());
+  //    }
+  //    if (Ssl.isEnabled(getSsl())) {
+  //      customizeSsl(connector);
+  //    }
+  //    TomcatConnectorCustomizer compression = new
+  // CompressionConnectorCustomizer(getCompression());
+  //    compression.customize(connector);
+  //    for (TomcatConnectorCustomizer customizer : this.tomcatConnectorCustomizers) {
+  //      customizer.customize(connector);
+  //    }
+  //  }
   private static void registerConnectorExecutor(Tomcat tomcat, Connector connector) {
     if (connector.getProtocolHandler().getExecutor() instanceof Executor executor) {
       tomcat.getService().addExecutor(executor);
@@ -176,7 +171,8 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
 
-    String docroot = "/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/";
+    String docroot =
+        "/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/";
     documentRoot.setDirectory(new File(docroot));
 
     String appBase = ".";
@@ -188,7 +184,7 @@ public class Main {
     connector.setThrowOnFailure(true);
     tomcat.getService().addConnector(connector);
     connector.setPort(PORT);
-//    customizeConnector(connector);
+    //    customizeConnector(connector);
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
 
@@ -210,15 +206,15 @@ public class Main {
 
     context.setDocBase(documentRoot.getAbsolutePath());
 
-//    context.setDocBase(createTempDir("tomcat-docbase").getAbsolutePath());
+    //    context.setDocBase(createTempDir("tomcat-docbase").getAbsolutePath());
 
     context.setResources(new LoaderHidingResourceRoot(context));
-//    context.setResources(new StandardRoot(context));
+    //    context.setResources(new StandardRoot(context));
     context.addLifecycleListener(new FixContextListener());
-//    tomcat.getHost().setAppBase(appBase);
-//    Context context = tomcat.addWebapp("", appBase);
+    //    tomcat.getHost().setAppBase(appBase);
+    //    Context context = tomcat.addWebapp("", appBase);
     ClassLoader parentClassLoader = Main.class.getClassLoader();
-//    ClassLoader parentClassLoader = ClassUtils.getDefaultClassLoader();
+    //    ClassLoader parentClassLoader = ClassUtils.getDefaultClassLoader();
     context.setParentClassLoader(parentClassLoader);
     configureTldPatterns(context);
     WebappLoader loader = new WebappLoader();
@@ -232,27 +228,28 @@ public class Main {
 
     Thread.currentThread().setContextClassLoader(context.getParentClassLoader());
 
-//    ClassLoader parentClassLoader = (this.resourceLoader != null) ? this.resourceLoader.getClassLoader()
-//        : ClassUtils.getDefaultClassLoader();
+    //    ClassLoader parentClassLoader = (this.resourceLoader != null) ?
+    // this.resourceLoader.getClassLoader()
+    //        : ClassUtils.getDefaultClassLoader();
     host.addChild(context);
 
     Context context1 = findContext(tomcat);
     tomcat.start();
 
-    Thread awaitThread = new Thread("container-" + (1)) {
+    Thread awaitThread =
+        new Thread("container-" + (1)) {
 
-      @Override
-      public void run() {
-        performDeferredLoadOnStartup(tomcat);
-        tomcat.getServer().await();
-      }
-
-    };
+          @Override
+          public void run() {
+            performDeferredLoadOnStartup(tomcat);
+            tomcat.getServer().await();
+          }
+        };
     awaitThread.setContextClassLoader(Main.class.getClassLoader());
     awaitThread.setDaemon(false);
     awaitThread.start();
 
-//    tomcat.getServer().await();
+    //    tomcat.getServer().await();
   }
 
   private static void addDefaultServlet(Context context) {
@@ -278,10 +275,9 @@ public class Main {
       return tempDir.getAbsolutePath();
     } catch (IOException ex) {
       throw new RuntimeException(
-          "Unable to create tempDir. java.io.tmpdir is set to " + System.getProperty(
-              "java.io.tmpdir"),
-          ex
-      );
+          "Unable to create tempDir. java.io.tmpdir is set to "
+              + System.getProperty("java.io.tmpdir"),
+          ex);
     }
   }
 
@@ -295,7 +291,6 @@ public class Main {
     protected WebResourceSet createMainResourceSet() {
       return new LoaderHidingWebResourceSet(super.createMainResourceSet());
     }
-
   }
 
   private static final class LoaderHidingWebResourceSet extends AbstractResourceSet {
@@ -329,8 +324,7 @@ public class Main {
 
     @Override
     public Set<String> listWebAppPaths(String path) {
-      return this.delegate.listWebAppPaths(path)
-          .stream()
+      return this.delegate.listWebAppPaths(path).stream()
           .filter((webAppPath) -> !webAppPath.startsWith("/org/springframework/boot"))
           .collect(Collectors.toSet());
     }
@@ -375,7 +369,6 @@ public class Main {
         }
       }
     }
-
   }
 
   protected static final List<URL> getUrlsOfJarsWithMetaInfResources() {
@@ -430,8 +423,8 @@ public class Main {
         if (isInsideNestedJar(resource)) {
           root.addJarResources(new NestedJarResourceSet(url, root, WEB_APP_MOUNT, INTERNAL_PATH));
         } else {
-          root.createWebResourceSet(ResourceSetType.RESOURCE_JAR, WEB_APP_MOUNT, url,
-              INTERNAL_PATH);
+          root.createWebResourceSet(
+              ResourceSetType.RESOURCE_JAR, WEB_APP_MOUNT, url, INTERNAL_PATH);
         }
       } catch (Exception ex) {
         // Ignore (probably not a directory)
@@ -443,7 +436,8 @@ public class Main {
       // is going to try and locate it as a root URL (not the resource
       // inside it)
       URL url = new URL(resource.substring(0, resource.length() - 2));
-      this.context.getResources()
+      this.context
+          .getResources()
           .createWebResourceSet(ResourceSetType.RESOURCE_JAR, WEB_APP_MOUNT, url, INTERNAL_PATH);
     }
 
@@ -454,6 +448,5 @@ public class Main {
     private boolean isInsideNestedJar(String resource) {
       return resource.startsWith("jar:nested:");
     }
-
   }
 }

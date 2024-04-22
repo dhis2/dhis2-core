@@ -65,10 +65,10 @@ public class ContentNegotiationConfig implements WebMvcConfigurer {
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
     registry
         .addResourceHandler("/static/**")
-        .addResourceLocations("/resources/","/dhis/")
+        .addResourceLocations("/resources/", "/dhis/")
         .setCachePeriod(3600)
         .resourceChain(true)
         .addResolver(new PathResourceResolver());
-    //, "classpath:/dhis-web-apps/"
+    // , "classpath:/dhis-web-apps/"
   }
 }

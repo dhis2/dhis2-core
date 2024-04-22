@@ -42,7 +42,7 @@
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
     <module>dhis-web-apps</module>
-    <module>dhis-web-portal</module>
+    <!--    <module>dhis-web-portal</module>-->
     <module>dhis-web-tomcat</module>
   </modules>
 
