@@ -43,7 +43,7 @@ public class MetadataVersionSchemaDescriptor implements SchemaDescriptor {
 
   public static final String PLURAL = "metadataVersions";
 
-  public static final String API_ENDPOINT = "/" + "metadata/version";
+  public static final String API_ENDPOINT = "/metadata/version";
 
   @Override
   public Schema getSchema() {

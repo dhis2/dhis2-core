@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/validation")
+@RequestMapping("/api/validation")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ValidationController {
 

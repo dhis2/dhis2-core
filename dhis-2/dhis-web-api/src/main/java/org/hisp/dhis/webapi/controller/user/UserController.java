@@ -137,7 +137,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags({"user", "management"})
 @Slf4j
 @Controller
-@RequestMapping(value = UserSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/users")
 public class UserController extends AbstractCrudController<User> {
   public static final String INVITE_PATH = "/invite";
 

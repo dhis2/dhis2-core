@@ -59,10 +59,9 @@ import org.springframework.web.servlet.view.RedirectView;
  *
  * @author Austin McGee
  */
-@RequestMapping(QueryController.RESOURCE_PATH)
+@RequestMapping("/api/query")
 @Controller
 public class QueryController {
-  public static final String RESOURCE_PATH = "/query";
 
   private static final String ALIAS_ROOT = "/api/query/alias";
 

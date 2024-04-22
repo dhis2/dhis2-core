@@ -34,7 +34,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -57,7 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags({"user", "management"})
 @Controller
-@RequestMapping(value = UserRoleSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/userRoles")
 public class UserRoleController extends AbstractCrudController<UserRole> {
   @Autowired private UserService userService;
 

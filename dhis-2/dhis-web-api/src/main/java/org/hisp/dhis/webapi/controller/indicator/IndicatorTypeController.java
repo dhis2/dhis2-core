@@ -41,7 +41,6 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.schema.descriptors.IndicatorTypeSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -57,7 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = IndicatorTypeSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/indicatorTypes")
 @RequiredArgsConstructor
 @Slf4j
 public class IndicatorTypeController extends AbstractCrudController<IndicatorType> {

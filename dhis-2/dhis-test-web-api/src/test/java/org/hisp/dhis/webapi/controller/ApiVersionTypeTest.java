@@ -27,17 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 class ApiVersionTypeTest extends DhisWebSpringTest {
+
+  private MockHttpServletRequestBuilder get(String urlTemplate, Object... uriVariables) {
+    return org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+        "/api/" + urlTemplate, uriVariables);
+  }
 
   @Test
   void testTypeAnnotationDefault() throws Exception {

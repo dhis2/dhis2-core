@@ -93,10 +93,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags("data")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping(value = CompleteDataSetRegistrationController.RESOURCE_PATH)
+@RequestMapping("/api/completeDataSetRegistrations")
 @RequiredArgsConstructor
 public class CompleteDataSetRegistrationController {
-  public static final String RESOURCE_PATH = "/completeDataSetRegistrations";
 
   private final CompleteDataSetRegistrationService registrationService;
 

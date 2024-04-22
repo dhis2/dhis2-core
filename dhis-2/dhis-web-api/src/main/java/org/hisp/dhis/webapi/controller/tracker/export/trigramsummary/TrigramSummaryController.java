@@ -61,13 +61,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = TrigramSummaryController.RESOURCE_PATH)
+@RequestMapping("/api/trigramSummary")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class TrigramSummaryController {
   public static final String DEFAULT_FIELDS_PARAM = "id,displayName";
-
-  public static final String RESOURCE_PATH = "/trigramSummary";
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 

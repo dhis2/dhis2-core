@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
@@ -64,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(Enrollment.class)
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = RESOURCE_PATH + "/" + EnrollmentsExportController.ENROLLMENTS)
+@RequestMapping("/api/tracker/enrollments")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class EnrollmentsExportController {
   protected static final String ENROLLMENTS = "enrollments";

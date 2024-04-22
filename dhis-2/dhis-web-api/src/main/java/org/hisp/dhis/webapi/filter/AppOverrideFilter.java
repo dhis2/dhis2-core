@@ -77,7 +77,9 @@ public class AppOverrideFilter extends OncePerRequestFilter {
     String requestPath = request.getServletPath();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
 
-    Matcher m = APP_PATH_PATTERN.matcher(requestPath);
+    String appUrl = request.getRequestURI().substring(request.getContextPath().length());
+
+    Matcher m = APP_PATH_PATTERN.matcher(appUrl);
     if (m.find()) {
       String appName = m.group(1);
       String resourcePath = m.group(2);

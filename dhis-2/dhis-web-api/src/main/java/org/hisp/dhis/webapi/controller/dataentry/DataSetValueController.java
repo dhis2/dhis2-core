@@ -64,7 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/dataEntry")
+@RequestMapping("/api/dataEntry")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetValueController {
   private final DataValueService dataValueService;

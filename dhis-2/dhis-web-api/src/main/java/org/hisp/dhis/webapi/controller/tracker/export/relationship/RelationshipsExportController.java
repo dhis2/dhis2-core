@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipRequestParams.DEFAULT_FIELDS_PARAM;
@@ -62,9 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(Relationship.class)
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(
-    produces = APPLICATION_JSON_VALUE,
-    value = RESOURCE_PATH + "/" + RelationshipsExportController.RELATIONSHIPS)
+@RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class RelationshipsExportController {
 

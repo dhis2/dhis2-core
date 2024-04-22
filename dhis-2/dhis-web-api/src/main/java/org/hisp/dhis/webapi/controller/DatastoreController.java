@@ -73,7 +73,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping("/dataStore")
+@RequestMapping("/api/dataStore")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DatastoreController extends AbstractDatastoreController {
