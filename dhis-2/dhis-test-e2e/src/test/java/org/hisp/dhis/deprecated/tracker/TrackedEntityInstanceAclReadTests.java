@@ -31,16 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.LoginActions;
@@ -58,6 +55,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 /**
  * @author Stian Sandvold
@@ -175,10 +177,6 @@ public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest 
                   JsonObject object = element.getAsJsonObject();
 
                   final Sharing sharing = new Sharing(object);
-
-                  if (sharing == null) {
-                    continue;
-                  }
 
                   if (hasPublicAccess(sharing, _DATAREAD)
                       || hasUserAccess(user, sharing, _DATAREAD)
