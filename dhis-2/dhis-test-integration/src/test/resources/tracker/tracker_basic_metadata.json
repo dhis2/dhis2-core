@@ -588,7 +588,12 @@
         "public": "rw------",
         "external": false,
         "owner": "M5zQapPyTZI",
-        "users": {},
+        "users": {
+          "oajYcE7VMBs": {
+            "id": "oajYcE7VMBs",
+            "access": "rwrw----"
+          }
+        },
         "userGroups": {}
       }
     },
@@ -626,9 +631,6 @@
       ],
       "onlyEnrollOnce": false,
       "lastUpdated": "2019-03-29T12:41:33.039",
-      "trackedEntityType": {
-        "id": "bPJ0FMtcnEh"
-      },
       "name": "Tracker Program X",
       "enrollmentDateLabel": "EnrollmentDate",
       "maxTeiCountToReturn": 0,
@@ -687,9 +689,6 @@
       ],
       "onlyEnrollOnce": false,
       "lastUpdated": "2019-03-29T12:41:33.039",
-      "trackedEntityType": {
-        "id": "bPJ0FMtcnEh"
-      },
       "name": "Tracker Program Y",
       "enrollmentDateLabel": "EnrollmentDate",
       "maxTeiCountToReturn": 0,
@@ -748,9 +747,6 @@
       ],
       "onlyEnrollOnce": false,
       "lastUpdated": "2019-03-29T12:41:33.039",
-      "trackedEntityType": {
-        "id": "bPJ0FMtcnEh"
-      },
       "name": "Tracker Program Y",
       "enrollmentDateLabel": "EnrollmentDate",
       "maxTeiCountToReturn": 0,
@@ -826,7 +822,16 @@
         "public": "rw------",
         "external": false,
         "owner": "M5zQapPyTZI",
-        "users": {},
+        "users": {
+          "oajYcE7VMBs": {
+            "id": "oajYcE7VMBs",
+            "access": "rwrw----"
+          },
+          "iAji3gyZYQL": {
+            "id": "iAji3gyZYQL",
+            "access": "rwrw----"
+          }
+        },
         "userGroups": {}
       }
     },
@@ -864,9 +869,6 @@
       ],
       "onlyEnrollOnce": false,
       "lastUpdated": "2019-03-29T12:41:33.039",
-      "trackedEntityType": {
-        "id": "bPJ0FMtcnEh"
-      },
       "name": "Tracker Program X",
       "enrollmentDateLabel": "EnrollmentDate",
       "maxTeiCountToReturn": 0,
@@ -884,7 +886,7 @@
         }
       ],
       "sharing": {
-        "public": "rw------",
+        "public": "rwrw----",
         "external": false,
         "owner": "M5zQapPyTZI",
         "users": {},
@@ -1160,7 +1162,11 @@
           "id": "QfUVllTs6cS"
         }
       ],
-      "teiSearchOrganisationUnits": [],
+      "teiSearchOrganisationUnits": [
+        {
+        "id": "QfUVllTs6cZ"
+        }
+      ],
       "created": "2019-03-25T13:58:35.560",
       "code": "user5",
       "organisationUnits": [],
@@ -2131,7 +2137,16 @@
         "public": "rw------",
         "external": false,
         "owner": "M5zQapPyTZI",
-        "users": {},
+        "users": {
+          "xbgFeL0l3Ap": {
+            "id": "xbgFeL0l3Ap",
+            "access": "rwrw----"
+          },
+          "oajYcE7VMBs": {
+            "id": "oajYcE7VMBs",
+            "access": "rwrw----"
+          }
+        },
         "userGroups": {
           "jCDKJBruqjc": {
             "id": "jCDKJBruqjc",

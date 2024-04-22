@@ -34,14 +34,18 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
+import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -49,6 +53,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -63,6 +68,10 @@ class SecurityOwnershipValidator
   @Nonnull private final AclService aclService;
 
   @Nonnull private final OrganisationUnitService organisationUnitService;
+
+  @Nonnull private final ProgramService programService;
+
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public void validate(
@@ -91,14 +100,15 @@ class SecurityOwnershipValidator
                 .getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-    // If trackedEntity is newly created, or going to be deleted, capture
-    // scope has to be checked
-    if (strategy.isCreate() || strategy.isDelete()) {
+    // If trackedEntity is newly created, capture scope has to be checked
+    if (strategy.isCreate()) {
+      checkTeiTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
       checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
     }
-    // if its to update trackedEntity, search scope has to be checked
+    // if its to update or delete trackedEntity, write access has to be checked
     else {
-      checkOrgUnitInSearchScope(reporter, bundle, trackedEntity, organisationUnit);
+      TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
+      checkWriteAccess(reporter, trackedEntity, te, bundle);
     }
 
     if (strategy.isDelete()) {
@@ -109,8 +119,6 @@ class SecurityOwnershipValidator
         reporter.addError(trackedEntity, E1100, user, te);
       }
     }
-
-    checkTeiTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
   }
 
   private void checkTeiTypeWriteAccess(
@@ -145,15 +153,25 @@ class SecurityOwnershipValidator
     }
   }
 
-  private void checkOrgUnitInSearchScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)) {
-      reporter.addError(dto, ValidationCode.E1003, orgUnit, user);
+  private void checkWriteAccess(
+      Reporter reporter, TrackerDto dto, TrackedEntity te, TrackerBundle bundle) {
+    List<Program> programsToCheck =
+        programService.getAllPrograms().stream()
+            .filter(
+                p ->
+                    p.getTrackedEntityType() != null
+                        && p.getTrackedEntityType()
+                            .getUid()
+                            .equals(te.getTrackedEntityType().getUid()))
+            .toList();
+    if (!programsToCheck.isEmpty()
+        && programsToCheck.stream()
+            .noneMatch(
+                p ->
+                    trackerAccessManager
+                        .canWrite(UserDetails.fromUser(bundle.getUser()), te, p, false)
+                        .isEmpty())) {
+      reporter.addError(dto, ValidationCode.E1003, te.getUid());
     }
   }
 }

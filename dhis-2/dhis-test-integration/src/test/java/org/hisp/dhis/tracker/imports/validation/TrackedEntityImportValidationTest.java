@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_1;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_7;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -147,9 +148,9 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
     assertEquals(3, importReport.getStats().getCreated());
-    dbmsManager.clearSession();
+
     trackerObjects = fromJson("tracker/validations/te-data_with_different_ou.json");
-    User user = userService.getUser(USER_7);
+    User user = userService.getUser(USER_5);
     params.setUserId(user.getUid());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     params.setAtomicMode(AtomicMode.OBJECT);
@@ -177,9 +178,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackerImportParams params = new TrackerImportParams();
     User user = userService.getUser(USER_3);
     params.setUserId(user.getUid());
-    params.setUserId(user.getUid());
-    user.setPassword("user4password");
-    injectSecurityContextUser(user);
+
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
   }
@@ -226,9 +225,6 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
-
-    manager.flush();
-    manager.clear();
 
     TrackerObjects deleteTrackerObjects = fromJson("tracker/validations/te-data-delete.json");
     params.setImportStrategy(TrackerImportStrategy.DELETE);
