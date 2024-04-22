@@ -1017,7 +1017,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       }
 
       return limitOffset.toString();
-    } else if (limit == 0 && pageParams != null) {
+    } else if (limit == 0) {
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
