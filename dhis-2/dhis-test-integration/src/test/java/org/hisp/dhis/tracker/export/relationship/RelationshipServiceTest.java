@@ -109,6 +109,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
   private Program program;
 
+  private ProgramStage programStage;
+
   private TrackedEntityType trackedEntityType;
 
   @Override
@@ -146,7 +148,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
-    ProgramStage programStage = createProgramStage('A', program);
+    programStage = createProgramStage('A', program);
     manager.save(programStage, false);
     ProgramStage inaccessibleProgramStage = createProgramStage('B', program);
     inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
@@ -281,8 +283,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
-      throws ForbiddenException, NotFoundException {
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
     injectSecurityContextUser(getAdminUser());
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
@@ -290,9 +291,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
     Program program = protectedProgram('P', trackedEntityType, orgUnitA);
     program.getSharing().setOwner(user); // set metadata access to the program
+    program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
-    ProgramStage programStage = createProgramStage('P', program);
-    manager.save(programStage, false);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);
@@ -327,8 +327,45 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenUserHasNoMetadataAccessToProgram()
+  void shouldExcludeRelationshipWhenProgramIsProtectedAndUserHasNoAccess()
       throws ForbiddenException, NotFoundException {
+    injectSecurityContextUser(getAdminUser());
+
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
+    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    manager.save(trackedEntityFrom);
+
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
+    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    manager.save(trackedEntityTo);
+
+    Program inaccessibleProgram = protectedProgram('P', trackedEntityType, orgUnitB);
+    manager.save(inaccessibleProgram, false);
+
+    TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB);
+    notAccessibleTe.setTrackedEntityType(trackedEntityType);
+    manager.save(notAccessibleTe);
+
+    injectSecurityContextUser(user);
+
+    Relationship accessible = relationship(trackedEntityFrom, trackedEntityTo);
+    relationship(trackedEntityFrom, notAccessibleTe);
+
+    RelationshipOperationParams operationParams =
+        RelationshipOperationParams.builder()
+            .type(TRACKED_ENTITY)
+            .identifier(trackedEntityFrom.getUid())
+            .build();
+
+    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+
+    assertContainsOnly(
+        List.of(accessible.getUid()),
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldNotReturnRelationshipWhenUserHasNoMetadataAccessToProgram() {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
 
@@ -340,10 +377,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     program.setTrackedEntityType(trackedEntityType);
     program.getSharing().setOwner(admin);
     program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
-    ProgramStage programStage = createProgramStage('Y', program);
-    manager.save(programStage, false);
-    manager.update(program);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);
@@ -381,10 +416,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
     program.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
+    program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
-    ProgramStage programStage = createProgramStage('Y', program);
-    manager.save(programStage, false);
-    manager.update(program);
 
     TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
     trackedEntityFrom.setTrackedEntityType(trackedEntityType);

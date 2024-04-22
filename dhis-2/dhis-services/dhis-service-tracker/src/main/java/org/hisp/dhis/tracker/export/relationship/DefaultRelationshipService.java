@@ -86,9 +86,10 @@ public class DefaultRelationshipService implements RelationshipService {
       throw new NotFoundException(Relationship.class, uid);
     }
 
-    Set<String> errors =
+    List<String> errors =
         accessErrors(
             userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()), relationship);
+
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
@@ -197,7 +198,7 @@ public class DefaultRelationshipService implements RelationshipService {
     throw new IllegalArgumentException("Unkown type");
   }
 
-  private Set<String> accessErrors(User user, Relationship relationship) {
+  private List<String> accessErrors(User user, Relationship relationship) {
     return trackerAccessManager.canRead(user, relationship);
   }
 
