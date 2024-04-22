@@ -595,7 +595,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid in ")
         .append(
-            // TODO What about event programs, do they have an owner or do I have to check all TE?
             params.hasProgram() && !skipOwnershipCheck(params)
                 ? "(PO.organisationunitid)"
                 : getOwnerOrgUnitsForAccessibleTrackedEntityPrograms(params));
@@ -635,7 +634,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (params.hasTrackedEntityType()) {
       sql += "and tet.trackedentitytypeid = " + params.getTrackedEntityType().getId() + ")";
     } else {
-      // TODO What about event programs, do they have an owner or do I have to check all TE?
       sql +=
           "and tet.trackedentitytypeid in ("
               + getCommaDelimitedString(getIdentifiers(params.getTrackedEntityTypes()))
