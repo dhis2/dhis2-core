@@ -56,7 +56,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -334,8 +333,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                 "TE.inactive",
                 "TE.potentialduplicate",
                 "TE.deleted",
-                "TE.orgunit_uid",
-                "TE.orgunit_name",
                 "TE.trackedentitytypeid"));
 
     // all orderable fields are already in the select. Only when ordering by enrollment date do we
@@ -409,9 +406,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
                 "TE.lastupdatedatclient as lastupdatedatclient",
                 "TE.inactive as inactive",
                 "TE.potentialduplicate as potentialduplicate",
-                "TE.deleted as deleted",
-                "OU.uid as orgunit_uid",
-                "OU.name as orgunit_name"));
+                "TE.deleted as deleted"));
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -449,20 +444,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryTrackedEntityConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
     StringBuilder trackedEntity = new StringBuilder();
-
-    if (params.hasTrackedEntityType()) {
-      trackedEntity
-          .append(whereAnd.whereAnd())
-          .append("TE.trackedentitytypeid = ")
-          .append(params.getTrackedEntityType().getId())
-          .append(SPACE);
-    } else if (!CollectionUtils.isEmpty(params.getTrackedEntityTypes())) {
-      trackedEntity
-          .append(whereAnd.whereAnd())
-          .append("TE.trackedentitytypeid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getTrackedEntityTypes())))
-          .append(") ");
-    }
 
     if (params.hasTrackedEntities()) {
       trackedEntity
@@ -611,11 +592,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
-        .append("ON OU.organisationunitid = ")
+        .append("ON OU.organisationunitid in ")
         .append(
+            // TODO What about event programs, do they have an owner or do I have to check all TE?
             params.hasProgram() && !skipOwnershipCheck(params)
-                ? "PO.organisationunitid "
-                : "TE.organisationunitid ");
+                ? "(PO.organisationunitid)"
+                : getOwnerOrgUnitsForAccessibleTrackedEntityPrograms(params));
 
     if (!params.hasOrganisationUnits()) {
       return orgUnits.toString();
@@ -630,6 +612,36 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     return orgUnits.toString();
+  }
+
+  private String getOwnerOrgUnitsForAccessibleTrackedEntityPrograms(
+      TrackedEntityQueryParams params) {
+    if (skipOwnershipCheck(params)) {
+      return "(TE.organisationunitid)";
+    }
+
+    String sql =
+        "(select distinct coalesce (tpo.organisationunitid, te.organisationunitid) "
+            + "from trackedentitytype tet "
+            + "left join trackedentityprogramowner tpo on tpo.trackedentityid = te.trackedentityid "
+            + "left join program p on p.programid = tpo.programid "
+            + "and tet.trackedentitytypeid = te.trackedentitytypeid "
+            + "and p.trackedentitytypeid = te.trackedentitytypeid "
+            + "and p.programid in ("
+            + getCommaDelimitedString(getIdentifiers(params.getPrograms()))
+            + ")";
+
+    if (params.hasTrackedEntityType()) {
+      sql += "and tet.trackedentitytypeid = " + params.getTrackedEntityType().getId() + ")";
+    } else {
+      // TODO What about event programs, do they have an owner or do I have to check all TE?
+      sql +=
+          "and tet.trackedentitytypeid in ("
+              + getCommaDelimitedString(getIdentifiers(params.getTrackedEntityTypes()))
+              + "))";
+    }
+
+    return sql;
   }
 
   private String getDescendantsQuery(TrackedEntityQueryParams params) {

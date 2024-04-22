@@ -49,6 +49,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -82,6 +83,8 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
+  @Nonnull private final ProgramService programService;
+
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
@@ -95,8 +98,9 @@ class TrackedEntityOperationParamsMapper {
     TrackedEntityType requestedTrackedEntityType =
         paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityTypeUid(), user);
 
-    List<TrackedEntityType> trackedEntityTypes =
-        getTrackedEntityTypes(requestedTrackedEntityType, program, user);
+    List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
+
+    List<Program> programs = getPrograms(program, user);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
@@ -112,6 +116,7 @@ class TrackedEntityOperationParamsMapper {
 
     params
         .setProgram(program)
+        .setPrograms(programs)
         .setProgramStage(programStage)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
@@ -140,16 +145,14 @@ class TrackedEntityOperationParamsMapper {
     return params;
   }
 
-  private List<TrackedEntityType> getTrackedEntityTypes(
-      TrackedEntityType trackedEntityType, Program program, User user) throws BadRequestException {
+  private List<TrackedEntityType> getTrackedEntityTypes(Program program, User user)
+      throws BadRequestException {
 
     if (program != null && program.getTrackedEntityType() != null) {
       return List.of(program.getTrackedEntityType());
-    } else if (trackedEntityType == null) {
+    } else {
       return filterAndValidateTrackedEntityTypes(user);
     }
-
-    return emptyList();
   }
 
   private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(User user)
@@ -164,6 +167,16 @@ class TrackedEntityOperationParamsMapper {
     }
 
     return trackedEntityTypes;
+  }
+
+  private List<Program> getPrograms(Program program, User user) {
+    if (program == null) {
+      return programService.getAllPrograms().stream()
+          .filter(p -> aclService.canDataRead(user, p))
+          .toList();
+    }
+
+    return emptyList();
   }
 
   private void mapAttributeFilters(
