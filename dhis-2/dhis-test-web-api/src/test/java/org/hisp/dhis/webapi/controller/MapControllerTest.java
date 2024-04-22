@@ -48,7 +48,7 @@ class MapControllerTest extends DhisControllerConvenienceTest {
   @Test
   void testPutJsonObject() {
     String mapId = assertStatus(HttpStatus.CREATED, POST("/maps/", "{'name':'My map'}"));
-    assertStatus(HttpStatus.NO_CONTENT, PUT("/maps/" + mapId, "{'name':'My updated map'}"));
+    assertStatus(HttpStatus.OK, PUT("/maps/" + mapId, "{'name':'My updated map'}"));
   }
 
   @Test
