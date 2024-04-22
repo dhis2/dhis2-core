@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -443,7 +442,7 @@ public abstract class AbstractRelationshipService implements RelationshipService
   @Transactional(readOnly = true)
   public Optional<Relationship> findRelationship(
       org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, UserDetails user) {
-    Set<String> errors = trackerAccessManager.canRead(user, dao);
+    List<String> errors = trackerAccessManager.canRead(user, dao);
 
     if (!errors.isEmpty()) {
       // Dont include relationship
