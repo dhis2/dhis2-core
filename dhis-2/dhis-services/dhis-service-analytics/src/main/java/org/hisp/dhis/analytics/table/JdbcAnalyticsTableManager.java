@@ -614,7 +614,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
 
     sql.append(
         """
-        where oulevel > ${aggregationLevel} \
+         where oulevel > ${aggregationLevel} \
         and dx in ( ${dataElements} )\s""");
 
     String updateQuery =
