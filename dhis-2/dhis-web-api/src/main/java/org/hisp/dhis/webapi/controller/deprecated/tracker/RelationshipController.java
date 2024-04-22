@@ -78,7 +78,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Deprecated(since = "2.41")
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = RelationshipSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/relationships")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class RelationshipController {

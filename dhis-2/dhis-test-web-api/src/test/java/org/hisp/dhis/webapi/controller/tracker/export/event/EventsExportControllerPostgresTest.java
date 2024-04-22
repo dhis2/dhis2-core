@@ -188,7 +188,8 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pager.getNextPage(),
                 2,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
+                String.format(
+                    "http://localhost/api/tracker/events/%s/changeLogs", event.getUid())));
   }
 
   @Test
@@ -212,13 +213,14 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pager.getPrevPage(),
                 1,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
+                String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
                 3,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())));
+                String.format(
+                    "http://localhost/api/tracker/events/%s/changeLogs", event.getUid())));
   }
 
   @Test
@@ -242,7 +244,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
                 pager.getPrevPage(),
                 2,
                 1,
-                String.format("http://localhost/tracker/events/%s/changeLogs", event.getUid())),
+                String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
         () -> assertHasNoMember(pager, "nextPage"));
   }
 

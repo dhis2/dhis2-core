@@ -64,7 +64,6 @@ import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.controller.tracker.ControllerSupport;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,7 +81,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @ExtendWith(MockitoExtension.class)
 class TrackerImportControllerTest {
 
-  private static final String ENDPOINT = ControllerSupport.RESOURCE_PATH;
+  private static final String ENDPOINT = "/api/tracker";
 
   private MockMvc mockMvc;
 

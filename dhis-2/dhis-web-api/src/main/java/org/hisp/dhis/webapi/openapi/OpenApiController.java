@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping("")
+@RequestMapping("/api")
 @AllArgsConstructor
 public class OpenApiController {
   private static final String APPLICATION_X_YAML = "application/x-yaml";

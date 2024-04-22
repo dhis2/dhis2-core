@@ -151,7 +151,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Deprecated(since = "2.41")
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = EventController.RESOURCE_PATH)
+@RequestMapping("/api/events")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 @OpenApi.Ignore

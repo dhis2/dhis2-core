@@ -112,11 +112,11 @@ class DataElementOperandControllerTest {
 
   @Mock private SystemSettingManager systemSettingManager;
 
-  private QueryService queryService;
-
   @Mock private UserService userService;
 
-  private static final String ENDPOINT = "/dataElementOperands";
+  private QueryService queryService;
+
+  private static final String ENDPOINT = "/api/dataElementOperands";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 

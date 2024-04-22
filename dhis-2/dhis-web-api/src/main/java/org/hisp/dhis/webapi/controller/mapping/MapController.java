@@ -64,7 +64,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.MetadataMergeParams;
-import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -91,7 +90,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = MapSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/maps")
 public class MapController extends AbstractCrudController<Map> {
   private static final int MAP_MIN_WIDTH = 140;
 

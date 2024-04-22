@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.outlierdetection;
 
+import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -41,10 +42,10 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionResponse;
 import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.outlierdetection.service.DefaultOutlierDetectionService;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,7 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
+@RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class OutlierDetectionController {
 
   private final DefaultOutlierDetectionService outlierService;
@@ -66,14 +67,14 @@ public class OutlierDetectionController {
   private final OutlierDetectionQueryParser queryParser;
   private final ValidationOutlierDetectionRequest validator;
 
-  @GetMapping(value = "/outlierDetection", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/api/outlierDetection", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
     OutlierDetectionRequest request = getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
   }
 
-  @GetMapping(value = "/outlierDetection.csv")
+  @GetMapping(value = "/api/outlierDetection.csv")
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);

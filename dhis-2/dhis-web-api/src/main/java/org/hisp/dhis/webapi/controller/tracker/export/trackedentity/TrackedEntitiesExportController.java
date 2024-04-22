@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
@@ -89,7 +88,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(TrackedEntity.class)
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = RESOURCE_PATH + "/" + TrackedEntitiesExportController.TRACKED_ENTITIES)
+@RequestMapping("/api/tracker/trackedEntities")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class TrackedEntitiesExportController {
 
@@ -266,7 +265,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
-      throws ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
@@ -287,7 +286,7 @@ class TrackedEntitiesExportController {
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) String program)
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
 
     TrackedEntity trackedEntity =

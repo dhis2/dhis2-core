@@ -28,6 +28,8 @@
 package org.hisp.dhis.dataapproval;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -530,7 +532,7 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     Set<OrganisationUnit> dataViewOrgUnits = new HashSet<>();
     dataViewOrgUnits.add(organisationUnitB);
 
-    User cu = createAndAddUser(assignedOrgUnits, dataViewOrgUnits, DataApproval.AUTH_APPROVE);
+    User cu = createAndAddUserWithAuth(assignedOrgUnits, dataViewOrgUnits, F_APPROVE_DATA);
     injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =
@@ -587,11 +589,8 @@ class DataApprovalLevelServiceTest extends TransactionalIntegrationTest {
     dataViewOrgUnits.add(organisationUnitB);
 
     User cu =
-        createAndAddUser(
-            assignedOrgUnits,
-            dataViewOrgUnits,
-            DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS);
+        createAndAddUserWithAuth(
+            assignedOrgUnits, dataViewOrgUnits, F_APPROVE_DATA, F_APPROVE_DATA_LOWER_LEVELS);
     injectSecurityContextUser(cu);
 
     List<DataApprovalLevel> levels =

@@ -99,7 +99,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.0.0-20240411.110520-16</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.0.0-20240415.143956-18</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.5.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -108,7 +108,7 @@
     <dhis-json-tree.version>1.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.11</spring-security.version>
+    <spring-security.version>5.8.12</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -129,7 +129,7 @@
     <lettuce.version>6.3.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.11.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.11.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -163,7 +163,7 @@
     <jclouds.version>2.6.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.21.2</jasperreports.version>
+    <jasperreports.version>6.21.3</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -179,8 +179,8 @@
 
     <!-- Apache Artemis -->
     <artemis.version>2.33.0</artemis.version>
-    <netty-all.version>4.1.108.Final</netty-all.version>
-    <classgraph.version>4.8.170</classgraph.version>
+    <netty-all.version>4.1.109.Final</netty-all.version>
+    <classgraph.version>4.8.172</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -203,7 +203,7 @@
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-lang3.version>3.14.0</commons-lang3.version>
-    <commons-text.version>1.11.0</commons-text.version>
+    <commons-text.version>1.12.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.8.0</commons-validator.version>
@@ -1131,6 +1131,11 @@
       <dependency>
         <groupId>org.apache.jclouds.provider</groupId>
         <artifactId>aws-s3</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds.driver</groupId>
+        <artifactId>jclouds-slf4j</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
 

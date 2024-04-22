@@ -74,6 +74,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -377,7 +378,7 @@ public abstract class DeprecatedTrackerTest extends IntegrationTestBase {
     UserRole group = new UserRole();
     group.setName("Super");
     group.setUid("uid4");
-    group.setAuthorities(new HashSet<>(Arrays.asList("z1", UserRole.AUTHORITY_ALL)));
+    group.setAuthorities(new HashSet<>(Arrays.asList("z1", Authorities.ALL.toString())));
     user.setUserRoles(Sets.newHashSet(group));
   }
 

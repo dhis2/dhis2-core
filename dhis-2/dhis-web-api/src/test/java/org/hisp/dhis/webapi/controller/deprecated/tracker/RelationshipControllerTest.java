@@ -87,7 +87,7 @@ class RelationshipControllerTest {
 
   @InjectMocks private RelationshipController relationshipController;
 
-  private static final String ENDPOINT = "/relationships";
+  private static final String ENDPOINT = "/api/relationships";
 
   @BeforeEach
   public void setUp() {

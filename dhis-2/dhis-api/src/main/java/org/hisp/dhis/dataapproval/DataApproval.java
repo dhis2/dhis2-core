@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
+import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
+import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -54,13 +59,13 @@ import org.hisp.dhis.user.User;
  * @author Jim Grace
  */
 public class DataApproval implements Serializable {
-  public static final String AUTH_APPROVE = "F_APPROVE_DATA";
+  public static final String AUTH_APPROVE = F_APPROVE_DATA.toString();
 
-  public static final String AUTH_APPROVE_LOWER_LEVELS = "F_APPROVE_DATA_LOWER_LEVELS";
+  public static final String AUTH_APPROVE_LOWER_LEVELS = F_APPROVE_DATA_LOWER_LEVELS.toString();
 
-  public static final String AUTH_ACCEPT_LOWER_LEVELS = "F_ACCEPT_DATA_LOWER_LEVELS";
+  public static final String AUTH_ACCEPT_LOWER_LEVELS = F_ACCEPT_DATA_LOWER_LEVELS.toString();
 
-  public static final String AUTH_VIEW_UNAPPROVED_DATA = "F_VIEW_UNAPPROVED_DATA";
+  public static final String AUTH_VIEW_UNAPPROVED_DATA = F_VIEW_UNAPPROVED_DATA.toString();
 
   private static final long serialVersionUID = -4034531921928532366L;
 

@@ -85,6 +85,9 @@ public interface TrackedEntityInstanceService {
 
   TrackedEntityInstance getTrackedEntityInstance(String uid, TrackedEntityInstanceParams params);
 
+  TrackedEntityInstance getTrackedEntityInstance(
+      String uid, UserDetails currentUser, TrackedEntityInstanceParams params);
+
   TrackedEntityInstance getTrackedEntityInstance(TrackedEntity entityInstance);
 
   TrackedEntityInstance getTrackedEntityInstance(
