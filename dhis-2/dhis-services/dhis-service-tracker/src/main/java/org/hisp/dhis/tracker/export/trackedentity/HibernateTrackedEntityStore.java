@@ -580,8 +580,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   /**
    * Generates an INNER JOIN for organisation units. If a program is specified, we join on program
    * ownership (PO), if not we join by tracked entity (TE). Based on the ouMode, they will boil down
-   * to either DESCENDANTS (requiring matching on PATH), ALL (No constraints) or not DESCENDANTS or
-   * ALL (SELECTED) which will match against a collection of ids.
+   * to either DESCENDANTS (requiring matching on the org unit's PATH), CHILDREN (matching on the
+   * org unit's PATH or any of its immediate children), SELECTED (matching the specified org unit
+   * id) or ALL (no constraints).
    *
    * @return a SQL INNER JOIN for organisation units
    */
