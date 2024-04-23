@@ -179,7 +179,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.setTrackedEntityType(trackedEntityTypeA);
     programA.getSharing().setOwner(admin);
-    programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
+    programA
+        .getSharing()
+        .setPublicAccess(
+            AccessStringHelper.newInstance()
+                .enable(AccessStringHelper.Permission.READ)
+                .enable(AccessStringHelper.Permission.DATA_READ)
+                .build());
     manager.save(programA, false);
 
     Program programB = createProgram('B', new HashSet<>(), orgUnitB);
