@@ -112,9 +112,9 @@ public class CategoryResourceTable implements ResourceTable {
     String sql =
         replace(
             """
-        insert into ${table_name} \
-        select coc.categoryoptioncomboid as cocid, coc.uid as cocuid, coc.name as cocname, \
-        """,
+            insert into ${table_name} \
+            select coc.categoryoptioncomboid as cocid, coc.uid as cocuid, coc.name as cocname, \
+            """,
             "table_name",
             toStaging(TABLE_NAME));
 
@@ -122,7 +122,7 @@ public class CategoryResourceTable implements ResourceTable {
       sql +=
           replace(
               """
-            (
+              (
               select co.name from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
               inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
@@ -145,7 +145,7 @@ public class CategoryResourceTable implements ResourceTable {
       sql +=
           replace(
               """
-            (
+              (
               select cog.name from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
               inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \

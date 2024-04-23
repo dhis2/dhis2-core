@@ -139,8 +139,7 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementGroupSetResourceTable(
             logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
-            analyticsTableSettings.getTableLogged(),
-            idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+            logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
         new OrganisationUnitGroupSetResourceTable(
             logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
@@ -158,7 +157,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   /**
    * Returns a list of data approval resource tables.
    *
-   * @return a lits of data approval {@link ResourceTable}.
+   * @return a list of data approval {@link ResourceTable}.
    */
   private final List<ResourceTable> getApprovalResourceTables() {
     Logged logged = analyticsTableSettings.getTableLogged();

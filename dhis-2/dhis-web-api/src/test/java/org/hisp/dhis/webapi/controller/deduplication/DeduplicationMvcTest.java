@@ -75,7 +75,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
 class DeduplicationMvcTest {
-  private static final String ENDPOINT = "/" + "potentialDuplicates";
+  private static final String ENDPOINT = "/api/" + "potentialDuplicates";
 
   private MockMvc mockMvc;
 

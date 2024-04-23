@@ -43,7 +43,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -62,7 +61,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("data")
 @Controller
-@RequestMapping(value = ValidationRuleSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/validationRules")
 public class ValidationRuleController extends AbstractCrudController<ValidationRule> {
   @Autowired private DataSetService dataSetService;
 

@@ -53,13 +53,13 @@ public class ReportTemplateController {
   @Autowired private ContextUtils contextUtils;
 
   @OpenApi.Response(String.class)
-  @GetMapping(value = "/reportTemplate.xml", produces = APPLICATION_XML_VALUE)
+  @GetMapping(value = "/api/reportTemplate.xml", produces = APPLICATION_XML_VALUE)
   public void getReportDesignJrxml(HttpServletResponse response) throws Exception {
     serveTemplate(response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml");
   }
 
   @OpenApi.Response(String.class)
-  @GetMapping(value = "/reportTemplate.html", produces = APPLICATION_XML_VALUE)
+  @GetMapping(value = "/api/reportTemplate.html", produces = APPLICATION_XML_VALUE)
   public void getReportDesignHtml(HttpServletResponse response) throws Exception {
     serveTemplate(response, ContextUtils.CONTENT_TYPE_HTML, "html-report-template.html");
   }

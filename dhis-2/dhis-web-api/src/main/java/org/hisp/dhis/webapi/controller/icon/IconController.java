@@ -84,7 +84,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("ui")
 @RestController
-@RequestMapping(value = IconSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/icons")
 @Slf4j
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

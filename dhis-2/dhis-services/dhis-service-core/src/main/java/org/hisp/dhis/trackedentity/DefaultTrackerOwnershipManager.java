@@ -218,19 +218,19 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program) {
-    if (canSkipOwnershipCheck(user, program) || entityInstance == null) {
+  public boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program) {
+    if (canSkipOwnershipCheck(user, program) || trackedEntity == null) {
       return true;
     }
 
     OrganisationUnit ou =
-        getOwner(entityInstance.getId(), program, entityInstance::getOrganisationUnit);
+        getOwner(trackedEntity.getId(), program, trackedEntity::getOrganisationUnit);
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
       case PROTECTED ->
-          user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(entityInstance, program, user);
+          user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(trackedEntity, program, user);
       case CLOSED -> user.isInUserHierarchy(orgUnitPath);
     };
   }
@@ -285,10 +285,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
                   entityInstanceId, program.getId());
 
           return Optional.ofNullable(trackedEntityProgramOwner)
-              .map(
-                  tepo -> {
-                    return recursivelyInitializeOrgUnit(tepo.getOrganisationUnit());
-                  })
+              .map(tepo -> recursivelyInitializeOrgUnit(tepo.getOrganisationUnit()))
               .orElseGet(orgUnitIfMissingSupplier);
         });
   }

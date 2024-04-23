@@ -57,10 +57,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"user", "query"})
 @RestController
-@RequestMapping(value = UserLookupController.API_ENDPOINT)
+@RequestMapping("/api/userLookup")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class UserLookupController {
-  static final String API_ENDPOINT = "/userLookup";
 
   private final UserService userService;
 

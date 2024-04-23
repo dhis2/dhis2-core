@@ -73,7 +73,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = "/potentialDuplicates")
+@RequestMapping("/api/potentialDuplicates")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @RequiredArgsConstructor
 public class DeduplicationController {

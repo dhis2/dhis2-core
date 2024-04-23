@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"login"})
 @RestController
-@RequestMapping("/loginConfig")
+@RequestMapping("/api/loginConfig")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LoginConfigController {
