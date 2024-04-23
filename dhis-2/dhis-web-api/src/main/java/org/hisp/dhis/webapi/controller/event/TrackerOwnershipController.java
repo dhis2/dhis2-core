@@ -58,10 +58,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = TrackerOwnershipController.RESOURCE_PATH)
+@RequestMapping("/api/tracker/ownership")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class TrackerOwnershipController {
-  public static final String RESOURCE_PATH = "/tracker/ownership";
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 

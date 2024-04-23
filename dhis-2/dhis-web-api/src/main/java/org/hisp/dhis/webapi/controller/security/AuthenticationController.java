@@ -87,7 +87,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"login"})
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Order(2103)
 public class AuthenticationController {
@@ -196,6 +196,10 @@ public class AuthenticationController {
   private String getRedirectUrl(HttpServletRequest request, HttpServletResponse response) {
     String redirectUrl =
         request.getContextPath() + "/" + settingManager.getStringSetting(SettingKey.START_MODULE);
+
+    if (!redirectUrl.endsWith("/")) {
+      redirectUrl += "/";
+    }
 
     SavedRequest savedRequest = requestCache.getRequest(request, null);
     if (savedRequest != null) {

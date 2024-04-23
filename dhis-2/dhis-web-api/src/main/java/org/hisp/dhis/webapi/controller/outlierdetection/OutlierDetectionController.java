@@ -67,14 +67,14 @@ public class OutlierDetectionController {
   private final OutlierDetectionQueryParser queryParser;
   private final ValidationOutlierDetectionRequest validator;
 
-  @GetMapping(value = "/outlierDetection", produces = APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/api/outlierDetection", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody OutlierDetectionResponse getOutliersJson(OutlierDetectionQuery query) {
     OutlierDetectionRequest request = getFromQuery(query);
 
     return outlierService.getOutlierValues(request);
   }
 
-  @GetMapping(value = "/outlierDetection.csv")
+  @GetMapping(value = "/api/outlierDetection.csv")
   public void getOutliersCsv(OutlierDetectionQuery query, HttpServletResponse response)
       throws IOException {
     OutlierDetectionRequest request = getFromQuery(query);

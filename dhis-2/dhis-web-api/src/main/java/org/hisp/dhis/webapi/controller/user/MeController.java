@@ -114,7 +114,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags({"user", "query"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/me")
+@RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
   @Nonnull private final UserService userService;

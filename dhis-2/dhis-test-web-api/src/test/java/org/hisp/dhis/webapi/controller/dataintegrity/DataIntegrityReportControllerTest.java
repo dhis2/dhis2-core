@@ -633,7 +633,7 @@ class DataIntegrityReportControllerTest extends AbstractDataIntegrityIntegration
   private JsonDataIntegrityReport getDataIntegrityReport(String url) {
     HttpResponse httpResponse = POST(url);
     assertTrue(
-        httpResponse.location().startsWith("http://localhost/dataIntegrity/details?checks="));
+        httpResponse.location().startsWith("http://localhost/api/dataIntegrity/details?checks="));
     JsonObject response = httpResponse.content().getObject("response");
     String id = response.getString("id").string();
     String jobType = response.getString("jobType").string();

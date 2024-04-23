@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetReportController {
-  private static final String RESOURCE_PATH = "/dataSetReport";
+  private static final String RESOURCE_PATH = "/api/dataSetReport";
 
   // -------------------------------------------------------------------------
   // Dependencies

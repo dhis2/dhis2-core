@@ -176,10 +176,6 @@ public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest 
 
                   final Sharing sharing = new Sharing(object);
 
-                  if (sharing == null) {
-                    continue;
-                  }
-
                   if (hasPublicAccess(sharing, _DATAREAD)
                       || hasUserAccess(user, sharing, _DATAREAD)
                       || hasUserGroupAccess(user, sharing, _DATAREAD)) {

@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.option;
 
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.option.OptionGroupSet;
-import org.hisp.dhis.schema.descriptors.OptionGroupSetSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +38,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = OptionGroupSetSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/optionGroupSets")
 public class OptionGroupSetController extends AbstractCrudController<OptionGroupSet> {}

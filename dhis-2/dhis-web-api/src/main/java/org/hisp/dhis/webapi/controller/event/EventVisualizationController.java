@@ -35,7 +35,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
-import static org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor.API_ENDPOINT;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
 import static org.jfree.chart.ChartUtils.writeChartAsPNG;
@@ -89,7 +88,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = API_ENDPOINT)
+@RequestMapping("/api/eventVisualizations")
 @ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
 public class EventVisualizationController extends AbstractCrudController<EventVisualization> {

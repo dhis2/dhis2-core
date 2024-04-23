@@ -70,7 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jan Bernitt
  */
 @OpenApi.Tags("data")
-@RequestMapping("/organisationUnits")
+@RequestMapping("/api/organisationUnits")
 @RestController
 @RequiredArgsConstructor
 public class GeoJsonImportController {

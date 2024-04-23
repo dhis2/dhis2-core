@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -63,7 +64,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -84,7 +87,10 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+import org.springframework.web.servlet.resource.ResourceResolverChain;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -97,21 +103,20 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   // Paths where XML should still be allowed.
   public static final List<Pattern> XML_PATTERNS =
       List.of(
-          Pattern.compile("/(\\d\\d/)?relationships(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?enrollments(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?events(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?relationships(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?enrollments(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?events(.xml)?(.+)?"),
           Pattern.compile(
-              "/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with old
+              "/api/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with
+          // old
           // tracker
-          Pattern.compile("/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
-          Pattern.compile("/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
+          Pattern.compile("/api/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
+          Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
 
   public static final List<Pattern> CSV_PATTERNS =
       List.of(
           Pattern.compile(
-              "/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
-
-  // tracker
+              "/api/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
 
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -133,6 +138,39 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private MetadataExportService metadataExportService;
 
   @Autowired private FieldFilterService fieldFilterService;
+
+  static class IndexFallbackResourceResolver extends PathResourceResolver {
+    @Override
+    protected Resource resolveResourceInternal(
+        HttpServletRequest request,
+        String requestPath,
+        List<? extends Resource> locations,
+        ResourceResolverChain chain) {
+      Resource resource = super.resolveResourceInternal(request, requestPath, locations, chain);
+      if (resource == null) {
+        // try with /index.html
+        resource =
+            super.resolveResourceInternal(request, requestPath + "/index.html", locations, chain);
+      }
+      return resource;
+    }
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry
+        .setOrder(Ordered.LOWEST_PRECEDENCE)
+        .addResourceHandler("/**")
+        .addResourceLocations(
+            "/resources/",
+            "/dhis/",
+            "classpath:/static/",
+            "file:./dhis-web-apps/target/dhis-web-apps/",
+            "file:./dhis-web-commons-resources/src/main/webapp/")
+        // .setCachePeriod(3600)
+        .resourceChain(false)
+        .addResolver(new IndexFallbackResourceResolver());
+  }
 
   @Bean("multipartResolver")
   public MultipartResolver multipartResolver() {

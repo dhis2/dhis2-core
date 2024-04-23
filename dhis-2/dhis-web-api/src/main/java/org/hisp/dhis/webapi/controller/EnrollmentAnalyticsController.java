@@ -82,7 +82,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Tags("analytics")
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping("/analytics/enrollments")
+@RequestMapping("/api/analytics/enrollments")
 @AllArgsConstructor
 public class EnrollmentAnalyticsController {
   @Nonnull private final EventDataQueryService eventDataQueryService;

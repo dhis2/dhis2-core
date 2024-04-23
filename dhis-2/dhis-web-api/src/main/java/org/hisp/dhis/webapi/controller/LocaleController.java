@@ -68,7 +68,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = "/locales")
+@RequestMapping("/api/locales")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class LocaleController {
   @Autowired private LocaleManager localeManager;

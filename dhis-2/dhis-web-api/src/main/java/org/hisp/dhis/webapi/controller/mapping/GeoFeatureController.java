@@ -58,10 +58,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = GeoFeatureController.RESOURCE_PATH)
+@RequestMapping("/api/geoFeatures")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class GeoFeatureController {
-  public static final String RESOURCE_PATH = "/geoFeatures";
 
   private static final CacheControl GEOFEATURE_CACHE =
       CacheControl.maxAge(2, TimeUnit.HOURS).cachePrivate();

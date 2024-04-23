@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("metadata")
 @RestController
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequestMapping(value = "/periodTypes")
+@RequestMapping("/api/periodTypes")
 @RequiredArgsConstructor
 public class PeriodTypeController {
   private final FieldFilterService fieldFilterService;

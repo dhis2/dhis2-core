@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = ProgramNotificationTemplateSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/programNotificationTemplates")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramNotificationTemplateController
     extends AbstractCrudController<ProgramNotificationTemplate> {

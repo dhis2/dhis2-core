@@ -96,7 +96,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags({"user", "login"})
 @Controller
-@RequestMapping(value = "/account")
+@RequestMapping("/api/account")
 @Slf4j
 @AllArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
