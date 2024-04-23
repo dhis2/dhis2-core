@@ -611,10 +611,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     sql.deleteCharAt(sql.length() - ",".length());
-
+    sql.append(" ");
     sql.append(
         """
-         where oulevel > ${aggregationLevel} \
+        where oulevel > ${aggregationLevel} \
         and dx in ( ${dataElements} )\s""");
 
     String updateQuery =
