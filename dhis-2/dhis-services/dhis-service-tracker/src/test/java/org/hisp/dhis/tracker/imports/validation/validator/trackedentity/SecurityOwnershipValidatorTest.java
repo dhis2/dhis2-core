@@ -146,7 +146,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
-    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(programService.getProgramsByTrackedEntityType(trackedEntityType))
+        .thenReturn(List.of(program));
     when(trackerAccessManager.canWrite(any(), eq(te), eq(program), eq(false)))
         .thenReturn(List.of());
     validator.validate(reporter, bundle, trackedEntity);
@@ -166,7 +167,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithNoEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(programService.getProgramsByTrackedEntityType(trackedEntityType))
+        .thenReturn(List.of(program));
     when(trackerAccessManager.canWrite(any(), eq(te), eq(program), eq(false)))
         .thenReturn(List.of());
 
@@ -210,7 +212,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithDeleteEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(programService.getProgramsByTrackedEntityType(trackedEntityType))
+        .thenReturn(List.of(program));
     when(trackerAccessManager.canWrite(any(), eq(te), eq(program), eq(false)))
         .thenReturn(List.of());
 
@@ -232,7 +235,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(programService.getProgramsByTrackedEntityType(trackedEntityType))
+        .thenReturn(List.of(program));
     when(trackerAccessManager.canWrite(any(), eq(te), eq(program), eq(false)))
         .thenReturn(List.of());
 
@@ -253,7 +257,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(programService.getProgramsByTrackedEntityType(trackedEntityType))
+        .thenReturn(List.of(program));
     when(trackerAccessManager.canWrite(any(), eq(te), eq(program), eq(false)))
         .thenReturn(List.of());
 
@@ -302,7 +307,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(programService.getAllPrograms()).thenReturn(List.of(program));
+    when(programService.getProgramsByTrackedEntityType(trackedEntityType))
+        .thenReturn(List.of(program));
     when(trackerAccessManager.canWrite(any(), eq(te), eq(program), eq(false)))
         .thenReturn(List.of("error"));
 
