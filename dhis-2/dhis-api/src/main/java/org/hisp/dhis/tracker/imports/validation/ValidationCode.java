@@ -36,7 +36,7 @@ public enum ValidationCode {
   E1000("User: `{0}`, has no write access to OrganisationUnit: `{1}`."),
   E1001("User: `{0}`, has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntity: `{0}`, already exists."),
-  E1003("TrackedEntity: `{0}` is not accessible."),
+  E1003("User: `{0}`, has no write access to TrackedEntity: `{1}`."),
   E1005("Could not find TrackedEntityType: `{0}`."),
   E1006("Attribute: `{0}`, does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),

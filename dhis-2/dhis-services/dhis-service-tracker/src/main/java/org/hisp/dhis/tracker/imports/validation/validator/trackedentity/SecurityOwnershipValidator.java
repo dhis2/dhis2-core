@@ -104,7 +104,8 @@ class SecurityOwnershipValidator
     else {
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
       if (!trackerAccessManager.canWrite(UserDetails.fromUser(bundle.getUser()), te).isEmpty()) {
-        reporter.addError(trackedEntity, ValidationCode.E1003, te.getUid());
+        reporter.addError(
+            trackedEntity, ValidationCode.E1003, bundle.getUser().getUid(), te.getUid());
       }
     }
 
