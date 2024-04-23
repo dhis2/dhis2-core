@@ -94,13 +94,10 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
-
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
     dispatcher.addMapping("/*");
-
-    context.addServlet("RedirectRootServlet", RedirectRootServlet.class).addMapping("");
 
     context
         .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
