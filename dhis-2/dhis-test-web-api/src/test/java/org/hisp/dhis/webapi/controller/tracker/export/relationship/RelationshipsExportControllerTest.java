@@ -40,6 +40,7 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertTrack
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
@@ -56,6 +57,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -66,6 +68,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
@@ -123,17 +126,6 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
-    program = createProgram('A');
-    program.addOrganisationUnit(orgUnit);
-    program.getSharing().setOwner(owner);
-    program.getSharing().addUserAccess(userAccess());
-    manager.save(program, false);
-
-    programStage = createProgramStage('A', program);
-    programStage.getSharing().setOwner(owner);
-    programStage.getSharing().addUserAccess(userAccess());
-    manager.save(programStage, false);
-
     tea = createTrackedEntityAttribute('A');
     tea.getSharing().setOwner(owner);
     tea.getSharing().addUserAccess(userAccess());
@@ -155,6 +147,18 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     trackedEntityType.setTrackedEntityTypeAttributes(List.of(trackedEntityTypeAttribute));
     manager.save(trackedEntityType, false);
+
+    program = createProgram('A');
+    program.addOrganisationUnit(orgUnit);
+    program.getSharing().setOwner(owner);
+    program.getSharing().addUserAccess(userAccess());
+    program.setTrackedEntityType(trackedEntityType);
+    manager.save(program, false);
+
+    programStage = createProgramStage('A', program);
+    programStage.getSharing().setOwner(owner);
+    programStage.getSharing().addUserAccess(userAccess());
+    manager.save(programStage, false);
 
     dataElement = createDataElement('A');
     manager.save(dataElement, false);
@@ -309,7 +313,19 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
     from.setEventDataValues(Set.of(new EventDataValue(dataElement.getUid(), "12")));
-    relationship(from, to);
+    Relationship relationship = relationship(from, to);
+    RelationshipType type = relationship.getRelationshipType();
+
+    RelationshipConstraint toConstraint = new RelationshipConstraint();
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setDataElements(new LinkedHashSet<>(Set.of(dataElement.getUid())));
+
+    toConstraint.setTrackerDataView(trackerDataView);
+
+    type.setFromConstraint(toConstraint);
+
+    manager.update(type);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -407,7 +423,18 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, tea)));
 
     Enrollment from = enrollment(to);
-    relationship(from, to);
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType type = relationship.getRelationshipType();
+
+    RelationshipConstraint constraint = new RelationshipConstraint();
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(tea.getUid())));
+
+    constraint.setTrackerDataView(trackerDataView);
+
+    type.setFromConstraint(constraint);
 
     JsonList<JsonRelationship> relationships =
         GET(
@@ -598,7 +625,26 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
         Set.of(attributeValue(tea, to, "12"), attributeValue(tea2, to, "24")));
     program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, tea2)));
     Enrollment from = enrollment(to);
-    relationship(from, to);
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType type = relationship.getRelationshipType();
+
+    RelationshipConstraint fromConstraint = new RelationshipConstraint();
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(tea2.getUid())));
+
+    fromConstraint.setTrackerDataView(trackerDataView);
+
+    RelationshipConstraint toConstraint = new RelationshipConstraint();
+
+    TrackerDataView dataView = new TrackerDataView();
+    dataView.setAttributes(new LinkedHashSet<>(Set.of(tea.getUid(), tea2.getUid())));
+
+    toConstraint.setTrackerDataView(dataView);
+
+    type.setFromConstraint(fromConstraint);
+    type.setToConstraint(toConstraint);
 
     JsonList<JsonRelationship> relationships =
         GET(
