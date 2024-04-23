@@ -54,7 +54,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
 
   private final IdentifiableObjectManager manager;
 
-  private final Map<SideEffectTriggerEvent, Consumer<Long>> serviceMapper;
+  private final Map<SideEffectTrigger, Consumer<Long>> serviceMapper;
 
   public TrackerNotificationThread(
       ProgramNotificationService programNotificationService,
@@ -64,11 +64,10 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
     this.manager = manager;
     this.serviceMapper =
         Map.of(
-            SideEffectTriggerEvent.ENROLLMENT,
-                programNotificationService::sendEnrollmentNotifications,
-            SideEffectTriggerEvent.EVENT_COMPLETION,
+            SideEffectTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
+            SideEffectTrigger.EVENT_COMPLETION,
                 programNotificationService::sendEventCompletionNotifications,
-            SideEffectTriggerEvent.ENROLLMENT_COMPLETION,
+            SideEffectTrigger.ENROLLMENT_COMPLETION,
                 programNotificationService::sendEnrollmentCompletionNotifications);
   }
 

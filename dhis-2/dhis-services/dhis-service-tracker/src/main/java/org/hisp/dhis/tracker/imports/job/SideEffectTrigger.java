@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.job;
 /**
  * @author Zubair Asghar
  */
-public enum SideEffectTriggerEvent {
+public enum SideEffectTrigger {
   ENROLLMENT,
   ENROLLMENT_COMPLETION,
   EVENT_COMPLETION,

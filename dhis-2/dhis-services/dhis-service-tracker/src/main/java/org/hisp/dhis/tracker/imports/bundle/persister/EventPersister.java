@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.job.SideEffectTriggerEvent;
+import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -117,8 +117,8 @@ public class EventPersister
         .program(event.getProgramStage().getProgram())
         .triggerEvent(
             event.isCompleted()
-                ? SideEffectTriggerEvent.EVENT_COMPLETION
-                : SideEffectTriggerEvent.EVENT_UPDATE)
+                ? SideEffectTrigger.EVENT_COMPLETION
+                : SideEffectTrigger.EVENT_UPDATE)
         .build();
   }
 

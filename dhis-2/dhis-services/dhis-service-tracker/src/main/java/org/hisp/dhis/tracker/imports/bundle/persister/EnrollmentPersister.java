@@ -39,7 +39,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.imports.job.SideEffectTriggerEvent;
+import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -129,8 +129,8 @@ public class EnrollmentPersister
         .program(enrollment.getProgram())
         .triggerEvent(
             enrollment.isCompleted()
-                ? SideEffectTriggerEvent.ENROLLMENT_COMPLETION
-                : SideEffectTriggerEvent.ENROLLMENT)
+                ? SideEffectTrigger.ENROLLMENT_COMPLETION
+                : SideEffectTrigger.ENROLLMENT)
         .build();
   }
 
