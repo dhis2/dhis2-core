@@ -335,10 +335,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             + "LEFT JOIN categorycombo c on p.categorycomboid = c.categorycomboid "
             + "LEFT JOIN trackedentitytype tet on p.trackedentitytypeid = tet.trackedentitytypeid "
             + "LEFT JOIN programstage ps on p.programid = ps.programid "
-            + "LEFT JOIN program_organisationunits pou on p.programid = pou.programid "
-            + "LEFT JOIN organisationunit ou on pou.organisationunitid = ou.organisationunitid "
-            + "group by p.programid, tet.trackedentitytypeid, c.categorycomboid, ps.programstageid, ps.sort_order "
-            + "order by p.programid, ps.sort_order";
+            + "order by p.programid";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
             Map<String, Program> results = new HashMap<>();
