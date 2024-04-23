@@ -156,13 +156,8 @@ class SecurityOwnershipValidator
   private void checkWriteAccess(
       Reporter reporter, TrackerDto dto, TrackedEntity te, TrackerBundle bundle) {
     List<Program> programsToCheck =
-        programService.getAllPrograms().stream()
-            .filter(
-                p ->
-                    p.isRegistration()
-                        && p.getTrackedEntityType()
-                            .getUid()
-                            .equals(te.getTrackedEntityType().getUid()))
+        programService.getProgramsByTrackedEntityType(te.getTrackedEntityType()).stream()
+            .filter(Program::isRegistration)
             .toList();
     if (!programsToCheck.isEmpty()
         && programsToCheck.stream()
