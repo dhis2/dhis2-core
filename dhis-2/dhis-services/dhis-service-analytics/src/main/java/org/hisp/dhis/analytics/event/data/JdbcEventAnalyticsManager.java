@@ -408,7 +408,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // ---------------------------------------------------------------------
     // Periods
     // ---------------------------------------------------------------------
-
     if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
       sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
     }

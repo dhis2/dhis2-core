@@ -126,6 +126,10 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       error = new ErrorMessage(ErrorCode.E7214);
     }
 
+    if(error != null){
+      return error;
+    }
+
     for (QueryItem item : params.getItemsAndItemFilters()) {
       if (item.hasLegendSet() && item.hasOptionSet()) {
         error = new ErrorMessage(ErrorCode.E7215, item.getItemId());
