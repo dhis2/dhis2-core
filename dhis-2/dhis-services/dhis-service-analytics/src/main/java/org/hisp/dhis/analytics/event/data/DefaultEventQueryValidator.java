@@ -97,10 +97,12 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
         && params.getDimensionalObjectItems().contains(params.getValue())) {
       return new ErrorMessage(ErrorCode.E7203);
     }
-    if (params.hasAggregationType() && !(params.hasValueDimension() || params.isAggregateData())) {
+    if (params.hasAggregationType()
+        && !(params.hasValueDimension() || params.isAggregateData())) {
       return new ErrorMessage(ErrorCode.E7204);
     }
-    if (!params.hasPeriods() && (params.getStartDate() == null || params.getEndDate() == null)) {
+    if (!params.hasPeriods()
+        && (params.getStartDate() == null || params.getEndDate() == null)) {
       return new ErrorMessage(ErrorCode.E7205);
     }
     if (params.getStartDate() != null
@@ -109,8 +111,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return
           new ErrorMessage(
               ErrorCode.E7206,
-              getMediumDateString(params.getStartDate()),
-              getMediumDateString(params.getEndDate()));
+                  getMediumDateString(params.getStartDate()),
+                  getMediumDateString(params.getEndDate()));
     }
     if (params.getPage() != null && params.getPage() <= 0) {
       return new ErrorMessage(ErrorCode.E7207, params.getPage());
@@ -133,7 +135,8 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (params.hasBbox() && !ValidationUtils.bboxIsValid(params.getBbox())) {
       return new ErrorMessage(ErrorCode.E7213, params.getBbox());
     }
-    if ((params.hasBbox() || params.hasClusterSize()) && params.getCoordinateFields() == null) {
+    if ((params.hasBbox() || params.hasClusterSize())
+        && params.getCoordinateFields() == null) {
       return new ErrorMessage(ErrorCode.E7214);
     }
 
