@@ -204,7 +204,7 @@ public class Main {
     context.setDisplayName("/");
     context.setPath("");
 
-    context.setDocBase(documentRoot.getAbsolutePath());
+    //    context.setDocBase(documentRoot.getAbsolutePath());
 
     //    context.setDocBase(createTempDir("tomcat-docbase").getAbsolutePath());
 
