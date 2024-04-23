@@ -34,13 +34,10 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
-import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -68,8 +65,6 @@ class SecurityOwnershipValidator
   @Nonnull private final AclService aclService;
 
   @Nonnull private final OrganisationUnitService organisationUnitService;
-
-  @Nonnull private final ProgramService programService;
 
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
@@ -108,7 +103,9 @@ class SecurityOwnershipValidator
     // if its to update or delete trackedEntity, write access has to be checked
     else {
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
-      checkWriteAccess(reporter, trackedEntity, te, bundle);
+      if (!trackerAccessManager.canWrite(UserDetails.fromUser(bundle.getUser()), te).isEmpty()) {
+        reporter.addError(trackedEntity, ValidationCode.E1003, te.getUid());
+      }
     }
 
     if (strategy.isDelete()) {
@@ -150,23 +147,6 @@ class SecurityOwnershipValidator
 
     if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
-  private void checkWriteAccess(
-      Reporter reporter, TrackerDto dto, TrackedEntity te, TrackerBundle bundle) {
-    List<Program> programsToCheck =
-        programService.getProgramsByTrackedEntityType(te.getTrackedEntityType()).stream()
-            .filter(Program::isRegistration)
-            .toList();
-    if (!programsToCheck.isEmpty()
-        && programsToCheck.stream()
-            .noneMatch(
-                p ->
-                    trackerAccessManager
-                        .canWrite(UserDetails.fromUser(bundle.getUser()), te, p, false)
-                        .isEmpty())) {
-      reporter.addError(dto, ValidationCode.E1003, te.getUid());
     }
   }
 }

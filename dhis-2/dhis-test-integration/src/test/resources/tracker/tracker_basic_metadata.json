@@ -836,6 +836,69 @@
       }
     },
     {
+      "ignoreOverdueEvents": false,
+      "programSections": [],
+      "shortName": "Tracker Program Different TET",
+      "incidentDateLabel": "IncidentDate",
+      "translations": [],
+      "style": {
+        "color": "#d32f2f"
+      },
+      "expiryDays": 0,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "selectEnrollmentDatesInFuture": false,
+      "categoryCombo": {
+        "id": "FLsH8ClLGNB"
+      },
+      "notificationTemplates": [],
+      "displayIncidentDate": true,
+      "accessLevel": "OPEN",
+      "id": "YYY1E9tAbbW",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "completeEventsExpiryDays": 0,
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "onlyEnrollOnce": false,
+      "lastUpdated": "2019-03-29T12:41:33.039",
+      "trackedEntityType": {
+        "id": "XXXbPJ0FMtc"
+      },
+      "name": "Tracker Program Different TET",
+      "enrollmentDateLabel": "EnrollmentDate",
+      "maxTeiCountToReturn": 0,
+      "attributeValues": [],
+      "useFirstStageDuringRegistration": false,
+      "minAttributesRequiredToSearch": 1,
+      "skipOffline": false,
+      "version": 0,
+      "programType": "WITH_REGISTRATION",
+      "selectIncidentDatesInFuture": false,
+      "displayFrontPageList": false,
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {
+          "oajYcE7VMBs": {
+            "id": "oajYcE7VMBs",
+            "access": "rwrw----"
+          },
+          "iAji3gyZYQL": {
+            "id": "iAji3gyZYQL",
+            "access": "rwrw----"
+          }
+        },
+        "userGroups": {}
+      }
+    },
+    {
       "featureType": "NONE",
       "ignoreOverdueEvents": false,
       "programSections": [],
