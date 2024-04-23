@@ -455,11 +455,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasTrackedEntityType()) {
-      trackedEntity.append(whereAnd.whereAnd())
+      trackedEntity
+          .append(whereAnd.whereAnd())
           .append("TE.trackedentitytypeid = ")
           .append(params.getTrackedEntityType().getId());
-    } else if (!params.hasProgram()){
-      trackedEntity.append(whereAnd.whereAnd())
+    } else if (!params.hasProgram()) {
+      trackedEntity
+          .append(whereAnd.whereAnd())
           .append("TE.trackedentitytypeid in (")
           .append(getCommaDelimitedString(getIdentifiers(params.getTrackedEntityTypes())))
           .append(")");
