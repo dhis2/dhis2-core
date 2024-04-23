@@ -159,7 +159,7 @@ class SecurityOwnershipValidator
         programService.getAllPrograms().stream()
             .filter(
                 p ->
-                    p.getTrackedEntityType() != null
+                    p.isRegistration()
                         && p.getTrackedEntityType()
                             .getUid()
                             .equals(te.getTrackedEntityType().getUid()))
