@@ -86,7 +86,6 @@ class TrackedEntityOperationParamsMapper {
   @Nonnull private final ProgramService programService;
 
   private final OperationsParamsValidator paramsValidator;
-  private final DefaultTrackedEntityService trackedEntityService;
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
