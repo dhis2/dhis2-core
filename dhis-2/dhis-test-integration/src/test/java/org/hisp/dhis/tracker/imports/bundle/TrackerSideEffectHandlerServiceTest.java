@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.awaitility.Awaitility.await;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.event.EventStatus;
@@ -56,6 +59,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -162,7 +166,13 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         TrackerImportParams.builder().userId(user.getUid()).build(),
         TrackerObjects.builder().enrollments(List.of(enrollment)).build());
 
-    List<MessageConversation> messageConversations = messageService.getMessageConversations();
+    await()
+        .atMost(2, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    Assertions.assertFalse(messageConversations.isEmpty());
   }
 
   @Test
@@ -182,7 +192,13 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         TrackerImportParams.builder().userId(user.getUid()).build(),
         TrackerObjects.builder().enrollments(List.of(enrollment)).build());
 
-    List<MessageConversation> messageConversations = messageService.getMessageConversations();
+    await()
+        .atMost(2, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    Assertions.assertFalse(messageConversations.isEmpty());
   }
 
   @Test
@@ -213,7 +229,13 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
         TrackerImportParams.builder().userId(user.getUid()).build(),
         TrackerObjects.builder().enrollments(List.of(enrollment)).events(List.of(event)).build());
 
-    List<MessageConversation> messageConversations = messageService.getMessageConversations();
+    await()
+        .atMost(2, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+
+    Assertions.assertFalse(messageConversations.isEmpty());
   }
 
   private ProgramNotificationTemplate createProgramNotification(
