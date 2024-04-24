@@ -86,13 +86,14 @@ class TrackedEntityOperationParamsMapper {
   @Nonnull private final ProgramService programService;
 
   private final OperationsParamsValidator paramsValidator;
+  private final DefaultTrackedEntityService trackedEntityService;
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     User user = operationParams.getUser();
 
-    Program program = paramsValidator.validateProgram(operationParams.getProgramUid(), user);
+    Program program = paramsValidator.validateTrackerProgram(operationParams.getProgramUid(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
     TrackedEntityType requestedTrackedEntityType =
@@ -100,7 +101,7 @@ class TrackedEntityOperationParamsMapper {
 
     List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
 
-    List<Program> programs = getPrograms(program, user);
+    List<Program> programs = getTrackerPrograms(program, user);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
@@ -148,7 +149,7 @@ class TrackedEntityOperationParamsMapper {
   private List<TrackedEntityType> getTrackedEntityTypes(Program program, User user)
       throws BadRequestException {
 
-    if (program != null && program.getTrackedEntityType() != null) {
+    if (program != null) {
       return List.of(program.getTrackedEntityType());
     } else {
       return filterAndValidateTrackedEntityTypes(user);
@@ -169,9 +170,10 @@ class TrackedEntityOperationParamsMapper {
     return trackedEntityTypes;
   }
 
-  private List<Program> getPrograms(Program program, User user) {
+  private List<Program> getTrackerPrograms(Program program, User user) {
     if (program == null) {
       return programService.getAllPrograms().stream()
+          .filter(Program::isRegistration)
           .filter(p -> aclService.canDataRead(user, p))
           .toList();
     }

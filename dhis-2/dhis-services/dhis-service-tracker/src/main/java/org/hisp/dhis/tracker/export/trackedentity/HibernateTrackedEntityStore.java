@@ -367,7 +367,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
-            .append(getProgramConditions(params))
+            .append(getFromSubQueryProgramConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
@@ -703,7 +703,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *
    * @return a SQL LEFT JOIN for programs
    */
-  private String getProgramConditions(TrackedEntityQueryParams params) {
+  private String getFromSubQueryProgramConditions(TrackedEntityQueryParams params) {
     if (!params.hasProgram() && !skipOwnershipCheck(params)) {
       return " LEFT JOIN program P ON "
           + "    P.programid = PO.programid "
