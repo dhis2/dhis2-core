@@ -95,13 +95,10 @@ class SecurityOwnershipValidator
                 .getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-    // If trackedEntity is newly created, capture scope has to be checked
     if (strategy.isCreate()) {
-      checkTeiTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
+      checkTeTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
       checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
-    }
-    // if its to update or delete trackedEntity, write access has to be checked
-    else {
+    } else {
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
       if (!trackerAccessManager.canWrite(UserDetails.fromUser(bundle.getUser()), te).isEmpty()) {
         reporter.addError(
@@ -119,7 +116,7 @@ class SecurityOwnershipValidator
     }
   }
 
-  private void checkTeiTypeWriteAccess(
+  private void checkTeTypeWriteAccess(
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
