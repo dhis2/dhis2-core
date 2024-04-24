@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -39,10 +41,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -56,10 +55,10 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,7 +71,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
   @Autowired protected UserService _userService;
-  @Autowired private MessageService messageService;
 
   private Program programA;
 
@@ -83,10 +81,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
   private TrackedEntityType trackedEntityTypeA;
 
   private TrackedEntity trackedEntityA;
-
-  private Enrollment enrollmentA;
-
-  private Event eventA;
 
   private ProgramNotificationTemplate templateForEnrollment;
   private ProgramNotificationTemplate templateForEnrollmentCompletion;
@@ -162,17 +156,20 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .enrollment(CodeGenerator.generateUid())
             .build();
 
-    trackerImportService.importTracker(
-        TrackerImportParams.builder().userId(user.getUid()).build(),
-        TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().userId(user.getUid()).build(),
+            TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+
+    assertNoErrors(importReport);
 
     await()
-        .atMost(2, TimeUnit.SECONDS)
+        .atMost(3, TimeUnit.SECONDS)
         .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
 
     List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
 
-    Assertions.assertFalse(messageConversations.isEmpty());
+    assertFalse(messageConversations.isEmpty());
   }
 
   @Test
@@ -188,17 +185,20 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .enrollment(CodeGenerator.generateUid())
             .build();
 
-    trackerImportService.importTracker(
-        TrackerImportParams.builder().userId(user.getUid()).build(),
-        TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().userId(user.getUid()).build(),
+            TrackerObjects.builder().enrollments(List.of(enrollment)).build());
+
+    assertNoErrors(importReport);
 
     await()
-        .atMost(2, TimeUnit.SECONDS)
+        .atMost(3, TimeUnit.SECONDS)
         .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
 
     List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
 
-    Assertions.assertFalse(messageConversations.isEmpty());
+    assertFalse(messageConversations.isEmpty());
   }
 
   @Test
@@ -208,7 +208,7 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .trackedEntity(trackedEntityA.getUid())
-            .status(EnrollmentStatus.COMPLETED)
+            .status(EnrollmentStatus.ACTIVE)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .enrollment(CodeGenerator.generateUid())
@@ -225,17 +225,23 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .occurredAt(Instant.now())
             .build();
 
-    trackerImportService.importTracker(
-        TrackerImportParams.builder().userId(user.getUid()).build(),
-        TrackerObjects.builder().enrollments(List.of(enrollment)).events(List.of(event)).build());
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().userId(user.getUid()).build(),
+            TrackerObjects.builder()
+                .enrollments(List.of(enrollment))
+                .events(List.of(event))
+                .build());
+
+    assertNoErrors(importReport);
 
     await()
-        .atMost(2, TimeUnit.SECONDS)
+        .atMost(3, TimeUnit.SECONDS)
         .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
 
     List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
 
-    Assertions.assertFalse(messageConversations.isEmpty());
+    assertFalse(messageConversations.isEmpty());
   }
 
   private ProgramNotificationTemplate createProgramNotification(
