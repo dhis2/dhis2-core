@@ -33,7 +33,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.security.access.AccessDeniedException;
@@ -51,49 +51,74 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * org.hisp.dhis.security.Authorities} which are passed in {@link RequiresAuthority} as an arg.
  *
  * <p>Throws {@link AccessDeniedException} if {@link org.hisp.dhis.user.User} does not have any of
- * the passed-in {@link org.hisp.dhis.security.Authorities}.
+ * the passed-in {@link org.hisp.dhis.security.Authorities}. The exception message includes the
+ * required {@link org.hisp.dhis.security.Authorities} for the endpoint.
  *
  * <p>{@link Authorities#ALL} is automatically added to the check, as having this Authority allows
  * access to all methods by default.
  */
-@Slf4j
 @Component
 public class AuthorityInterceptor implements HandlerInterceptor {
 
+  /**
+   * Checks if the User has the required authority. Checks and executes at the method level first
+   * (matching Spring convention). If no method-level annotation then check at the class level.
+   *
+   * @param request http request
+   * @param response http response
+   * @param handler request handler
+   * @return boolean, indicating whether to proceed through the request chain or not
+   */
   @Override
   public boolean preHandle(
       @Nonnull HttpServletRequest request,
       @Nonnull HttpServletResponse response,
       @Nonnull Object handler) {
-    HandlerMethod handlerMethod = (HandlerMethod) handler;
 
-    if (!handlerMethod.hasMethodAnnotation(RequiresAuthority.class)) {
+    if (!(handler instanceof HandlerMethod)) {
       return true;
     }
 
-    RequiresAuthority requiresAuthority =
-        handlerMethod.getMethodAnnotation(RequiresAuthority.class);
-    if (requiresAuthority != null) {
-      // include 'ALL' authority in required authorities
-      List<Authorities> requiredAuthorities = new ArrayList<>(List.of(Authorities.ALL));
-      requiredAuthorities.addAll(List.of(requiresAuthority.anyOf()));
+    HandlerMethod handlerMethod = (HandlerMethod) handler;
+    // check if RequiresAuthority is at method level
+    if (handlerMethod.hasMethodAnnotation(RequiresAuthority.class)) {
+      RequiresAuthority requiresMethodAuthority =
+          handlerMethod.getMethodAnnotation(RequiresAuthority.class);
+      if (requiresMethodAuthority != null)
+        return checkForRequiredAuthority(requiresMethodAuthority);
+    }
 
-      // get user authorities
-      final SecurityContext securityContext = SecurityContextHolder.getContext();
-      Authentication authentication = securityContext.getAuthentication();
-      if (authentication == null)
-        throw new SessionAuthenticationException("Error trying to get user authentication details");
+    // heck if RequiresAuthority is at method level
+    if (handlerMethod.getBeanType().isAnnotationPresent(RequiresAuthority.class)) {
+      RequiresAuthority requiresClassAuthority =
+          handlerMethod.getBeanType().getAnnotation(RequiresAuthority.class);
+      return checkForRequiredAuthority(requiresClassAuthority);
+    }
+    return true;
+  }
 
-      Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
+  private boolean checkForRequiredAuthority(RequiresAuthority requiresAuthority) {
+    // include 'ALL' authority in required authorities
+    List<Authorities> requiredAuthorities = new ArrayList<>(List.of(Authorities.ALL));
+    requiredAuthorities.addAll(List.of(requiresAuthority.anyOf()));
 
-      // check if user has any of the required authorities passed in
-      if (requiredAuthorities.stream()
-          .noneMatch(
-              reqAuth ->
-                  userAuthorities.stream()
-                      .anyMatch(userAuth -> reqAuth.name().equals(userAuth.getAuthority())))) {
-        throw new AccessDeniedException("Access is denied");
-      }
+    // get user authorities
+    final SecurityContext securityContext = SecurityContextHolder.getContext();
+    Authentication authentication = securityContext.getAuthentication();
+    if (authentication == null)
+      throw new SessionAuthenticationException("Error trying to get user authentication details");
+
+    Collection<? extends GrantedAuthority> userAuthorities = authentication.getAuthorities();
+
+    // check if user has any of the required authorities passed in
+    if (requiredAuthorities.stream()
+        .noneMatch(
+            reqAuth ->
+                userAuthorities.stream()
+                    .anyMatch(userAuth -> reqAuth.toString().equals(userAuth.getAuthority())))) {
+      throw new AccessDeniedException(
+          "Access is denied, requires one Authority from [%s]"
+              .formatted(StringUtils.join(requiresAuthority.anyOf(), ", ")));
     }
     return true;
   }

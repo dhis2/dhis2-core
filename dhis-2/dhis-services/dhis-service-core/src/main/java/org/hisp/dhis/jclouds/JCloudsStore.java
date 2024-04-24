@@ -31,6 +31,7 @@ import static org.jclouds.Constants.PROPERTY_ENDPOINT;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +51,7 @@ import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
 import org.jclouds.domain.LocationScope;
 import org.jclouds.filesystem.reference.FilesystemConstants;
+import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 import org.jclouds.s3.reference.S3Constants;
 import org.springframework.stereotype.Component;
 
@@ -63,11 +65,14 @@ public class JCloudsStore {
 
   private static final String JCLOUDS_PROVIDER_KEY_FILESYSTEM = "filesystem";
   private static final String JCLOUDS_PROVIDER_KEY_AWS_S3 = "aws-s3";
+  private static final String JCLOUDS_PROVIDER_KEY_S3 =
+      "s3"; // for s3 compatible API providers like Minio
   private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
   private static final List<String> SUPPORTED_PROVIDERS =
       List.of(
           JCLOUDS_PROVIDER_KEY_FILESYSTEM,
           JCLOUDS_PROVIDER_KEY_AWS_S3,
+          JCLOUDS_PROVIDER_KEY_S3,
           JCLOUDS_PROVIDER_KEY_TRANSIENT);
 
   private final LocationManager locationManager;
@@ -87,10 +92,12 @@ public class JCloudsStore {
 
     String identity = configurationProvider.getProperty(ConfigurationKey.FILESTORE_IDENTITY);
     String secret = configurationProvider.getProperty(ConfigurationKey.FILESTORE_SECRET);
+
     blobStoreContext =
         ContextBuilder.newBuilder(provider)
             .credentials(identity, secret)
             .overrides(configureOverrides(provider, endpoint))
+            .modules(Set.of(new SLF4JLoggingModule()))
             .build(BlobStoreContext.class);
   }
 
@@ -121,6 +128,12 @@ public class JCloudsStore {
     }
 
     if (JCLOUDS_PROVIDER_KEY_AWS_S3.equals(provider)) {
+      Properties overrides = new Properties();
+      overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
+      return overrides;
+    }
+
+    if (JCLOUDS_PROVIDER_KEY_S3.equals(provider)) {
       Properties overrides = new Properties();
       overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
 

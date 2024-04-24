@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
@@ -124,7 +126,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     Progress progress = mapToProgress(json);
     if (progress == null) return null;
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
-    if (user == null || !(user.isSuper() || user.isAuthorized("F_JOB_LOG_READ")))
+    if (user == null || !(user.isSuper() || user.isAuthorized(F_JOB_LOG_READ)))
       return progress.withoutErrors();
     return progress;
   }

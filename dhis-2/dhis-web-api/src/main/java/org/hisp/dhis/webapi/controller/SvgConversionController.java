@@ -61,7 +61,7 @@ public class SvgConversionController {
   @Autowired private ContextUtils contextUtils;
 
   @OpenApi.Response(byte[].class)
-  @PostMapping(value = "/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
+  @PostMapping(value = "/api/svg.png", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
   public void toPng(
       @RequestParam String svg,
       @RequestParam(required = false) String filename,
@@ -76,7 +76,7 @@ public class SvgConversionController {
   }
 
   @OpenApi.Response(byte[].class)
-  @PostMapping(value = "/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
+  @PostMapping(value = "/api/svg.pdf", consumes = ContextUtils.CONTENT_TYPE_FORM_ENCODED)
   public void toPdf(
       @RequestParam String svg,
       @RequestParam(required = false) String filename,

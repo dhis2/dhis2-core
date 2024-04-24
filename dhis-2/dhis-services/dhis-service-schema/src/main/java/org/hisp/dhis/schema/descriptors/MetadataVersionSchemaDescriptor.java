@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
+
+import java.util.List;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -40,7 +43,7 @@ public class MetadataVersionSchemaDescriptor implements SchemaDescriptor {
 
   public static final String PLURAL = "metadataVersions";
 
-  public static final String API_ENDPOINT = "/" + "metadata/version";
+  public static final String API_ENDPOINT = "/metadata/version";
 
   @Override
   public Schema getSchema() {
@@ -48,7 +51,8 @@ public class MetadataVersionSchemaDescriptor implements SchemaDescriptor {
     schema.setRelativeApiEndpoint(API_ENDPOINT);
 
     schema.add(
-        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("ALL", "F_METADATA_MANAGE")));
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, List.of(ALL.toString(), F_METADATA_MANAGE.toString())));
 
     return schema;
   }

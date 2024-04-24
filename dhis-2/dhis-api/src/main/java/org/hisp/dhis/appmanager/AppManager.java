@@ -76,8 +76,6 @@ public interface AppManager {
           "user",
           "user-profile");
 
-  static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
-
   static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
   /**

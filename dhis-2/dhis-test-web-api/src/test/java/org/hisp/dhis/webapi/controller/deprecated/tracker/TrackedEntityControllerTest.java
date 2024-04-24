@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +64,12 @@ class TrackedEntityControllerTest extends DhisControllerConvenienceTest {
                 "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+
+    Program program = createProgram('A');
+    program.getOrganisationUnits().add(manager.get(OrganisationUnit.class, ouId));
+    program.setUid("q04UBOqq3rp");
+    program.setTrackedEntityType(manager.get(TrackedEntityType.class, tetId));
+    manager.save(program);
   }
 
   @Test

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getApiPath;
+import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getServletPath;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
@@ -61,7 +61,7 @@ public class FieldFilterRequestHandler {
   }
 
   private static String getRequestURL(HttpServletRequest request) {
-    StringBuilder requestURL = new StringBuilder(getApiPath(request));
+    StringBuilder requestURL = new StringBuilder(getServletPath(request));
     requestURL.append(request.getPathInfo());
     String queryString = request.getQueryString();
     if (queryString == null) {

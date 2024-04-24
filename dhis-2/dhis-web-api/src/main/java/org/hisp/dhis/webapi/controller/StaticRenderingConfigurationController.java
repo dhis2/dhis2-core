@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = "/staticConfiguration/")
+@RequestMapping("/api/staticConfiguration/")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class StaticRenderingConfigurationController {
 
