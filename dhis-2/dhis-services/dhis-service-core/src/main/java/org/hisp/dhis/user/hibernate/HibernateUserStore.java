@@ -114,6 +114,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
+  public void save(@Nonnull User user, boolean clearSharing) {
+    super.save(user, clearSharing);
+
+    aclService.invalidateCurrentUserGroupInfoCache(user.getUid());
+  }
+
+  @Override
   public List<User> getUsers(UserQueryParams params, @Nullable List<String> orders) {
     Query<?> userQuery = getUserQuery(params, orders, false);
     return extractUserQueryUsers(userQuery.list());
