@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -205,16 +208,51 @@ class PeriodCriteriaUtilsTest {
   }
 
   @Test
-  void testCriteriaHasPeriodWhenDimensionNull() {
+  void testCriteriaHasPeriodWhenDimensionNotSet() {
     // given
     EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
 
     // when
-    criteria.setDimension(null);
     criteria.setEventDate("2020-12-01");
 
     // then
     assertTrue(PeriodCriteriaUtils.hasPeriod(criteria));
+  }
+
+  @Test
+  void testCriteriaHasPeriodWhenDimensionAndPeriodNotSet() {
+    // given
+    EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
+
+    // when
+    // then
+    assertFalse(PeriodCriteriaUtils.hasPeriod(criteria) && criteria.getDimension().isEmpty());
+  }
+
+  @Test
+  void testCriteriaHasEmptySetsByDefault() {
+    // given
+    EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
+    Class<?> targetClass = EventsAnalyticsQueryCriteria.class;
+    Field[] fields = targetClass.getDeclaredFields();
+
+    for (Field field : fields) {
+      String fieldName = field.getName();
+      Class<?> fieldType = field.getType();
+      if (fieldType == Set.class) {
+        Method method;
+        try {
+          // when
+          method =
+              targetClass.getMethod(
+                  "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1));
+          // then
+          assertTrue(((Set<?>) method.invoke(criteria)).isEmpty());
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+          assert false;
+        }
+      }
+    }
   }
 
   private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithPeriod(

@@ -60,7 +60,7 @@ public class PeriodCriteriaUtils {
    */
   public static void defineDefaultPeriodForCriteria(
       EnrollmentAnalyticsQueryCriteria criteria, RelativePeriodEnum defaultPeriod) {
-    if (!hasPeriod(criteria)) {
+    if (!hasPeriod(criteria) && criteria.getDimension() != null) {
       criteria.getDimension().add(PERIOD_DIM_ID + ":" + defaultPeriod.name());
     }
   }
@@ -73,10 +73,8 @@ public class PeriodCriteriaUtils {
    *     False, otherwise.
    */
   public static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
-    return (criteria.getDimension() != null
-            && criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
-        || (criteria.getFilter() != null
-            && criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+    return (criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+        || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEventDate())
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
