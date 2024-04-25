@@ -35,7 +35,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class EventsAnalyticsQueryCriteriaTest {
+class EventsAnalyticsQueryCriteriaTest {
   @Test
   void testCriteriaHasEmptySetsByDefault() {
     // given
