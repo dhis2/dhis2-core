@@ -118,6 +118,15 @@ public class EnrollmentPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, Enrollment enrollment) {
+
+    SideEffectTrigger trigger = SideEffectTrigger.NONE;
+
+    if (isNew(bundle.getPreheat(), enrollment.getUid())) {
+      trigger = SideEffectTrigger.ENROLLMENT;
+    } else if (enrollment.isCompleted()) {
+      trigger = SideEffectTrigger.ENROLLMENT_COMPLETION;
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
         .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
@@ -127,10 +136,7 @@ public class EnrollmentPersister
         .accessedBy(bundle.getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
-        .triggerEvent(
-            enrollment.isCompleted()
-                ? SideEffectTrigger.ENROLLMENT_COMPLETION
-                : SideEffectTrigger.ENROLLMENT)
+        .triggerEvent(trigger)
         .build();
   }
 

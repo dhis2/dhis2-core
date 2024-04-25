@@ -106,6 +106,15 @@ public class EventPersister
 
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
+
+    SideEffectTrigger trigger = SideEffectTrigger.NONE;
+
+    if (isNew(bundle.getPreheat(), event.getUid())) {
+      trigger = SideEffectTrigger.EVENT_UPDATE;
+    } else if (event.isCompleted()) {
+      trigger = SideEffectTrigger.EVENT_COMPLETION;
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
@@ -115,10 +124,7 @@ public class EventPersister
         .accessedBy(bundle.getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggerEvent(
-            event.isCompleted()
-                ? SideEffectTrigger.EVENT_COMPLETION
-                : SideEffectTrigger.EVENT_UPDATE)
+        .triggerEvent(trigger)
         .build();
   }
 
