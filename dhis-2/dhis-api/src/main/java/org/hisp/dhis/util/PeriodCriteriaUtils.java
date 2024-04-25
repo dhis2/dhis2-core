@@ -60,7 +60,7 @@ public class PeriodCriteriaUtils {
    */
   public static void defineDefaultPeriodForCriteria(
       EnrollmentAnalyticsQueryCriteria criteria, RelativePeriodEnum defaultPeriod) {
-    if (!hasPeriod(criteria) && criteria.getDimension() != null) {
+    if (!hasPeriod(criteria)) {
       criteria.getDimension().add(PERIOD_DIM_ID + ":" + defaultPeriod.name());
     }
   }
