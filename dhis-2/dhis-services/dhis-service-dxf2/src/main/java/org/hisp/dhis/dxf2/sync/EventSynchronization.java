@@ -40,13 +40,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -124,12 +124,10 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
     if (context.getObjectsToSynchronize() == 0) {
       String msg = "Event programs data synchronization skipped. No new or updated events found.";
       progress.completedProcess(msg);
-      //      DbmsUtils.unbindSessionFromThread(sessionFactory);
       return SynchronizationResult.success(msg);
     }
 
     if (runSyncWithPaging(context, progress)) {
-      //      DbmsUtils.unbindSessionFromThread(sessionFactory);
       progress.completedProcess(
           "SUCCESS! Event programs data sync was successfully done! It took ");
       return SynchronizationResult.success("Event programs data synchronization done.");
@@ -138,7 +136,6 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
     String msg =
         "Event programs data synchronization failed. Not all pages were synchronised successfully.";
     progress.failedProcess(msg);
-    //    DbmsUtils.unbindSessionFromThread(sessionFactory);
     return SynchronizationResult.failure(msg);
   }
 
@@ -188,10 +185,10 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
       log.info(
           "currentUser is null when trying to perform event sync, will inject remote sync user");
 
-      DbmsUtils.bindSessionToThread(sessionFactory);
-
       String remoteUsername = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
       User user = userService.getUserByUsername(remoteUsername);
+
+      HibernateProxyUtils.initializeAndUnproxy(user);
 
       CurrentUserDetails currentUserDetails =
           userService.validateAndCreateUserDetails(user, user.getPassword());

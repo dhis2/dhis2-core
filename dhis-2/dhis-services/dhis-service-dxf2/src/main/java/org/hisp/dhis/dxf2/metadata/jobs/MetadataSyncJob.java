@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
@@ -103,6 +105,8 @@ public class MetadataSyncJob implements Job {
 
   private final MetadataRetryContext metadataRetryContext;
 
+  private final SessionFactory sessionFactory;
+
   @Override
   public JobType getJobType() {
     return JobType.META_DATA_SYNC;
@@ -113,6 +117,8 @@ public class MetadataSyncJob implements Job {
     log.info("Metadata Sync cron Job started");
 
     try {
+      // bind session if none exist
+      DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
       MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
       retryTemplate.execute(
           retryContext -> {
@@ -131,6 +137,8 @@ public class MetadataSyncJob implements Job {
       String customMessage =
           "Exception occurred while executing metadata sync task." + e.getMessage();
       log.error(customMessage, e);
+    } finally {
+      DbmsUtils.unbindSessionFromThread(sessionFactory);
     }
   }
 

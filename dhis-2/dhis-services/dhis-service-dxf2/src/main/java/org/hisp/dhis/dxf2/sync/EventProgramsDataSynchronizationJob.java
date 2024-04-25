@@ -28,6 +28,8 @@
 package org.hisp.dhis.dxf2.sync;
 
 import lombok.AllArgsConstructor;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class EventProgramsDataSynchronizationJob implements Job {
   private final EventSynchronization eventSync;
+  private final SessionFactory sessionFactory;
 
   @Override
   public JobType getJobType() {
@@ -51,8 +54,14 @@ public class EventProgramsDataSynchronizationJob implements Job {
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
-    EventProgramsDataSynchronizationJobParameters params =
-        (EventProgramsDataSynchronizationJobParameters) config.getJobParameters();
-    eventSync.synchronizeData(params.getPageSize(), progress);
+    try {
+      // bind session if none exist
+      DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
+      EventProgramsDataSynchronizationJobParameters params =
+          (EventProgramsDataSynchronizationJobParameters) config.getJobParameters();
+      eventSync.synchronizeData(params.getPageSize(), progress);
+    } finally {
+      DbmsUtils.unbindSessionFromThread(sessionFactory);
+    }
   }
 }
