@@ -41,6 +41,12 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -59,7 +65,7 @@ public class RelationshipItem {
   @OpenApi.Shared(value = false)
   public static class TrackedEntity {
     @JsonProperty
-    @OpenApi.Property({UID.class, TrackedEntity.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
     private String trackedEntity;
 
     @JsonProperty private String trackedEntityType;
@@ -72,7 +78,9 @@ public class RelationshipItem {
 
     @JsonProperty private Instant updatedAtClient;
 
-    @JsonProperty private String orgUnit;
+    @JsonProperty
+    @OpenApi.Property({UID.class, OrganisationUnit.class})
+    private String orgUnit;
 
     @JsonProperty private boolean inactive;
 
@@ -82,7 +90,9 @@ public class RelationshipItem {
 
     @JsonProperty private Geometry geometry;
 
-    @JsonProperty private String storedBy;
+    @JsonProperty
+    @OpenApi.Property({UID.class, User.class})
+    private String storedBy;
 
     @JsonProperty private User createdBy;
 
@@ -101,7 +111,7 @@ public class RelationshipItem {
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
   public static class Enrollment {
-    @OpenApi.Property({UID.class, Enrollment.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
     @JsonProperty
     private String enrollment;
 
@@ -154,25 +164,35 @@ public class RelationshipItem {
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
   public static class Event {
-    @OpenApi.Property({UID.class, Event.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
     @JsonProperty
     private String event;
 
     @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
-    @JsonProperty private String program;
+    @OpenApi.Property({UID.class, Program.class})
+    @JsonProperty
+    private String program;
 
-    @JsonProperty private String programStage;
+    @OpenApi.Property({UID.class, ProgramStage.class})
+    @JsonProperty
+    private String programStage;
 
-    @JsonProperty private String enrollment;
+    @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
+    @JsonProperty
+    private String enrollment;
 
-    @JsonProperty private String orgUnit;
+    @OpenApi.Property({UID.class, OrganisationUnit.class})
+    @JsonProperty
+    private String orgUnit;
 
     @JsonProperty private Instant occurredAt;
 
     @JsonProperty private Instant scheduledAt;
 
-    @JsonProperty private String storedBy;
+    @OpenApi.Property({UID.class, User.class})
+    @JsonProperty
+    private String storedBy;
 
     @JsonProperty private boolean followUp;
 

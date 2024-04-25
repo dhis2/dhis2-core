@@ -135,6 +135,37 @@ public @interface OpenApi {
     String[] value();
   }
 
+  @Inherited
+  @Target({ElementType.METHOD, ElementType.TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @interface Document {
+    enum Group {
+      QUERY,
+      MANAGE,
+      MISC
+    }
+
+    /**
+     * @return name of the target document (no file extension)
+     */
+    String name();
+
+    Class<?> namespace() default EntityType.class;
+
+    Group group() default Group.MISC;
+
+    String description() default "";
+
+    String externalDocs() default "";
+
+    /**
+     * @return The HTTP method names that are automatically assigned to this group when annotated on
+     *     type level (unless they are explicitly assigned to another group using aa method level
+     *     annotation)
+     */
+    String[] methods() default {};
+  }
+
   /**
    * Annotate a controller type to ignore the entire controller.
    *
@@ -349,6 +380,7 @@ public @interface OpenApi {
       DEFAULT(""),
       INFO("%sInfo"),
       TRACKER("Tracker%s"),
+      ANALYTICS("Analytics%s"),
       DEPRECATED_TRACKER("Deprecated_Tracker%s");
 
       private final String template;

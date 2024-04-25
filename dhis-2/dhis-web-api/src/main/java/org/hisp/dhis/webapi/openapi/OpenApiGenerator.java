@@ -35,6 +35,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -60,7 +61,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * org.hisp.dhis.webapi.openapi.JsonGenerator.Format} of the generated JSON as well as the semantic
  * {@link Info} content.
  *
- * <p>Alongside the input {@link Api} model there is a pool of known {@link SimpleType}s. This is
+ * <p>Alongside the input {@link Api} model there is a pool of known {@link DirectType}s. This is
  * the core translation of primitives, wrapper, {@link String}s but also used as a "correction" for
  * seemingly complex types which in their serialized form become simple ones, like a period that
  * uses its ISO string form.
@@ -124,7 +125,11 @@ public class OpenApiGenerator extends JsonGenerator {
     return gen.toString();
   }
 
-  private static final String NO_DESCRIPTION = "[no description yet]";
+  /**
+   * By default, if no description is provided no such element should be added to the resulting
+   * document therefore the default is {@code null}.
+   */
+  private static final String NO_DESCRIPTION = null;
 
   private final Api api;
   private final Info info;
@@ -324,11 +329,6 @@ public class OpenApiGenerator extends JsonGenerator {
     api.getComponents()
         .getSchemas()
         .forEach((name, schema) -> addObjectMember(name, () -> generateSchema(schema)));
-
-    // write ref/uid schemas:
-    api.getComponents()
-        .getAdditionalSchemas()
-        .forEach((name, schema) -> addObjectMember(name, () -> generateSchema(schema)));
   }
 
   private void generateSchemaOrRef(Api.Schema schema) {
@@ -350,28 +350,34 @@ public class OpenApiGenerator extends JsonGenerator {
 
   private void generateSchema(Api.Schema schema, String defaultValue) {
     Class<?> type = schema.getRawType();
-    List<SimpleType> types = SimpleType.of(type);
-    if (types != null) {
-      if (types.size() == 1) {
-        generateSimpleTypeSchema(types.get(0), defaultValue);
+    DirectType directType = DirectType.of(type);
+    if (directType != null) {
+      Class<?> source = directType.source();
+      Collection<DirectType.SimpleType> oneOf = directType.oneOf().values();
+      if (oneOf.size() == 1) {
+        generateSimpleTypeSchema(source, oneOf.iterator().next(), defaultValue);
       } else {
         addArrayMember(
             "oneOf",
             () ->
-                types.forEach(t -> addObjectMember(null, () -> generateSimpleTypeSchema(t, null))));
+                oneOf.forEach(
+                    t -> addObjectMember(null, () -> generateSimpleTypeSchema(source, t, null))));
       }
       return;
     }
     Api.Schema.Type schemaType = schema.getType();
+    // FIXME
+    /*
     if (schemaType == Api.Schema.Type.REF) {
       generateRefTypeSchema(schema);
       return;
     }
+    */
     if (schemaType == Api.Schema.Type.UID) {
       generateUidSchema(schema);
       return;
     }
-    if (schemaType == Api.Schema.Type.UNKNOWN) {
+    if (schemaType == Api.Schema.Type.UNSUPPORTED) {
       addStringMultilineMember(
           "description",
           "The exact type is unknown.  \n(Java type was: `"
@@ -420,7 +426,8 @@ public class OpenApiGenerator extends JsonGenerator {
               "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
         return;
       }
-      addInlineArrayMember("required", schema.getRequiredProperties());
+      if (!schema.getRequiredProperties().isEmpty())
+        addInlineArrayMember("required", schema.getRequiredProperties());
       addObjectMember(
           "properties",
           schema.getProperties(),
@@ -429,7 +436,8 @@ public class OpenApiGenerator extends JsonGenerator {
                   property.getName(),
                   () -> {
                     generateSchemaOrRef(property.getType());
-                    addStringMember("description", property.getDescription().orElse(null));
+                    addStringMember(
+                        "description", property.getDescription().orElse(NO_DESCRIPTION));
                   }));
     } else {
       addStringMultilineMember(
@@ -440,16 +448,17 @@ public class OpenApiGenerator extends JsonGenerator {
     }
   }
 
-  private void generateSimpleTypeSchema(SimpleType simpleType, String defaultValue) {
-    String type = simpleType.getType();
+  private void generateSimpleTypeSchema(
+      Class<?> source, DirectType.SimpleType simpleType, String defaultValue) {
+    String type = simpleType.type();
     addStringMember("type", type);
     if ("array".equals(type)) {
       addObjectMember("items", () -> {});
     }
-    addStringMember("format", simpleType.getFormat());
-    addNumberMember("minLength", simpleType.getMinLength());
-    addNumberMember("maxLength", simpleType.getMaxLength());
-    addStringMember("pattern", simpleType.getPattern());
+    addStringMember("format", simpleType.format());
+    addNumberMember("minLength", simpleType.minLength());
+    addNumberMember("maxLength", simpleType.maxLength());
+    addStringMember("pattern", simpleType.pattern());
     if (defaultValue != null) {
       switch (type) {
         case "string" -> addStringMember("default", defaultValue);
@@ -459,11 +468,11 @@ public class OpenApiGenerator extends JsonGenerator {
         default ->
             log.warn(
                 "Unsupported default value provided for type %s of %s: %s"
-                    .formatted(type, simpleType.getSource().getSimpleName(), defaultValue));
+                    .formatted(type, source.getSimpleName(), defaultValue));
       }
     }
-    if (simpleType.getEnums() != null) {
-      addInlineArrayMember("enum", List.of(simpleType.getEnums()));
+    if (!simpleType.enums().isEmpty()) {
+      addInlineArrayMember("enum", simpleType.enums());
     }
   }
 

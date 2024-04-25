@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.webapi.openapi.DirectType.isDirectType;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -49,7 +50,6 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,15 +62,14 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.http.HttpStatus;
@@ -89,7 +88,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -119,7 +117,6 @@ final class ApiAnalyse {
 
   static {
     register(UID.class, SchemaGenerators.UID);
-    register(org.hisp.dhis.common.UID.class, SchemaGenerators.UID);
     register(Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES);
   }
 
@@ -442,8 +439,8 @@ final class ApiAnalyse {
     Api.Schema wrapped =
         param.asProperty().isEmpty()
             ? type
-            : new Api.Schema(Api.Schema.Type.OBJECT, false, Object.class, Object.class)
-                .add(new Api.Property(param.asProperty(), true, type));
+            : Api.Schema.ofObject(Object.class)
+                .addProperty(new Api.Property(param.asProperty(), true, type));
     boolean required = param.required();
     if (name.isEmpty()) {
       Api.RequestBody requestBody = new Api.RequestBody(endpoint.getSource(), required);
@@ -463,14 +460,15 @@ final class ApiAnalyse {
 
   private static void analyseParams(Api.Endpoint endpoint, Class<?> paramsObject) {
     Collection<Property> properties = getProperties(paramsObject);
-    if (isSharable(paramsObject, false)) {
-      OpenApi.Shared shared = paramsObject.getAnnotation(OpenApi.Shared.class);
+    OpenApi.Shared shared = paramsObject.getAnnotation(OpenApi.Shared.class);
+    String sharedName = getSharedName(paramsObject, shared, null);
+    if (sharedName != null) {
       Api api = endpoint.getIn().getIn();
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
       properties.forEach(
           property -> {
             Api.Parameter parameter = analyseParameter(endpoint, property);
-            parameter.getSharedName().setValue(getSharedName(paramsObject, shared));
+            parameter.getSharedName().setValue(sharedName);
             sharedParameters.computeIfAbsent(paramsObject, e -> new ArrayList<>()).add(parameter);
             endpoint.getParameters().put(parameter.getName(), parameter);
           });
@@ -484,12 +482,16 @@ final class ApiAnalyse {
     }
   }
 
-  private static String getSharedName(Class<?> type, OpenApi.Shared value) {
-    if (value == null) return null;
-    if (!value.name().isEmpty()) return value.name();
-    if (value.pattern() != OpenApi.Shared.Pattern.DEFAULT)
-      return String.format(value.pattern().getTemplate(), type.getSimpleName());
-    return null;
+  @CheckForNull
+  private static String getSharedName(Class<?> type, OpenApi.Shared shared, String defaultName) {
+    DirectType directType = DirectType.of(type);
+    if (directType != null && !directType.shared()) return null;
+    if (shared == null) return defaultName;
+    if (!shared.value()) return null;
+    if (!shared.name().isEmpty()) return shared.name();
+    if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
+      return String.format(shared.pattern().getTemplate(), type.getSimpleName());
+    return defaultName;
   }
 
   private static Api.Parameter analyseParameter(Api.Endpoint endpoint, Property property) {
@@ -517,7 +519,7 @@ final class ApiAnalyse {
     if (isGeneratorType(oneOf[0])) {
       return analyseGeneratorSchema(endpoint, source, oneOf);
     }
-    return Api.Schema.oneOf(
+    return Api.Schema.ofOneOf(
         List.of(oneOf), type -> analyseInputSchema(endpoint, getSubstitutedType(endpoint, type)));
   }
 
@@ -529,33 +531,56 @@ final class ApiAnalyse {
     if (isGeneratorType(oneOf[0])) {
       return analyseGeneratorSchema(endpoint, source, oneOf);
     }
-    return Api.Schema.oneOf(
+    return Api.Schema.ofOneOf(
         List.of(oneOf), type -> analyseOutputSchema(endpoint, getSubstitutedType(endpoint, type)));
   }
 
   private static boolean isGeneratorType(Class<?> type) {
     return Api.SchemaGenerator.class.isAssignableFrom(type)
         || Api.SchemaGenerator[].class.isAssignableFrom(type)
-        || GENERATORS.containsKey(type);
+        || GENERATORS.containsKey(type)
+        || type.isArray() && isGeneratorType(type.getComponentType());
   }
 
   private static Api.Schema analyseGeneratorSchema(
       Api.Endpoint endpoint, Type source, Class<?>... oneOf) {
     Class<?> type = oneOf[0];
-    Class<?> elementType = Object[].class.isAssignableFrom(type) ? type.getComponentType() : type;
+    Class<?> genType = Object[].class.isAssignableFrom(type) ? type.getComponentType() : type;
     Api.Schema schema =
-        newGenerator(elementType).generate(endpoint, source, copyOfRange(oneOf, 1, oneOf.length));
-    return type == elementType
-        ? schema
-        : new Api.Schema(Api.Schema.Type.ARRAY, false, type, type).withElements(schema);
+        newGenerator(genType).generate(endpoint, source, copyOfRange(oneOf, 1, oneOf.length));
+    Class<?> ofType = schema.getRawType();
+    Map<Class<?>, Api.Schema> genTypes =
+        endpoint
+            .getIn()
+            .getIn()
+            .getGeneratorSchemas()
+            .computeIfAbsent(genType, key -> new ConcurrentHashMap<>());
+    schema.getSharedName().setValue(getGeneratorTypeSharedName(genType, schema));
+    if (schema.isShared()) {
+      Api.Schema shared = genTypes.putIfAbsent(ofType, schema);
+      if (shared != null) schema = shared; // this makes sure the same instance is reused
+    }
+    return type == genType ? schema : Api.Schema.ofArray(type, type).withElements(schema);
+  }
+
+  private static String getGeneratorTypeSharedName(Class<?> genType, Api.Schema schema) {
+    Class<?> of = schema.getRawType();
+    Api.Schema.Type type = schema.getType();
+    String sharedBaseName =
+        getSharedName(of, of.getAnnotation(OpenApi.Shared.class), of.getSimpleName());
+    return switch (type) {
+      case UID -> "UID_" + sharedBaseName;
+      case ENUM -> sharedBaseName + "_" + genType.getSimpleName();
+      default -> sharedBaseName;
+    };
   }
 
   private static Api.Schema analyseInputSchema(Api.Endpoint endpoint, Type source) {
-    return analyseTypeSchema(endpoint, source, false, new IdentityHashMap<>());
+    return analyseTypeSchema(endpoint, source);
   }
 
   private static Api.Schema analyseOutputSchema(Api.Endpoint endpoint, Type source) {
-    return analyseTypeSchema(endpoint, source, false, new IdentityHashMap<>());
+    return analyseTypeSchema(endpoint, source);
   }
 
   /**
@@ -577,177 +602,125 @@ final class ApiAnalyse {
    *
    * @return a schema describing a complex "record-like" or "bean" object
    */
-  private static Api.Schema analyseClassSchema(
-      Api.Endpoint endpoint, Class<?> rawType, Map<Class<?>, Api.Schema> resolving) {
-    Api.Schema s = resolving.get(rawType);
+  private static Api.Schema analyseClassSchema(Api.Endpoint endpoint, Class<?> type) {
+    Api api = endpoint.getIn().getIn();
+    Api.Schema s = api.getSchemas().get(type);
     if (s != null) {
       return s;
     }
-    boolean sharable = isSharable(rawType, true);
-    UnaryOperator<Api.Schema> resolvedTo =
+    UnaryOperator<Api.Schema> addShared =
         schema -> {
-          if (schema.isShared()) {
-            schema
-                .getSharedName()
-                .setValue(getSharedName(rawType, rawType.getAnnotation(OpenApi.Shared.class)));
+          schema
+              .getSharedName()
+              .setValue(
+                  getSharedName(
+                      type, type.getAnnotation(OpenApi.Shared.class), type.getSimpleName()));
+          if (schema.isShared() || isDirectType(type)) {
+            api.getSchemas().put(type, schema);
           }
-          resolving.put(rawType, schema);
           return schema;
         };
-    Function<Class<?>, Api.Schema> createSchema =
-        type -> {
-          if (type.isArray()) {
-            Api.Schema schema =
-                resolvedTo.apply(new Api.Schema(Api.Schema.Type.ARRAY, false, type, type));
-            // eventually this will resolve the simple element type
-            schema.withElements(analyseClassSchema(endpoint, type.getComponentType(), resolving));
-            return schema;
-          }
-          if (type.isAnnotationPresent(JsonSubTypes.class)) {
-            return analyseSubTypeSchema(endpoint, type, resolving);
-          }
-          boolean alwaysSimple = isSimpleType(type);
-          Collection<Property> properties = alwaysSimple ? List.of() : getProperties(type);
-          boolean named = !alwaysSimple && sharable && isShared(type);
-          if (alwaysSimple || properties.isEmpty()) {
-            return resolvedTo.apply(new Api.Schema(Api.Schema.Type.SIMPLE, named, type, type));
-          }
-          Api.Schema schema =
-              resolvedTo.apply(new Api.Schema(Api.Schema.Type.OBJECT, named, type, type));
-          properties.forEach(
-              property ->
-                  schema
-                      .getProperties()
-                      .add(
-                          new Api.Property(
-                              getPropertyName(endpoint, property),
-                              property.getRequired(),
-                              analysePropertySchema(endpoint, property, resolving))));
-          return schema;
-        };
-    return !sharable
-        ? createSchema.apply(rawType)
-        : endpoint.getIn().getIn().getSchemas().computeIfAbsent(rawType, createSchema);
+    if (type.isArray()) {
+      Api.Schema schema = Api.Schema.ofArray(type);
+      // eventually this will resolve the simple element type
+      schema.withElements(analyseClassSchema(endpoint, type.getComponentType()));
+      return schema;
+    }
+    if (type.isEnum()) {
+      List<String> values =
+          Stream.of(type.getEnumConstants()).map(e -> ((Enum<?>) e).name()).toList();
+      return addShared.apply(Api.Schema.ofEnum(type, type, values));
+    }
+    if (type.isAnnotationPresent(JsonSubTypes.class)) {
+      Api.Schema schema = analyseSubTypeSchema(endpoint, type);
+      return schema.getSource() == type ? addShared.apply(schema) : schema;
+    }
+    Collection<Property> properties = isDirectType(type) ? List.of() : getProperties(type);
+    if (properties.isEmpty()) {
+      return addShared.apply(Api.Schema.ofSimple(type));
+    }
+    Api.Schema schema = addShared.apply(Api.Schema.ofObject(type));
+    // OOBS! It is important that at this point the schema for the current type is in
+    // the schemas map so recursive types do resolve (unless they are inlined)
+    for (Property property : properties) {
+      Api.Property p =
+          new Api.Property(
+              getPropertyName(endpoint, property),
+              property.getRequired(),
+              analyseObjectPropertySchema(endpoint, property));
+      schema.addProperty(p);
+    }
+    return schema;
   }
 
-  private static Api.Schema analysePropertySchema(
-      Api.Endpoint endpoint, Property property, Map<Class<?>, Api.Schema> resolving) {
+  private static Api.Schema analyseObjectPropertySchema(Api.Endpoint endpoint, Property property) {
     AnnotatedElement member = (AnnotatedElement) property.getSource();
     if (member.isAnnotationPresent(JsonSubTypes.class)) {
-      return analyseSubTypeSchema(endpoint, member, resolving);
+      return analyseSubTypeSchema(endpoint, member);
     }
     Type type = getSubstitutedType(endpoint, property, member);
     OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
     if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
       return analyseGeneratorSchema(endpoint, type, annotated.value());
     }
-    return analyseTypeSchema(endpoint, type, type == property.getType(), resolving);
+    return analyseTypeSchema(endpoint, type);
   }
 
-  private static Api.Schema analyseSubTypeSchema(
-      Api.Endpoint endpoint, AnnotatedElement baseType, Map<Class<?>, Api.Schema> resolving) {
+  private static Api.Schema analyseSubTypeSchema(Api.Endpoint endpoint, AnnotatedElement baseType) {
     List<Class<?>> types =
         Stream.of(baseType.getAnnotation(JsonSubTypes.class).value())
             .map(JsonSubTypes.Type::value)
             .collect(toList());
-    return Api.Schema.oneOf(types, subType -> analyseClassSchema(endpoint, subType, resolving));
+    return Api.Schema.ofOneOf(types, subType -> analyseClassSchema(endpoint, subType));
   }
 
-  private static Api.Schema analyseTypeSchema(
-      Api.Endpoint endpoint, Type source, boolean useRefs, Map<Class<?>, Api.Schema> resolving) {
+  private static Api.Schema analyseTypeSchema(Api.Endpoint endpoint, Type source) {
     if (source instanceof Class<?> type) {
-      if (useRefs && isReferencableType(type)) {
-        return Api.Schema.ref(type);
-      }
-      if (useRefs && isReferencableArrayType(type)) {
-        return new Api.Schema(Api.Schema.Type.ARRAY, false, type, type)
-            .withElements(Api.Schema.ref(type.getComponentType()));
-      }
-      return analyseClassSchema(endpoint, type, resolving);
+      return analyseClassSchema(endpoint, type);
     }
     if (source instanceof ParameterizedType pt) {
       Class<?> rawType = (Class<?>) pt.getRawType();
       if (rawType == Class.class) {
-        return new Api.Schema(Api.Schema.Type.SIMPLE, false, source, rawType);
+        return Api.Schema.ofSimple(rawType);
       }
       Type typeArg0 = pt.getActualTypeArguments()[0];
       if (Collection.class.isAssignableFrom(rawType) && rawType.isInterface()
           || rawType == Iterable.class) {
         if (typeArg0 instanceof Class<?>)
-          return analyseTypeSchema(
-              endpoint, Array.newInstance((Class<?>) typeArg0, 0).getClass(), useRefs, resolving);
-        return new Api.Schema(Api.Schema.Type.ARRAY, false, source, rawType)
-            .withElements(analyseTypeSchema(endpoint, typeArg0, useRefs, resolving));
+          return analyseTypeSchema(endpoint, Array.newInstance((Class<?>) typeArg0, 0).getClass());
+        return Api.Schema.ofArray(source, rawType)
+            .withElements(analyseTypeSchema(endpoint, typeArg0));
       }
       if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()) {
-        return new Api.Schema(Api.Schema.Type.OBJECT, isShared(rawType), source, rawType)
+        return Api.Schema.ofObject(source, rawType)
             .withEntries(
-                analyseTypeSchema(endpoint, typeArg0, false, resolving),
-                analyseTypeSchema(endpoint, pt.getActualTypeArguments()[1], useRefs, resolving));
+                analyseTypeSchema(endpoint, typeArg0),
+                analyseTypeSchema(endpoint, pt.getActualTypeArguments()[1]));
       }
       if (rawType == ResponseEntity.class) {
-        // just unpack, present of ResponseEntity is hidden
-        return analyseTypeSchema(endpoint, typeArg0, false, resolving);
+        // just unpack, presents of ResponseEntity is hidden
+        return analyseTypeSchema(endpoint, typeArg0);
       }
-      return Api.Schema.unknown(source);
+      return Api.Schema.ofUnsupported(source);
     }
     if (source instanceof WildcardType wt) {
       if (wt.getLowerBounds().length == 0
           && Arrays.equals(wt.getUpperBounds(), new Type[] {Object.class}))
-        return Api.Schema.unknown(wt);
+        return Api.Schema.ofUnsupported(wt);
       // simplification: <? extends X> => <X>
-      return analyseTypeSchema(endpoint, wt.getUpperBounds()[0], useRefs, resolving);
+      return analyseTypeSchema(endpoint, wt.getUpperBounds()[0]);
     }
-    return Api.Schema.unknown(source);
-  }
-
-  private static boolean isShared(Class<?> source) {
-    String name = source.getName();
-    return !source.isPrimitive()
-        && !source.isEnum()
-        && !source.isArray()
-        && !name.startsWith("java.lang")
-        && !name.startsWith("java.util")
-        && !SimpleType.isSimpleType(source);
-  }
-
-  private static boolean isReferencableType(Class<?> type) {
-    return IdentifiableObject.class.isAssignableFrom(type)
-        && type != Period.class
-        && !EmbeddedObject.class.isAssignableFrom(type);
-  }
-
-  private static boolean isReferencableArrayType(Class<?> type) {
-    return IdentifiableObject[].class.isAssignableFrom(type)
-        && type != Period[].class
-        && !EmbeddedObject[].class.isAssignableFrom(type);
+    return Api.Schema.ofUnsupported(source);
   }
 
   /*
    * OpenAPI "business" helper methods
    */
 
-  private static boolean isSharable(Class<?> rawType, boolean defaultValue) {
-    return !rawType.isAnnotationPresent(OpenApi.Shared.class)
-        ? defaultValue
-        : rawType.getAnnotation(OpenApi.Shared.class).value();
-  }
-
   private static String getPropertyName(Api.Endpoint endpoint, Property property) {
     return "path$".equals(property.getName())
         ? endpoint.getIn().getPaths().get(0).replace("/", "")
         : property.getName();
-  }
-
-  private static boolean isSimpleType(Class<?> type) {
-    if (type.isEnum() || type == MultipartFile.class || SimpleType.isSimpleType(type)) {
-      return true;
-    }
-    String moduleName = type.getModule().getName();
-    if (moduleName == null) {
-      return false;
-    }
-    return moduleName.startsWith("java.") || moduleName.startsWith("jdk.");
   }
 
   private static Type getSubstitutedType(
@@ -946,12 +919,12 @@ final class ApiAnalyse {
   }
 
   private static String firstNonEmpty(String a, String b) {
-    return a.length() == 0 ? b : a;
+    return a.isEmpty() ? b : a;
   }
 
   private static String firstNonEmpty(String a, String b, String c) {
     String ab = firstNonEmpty(a, b);
-    return ab.length() > 0 ? ab : c;
+    return !ab.isEmpty() ? ab : c;
   }
 
   @SafeVarargs

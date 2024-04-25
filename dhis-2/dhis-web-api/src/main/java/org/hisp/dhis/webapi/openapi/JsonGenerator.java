@@ -261,7 +261,7 @@ public class JsonGenerator {
   }
 
   final void addStringMultilineMember(String name, String value) {
-    if (value != null) {
+    if (value != null && !value.isEmpty()) {
       appendMemberName(name);
       appendStringMultiline(value);
       appendMemberSeparator();

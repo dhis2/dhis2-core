@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.enrollment;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.program.ProgramStatus;
 
 /**
@@ -37,6 +38,7 @@ import org.hisp.dhis.program.ProgramStatus;
  *     "old" tracker. Make sure to plan migrating to new tracker.
  */
 @Deprecated(since = "2.41")
+@OpenApi.Shared(false)
 public enum EnrollmentStatus {
   ACTIVE(0, ProgramStatus.ACTIVE),
   COMPLETED(1, ProgramStatus.COMPLETED),

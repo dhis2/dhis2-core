@@ -27,15 +27,16 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,13 +47,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.period.Period;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -76,7 +81,7 @@ public class Api {
    * <p>All generators must provide an accessible no args constructor and be stateless.
    */
   @FunctionalInterface
-  interface SchemaGenerator {
+  public interface SchemaGenerator {
     Schema generate(Endpoint endpoint, Type source, Class<?>... args);
   }
 
@@ -108,7 +113,14 @@ public class Api {
    * Map#computeIfAbsent(Object, Function)}. Here, while one {@link Schema} is resolved more {@link
    * Schema} might be added.
    */
-  Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>(Comparator.comparing(Class::getName));
+  Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>(comparing(Class::getName));
+
+  /**
+   * First level key is the {@link SchemaGenerator} type, second level is the {@link
+   * Schema#getRawType()} of the generated {@link Schema}.
+   */
+  Map<Class<?>, Map<Class<?>, Schema>> generatorSchemas =
+      new ConcurrentSkipListMap<>(comparing(Class::getName));
 
   /**
    * @return all tags used in the {@link Api}
@@ -153,13 +165,7 @@ public class Api {
   @Value
   static class Components {
     /** Only the shared schemas of the API by their unique name */
-    Map<String, Schema> schemas = new TreeMap<>();
-
-    /**
-     * Schemas for types that do not directly reflect domain object types but types such as
-     * references or UID types.
-     */
-    Map<String, Schema> additionalSchemas = new TreeMap<>();
+    Map<String, Schema> schemas = new LinkedHashMap<>();
 
     /**
      * Shared parameters originating from parameter object classes. These are reused purely for sake
@@ -194,7 +200,7 @@ public class Api {
 
   @Value
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-  static class Endpoint {
+  public static class Endpoint {
 
     @ToString.Exclude Controller in;
     @ToString.Exclude Method source;
@@ -336,6 +342,7 @@ public class Api {
 
   @Value
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
   static class Property {
     @EqualsAndHashCode.Include String name;
 
@@ -347,68 +354,95 @@ public class Api {
      */
     @ToString.Exclude Schema type;
 
-    Maybe<String> description = new Maybe<>();
+    Maybe<String> description;
+
+    public Property(String name, Boolean required, Schema type) {
+      this(name, required, type, new Maybe<>());
+    }
+
+    Property withType(Schema type) {
+      return type == this.type ? this : new Property(name, required, type, description);
+    }
   }
 
   @Value
-  @AllArgsConstructor
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-  static class Schema {
-    public static Schema ref(Class<?> to) {
-      return new Schema(Type.REF, false, to, to);
+  public static class Schema {
+
+    public static Schema ofUnsupported(java.lang.reflect.Type source) {
+      return new Schema(Type.UNSUPPORTED, source, Object.class, false);
     }
 
-    public static Schema uid(Class<?> of) {
-      return new Schema(Type.UID, false, of, of);
+    public static Schema ofUID(Class<?> of) {
+      return new Schema(Type.UID, of, of, false);
     }
 
-    public static Schema unknown(java.lang.reflect.Type source) {
-      return new Schema(Type.UNKNOWN, false, source, Object.class);
-    }
-
-    public static Schema oneOf(List<Class<?>> types, Function<Class<?>, Schema> toSchema) {
+    public static Schema ofOneOf(List<Class<?>> types, Function<Class<?>, Schema> toSchema) {
       if (types.size() == 1) {
         return toSchema.apply(types.get(0));
       }
-      Schema oneOf = new Schema(Type.ONE_OF, false, Object.class, Object.class);
+      Schema oneOf = new Schema(Type.ONE_OF, Object.class, Object.class, false);
       types.forEach(
           type ->
-              oneOf.add(new Property(oneOf.properties.size() + "", null, toSchema.apply(type))));
+              oneOf.addProperty(
+                  new Property(oneOf.properties.size() + "", null, toSchema.apply(type))));
       return oneOf;
     }
 
-    public static Schema enumeration(Class<?> source, Class<?> of, List<String> values) {
-      Schema schema = new Schema(Type.ENUM, false, source, of);
+    public static Schema ofEnum(Class<?> source, Class<?> of, List<String> values) {
+      Schema schema = new Schema(Type.ENUM, source, of, false);
       schema.getValues().addAll(values);
       return schema;
     }
 
+    public static Schema ofObject(Class<?> type) {
+      return ofObject(type, type);
+    }
+
+    public static Schema ofObject(java.lang.reflect.Type source, Class<?> rawType) {
+      return new Schema(Type.OBJECT, source, rawType, isIdentifiable(rawType));
+    }
+
+    public static Schema ofArray(Class<?> type) {
+      return ofArray(type, type);
+    }
+
+    public static Schema ofArray(java.lang.reflect.Type source, Class<?> rawType) {
+      return new Schema(Type.ARRAY, source, rawType, false);
+    }
+
+    public static Schema ofSimple(Class<?> type) {
+      return new Schema(Type.SIMPLE, type, type, false);
+    }
+
+    private static boolean isIdentifiable(Class<?> type) {
+      return IdentifiableObject.class.isAssignableFrom(type)
+          && type != Period.class
+          && !EmbeddedObject.class.isAssignableFrom(type);
+    }
+
     public enum Type {
+      UNSUPPORTED,
       SIMPLE,
       ARRAY,
       OBJECT,
       UID,
-      REF,
-      UNKNOWN,
       ONE_OF,
       ENUM;
-
-      boolean isSharedAsAdditionalSchema() {
-        return this == Type.REF || this == Type.UID || this == Type.ENUM;
-      }
     }
 
     @EqualsAndHashCode.Include Type type;
 
-    /**
-     * False, unless this is a named "record" type that should be referenced as a named schema in
-     * the generated OpenAPI document.
-     */
-    @EqualsAndHashCode.Include boolean shared;
-
     @ToString.Exclude java.lang.reflect.Type source;
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
+
+    /**
+     * True for object schemas that have an identifier that can reference to a persisted object
+     * value.
+     */
+    boolean identifiable;
 
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();
@@ -416,11 +450,42 @@ public class Api {
     /** Enum values in case this is an enum schema. */
     List<String> values = new ArrayList<>();
 
-    /**
-     * The globally unique name of this is a shared schema. This name is decided first during the
-     * finalisation phase.
-     */
+    /** The globally unique name of this is a shared schema. */
     Maybe<String> sharedName = new Maybe<>();
+
+    public enum Direction {
+      IN,
+      OUT,
+      INOUT
+    }
+
+    /**
+     * A {@link #isUniversal()} object is of the same structure for input and output whereas a
+     * non-universal object is different for input and output due to the use of references to other
+     * identifiable objects.
+     *
+     * <p>All schemata start out universal and when properties get added via {@link
+     * #addProperty(Property)} they might become non-universal.
+     */
+    Maybe<Direction> direction = new Maybe<>();
+
+    /**
+     * This {@link Schema} but as used for input (that is using "shallow" object with just an ID
+     * field for identifiable objects). Only needed for object schema that are not {@link
+     * #direction}.
+     *
+     * <p>//FIXME also in an output case a circular reference (Attribute => AttributeValue =>
+     * Attribute) does need to use such a referencing object
+     */
+    Maybe<Schema> input = new Maybe<>();
+
+    public boolean isShared() {
+      return sharedName.isPresent();
+    }
+
+    public boolean isUniversal() {
+      return direction.orElse(Direction.INOUT) == Direction.INOUT;
+    }
 
     Set<String> getRequiredProperties() {
       return getProperties().stream()
@@ -429,18 +494,24 @@ public class Api {
           .collect(toSet());
     }
 
-    Api.Schema add(Property property) {
+    Api.Schema addProperty(Property property) {
       properties.add(property);
+      Schema schema = property.getType();
+      if (direction.getValue() == Direction.INOUT
+          && (!schema.isUniversal()
+              || schema.getType() == Type.OBJECT && schema.isIdentifiable())) {
+        direction.setValue(Direction.OUT);
+      }
       return this;
     }
 
     Api.Schema withElements(Schema componentType) {
-      return add(new Property("components", true, componentType));
+      return addProperty(new Property("components", true, componentType));
     }
 
     Api.Schema withEntries(Schema keyType, Schema valueType) {
-      return add(new Api.Property("keys", true, keyType))
-          .add(new Api.Property("values", true, valueType));
+      return addProperty(new Api.Property("keys", true, keyType))
+          .addProperty(new Api.Property("values", true, valueType));
     }
   }
 }

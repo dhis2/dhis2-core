@@ -49,10 +49,9 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
@@ -186,10 +185,10 @@ public class EventRequestParams implements PageRequestParams {
    * @deprecated use {@link #events} instead which is comma instead of semicolon separated.
    */
   @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, Event.class})
+  @OpenApi.Property({UID[].class, org.hisp.dhis.program.Event.class})
   private String event;
 
-  @OpenApi.Property({UID[].class, Event.class})
+  @OpenApi.Property({UID[].class, org.hisp.dhis.program.Event.class})
   private Set<UID> events = new HashSet<>();
 
   /** Comma separated list of data element filters */

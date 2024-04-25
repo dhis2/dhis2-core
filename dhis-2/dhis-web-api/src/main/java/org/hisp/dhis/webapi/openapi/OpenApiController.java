@@ -188,7 +188,6 @@ public class OpenApiController {
         ApiFinalise.Configuration.builder()
             .failOnNameClash(failOnNameClash)
             .failOnInconsistency(failOnInconsistency)
-            .namePartDelimiter("_")
             .build());
     response.setContentType(contentType);
     try {

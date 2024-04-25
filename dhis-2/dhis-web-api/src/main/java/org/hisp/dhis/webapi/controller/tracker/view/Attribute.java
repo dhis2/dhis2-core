@@ -47,7 +47,8 @@ import org.hisp.dhis.common.ValueType;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Attribute {
-  @OpenApi.Property({UID.class, Attribute.class})
+
+  @OpenApi.Property({UID.class, org.hisp.dhis.attribute.Attribute.class})
   @JsonProperty
   private String attribute;
 

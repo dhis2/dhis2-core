@@ -28,21 +28,24 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.Member;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
@@ -68,7 +71,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class ApiFinalise {
   @Value
   @Builder(toBuilder = true)
-  static class Configuration {
+  public static class Configuration {
 
     /** When true, the generation fails if there is any name clash. */
     boolean failOnNameClash;
@@ -80,20 +83,6 @@ public class ApiFinalise {
      * <p>For example, a field/parameter with a default value is marked as required.
      */
     boolean failOnInconsistency;
-
-    /**
-     * The character(s) used to join the prefix, like {@code Ref} or {@code UID} with the rest of
-     * the type name.
-     *
-     * <p>For example, the {@code -} in the below examples, where simple name is what the Ref/UID
-     * refers to:
-     *
-     * <pre>
-     * Ref-SimpleName
-     * UID-SimpleName
-     * </pre>
-     */
-    String namePartDelimiter;
 
     // tags
     // endpoints
@@ -121,17 +110,22 @@ public class ApiFinalise {
 
     // 1. Set and check shared unique names and create the additional schemas for Refs and UIDs
     nameSharedSchemas();
-    nameSharedAdditionalSchemas();
     nameSharedParameters();
 
-    // 2. Add description texts from markdown files to the Api model
+    // 2. Add input schemas (with shallow object references)
+    addInputSchemaVariants();
+
+    // 3. Add description texts from markdown files to the Api model
     describeTags();
     api.getControllers().forEach(ApiFinalise::describeController);
     api.getSchemas().values().stream()
         .filter(Api.Schema::isShared)
         .forEach(ApiFinalise::describeSchema);
+    api.getGeneratorSchemas().values().stream()
+        .flatMap(schemas -> schemas.values().stream())
+        .forEach(ApiFinalise::describeSchema);
 
-    // 3. Group and merge endpoints by request path and method
+    // 4. Group and merge endpoints by request path and method
     groupAndMergeEndpoints();
   }
 
@@ -179,16 +173,23 @@ public class ApiFinalise {
    * <p>All shared types are transferred to {@link Api.Components#getSchemas()}.
    */
   private void nameSharedSchemas() {
-    Map<String, List<Map.Entry<Class<?>, Api.Schema>>> sharedSchemasByName = new HashMap<>();
-    api.getSchemas().entrySet().stream()
-        .filter(e -> e.getValue().isShared())
-        .forEach(
-            e ->
-                sharedSchemasByName
-                    .computeIfAbsent(
-                        e.getValue().getSharedName().orElse(e.getKey().getSimpleName()),
-                        name -> new ArrayList<>())
-                    .add(e));
+    Map<String, List<Api.Schema>> sharedSchemasByName = new LinkedHashMap<>();
+    Consumer<Api.Schema> addSchema =
+        schema ->
+            sharedSchemasByName
+                .computeIfAbsent(schema.getSharedName().getValue(), name -> new ArrayList<>())
+                .add(schema);
+
+    api.getSchemas().values().stream()
+        .filter(Api.Schema::isShared)
+        .sorted(comparing(e -> e.getSharedName().getValue()))
+        .forEach(addSchema);
+
+    api.getGeneratorSchemas().values().stream()
+        .flatMap(schemas -> schemas.values().stream())
+        .filter(Api.Schema::isShared)
+        .sorted(comparing(e -> e.getSharedName().getValue()))
+        .forEach(addSchema);
 
     if (config.isFailOnNameClash()) {
       checkNoSchemaNameClash(sharedSchemasByName);
@@ -196,77 +197,20 @@ public class ApiFinalise {
 
     sharedSchemasByName.forEach(
         (name, schemas) -> {
-          schemas.get(0).getValue().getSharedName().setValue(name);
+          schemas.get(0).getSharedName().setValue(name);
           if (schemas.size() > 1) {
             log.warn(createSchemaNameClashMessage(name, schemas));
             for (int i = 1; i < schemas.size(); i++) {
-              schemas
-                  .get(i)
-                  .getValue()
-                  .getSharedName()
-                  .setValue(name + config.getNamePartDelimiter() + i);
+              schemas.get(i).getSharedName().setValue(name + "_" + i);
             }
           }
         });
 
     sharedSchemasByName.values().stream()
-        .flatMap(list -> list.stream().map(Map.Entry::getValue))
+        .flatMap(Collection::stream)
         .forEach(
             schema ->
                 api.getComponents().getSchemas().put(schema.getSharedName().getValue(), schema));
-  }
-
-  private record SchemaKey(Api.Schema.Type type, Class<?> of) {}
-
-  /**
-   * Traverses the {@link Api} document for all {@link org.hisp.dhis.webapi.openapi.Api.Schema}s to
-   * collect the additional schemas.
-   */
-  private void nameSharedAdditionalSchemas() {
-    Map<SchemaKey, Api.Schema> to = new HashMap<>();
-    addAdditionalSchemas(to, api.getSchemas().values().stream());
-    addAdditionalSchemas(
-        to,
-        api.getComponents().getParameters().values().stream()
-            .flatMap(List::stream)
-            .map(Api.Parameter::getType));
-    api.getControllers().stream()
-        .flatMap(c -> c.getEndpoints().stream())
-        .forEach(
-            endpoint -> {
-              if (endpoint.getRequestBody().isPresent()) {
-                addAdditionalSchemas(
-                    to, endpoint.getRequestBody().getValue().getConsumes().values().stream());
-              }
-              addAdditionalSchemas(
-                  to, endpoint.getParameters().values().stream().map(Api.Parameter::getType));
-              addAdditionalSchemas(
-                  to,
-                  endpoint.getResponses().values().stream()
-                      .flatMap(response -> response.getContent().values().stream()));
-            });
-
-    Map<String, Api.Schema> additionalSchemas = api.getComponents().getAdditionalSchemas();
-    to.values().forEach(schema -> additionalSchemas.put(schema.getSharedName().getValue(), schema));
-  }
-
-  private void addAdditionalSchemas(Map<SchemaKey, Api.Schema> to, Stream<Api.Schema> from) {
-    from.forEach(
-        schema -> {
-          if (schema.getType().isSharedAsAdditionalSchema()) {
-            SchemaKey key = new SchemaKey(schema.getType(), schema.getRawType());
-            // OBS! This cannot use putIfAbsent since computing the value can cause more puts
-            Api.Schema shared = to.get(key);
-            if (shared == null) {
-              to.put(key, schema);
-              schema.getSharedName().setValue(getAdditionalTypeName(schema));
-              addAdditionalSchemas(to, schema.getProperties().stream().map(Api.Property::getType));
-            } else {
-              // use the same name for all occurrences of the additional schema
-              schema.getSharedName().setValue(shared.getSharedName().getValue());
-            }
-          }
-        });
   }
 
   /**
@@ -275,7 +219,7 @@ public class ApiFinalise {
    * to have parameters from different classes of the same name to exist without a conflict as long
    * as none of the parameters of these classes have the same name.
    *
-   * <p>Therefore, the all prameters are first grouped by their effective shared name of the
+   * <p>Therefore, the all parameters are first grouped by their effective shared name of the
    * parameter class. On second level the parameters are grouped by their defining class.
    */
   private void nameSharedParameters() {
@@ -288,8 +232,7 @@ public class ApiFinalise {
             e ->
                 sharedParametersByName
                     .computeIfAbsent(
-                        e.getValue().get(0).getSharedName().orElse(e.getKey().getSimpleName()),
-                        key -> new ArrayList<>())
+                        e.getValue().get(0).getSharedName().getValue(), key -> new ArrayList<>())
                     .add(e));
 
     if (config.isFailOnNameClash()) {
@@ -309,8 +252,7 @@ public class ApiFinalise {
                 .forEach(
                     p -> {
                       if (usedNames.contains(p.getName())) {
-                        p.getSharedName()
-                            .setValue(name + config.getNamePartDelimiter() + usedNames.size());
+                        p.getSharedName().setValue(name + "_" + usedNames.size());
                       } else {
                         usedNames.add(p.getName());
                         p.getSharedName().setValue(name);
@@ -321,8 +263,7 @@ public class ApiFinalise {
   }
 
   /** Any list with more than one entry is a clash. */
-  private void checkNoSchemaNameClash(
-      Map<String, List<Map.Entry<Class<?>, Api.Schema>>> schemasBySharedName) {
+  private void checkNoSchemaNameClash(Map<String, List<Api.Schema>> schemasBySharedName) {
     schemasBySharedName.forEach(
         (name, schemas) -> {
           if (schemas.size() > 1)
@@ -351,54 +292,58 @@ public class ApiFinalise {
   }
 
   private static String createParamNameClashMessage(
-      String name, List<? extends Map.Entry<Class<?>, ?>> schemas) {
+      String name, List<? extends Map.Entry<Class<?>, ?>> parameters) {
     return createNameClashMessage(
         name,
-        schemas,
+        parameters.stream().map(Map.Entry::getKey).toList(),
         "More than one parameter type uses the shared name `%s` and contains at least one parameter of the same name: \n\t- %s");
   }
 
-  private static String createSchemaNameClashMessage(
-      String name, List<? extends Map.Entry<Class<?>, ?>> schemas) {
+  private static String createSchemaNameClashMessage(String name, List<Api.Schema> schemas) {
     return createNameClashMessage(
-        name, schemas, "More than one schema type uses the shared name `%s`: \n\t- %s");
+        name,
+        schemas.stream().map(s -> (Class<?>) s.getSource()).toList(),
+        "More than one schema type uses the shared name `%s`: \n\t- %s");
   }
 
   private static String createNameClashMessage(
-      String name, List<? extends Map.Entry<Class<?>, ?>> usages, String template) {
+      String name, Collection<? extends Class<?>> usages, String template) {
     return format(
-        template,
-        name,
-        usages.stream()
-            .map(Map.Entry::getKey)
-            .map(Class::getCanonicalName)
-            .collect(joining("\n\t- ")));
+        template, name, usages.stream().map(Class::getCanonicalName).collect(joining("\n\t- ")));
   }
 
   private static final Pattern VALID_NAME_INFIX = Pattern.compile("^[-_a-zA-Z0-9.]*$");
 
-  private String getAdditionalTypeName(Api.Schema schema) {
-    Class<?> of = schema.getRawType();
-    Api.Schema.Type type = schema.getType();
-    Map<Api.Schema.Type, String> prefixes =
-        Map.of(
-            Api.Schema.Type.REF, "Ref",
-            Api.Schema.Type.UID, "UID",
-            Api.Schema.Type.ENUM, ((Class<?>) schema.getSource()).getSimpleName());
-    String prefix = prefixes.get(type);
-    Api.Schema ofType = api.getSchemas().get(of);
-    // why do types exist which do not have the target of type?
-    // OPEN do we need to add a schema that is null here?
-    if (ofType == null) {
-      log.warn("No type for schema: " + schema);
+  /*
+  2. add input schema variants
+   */
+
+  private void addInputSchemaVariants() {
+    api.getSchemas().values().stream()
+        .filter(schema -> !schema.isUniversal())
+        .forEach(this::generateInputSchema);
+  }
+
+  private Api.Schema generateInputSchema(Api.Schema output) {
+    if (output.isUniversal()) return output;
+    // might already be set due to recursive resolution
+    if (output.getInput().isPresent()) return output.getInput().getValue();
+    Api.Schema input = Api.Schema.ofObject(output.getSource(), output.getRawType());
+    output.getInput().setValue(input);
+    if (output.isShared()) {
+      String name = output.getSharedName().getValue() + "_In";
+      input.getSharedName().setValue(name);
+      api.getComponents().getSchemas().put(name, input);
     }
-    return prefix
-        + config.getNamePartDelimiter()
-        + (ofType == null ? of.getSimpleName() : ofType.getSharedName().getValue());
+    input.getDirection().setValue(Api.Schema.Direction.IN);
+    output
+        .getProperties()
+        .forEach(p -> input.getProperties().add(p.withType(generateInputSchema(p.getType()))));
+    return input;
   }
 
   /*
-   * 2. Add description texts from markdown files to the Api model
+   * 3. Add description texts from markdown files to the Api model
    */
 
   private void describeTags() {
@@ -453,9 +398,7 @@ public class ApiFinalise {
                             .setIfAbsent(
                                 descriptions.get(subst, getResponseKeySequence(name, statusCode)));
                         Api.Schema schema = response.getContent().get(MediaType.APPLICATION_JSON);
-                        if (schema != null
-                            && !schema.isShared()
-                            && !schema.getType().isSharedAsAdditionalSchema()) {
+                        if (schema != null && !schema.isShared()) {
                           schema
                               .getProperties()
                               .forEach(
