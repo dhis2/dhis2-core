@@ -49,11 +49,6 @@
       <artifactId>dhis-service-analytics</artifactId>
       <type>jar</type>
     </dependency>
-
-<!--    <dependency>-->
-<!--      <groupId>org.eclipse.jetty</groupId>-->
-<!--      <artifactId>jetty-rewrite</artifactId>-->
-<!--    </dependency>-->
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
