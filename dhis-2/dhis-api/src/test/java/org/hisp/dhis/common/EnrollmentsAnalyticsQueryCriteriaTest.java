@@ -40,7 +40,7 @@ class EnrollmentsAnalyticsQueryCriteriaTest {
   @Test
   void testCriteriaHasEmptySetsByDefault() {
     // given
-    EnrollmentAnalyticsQueryCriteria criteria = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
     Class<?> targetClass = EnrollmentAnalyticsQueryCriteria.class;
     Field[] fields = targetClass.getDeclaredFields();
 
@@ -61,14 +61,5 @@ class EnrollmentsAnalyticsQueryCriteriaTest {
         }
       }
     }
-  }
-
-  private EnrollmentAnalyticsQueryCriteria getDefaultEnrollmentsAnalyticsQueryCriteria() {
-    EnrollmentAnalyticsQueryCriteria enrollmentsAnalyticsQueryCriteria =
-        new EnrollmentAnalyticsQueryCriteria();
-    Set<String> dimensions = new HashSet<>();
-    enrollmentsAnalyticsQueryCriteria.setDimension(dimensions);
-
-    return enrollmentsAnalyticsQueryCriteria;
   }
 }
