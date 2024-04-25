@@ -40,7 +40,7 @@ public class EventsAnalyticsQueryCriteriaTest {
   @Test
   void testCriteriaHasEmptySetsByDefault() {
     // given
-    EventsAnalyticsQueryCriteria criteria = getDefaultEventsAnalyticsQueryCriteria();
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
     Class<?> targetClass = EventsAnalyticsQueryCriteria.class;
     Field[] fields = targetClass.getDeclaredFields();
 
@@ -61,13 +61,5 @@ public class EventsAnalyticsQueryCriteriaTest {
         }
       }
     }
-  }
-
-  private EventsAnalyticsQueryCriteria getDefaultEventsAnalyticsQueryCriteria() {
-    EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = new EventsAnalyticsQueryCriteria();
-    Set<String> dimensions = new HashSet<>();
-    eventsAnalyticsQueryCriteria.setDimension(dimensions);
-
-    return eventsAnalyticsQueryCriteria;
   }
 }
