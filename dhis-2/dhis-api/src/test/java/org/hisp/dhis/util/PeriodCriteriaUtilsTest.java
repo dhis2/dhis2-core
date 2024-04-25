@@ -32,7 +32,6 @@ import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_YEARS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
@@ -58,7 +57,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertTrue(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -75,7 +74,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertTrue(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -124,7 +123,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertFalse(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
@@ -138,7 +137,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertFalse(eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(eventsAnalyticsQueryCriteria.getDesc());
+    assertTrue(eventsAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
@@ -153,7 +152,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertTrue(enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentsAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentsAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -171,7 +170,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertTrue(enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentAnalyticsQueryCriteria.getDesc().isEmpty());
     assertEquals(
         enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
         PERIOD_DIM_ID + ":" + LAST_5_YEARS);
@@ -189,7 +188,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertFalse(enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
@@ -204,7 +203,7 @@ class PeriodCriteriaUtilsTest {
 
     // then
     assertFalse(enrollmentsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent());
-    assertNull(enrollmentsAnalyticsQueryCriteria.getDesc());
+    assertTrue(enrollmentsAnalyticsQueryCriteria.getDesc().isEmpty());
   }
 
   @Test
