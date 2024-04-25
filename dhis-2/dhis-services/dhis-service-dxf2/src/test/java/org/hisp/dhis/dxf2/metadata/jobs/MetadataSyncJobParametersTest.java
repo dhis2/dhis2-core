@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
@@ -81,6 +82,8 @@ class MetadataSyncJobParametersTest {
 
   @Mock private MetadataSyncService metadataSyncService;
 
+  @Mock private SessionFactory sessionFactory;
+
   private MetadataSyncJob metadataSyncJob;
 
   private final MetadataSyncJobParameters metadataSyncJobParameters =
@@ -108,7 +111,8 @@ class MetadataSyncJobParametersTest {
             metadataSyncPreProcessor,
             metadataSyncPostProcessor,
             metadataSyncService,
-            metadataRetryContext);
+            metadataRetryContext,
+            sessionFactory);
   }
 
   // TODO: can we write more tests. This might cover a lot more tests.
