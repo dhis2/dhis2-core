@@ -39,7 +39,10 @@ import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventQueryParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -50,7 +53,15 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
@@ -63,14 +74,13 @@ import org.springframework.web.client.RestTemplate;
 @Component
 @AllArgsConstructor
 public class EventSynchronization implements DataSynchronizationWithPaging {
+
   private final EventService eventService;
-
+  private final UserService userService;
+  private final SessionFactory sessionFactory;
   private final SystemSettingManager settings;
-
   private final RestTemplate restTemplate;
-
   private final RenderService renderService;
-
   private final ProgramStageDataElementService programStageDataElementService;
 
   @Getter
@@ -114,10 +124,12 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
     if (context.getObjectsToSynchronize() == 0) {
       String msg = "Event programs data synchronization skipped. No new or updated events found.";
       progress.completedProcess(msg);
+      //      DbmsUtils.unbindSessionFromThread(sessionFactory);
       return SynchronizationResult.success(msg);
     }
 
     if (runSyncWithPaging(context, progress)) {
+      //      DbmsUtils.unbindSessionFromThread(sessionFactory);
       progress.completedProcess(
           "SUCCESS! Event programs data sync was successfully done! It took ");
       return SynchronizationResult.success("Event programs data synchronization done.");
@@ -126,10 +138,13 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
     String msg =
         "Event programs data synchronization failed. Not all pages were synchronised successfully.";
     progress.failedProcess(msg);
+    //    DbmsUtils.unbindSessionFromThread(sessionFactory);
     return SynchronizationResult.failure(msg);
   }
 
   private EventSynchronisationContext createContext(final int pageSize) {
+    initSyncUserIfNoUserLoggedIn();
+
     Date skipChangedBefore =
         settings.getDateSetting(SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE);
     int objectsToSynchronize =
@@ -148,6 +163,48 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
               .getProgramStageDataElementsWithSkipSynchronizationSetToTrue());
     }
     return new EventSynchronisationContext(skipChangedBefore, pageSize);
+  }
+
+  /**
+   * Method that first checks if a {@link User} is logged in. If a {@link User} is logged in then no
+   * action is taken. A logged-in {@link User} is required for an {@link EventSynchronization} as
+   * {@link User} checks are performed in the {@link
+   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventCount(EventQueryParams)} method flow for
+   * example. Without a user logged in, {@link NullPointerException} is thrown and the sync fails. A
+   * session is also required to be bound to the thread in order to avoid {@link
+   * org.hibernate.LazyInitializationException} errors.
+   *
+   * <p>If there is no {@link User} logged in then the {@link User} setup for synchronization will
+   * try to be injected. This {@link User} should have the required authorities to perform
+   * synchronizations. At this point in the flow a valid call has already been made to the remote
+   * server, so we know that valid {@link User} credentials exist for synchronization.
+   *
+   * <p>This scheduling behaviour has been fixed in v41, where a valid user is always tied to the
+   * created job when setup and when run.
+   */
+  private void initSyncUserIfNoUserLoggedIn() {
+    CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUser == null) {
+      log.info(
+          "currentUser is null when trying to perform event sync, will inject remote sync user");
+
+      DbmsUtils.bindSessionToThread(sessionFactory);
+
+      String remoteUsername = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
+      User user = userService.getUserByUsername(remoteUsername);
+
+      CurrentUserDetails currentUserDetails =
+          userService.validateAndCreateUserDetails(user, user.getPassword());
+
+      Authentication authentication =
+          new UsernamePasswordAuthenticationToken(
+              currentUserDetails, "", currentUserDetails.getAuthorities());
+      SecurityContext secContext = SecurityContextHolder.createEmptyContext();
+      secContext.setAuthentication(authentication);
+      SecurityContextHolder.setContext(secContext);
+    } else {
+      log.info("currentUser is NOT null when trying to perform event sync");
+    }
   }
 
   private boolean runSyncWithPaging(EventSynchronisationContext context, JobProgress progress) {
@@ -187,8 +244,9 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
           events.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
       log.info("The lastSynchronized flag of these Events will be updated: " + eventsUIDs);
       eventService.updateEventsSyncTimestamp(eventsUIDs, context.getStartTime());
+      return;
     }
-    throw new MetadataSyncServiceException(format("Page %d synchronisation failed.", page));
+    throw new MetadataSyncServiceException(format("ES Page %d synchronisation failed.", page));
   }
 
   private void filterOutDataValuesMarkedWithSkipSynchronizationFlag(Events events) {

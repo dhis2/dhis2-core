@@ -241,7 +241,7 @@ public class SyncUtils {
    * @param restTemplate Reference to RestTemplate
    * @return AvailabilityStatus that says whether the server is available or not
    */
-  static AvailabilityStatus testServerAvailability(
+  public static AvailabilityStatus testServerAvailability(
       SystemSettingManager systemSettingManager, RestTemplate restTemplate) {
     final int maxAttempts =
         systemSettingManager.getIntSetting(
