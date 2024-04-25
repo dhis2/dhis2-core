@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Component;
  * @author David Katuscak (original)
  * @author Jan Bernitt (job progress tracking)
  */
+@Slf4j
 @Component
 @AllArgsConstructor
 public class EventProgramsDataSynchronizationJob implements Job {
@@ -62,7 +64,7 @@ public class EventProgramsDataSynchronizationJob implements Job {
           (EventProgramsDataSynchronizationJobParameters) config.getJobParameters();
       eventSync.synchronizeData(params.getPageSize(), progress);
     } finally {
-      if (newSession != null) DbmsUtils.unbindSession(newSession);
+      if (newSession != null) DbmsUtils.unbindSessionFromThread(sessionFactory);
     }
   }
 }

@@ -50,21 +50,22 @@ public class DbmsUtils {
   }
 
   /**
-   * Method to bind a session to the current thread if none open. If there is an open session then
-   * no action is taken. If there is no open session then a new session is opened in the catch
-   * block.
+   * Method to bind a session to the current thread if there is none open. If there is an open
+   * session then no action is taken. If there is no open session then a new session is opened in
+   * the catch block.
    *
    * @param sessionFactory session factory
    */
   public static Session bindSessionToThreadIfNoneOpen(SessionFactory sessionFactory) {
     Session currentSession = null;
     try {
-      log.info("checking for an open session");
+      log.info("Checking for an open Hibernate session");
       sessionFactory.getCurrentSession();
       return null;
     } catch (HibernateException he) {
       log.info(
-          "no open session, caught HibernateException {}, open new session now", he.getMessage());
+          "No open session found, caught HibernateException {}, opening new Hibernate session now",
+          he.getMessage());
       currentSession = sessionFactory.openSession();
       TransactionSynchronizationManager.bindResource(
           sessionFactory, new SessionHolder(currentSession));
@@ -73,14 +74,11 @@ public class DbmsUtils {
   }
 
   public static void unbindSessionFromThread(SessionFactory sessionFactory) {
+    log.info("Closing Hibernate session");
     SessionHolder sessionHolder =
         (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
 
     SessionFactoryUtils.closeSession(sessionHolder.getSession());
-  }
-
-  public static void unbindSession(Session session) {
-    SessionFactoryUtils.closeSession(session);
   }
 
   public static void closeStatelessSession(StatelessSession session) {
