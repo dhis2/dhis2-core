@@ -56,16 +56,20 @@ public class DbmsUtils {
    *
    * @param sessionFactory session factory
    */
-  public static void bindSessionToThreadIfNoneOpen(SessionFactory sessionFactory) {
+  public static Session bindSessionToThreadIfNoneOpen(SessionFactory sessionFactory) {
+    Session currentSession = null;
     try {
       log.info("checking for an open session");
       sessionFactory.getCurrentSession();
+      return null;
     } catch (HibernateException he) {
       log.info(
           "no open session, caught HibernateException {}, open new session now", he.getMessage());
-      Session session = sessionFactory.openSession();
-      TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
+      currentSession = sessionFactory.openSession();
+      TransactionSynchronizationManager.bindResource(
+          sessionFactory, new SessionHolder(currentSession));
     }
+    return currentSession;
   }
 
   public static void unbindSessionFromThread(SessionFactory sessionFactory) {
@@ -73,6 +77,10 @@ public class DbmsUtils {
         (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
 
     SessionFactoryUtils.closeSession(sessionHolder.getSession());
+  }
+
+  public static void unbindSession(Session session) {
+    SessionFactoryUtils.closeSession(session);
   }
 
   public static void closeStatelessSession(StatelessSession session) {

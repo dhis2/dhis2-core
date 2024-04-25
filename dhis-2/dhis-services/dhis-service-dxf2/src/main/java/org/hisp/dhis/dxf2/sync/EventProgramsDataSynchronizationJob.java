@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 import lombok.AllArgsConstructor;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.scheduling.Job;
@@ -54,14 +55,14 @@ public class EventProgramsDataSynchronizationJob implements Job {
 
   @Override
   public void execute(JobConfiguration config, JobProgress progress) {
+    Session newSession = null;
     try {
-      // bind session if none exist
-      DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
+      newSession = DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
       EventProgramsDataSynchronizationJobParameters params =
           (EventProgramsDataSynchronizationJobParameters) config.getJobParameters();
       eventSync.synchronizeData(params.getPageSize(), progress);
     } finally {
-      DbmsUtils.unbindSessionFromThread(sessionFactory);
+      if (newSession != null) DbmsUtils.unbindSession(newSession);
     }
   }
 }
