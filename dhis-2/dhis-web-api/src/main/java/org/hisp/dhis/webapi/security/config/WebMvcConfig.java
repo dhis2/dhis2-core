@@ -162,11 +162,11 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .setOrder(Ordered.LOWEST_PRECEDENCE)
         .addResourceHandler("/**")
         .addResourceLocations(
-            "/resources/",
-            "/dhis/",
-            "classpath:/static/",
-            "file:./dhis-web-apps/target/dhis-web-apps/",
-            "file:./dhis-web-commons-resources/src/main/webapp/")
+//            "/resources/",
+//            "/dhis/",
+            "classpath:/static/")
+//            "file:./dhis-web-apps/target/dhis-web-apps/")
+//            "file:./dhis-web-commons-resources/src/main/webapp/")
         // .setCachePeriod(3600)
         .resourceChain(false)
         .addResolver(new IndexFallbackResourceResolver());

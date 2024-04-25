@@ -38,12 +38,11 @@
     <module>dhis-support</module>
     <module>dhis-web-api</module>
     <module>dhis-test-web-api</module>
-    <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
     <module>dhis-web-apps</module>
-    <!--    <module>dhis-web-portal</module>-->
     <module>dhis-web-tomcat</module>
+    <module>dhis-web-embedded-jetty</module>
   </modules>
 
   <scm>
@@ -2038,6 +2037,7 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-tomcat</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.flywaydb:flyway-database-postgresql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
