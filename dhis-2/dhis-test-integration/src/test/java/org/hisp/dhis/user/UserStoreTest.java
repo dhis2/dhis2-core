@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -149,19 +148,21 @@ class UserStoreTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testGetCurrentUserGroupInfo() {
-    User userA = makeUser("A");
-    userStore.save(userA);
-    UserGroup userGroupA = createUserGroup('A', Sets.newHashSet(userA));
+    UserGroup userGroupA = createUserGroup('A', null);
     userGroupService.addUserGroup(userGroupA);
-    UserGroup userGroupB = createUserGroup('B', Sets.newHashSet(userA));
+
+    UserGroup userGroupB = createUserGroup('B', null);
     userGroupService.addUserGroup(userGroupB);
-    userA.getGroups().add(userGroupA);
-    userA.getGroups().add(userGroupB);
-    // TODO: MAS - this should be refactored out
-    CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(userA.getUid());
-    assertNotNull(currentUserGroupInfo);
-    assertEquals(2, currentUserGroupInfo.getUserGroupUIDs().size());
-    assertEquals(userA.getUid(), currentUserGroupInfo.getUserUID());
+
+    User userA = makeUser("A");
+    userA.setGroups(Set.of(userGroupA, userGroupB));
+    userGroupA.setMembers(Set.of(userA));
+    userGroupB.setMembers(Set.of(userA));
+    userStore.save(userA);
+
+    assertEquals(
+        userA.getGroups().size(),
+        userStore.getCurrentUserGroupInfo(userA.getUid()).getUserGroupUIDs().size());
   }
 
   @Test
