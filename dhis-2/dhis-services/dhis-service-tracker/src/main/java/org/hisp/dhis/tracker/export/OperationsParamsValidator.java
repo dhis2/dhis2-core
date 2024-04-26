@@ -127,7 +127,7 @@ public class OperationsParamsValidator {
    */
   public Program validateTrackerProgram(String programUid, User user)
       throws BadRequestException, ForbiddenException {
-    Program program = validateEventProgram(programUid, user);
+    Program program = validateProgramAccess(programUid, user);
 
     if (program == null) {
       return null;
@@ -148,13 +148,14 @@ public class OperationsParamsValidator {
   }
 
   /**
-   * Validates the specified event program uid exists and is accessible by the supplied user
+   * Validates the specified program uid exists and is accessible by the supplied user. If no other
+   * program related validation is done, to be used by event programs only.
    *
    * @return the program if found and accessible
    * @throws BadRequestException if the program uid does not exist
    * @throws ForbiddenException if the user has no data read access to the program
    */
-  public Program validateEventProgram(String programUid, User user)
+  public Program validateProgramAccess(String programUid, User user)
       throws BadRequestException, ForbiddenException {
     if (programUid == null) {
       return null;

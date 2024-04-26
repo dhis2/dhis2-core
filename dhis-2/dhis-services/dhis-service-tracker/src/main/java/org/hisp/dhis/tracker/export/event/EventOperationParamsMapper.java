@@ -88,7 +88,7 @@ class EventOperationParamsMapper {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     Program program =
-        paramsValidator.validateEventProgram(operationParams.getProgramUid(), currentUser);
+        paramsValidator.validateProgramAccess(operationParams.getProgramUid(), currentUser);
     ProgramStage programStage =
         validateProgramStage(operationParams.getProgramStageUid(), currentUser);
     TrackedEntity trackedEntity =

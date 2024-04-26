@@ -73,7 +73,7 @@ public class TrackedEntityQueryParams {
   private Program program;
 
   /** Programs to fetch. */
-  private List<Program> programs = Lists.newArrayList();
+  private List<Program> programs = List.of();
 
   /** Status of the tracked entity instance in the given program. */
   private ProgramStatus programStatus;
