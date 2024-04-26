@@ -409,6 +409,24 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
+   * Executes the given SQL statement. Logs and times the operation.
+   *
+   * @param sql the SQL statement.
+   * @param logMessage the custom log message to include in the log statement.
+   */
+  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
+    Timer timer = new SystemTimer().start();
+
+    log.debug("Populate table SQL: '{}'", sql);
+
+    jdbcTemplate.execute(sql);
+
+    String logMessage = format(logPattern, arguments);
+
+    log.info("{} in: {}", logMessage, timer.stop().toString());
+  }
+
+  /**
    * Filters out analytics table columns which were created after the time of the last successful
    * resource table update. This so that the create table query does not refer to columns not
    * present in resource tables.
@@ -427,24 +445,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return columns.stream()
         .filter(c -> c.getCreated() == null || c.getCreated().before(lastResourceTableUpdate))
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Executes the given SQL statement. Logs and times the operation.
-   *
-   * @param sql the SQL statement.
-   * @param logMessage the custom log message to include in the log statement.
-   */
-  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
-    Timer timer = new SystemTimer().start();
-
-    log.debug("Populate table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
-
-    String logMessage = format(logPattern, arguments);
-
-    log.info("{} in: {}", logMessage, timer.stop().toString());
   }
 
   /**
