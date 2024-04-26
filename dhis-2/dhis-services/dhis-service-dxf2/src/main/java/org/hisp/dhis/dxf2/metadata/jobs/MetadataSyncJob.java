@@ -117,7 +117,6 @@ public class MetadataSyncJob implements Job {
     log.info("Metadata Sync cron Job started");
 
     try {
-      // bind session if none exist
       DbmsUtils.bindSessionToThreadIfNoneOpen(sessionFactory);
       MetadataSyncJobParameters params = (MetadataSyncJobParameters) config.getJobParameters();
       retryTemplate.execute(

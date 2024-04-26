@@ -167,8 +167,8 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
    * action is taken. A logged-in {@link User} is required for an {@link EventSynchronization} as
    * {@link User} checks are performed in the {@link
    * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventCount(EventQueryParams)} method flow for
-   * example. Without a user logged in, {@link NullPointerException} is thrown and the sync fails. A
-   * session is also required to be bound to the thread in order to avoid {@link
+   * example. Without a user logged in, {@link NullPointerException} is thrown and the sync fails.
+   * The {@link User} needs to be initialised and unproxied to avoid {@link
    * org.hibernate.LazyInitializationException} errors.
    *
    * <p>If there is no {@link User} logged in then the {@link User} setup for synchronization will
@@ -183,7 +183,7 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
     CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     if (currentUser == null) {
       log.info(
-          "currentUser is null when trying to perform event sync, will inject remote sync user");
+          "CurrentUser is null, before performing EVENT_PROGRAMS_DATA_SYNC, the remote sync user will be injected");
 
       String remoteUsername = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
       User user = userService.getUserByUsername(remoteUsername);
@@ -199,8 +199,6 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
       SecurityContext secContext = SecurityContextHolder.createEmptyContext();
       secContext.setAuthentication(authentication);
       SecurityContextHolder.setContext(secContext);
-    } else {
-      log.info("currentUser is NOT null when trying to perform event sync");
     }
   }
 
@@ -243,7 +241,7 @@ public class EventSynchronization implements DataSynchronizationWithPaging {
       eventService.updateEventsSyncTimestamp(eventsUIDs, context.getStartTime());
       return;
     }
-    throw new MetadataSyncServiceException(format("ES Page %d synchronisation failed.", page));
+    throw new MetadataSyncServiceException(format("Page %d synchronisation failed.", page));
   }
 
   private void filterOutDataValuesMarkedWithSkipSynchronizationFlag(Events events) {
