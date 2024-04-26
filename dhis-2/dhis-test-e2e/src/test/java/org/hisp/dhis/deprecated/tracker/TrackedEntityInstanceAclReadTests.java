@@ -114,6 +114,7 @@ public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest 
 
     // Get User information from /me
     ApiResponse apiResponse = new RestApiActions("/me").get();
+    String asString = apiResponse.getAsString();
     Me me = apiResponse.as(Me.class);
 
     // Add userGroups
