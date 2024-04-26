@@ -723,13 +723,15 @@ public class DataHandler {
 
   private boolean satisfiesMeasureCriteria(DataQueryParams params, Double value) {
     if (params.hasMeasureCriteria() && value != null) {
-      Double finalValue =
-          params.isSkipRounding() ? value : (Double) getRoundedValueObject(params, value);
+      Number finalValue =
+          params.isSkipRounding() ? value : (Number) getRoundedValueObject(params, value);
 
       return params.getMeasureCriteria().entrySet().stream()
           .anyMatch(
               measureValue ->
-                  measureValue.getKey().measureIsValid(finalValue, measureValue.getValue()));
+                  measureValue
+                      .getKey()
+                      .measureIsValid(finalValue.doubleValue(), measureValue.getValue()));
     }
 
     return true;

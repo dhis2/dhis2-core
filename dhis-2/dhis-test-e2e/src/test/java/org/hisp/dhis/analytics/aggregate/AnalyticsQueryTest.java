@@ -318,14 +318,14 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void testQueryForReportingRatesWithMeasureCriteriaGTE_NoNumeratorDenominator() {
+  public void testQueryForReportingRatesWithMeasureCriteriaGE_NoNumeratorDenominator() {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("dimension=dx:PLq9sJluXvc.REPORTING_RATE,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
             .add("filter=pe:LAST_5_YEARS")
             .add("displayProperty=NAME")
-            .add("measureCriteria=GT:25")
+            .add("measureCriteria=GE:25.55")
             .add("includeNumDen=false")
             .add("relativePeriodDate=2024-04-25")
             .add("skipMeta=true")
@@ -335,29 +335,15 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
     ApiResponse response = analyticsActions.get(params);
 
     // Then
-    response.validate().statusCode(200).body("rows", hasSize(equalTo(11)));
+    response.validate().statusCode(200).body("rows", hasSize(equalTo(4)));
 
     validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "Vth0fbpFcsO", "25.69"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "PMa2VCrupOd", "25.27"));
 
     validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "O6uvpzGd5pu", "25.56"));
 
     validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "lc3eMKXaEfw", "25.55"));
 
     validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "qhqAxPSTUXp", "25.57"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "ImspTQPwCqd", "25.21"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "fdc6uOvgoji", "25.38"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "jmIPBj66vD6", "25.34"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "jUb8gELQApl", "25.19"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "eIQbndfxQMb", "25.11"));
-
-    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "TEQlaapDQoK", "25.09"));
   }
 
   @Test
@@ -437,5 +423,40 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
 
     validateRow(
         response, List.of("PLq9sJluXvc.REPORTING_RATE", "PMa2VCrupOd", "25.268817204301076"));
+  }
+
+  @Test
+  public void testQueryForReportingRatesWithMeasureCriteriaEQ_WithZerosAsResult() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add(
+                "dimension=pe:LAST_YEAR,dx:PLq9sJluXvc.REPORTING_RATE,ou:ImspTQPwCqd;O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp")
+            .add("displayProperty=NAME")
+            .add("measureCriteria=EQ:0")
+            .add("relativePeriodDate=2024-04-25")
+            .add("skipMeta=true");
+
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response.validate().statusCode(200).body("rows", hasSize(equalTo(8)));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "O6uvpzGd5pu", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "qhqAxPSTUXp", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "fdc6uOvgoji", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "jUb8gELQApl", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "lc3eMKXaEfw", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "kJq2mPyFEHo", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "ImspTQPwCqd", "0"));
+
+    validateRow(response, List.of("PLq9sJluXvc.REPORTING_RATE", "2023", "PMa2VCrupOd", "0"));
   }
 }
