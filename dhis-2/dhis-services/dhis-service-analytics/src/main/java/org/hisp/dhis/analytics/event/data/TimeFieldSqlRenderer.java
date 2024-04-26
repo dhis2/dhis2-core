@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
@@ -38,6 +37,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -98,10 +98,10 @@ public abstract class TimeFieldSqlRenderer {
    * @return the SQL statement
    */
   private String getDateRangeCondition(EventQueryParams params) {
-    List<String> orConditions = new ArrayList<>();
+    Map<String, List<String>> conditions = new HashMap<>();
 
     if (params.hasStartEndDate()) {
-      addStartEndDateToCondition(params, orConditions);
+      addStartEndDateToCondition(params, conditions);
     }
 
     params
@@ -114,24 +114,51 @@ public abstract class TimeFieldSqlRenderer {
                     new DateRange(
                         dateRanges.get(0).getStartDate(),
                         dateRanges.get(dateRanges.size() - 1).getEndDate());
-
-                ColumnWithDateRange columnWithDateRange =
-                    ColumnWithDateRange.of(
-                        getColumnName(Optional.of(timeField), params.getOutputType()), dateRange);
-                orConditions.add(getDateRangeCondition(columnWithDateRange));
+                collectDateRangeSqlConditions(params, timeField, dateRange, conditions);
               } else {
                 dateRanges.forEach(
-                    dateRange -> {
-                      ColumnWithDateRange columnWithDateRange =
-                          ColumnWithDateRange.of(
-                              getColumnName(Optional.of(timeField), params.getOutputType()),
-                              dateRange);
-                      orConditions.add(getDateRangeCondition(columnWithDateRange));
-                    });
+                    dateRange ->
+                        collectDateRangeSqlConditions(params, timeField, dateRange, conditions));
               }
             });
 
-    return isNotEmpty(orConditions) ? String.join(" or ", orConditions) : EMPTY;
+    // the same columns are in the "OR" relation
+    // different columns are in the "AND" relation
+    String dateRangeCondition =
+        String.join(
+            " and ",
+            conditions.values().stream()
+                .map(s -> "(" + String.join(" or ", s) + ")")
+                .collect(Collectors.toSet()));
+
+    return isEmpty(dateRangeCondition) ? EMPTY : dateRangeCondition;
+  }
+
+  /**
+   * The method collects all conditions grouped by the date range column name (enrollmentdate,
+   * incidentdate, etc..).
+   *
+   * @param eventQueryParams the {@link EventQueryParams}
+   * @param timeField the {@link TimeField}
+   * @param dateRange the {@link DateRange}
+   * @param conditions the Map for conditions grouped by the date range column name
+   */
+  private void collectDateRangeSqlConditions(
+      EventQueryParams eventQueryParams,
+      TimeField timeField,
+      DateRange dateRange,
+      Map<String, List<String>> conditions) {
+    ColumnWithDateRange columnWithDateRange =
+        ColumnWithDateRange.of(
+            getColumnName(Optional.of(timeField), eventQueryParams.getOutputType()), dateRange);
+    List<String> sqlConditions = conditions.get(columnWithDateRange.column);
+    if (sqlConditions == null) {
+      sqlConditions = new ArrayList<>();
+      sqlConditions.add(getDateRangeCondition(columnWithDateRange));
+      conditions.put(columnWithDateRange.column, sqlConditions);
+    } else {
+      sqlConditions.add(getDateRangeCondition(columnWithDateRange));
+    }
   }
 
   /**
@@ -156,16 +183,18 @@ public abstract class TimeFieldSqlRenderer {
    * Adds the default data range condition into the given list of conditions.
    *
    * @param params the {@link EventQueryParams}
-   * @param conditions a list of SQL conditions
+   * @param conditions a Map of SQL conditions grouped by the date range column name
    */
-  private void addStartEndDateToCondition(EventQueryParams params, List<String> conditions) {
+  private void addStartEndDateToCondition(
+      EventQueryParams params, Map<String, List<String>> conditions) {
     ColumnWithDateRange defaultDateRangeColumn =
         ColumnWithDateRange.builder()
             .column(getColumnName(getTimeField(params), params.getOutputType()))
             .dateRange(new DateRange(params.getStartDate(), params.getEndDate()))
             .build();
-
-    conditions.add(getDateRangeCondition(defaultDateRangeColumn));
+    List<String> dateRangeConditions = new ArrayList<>();
+    dateRangeConditions.add(getDateRangeCondition(defaultDateRangeColumn));
+    conditions.put(defaultDateRangeColumn.column, dateRangeConditions);
   }
 
   /**

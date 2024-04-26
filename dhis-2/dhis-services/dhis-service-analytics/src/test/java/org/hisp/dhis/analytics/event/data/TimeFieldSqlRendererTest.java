@@ -80,14 +80,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peC)))
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer eventTimeFieldSqlRenderer =
         new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"executiondate\" >= '2022-04-01' and ax.\"executiondate\" < '2022-07-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01'))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
@@ -97,14 +97,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer eventTimeFieldSqlRenderer =
         new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"executiondate\" >= '2022-04-01' and ax.\"executiondate\" < '2022-07-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01'))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
@@ -113,14 +113,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
         new EventQueryParams.Builder()
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peC)))
             .build();
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
         new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
@@ -130,14 +130,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(peA, peB, peC)))
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
         new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
@@ -148,14 +148,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .withTimeField(LAST_UPDATED.name())
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
         new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((lastupdated >= '2022-04-01' and lastupdated < '2022-07-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((lastupdated >= '2022-04-01' and lastupdated < '2022-07-01'))) ",
+        enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
@@ -166,14 +166,14 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .withTimeField(INCIDENT_DATE.getField())
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer eventTimeFieldSqlRenderer =
         new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"executiondate\" >= '2022-04-01' and ax.\"executiondate\" < '2022-07-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01'))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
@@ -195,15 +195,15 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
             .withStartEndDatesForPeriods()
             .build();
 
-    TimeFieldSqlRenderer timeFieldSqlRenderer =
+    TimeFieldSqlRenderer eventTimeFieldSqlRenderer =
         new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"duedate\" >= '2022-03-01' and ax.\"duedate\" < '2022-04-01') "
-            + "or (ax.\"duedate\" >= '2022-09-01' and ax.\"duedate\" < '2022-10-01')) ",
-        timeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
+        "(((ax.\"scheduleddate\" >= '2022-03-01' and ax.\"scheduleddate\" < '2022-04-01') "
+            + "or (ax.\"scheduleddate\" >= '2022-09-01' and ax.\"scheduleddate\" < '2022-10-01'))) ",
+        eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
   @Test
