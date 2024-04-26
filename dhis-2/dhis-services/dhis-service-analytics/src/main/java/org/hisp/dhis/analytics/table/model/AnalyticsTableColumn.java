@@ -209,8 +209,8 @@ public class AnalyticsTableColumn {
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
    * @param selectExpression source table select expression.
-   * @param created the created date.
    * @param skipIndex whether to skip index for column.
+   * @param created the created date.
    */
   public AnalyticsTableColumn(
       String name, DataType dataType, String selectExpression, Skip skipIndex, Date created) {
