@@ -704,7 +704,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * @return a SQL LEFT JOIN for programs
    */
   private String getFromSubQueryProgramConditions(TrackedEntityQueryParams params) {
-    if (params.hasProgram() && skipOwnershipCheck(params)) {
+    if (params.hasProgram() || skipOwnershipCheck(params)) {
       return "";
     }
 
