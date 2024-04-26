@@ -260,6 +260,67 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  public List<String> canWrite(UserDetails user, Enrollment enrollment) {
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || enrollment == null) {
+      return List.of();
+    }
+
+    Program program = enrollment.getProgram();
+    List<String> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
+    }
+
+    if (!program.isWithoutRegistration()) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+        errors.add(OWNERSHIP_ACCESS_DENIED);
+      }
+
+    } else {
+      OrganisationUnit ou = enrollment.getOrganisationUnit();
+      if (ou != null && !user.isInUserHierarchy(ou.getPath())) {
+        errors.add("User has no write access to organisation unit: " + ou.getUid());
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canWrite(
+      UserDetails user, Program program, OrganisationUnit orgUnit, String trackedEntity) {
+
+    List<String> errors = new ArrayList<>();
+
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
+    }
+
+    if (program.isRegistration()) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + (program.getTrackedEntityType() != null
+                    ? program.getTrackedEntityType().getUid()
+                    : null));
+      }
+
+      if (!ownershipAccessManager.hasAccess(user, trackedEntity, orgUnit, program)) {
+        errors.add(OWNERSHIP_ACCESS_DENIED);
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
   public List<String> canCreate(
       UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser

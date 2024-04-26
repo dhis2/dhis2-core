@@ -253,7 +253,7 @@ class OwnershipTest extends TrackerTest {
     trackerObjects.getEnrollments().get(0).setEnrollment(CodeGenerator.generateUid());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
-    assertHasError(updatedReport, ValidationCode.E1102);
+    assertHasError(updatedReport, ValidationCode.E1040);
   }
 
   @Test
@@ -269,7 +269,7 @@ class OwnershipTest extends TrackerTest {
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
-    assertHasError(updatedReport, ValidationCode.E1102);
+    assertHasError(updatedReport, ValidationCode.E1040);
   }
 
   @Test
@@ -285,7 +285,7 @@ class OwnershipTest extends TrackerTest {
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
-    assertHasError(updatedReport, ValidationCode.E1102);
+    assertHasError(updatedReport, ValidationCode.E1040);
   }
 
   private void compareEnrollmentBasicProperties(

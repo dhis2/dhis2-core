@@ -27,29 +27,17 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
-import java.util.Map;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -68,11 +56,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 class SecurityOwnershipValidator implements Validator<Enrollment> {
 
-  @Nonnull private final AclService aclService;
-  @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
-
-  private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      " has no organisation unit assigned, so we skip user validation";
+  private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
@@ -83,148 +67,43 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
             : bundle.getPreheat().getProgram(enrollment.getProgram());
+    String trackedEntity =
+        strategy.isDelete()
+            ? bundle
+                .getPreheat()
+                .getEnrollment(enrollment.getEnrollment())
+                .getTrackedEntity()
+                .getUid()
+            : enrollment.getTrackedEntity();
     OrganisationUnit ownerOrgUnit =
-        getOwnerOrganisationUnit(
-            preheat, enrollment.getTrackedEntity(), preheat.getProgram(enrollment.getProgram()));
+        strategy.isUpdateOrDelete()
+            ? preheat
+                .getProgramOwner()
+                .get(trackedEntity)
+                .get(program.getUid())
+                .getOrganisationUnit()
+            : preheat.getOrganisationUnit(enrollment.getOrgUnit());
 
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-
-    checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment, program);
+    if (!trackerAccessManager
+        .canWrite(UserDetails.fromUser(user), program, ownerOrgUnit, trackedEntity)
+        .isEmpty()) {
+      reporter.addError(
+          enrollment, ValidationCode.E1040, bundle.getUser().getUid(), enrollment.getUid());
+    }
 
     if (strategy.isDelete()) {
-      boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
-      boolean hasNotCascadeDeleteAuthority =
-          !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
+      boolean hasNonDeletedEvents =
+          preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains(enrollment.getEnrollment());
 
-      if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
+      if (hasNonDeletedEvents
+          && !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name())) {
         reporter.addError(enrollment, E1103, user, enrollment.getEnrollment());
       }
-    }
-
-    checkWriteEnrollmentAccess(reporter, bundle, enrollment, program, ownerOrgUnit);
-  }
-
-  private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teUid, Program program) {
-    Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(teUid);
-    if (programOwner == null || programOwner.get(program.getUid()) == null) {
-      return null;
-    } else {
-      return programOwner.get(program.getUid()).getOrganisationUnit();
-    }
-  }
-
-  private boolean enrollmentHasEvents(TrackerPreheat preheat, String enrollmentUid) {
-    return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains(enrollmentUid);
-  }
-
-  private void checkEnrollmentOrgUnit(
-      Reporter reporter,
-      TrackerBundle bundle,
-      TrackerImportStrategy strategy,
-      Enrollment enrollment,
-      Program program) {
-    OrganisationUnit enrollmentOrgUnit;
-
-    if (strategy.isUpdateOrDelete()) {
-      enrollmentOrgUnit =
-          bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
-
-      if (enrollmentOrgUnit == null) {
-        log.warn("Enrollment " + enrollment.getEnrollment() + ORG_UNIT_NO_USER_ASSIGNED);
-        return;
-      }
-    } else {
-      checkNotNull(
-          enrollment.getOrgUnit().getIdentifierOrAttributeValue(), ORGANISATION_UNIT_CANT_BE_NULL);
-      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
-    }
-
-    // If enrollment is newly created, or going to be deleted, capture scope
-    // has to be checked
-    if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
-      checkOrgUnitInCaptureScope(reporter, bundle, enrollment, enrollmentOrgUnit);
     }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
     return true;
-  }
-
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!user.isInUserHierarchy(orgUnit.getPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
-  private void checkTeiTypeAndTeiProgramAccess(
-      Reporter reporter,
-      TrackerDto dto,
-      UserDetails user,
-      String trackedEntity,
-      OrganisationUnit ownerOrganisationUnit,
-      Program program) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-    checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
-
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
-      reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
-    }
-
-    if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrganisationUnit, program)) {
-      reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
-    }
-  }
-
-  private void checkWriteEnrollmentAccess(
-      Reporter reporter,
-      TrackerBundle bundle,
-      Enrollment enrollment,
-      Program program,
-      OrganisationUnit ownerOrgUnit) {
-    UserDetails user = UserDetails.fromUser(bundle.getUser());
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-
-    checkProgramWriteAccess(reporter, enrollment, user, program);
-
-    if (program.isRegistration()) {
-      String trackedEntity =
-          bundle.getStrategy(enrollment).isDelete()
-              ? bundle
-                  .getPreheat()
-                  .getEnrollment(enrollment.getEnrollment())
-                  .getTrackedEntity()
-                  .getUid()
-              : enrollment.getTrackedEntity();
-
-      checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
-      checkTeiTypeAndTeiProgramAccess(
-          reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
-    }
-  }
-
-  private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(program, PROGRAM_CANT_BE_NULL);
-
-    if (!aclService.canDataWrite(user, program)) {
-      reporter.addError(dto, ValidationCode.E1091, user, program);
-    }
   }
 }

@@ -68,6 +68,7 @@ public enum ValidationCode {
   E1033("Event: `{0}`, Enrollment value is null."),
   E1035("Event: `{0}`, ProgramStage value is null."),
   E1039("ProgramStage: `{0}`, is not repeatable and an event already exists."),
+  E1040("User: `{0}`, has no write access to Enrollment: `{1}`."),
   E1041("Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
   E1042("Event: `{0}`, needs to have completed date."),
   E1043("Event: `{0}`, completeness date has expired. Not possible to make changes to this event."),
