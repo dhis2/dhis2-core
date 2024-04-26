@@ -510,7 +510,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .toList();
   }
 
-  protected List<AnalyticsTableColumn> getDataElemnetGroupSetColumns() {
+  protected List<AnalyticsTableColumn> getDataElementGroupSetColumns() {
     return idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class).stream()
         .map(
             degs -> {

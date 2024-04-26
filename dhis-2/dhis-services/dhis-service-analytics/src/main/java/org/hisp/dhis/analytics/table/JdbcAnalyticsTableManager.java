@@ -457,7 +457,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
-    columns.addAll(getDataElemnetGroupSetColumns());
+    columns.addAll(getDataElementGroupSetColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
     columns.addAll(getDisaggregationCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
