@@ -1278,6 +1278,10 @@ public class DataQueryParams {
     return startDate != null && endDate != null;
   }
 
+  public boolean hasReportingRates() {
+    return isNotEmpty(getAllReportingRates());
+  }
+
   /**
    * Indicates whether this query has a continuous list of dates range or is empty. It assumes that
    * the datesRange IS SORTED.
