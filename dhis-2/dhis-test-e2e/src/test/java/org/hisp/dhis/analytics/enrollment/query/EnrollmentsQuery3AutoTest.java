@@ -531,4 +531,73 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
             "DiszpKrYNg8",
             ""));
   }
+
+  @Test
+  public void queryRandomQuery13() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("asc=incidentdate,ouname")
+            .add("headers=ouname,enrollmentdate,incidentdate")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("enrollmentDate=202301,202201")
+            .add("rowContext=true")
+            .add("pageSize=5")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("incidentDate=202201,202301")
+            .add("dimension=ou:USER_ORGUNIT");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":5,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202201\":{\"name\":\"January 2022\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeader(
+        response, 2, "incidentdate", "Date of birth", "DATE", "java.time.LocalDate", false, true);
+
+    // Assert rows.
+    validateRow(
+        response, 0, List.of("Baiwala CHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response,
+        1,
+        List.of("Bandajuma Sinneh MCHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response,
+        2,
+        List.of("Banka Makuloh MCHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response, 3, List.of("Conakry Dee CHC", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+    validateRow(
+        response, 4, List.of("Dankawalie MCHP", "2022-01-01 12:05:00.0", "2022-01-01 12:05:00.0"));
+  }
 }
