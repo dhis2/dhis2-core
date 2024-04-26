@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -42,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
@@ -65,6 +62,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
@@ -83,6 +81,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -509,6 +509,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .toList();
   }
 
+  protected List<AnalyticsTableColumn> getDataElemnetGroupSetColumns() {
+    return idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class).stream()
+        .map(
+            degs -> {
+              String name = degs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "degs." + quote(name), degs.getCreated());
+            })
+        .toList();
+  }
+  
   protected List<AnalyticsTableColumn> getAttributeCategoryOptionGroupSetColumns() {
     return categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
         .map(
