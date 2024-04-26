@@ -38,6 +38,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_INDEXING_OR
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
+
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -46,7 +48,6 @@ import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for exposing analytics table settings. Provides settings living in
@@ -129,23 +130,23 @@ public class AnalyticsTableSettings {
 
     return database;
   }
-  
+
   public Skip skipIndexDataElementGroupSetColumns() {
-      return toSkip(config.isEnabled(ANALYTICS_INDEXING_DATA_ELEMENT_GROUP_SET));
+    return toSkip(config.isEnabled(ANALYTICS_INDEXING_DATA_ELEMENT_GROUP_SET));
   }
 
   public Skip skipIndexCategoryColumns() {
-      return toSkip(config.isEnabled(ANALYTICS_INDEXING_CATEGORY));
+    return toSkip(config.isEnabled(ANALYTICS_INDEXING_CATEGORY));
   }
 
   public Skip skipIndexCategoryOptionGroupSetColumns() {
-      return toSkip(config.isEnabled(ANALYTICS_INDEXING_CATEGORY_OPTION_GROUP_SET));
+    return toSkip(config.isEnabled(ANALYTICS_INDEXING_CATEGORY_OPTION_GROUP_SET));
   }
 
   public Skip skipIndexOrgUnitGroupSetColumns() {
-      return toSkip(config.isEnabled(ANALYTICS_INDEXING_ORG_UNIT_GROUP_SET));
+    return toSkip(config.isEnabled(ANALYTICS_INDEXING_ORG_UNIT_GROUP_SET));
   }
-  
+
   private Skip toSkip(boolean enabled) {
     return enabled ? Skip.INCLUDE : Skip.SKIP;
   }

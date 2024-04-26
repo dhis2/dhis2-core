@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table.setting;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+
 import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -71,18 +72,17 @@ class AnalyticsTableSettingsTest {
 
     assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
   }
-  
+
   @Test
   void testSkipIndexCategoryColumns() {
     when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_DATA_ELEMENT_GROUP_SET))
-    .thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_CATEGORY))
-      .thenReturn(true);
+        .thenReturn(true);
+    when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_CATEGORY)).thenReturn(true);
     when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_CATEGORY_OPTION_GROUP_SET))
-    .thenReturn(false);
+        .thenReturn(false);
     when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_ORG_UNIT_GROUP_SET))
-      .thenReturn(false);
-    
+        .thenReturn(false);
+
     assertEquals(Skip.INCLUDE, settings.skipIndexDataElementGroupSetColumns());
     assertEquals(Skip.INCLUDE, settings.skipIndexCategoryColumns());
     assertEquals(Skip.SKIP, settings.skipIndexCategoryOptionGroupSetColumns());
