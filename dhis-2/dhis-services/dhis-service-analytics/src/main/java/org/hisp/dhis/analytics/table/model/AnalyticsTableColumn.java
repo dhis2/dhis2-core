@@ -29,12 +29,12 @@ package org.hisp.dhis.analytics.table.model;
 
 import java.util.Date;
 import java.util.List;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Class representing an analytics database table column.
@@ -198,6 +198,29 @@ public class AnalyticsTableColumn {
     this.valueType = AnalyticsValueType.DIMENSION;
     this.selectExpression = selectExpression;
     this.skipIndex = Skip.INCLUDE;
+    this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
+    this.created = created;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param selectExpression source table select expression.
+   * @param created the created date.
+   * @param skipIndex whether to skip index for column.
+   */
+  public AnalyticsTableColumn(
+      String name, DataType dataType, String selectExpression, Skip skipIndex, Date created) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+    this.collation = Collation.DEFAULT;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.skipIndex = skipIndex;
     this.indexType = IndexType.BTREE;
     this.indexColumns = List.of();
     this.created = created;
