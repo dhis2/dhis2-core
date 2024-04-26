@@ -22,6 +22,12 @@
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-web-apps</artifactId>
+      <!-- Only depend on the POM dhis-web-apps artifact, since we manually include the sources in the dependency plugin, but this does not alone enforce dependency -->
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-api</artifactId>
       <type>jar</type>
     </dependency>
@@ -85,6 +91,7 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>
@@ -102,8 +109,18 @@
   </dependencies>
 
   <build>
-    <finalName>dhis2-tomcat</finalName>
+    <finalName>dhis</finalName>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.google.cloud.tools</groupId>
+          <artifactId>jib-maven-plugin</artifactId>
+          <version>${jib.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -143,6 +160,60 @@
       </plugin>
 
       <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>${jib.version}</version>
+        <configuration>
+          <container>
+            <environment>
+              <!-- default DHIS2 web application context to / but allow for customization -->
+              <CATALINA_OPTS>-Dcontext.path=""</CATALINA_OPTS>
+            </environment>
+            <labels>
+              <DHIS2_VERSION>${project.version}</DHIS2_VERSION>
+            </labels>
+            <appRoot>/usr/local/tomcat/webapps/ROOT</appRoot>
+          </container>
+          <pluginExtensions>
+            <pluginExtension>
+              <implementation>com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension</implementation>
+              <configuration implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
+                <!-- Jib will create /opt/dhis2 owned by root by default.
+                DHIS2_HOME needs to be writeable by the process running Tomcat -->
+                <rules>
+                  <rule>
+                    <glob>/opt/dhis2</glob>
+                    <ownership>${jib.container.user}:${jib.container.user}</ownership>
+                    <!--                    <ownership>nobody:nobody</ownership>-->
+                  </rule>
+                  <rule>
+                    <glob>/opt/dhis2/**</glob>
+                    <ownership>${jib.container.user}:${jib.container.user}</ownership>
+                    <!--                    <ownership>nobody:nobody</ownership>-->
+                  </rule>
+                </rules>
+              </configuration>
+            </pluginExtension>
+          </pluginExtensions>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-ownership-extension-maven</artifactId>
+            <version>0.1.0</version>
+          </dependency>
+        </dependencies>
+        <!--        <executions>-->
+        <!--          <execution>-->
+        <!--            <phase>package</phase>-->
+        <!--            <goals>-->
+        <!--              <goal>dockerBuild</goal>-->
+        <!--            </goals>-->
+        <!--          </execution>-->
+        <!--        </executions>-->
+      </plugin>
+
+      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>3.2.5</version>
@@ -156,12 +227,88 @@
         </configuration>
         <executions>
           <execution>
+            <id>boot-war</id>
             <goals>
               <goal>repackage</goal>
             </goals>
+            <phase>package</phase>
           </execution>
         </executions>
       </plugin>
     </plugins>
+
   </build>
+
+  <profiles>
+    <profile>
+      <!-- used to build and push multi-architecture images -->
+      <id>jibBuild</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <configuration>
+              <from>
+                <platforms>
+                  <platform>
+                    <architecture>amd64</architecture>
+                    <os>linux</os>
+                  </platform>
+                  <platform>
+                    <architecture>arm64</architecture>
+                    <os>linux</os>
+                  </platform>
+                </platforms>
+              </from>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <!-- used to automatically build images for arm64 on Mac without users needing to configure Jib -->
+      <id>jibBuildArmOnly</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.google.cloud.tools</groupId>
+            <artifactId>jib-maven-plugin</artifactId>
+            <configuration>
+              <from>
+                <platforms>
+                  <platform>
+                    <architecture>arm64</architecture>
+                    <os>linux</os>
+                  </platform>
+                </platforms>
+              </from>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>no-boot</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>3.2.5</version>
+            <executions>
+              <execution>
+                <id>boot-war</id>
+                <!-- here there must be the same identifier as defined in <build><plugins> section -->
+                <phase>none</phase>
+                <!-- this disables plugin -->
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
