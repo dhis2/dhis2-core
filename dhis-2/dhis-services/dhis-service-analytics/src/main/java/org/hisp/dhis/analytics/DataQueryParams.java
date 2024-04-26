@@ -1238,6 +1238,10 @@ public class DataQueryParams {
     return startDate != null && endDate != null;
   }
 
+  public boolean hasReportingRates() {
+    return isNotEmpty(getAllReportingRates());
+  }
+
   /**
    * Indicates whether start and end date are specified and the start date is after the end date,
    * which is invalid.
