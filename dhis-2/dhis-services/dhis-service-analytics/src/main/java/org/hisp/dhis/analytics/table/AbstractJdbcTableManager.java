@@ -412,16 +412,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
    * Executes the given SQL statement. Logs and times the operation.
    *
    * @param sql the SQL statement.
-   * @param logMessage the custom log message to include in the log statement.
+   * @param logPattern the log message pattern.
+   * @param args the log message arguments.
    */
-  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
+  protected void invokeTimeAndLog(String sql, String logPattern, Object... args) {
     Timer timer = new SystemTimer().start();
 
     log.debug("Populate table SQL: '{}'", sql);
 
     jdbcTemplate.execute(sql);
 
-    String logMessage = format(logPattern, arguments);
+    String logMessage = format(logPattern, args);
 
     log.info("{} in: {}", logMessage, timer.stop().toString());
   }
@@ -544,7 +545,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   protected List<AnalyticsTableColumn> getDisaggregationCategoryColumns() {
-    return categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().stream()
+    return categoryService.getDisaggregationDataDimensionCategoriesNoAcl().stream()
         .map(
             category -> {
               String name = category.getUid();
