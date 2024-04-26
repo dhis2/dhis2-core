@@ -174,7 +174,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
       sql += getGroupByClause(params);
 
-      if (params.hasMeasureCriteria() && params.isDataType(DataType.NUMERIC)) {
+      if (params.hasMeasureCriteria()
+          && params.isDataType(DataType.NUMERIC)
+          && !params.hasReportingRates()) {
+        /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
         sql += getMeasureCriteriaSql(params);
       }
 
