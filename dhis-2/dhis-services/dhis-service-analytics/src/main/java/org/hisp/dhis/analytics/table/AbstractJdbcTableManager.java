@@ -519,7 +519,18 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
             })
         .toList();
   }
-  
+
+  protected List<AnalyticsTableColumn> getDisaggregationCategoryOptionGroupSetColumns() {
+    return categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            cogs -> {
+              String name = cogs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "dcs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
   protected List<AnalyticsTableColumn> getAttributeCategoryOptionGroupSetColumns() {
     return categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
         .map(
@@ -527,6 +538,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return new AnalyticsTableColumn(
                   name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getDisaggregationCategoryColumns() {
+    return categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            category -> {
+              String name = category.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "dcs." + quote(name), category.getCreated());
             })
         .toList();
   }

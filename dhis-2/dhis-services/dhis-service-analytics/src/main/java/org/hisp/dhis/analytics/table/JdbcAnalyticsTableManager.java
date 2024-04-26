@@ -59,8 +59,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -459,35 +457,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
     columns.addAll(getDataElemnetGroupSetColumns());
-
-    List<CategoryOptionGroupSet> disaggregationCategoryOptionGroupSets =
-        categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl();
-
-    List<Category> disaggregationCategories =
-        categoryService.getDisaggregationDataDimensionCategoriesNoAcl();
-
     columns.addAll(getOrganisationUnitGroupSetColumns());
-
-    for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "dcs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
+    columns.addAll(getDisaggregationCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
-
-    for (Category category : disaggregationCategories) {
-      columns.add(
-          new AnalyticsTableColumn(
-              category.getUid(),
-              CHARACTER_11,
-              "dcs." + quote(category.getUid()),
-              category.getCreated()));
-    }
-
+    columns.addAll(getDisaggregationCategoryColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
