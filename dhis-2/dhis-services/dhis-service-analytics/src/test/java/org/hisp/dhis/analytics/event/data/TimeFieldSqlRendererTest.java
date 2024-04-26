@@ -191,7 +191,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
 
     assertEquals(
         "((ax.\"scheduleddate\" >= '2022-03-01' and ax.\"scheduleddate\" < '2022-04-01') "
-            + "or (ax.\"scheduleddate\" >= '2022-09-01' and ax.\"scheduleddate\" < '2022-10-01')) ",
+            + "and (ax.\"scheduleddate\" >= '2022-09-01' and ax.\"scheduleddate\" < '2022-10-01')) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 

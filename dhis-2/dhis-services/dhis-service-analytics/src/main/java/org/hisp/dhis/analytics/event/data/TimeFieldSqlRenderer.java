@@ -103,10 +103,10 @@ public abstract class TimeFieldSqlRenderer {
    * @return the SQL statement
    */
   private String getDateRangeCondition(EventQueryParams params) {
-    List<String> orConditions = new ArrayList<>();
+    List<String> andConditions = new ArrayList<>();
 
     if (params.hasStartEndDate()) {
-      addStartEndDateToCondition(params, orConditions);
+      addStartEndDateToCondition(params, andConditions);
     }
 
     params
@@ -123,7 +123,7 @@ public abstract class TimeFieldSqlRenderer {
                 ColumnWithDateRange columnWithDateRange =
                     ColumnWithDateRange.of(
                         getColumnName(Optional.of(timeField), params.getOutputType()), dateRange);
-                orConditions.add(getDateRangeCondition(columnWithDateRange));
+                andConditions.add(getDateRangeCondition(columnWithDateRange));
               } else {
                 dateRanges.forEach(
                     dateRange -> {
@@ -131,12 +131,12 @@ public abstract class TimeFieldSqlRenderer {
                           ColumnWithDateRange.of(
                               getColumnName(Optional.of(timeField), params.getOutputType()),
                               dateRange);
-                      orConditions.add(getDateRangeCondition(columnWithDateRange));
+                      andConditions.add(getDateRangeCondition(columnWithDateRange));
                     });
               }
             });
 
-    return isNotEmpty(orConditions) ? String.join(" or ", orConditions) : EMPTY;
+    return isNotEmpty(andConditions) ? String.join(" and ", andConditions) : EMPTY;
   }
 
   /**
