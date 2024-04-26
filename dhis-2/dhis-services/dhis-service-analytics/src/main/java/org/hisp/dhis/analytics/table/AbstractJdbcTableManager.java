@@ -65,6 +65,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Logged;
@@ -408,6 +409,25 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
   }
 
   /**
+   * Executes the given SQL statement. Logs and times the operation.
+   *
+   * @param sql the SQL statement.
+   * @param logPattern the log message pattern.
+   * @param args the log message arguments.
+   */
+  protected void invokeTimeAndLog(String sql, String logPattern, Object... args) {
+    Timer timer = new SystemTimer().start();
+
+    log.debug("Populate table SQL: '{}'", sql);
+
+    jdbcTemplate.execute(sql);
+
+    String logMessage = format(logPattern, args);
+
+    log.info("{} in: {}", logMessage, timer.stop().toString());
+  }
+
+  /**
    * Filters out analytics table columns which were created after the time of the last successful
    * resource table update. This so that the create table query does not refer to columns not
    * present in resource tables.
@@ -426,24 +446,6 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
     return columns.stream()
         .filter(c -> c.getCreated() == null || c.getCreated().before(lastResourceTableUpdate))
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Executes the given SQL statement. Logs and times the operation.
-   *
-   * @param sql the SQL statement.
-   * @param logMessage the custom log message to include in the log statement.
-   */
-  protected void invokeTimeAndLog(String sql, String logPattern, Object... arguments) {
-    Timer timer = new SystemTimer().start();
-
-    log.debug("Populate table SQL: '{}'", sql);
-
-    jdbcTemplate.execute(sql);
-
-    String logMessage = format(logPattern, arguments);
-
-    log.info("{} in: {}", logMessage, timer.stop().toString());
   }
 
   /**
@@ -509,6 +511,28 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .toList();
   }
 
+  protected List<AnalyticsTableColumn> getDataElementGroupSetColumns() {
+    return idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class).stream()
+        .map(
+            degs -> {
+              String name = degs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "degs." + quote(name), degs.getCreated());
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getDisaggregationCategoryOptionGroupSetColumns() {
+    return categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().stream()
+        .map(
+            cogs -> {
+              String name = cogs.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "dcs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
   protected List<AnalyticsTableColumn> getAttributeCategoryOptionGroupSetColumns() {
     return categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
         .map(
@@ -516,6 +540,17 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               String name = cogs.getUid();
               return new AnalyticsTableColumn(
                   name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+            })
+        .toList();
+  }
+
+  protected List<AnalyticsTableColumn> getDisaggregationCategoryColumns() {
+    return categoryService.getDisaggregationDataDimensionCategoriesNoAcl().stream()
+        .map(
+            category -> {
+              String name = category.getUid();
+              return new AnalyticsTableColumn(
+                  name, CHARACTER_11, "dcs." + quote(name), category.getCreated());
             })
         .toList();
   }
