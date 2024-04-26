@@ -204,7 +204,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getLinkedUserAccounts(User currentUser);
 
   /** Return CurrentUserGroupInfo used for ACL check in {@link IdentifiableObjectStore} */
-  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUID);
+  CurrentUserGroupInfo getCurrentUserGroupInfo(String userUid);
 
   /**
    * Get active linked user accounts for the given user
