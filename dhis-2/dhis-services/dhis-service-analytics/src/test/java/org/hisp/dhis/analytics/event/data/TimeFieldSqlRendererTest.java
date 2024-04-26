@@ -92,7 +92,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01')) ",
+        "(((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01'))) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
@@ -106,7 +106,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01')) ",
+        "(((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01'))) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
@@ -120,7 +120,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01')) ",
+        "(((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01'))) ",
         enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
@@ -134,7 +134,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01')) ",
+        "(((enrollmentdate >= '2022-04-01' and enrollmentdate < '2022-07-01'))) ",
         enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
@@ -149,7 +149,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((lastupdated >= '2022-04-01' and lastupdated < '2022-07-01')) ",
+        "(((lastupdated >= '2022-04-01' and lastupdated < '2022-07-01'))) ",
         enrollmentTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
@@ -164,7 +164,7 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01')) ",
+        "(((ax.\"occurreddate\" >= '2022-04-01' and ax.\"occurreddate\" < '2022-07-01'))) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
@@ -190,8 +190,8 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest {
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     assertEquals(
-        "((ax.\"scheduleddate\" >= '2022-03-01' and ax.\"scheduleddate\" < '2022-04-01') "
-            + "and (ax.\"scheduleddate\" >= '2022-09-01' and ax.\"scheduleddate\" < '2022-10-01')) ",
+        "(((ax.\"scheduleddate\" >= '2022-03-01' and ax.\"scheduleddate\" < '2022-04-01') "
+            + "or (ax.\"scheduleddate\" >= '2022-09-01' and ax.\"scheduleddate\" < '2022-10-01'))) ",
         eventTimeFieldSqlRenderer.renderPeriodTimeFieldSql(params));
   }
 
