@@ -32,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -56,10 +55,11 @@ public class DefaultAuthenticationService implements AuthenticationService {
   }
 
   private static void setupInContext(UserDetails principal) {
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(
-        new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
-    SecurityContextHolder.setContext(context);
+    //    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    //    context.setAuthentication(
+    //        new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+    //    SecurityContextHolder.setContext(context);
+    CurrentUserUtil.switchUser(principal);
   }
 
   @Override

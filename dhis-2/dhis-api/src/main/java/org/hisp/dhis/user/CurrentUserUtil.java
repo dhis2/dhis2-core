@@ -33,10 +33,14 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+@Slf4j
 public class CurrentUserUtil {
   private CurrentUserUtil() {
     throw new UnsupportedOperationException("Utility class");
@@ -195,5 +199,62 @@ public class CurrentUserUtil {
         && authentication.isAuthenticated()
         && authentication.getPrincipal() != null
         && !authentication.getPrincipal().equals("anonymousUser");
+  }
+
+  public static void clearUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      String smg =
+          "Clearing user while another user is already authenticated! Current user: %s, attempting to switch to: %s"
+              .formatted(authentication.getPrincipal(), principal);
+
+      RuntimeException throwable = new RuntimeException(smg);
+      log.error(smg, throwable);
+      System.out.println(smg);
+      throwable.printStackTrace();
+
+      Runtime.getRuntime().halt(1);
+    }
+  }
+
+  public static void switchUser(Authentication principal) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      String smg =
+          "Switching user while another user is already authenticated! Current user: %s, attempting to switch to: %s"
+              .formatted(authentication.getPrincipal(), principal);
+
+      RuntimeException throwable = new RuntimeException(smg);
+      log.error(smg, throwable);
+      System.out.println(smg);
+      throwable.printStackTrace();
+
+      Runtime.getRuntime().halt(1);
+    }
+
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(principal);
+    SecurityContextHolder.setContext(context);
+  }
+
+  public static void switchUser(UserDetails principal) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      String smg =
+          "Switching user while another user is already authenticated! Current user: %s, attempting to switch to: %s"
+              .formatted(authentication.getPrincipal(), principal);
+
+      RuntimeException throwable = new RuntimeException(smg);
+      log.error(smg, throwable);
+      System.out.println(smg);
+      throwable.printStackTrace();
+
+      Runtime.getRuntime().halt(1);
+    }
+
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(
+        new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
+    SecurityContextHolder.setContext(context);
   }
 }

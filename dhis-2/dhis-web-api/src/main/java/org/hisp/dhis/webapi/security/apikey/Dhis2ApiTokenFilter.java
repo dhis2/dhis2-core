@@ -121,6 +121,7 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter {
 
       filterChain.doFilter(request, response);
     } catch (AuthenticationException e) {
+      logger.error("Failed to authenticate API token, clearing security context!", e);
       SecurityContextHolder.clearContext();
       logger.debug("Failed to process authentication request", e);
       authenticationFailureHandler.onAuthenticationFailure(request, response, e);

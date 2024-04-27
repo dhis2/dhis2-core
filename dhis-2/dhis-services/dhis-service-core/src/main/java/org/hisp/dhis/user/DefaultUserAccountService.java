@@ -196,7 +196,8 @@ public class DefaultUserAccountService implements UserAccountService {
         new UsernamePasswordAuthenticationToken(username, rawPassword, authorities);
     token.setDetails(new TwoFactorWebAuthenticationDetails(request));
     Authentication auth = twoFactorAuthProvider.authenticate(token);
-    SecurityContextHolder.getContext().setAuthentication(auth);
+    //    SecurityContextHolder.getContext().setAuthentication(auth);
+    CurrentUserUtil.switchUser(auth);
     HttpSession session = request.getSession();
     session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
   }

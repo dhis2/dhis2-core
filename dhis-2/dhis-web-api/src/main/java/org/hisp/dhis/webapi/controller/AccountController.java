@@ -65,6 +65,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RecaptchaResponse;
@@ -581,8 +582,8 @@ public class AccountController {
 
     Authentication auth = twoFactorAuthenticationProvider.authenticate(token);
 
-    SecurityContextHolder.getContext().setAuthentication(auth);
-
+    //    SecurityContextHolder.getContext().setAuthentication(auth);
+    CurrentUserUtil.switchUser(auth);
     HttpSession session = request.getSession();
 
     session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());

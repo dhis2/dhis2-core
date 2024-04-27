@@ -28,6 +28,8 @@
 package org.hisp.dhis.security;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -38,6 +40,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @AllArgsConstructor
+@Slf4j
 public abstract class SecurityContextRunnable implements Runnable {
   private final SecurityContext securityContext;
 
@@ -48,7 +51,22 @@ public abstract class SecurityContextRunnable implements Runnable {
   @Override
   public final void run() {
     try {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      if (authentication != null) {
+        String smg =
+            "In SecurityContextRunnable Switching user while another user is already authenticated! Current user: %s, attempting to switch to: %s"
+                .formatted(authentication.getPrincipal(), securityContext);
+
+        RuntimeException throwable = new RuntimeException(smg);
+        log.error(smg, throwable);
+        System.out.println(smg);
+        throwable.printStackTrace();
+
+        Runtime.getRuntime().halt(1);
+      }
+
       SecurityContextHolder.setContext(securityContext);
+
       before();
       call();
     } catch (Throwable ex) {

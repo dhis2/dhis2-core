@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -78,7 +79,8 @@ public class AdxPipedImporter implements Callable<ImportSummary> {
 
   @Override
   public ImportSummary call() {
-    SecurityContextHolder.getContext().setAuthentication(authentication);
+    //    SecurityContextHolder.getContext().setAuthentication(authentication);
+    CurrentUserUtil.switchUser(authentication);
     DbmsUtils.bindSessionToThread(entityManagerFactory);
 
     try {

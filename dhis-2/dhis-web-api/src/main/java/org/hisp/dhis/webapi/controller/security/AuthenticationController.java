@@ -41,6 +41,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
@@ -200,6 +201,7 @@ public class AuthenticationController {
       HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
     SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
     context.setAuthentication(authentication);
+    CurrentUserUtil.switchUser(authentication);
 
     this.securityContextHolderStrategy.setContext(context);
     this.securityContextRepository.saveContext(context, request, response);
