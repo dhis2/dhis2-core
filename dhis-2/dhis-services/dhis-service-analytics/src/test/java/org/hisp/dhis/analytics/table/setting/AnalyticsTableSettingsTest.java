@@ -74,6 +74,12 @@ class AnalyticsTableSettingsTest {
   }
 
   @Test
+  void testToSkip() {
+    assertEquals(Skip.INCLUDE, settings.toSkip(true));
+    assertEquals(Skip.SKIP, settings.toSkip(false));
+  }
+
+  @Test
   void testSkipIndexCategoryColumns() {
     when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET))
         .thenReturn(true);

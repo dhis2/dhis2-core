@@ -173,7 +173,7 @@ public class AnalyticsTableSettings {
    * @param enabled the boolean enabled flag.
    * @return a {@link Skip} value.
    */
-  private Skip toSkip(boolean enabled) {
+  Skip toSkip(boolean enabled) {
     return enabled ? Skip.INCLUDE : Skip.SKIP;
   }
 }
