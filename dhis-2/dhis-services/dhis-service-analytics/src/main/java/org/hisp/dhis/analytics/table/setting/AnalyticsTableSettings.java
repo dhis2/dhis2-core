@@ -31,10 +31,10 @@ import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_INDEXING_CATEGORY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_INDEXING_CATEGORY_OPTION_GROUP_SET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_INDEXING_DATA_ELEMENT_GROUP_SET;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_INDEXING_ORG_UNIT_GROUP_SET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
 import static org.hisp.dhis.util.ObjectUtils.isNull;
@@ -131,22 +131,48 @@ public class AnalyticsTableSettings {
     return database;
   }
 
+  /**
+   * Indicates whether to skip indexing of data element group set analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
   public Skip skipIndexDataElementGroupSetColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_INDEXING_DATA_ELEMENT_GROUP_SET));
+    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET));
   }
 
+  /**
+   * Indicates whether to skip indexing of category analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
   public Skip skipIndexCategoryColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_INDEXING_CATEGORY));
+    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY));
   }
 
+  /**
+   * Indicates whether to skip indexing of category option group set analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
   public Skip skipIndexCategoryOptionGroupSetColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_INDEXING_CATEGORY_OPTION_GROUP_SET));
+    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET));
   }
 
+  /**
+   * Indicates whether to skip indexing of organisation unit group set analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
   public Skip skipIndexOrgUnitGroupSetColumns() {
-    return toSkip(config.isEnabled(ANALYTICS_INDEXING_ORG_UNIT_GROUP_SET));
+    return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET));
   }
 
+  /**
+   * Converts the boolean enabled flag to a {@link Skip} value.
+   *
+   * @param enabled the boolean enabled flag.
+   * @return a {@link Skip} value.
+   */
   private Skip toSkip(boolean enabled) {
     return enabled ? Skip.INCLUDE : Skip.SKIP;
   }

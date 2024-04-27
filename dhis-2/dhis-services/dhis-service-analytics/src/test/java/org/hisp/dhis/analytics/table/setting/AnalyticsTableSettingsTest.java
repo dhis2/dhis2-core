@@ -75,12 +75,12 @@ class AnalyticsTableSettingsTest {
 
   @Test
   void testSkipIndexCategoryColumns() {
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_DATA_ELEMENT_GROUP_SET))
+    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET))
         .thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_CATEGORY)).thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_CATEGORY_OPTION_GROUP_SET))
+    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY)).thenReturn(true);
+    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET))
         .thenReturn(false);
-    when(config.isEnabled(ConfigurationKey.ANALYTICS_INDEXING_ORG_UNIT_GROUP_SET))
+    when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET))
         .thenReturn(false);
 
     assertEquals(Skip.INCLUDE, settings.skipIndexDataElementGroupSetColumns());
