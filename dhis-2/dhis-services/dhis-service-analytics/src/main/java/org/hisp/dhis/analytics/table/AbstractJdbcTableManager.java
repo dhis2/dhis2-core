@@ -595,8 +595,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String column = quote(ougs.getUid());
-              return new AnalyticsTableColumn(column, CHARACTER_11, "ougs." + column)
-                  .withCreated(ougs.getCreated());
+              boolean skipIndex = analyticsExportSettings.skipIndexOrgUnitGroupSetColumns();
+              return new AnalyticsTableColumn(
+                  column, CHARACTER_11, "ougs." + column, skipIndex, ougs.getCreated());
             })
         .collect(Collectors.toList());
   }

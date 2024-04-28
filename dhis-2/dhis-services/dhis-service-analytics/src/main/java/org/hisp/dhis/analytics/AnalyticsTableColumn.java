@@ -58,11 +58,11 @@ public class AnalyticsTableColumn {
   /** Sets a custom collate for the column if one is defined. */
   private Collate collate;
 
-  /** Date of creation of the underlying data dimension. */
-  private Date created;
-
   /** Whether to skip building an index for this column. */
   private boolean skipIndex = false;
+
+  /** Date of creation of the underlying data dimension. */
+  private Date created;
 
   /** Whether to skip column and just build an index based on column name. */
   private boolean virtual = false;
@@ -88,6 +88,24 @@ public class AnalyticsTableColumn {
     this.name = name;
     this.dataType = dataType;
     this.alias = alias;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
+   * @param alias source table column alias and name.
+   * @param skipIndex whether to skip index.
+   * @param created the date of creation.
+   */
+  public AnalyticsTableColumn(
+      String name, ColumnDataType dataType, String alias, boolean skipIndex, Date created) {
+    this.name = name;
+    this.dataType = dataType;
+    this.alias = alias;
+    this.skipIndex = skipIndex;
+    this.created = created;
   }
 
   /**
@@ -200,12 +218,12 @@ public class AnalyticsTableColumn {
     return notNull;
   }
 
-  public Date getCreated() {
-    return created;
-  }
-
   public boolean isSkipIndex() {
     return skipIndex;
+  }
+
+  public Date getCreated() {
+    return created;
   }
 
   public IndexType getIndexType() {
