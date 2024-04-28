@@ -64,9 +64,9 @@ class AnalyticsExportSettingsTest {
     when(config.isEnabled(ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET))
         .thenReturn(false);
 
-    assertFalse(settings.skipIndexDataElementGroupSetColumns());
-    assertFalse(settings.skipIndexCategoryColumns());
-    assertTrue(settings.skipIndexCategoryOptionGroupSetColumns());
-    assertTrue(settings.skipIndexOrgUnitGroupSetColumns());
+    assertTrue(settings.skipIndexDataElementGroupSetColumns());
+    assertTrue(settings.skipIndexCategoryColumns());
+    assertFalse(settings.skipIndexCategoryOptionGroupSetColumns());
+    assertFalse(settings.skipIndexOrgUnitGroupSetColumns());
   }
 }
