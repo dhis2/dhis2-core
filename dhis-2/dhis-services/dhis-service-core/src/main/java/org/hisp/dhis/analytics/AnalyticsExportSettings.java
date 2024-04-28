@@ -28,14 +28,17 @@
 package org.hisp.dhis.analytics;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_ORDERING;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
-
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Component responsible for exposing analytics table export settings. Can hold settings living in
@@ -46,7 +49,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AnalyticsExportSettings {
-  private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final DhisConfigurationProvider config;
 
   private final SystemSettingManager systemSettingManager;
 
@@ -59,7 +62,7 @@ public class AnalyticsExportSettings {
    * @return the string representation of {@link AnalyticsTableType}.
    */
   public String getTableType() {
-    if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
+    if (config.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
       return UNLOGGED;
     }
 
@@ -67,7 +70,7 @@ public class AnalyticsExportSettings {
   }
 
   public boolean isTableOrdering() {
-    return dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_ORDERING);
+    return config.isEnabled(ANALYTICS_TABLE_ORDERING);
   }
 
   /**
@@ -79,5 +82,41 @@ public class AnalyticsExportSettings {
   public Integer getMaxPeriodYearsOffset() {
     Integer yearsOffset = systemSettingManager.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
     return yearsOffset < 0 ? null : yearsOffset;
+  }
+
+  /**
+   * Indicates whether to skip indexing of data element group set analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
+  public boolean skipIndexDataElementGroupSetColumns() {
+    return config.isEnabled(ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET);
+  }
+
+  /**
+   * Indicates whether to skip indexing of category analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
+  public boolean skipIndexCategoryColumns() {
+    return config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY);
+  }
+
+  /**
+   * Indicates whether to skip indexing of category option group set analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
+  public boolean skipIndexCategoryOptionGroupSetColumns() {
+    return config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET);
+  }
+
+  /**
+   * Indicates whether to skip indexing of organisation unit group set analytics table columns.
+   *
+   * @return true if indexing should be skipped, false if not.
+   */
+  public boolean skipIndexOrgUnitGroupSetColumns() {
+    return config.isEnabled(ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET);
   }
 }
