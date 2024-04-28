@@ -134,7 +134,7 @@ public class AnalyticsTableSettings {
   /**
    * Indicates whether to skip indexing of data element group set analytics table columns.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
    */
   public Skip skipIndexDataElementGroupSetColumns() {
     return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_DATA_ELEMENT_GROUP_SET));
@@ -143,7 +143,7 @@ public class AnalyticsTableSettings {
   /**
    * Indicates whether to skip indexing of category analytics table columns.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
    */
   public Skip skipIndexCategoryColumns() {
     return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY));
@@ -152,7 +152,7 @@ public class AnalyticsTableSettings {
   /**
    * Indicates whether to skip indexing of category option group set analytics table columns.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
    */
   public Skip skipIndexCategoryOptionGroupSetColumns() {
     return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_CATEGORY_OPTION_GROUP_SET));
@@ -161,7 +161,7 @@ public class AnalyticsTableSettings {
   /**
    * Indicates whether to skip indexing of organisation unit group set analytics table columns.
    *
-   * @return true if indexing should be skipped, false if not.
+   * @return {@link Skip#SKIP} if indexing should be skipped, {@link Skip#INCLUDE} if not.
    */
   public Skip skipIndexOrgUnitGroupSetColumns() {
     return toSkip(config.isEnabled(ANALYTICS_TABLE_INDEX_ORG_UNIT_GROUP_SET));
