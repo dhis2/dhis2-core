@@ -84,6 +84,28 @@ public class SqlHelper {
   }
 
   /**
+   * Returns "between" the first time it is invoked, then "and" for subsequent invocations.
+   *
+   * @return "between" or "and".
+   */
+  public String betweenAnd() {
+    String str = betweenInvoked ? "and" : "between";
+    betweenInvoked = true;
+    return padded(str);
+  }
+
+  /**
+   * Returns "and" the first time it is invoked, then "or" for subsequent invocations.
+   *
+   * @return "and" or "or".
+   */
+  public String andOr() {
+    final String str = andOrInvoked ? "or" : "and";
+    andOrInvoked = true;
+    return padded(str);
+  }
+
+  /**
    * Returns the empty string the first time it is invoked, then "and" for subsequent invocations.
    *
    * @return empty string or "and".
@@ -102,28 +124,6 @@ public class SqlHelper {
   public String or() {
     String str = orInvoked ? "or" : "";
     orInvoked = true;
-    return padded(str);
-  }
-
-  /**
-   * Returns the empty string the first time it is invoked, then "or" for subsequent invocations.
-   *
-   * @return empty or "or".
-   */
-  public String betweenAnd() {
-    String str = betweenInvoked ? "and" : "between";
-    betweenInvoked = true;
-    return padded(str);
-  }
-
-  /**
-   * Returns "and" the first time it is invoked, then "or" for subsequent invocations.
-   *
-   * @return "and" or "or".
-   */
-  public String andOr() {
-    final String str = andOrInvoked ? "or" : "and";
-    andOrInvoked = true;
     return padded(str);
   }
 
