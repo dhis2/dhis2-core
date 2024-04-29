@@ -33,7 +33,7 @@ package org.hisp.dhis.commons.util;
  * @author Lars Helge Overland
  */
 public class SqlHelper {
-  private final String padding;
+  private final boolean includeSpaces;
 
   private boolean whereInvoked = false;
 
@@ -49,7 +49,7 @@ public class SqlHelper {
 
   /** Constructor. */
   public SqlHelper() {
-    this.padding = "";
+    this.includeSpaces = false;
   }
 
   /**
@@ -58,11 +58,7 @@ public class SqlHelper {
    * @param padding whether to pad words with space.
    */
   public SqlHelper(boolean includeSpaces) {
-    this.padding = includeSpaces ? " " : "";
-  }
-
-  private String padded(String str) {
-    return padding + str + padding;
+    this.includeSpaces = includeSpaces;
   }
 
   /**
@@ -129,5 +125,16 @@ public class SqlHelper {
     final String str = andOrInvoked ? "or" : "and";
     andOrInvoked = true;
     return padded(str);
+  }
+
+  /**
+   * Adds a space to the beginning and end of the given string if the include spaces parameter is
+   * true.
+   *
+   * @param str the string to pad.
+   * @return a string.
+   */
+  private String padded(String str) {
+    return includeSpaces ? " " + str + " " : str;
   }
 }
