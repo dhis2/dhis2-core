@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.EXPORTABLE_EVENT_STATUSES;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
+import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
@@ -388,15 +389,17 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
     TrackedEntityType trackedEntityType = partition.getMasterTable().getTrackedEntityType();
 
     removeLastComma(sql)
+        .append(SPACE)
         .append(
-            replace(
+            replaceQualify(
                 """
-                \s from trackedentity tei \
-                left join organisationunit ou on tei.organisationunitid = ou.organisationunitid \
+                \s from ${trackedentity} tei \
+                left join ${organisationunit} ou on tei.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_orgunitstructure ous on ous.organisationunitid = ou.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on tei.organisationunitid = ougs.organisationunitid \
                 and (cast(${teiCreatedMonth} as date) = ougs.startdate \
-                or ougs.startdate is null)""",
+                or ougs.startdate is null)\s""",
+                List.of("trackedentity", "organisationunit"),
                 Map.of("teiCreatedMonth", sqlBuilder.dateTrunc("month", "tei.created"))));
 
     ((List<TrackedEntityAttribute>)
@@ -404,13 +407,15 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
         .forEach(
             tea ->
                 sql.append(
-                    replace(
+                    replaceQualify(
                         """
-                    \s left join trackedentityattributevalue "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
-                    and "${teaUid}".trackedentityattributeid = ${teaId}""",
+                        \s left join ${trackedentityattributevalue} "${teaUid}" on "${teaUid}".trackedentityid = tei.trackedentityid \
+                        and "${teaUid}".trackedentityattributeid = ${teaId}\s""",
+                        List.of("trackedentityattributevalue"),
                         Map.of(
                             "teaUid", tea.getUid(),
                             "teaId", String.valueOf(tea.getId())))));
+    sql.append(SPACE);
     sql.append(
         replace(
             """

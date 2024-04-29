@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.GEOMETRY;
@@ -208,14 +207,13 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
     Program program = partition.getMasterTable().getProgram();
 
     String fromClause =
-        replace(
+        replaceQualify(
             """
-            \s from enrollment pi \
-            inner join program pr on pi.programid=pr.programid \
-            left join trackedentity tei on pi.trackedentityid=tei.trackedentityid \
-            and tei.deleted = false \
-            left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid \
-            inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid \
+            \s from ${enrollment} pi \
+            inner join ${program} pr on pi.programid=pr.programid \
+            left join ${trackedentity} tei on pi.trackedentityid=tei.trackedentityid and tei.deleted = false \
+            left join ${organisationunit} registrationou on tei.organisationunitid=registrationou.organisationunitid \
+            inner join ${organisationunit} ou on pi.organisationunitid=ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on pi.organisationunitid=ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid \
             and (cast(${piEnrollmentDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
@@ -225,6 +223,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and pi.lastupdated <= '${startTime}' \
             and pi.occurreddate is not null \
             and pi.deleted = false\s""",
+            List.of("enrollment", "program", "trackedentity", "organisationunit"),
             Map.of(
                 "piEnrollmentDateMonth", sqlBuilder.dateTrunc("month", "pi.enrollmentdate"),
                 "programId", String.valueOf(program.getId()),

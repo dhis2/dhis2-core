@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DATE;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
@@ -235,27 +234,32 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
     // Rows in programownershiphistory that don't have organisationunitid
     // will be filtered out.
     sb.append(
-        replace(
+        replaceQualify(
             """
             \sfrom (\
             select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
-            from programownershiphistory h \
+            from ${programownershiphistory} h \
             where h.programid=${programId} \
             and h.organisationunitid is not null \
             union \
             select o.trackedentityid, '${teiOwnTableId}' as startdate, null as enddate, o.organisationunitid \
-            from trackedentityprogramowner o \
+            from ${trackedentityprogramowner} o \
             where o.programid=${programId} \
             and exists (\
-            select 1 from programownershiphistory p \
+            select 1 from ${programownershiphistory} p \
             where o.trackedentityid = p.trackedentityid \
             and p.programid=${programId} \
             and p.organisationunitid is not null)) a \
-            inner join trackedentity tei on a.trackedentityid = tei.trackedentityid \
-            inner join organisationunit ou on a.organisationunitid = ou.organisationunitid \
+            inner join ${trackedentity} tei on a.trackedentityid = tei.trackedentityid \
+            inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
             left join analytics_rs_organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid \
             order by tei.uid, a.startdate, a.enddate""",
+            List.of(
+                "programownershiphistory",
+                "trackedentityprogramowner",
+                "trackedentity",
+                "organisationunit"),
             Map.of(
                 "historyTableId", HISTORY_TABLE_ID,
                 "teiOwnTableId", TEI_OWN_TABLE_ID,

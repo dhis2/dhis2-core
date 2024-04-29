@@ -149,7 +149,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final String TABLE_PREFIX = "analytics_event_";
 
-  private static final String FROM_CLAUSE = "from event where eventid=psi.eventid";
+  private static final String FROM_CLAUSE = "from \"event\" where eventid=psi.eventid";
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
@@ -403,7 +403,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
     String aliasD5 =
-        "(select ou.uid from organisationunit ou where ou.uid = "
+        "(select ou.uid from \"organisationunit\" ou where ou.uid = "
             + "(select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
@@ -416,9 +416,9 @@ class JdbcEventAnalyticsTableManagerTest {
             + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
     String aliasD7 =
-        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=psi.eventid ) as \"%s\"";
+        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from \"event\" where eventid=psi.eventid ) as \"%s\"";
     String aliasD5_geo =
-        "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.geometry from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
             + FROM_CLAUSE
@@ -426,7 +426,7 @@ class JdbcEventAnalyticsTableManagerTest {
             + d5.getUid()
             + "\"";
     String aliasD5_name =
-        "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.name from \"organisationunit\" ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid()
             + ", value}' "
             + FROM_CLAUSE
@@ -534,8 +534,8 @@ class JdbcEventAnalyticsTableManagerTest {
 
     String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
     String aliasTea1 =
-        "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
+        "(select %s from \"organisationunit\" ou where ou.uid = (select value from "
+            + "\"trackedentityattributevalue\" where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=%d)) as \"%s\"";
 
     AnalyticsTableUpdateParams params =
@@ -626,10 +626,10 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
+        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
             + "(select eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' from event where "
+            + ", value}' from \"event\" where "
             + "eventid=psi.eventid )) as \""
             + d5.getUid()
             + "\"";
@@ -678,8 +678,8 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
+        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
+            + "(select value from \"trackedentityattributevalue\" where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -729,9 +729,9 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =
-        "left join organisationunit enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid";
+        "left join \"organisationunit\" enrollmentou on pi.organisationunitid=enrollmentou.organisationunitid";
     String ouRegistrationLeftJoin =
-        "left join organisationunit registrationou on tei.organisationunitid=registrationou.organisationunitid";
+        "left join \"organisationunit\" registrationou on tei.organisationunitid=registrationou.organisationunitid";
 
     assertThat(sql.getValue(), containsString(ouEnrollmentLeftJoin));
     assertThat(sql.getValue(), containsString(ouRegistrationLeftJoin));
@@ -757,7 +757,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
+                + "from \"event\" psi inner join \"enrollment\" pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -938,7 +938,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from event psi inner join enrollment pi on psi.enrollmentid = pi.enrollmentid "
+                + "from \"event\" psi inner join \"enrollment\" pi on psi.enrollmentid = pi.enrollmentid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and ("
                 + getDateLinkedToStatus()
                 + ") is not null "
@@ -970,8 +970,8 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=pi.trackedentityid and "
+        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
+            + "(select value from \"trackedentityattributevalue\" where trackedentityid=pi.trackedentityid and "
             + "trackedentityattributeid=9999)) as \""
             + tea.getUid()
             + "\"";
@@ -998,8 +998,8 @@ class JdbcEventAnalyticsTableManagerTest {
             + "extract(year from "
             + getDateLinkedToStatus()
             + ") as supportedyear "
-            + "from event psi inner join "
-            + "enrollment pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
+            + "from \"event\" psi inner join "
+            + "\"enrollment\" pi on psi.enrollmentid = pi.enrollmentid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = "
             + program.getId()
             + " and ("

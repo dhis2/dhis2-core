@@ -37,6 +37,7 @@ import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -151,14 +152,17 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        """
+        replaceQualify(
+            """
         from analytics_rs_datasetorganisationunitcategory doc
-        inner join dataset ds on doc.datasetid=ds.datasetid
-        inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid
+        inner join ${dataset} ds on doc.datasetid=ds.datasetid
+        inner join ${organisationunit} ou on doc.organisationunitid=ou.organisationunitid
         left join analytics_rs_orgunitstructure ous on doc.organisationunitid=ous.organisationunitid
         left join analytics_rs_organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid
-        left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
-        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid""";
+        left join ${categoryoptioncombo} ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid
+        left join analytics_rs_categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid;""",
+            List.of("dataset", "organisationunit", "categoryoptioncombo"),
+            Map.of());
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

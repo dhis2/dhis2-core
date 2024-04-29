@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
 import static org.hisp.dhis.analytics.table.util.PartitionUtils.getLatestTablePartition;
+import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
 import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.DataType.BOOLEAN;
@@ -139,13 +140,15 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   @Override
   public boolean hasUpdatedLatestData(Date startDate, Date endDate) {
     String sql =
-        """
-        select cdr.datasetid \
-        from completedatasetregistration cdr \
-        where cdr.lastupdated >= '${startDate}' \
-        and cdr.lastupdated < '${endDate}' \
-        limit 1;""";
-    replace(sql, Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
+        replaceQualify(
+            """
+            select cdr.datasetid \
+            from ${completedatasetregistration} cdr \
+            where cdr.lastupdated >= '${startDate}' \
+            and cdr.lastupdated < '${endDate}' \
+            limit 1;""",
+            List.of("completedatasetregistration"),
+            Map.of("startDate", toLongDate(startDate), "endDate", toLongDate(endDate)));
 
     return !jdbcTemplate.queryForList(sql).isEmpty();
   }
@@ -154,18 +157,23 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
   public void removeUpdatedData(List<AnalyticsTable> tables) {
     AnalyticsTablePartition partition = getLatestTablePartition(tables);
     String sql =
-        replace(
+        replaceQualify(
             """
             delete from ${tableName} ax \
             where ax.id in ( \
             select concat(ds.uid,'-',ps.iso,'-',ou.uid,'-',ao.uid) as id \
-            from completedatasetregistration cdr \
-            inner join dataset ds on cdr.datasetid=ds.datasetid \
+            from ${completedatasetregistration} cdr \
+            inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
             inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
-            inner join organisationunit ou on cdr.sourceid=ou.organisationunitid \
-            inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join ${organisationunit} ou on cdr.sourceid=ou.organisationunitid \
+            inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.lastupdated >= '${startDate}' \
             and cdr.lastupdated < '${endDate}');""",
+            List.of(
+                "completedatasetregistration",
+                "dataset",
+                "organisationunit",
+                "categoryoptioncombo"),
             Map.of(
                 "tableName", quote(getAnalyticsTableType().getTableName()),
                 "startDate", toLongDate(partition.getStartDate()),
@@ -206,20 +214,27 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
     sql = sql.replace("organisationunitid", "sourceid");
 
     sql +=
-        replace(
+        replaceQualify(
             """
-            from completedatasetregistration cdr \
-            inner join dataset ds on cdr.datasetid=ds.datasetid \
+            from ${completedatasetregistration} cdr \
+            inner join ${dataset} ds on cdr.datasetid=ds.datasetid \
             inner join analytics_rs_periodstructure ps on cdr.periodid=ps.periodid \
             inner join analytics_rs_organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid \
             and (cast(${peStartDateMonth} as date)=ougs.startdate or ougs.startdate is null) \
             left join analytics_rs_orgunitstructure ous on cdr.sourceid=ous.organisationunitid \
             inner join analytics_rs_categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid \
-            inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
+            inner join ${categoryoptioncombo} ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid \
             where cdr.date is not null \
             ${partitionClause} \
             and cdr.lastupdated < '${startTime}' \
             and cdr.completed = true""",
+            List.of(
+                "completedatasetregistration",
+                "dataset",
+                "period",
+                "analytics_rs_periodstructure",
+                "organisationunit",
+                "categoryoptioncombo"),
             Map.of(
                 "peStartDateMonth",
                 sqlBuilder.dateTrunc("month", "ps.startdate"),
@@ -242,7 +257,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         format("and cdr.lastupdated >= '{}' ", toLongDate(partition.getStartDate()));
     String partitionFilter = format("and ps.year = {} ", partition.getYear());
 
-    return partition.isLatestPartition() ? latestFilter : partitionFilter;
+    return partition.isLatestPartition()
+        ? latestFilter
+        : emptyIfTrue(partitionFilter, sqlBuilder.supportsDeclarativePartitioning());
   }
 
   private List<AnalyticsTableColumn> getColumns() {
@@ -266,13 +283,14 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
 
   private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
     String sql =
-        replace(
+        replaceQualify(
             """
             select distinct(extract(year from pe.startdate)) \
-            from completedatasetregistration cdr \
-            inner join period pe on cdr.periodid=pe.periodid \
+            from ${completedatasetregistration} cdr \
+            inner join ${period} pe on cdr.periodid=pe.periodid \
             where pe.startdate is not null \
             and cdr.date < '${startTime}'""",
+            List.of("completedatasetregistration", "period"),
             Map.of("startTime", toLongDate(params.getStartTime())));
 
     if (params.getFromDate() != null) {

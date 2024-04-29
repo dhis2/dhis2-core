@@ -129,7 +129,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
+    String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
 
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
@@ -146,11 +146,14 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     sql = TextUtils.removeLastComma(sql) + " ";
 
     sql +=
-        """
-        from orgunitgroupmembers ougm
-        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
+        replaceQualify(
+            """
+        from ${orgunitgroupmembers} ougm
+        inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid
         left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
+        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""",
+            List.of("orgunitgroupmembers", "orgunitgroup"),
+            Map.of());
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.resourcetable.jdbc;
 
+import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 
@@ -46,6 +47,7 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -59,9 +61,14 @@ public class JdbcResourceTableStore implements ResourceTableStore {
 
   private final AnalyticsTableHookService analyticsTableHookService;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private final JdbcTemplate jdbcTemplate;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder analyticsSqlBuilder;
+
+  @Qualifier("analyticsJdbcTemplate")
+  private final JdbcTemplate analyticsJdbcTemplate;
 
   @Override
   public void generateResourceTable(ResourceTable resourceTable) {
@@ -90,6 +97,58 @@ public class JdbcResourceTableStore implements ResourceTableStore {
     jdbcTemplate.execute(sqlBuilder.renameTable(stagingTable, tableName));
 
     log.info("Resource table update done: '{}' '{}'", tableName, clock.time());
+  }
+
+  @Override
+  public void replicateAnalyticsResourceTable(ResourceTable resourceTable) {
+    final Clock clock = new Clock().startClock();
+    final Table table = resourceTable.getMainTable();
+    final String tableName = table.getName();
+
+    dropAnalyticsTable(table);
+
+    createAnalyticsTable(table);
+
+    replicateAnalyticsTable(table);
+
+    log.info("Analytics resource table replication done: '{}' '{}'", tableName, clock.time());
+  }
+
+  /**
+   * Drops the given analytics database table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void dropAnalyticsTable(Table table) {
+    String sql = analyticsSqlBuilder.dropTableIfExists(table);
+    log.info("Drop table SQL: '{}'", sql);
+    analyticsJdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Creates the given analytics database table.
+   *
+   * @param table the {@link Table}.
+   */
+  private void createAnalyticsTable(Table table) {
+    String sql = analyticsSqlBuilder.createTable(table);
+    log.info("Create table SQL: '{}'", sql);
+    analyticsJdbcTemplate.execute(sql);
+  }
+
+  /**
+   * Replicates the given table in the analytics database.
+   *
+   * @param table the {@link Table}.
+   */
+  private void replicateAnalyticsTable(Table table) {
+    String sql =
+        format(
+            "insert into %s select * from %s",
+            analyticsSqlBuilder.quote(table.getName()),
+            analyticsSqlBuilder.qualifyTable(table.getName()));
+    log.info("Replicate table SQL: '{}'", sql);
+    analyticsJdbcTemplate.execute(sql);
   }
 
   /**
@@ -162,7 +221,7 @@ public class JdbcResourceTableStore implements ResourceTableStore {
    * @param indexes the list of {@link Index} to create.
    */
   private void createIndexes(List<Index> indexes) {
-    if (isNotEmpty(indexes)) {
+    if (isNotEmpty(indexes) && sqlBuilder.requiresIndexesForAnalytics()) {
       for (Index index : indexes) {
         jdbcTemplate.execute(sqlBuilder.createIndex(index));
       }
