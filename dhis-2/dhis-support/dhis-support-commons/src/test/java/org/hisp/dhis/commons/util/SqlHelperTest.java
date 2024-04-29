@@ -28,12 +28,13 @@
 package org.hisp.dhis.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SqlHelperTest {
   private SqlHelper helper;
-  
+
   private SqlHelper paddedHelper;
 
   @BeforeEach

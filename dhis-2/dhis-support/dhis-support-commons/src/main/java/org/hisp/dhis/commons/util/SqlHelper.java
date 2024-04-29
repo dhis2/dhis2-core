@@ -32,7 +32,7 @@ package org.hisp.dhis.commons.util;
  *
  * @author Lars Helge Overland
  */
-public class SqlHelper {  
+public class SqlHelper {
   private final String padding;
 
   private boolean whereInvoked = false;
@@ -47,22 +47,20 @@ public class SqlHelper {
 
   private boolean andInvoked = false;
 
-  /**
-   * Constructor.
-   */
+  /** Constructor. */
   public SqlHelper() {
     this.padding = "";
   }
 
   /**
    * Constructor.
-   * 
+   *
    * @param padding whether to pad words with space.
    */
   public SqlHelper(boolean includeSpaces) {
     this.padding = includeSpaces ? " " : "";
   }
-  
+
   private String padded(String str) {
     return padding + str + padding;
   }
