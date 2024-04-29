@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dbms;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -39,6 +41,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Slf4j
 public class DbmsUtils {
   public static void bindSessionToThread(SessionFactory sessionFactory) {
     Session session = sessionFactory.openSession();
@@ -46,7 +49,32 @@ public class DbmsUtils {
     TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(session));
   }
 
+  /**
+   * Method to bind a session to the current thread if there is none open. If there is an open
+   * session then no action is taken. If there is no open session then a new session is opened in
+   * the catch block.
+   *
+   * @param sessionFactory session factory
+   */
+  public static Session bindSessionToThreadIfNoneOpen(SessionFactory sessionFactory) {
+    Session currentSession = null;
+    try {
+      log.info("Checking for an open Hibernate session");
+      sessionFactory.getCurrentSession();
+      return null;
+    } catch (HibernateException he) {
+      log.info(
+          "No open session found, caught HibernateException {}, opening new Hibernate session now",
+          he.getMessage());
+      currentSession = sessionFactory.openSession();
+      TransactionSynchronizationManager.bindResource(
+          sessionFactory, new SessionHolder(currentSession));
+    }
+    return currentSession;
+  }
+
   public static void unbindSessionFromThread(SessionFactory sessionFactory) {
+    log.info("Closing Hibernate session");
     SessionHolder sessionHolder =
         (SessionHolder) TransactionSynchronizationManager.unbindResource(sessionFactory);
 
