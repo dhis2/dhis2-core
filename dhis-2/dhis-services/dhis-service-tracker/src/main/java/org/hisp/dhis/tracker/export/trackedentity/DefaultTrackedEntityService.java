@@ -239,7 +239,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
           mapTrackedEntity(
               getTrackedEntity(uid),
               params,
-              userService.getUser(getCurrentUsername()),
+              userService.getUserByUsername(getCurrentUsername()),
               includeDeleted);
 
       mapTrackedEntityTypeAttributes(trackedEntity);
