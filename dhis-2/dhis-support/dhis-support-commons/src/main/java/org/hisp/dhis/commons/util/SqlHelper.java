@@ -33,7 +33,7 @@ package org.hisp.dhis.commons.util;
  * @author Lars Helge Overland
  */
 public class SqlHelper {
-  private final boolean includeSpaces;
+  private final boolean includeSpaceAtEnd;
 
   private boolean whereInvoked = false;
 
@@ -49,7 +49,7 @@ public class SqlHelper {
 
   /** Constructor. */
   public SqlHelper() {
-    this.includeSpaces = false;
+    this.includeSpaceAtEnd = false;
   }
 
   /**
@@ -57,8 +57,8 @@ public class SqlHelper {
    *
    * @param padding whether to pad words with space.
    */
-  public SqlHelper(boolean includeSpaces) {
-    this.includeSpaces = includeSpaces;
+  public SqlHelper(boolean includeSpaceAtEnd) {
+    this.includeSpaceAtEnd = includeSpaces;
   }
 
   /**
