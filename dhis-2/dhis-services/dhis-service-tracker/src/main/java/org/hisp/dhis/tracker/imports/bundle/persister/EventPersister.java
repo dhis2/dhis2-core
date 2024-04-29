@@ -30,9 +30,11 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -107,12 +109,13 @@ public class EventPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
 
-    SideEffectTrigger trigger = SideEffectTrigger.NONE;
+    List<SideEffectTrigger> triggers = new ArrayList<>();
 
     if (isNew(bundle.getPreheat(), event.getUid())) {
-      trigger = SideEffectTrigger.EVENT_UPDATE;
-    } else if (event.isCompleted()) {
-      trigger = SideEffectTrigger.EVENT_COMPLETION;
+      triggers.add(SideEffectTrigger.NONE);
+    }
+    if (event.isCompleted()) {
+      triggers.add(SideEffectTrigger.EVENT_COMPLETION);
     }
 
     return TrackerSideEffectDataBundle.builder()
@@ -124,7 +127,7 @@ public class EventPersister
         .accessedBy(bundle.getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggerEvent(trigger)
+        .triggerEvent(triggers)
         .build();
   }
 

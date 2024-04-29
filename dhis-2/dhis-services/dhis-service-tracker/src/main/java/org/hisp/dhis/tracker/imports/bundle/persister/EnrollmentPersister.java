@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.note.Note;
@@ -119,12 +121,13 @@ public class EnrollmentPersister
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, Enrollment enrollment) {
 
-    SideEffectTrigger trigger = SideEffectTrigger.NONE;
+    List<SideEffectTrigger> triggers = new ArrayList<>();
 
     if (isNew(bundle.getPreheat(), enrollment.getUid())) {
-      trigger = SideEffectTrigger.ENROLLMENT;
-    } else if (enrollment.isCompleted()) {
-      trigger = SideEffectTrigger.ENROLLMENT_COMPLETION;
+      triggers.add(SideEffectTrigger.ENROLLMENT);
+    }
+    if (enrollment.isCompleted()) {
+      triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
     }
 
     return TrackerSideEffectDataBundle.builder()
@@ -136,7 +139,7 @@ public class EnrollmentPersister
         .accessedBy(bundle.getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
-        .triggerEvent(trigger)
+        .triggerEvent(triggers)
         .build();
   }
 

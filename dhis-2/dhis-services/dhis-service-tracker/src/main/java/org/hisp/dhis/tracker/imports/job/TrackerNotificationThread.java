@@ -77,11 +77,13 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       return;
     }
 
-    if (serviceMapper.containsKey(sideEffectDataBundle.getTriggerEvent())) {
-      BaseIdentifiableObject object =
-          manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
-      if (object != null) {
-        serviceMapper.get(sideEffectDataBundle.getTriggerEvent()).accept(object.getId());
+    for (SideEffectTrigger trigger : sideEffectDataBundle.getTriggerEvent()) {
+      if (serviceMapper.containsKey(trigger)) {
+        BaseIdentifiableObject object =
+            manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
+        if (object != null) {
+          serviceMapper.get(trigger).accept(object.getId());
+        }
       }
     }
 
