@@ -85,7 +85,11 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
             : preheat.getOrganisationUnit(enrollment.getOrgUnit());
 
     if (!trackerAccessManager
-        .canWrite(UserDetails.fromUser(user), program, ownerOrgUnit, trackedEntity)
+        .canWrite(
+            UserDetails.fromUser(user),
+            program,
+            ownerOrgUnit,
+            preheat.getTrackedEntity(trackedEntity))
         .isEmpty()) {
       reporter.addError(
           enrollment, ValidationCode.E1040, bundle.getUser().getUid(), enrollment.getUid());

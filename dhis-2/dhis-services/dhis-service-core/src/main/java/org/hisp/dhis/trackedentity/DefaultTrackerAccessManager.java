@@ -295,7 +295,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canWrite(
-      UserDetails user, Program program, OrganisationUnit orgUnit, String trackedEntity) {
+      UserDetails user, Program program, OrganisationUnit orgUnit, TrackedEntity trackedEntity) {
 
     List<String> errors = new ArrayList<>();
 
@@ -312,7 +312,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
                     : null));
       }
 
-      if (!ownershipAccessManager.hasAccess(user, trackedEntity, orgUnit, program)) {
+      if (!ownershipAccessManager.hasAccess(user, trackedEntity, program, () -> orgUnit)) {
         errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     }

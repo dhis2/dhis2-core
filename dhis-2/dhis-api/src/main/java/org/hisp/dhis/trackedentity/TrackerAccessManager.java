@@ -68,7 +68,7 @@ public interface TrackerAccessManager {
   List<String> canWrite(UserDetails user, Enrollment enrollment);
 
   List<String> canWrite(
-      UserDetails user, Program program, OrganisationUnit orgUnit, String trackedEntity);
+      UserDetails user, Program program, OrganisationUnit orgUnit, TrackedEntity trackedEntity);
 
   List<String> canCreate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 

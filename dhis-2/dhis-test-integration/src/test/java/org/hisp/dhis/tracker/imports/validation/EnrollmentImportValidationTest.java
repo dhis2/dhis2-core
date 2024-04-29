@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -125,13 +125,13 @@ class EnrollmentImportValidationTest extends TrackerTest {
   void testNoWriteAccessToOrg() throws IOException {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    User user = userService.getUser(USER_2);
+    User user = userService.getUser(USER_3);
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasErrors(importReport, 4, ValidationCode.E1000);
+    assertHasErrors(importReport, 4, ValidationCode.E1040);
   }
 
   @Test
@@ -182,7 +182,7 @@ class EnrollmentImportValidationTest extends TrackerTest {
     ImportReport trackerImportDeleteReport =
         trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(trackerImportDeleteReport, ValidationCode.E1103, ValidationCode.E1091);
+    assertHasOnlyErrors(trackerImportDeleteReport, ValidationCode.E1103, ValidationCode.E1040);
   }
 
   protected void importEvents() throws IOException {

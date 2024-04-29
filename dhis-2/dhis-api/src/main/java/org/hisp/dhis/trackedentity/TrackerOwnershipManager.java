@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import java.util.function.Supplier;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -77,6 +78,12 @@ public interface TrackerOwnershipManager {
    * @return true if the user has access, false otherwise.
    */
   boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program);
+
+  boolean hasAccess(
+      UserDetails user,
+      TrackedEntity trackedEntity,
+      Program program,
+      Supplier<OrganisationUnit> ownerOrgUnitSupplier);
 
   boolean hasAccess(
       UserDetails user, String entityInstance, OrganisationUnit organisationUnit, Program program);

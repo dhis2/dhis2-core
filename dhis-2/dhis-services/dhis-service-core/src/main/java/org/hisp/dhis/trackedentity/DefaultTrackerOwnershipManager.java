@@ -238,6 +238,28 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Override
   @Transactional(readOnly = true)
   public boolean hasAccess(
+      UserDetails user,
+      TrackedEntity trackedEntity,
+      Program program,
+      Supplier<OrganisationUnit> ownerOrgUnitSupplier) {
+    if (canSkipOwnershipCheck(user, program) || trackedEntity == null) {
+      return true;
+    }
+
+    OrganisationUnit ou = getOwner(trackedEntity.getId(), program, ownerOrgUnitSupplier);
+
+    final String orgUnitPath = ou.getPath();
+    return switch (program.getAccessLevel()) {
+      case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
+      case PROTECTED ->
+          user.isInUserHierarchy(orgUnitPath) || hasTemporaryAccess(trackedEntity, program, user);
+      case CLOSED -> user.isInUserHierarchy(orgUnitPath);
+    };
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean hasAccess(
       UserDetails user, String entityInstance, OrganisationUnit owningOrgUnit, Program program) {
     if (canSkipOwnershipCheck(user, program) || entityInstance == null || owningOrgUnit == null) {
       return true;

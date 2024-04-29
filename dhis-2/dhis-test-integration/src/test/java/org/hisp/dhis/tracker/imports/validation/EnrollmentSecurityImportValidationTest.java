@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -172,7 +172,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   void testNoWriteAccessToOrg() throws IOException {
     TrackerObjects trackerObjects =
         fromJson("tracker/validations/enrollments_te_enrollments-data.json");
-    User user = userService.getUser(USER_2);
+    User user = userService.getUser(USER_3);
     injectSecurityContextUser(user);
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
@@ -180,7 +180,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasErrors(importReport, 4, ValidationCode.E1000);
+    assertHasErrors(importReport, 4, ValidationCode.E1040);
   }
 
   @Test
@@ -203,7 +203,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1104);
+    assertHasOnlyErrors(importReport, ValidationCode.E1040);
   }
 
   @Test
@@ -231,7 +231,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1091);
+    assertHasOnlyErrors(importReport, ValidationCode.E1040);
   }
 
   @Test
@@ -278,6 +278,6 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1104);
+    assertHasOnlyErrors(importReport, ValidationCode.E1040);
   }
 }

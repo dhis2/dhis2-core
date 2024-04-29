@@ -147,7 +147,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, enrollment);
@@ -170,7 +170,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, enrollment);
@@ -193,7 +193,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, enrollment);
@@ -217,7 +217,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, enrollment);
@@ -240,7 +240,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(List.of());
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, enrollment);
@@ -265,7 +265,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(List.of());
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, enrollment);
@@ -289,7 +289,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(List.of(ENROLLMENT_ID));
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, enrollment);
@@ -314,7 +314,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(List.of(ENROLLMENT_ID));
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, enrollment);
@@ -338,7 +338,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(List.of(ENROLLMENT_ID));
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, enrollment);
@@ -363,7 +363,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(dBEnrollment);
     when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(List.of(ENROLLMENT_ID));
-    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), eq(TE_ID)))
+    when(trackerAccessManager.canWrite(any(), eq(program), eq(organisationUnit), any()))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, enrollment);
