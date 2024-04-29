@@ -45,11 +45,10 @@ public class SqlQueryCreator implements QueryCreator {
   private final RenderableSqlQuery renderableSqlQuery;
 
   public SqlQuery createForSelect() {
-    return new SqlQuery(renderableSqlQuery.render(), queryContext.getParametersPlaceHolder());
+    return SqlQuery.of(renderableSqlQuery.render(), queryContext);
   }
 
   public SqlQuery createForCount() {
-    return new SqlQuery(
-        renderableSqlQuery.forCount().render(), queryContext.getParametersPlaceHolder());
+    return SqlQuery.of(renderableSqlQuery.forCount().render(), queryContext);
   }
 }

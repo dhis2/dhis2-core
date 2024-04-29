@@ -37,7 +37,7 @@ import javax.annotation.Nonnull;
  *
  * @author maikel arabori
  */
-public interface QueryExecutor<T extends QueryCreator, E extends QueryResult> {
+public interface QueryExecutor<T extends Query, E extends QueryResult> {
   /**
    * Executes a find operation based on the given SQL query object.
    *

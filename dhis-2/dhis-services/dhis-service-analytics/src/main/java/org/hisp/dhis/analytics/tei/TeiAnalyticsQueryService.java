@@ -39,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
+import org.hisp.dhis.analytics.common.SqlQuery;
 import org.hisp.dhis.analytics.common.SqlQueryResult;
 import org.hisp.dhis.analytics.common.params.AnalyticsPagingParams;
 import org.hisp.dhis.analytics.common.query.Field;
@@ -61,7 +62,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class TeiAnalyticsQueryService {
-  private final QueryExecutor<SqlQueryCreator, SqlQueryResult> queryExecutor;
+
+  private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
   private final GridAdaptor gridAdaptor;
 
@@ -91,14 +93,17 @@ public class TeiAnalyticsQueryService {
 
     SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-    Optional<SqlQueryResult> result = withExceptionHandling(() -> queryExecutor.find(queryCreator));
+    Optional<SqlQueryResult> result =
+        withExceptionHandling(() -> queryExecutor.find(queryCreator.createForSelect()));
 
     long rowsCount = 0;
 
     AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
     if (pagingParams.showTotalPages()) {
-      rowsCount = withExceptionHandling(() -> queryExecutor.count(queryCreator)).orElse(0l);
+      rowsCount =
+          withExceptionHandling(() -> queryExecutor.count(queryCreator.createForCount()))
+              .orElse(0l);
     }
 
     List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
