@@ -242,11 +242,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntity trackedEntity,
       Program program,
       Supplier<OrganisationUnit> ownerOrgUnitSupplier) {
-    if (canSkipOwnershipCheck(user, program) || trackedEntity == null) {
+    if (canSkipOwnershipCheck(user, program)) {
       return true;
     }
 
-    OrganisationUnit ou = getOwner(trackedEntity.getId(), program, ownerOrgUnitSupplier);
+    OrganisationUnit ou =
+        trackedEntity == null
+            ? ownerOrgUnitSupplier.get()
+            : getOwner(trackedEntity.getId(), program, ownerOrgUnitSupplier);
 
     final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
@@ -260,8 +263,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Override
   @Transactional(readOnly = true)
   public boolean hasAccess(
-      UserDetails user, String entityInstance, OrganisationUnit owningOrgUnit, Program program) {
-    if (canSkipOwnershipCheck(user, program) || entityInstance == null || owningOrgUnit == null) {
+      UserDetails user, String trackedEntity, OrganisationUnit owningOrgUnit, Program program) {
+    if (canSkipOwnershipCheck(user, program) || trackedEntity == null || owningOrgUnit == null) {
       return true;
     }
 
@@ -270,7 +273,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       case OPEN, AUDITED -> user.isInUserSearchHierarchy(orgUnitPath);
       case PROTECTED ->
           user.isInUserHierarchy(orgUnitPath)
-              || hasTemporaryAccessWithUid(entityInstance, program, user);
+              || hasTemporaryAccessWithUid(trackedEntity, program, user);
       case CLOSED -> user.isInUserHierarchy(orgUnitPath);
     };
   }

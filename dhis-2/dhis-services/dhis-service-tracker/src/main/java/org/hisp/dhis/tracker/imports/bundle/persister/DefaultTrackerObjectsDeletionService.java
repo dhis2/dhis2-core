@@ -91,7 +91,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteEvents(trackerBundle);
 
-      TrackedEntity te = teService.getTrackedEntity(enrollment.getTrackedEntity().getUid());
+      TrackedEntity te = enrollment.getTrackedEntity();
       te.setLastUpdatedByUserInfo(bundle.getUserInfo());
       te.getEnrollments().remove(enrollment);
 

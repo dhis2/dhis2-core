@@ -70,7 +70,7 @@ public interface TrackerOwnershipManager {
 
   /**
    * Check whether the user has access (as owner or has temporarily broken the glass) for the
-   * tracked entity instance - program combination.
+   * tracked entity - program combination.
    *
    * @param user The user with which access has to be checked for.
    * @param entityInstance The tracked entity instance.
@@ -79,14 +79,33 @@ public interface TrackerOwnershipManager {
    */
   boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program);
 
+  /**
+   * Check whether the user has access (as owner or has temporarily broken the glass) for the
+   * tracked entity - program combination.
+   *
+   * @param user The user with which access has to be checked for.
+   * @param trackedEntity The tracked entity uid.
+   * @param program The program.
+   * @param ownerOrgUnitSupplier A function to get the fallback org unit if there is no ownership
+   * @return true if the user has access, false otherwise.
+   */
   boolean hasAccess(
       UserDetails user,
       TrackedEntity trackedEntity,
       Program program,
       Supplier<OrganisationUnit> ownerOrgUnitSupplier);
 
+  /**
+   * Check whether the user has access to the org unit - program combination.
+   *
+   * @param user The user with which access has to be checked for.
+   * @param trackedEntity The tracked entity uid.
+   * @param organisationUnit The organisation unit.
+   * @param program The program.
+   * @return true if the user has access, false otherwise.
+   */
   boolean hasAccess(
-      UserDetails user, String entityInstance, OrganisationUnit organisationUnit, Program program);
+      UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
 
   /**
    * Grant temporary ownership for a user for a specific te-program combination
