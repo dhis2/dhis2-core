@@ -32,13 +32,14 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import io.restassured.http.ContentType;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
 import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.hisp.dhis.helpers.extensions.AnalyticsSetupExtension;
+
 /**
  * This is the base class responsible for enabling analytics e2e tests. It assumes that there is a
  * DHIS2 instance up and running, so the analytics table generation can take place on the respective
