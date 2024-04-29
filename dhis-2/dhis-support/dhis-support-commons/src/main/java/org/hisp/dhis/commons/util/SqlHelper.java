@@ -32,8 +32,8 @@ package org.hisp.dhis.commons.util;
  *
  * @author Lars Helge Overland
  */
-public class SqlHelper {
-  private boolean includeSpaces = false;
+public class SqlHelper {  
+  private final String padding;
 
   private boolean whereInvoked = false;
 
@@ -47,10 +47,24 @@ public class SqlHelper {
 
   private boolean andInvoked = false;
 
-  public SqlHelper() {}
+  /**
+   * Constructor.
+   */
+  public SqlHelper() {
+    this.padding = "";
+  }
 
+  /**
+   * Constructor.
+   * 
+   * @param padding whether to pad words with space.
+   */
   public SqlHelper(boolean includeSpaces) {
-    this.includeSpaces = includeSpaces;
+    this.padding = includeSpaces ? " " : "";
+  }
+  
+  private String padded(String str) {
+    return padding + str + padding;
   }
 
   /**
@@ -60,10 +74,8 @@ public class SqlHelper {
    */
   public String whereAnd() {
     String str = whereInvoked ? "and" : "where";
-
     whereInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -73,10 +85,8 @@ public class SqlHelper {
    */
   public String havingAnd() {
     String str = havingInvoked ? "and" : "having";
-
     havingInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -86,10 +96,8 @@ public class SqlHelper {
    */
   public String and() {
     String str = andInvoked ? "and" : "";
-
     andInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -99,10 +107,8 @@ public class SqlHelper {
    */
   public String or() {
     String str = orInvoked ? "or" : "";
-
     orInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -112,10 +118,8 @@ public class SqlHelper {
    */
   public String betweenAnd() {
     String str = betweenInvoked ? "and" : "between";
-
     betweenInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -125,9 +129,7 @@ public class SqlHelper {
    */
   public String andOr() {
     final String str = andOrInvoked ? "or" : "and";
-
     andOrInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 }

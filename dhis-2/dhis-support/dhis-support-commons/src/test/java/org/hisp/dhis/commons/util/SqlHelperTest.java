@@ -28,16 +28,18 @@
 package org.hisp.dhis.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class SqlHelperTest {
   private SqlHelper helper;
+  
+  private SqlHelper paddedHelper;
 
   @BeforeEach
   void before() {
     helper = new SqlHelper();
+    paddedHelper = new SqlHelper(true);
   }
 
   @Test
@@ -48,10 +50,24 @@ class SqlHelperTest {
   }
 
   @Test
+  void testWhereAndPadded() {
+    assertEquals(" where ", paddedHelper.whereAnd());
+    assertEquals(" and ", paddedHelper.whereAnd());
+    assertEquals(" and ", paddedHelper.whereAnd());
+  }
+
+  @Test
   void testHavingAnd() {
     assertEquals("having", helper.havingAnd());
     assertEquals("and", helper.havingAnd());
     assertEquals("and", helper.havingAnd());
+  }
+
+  @Test
+  void testHavingAndPadded() {
+    assertEquals(" having ", paddedHelper.havingAnd());
+    assertEquals(" and ", paddedHelper.havingAnd());
+    assertEquals(" and ", paddedHelper.havingAnd());
   }
 
   @Test
@@ -62,9 +78,23 @@ class SqlHelperTest {
   }
 
   @Test
+  void testBetweenAndPadded() {
+    assertEquals(" between ", paddedHelper.betweenAnd());
+    assertEquals(" and ", paddedHelper.betweenAnd());
+    assertEquals(" and ", paddedHelper.betweenAnd());
+  }
+
+  @Test
   void testAndOr() {
     assertEquals("and", helper.andOr());
     assertEquals("or", helper.andOr());
     assertEquals("or", helper.andOr());
+  }
+
+  @Test
+  void testAndOrPadded() {
+    assertEquals(" and ", paddedHelper.andOr());
+    assertEquals(" or ", paddedHelper.andOr());
+    assertEquals(" or ", paddedHelper.andOr());
   }
 }
