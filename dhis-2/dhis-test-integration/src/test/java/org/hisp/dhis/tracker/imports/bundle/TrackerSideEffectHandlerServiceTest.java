@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -51,11 +50,9 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -86,7 +83,6 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
   private TrackedEntity trackedEntityA;
 
-  private ProgramNotificationTemplate templateForEnrollment;
   private ProgramNotificationTemplate templateForEnrollmentCompletion;
   private ProgramNotificationTemplate templateForEventCompletion;
 
@@ -125,30 +121,16 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
     user.getGroups().add(userGroup);
     manager.update(user);
 
-    templateForEnrollment =
-        createProgramNotification(
-            NotificationTrigger.ENROLLMENT,
-            "enrollment",
-            CodeGenerator.generateUid(),
-            "enrollment_subject");
     templateForEnrollmentCompletion =
         createProgramNotification(
-            NotificationTrigger.COMPLETION,
-            "enrollment_completion",
-            CodeGenerator.generateUid(),
-            "enrollment_completion_subject");
+            "enrollment_completion", CodeGenerator.generateUid(), "enrollment_completion_subject");
     templateForEventCompletion =
         createProgramNotification(
-            NotificationTrigger.COMPLETION,
-            "event_completion",
-            CodeGenerator.generateUid(),
-            "event_completion_subject");
+            "event_completion", CodeGenerator.generateUid(), "event_completion_subject");
 
-    manager.save(templateForEnrollment);
     manager.save(templateForEnrollmentCompletion);
     manager.save(templateForEventCompletion);
 
-    programA.getNotificationTemplates().add(templateForEnrollment);
     programA.getNotificationTemplates().add(templateForEnrollmentCompletion);
     programStageA.getNotificationTemplates().add(templateForEventCompletion);
 
@@ -157,43 +139,7 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldSendTrackerNotificationAtEnrollment() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .program(MetadataIdentifier.ofUid(programA.getUid()))
-            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
-            .status(EnrollmentStatus.ACTIVE)
-            .enrolledAt(Instant.now())
-            .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
-            .build();
-
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            TrackerImportParams.builder()
-                .userId(user.getUid())
-                .importStrategy(TrackerImportStrategy.CREATE)
-                .build(),
-            TrackerObjects.builder().enrollments(List.of(enrollment)).build());
-
-    assertNoErrors(importReport);
-
-    await()
-        .atMost(3, TimeUnit.SECONDS)
-        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
-
-    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
-
-    assertEquals(
-        1,
-        messageConversations.size(),
-        "Only one messageConversation object should be created for enrollment");
-    assertEquals("enrollment_subject", messageConversations.get(0).getSubject());
-  }
-
-  @Test
-  void shouldSendTrackerNotificationAtEnrollmentCompletion() {
+  void shouldSendTrackerNotificationAtEventCompletion() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
@@ -221,25 +167,10 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
 
     List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
 
-    assertEquals(
-        1,
-        messageConversations.size(),
-        "Only one messageConversation object should be created for enrollment completion");
-    assertEquals("enrollment_completion_subject", messageConversations.get(0).getSubject());
-  }
+    List<String> subjectMessages =
+        messageConversations.stream().map(MessageConversation::getSubject).toList();
 
-  @Test
-  void shouldSendTrackerNotificationAtEventCompletion() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .program(MetadataIdentifier.ofUid(programA.getUid()))
-            .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .trackedEntity(trackedEntityA.getUid())
-            .status(EnrollmentStatus.COMPLETED)
-            .enrolledAt(Instant.now())
-            .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
-            .build();
+    assertContainsOnly(List.of("enrollment_completion_subject"), subjectMessages);
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         org.hisp.dhis.tracker.imports.domain.Event.builder()
@@ -247,40 +178,42 @@ class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase {
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
             .enrollment(enrollment.getEnrollment())
             .event(CodeGenerator.generateUid())
+            .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
             .status(EventStatus.COMPLETED)
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .completedAt(Instant.now())
             .occurredAt(Instant.now())
             .build();
 
-    ImportReport importReport =
+    importReport =
         trackerImportService.importTracker(
             TrackerImportParams.builder()
                 .userId(user.getUid())
-                .validationMode(ValidationMode.SKIP)
+                .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
                 .build(),
-            TrackerObjects.builder()
-                .enrollments(List.of(enrollment))
-                .events(List.of(event))
-                .build());
+            TrackerObjects.builder().events(List.of(event)).build());
 
     assertNoErrors(importReport);
 
     await()
         .atMost(3, TimeUnit.SECONDS)
-        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+        .until(() -> manager.getAll(MessageConversation.class).size() > 1);
 
-    List<MessageConversation> messageConversations = manager.getAll(MessageConversation.class);
+    messageConversations = manager.getAll(MessageConversation.class);
 
-    assertFalse(messageConversations.isEmpty());
+    subjectMessages = messageConversations.stream().map(MessageConversation::getSubject).toList();
+
+    assertContainsOnly(
+        List.of("enrollment_completion_subject", "event_completion_subject"), subjectMessages);
   }
 
   private ProgramNotificationTemplate createProgramNotification(
-      NotificationTrigger trigger, String name, String uid, String subject) {
+      String name, String uid, String subject) {
     ProgramNotificationTemplate template = new ProgramNotificationTemplate();
     template.setAutoFields();
     template.setUid(uid);
     template.setName(name);
-    template.setNotificationTrigger(trigger);
+    template.setNotificationTrigger(NotificationTrigger.COMPLETION);
     template.setMessageTemplate("message_text");
     template.setSubjectTemplate(subject);
     template.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
