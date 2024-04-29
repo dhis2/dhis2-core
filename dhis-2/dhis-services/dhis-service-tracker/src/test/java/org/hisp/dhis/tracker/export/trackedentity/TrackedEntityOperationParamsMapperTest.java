@@ -41,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -182,6 +181,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
         .thenReturn(trackedEntityType);
+    when(trackedEntityTypeService.getAllTrackedEntityType()).thenReturn(List.of(trackedEntityType));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -225,28 +225,9 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-      throws BadRequestException, ForbiddenException {
-    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
-    when(paramsValidator.validateTrackedEntityType(trackedEntityType.getUid(), user))
-        .thenReturn(trackedEntityType);
-
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .orgUnitMode(ACCESSIBLE)
-            .user(user)
-            .trackedEntityTypeUid(trackedEntityType.getUid())
-            .build();
-
-    mapper.map(operationParams);
-
-    verifyNoInteractions(programService);
-  }
-
-  @Test
   void testMappingProgramEnrollmentStartDate() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     Date date = parseDate("2022-12-13");
     TrackedEntityOperationParams operationParams =
@@ -265,7 +246,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingProgramEnrollmentEndDate() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     Date date = parseDate("2022-12-13");
     TrackedEntityOperationParams operationParams =
@@ -284,7 +265,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testFilter() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -340,7 +321,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testFilterWhenTEAHasMultipleFilters() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -376,7 +357,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingProgram() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -393,7 +374,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingProgramStage() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -434,7 +415,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void testMappingAssignedUsers() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -457,7 +438,7 @@ class TrackedEntityOperationParamsMapperTest {
   @Test
   void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
@@ -489,7 +470,7 @@ class TrackedEntityOperationParamsMapperTest {
     tea1.setUid(TEA_1_UID);
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(null);
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -512,7 +493,7 @@ class TrackedEntityOperationParamsMapperTest {
     // invalid field names and UIDs. Such invalid order values will be caught in this mapper.
     assertTrue(CodeGenerator.isValidUid("lastUpdated"));
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -534,7 +515,7 @@ class TrackedEntityOperationParamsMapperTest {
     user.setOrganisationUnits(emptySet());
 
     when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -561,7 +542,7 @@ class TrackedEntityOperationParamsMapperTest {
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
-    when(paramsValidator.validateProgram(program.getUid(), user)).thenReturn(program);
+    when(paramsValidator.validateTrackerProgram(program.getUid(), user)).thenReturn(program);
 
     when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
 

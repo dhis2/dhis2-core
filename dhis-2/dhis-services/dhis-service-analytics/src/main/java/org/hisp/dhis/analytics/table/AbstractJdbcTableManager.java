@@ -54,6 +54,7 @@ import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.model.Skip;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -505,8 +506,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             ougs -> {
               String name = ougs.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexOrgUnitGroupSetColumns();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "ougs." + quote(name), ougs.getCreated());
+                  name, CHARACTER_11, "ougs." + quote(name), skipIndex, ougs.getCreated());
             })
         .toList();
   }
@@ -516,8 +518,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             degs -> {
               String name = degs.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexDataElementGroupSetColumns();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "degs." + quote(name), degs.getCreated());
+                  name, CHARACTER_11, "degs." + quote(name), skipIndex, degs.getCreated());
             })
         .toList();
   }
@@ -527,8 +530,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "dcs." + quote(name), cogs.getCreated());
+                  name, CHARACTER_11, "dcs." + quote(name), skipIndex, cogs.getCreated());
             })
         .toList();
   }
@@ -538,8 +542,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             cogs -> {
               String name = cogs.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryOptionGroupSetColumns();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "acs." + quote(name), cogs.getCreated());
+                  name, CHARACTER_11, "acs." + quote(name), skipIndex, cogs.getCreated());
             })
         .toList();
   }
@@ -549,8 +554,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "dcs." + quote(name), category.getCreated());
+                  name, CHARACTER_11, "dcs." + quote(name), skipIndex, category.getCreated());
             })
         .toList();
   }
@@ -560,8 +566,9 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
         .map(
             category -> {
               String name = category.getUid();
+              Skip skipIndex = analyticsTableSettings.skipIndexCategoryColumns();
               return new AnalyticsTableColumn(
-                  name, CHARACTER_11, "acs." + quote(name), category.getCreated());
+                  name, CHARACTER_11, "acs." + quote(name), skipIndex, category.getCreated());
             })
         .toList();
   }
