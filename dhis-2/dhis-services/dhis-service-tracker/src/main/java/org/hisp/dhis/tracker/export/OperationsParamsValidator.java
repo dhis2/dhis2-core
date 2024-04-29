@@ -118,14 +118,44 @@ public class OperationsParamsValidator {
   }
 
   /**
-   * Validates the specified program uid exists and is accessible by the supplied user
+   * Validates the specified tracker program uid exists and is accessible by the supplied user
    *
    * @return the program if found and accessible
-   * @throws BadRequestException if the program uid does not exist
+   * @throws BadRequestException if the program uid does not exist or is not a tracker program
    * @throws ForbiddenException if the user has no data read access to the program or its tracked
    *     entity type
    */
-  public Program validateProgram(String programUid, User user)
+  public Program validateTrackerProgram(String programUid, User user)
+      throws BadRequestException, ForbiddenException {
+    Program program = validateProgramAccess(programUid, user);
+
+    if (program == null) {
+      return null;
+    }
+
+    if (program.isWithoutRegistration()) {
+      throw new BadRequestException("Program specified is not a tracker program: " + programUid);
+    }
+
+    if (program.getTrackedEntityType() != null
+        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
+      throw new ForbiddenException(
+          "Current user is not authorized to read data from selected program's tracked entity type: "
+              + program.getTrackedEntityType().getUid());
+    }
+
+    return program;
+  }
+
+  /**
+   * Validates the specified program uid exists and is accessible by the supplied user. If no other
+   * program related validation is done, to be used by event programs only.
+   *
+   * @return the program if found and accessible
+   * @throws BadRequestException if the program uid does not exist
+   * @throws ForbiddenException if the user has no data read access to the program
+   */
+  public Program validateProgramAccess(String programUid, User user)
       throws BadRequestException, ForbiddenException {
     if (programUid == null) {
       return null;
@@ -138,13 +168,6 @@ public class OperationsParamsValidator {
 
     if (!aclService.canDataRead(user, program)) {
       throw new ForbiddenException("User has no access to program: " + program.getUid());
-    }
-
-    if (program.getTrackedEntityType() != null
-        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
-      throw new ForbiddenException(
-          "Current user is not authorized to read data from selected program's tracked entity type: "
-              + program.getTrackedEntityType().getUid());
     }
 
     return program;
