@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -84,12 +85,9 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
                 .getOrganisationUnit()
             : preheat.getOrganisationUnit(enrollment.getOrgUnit());
 
+    TrackedEntity entity = getTrackedEntity(preheat, trackedEntity);
     if (!trackerAccessManager
-        .canWrite(
-            UserDetails.fromUser(user),
-            program,
-            ownerOrgUnit,
-            preheat.getTrackedEntity(trackedEntity))
+        .canWrite(UserDetails.fromUser(user), program, ownerOrgUnit, entity)
         .isEmpty()) {
       reporter.addError(
           enrollment, ValidationCode.E1040, bundle.getUser().getUid(), enrollment.getUid());
@@ -104,6 +102,15 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         reporter.addError(enrollment, E1103, user, enrollment.getEnrollment());
       }
     }
+  }
+
+  private TrackedEntity getTrackedEntity(TrackerPreheat preheat, String trackedEntity) {
+    TrackedEntity entity = preheat.getTrackedEntity(trackedEntity);
+    if (entity == null) {
+      entity = new TrackedEntity();
+      entity.setUid(trackedEntity);
+    }
+    return entity;
   }
 
   @Override

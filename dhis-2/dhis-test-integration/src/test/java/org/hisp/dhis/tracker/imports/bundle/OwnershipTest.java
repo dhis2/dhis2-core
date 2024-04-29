@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
+import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -254,6 +256,21 @@ class OwnershipTest extends TrackerTest {
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
     assertHasError(updatedReport, ValidationCode.E1040);
+  }
+
+  @Test
+  void shouldFailWhenCreatingTEAndEnrollmentAndUserHasNoAccessToEnrollmentOU() throws IOException {
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .userId(nonSuperUser.getUid())
+            .atomicMode(AtomicMode.OBJECT)
+            .build();
+    TrackerObjects trackerObjects = fromJson("tracker/ownership_te_ok_enrollment_no_access.json");
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+    assertEquals(1, report.getStats().getCreated());
+    assertEquals(1, report.getStats().getIgnored());
+    assertHasOnlyErrors(report, ValidationCode.E1040);
   }
 
   @Test
