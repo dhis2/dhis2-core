@@ -55,7 +55,7 @@ public class SqlHelper {
   /**
    * Constructor.
    *
-   * @param padding whether to pad words with space.
+   * @param includeSpaces whether to prepend and append spaces.
    */
   public SqlHelper(boolean includeSpaces) {
     this.includeSpaces = includeSpaces;
