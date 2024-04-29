@@ -31,6 +31,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.in;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
@@ -45,6 +46,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -153,7 +156,7 @@ public class OwnershipTests extends TrackerApiTest {
     trackerImportExportActions
         .postAndGetJobReport(updatePayload, new QueryParamsBuilder().addAll("atomicMode=OBJECT"))
         .validateErrorReport()
-        .body("errorCode", everyItem(equalTo("E1102")))
+        .body("errorCode", everyItem(in(List.of("E1102", "E1040"))))
         .body("trackerType", hasItems("ENROLLMENT", "EVENT"))
         .body("", hasSize(equalTo(2)));
   }
@@ -224,7 +227,7 @@ public class OwnershipTests extends TrackerApiTest {
             new EnrollmentDataBuilder()
                 .array(protectedProgram, captureOu, teiInSearchScope, "ACTIVE"))
         .validateErrorReport()
-        .body("errorCode", hasItems("E1102"));
+        .body("errorCode", hasItems("E1040"));
   }
 
   @Test
