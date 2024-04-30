@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -36,6 +37,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,6 +84,9 @@ public interface TrackerAccessManager {
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canWrite(UserDetails user, Relationship relationship);
+
+  @Transactional(readOnly = true)
+  List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
 
   /**
    * Checks the sharing read access to EventDataValue
