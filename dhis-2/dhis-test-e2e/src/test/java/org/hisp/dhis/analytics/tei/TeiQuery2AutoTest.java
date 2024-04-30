@@ -154,8 +154,8 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
         0,
         "IpHINAT79UW.enrollmentdate",
         "Date of enrollment, Child Programme",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
 
@@ -164,8 +164,8 @@ public class TeiQuery2AutoTest extends AnalyticsApiTest {
         1,
         "IpHINAT79UW.A03MvHHogjR.occurreddate",
         "Report date, Child Programme, Birth",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
   }
