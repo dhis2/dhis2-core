@@ -32,11 +32,9 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_1;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_10;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_7;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_8;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_9;
@@ -249,7 +247,8 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
+  void
+      shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
           throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
@@ -268,7 +267,8 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope() throws IOException {
+  void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
+      throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));

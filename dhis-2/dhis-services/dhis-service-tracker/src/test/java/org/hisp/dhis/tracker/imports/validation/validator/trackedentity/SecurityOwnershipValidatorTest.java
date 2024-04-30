@@ -212,7 +212,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldSuccessWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndOUInCaptureScopeAndDeleteCascadeAuthority() {
+  void
+      shouldSuccessWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndOUInCaptureScopeAndDeleteCascadeAuthority() {
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
         org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity(TE_ID)
