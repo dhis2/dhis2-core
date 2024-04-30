@@ -149,12 +149,8 @@ public class MetadataSyncJob implements Job {
     metadataSyncPreProcessor.handleEventProgramsDataPush(context, params, progress);
     metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush(context, progress);
     metadataSyncPreProcessor.handleTrackerProgramsDataPush(context, params, progress);
-
-    MetadataVersion version =
-        metadataSyncPreProcessor.handleCurrentMetadataVersion(context, progress);
-
     List<MetadataVersion> versions =
-        metadataSyncPreProcessor.handleMetadataVersionsList(context, version, progress);
+        metadataSyncPreProcessor.handleMetadataVersions(context, progress);
 
     handleMetadataSync(context, versions, progress);
 
