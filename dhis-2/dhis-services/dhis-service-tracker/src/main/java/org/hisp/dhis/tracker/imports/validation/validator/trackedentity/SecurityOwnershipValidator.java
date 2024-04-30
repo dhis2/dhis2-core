@@ -95,10 +95,15 @@ class SecurityOwnershipValidator
                 .getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-    if (strategy.isCreate()) {
+    if (strategy.isCreate()){
       checkTeTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
+    }
+
+    if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
-    } else {
+    }
+
+    if(!strategy.isCreate()){
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
       if (!trackerAccessManager.canWrite(UserDetails.fromUser(bundle.getUser()), te).isEmpty()) {
         reporter.addError(

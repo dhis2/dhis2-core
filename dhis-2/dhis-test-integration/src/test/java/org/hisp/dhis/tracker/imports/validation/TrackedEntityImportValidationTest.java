@@ -32,9 +32,11 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_1;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_10;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_7;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_8;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_9;
@@ -247,7 +249,8 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit() throws IOException {
+  void shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
+          throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
     TrackerImportParams params = new TrackerImportParams();
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
@@ -261,6 +264,24 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     manager.flush();
     manager.clear();
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_9));
+    assertHasErrors(importReport, 1, ValidationCode.E1000);
+  }
+
+  @Test
+  void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_te_te-data.json");
+    TrackerImportParams params = new TrackerImportParams();
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    importEnrollments();
+    manager.flush();
+    manager.clear();
+    TrackedEntity te = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
+    Program program = manager.get(Program.class, "E8o1E9tAppy");
+    trackerOwnershipManager.transferOwnership(te, program, orgUnit, true, false);
+    manager.flush();
+    manager.clear();
+    ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_7));
     assertNoErrors(importReport);
   }
 
