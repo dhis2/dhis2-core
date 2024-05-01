@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
+import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -63,9 +65,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   @Nonnull private final AclService aclService;
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
-
-  private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      " has no organisation unit assigned, so we skip user validation";
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
@@ -146,6 +145,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
     UserDetails user = UserDetails.fromUser(bundle.getUser());
+
+    checkNotNull(user, USER_CANT_BE_NULL);
 
     if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
