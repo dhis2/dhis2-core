@@ -433,14 +433,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       }
     }
 
-    return "SELECT distinct " + String.join(", ", columns);
+    return "SELECT DISTINCT " + String.join(", ", columns);
   }
 
   private String joinPrograms(TrackedEntityQueryParams params) {
     StringBuilder trackedEntity = new StringBuilder();
 
-    trackedEntity.append(" inner join program P ");
-    trackedEntity.append(" on P.trackedentitytypeid = TE.trackedentitytypeid ");
+    trackedEntity.append(" INNER JOIN program P ");
+    trackedEntity.append(" ON P.trackedentitytypeid = TE.trackedentitytypeid ");
 
     if (!params.hasProgram()) {
       trackedEntity
