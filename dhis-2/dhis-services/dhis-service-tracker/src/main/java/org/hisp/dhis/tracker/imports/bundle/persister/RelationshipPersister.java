@@ -118,6 +118,13 @@ public class RelationshipPersister
   }
 
   @Override
+  protected void addSideEffectTriggers(
+      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto) {
+    // NOTHING TO DO
+    // SideEffectTrigger are only applicable to Enrollments and Events
+  }
+
+  @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, org.hisp.dhis.relationship.Relationship entity) {
     return TrackerSideEffectDataBundle.builder().build();

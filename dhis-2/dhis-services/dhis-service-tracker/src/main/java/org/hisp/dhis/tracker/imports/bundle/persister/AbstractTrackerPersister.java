@@ -125,6 +125,8 @@ public abstract class AbstractTrackerPersister<
 
         updateDataValues(entityManager, bundle.getPreheat(), trackerDto, convertedDto);
 
+        addSideEffectTriggers(bundle.getPreheat(), convertedDto);
+
         //
         // Save or update the entity
         //
@@ -146,10 +148,6 @@ public abstract class AbstractTrackerPersister<
           }
         }
 
-        if (!bundle.isSkipSideEffects()) {
-          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
-        }
-
         //
         // Add the entity to the Preheat
         //
@@ -157,6 +155,10 @@ public abstract class AbstractTrackerPersister<
 
         if (FlushMode.OBJECT == bundle.getFlushMode()) {
           entityManager.flush();
+        }
+
+        if (!bundle.isSkipSideEffects()) {
+          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto));
         }
 
         bundle.setUpdatedTrackedEntities(updatedTrackedEntities);
@@ -234,6 +236,9 @@ public abstract class AbstractTrackerPersister<
 
   /** Determines if the given uid belongs to an existing entity */
   protected abstract boolean isNew(TrackerPreheat preheat, String uid);
+
+  /** Add all relevant side effect notification trigger points */
+  protected abstract void addSideEffectTriggers(TrackerPreheat preheat, V convertedDto);
 
   /** TODO add comment */
   protected abstract TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, V entity);

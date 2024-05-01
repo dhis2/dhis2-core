@@ -77,6 +77,7 @@ import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.user.User;
 
 /**
@@ -277,6 +278,9 @@ public class TrackerPreheat {
 
   /** idScheme map */
   @Getter @Setter private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
+
+  /** Trigger points for SideEffect service */
+  @Getter @Setter private List<SideEffectTrigger> triggers = new ArrayList<>();
 
   /**
    * Map of Program ID (primary key) and List of Org Unit ID associated to each program. Note that

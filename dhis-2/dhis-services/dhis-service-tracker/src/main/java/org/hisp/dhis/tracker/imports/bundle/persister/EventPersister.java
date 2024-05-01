@@ -30,11 +30,9 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -107,17 +105,18 @@ public class EventPersister
   }
 
   @Override
+  protected void addSideEffectTriggers(TrackerPreheat preheat, Event converted) {
+    Event existingEvent = preheat.getEvent(converted.getUid());
+
+    if (isNew(preheat, converted.getUid()) && converted.isCompleted()) {
+      preheat.getTriggers().add(SideEffectTrigger.EVENT_COMPLETION);
+    } else if (existingEvent.getStatus() != converted.getStatus() && converted.isCompleted()) {
+      preheat.getTriggers().add(SideEffectTrigger.EVENT_COMPLETION);
+    }
+  }
+
+  @Override
   protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
-
-    List<SideEffectTrigger> triggers = new ArrayList<>();
-
-    if (isNew(bundle.getPreheat(), event.getUid())) {
-      triggers.add(SideEffectTrigger.NONE);
-    }
-    if (event.isCompleted()) {
-      triggers.add(SideEffectTrigger.EVENT_COMPLETION);
-    }
-
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
@@ -127,7 +126,7 @@ public class EventPersister
         .accessedBy(bundle.getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggerEvent(triggers)
+        .triggerEvent(bundle.getPreheat().getTriggers())
         .build();
   }
 

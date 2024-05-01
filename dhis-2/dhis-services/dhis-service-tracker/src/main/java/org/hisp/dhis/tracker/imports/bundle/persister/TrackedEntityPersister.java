@@ -107,6 +107,12 @@ public class TrackedEntityPersister
   }
 
   @Override
+  protected void addSideEffectTriggers(TrackerPreheat preheat, TrackedEntity convertedDto) {
+    // NOTHING TO DO
+    // SideEffectTrigger are only applicable to Enrollments and Events
+  }
+
+  @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, TrackedEntity entity) {
     return TrackerSideEffectDataBundle.builder().build();
