@@ -108,9 +108,10 @@ public class EventPersister
   protected void addSideEffectTriggers(TrackerPreheat preheat, Event converted) {
     Event existingEvent = preheat.getEvent(converted.getUid());
 
-    if (isNew(preheat, converted.getUid()) && converted.isCompleted()) {
-      preheat.getTriggers().add(SideEffectTrigger.EVENT_COMPLETION);
-    } else if (existingEvent.getStatus() != converted.getStatus() && converted.isCompleted()) {
+    // Set SideEffectTrigger.EVENT_COMPLETION if event is new and event status completed or event
+    // status has been changed to COMPLETED
+    if ((isNew(preheat, converted.getUid()) && converted.isCompleted())
+        || (existingEvent.getStatus() != converted.getStatus() && converted.isCompleted())) {
       preheat.getTriggers().add(SideEffectTrigger.EVENT_COMPLETION);
     }
   }
