@@ -361,10 +361,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         new StringBuilder()
             .append("(")
             .append(getFromSubQuerySelect(params))
-            .append(" FROM program P ")
+            .append(" FROM trackedentity " + MAIN_QUERY_ALIAS + " ")
 
             // INNER JOIN on constraints
-            .append(joinTrackedEntity())
+            .append(joinPrograms(params))
             .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
@@ -436,10 +436,20 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return "SELECT distinct " + String.join(", ", columns);
   }
 
-  private String joinTrackedEntity() {
-    return " inner join trackedentity "
-        + MAIN_QUERY_ALIAS
-        + " on P.trackedentitytypeid = TE.trackedentitytypeid ";
+  private String joinPrograms(TrackedEntityQueryParams params) {
+    StringBuilder trackedEntity = new StringBuilder();
+
+    trackedEntity.append(" inner join program P ");
+    trackedEntity.append(" on P.trackedentitytypeid = TE.trackedentitytypeid ");
+
+    if (!params.hasProgram()) {
+      trackedEntity
+          .append("AND P.programid IN (")
+          .append(getCommaDelimitedString(getIdentifiers(params.getPrograms())))
+          .append(")");
+    }
+
+    return trackedEntity.toString();
   }
 
   /**
@@ -451,14 +461,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryTrackedEntityConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
     StringBuilder trackedEntity = new StringBuilder();
-
-    if (!params.hasProgram()) {
-      trackedEntity
-          .append(whereAnd.whereAnd())
-          .append("P.programid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getPrograms())))
-          .append(")");
-    }
 
     if (params.hasTrackedEntities()) {
       trackedEntity
