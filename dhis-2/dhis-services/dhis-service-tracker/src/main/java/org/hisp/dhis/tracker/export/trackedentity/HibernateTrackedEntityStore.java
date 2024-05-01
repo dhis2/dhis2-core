@@ -361,13 +361,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         new StringBuilder()
             .append("(")
             .append(getFromSubQuerySelect(params))
-            .append(" FROM trackedentity " + MAIN_QUERY_ALIAS + " ")
+            .append(" FROM program P ")
 
             // INNER JOIN on constraints
+            .append(joinTrackedEntity())
             .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
-            .append(getFromSubQueryProgramConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
@@ -385,7 +385,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(getFromSubQueryLimitAndOffset(params, pageParams));
     }
 
-    return fromSubQuery.append(") TE ").toString();
+    return fromSubQuery.append(") ").append(MAIN_QUERY_ALIAS).append(" ").toString();
   }
 
   /**
@@ -433,7 +433,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       }
     }
 
-    return "SELECT " + String.join(", ", columns);
+    return "SELECT distinct " + String.join(", ", columns);
+  }
+
+  private String joinTrackedEntity() {
+    return " inner join trackedentity "
+        + MAIN_QUERY_ALIAS
+        + " on P.trackedentitytypeid = TE.trackedentitytypeid ";
   }
 
   /**
@@ -445,6 +451,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryTrackedEntityConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
     StringBuilder trackedEntity = new StringBuilder();
+
+    if (!params.hasProgram()) {
+      trackedEntity
+          .append(whereAnd.whereAnd())
+          .append("P.programid IN (")
+          .append(getCommaDelimitedString(getIdentifiers(params.getPrograms())))
+          .append(")");
+    }
 
     if (params.hasTrackedEntities()) {
       trackedEntity
@@ -589,11 +603,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return " INNER JOIN trackedentityprogramowner PO "
           + " ON PO.programid = "
           + params.getProgram().getId()
-          + " AND PO.trackedentityid = TE.trackedentityid ";
+          + " AND PO.trackedentityid = TE.trackedentityid "
+          + " AND P.programid = PO.programid";
     }
 
     return "LEFT JOIN trackedentityprogramowner PO ON "
-        + " PO.trackedentityid = TE.trackedentityid";
+        + " PO.trackedentityid = TE.trackedentityid"
+        + " AND P.programid = PO.programid";
   }
 
   /**
@@ -694,26 +710,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return "AND OU.organisationunitid IN ("
         + getCommaDelimitedString(getIdentifiers(params.getOrgUnits()))
         + ") ";
-  }
-
-  /**
-   * Generates a LEFT JOIN for programs in case no program is provided. We need it to find a
-   * potential program owner for a given tracked entity that will be used to assess if the user has
-   * access to a particular TE or not.
-   *
-   * @return a SQL LEFT JOIN for programs
-   */
-  private String getFromSubQueryProgramConditions(TrackedEntityQueryParams params) {
-    if (params.hasProgram() || skipOwnershipCheck(params)) {
-      return "";
-    }
-
-    return " LEFT JOIN program P ON "
-        + "    P.programid = PO.programid "
-        + "    AND P.trackedentitytypeid = TE.trackedentitytypeid "
-        + "    AND P.programid IN ("
-        + getCommaDelimitedString(getIdentifiers(params.getPrograms()))
-        + ")";
   }
 
   /**
