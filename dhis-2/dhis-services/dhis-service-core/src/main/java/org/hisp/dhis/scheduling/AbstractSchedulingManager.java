@@ -278,12 +278,12 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
     Clock clock = new Clock().startClock();
     try {
       log.debug(String.format("Job started: '%s'", configuration.getName()));
-      configuration.setJobStatus(JobStatus.RUNNING);
+      configuration.setJobStatus(RUNNING);
       if (!configuration.isInMemoryJob()) {
         jobConfigurationService.updateJobConfiguration(configuration);
       }
       // in memory effect only: mark running (dirty)
-      configuration.setLastExecutedStatus(JobStatus.RUNNING);
+      configuration.setLastExecutedStatus(RUNNING);
 
       String identifier =
           configuration.getUid() != null
@@ -299,15 +299,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
         // complected by calling completedProcess at the end of the job
         progress.completedProcess("(process completed implicitly)");
       }
-      boolean wasSuccessfulRun =
-          !progress.isCancellationRequested()
-              && progress.getProcesses().stream()
-                  .allMatch(p -> p.getStatus() == JobProgress.Status.SUCCESS);
-      if (configuration.getLastExecutedStatus() == RUNNING) {
-        JobStatus errorStatus =
-            progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
-        configuration.setLastExecutedStatus(wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus);
-      }
+      boolean wasSuccessfulRun = checkWasSuccessfulRun(configuration, progress);
 
       if (wasSuccessfulRun) {
         eventHookPublisher.publishEvent(EventUtils.schedulerCompleted(configuration));
@@ -329,6 +321,20 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       whenRunIsDone(configuration, clock);
       MDC.remove("sessionId");
     }
+  }
+
+  public boolean checkWasSuccessfulRun(
+      JobConfiguration configuration, ControlledJobProgress progress) {
+    boolean wasSuccessfulRun =
+        !progress.isCancellationRequested()
+            && progress.getProcesses().stream()
+                .allMatch(p -> p.getStatus() == JobProgress.Status.SUCCESS);
+    if (configuration.getLastExecutedStatus() == RUNNING) {
+      JobStatus errorStatus =
+          progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
+      configuration.setLastExecutedStatus(wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus);
+    }
+    return wasSuccessfulRun;
   }
 
   private ControlledJobProgress createJobProgress(JobConfiguration configuration) {

@@ -76,9 +76,10 @@ public class MetadataSyncPreProcessor {
   private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
   public void setUp(MetadataRetryContext context, JobProgress progress) {
-    progress.startingStage("Setting up metadata synchronisation");
+    progress.startingProcess("Setting up metadata synchronisation");
     progress.runStage(
         () -> systemSettingManager.saveSystemSetting(SettingKey.METADATAVERSION_ENABLED, true));
+    progress.completedProcess("Finished setting up metadata synchronisation");
   }
 
   public void handleDataValuePush(
@@ -188,6 +189,15 @@ public class MetadataSyncPreProcessor {
       progress.failedStage(ex);
       throw new MetadataSyncServiceException(ex.getMessage(), ex);
     }
+  }
+
+  public List<MetadataVersion> handleMetadataVersions(
+      MetadataRetryContext context, JobProgress progress) {
+    progress.startingProcess("Starting Metadata version comparison");
+    MetadataVersion version = handleCurrentMetadataVersion(context, progress);
+    List<MetadataVersion> metadataVersions = handleMetadataVersionsList(context, version, progress);
+    progress.completedProcess("Finished Metadata version comparison");
+    return metadataVersions;
   }
 
   // ----------------------------------------------------------------------------------------

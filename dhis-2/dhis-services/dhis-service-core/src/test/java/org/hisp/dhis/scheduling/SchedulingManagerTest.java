@@ -66,7 +66,9 @@ import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationContext;
@@ -177,6 +179,78 @@ class SchedulingManagerTest {
         .thenReturn(new MockFuture<>());
     schedulingManager.schedule(conf);
     return createTestCases(conf, this::createCronJobConfiguration, queueStart.getValue());
+  }
+
+  @Test
+  @DisplayName("cancelled job should show as unsuccessful when lastExecutedStatus is not RUNNING")
+  void cancelledJobNotInRunningStateTest() {
+    // given
+    JobConfiguration config = new JobConfiguration();
+    config.setJobType(JobType.META_DATA_SYNC);
+    config.setInMemoryJob(true);
+    config.setLastExecutedStatus(JobStatus.SCHEDULED);
+
+    ControlledJobProgress jobProgress = new ControlledJobProgress(config);
+    jobProgress.requestCancellation();
+
+    // then
+    assertFalse(schedulingManager.checkWasSuccessfulRun(config, jobProgress));
+  }
+
+  @Test
+  @DisplayName(
+      "cancelled job should show as unsuccessful and state should be STOPPED after being in a RUNNING state")
+  void cancelledJobInRunningStateTest() {
+    // given
+    JobConfiguration config = new JobConfiguration();
+    config.setJobType(JobType.META_DATA_SYNC);
+    config.setInMemoryJob(true);
+    config.setJobStatus(JobStatus.NOT_STARTED);
+    config.setLastExecutedStatus(JobStatus.RUNNING);
+
+    ControlledJobProgress jobProgress = new ControlledJobProgress(config);
+    jobProgress.requestCancellation();
+
+    // then
+    assertFalse(schedulingManager.checkWasSuccessfulRun(config, jobProgress));
+    assertEquals(JobStatus.STOPPED, config.getLastExecutedStatus());
+  }
+
+  @Test
+  @DisplayName(
+      "job should show as successful and state should be COMPLETED after being in a RUNNING state")
+  void jobShouldBeCompletedTest() {
+    // given
+    JobConfiguration config = new JobConfiguration();
+    config.setJobType(JobType.META_DATA_SYNC);
+    config.setInMemoryJob(true);
+    config.setJobStatus(JobStatus.SCHEDULED);
+    config.setLastExecutedStatus(JobStatus.RUNNING);
+
+    ControlledJobProgress jobProgress = new ControlledJobProgress(config);
+
+    // then
+    assertTrue(schedulingManager.checkWasSuccessfulRun(config, jobProgress));
+    assertEquals(JobStatus.COMPLETED, config.getLastExecutedStatus());
+  }
+
+  @Test
+  @DisplayName(
+      "job should show as unsuccessful and state should be FAILED when all processes not in SUCCESS state")
+  void jobShouldBeFailedTest() {
+    // given
+    JobConfiguration config = new JobConfiguration();
+    config.setJobType(JobType.META_DATA_SYNC);
+    config.setInMemoryJob(true);
+    config.setJobStatus(JobStatus.SCHEDULED);
+    config.setLastExecutedStatus(JobStatus.RUNNING);
+
+    ControlledJobProgress jobProgress = new ControlledJobProgress(config);
+    jobProgress.startingProcess("Test process");
+
+    // then
+    assertFalse(schedulingManager.checkWasSuccessfulRun(config, jobProgress));
+    assertEquals(JobStatus.FAILED, config.getLastExecutedStatus());
   }
 
   private JobConfiguration createQueueJobConfiguration(JobType type, int position) {
