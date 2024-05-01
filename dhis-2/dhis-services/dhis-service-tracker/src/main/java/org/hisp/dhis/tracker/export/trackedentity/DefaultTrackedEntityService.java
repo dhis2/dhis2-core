@@ -48,7 +48,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -260,7 +259,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity = getTrackedEntity(uid);
     User user = userService.getUserByUsername(getCurrentUsername());
-
     List<String> errors = trackerAccessManager.canRead(user, trackedEntity);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
@@ -309,45 +307,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    * @throws ForbiddenException if TE is not accessible
    */
   private TrackedEntity getTrackedEntity(String uid) throws NotFoundException, ForbiddenException {
-    User user = userService.getUserByUsername(getCurrentUsername());
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(trackedEntity, getCurrentUsername());
     if (trackedEntity == null) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
-
-    /**
-     * TODO This is a temporary fix, a more permanent solution needs to be found, maybe store the
-     * org unit path directly in the cache as a string or avoid using an Hibernate object in the
-     * cache
-     *
-     * <p>The tracked entity org unit will be used as a fallback in case no owner is found. In that
-     * case, it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be
-     * loaded unless accessed. This is a problem because we save the org unit object in the cache,
-     * and when we retrieve it, we can't get the value of the parents, since there's no session. We
-     * need the parents to build the org unit path, that later will be used to validate the
-     * ownership.
-     */
-    initializeTrackedEntityOrgUnitParents(trackedEntity);
-    if (programService.getAllPrograms().stream()
-        .anyMatch(
-            p ->
-                p.getTrackedEntityType() != null
-                    && p.getTrackedEntityType()
-                        .getUid()
-                        .equals(trackedEntity.getTrackedEntityType().getUid())
-                    && trackerAccessManager.canRead(user, trackedEntity, p, false).isEmpty())) {
-      return trackedEntity;
+    if (!trackerAccessManager
+        .canRead(userService.getUserByUsername(getCurrentUsername()), trackedEntity)
+        .isEmpty()) {
+      throw new ForbiddenException(TrackedEntity.class, uid);
     }
 
-    throw new ForbiddenException(TrackedEntity.class, uid);
-  }
-
-  private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
-    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
-    while (organisationUnit.getParent() != null) {
-      organisationUnit = organisationUnit.getParent();
-    }
+    return trackedEntity;
   }
 
   private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {

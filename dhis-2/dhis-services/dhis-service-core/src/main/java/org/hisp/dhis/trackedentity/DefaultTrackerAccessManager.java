@@ -33,6 +33,7 @@ import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -42,6 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -60,9 +62,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final AclService aclService;
 
   private final TrackerOwnershipManager ownershipAccessManager;
+  private final ProgramService programService;
 
   private final OrganisationUnitService organisationUnitService;
 
+  /**
+   * Check the data read permissions and ownership of a tracked entity given the programs for which
+   * the user has metadata access to.
+   *
+   * @return No errors if a user has access to at least one program
+   */
   @Override
   public List<String> canRead(User user, TrackedEntity trackedEntity) {
     List<String> errors = new ArrayList<>();
@@ -72,20 +81,62 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return errors;
     }
 
-    OrganisationUnit ou = trackedEntity.getOrganisationUnit();
-    // ou should never be null, but needs to be checked for legacy reasons
-    if (ou != null && !organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
-      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
+    return canRead(user, trackedEntity, programService.getAllPrograms());
+  }
+
+  private List<String> canRead(User user, TrackedEntity trackedEntity, List<Program> programs) {
+
+    if (null == trackedEntity) {
+      return List.of();
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
     if (!aclService.canDataRead(user, trackedEntityType)) {
-      errors.add(
+      return List.of(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
-    return errors;
+    initializeTrackedEntityOrgUnitParents(trackedEntity);
+
+    List<Program> tetPrograms =
+        programs.stream()
+            .filter(
+                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+            .toList();
+
+    if (tetPrograms.isEmpty()) {
+      return List.of("User has no access to any program");
+    }
+
+    if (tetPrograms.stream().anyMatch(p -> canRead(user, trackedEntity, p))) {
+      return List.of();
+    } else {
+      return List.of(OWNERSHIP_ACCESS_DENIED);
+    }
+  }
+
+  /** Check Program data read access and Tracked Entity Program Ownership */
+  private boolean canRead(User user, TrackedEntity trackedEntity, Program program) {
+    return aclService.canDataRead(user, program)
+        && ownershipAccessManager.hasAccess(user, trackedEntity, program);
+  }
+
+  /**
+   * TODO This is a temporary fix, a more permanent solution needs to be found, maybe store the org
+   * unit path directly in the cache as a string or avoid using an Hibernate object in the cache
+   *
+   * <p>The tracked entity org unit will be used as a fallback in case no owner is found. In that
+   * case, it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be
+   * loaded unless accessed. This is a problem because we save the org unit object in the cache, and
+   * when we retrieve it, we can't get the value of the parents, since there's no session. We need
+   * the parents to build the org unit path, that later will be used to validate the ownership.
+   */
+  private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
+    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
+    while (organisationUnit.getParent() != null) {
+      organisationUnit = organisationUnit.getParent();
+    }
   }
 
   @Override
@@ -551,30 +602,30 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(User user, Relationship relationship) {
-    List<String> errors = new ArrayList<>();
-    RelationshipType relationshipType;
-    RelationshipItem from;
-    RelationshipItem to;
 
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || relationship == null) {
-      return errors;
+      return List.of();
     }
 
-    relationshipType = relationship.getRelationshipType();
+    RelationshipType relationshipType = relationship.getRelationshipType();
+
+    List<String> errors = new ArrayList<>();
 
     if (!aclService.canDataRead(user, relationshipType)) {
       errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
     }
 
-    from = relationship.getFrom();
-    to = relationship.getTo();
+    List<Program> programs = programService.getAllPrograms();
 
-    errors.addAll(canRead(user, from.getTrackedEntity()));
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+
+    errors.addAll(canRead(user, from.getTrackedEntity(), programs));
     errors.addAll(canRead(user, from.getEnrollment(), false));
     errors.addAll(canRead(user, from.getEvent(), false));
 
-    errors.addAll(canRead(user, to.getTrackedEntity()));
+    errors.addAll(canRead(user, to.getTrackedEntity(), programs));
     errors.addAll(canRead(user, to.getEnrollment(), false));
     errors.addAll(canRead(user, to.getEvent(), false));
 
