@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -60,7 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/dataElements")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DataElementController extends AbstractCrudController<DataElement> {
 
   private final DataElementService dataElementService;

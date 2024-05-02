@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
+import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyCheck.DOMAIN_TYPE_CHECK;
+import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyCheck.VALUE_TYPE_CHECK;
+
 import com.google.common.collect.ImmutableList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +49,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Main class for {@link org.hisp.dhis.dataelement.DataElement} merge.
+ * Main class for a {@link org.hisp.dhis.dataelement.DataElement} merge.
  *
  * @author david mackessy
  */
@@ -57,6 +60,7 @@ public class DataElementMergeService implements MergeService {
   private final DataElementService dataElementService;
   private final DefaultDataElementMergeHandler dataElementMergeHandler;
   private final MergeValidator validator;
+  private final DataElementMergeValidator dataElementMergeValidator;
   private ImmutableList<org.hisp.dhis.merge.dataelement.DataElementMergeHandler> handlers;
 
   @Override
@@ -68,7 +72,25 @@ public class DataElementMergeService implements MergeService {
     // target
     validator.checkIsTargetInSources(sources, params.getTarget(), mergeReport, DataElement.class);
 
-    return validator.verifyTarget(mergeReport, sources, params, DataElement.class);
+    MergeRequest request = validator.verifyTarget(mergeReport, sources, params, DataElement.class);
+
+    if (mergeReport.hasErrorMessages()) return request;
+
+    // get DEs for further type-specific validation
+    DataElement deTarget = dataElementService.getDataElement(request.getTarget().getValue());
+    List<DataElement> deSources =
+        dataElementService.getDataElementsByUid(
+            request.getSources().stream().map(UID::getValue).toList());
+
+    MergeReport report =
+        dataElementMergeValidator.validateMismatches(
+            deTarget, deSources, VALUE_TYPE_CHECK, mergeReport);
+
+    if (report.hasErrorMessages()) return request;
+
+    dataElementMergeValidator.validateMismatches(
+        deTarget, deSources, DOMAIN_TYPE_CHECK, mergeReport);
+    return request;
   }
 
   @Override

@@ -100,6 +100,11 @@ public enum ErrorCode {
   E1542("Target indicator cannot be a source indicator"),
   E1543("{0} indicator does not exist: `{1}`"),
 
+  /* DataElement merge */
+  E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
+  E1551(
+      "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
+
   /* Data */
   E2000("Query parameters cannot be null"),
   E2001("At least one data element, data set or data element group must be specified"),

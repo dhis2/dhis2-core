@@ -146,7 +146,7 @@ public class DefaultMergeValidator implements MergeValidator {
   }
 
   /**
-   * Methods to get the appropriate error code based on the Object type
+   * Methods to getProperty the appropriate error code based on the Object type
    *
    * @param clazz class name
    * @return error code
