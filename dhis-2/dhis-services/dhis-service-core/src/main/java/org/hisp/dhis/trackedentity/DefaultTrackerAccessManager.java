@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
+import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
+
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -69,11 +73,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     OrganisationUnit ou = trackedEntity.getOrganisationUnit();
-
-    if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
-      if (!organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
-        errors.add("User has no read access to organisation unit: " + ou.getUid());
-      }
+    // ou should never be null, but needs to be checked for legacy reasons
+    if (ou != null && !organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
+      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
@@ -115,6 +117,18 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canRead(
       User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+    List<String> errors = canReadProgramAndTrackedEntityType(user, trackedEntity, program);
+
+    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+      errors.add(OWNERSHIP_ACCESS_DENIED);
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canReadProgramAndTrackedEntityType(
+      User user, TrackedEntity trackedEntity, Program program) {
     List<String> errors = new ArrayList<>();
 
     // always allow if user == null (internal process) or user is superuser
@@ -129,11 +143,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
     if (!aclService.canDataRead(user, trackedEntityType)) {
-      errors.add("User has no data read access to tracked entity: " + trackedEntityType.getUid());
-    }
-
-    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
-      errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      errors.add(
+          "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
     return errors;
@@ -160,7 +171,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
-      errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      errors.add(OWNERSHIP_ACCESS_DENIED);
     }
 
     return errors;
@@ -190,14 +201,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
       if (!skipOwnershipCheck
           && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
-        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+        errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     } else // this branch will only happen if coming from /events
     {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
 
       if (ou != null && !canAccess(user, program, ou)) {
-        errors.add("User has no read access to organisation unit: " + ou.getUid());
+        errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
       }
     }
 
@@ -237,7 +248,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
       if (!skipOwnershipCheck
           && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
-        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+        errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     }
 
@@ -268,7 +279,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
       if (!skipOwnershipCheck
           && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
-        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+        errors.add(OWNERSHIP_ACCESS_DENIED);
       }
 
     } else {
@@ -307,7 +318,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
       if (!skipOwnershipCheck
           && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
-        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+        errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     } else {
       OrganisationUnit ou = enrollment.getOrganisationUnit();
@@ -356,13 +367,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       if (!skipOwnershipCheck
           && !ownershipAccessManager.hasAccess(
               user, event.getEnrollment().getTrackedEntity(), program)) {
-        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+        errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     } else {
       OrganisationUnit ou = event.getOrganisationUnit();
 
       if (!canAccess(user, program, ou)) {
-        errors.add("User has no read access to organisation unit: " + ou.getUid());
+        errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
       }
     }
 
@@ -474,7 +485,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       if (!skipOwnershipCheck
           && !ownershipAccessManager.hasAccess(
               user, event.getEnrollment().getTrackedEntity(), program)) {
-        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+        errors.add(OWNERSHIP_ACCESS_DENIED);
       }
     }
 
@@ -687,6 +698,24 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     return organisationUnitService.isInUserSearchHierarchy(user, orgUnit);
+  }
+
+  @Override
+  public String canAccessProgramOwner(
+      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+      if (program.isProtected()) {
+        return OWNERSHIP_ACCESS_DENIED;
+      }
+
+      if (program.isClosed()) {
+        return PROGRAM_ACCESS_CLOSED;
+      }
+
+      return NO_READ_ACCESS_TO_ORG_UNIT;
+    }
+
+    return null;
   }
 
   private boolean isNull(ProgramStage programStage) {
