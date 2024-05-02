@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping("/method/testDefault")
+@RequestMapping("/api/method/testDefault")
 public class ApiMethodDefaultController {
   @GetMapping("a")
   @ApiVersion(DhisApiVersion.DEFAULT)

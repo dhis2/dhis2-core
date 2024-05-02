@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_DELETE;
+import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PRIVATE_ADD;
+import static org.hisp.dhis.security.Authorities.F_LEGEND_SET_PUBLIC_ADD;
+
+import java.util.List;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -51,11 +55,10 @@ public class LegendSetSchemaDescriptor implements SchemaDescriptor {
     schema.setOrder(1080);
 
     schema.add(
-        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_LEGEND_SET_PUBLIC_ADD")));
+        new Authority(AuthorityType.CREATE_PUBLIC, List.of(F_LEGEND_SET_PUBLIC_ADD.toString())));
     schema.add(
-        new Authority(
-            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_LEGEND_SET_PRIVATE_ADD")));
-    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_LEGEND_SET_DELETE")));
+        new Authority(AuthorityType.CREATE_PRIVATE, List.of(F_LEGEND_SET_PRIVATE_ADD.toString())));
+    schema.add(new Authority(AuthorityType.DELETE, List.of(F_LEGEND_SET_DELETE.toString())));
 
     return schema;
   }

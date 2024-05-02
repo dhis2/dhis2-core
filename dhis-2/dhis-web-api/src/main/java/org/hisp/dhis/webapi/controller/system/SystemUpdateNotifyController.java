@@ -48,14 +48,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping
+@RequestMapping("/api/systemUpdates")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SystemUpdateNotifyController {
-  public static final String RESOURCE_PATH = "/systemUpdates";
+  public static final String RESOURCE_PATH = "";
 
   @Autowired private SystemUpdateNotificationService service;
 
-  @GetMapping(SystemUpdateNotifyController.RESOURCE_PATH)
+  @GetMapping
   @ResponseBody
   public WebMessage checkForSystemUpdates(
       @RequestParam(value = "forceVersion", required = false) String forceVersion) {

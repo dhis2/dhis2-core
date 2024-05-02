@@ -48,15 +48,16 @@ class ApiVersionInheritTypeTest extends DhisWebSpringTest {
     String endpoint = "/type/testInheritedFromBase";
     mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
     mvc.perform(post(endpoint + "/abc").session(session)).andExpect(status().isNotFound());
-    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());
-    mvc.perform(post("/31" + endpoint + "/abc").session(session)).andExpect(status().isNotFound());
-    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isOk());
-    mvc.perform(get("/32" + endpoint + "/abc").session(session))
+    mvc.perform(get("/api/31" + endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(post("/api/31" + endpoint + "/abc").session(session))
+        .andExpect(status().isNotFound());
+    mvc.perform(get("/api/32" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/api/32" + endpoint + "/abc").session(session))
         .andExpect(status().isMethodNotAllowed());
-    mvc.perform(put("/32" + endpoint + "/abc").session(session))
+    mvc.perform(put("/api/32" + endpoint + "/abc").session(session))
         .andExpect(status().isMethodNotAllowed());
-    mvc.perform(delete("/32" + endpoint + "/abc").session(session))
+    mvc.perform(delete("/api/32" + endpoint + "/abc").session(session))
         .andExpect(status().isMethodNotAllowed());
-    mvc.perform(post("/32" + endpoint + "/abc").session(session)).andExpect(status().isOk());
+    mvc.perform(post("/api/32" + endpoint + "/abc").session(session)).andExpect(status().isOk());
   }
 }

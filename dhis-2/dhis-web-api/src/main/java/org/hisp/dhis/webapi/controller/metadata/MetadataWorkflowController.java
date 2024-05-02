@@ -76,7 +76,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping("/metadata/proposals")
+@RequestMapping("/api/metadata/proposals")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MetadataWorkflowController extends AbstractGistReadOnlyController<MetadataProposal> {

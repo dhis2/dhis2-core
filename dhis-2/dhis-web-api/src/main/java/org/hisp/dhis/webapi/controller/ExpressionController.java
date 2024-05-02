@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = "/expressions")
+@RequestMapping("/api/expressions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ExpressionController {
   @Autowired private ExpressionService expressionService;

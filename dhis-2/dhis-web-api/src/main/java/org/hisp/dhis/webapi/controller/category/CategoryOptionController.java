@@ -37,7 +37,6 @@ import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +49,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = CategoryOptionSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/categoryOptions")
 @RequiredArgsConstructor
 public class CategoryOptionController extends AbstractCrudController<CategoryOption> {
   private final CategoryService categoryService;

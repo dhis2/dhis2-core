@@ -51,13 +51,13 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Disabled;
@@ -143,7 +143,7 @@ class DataSetServiceTest extends TransactionalIntegrationTest {
 
     superUser =
         createAndAddUser(
-            true, "username", newHashSet(unitA), newHashSet(unitA), UserRole.AUTHORITY_ALL);
+            true, "username", newHashSet(unitA), newHashSet(unitA), Authorities.ALL.toString());
     injectSecurityContextUser(superUser);
   }
 

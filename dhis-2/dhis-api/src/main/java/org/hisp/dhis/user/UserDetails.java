@@ -35,6 +35,7 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -231,7 +232,11 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean hasAnyAuthority(Collection<String> auths);
 
+  boolean hasAnyAuthorities(Collection<Authorities> auths);
+
   boolean isAuthorized(String auth);
+
+  boolean isAuthorized(@Nonnull Authorities auth);
 
   @Nonnull
   Map<String, Serializable> getUserSettings();

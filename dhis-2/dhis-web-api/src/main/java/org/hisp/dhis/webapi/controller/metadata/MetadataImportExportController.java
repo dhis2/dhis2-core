@@ -99,7 +99,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping("/metadata")
+@RequestMapping("/api/metadata")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class MetadataImportExportController {

@@ -59,8 +59,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @OpenApi.Tags("metadata")
 @Controller
-@RequestMapping(value = DataElementSchemaDescriptor.API_ENDPOINT)
-@RequiredArgsConstructor
+@RequestMapping("/api/dataElements")
+@AllArgsConstructor
 public class DataElementController extends AbstractCrudController<DataElement> {
 
   private final DataElementService dataElementService;

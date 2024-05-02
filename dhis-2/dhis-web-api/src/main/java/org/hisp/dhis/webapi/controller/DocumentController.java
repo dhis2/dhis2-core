@@ -45,7 +45,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.schema.descriptors.DocumentSchemaDescriptor;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @OpenApi.Tags("metadata")
 @Controller
 @Slf4j
-@RequestMapping(value = DocumentSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/documents")
 public class DocumentController extends AbstractCrudController<Document> {
 
   @Autowired private DocumentService documentService;
