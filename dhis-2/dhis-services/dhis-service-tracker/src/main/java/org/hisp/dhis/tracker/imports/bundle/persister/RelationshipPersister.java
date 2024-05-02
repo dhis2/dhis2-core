@@ -121,7 +121,7 @@ public class RelationshipPersister
   protected void addSideEffectTriggers(
       TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto) {
     // NOTHING TO DO
-    // SideEffectTrigger are only applicable to Enrollments and Events
+    // SideEffectTriggers are only applicable to Enrollments and Events
   }
 
   @Override

@@ -109,7 +109,7 @@ public class TrackedEntityPersister
   @Override
   protected void addSideEffectTriggers(TrackerPreheat preheat, TrackedEntity convertedDto) {
     // NOTHING TO DO
-    // SideEffectTrigger are only applicable to Enrollments and Events
+    // SideEffectTriggers are only applicable to Enrollments and Events
   }
 
   @Override
