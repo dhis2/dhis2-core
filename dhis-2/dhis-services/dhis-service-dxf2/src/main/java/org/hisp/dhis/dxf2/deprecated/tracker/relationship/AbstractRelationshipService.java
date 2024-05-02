@@ -460,8 +460,12 @@ public abstract class AbstractRelationshipService implements RelationshipService
     relationship.setRelationshipType(dao.getRelationshipType().getUid());
     relationship.setRelationshipName(dao.getRelationshipType().getName());
 
-    relationship.setFrom(includeRelationshipItem(dao.getFrom(), !params.isIncludeFrom()));
-    relationship.setTo(includeRelationshipItem(dao.getTo(), !params.isIncludeTo()));
+    relationship.setFrom(
+        includeRelationshipItem(
+            dao.getFrom(), !params.isIncludeFrom(), dao.getRelationshipType().getFromConstraint()));
+    relationship.setTo(
+        includeRelationshipItem(
+            dao.getTo(), !params.isIncludeTo(), dao.getRelationshipType().getToConstraint()));
 
     relationship.setBidirectional(dao.getRelationshipType().isBidirectional());
 
@@ -477,7 +481,8 @@ public abstract class AbstractRelationshipService implements RelationshipService
   }
 
   private org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem
-      includeRelationshipItem(RelationshipItem dao, boolean uidOnly) {
+      includeRelationshipItem(
+          RelationshipItem dao, boolean uidOnly, RelationshipConstraint constraint) {
     org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem relationshipItem =
         new org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem();
 
