@@ -125,7 +125,9 @@ public abstract class AbstractTrackerPersister<
 
         updateDataValues(entityManager, bundle.getPreheat(), trackerDto, convertedDto);
 
-        addSideEffectTriggers(bundle.getPreheat(), convertedDto);
+        if (!bundle.isSkipSideEffects()) {
+          addSideEffectTriggers(bundle.getPreheat(), convertedDto);
+        }
 
         //
         // Save or update the entity

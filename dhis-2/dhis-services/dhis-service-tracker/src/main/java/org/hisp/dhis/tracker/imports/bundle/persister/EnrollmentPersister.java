@@ -117,14 +117,16 @@ public class EnrollmentPersister
 
   @Override
   protected void addSideEffectTriggers(TrackerPreheat preheat, Enrollment converted) {
-    Enrollment exitingEnrollment = preheat.getEnrollment(converted.getUid());
     if (isNew(preheat, converted.getUid())) {
       preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT);
       if (converted.isCompleted()) {
         preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT_COMPLETION);
       }
-    } else if (exitingEnrollment.getStatus() != converted.getStatus() && converted.isCompleted()) {
-      preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+    } else {
+      Enrollment exitingEnrollment = preheat.getEnrollment(converted.getUid());
+      if (exitingEnrollment.getStatus() != converted.getStatus() && converted.isCompleted()) {
+        preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
     }
   }
 
