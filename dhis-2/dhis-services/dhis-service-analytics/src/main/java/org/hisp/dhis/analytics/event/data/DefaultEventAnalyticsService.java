@@ -52,7 +52,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.hisp.dhis.common.ValueType.DATE;
+import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
@@ -711,7 +711,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
             new GridHeader(
                 ITEM_EVENT_DATE,
                 getEventDateLabel(params.getProgramStage(), NAME_EVENT_DATE),
-                DATE,
+                DATETIME,
                 false,
                 true))
         .addHeader(new GridHeader(ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true))
@@ -725,12 +725,12 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
                 TEXT,
                 false,
                 true))
-        .addHeader(new GridHeader(ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true))
+        .addHeader(new GridHeader(ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATETIME, false, true))
         .addHeader(
             new GridHeader(
                 ITEM_SCHEDULED_DATE,
                 getScheduledDateLabel(params.getProgramStage(), NAME_SCHEDULED_DATE),
-                DATE,
+                DATETIME,
                 false,
                 true));
 
@@ -739,14 +739,14 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
               new GridHeader(
                   ITEM_ENROLLMENT_DATE,
                   getEnrollmentDateLabel(params.getProgram(), NAME_ENROLLMENT_DATE),
-                  DATE,
+                  DATETIME,
                   false,
                   true))
           .addHeader(
               new GridHeader(
                   ITEM_INCIDENT_DATE,
                   getIncidentDateLabel(params.getProgram(), NAME_INCIDENT_DATE),
-                  DATE,
+                  DATETIME,
                   false,
                   true))
           .addHeader(new GridHeader(ITEM_TRACKED_ENTITY_INSTANCE, NAME_TEI, TEXT, false, true))
