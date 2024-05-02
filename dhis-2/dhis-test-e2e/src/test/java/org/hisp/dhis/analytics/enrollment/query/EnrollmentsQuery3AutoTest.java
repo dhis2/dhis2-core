@@ -100,8 +100,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         2,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
 
@@ -165,8 +165,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         2,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
 
@@ -247,8 +247,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         3,
         "enrollmentdate",
         "Start of treatment date",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
 
@@ -304,12 +304,19 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         2,
         "enrollmentdate",
         "Date of Focus Registration",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(
-        response, 3, "incidentdate", "Incident date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        3,
+        "incidentdate",
+        "Incident date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 4, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 5, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -323,7 +330,14 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 7, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -573,12 +587,19 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         1,
         "enrollmentdate",
         "Date of enrollment",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(
-        response, 2, "incidentdate", "Date of birth", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Assert rows.
     validateRow(
@@ -642,12 +663,19 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         1,
         "enrollmentdate",
         "Date of enrollment",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(
-        response, 2, "incidentdate", "Date of birth", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Assert rows.
     validateRow(
@@ -712,12 +740,19 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         1,
         "enrollmentdate",
         "Date of enrollment",
-        "DATE",
-        "java.time.LocalDate",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
     validateHeader(
-        response, 2, "incidentdate", "Date of birth", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Assert rows.
     validateRow(
