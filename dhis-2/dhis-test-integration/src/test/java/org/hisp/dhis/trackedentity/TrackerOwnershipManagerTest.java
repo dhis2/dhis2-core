@@ -70,6 +70,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
+  @Autowired private TrackerAccessManager trackerAccessManager;
+
   @Autowired private UserService _userService;
 
   @Autowired private TrackedEntityService entityInstanceService;
@@ -146,6 +148,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programService.updateProgram(programA);
     programB = createProgram('B');
     programB.setAccessLevel(AccessLevel.CLOSED);
+    programB.setTrackedEntityType(trackedEntityType);
     programService.addProgram(programB);
     programB.setSharing(
         Sharing.builder()
@@ -412,6 +415,23 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     TrackedEntityOperationParams operationParams = createOperationParams(userA, null);
     Assertions.assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfHasReadAccessToOtherProgram()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+    programB.setSharing(Sharing.builder().publicAccess(AccessStringHelper.DATA_READ).build());
+    programService.updateProgram(programB);
+    TrackedEntityOperationParams operationParams = createOperationParams(userA, null);
+
+    trackerAccessManager.canRead(UserDetails.fromUser(userA), entityInstanceA1);
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntities.stream().map(BaseIdentifiableObject::getUid).toList());
   }
 
   @Test
