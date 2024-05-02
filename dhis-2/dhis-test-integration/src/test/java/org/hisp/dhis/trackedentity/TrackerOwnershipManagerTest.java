@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -105,6 +106,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private User userB;
   private User superUser;
+
+  private UserDetails userDetailsA;
 
   private TrackedEntityParams defaultParams;
 
@@ -158,7 +161,6 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programService.updateProgram(programB);
 
     userDetailsA = UserDetails.fromUser(userA);
-    userDetailsB = UserDetails.fromUser(userB);
 
     enrollmentService.addEnrollment(
         createEnrollment(programA, entityInstanceA1, organisationUnitA));
@@ -425,7 +427,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programService.updateProgram(programB);
     TrackedEntityOperationParams operationParams = createOperationParams(userA, null);
 
-    trackerAccessManager.canRead(UserDetails.fromUser(userA), entityInstanceA1);
+    trackerAccessManager.canRead(userA, entityInstanceA1);
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
