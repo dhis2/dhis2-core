@@ -43,7 +43,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.legend.LegendSet;
 import org.junit.jupiter.api.Test;
 
-public class DataElementQueryBuilderTest {
+class DataElementQueryBuilderTest {
 
   private final DataElementQueryBuilder dataElementQueryBuilder = new DataElementQueryBuilder();
 
