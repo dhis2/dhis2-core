@@ -77,7 +77,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       return;
     }
 
-    for (SideEffectTrigger trigger : sideEffectDataBundle.getTriggerEvent()) {
+    for (SideEffectTrigger trigger : sideEffectDataBundle.getTriggers()) {
       if (serviceMapper.containsKey(trigger)) {
         BaseIdentifiableObject object =
             manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());

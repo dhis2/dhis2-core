@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.note.Note;
@@ -116,23 +118,23 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected void addSideEffectTriggers(TrackerPreheat preheat, Enrollment converted) {
-    if (isNew(preheat, converted.getUid())) {
-      preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT);
-      if (converted.isCompleted()) {
-        preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      Enrollment exitingEnrollment = preheat.getEnrollment(converted.getUid());
-      if (exitingEnrollment.getStatus() != converted.getStatus() && converted.isCompleted()) {
-        preheat.getTriggers().add(SideEffectTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
-  }
-
-  @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, Enrollment enrollment) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+
+    if (isNew(preheat, enrollment.getUid())) {
+      triggers.add(SideEffectTrigger.ENROLLMENT);
+      if (enrollment.isCompleted()) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
+      if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
         .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
@@ -142,7 +144,7 @@ public class EnrollmentPersister
         .accessedBy(bundle.getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
-        .triggerEvent(bundle.getPreheat().getTriggers())
+        .triggers(triggers)
         .build();
   }
 
