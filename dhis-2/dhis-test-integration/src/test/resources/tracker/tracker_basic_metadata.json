@@ -488,6 +488,12 @@
       "organisationUnits": [
         {
           "id": "QfUVllTs6cS"
+        },
+        {
+          "id": "QfUVllTs6cZ"
+        },
+        {
+          "id": "QfUVllTs6cW"
         }
       ],
       "onlyEnrollOnce": false,
@@ -832,6 +838,9 @@
       "organisationUnits": [
         {
           "id": "QfUVllTs6cS"
+        },
+        {
+          "id": "QfUVllTs6cZ"
         }
       ],
       "onlyEnrollOnce": false,
@@ -866,6 +875,10 @@
           },
           "iAji3gyZYQL": {
             "id": "iAji3gyZYQL",
+            "access": "rwrw----"
+          },
+          "Xl2V8x8R1R5": {
+            "id": "Xl2V8x8R1R5",
             "access": "rwrw----"
           }
         },
