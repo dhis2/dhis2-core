@@ -51,9 +51,9 @@ public class RelationshipValidator implements Validator<TrackerBundle> {
                 new ExistenceValidator(),
                 new MandatoryFieldsValidator(),
                 new MetaValidator(),
+                securityOwnershipValidator,
                 new LinkValidator(),
                 new ConstraintValidator(),
-                securityOwnershipValidator,
                 new DuplicationValidator()));
   }
 

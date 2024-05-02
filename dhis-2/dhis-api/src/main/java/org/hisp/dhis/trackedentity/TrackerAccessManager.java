@@ -37,7 +37,6 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -85,7 +84,6 @@ public interface TrackerAccessManager {
 
   List<String> canWrite(UserDetails user, Relationship relationship);
 
-  @Transactional(readOnly = true)
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
 
   /**
