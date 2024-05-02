@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.ValueType.DATE;
+import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
@@ -118,14 +118,14 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
             new GridHeader(
                 ITEM_ENROLLMENT_DATE,
                 LabelMapper.getEnrollmentDateLabel(params.getProgram(), NAME_ENROLLMENT_DATE),
-                DATE,
+                DATETIME,
                 false,
                 true))
         .addHeader(
             new GridHeader(
                 ITEM_INCIDENT_DATE,
                 LabelMapper.getIncidentDateLabel(params.getProgram(), NAME_INCIDENT_DATE),
-                DATE,
+                DATETIME,
                 false,
                 true))
         .addHeader(new GridHeader(ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true))
@@ -139,7 +139,7 @@ public class DefaultEnrollmentAnalyticsService extends AbstractAnalyticsService
                 TEXT,
                 false,
                 true))
-        .addHeader(new GridHeader(ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true))
+        .addHeader(new GridHeader(ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATETIME, false, true))
         .addHeader(new GridHeader(ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true))
         .addHeader(new GridHeader(ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true))
         .addHeader(new GridHeader(ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true))
