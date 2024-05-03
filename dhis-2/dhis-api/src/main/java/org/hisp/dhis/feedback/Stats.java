@@ -99,6 +99,10 @@ public class Stats {
     deleted++;
   }
 
+  public void decDeleted() {
+    deleted--;
+  }
+
   public void incDeleted(int n) {
     deleted += n;
   }
