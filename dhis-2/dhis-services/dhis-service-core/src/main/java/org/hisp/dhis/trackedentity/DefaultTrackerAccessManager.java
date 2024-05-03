@@ -227,13 +227,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canWrite(
       User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
-    List<String> errors = new ArrayList<>();
-
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || trackedEntity == null) {
-      return errors;
+      return List.of();
     }
 
+    List<String> errors = new ArrayList<>();
     if (!aclService.canDataWrite(user, program)) {
       errors.add("User has no data write access to program: " + program.getUid());
     }
