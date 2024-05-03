@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -105,7 +104,7 @@ class SecurityOwnershipValidator
 
     if (!strategy.isCreate()) {
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
-      if (!trackerAccessManager.canWrite(UserDetails.fromUser(bundle.getUser()), te).isEmpty()) {
+      if (!trackerAccessManager.canWrite(bundle.getUser(), te).isEmpty()) {
         reporter.addError(
             trackedEntity, ValidationCode.E1003, bundle.getUser().getUid(), te.getUid());
       }

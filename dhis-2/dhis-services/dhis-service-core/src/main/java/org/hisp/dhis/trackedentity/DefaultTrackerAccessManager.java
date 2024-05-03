@@ -146,7 +146,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
    *
    * @return No errors if a user has access to at least one program
    */
-    @Override
+  @Override
   @Transactional(readOnly = true)
   public List<String> canWrite(User user, TrackedEntity trackedEntity) {
     // always allow if user == null (internal process) or user is superuser
@@ -157,8 +157,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return canWrite(user, trackedEntity, programService.getAllPrograms());
   }
 
-  private List<String> canWrite(
-      User user, TrackedEntity trackedEntity, List<Program> programs) {
+  private List<String> canWrite(User user, TrackedEntity trackedEntity, List<Program> programs) {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
@@ -666,19 +665,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-      RelationshipType relationshipType = relationship.getRelationshipType();
-      List<String> errors = new ArrayList<>();
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<String> errors = new ArrayList<>();
 
-      if (!aclService.canDataWrite(user, relationshipType)) {
-          errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
-      }
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
+    }
 
-      RelationshipItem from = relationship.getFrom();
-      RelationshipItem to = relationship.getTo();
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
 
-      errors.addAll(canWrite(user, from.getTrackedEntity()));
-      errors.addAll(canUpdate(user, from.getEnrollment(), false));
-      errors.addAll(canUpdate(user, from.getEvent(), false));
+    errors.addAll(canWrite(user, from.getTrackedEntity()));
+    errors.addAll(canUpdate(user, from.getEnrollment(), false));
+    errors.addAll(canUpdate(user, from.getEvent(), false));
 
     errors.addAll(canWrite(user, to.getTrackedEntity()));
     errors.addAll(canUpdate(user, to.getEnrollment(), false));
