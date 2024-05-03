@@ -607,8 +607,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
   void getRelationshipsByTrackedEntityWithAttributes() {
     TrackedEntityInstance to = trackedEntityInstance(orgUnit);
     to.setTrackedEntityAttributeValues(Set.of(attributeValue(tea, to, "12")));
+
     ProgramInstance from = programInstance(to);
-    relationship(from, to);
     Relationship relationship = relationship(from, to);
 
     RelationshipType type = relationship.getRelationshipType();
@@ -629,6 +629,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
     type.setFromConstraint(fromConstraint);
     type.setToConstraint(toConstraint);
+
+    manager.update(type);
 
     JsonList<JsonRelationship> relationships =
         GET(
