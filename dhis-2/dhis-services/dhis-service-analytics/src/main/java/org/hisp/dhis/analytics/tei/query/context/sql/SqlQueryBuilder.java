@@ -119,10 +119,6 @@ public interface SqlQueryBuilder {
     return GroupedDimensions.of(streamDimensions(headers, dimensions, sortingParams));
   }
 
-  default boolean acceptDuplicatedHeaders() {
-    return false;
-  }
-
   @Getter
   class GroupedDimensions {
 
