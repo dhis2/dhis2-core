@@ -83,8 +83,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return canRead(user, trackedEntity, programService.getAllPrograms());
   }
 
-  private List<String> canRead(
-      User user, TrackedEntity trackedEntity, List<Program> programs) {
+  private List<String> canRead(User user, TrackedEntity trackedEntity, List<Program> programs) {
 
     if (null == trackedEntity) {
       return List.of();
@@ -156,8 +155,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return canWrite(user, trackedEntity, programService.getAllPrograms());
   }
 
-  private List<String> canWrite(
-      User user, TrackedEntity trackedEntity, List<Program> programs) {
+  private List<String> canWrite(User user, TrackedEntity trackedEntity, List<Program> programs) {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
@@ -290,8 +288,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(
-      User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canCreate(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || enrollment == null) {
       return List.of();
@@ -327,8 +324,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canUpdate(
-      User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canUpdate(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || enrollment == null) {
       return List.of();
@@ -363,8 +359,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canDelete(
-      User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+  public List<String> canDelete(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || enrollment == null) {
       return List.of();
