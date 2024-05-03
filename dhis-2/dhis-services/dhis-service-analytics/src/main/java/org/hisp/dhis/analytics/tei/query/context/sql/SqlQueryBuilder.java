@@ -28,7 +28,9 @@
 package org.hisp.dhis.analytics.tei.query.context.sql;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -124,7 +126,15 @@ public interface SqlQueryBuilder {
 
     private GroupedDimensions(Stream<DimensionIdentifier<DimensionParam>> dimensions) {
       groupsByKey =
-          dimensions.collect(groupingBy(DimensionIdentifier::getKey)).entrySet().stream()
+          dimensions
+              .collect(
+                  groupingBy(
+                      DimensionIdentifier::getKey,
+                      // LinkedHashMap to keep the order
+                      LinkedHashMap::new,
+                      toList()))
+              .entrySet()
+              .stream()
               .map(entry -> new DimensionGroup(entry.getKey(), entry.getValue()))
               .toList();
     }
