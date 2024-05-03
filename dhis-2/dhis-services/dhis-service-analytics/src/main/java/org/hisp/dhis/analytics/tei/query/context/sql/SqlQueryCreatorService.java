@@ -70,7 +70,10 @@ public class SqlQueryCreatorService {
       List<DimensionIdentifier<DimensionParam>> acceptedHeaders =
           teiQueryParams.getCommonParams().getParsedHeaders().stream()
               .filter(provider.getHeaderFilters().stream().reduce(x -> true, Predicate::and))
-              .filter(parsedHeader -> notContains(acceptedDimensions, parsedHeader))
+              .filter(
+                  parsedHeader ->
+                      provider.acceptDuplicatedHeaders()
+                          || notContains(acceptedDimensions, parsedHeader))
               .toList();
 
       if (provider.alwaysRun()
