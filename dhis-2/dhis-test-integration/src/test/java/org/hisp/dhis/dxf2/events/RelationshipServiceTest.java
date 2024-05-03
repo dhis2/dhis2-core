@@ -27,26 +27,34 @@
  */
 package org.hisp.dhis.dxf2.events;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -57,7 +65,11 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,6 +79,16 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
   @Autowired private RelationshipService relationshipService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private UserService _userService;
+
+  private TrackedEntityAttribute teaA;
+
+  private TrackedEntityAttribute teaB;
+
+  private DataElement dataElementA;
+
+  private DataElement dataElementB;
 
   private org.hisp.dhis.trackedentity.TrackedEntityInstance teiA;
 
@@ -90,6 +112,8 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
 
   @Override
   protected void setUpTest() throws Exception {
+    userService = _userService;
+
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType);
 
@@ -108,11 +132,18 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
     manager.save(teiB);
     manager.save(teiC);
 
+    teaA = createTrackedEntityAttribute('A');
+    manager.save(teaA, false);
+
+    teaB = createTrackedEntityAttribute('B');
+    manager.save(teaB, false);
+
     Program program = createProgram('A', new HashSet<>(), organisationUnit);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     ProgramStage programStage = createProgramStage('1', program);
     program.setProgramStages(
         Stream.of(programStage).collect(Collectors.toCollection(HashSet::new)));
+    program.setProgramAttributes(List.of(createProgramTrackedEntityAttribute(program, teaA)));
 
     manager.save(program);
     manager.save(programStage);
@@ -136,6 +167,12 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
     programStageInstanceB.setProgramStage(programStage);
     programStageInstanceB.setOrganisationUnit(organisationUnit);
     manager.save(programStageInstanceB);
+
+    dataElementA = createDataElement('a');
+    manager.save(dataElementA);
+
+    dataElementB = createDataElement('b');
+    manager.save(dataElementB);
 
     relationshipTypeTeiToTei
         .getFromConstraint()
@@ -167,10 +204,29 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
     manager.save(relationshipTypeTeiToTei);
     manager.save(relationshipTypeTeiToPi);
     manager.save(relationshipTypeTeiToPsi);
+    createUserAndInjectSecurityContext(true);
   }
 
   @Test
   void shouldAddTeiToTeiRelationship() {
+    teiA.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(teaA, teiA, "100"),
+            new TrackedEntityAttributeValue(teaB, teiA, "100")));
+    teiB.setTrackedEntityAttributeValues(Set.of(new TrackedEntityAttributeValue(teaA, teiB, "10")));
+
+    manager.update(teiA);
+    manager.update(teiB);
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(teaA.getUid())));
+
+    relationshipTypeTeiToTei.getFromConstraint().setTrackerDataView(trackerDataView);
+
+    relationshipTypeTeiToTei.getToConstraint().setTrackerDataView(trackerDataView);
+
+    manager.update(relationshipTypeTeiToPi);
+
     Relationship relationshipPayload = new Relationship();
     relationshipPayload.setRelationshipType(relationshipTypeTeiToTei.getUid());
 
@@ -200,6 +256,12 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
                   Relationship r = relationshipDb.get();
                   assertEquals(r.getFrom(), from);
                   assertEquals(r.getTo(), to);
+                  assertContainsOnly(
+                      List.of(attributeFromTea(teaA, "100")),
+                      r.getFrom().getTrackedEntityInstance().getAttributes());
+                  assertContainsOnly(
+                      List.of(attributeFromTea(teaA, "10")),
+                      r.getTo().getTrackedEntityInstance().getAttributes());
                 }));
   }
 
@@ -243,6 +305,25 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldAddTeiToPiRelationship() {
+    teiA.setTrackedEntityAttributeValues(
+        Set.of(new TrackedEntityAttributeValue(teaA, teiA, "100")));
+    teiB.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(teaA, teiB, "10"),
+            new TrackedEntityAttributeValue(teaB, teiB, "100")));
+
+    manager.update(teiA);
+    manager.update(teiB);
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(teaA.getUid())));
+
+    relationshipTypeTeiToPi.getFromConstraint().setTrackerDataView(trackerDataView);
+
+    relationshipTypeTeiToPi.getToConstraint().setTrackerDataView(trackerDataView);
+
+    manager.update(relationshipTypeTeiToPi);
+
     Relationship relationship = new Relationship();
     relationship.setRelationshipType(relationshipTypeTeiToPi.getUid());
 
@@ -250,7 +331,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
 
     RelationshipItem to = new RelationshipItem();
     Enrollment enrollment = new Enrollment();
-    enrollment.setEnrollment(programInstanceA.getUid());
+    enrollment.setEnrollment(programInstanceB.getUid());
     to.setEnrollment(enrollment);
 
     relationship.setFrom(from);
@@ -272,6 +353,12 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
                   Relationship r = relationshipDb.get();
                   assertEquals(from, r.getFrom());
                   assertEquals(to, r.getTo());
+                  assertContainsOnly(
+                      List.of(attributeFromTea(teaA, "100")),
+                      r.getFrom().getTrackedEntityInstance().getAttributes());
+                  assertContainsOnly(
+                      List.of(attributeFromTea(teaA, "10")),
+                      r.getTo().getEnrollment().getAttributes());
                 }));
   }
 
@@ -311,11 +398,46 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
                   assertEquals(relationship.getUid(), r.getRelationship());
                   assertEquals(from, r.getFrom());
                   assertEquals(to, r.getTo());
+                  assertContainsOnly(
+                      List.of(attributeFromTea(teaA, "100")),
+                      r.getFrom().getTrackedEntityInstance().getAttributes());
+                  assertContainsOnly(
+                      List.of(new DataValue(dataElementA.getUid(), "10")),
+                      r.getTo().getEvent().getDataValues());
                 }));
   }
 
   @Test
   void shouldAddTeiToPsiRelationship() {
+    teiA.setTrackedEntityAttributeValues(
+        Set.of(new TrackedEntityAttributeValue(teaA, teiA, "100")));
+
+    manager.update(teiA);
+
+    EventDataValue dataValueA = new EventDataValue();
+    dataValueA.setValue("10");
+    dataValueA.setDataElement(dataElementA.getUid());
+
+    EventDataValue dataValueB = new EventDataValue();
+    dataValueB.setValue("100");
+    dataValueB.setDataElement(dataElementB.getUid());
+
+    programStageInstanceA.setEventDataValues(Set.of(dataValueA, dataValueB));
+
+    manager.update(programStageInstanceA);
+
+    TrackerDataView trackerDataViewFrom = new TrackerDataView();
+    trackerDataViewFrom.setAttributes(new LinkedHashSet<>(Set.of(teaA.getUid())));
+
+    relationshipTypeTeiToPsi.getFromConstraint().setTrackerDataView(trackerDataViewFrom);
+
+    TrackerDataView trackerDataViewTo = new TrackerDataView();
+    trackerDataViewTo.setDataElements(new LinkedHashSet<>(Set.of(dataElementA.getUid())));
+
+    relationshipTypeTeiToPsi.getToConstraint().setTrackerDataView(trackerDataViewTo);
+
+    manager.update(relationshipTypeTeiToPsi);
+
     Relationship relationshipPayload = new Relationship();
     relationshipPayload.setRelationshipType(relationshipTypeTeiToPsi.getUid());
 
@@ -361,7 +483,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
 
     RelationshipItem to = new RelationshipItem();
     Event event = new Event();
-    event.setEvent(programStageInstanceB.getUid());
+    event.setEvent(programStageInstanceA.getUid());
     to.setEvent(event);
 
     relationshipPayload.setFrom(from);
@@ -385,6 +507,13 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
                   assertEquals(from, r.getFrom());
                   assertEquals(to, r.getTo());
                 }));
+  }
+
+  private Attribute attributeFromTea(TrackedEntityAttribute tea, String value) {
+    Attribute attribute = new Attribute(tea.getUid(), tea.getValueType(), value);
+    attribute.setCode(tea.getCode());
+    attribute.setDisplayName(tea.getDisplayName());
+    return attribute;
   }
 
   private RelationshipItem teiFrom() {
