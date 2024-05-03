@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
-
-import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+package org.hisp.dhis.tracker.imports.job;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Zubair Asghar
  */
-@OpenApi.Tags({"user", "management"})
-@Controller
-@RequestMapping("/api/userGroups")
-public class UserGroupController extends AbstractCrudController<UserGroup> {
-
-  @Override
-  protected void postUpdateEntity(UserGroup entity) {
-    hibernateCacheManager.clearCache();
-    aclService.invalidateCurrentUserGroupInfoCache();
-  }
-
-  @Override
-  protected void postUpdateItems(UserGroup entity, IdentifiableObjects items) {
-    aclService.invalidateCurrentUserGroupInfoCache();
-  }
-
-  @Override
-  protected void postDeleteEntity(String entityUid) {
-    manager.removeUserGroupFromSharing(entityUid);
-    aclService.invalidateCurrentUserGroupInfoCache();
-  }
+public enum SideEffectTrigger {
+  ENROLLMENT,
+  ENROLLMENT_COMPLETION,
+  EVENT_COMPLETION,
+  NONE
 }

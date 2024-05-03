@@ -62,14 +62,11 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -460,47 +457,11 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);
     columns.add(new AnalyticsTableColumn("id", TEXT, idColAlias));
-
-    List<DataElementGroupSet> dataElementGroupSets =
-        idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class);
-
-    List<CategoryOptionGroupSet> disaggregationCategoryOptionGroupSets =
-        categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl();
-
-    List<Category> disaggregationCategories =
-        categoryService.getDisaggregationDataDimensionCategoriesNoAcl();
-
-    for (DataElementGroupSet groupSet : dataElementGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "degs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
+    columns.addAll(getDataElementGroupSetColumns());
     columns.addAll(getOrganisationUnitGroupSetColumns());
-
-    for (CategoryOptionGroupSet groupSet : disaggregationCategoryOptionGroupSets) {
-      columns.add(
-          new AnalyticsTableColumn(
-              groupSet.getUid(),
-              CHARACTER_11,
-              "dcs." + quote(groupSet.getUid()),
-              groupSet.getCreated()));
-    }
-
+    columns.addAll(getDisaggregationCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
-
-    for (Category category : disaggregationCategories) {
-      columns.add(
-          new AnalyticsTableColumn(
-              category.getUid(),
-              CHARACTER_11,
-              "dcs." + quote(category.getUid()),
-              category.getCreated()));
-    }
-
+    columns.addAll(getDisaggregationCategoryColumns());
     columns.addAll(getAttributeCategoryColumns());
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getPeriodTypeColumns("ps"));
@@ -611,7 +572,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     }
 
     sql.deleteCharAt(sql.length() - ",".length());
-
+    sql.append(" ");
     sql.append(
         """
         where oulevel > ${aggregationLevel} \

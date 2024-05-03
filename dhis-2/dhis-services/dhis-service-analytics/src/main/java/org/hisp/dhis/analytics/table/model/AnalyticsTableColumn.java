@@ -208,6 +208,29 @@ public class AnalyticsTableColumn {
    *
    * @param name analytics table column name.
    * @param dataType analytics table column data type.
+   * @param selectExpression source table select expression.
+   * @param skipIndex whether to skip index for column.
+   * @param created the created date.
+   */
+  public AnalyticsTableColumn(
+      String name, DataType dataType, String selectExpression, Skip skipIndex, Date created) {
+    this.name = name;
+    this.dataType = dataType;
+    this.nullable = Nullable.NULL;
+    this.collation = Collation.DEFAULT;
+    this.valueType = AnalyticsValueType.DIMENSION;
+    this.selectExpression = selectExpression;
+    this.skipIndex = skipIndex;
+    this.indexType = IndexType.BTREE;
+    this.indexColumns = List.of();
+    this.created = created;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name analytics table column name.
+   * @param dataType analytics table column data type.
    * @param nullable analytics table column not null constraint.
    * @param selectExpression source table select expression.
    * @param indexColumns index column names.
