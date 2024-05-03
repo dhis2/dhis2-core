@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.merge.dataelement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,11 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
@@ -24,13 +54,13 @@ import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 
 class DataElementMergeProcessorTest extends IntegrationTestBase {
 
   @Autowired private DataElementMergeProcessor mergeProcessor;
   @Autowired private IdentifiableObjectManager idObjectManager;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
+  @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
   @Autowired private MinMaxDataElementService minMaxDataElementService;
   @Autowired private DataElementService dataElementService;
   @Autowired private OrganisationUnitService orgUnitService;
@@ -75,6 +105,9 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     assertEquals(3, orgUnits.size());
   }
 
+  // -------------------------------
+  // ---- MIN MAX DATA ELEMENTS ----
+  // -------------------------------
   @Test
   @DisplayName("MinMaxDataElements are merged as expected, sources not deleted")
   void minMaxDataElementMergeTest() throws ConflictException {
@@ -91,9 +124,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     minMaxDataElementStore.save(minMaxDataElement3);
 
     // params
-    MergeParams mergeParams = new MergeParams();
-    mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
-    mergeParams.setTarget(UID.of(deTarget.getUid()));
+    MergeParams mergeParams = getMergeParams();
 
     // when
     MergeReport report = mergeProcessor.processMerge(mergeParams);
@@ -128,9 +159,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     minMaxDataElementStore.save(minMaxDataElement3);
 
     // params
-    MergeParams mergeParams = new MergeParams();
-    mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
-    mergeParams.setTarget(UID.of(deTarget.getUid()));
+    MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
 
     // when
@@ -166,25 +195,100 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     minMaxDataElementStore.save(minMaxDataElement3);
 
     // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when merge operation encounters DB constraint
+    PersistenceException persistenceException =
+        assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
+    assertNotNull(persistenceException.getMessage());
+
+    assertEquals("test", persistenceException.getCause().getMessage());
+  }
+
+  // -------------------------------
+  // ---- EVENT VISUALIZATIONS ----
+  // -------------------------------
+  @Test
+  @DisplayName("EventVisualizations are merged as expected, sources not deleted")
+  void eventVisualizationMergeTest() throws ConflictException {
+    // given
+    // event visualizations
+    EventVisualization eventVis1 = createEventVisualization('1', null);
+    eventVis1.setDataElementValueDimension(deTarget);
+    EventVisualization eventVis2 = createEventVisualization('2', null);
+    eventVis2.setDataElementValueDimension(deSource1);
+    EventVisualization eventVis3 = createEventVisualization('3', null);
+    eventVis3.setDataElementValueDimension(deSource2);
+
+    idObjectManager.save(eventVis1);
+    idObjectManager.save(eventVis2);
+    idObjectManager.save(eventVis3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<EventVisualization> eventVizSources =
+        idObjectManager.getByUid(
+            EventVisualization.class, List.of(deSource1.getUid(), deSource2.getUid()));
+    List<EventVisualization> allByDataElement =
+        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventVizSources.size());
+    assertEquals(3, allByDataElement.size());
+    assertEquals(3, allDataElements.size());
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName("EventVisualizations are merged as expected, sources are deleted")
+  void eventVisualizationMergeDeleteSourcesTest() throws ConflictException {
+    // given
+    // min max data elements
+    EventVisualization eventVis4 = createEventVisualization('4', null);
+    eventVis4.setDataElementValueDimension(deTarget);
+    EventVisualization eventVis5 = createEventVisualization('5', null);
+    eventVis5.setDataElementValueDimension(deSource1);
+    EventVisualization eventVis6 = createEventVisualization('6', null);
+    eventVis6.setDataElementValueDimension(deSource2);
+
+    idObjectManager.save(eventVis4);
+    idObjectManager.save(eventVis5);
+    idObjectManager.save(eventVis6);
+
+    // params
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
     mergeParams.setTarget(UID.of(deTarget.getUid()));
+    mergeParams.setDeleteSources(true);
 
-    // when merge operation encounters DB constraint
-    DataIntegrityViolationException dataIntegrityViolationException =
-        assertThrows(
-            DataIntegrityViolationException.class, () -> mergeProcessor.processMerge(mergeParams));
-    assertNotNull(dataIntegrityViolationException.getMessage());
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
 
-    // then DB constraint is thrown
-    List<String> expectedStrings =
-        List.of(
-            "could not execute statement",
-            "minmaxdataelement_unique_key",
-            "ConstraintViolationException");
+    // then
+    List<EventVisualization> eventVizSources =
+        idObjectManager.getByUid(
+            EventVisualization.class, List.of(deSource1.getUid(), deSource2.getUid()));
+    List<EventVisualization> allByDataElement =
+        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertTrue(
-        expectedStrings.stream()
-            .allMatch(exp -> dataIntegrityViolationException.getMessage().contains(exp)));
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, eventVizSources.size());
+    assertEquals(3, allByDataElement.size());
+    assertEquals(1, allDataElements.size());
+    assertTrue(allDataElements.contains(deTarget));
+  }
+
+  private MergeParams getMergeParams() {
+    MergeParams mergeParams = new MergeParams();
+    mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
+    mergeParams.setTarget(UID.of(deTarget.getUid()));
+    return mergeParams;
   }
 }

@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -172,5 +173,48 @@ class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
     result = minMaxDataElementStore.query(params);
     assertNotNull(result);
     assertEquals(2, result.size());
+  }
+
+  @Test
+  @DisplayName("retrieving min max data elements by data element returns expected entries")
+  void getMinMaxDataElementsByDataElement() {
+    // given
+    DataElement deW = createDataElementAndSave('W');
+    DataElement deX = createDataElementAndSave('X');
+    DataElement deY = createDataElementAndSave('Y');
+    DataElement deZ = createDataElementAndSave('Z');
+
+    MinMaxDataElement mmde1 = createMinMaxDataElementAndSave(deW);
+    MinMaxDataElement mmde2 = createMinMaxDataElementAndSave(deX);
+    MinMaxDataElement mmde3 = createMinMaxDataElementAndSave(deY);
+    MinMaxDataElement mmde4 = createMinMaxDataElementAndSave(deZ);
+
+    // when
+    List<MinMaxDataElement> allByDataElement =
+        minMaxDataElementStore.getAllByDataElement(List.of(deW, deX));
+
+    // then
+    assertEquals(2, allByDataElement.size());
+    assertTrue(
+        allByDataElement.stream()
+            .map(mmde -> mmde.getDataElement().getUid())
+            .toList()
+            .containsAll(List.of(deW.getUid(), deX.getUid())));
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    DataElement de = createDataElement(c);
+    dataElementService.addDataElement(de);
+    return de;
+  }
+
+  private MinMaxDataElement createMinMaxDataElementAndSave(DataElement de) {
+    OrganisationUnit ou = createOrganisationUnit(de.getName());
+    organisationUnitService.addOrganisationUnit(ou);
+    MinMaxDataElement minMaxDataElement =
+        new MinMaxDataElement(
+            de, ou, categoryService.getDefaultCategoryOptionCombo(), 0, 100, false);
+    minMaxDataElementStore.save(minMaxDataElement);
+    return minMaxDataElement;
   }
 }

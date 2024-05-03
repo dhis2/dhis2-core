@@ -29,7 +29,6 @@ package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.indicator.Indicator;
 
 /**
  * Functional interface representing a {@link org.hisp.dhis.dataelement.DataElement} merge

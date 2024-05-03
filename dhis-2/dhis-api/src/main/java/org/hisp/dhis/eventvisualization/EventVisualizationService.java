@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author maikel arabori
@@ -79,4 +81,12 @@ public interface EventVisualizationService extends AnalyticalObjectService<Event
    * @return the list of EventVisualization found.
    */
   List<EventVisualization> getAllEventVisualizations();
+
+  /**
+   * Get all {@link EventVisualization}s by {@link DataElement}
+   *
+   * @param dataElements {@link DataElement}s used to search by
+   * @return {@link EventVisualization}s which have a reference to any of the {@link DataElement}s
+   */
+  List<EventVisualization> getAllByDataElement(Collection<DataElement> dataElements);
 }

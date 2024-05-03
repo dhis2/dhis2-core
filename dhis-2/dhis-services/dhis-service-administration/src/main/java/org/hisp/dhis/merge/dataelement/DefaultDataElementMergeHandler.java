@@ -31,6 +31,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.springframework.stereotype.Service;
@@ -46,10 +48,17 @@ public class DefaultDataElementMergeHandler {
 
   private final DataElementService dataElementService;
   private final MinMaxDataElementService minMaxDataElementService;
+  private final EventVisualizationService eventVisualizationService;
 
   public void handleMinMaxDataElement(List<DataElement> sources, DataElement target) {
     List<MinMaxDataElement> minMaxDataElements =
         minMaxDataElementService.getAllByDataElement(sources);
     minMaxDataElements.forEach(mmde -> mmde.setDataElement(target));
+  }
+
+  public void handleEventVisualization(List<DataElement> sources, DataElement target) {
+    List<EventVisualization> eventVisualizations =
+        eventVisualizationService.getAllByDataElement(sources);
+    eventVisualizations.forEach(ev -> ev.setDataElementValueDimension(target));
   }
 }

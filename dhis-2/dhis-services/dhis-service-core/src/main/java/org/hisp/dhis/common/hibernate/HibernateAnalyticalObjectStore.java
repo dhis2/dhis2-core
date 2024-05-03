@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
@@ -197,6 +198,20 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     """;
 
     return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements) {
+    String sql =
+        """
+            select * from eventvisualization ev
+            where ev.dataelementvaluedimensionid in :dataElements
+          """;
+
+    return getSession()
+        .createNativeQuery(sql, clazz)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   @Override

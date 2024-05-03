@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
@@ -81,6 +82,15 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
    * @return matching {@link Visualization}s
    */
   List<T> getVisualizationsBySortingIndicator(List<String> indicators);
+
+  /**
+   * Method that gets all {@link org.hisp.dhis.eventvisualization.EventVisualization}s by {@link
+   * DataElement}.
+   *
+   * @param dataElements dataElements
+   * @return matching {@link org.hisp.dhis.eventvisualization.EventVisualization}s
+   */
+  List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements);
 
   long countAnalyticalObjects(Indicator indicator);
 

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyCheck.DOMAIN_TYPE_CHECK;
-import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyCheck.VALUE_TYPE_CHECK;
+import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyValidation.DOMAIN_TYPE_VALIDATION;
+import static org.hisp.dhis.merge.dataelement.DataElementMergeValidator.DataElementPropertyValidation.VALUE_TYPE_VALIDATION;
 
 import com.google.common.collect.ImmutableList;
 import java.util.HashSet;
@@ -84,12 +84,12 @@ public class DataElementMergeService implements MergeService {
 
     MergeReport report =
         dataElementMergeValidator.validateMismatches(
-            deTarget, deSources, VALUE_TYPE_CHECK, mergeReport);
+            deTarget, deSources, VALUE_TYPE_VALIDATION, mergeReport);
 
     if (report.hasErrorMessages()) return request;
 
     dataElementMergeValidator.validateMismatches(
-        deTarget, deSources, DOMAIN_TYPE_CHECK, mergeReport);
+        deTarget, deSources, DOMAIN_TYPE_VALIDATION, mergeReport);
     return request;
   }
 
@@ -121,6 +121,7 @@ public class DataElementMergeService implements MergeService {
     handlers =
         ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
             .add(dataElementMergeHandler::handleMinMaxDataElement)
+            .add(dataElementMergeHandler::handleEventVisualization)
             .build();
   }
 }
