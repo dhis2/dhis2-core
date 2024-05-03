@@ -85,7 +85,17 @@ public class TeiListGrid extends ListGrid {
         if (headerExists(cols[i])) {
           String columnLabel = cols[i];
 
-          Object value = getValueAndRoundIfNecessary(rs, columnLabel);
+          boolean columnHasLegendSet =
+              teiQueryParams
+                  .getCommonParams()
+                  .streamDimensions()
+                  .filter(DimensionIdentifier::hasLegendSet)
+                  .map(DimensionIdentifier::getKey)
+                  .anyMatch(columnLabel::equals);
+
+          Object value =
+              getValueAndRoundIfNecessary(
+                  rs, columnHasLegendSet ? columnLabel + LEGEND : columnLabel);
           addValue(value);
           headersSet.add(columnLabel);
 
