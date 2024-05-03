@@ -30,25 +30,31 @@
   "skipPatternValidation": false,
   "skipSideEffects": false,
   "skipRuleEngine": false,
-  "trackedEntities": [
+  "trackedEntities": [],
+  "enrollments": [
     {
-      "trackedEntityType": {
+      "enrollment": "KNWZ6hnuhS1",
+      "trackedEntity": "KKKKj6vYdes",
+      "program": {
         "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
+        "identifier": "E8o1E9tAppy"
       },
+      "status": "COMPLETED",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cZ"
       },
-      "inactive": false,
+      "enrolledAt": "2019-08-19T00:00:00.000",
+      "occurredAt": "2019-08-19T00:00:00.000",
+      "followUp": false,
       "deleted": false,
-      "potentialDuplicate": false,
+      "storedBy": "admin",
+      "events": [],
       "relationships": [],
       "attributes": [],
-      "enrollments": []
+      "notes": []
     }
   ],
-  "enrollments": [],
   "events": [],
   "relationships": [],
   "username": "system-process"
