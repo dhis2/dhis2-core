@@ -38,13 +38,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -53,6 +58,7 @@ import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -85,6 +91,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
   private final MergeService mergeService;
 
   private final ObjectBundleHooks objectBundleHooks;
+
+  private final DeletionManager deletionManager;
 
   @Override
   @Transactional(readOnly = true)
@@ -368,9 +376,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       typeReport.addObjectReport(objectReport);
 
       objectBundleHooks.getObjectHooks(object).forEach(hook -> hook.preDelete(object, bundle));
-      manager.delete(object, bundle.getUser());
-
-      bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
+      deleteObject(object, session, bundle, typeReport, objectReport, klass);
 
       if (log.isDebugEnabled()) {
         String msg =
@@ -396,5 +402,24 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         .map(schema -> (Class<? extends IdentifiableObject>) schema.getKlass())
         .filter(bundle::hasObjects)
         .collect(toList());
+  }
+
+  private void deleteObject(
+      IdentifiableObject object,
+      Session session,
+      ObjectBundle bundle,
+      TypeReport typeReport,
+      ObjectReport objectReport,
+      Class<? extends IdentifiableObject> klass) {
+    try {
+      deletionManager.onDeletionWithoutRollBack(new ObjectDeletionRequestedEvent(object));
+      session.delete(object);
+      bundle.getPreheat().remove(bundle.getPreheatIdentifier(), object);
+    } catch (DeleteNotAllowedException ex) {
+      objectReport.addErrorReport(
+          new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030)));
+      typeReport.getStats().incIgnored();
+      typeReport.getStats().decDeleted();
+    }
   }
 }
