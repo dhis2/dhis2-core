@@ -86,6 +86,7 @@ class EnrollmentSupplierTest extends DhisConvenienceTest {
     enrollments = rnd.objects(Enrollment.class, 2).collect(Collectors.toList());
     // set the OrgUnit parent to null to avoid recursive errors when mapping
     enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
+    enrollments.forEach(p -> p.getTrackedEntity().getOrganisationUnit().setParent(null));
 
     programWithRegistration = createProgram('A');
     programWithRegistration.setProgramType(WITH_REGISTRATION);
