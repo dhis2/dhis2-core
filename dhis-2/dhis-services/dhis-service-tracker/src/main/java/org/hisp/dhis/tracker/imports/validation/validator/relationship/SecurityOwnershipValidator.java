@@ -27,36 +27,46 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component(
     "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
 @RequiredArgsConstructor
 class SecurityOwnershipValidator implements Validator<Relationship> {
-
-  @Nonnull private final AclService aclService;
+  private final TrackerAccessManager trackerAccessManager;
+  private final RelationshipTrackerConverterService relationshipTrackerConverterService;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
     TrackerImportStrategy strategy = bundle.getStrategy(relationship);
-    RelationshipType relationshipType =
-        strategy.isUpdateOrDelete()
-            ? bundle.getPreheat().getRelationship(relationship).getRelationshipType()
-            : bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
 
-    if (!aclService.canDataWrite(bundle.getUser(), relationshipType)) {
+    if (strategy.isDelete()
+        && (!trackerAccessManager
+            .canDelete(
+                bundle.getUser(),
+                bundle.getPreheat().getRelationship(relationship))
+            .isEmpty())) {
       reporter.addError(
-          relationship, ValidationCode.E4019, bundle.getUser(), relationship.getRelationshipType());
+          relationship, ValidationCode.E4020, bundle.getUser(), relationship.getRelationship());
+    }
+
+    if (strategy.isCreate()
+        && (!trackerAccessManager
+            .canWrite(bundle.getUser(),
+                relationshipTrackerConverterService.from(bundle.getPreheat(), relationship))
+            .isEmpty())) {
+      reporter.addError(
+          relationship, ValidationCode.E4020, bundle.getUser(), relationship.getRelationship());
     }
   }
 

@@ -90,7 +90,7 @@ class RelationshipImportTest extends TrackerTest {
     ImportReport importReport =
         trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
 
-    assertHasError(importReport, ValidationCode.E4019);
+    assertHasError(importReport, ValidationCode.E4020);
     assertThat(importReport.getStats().getIgnored(), is(2));
   }
 
