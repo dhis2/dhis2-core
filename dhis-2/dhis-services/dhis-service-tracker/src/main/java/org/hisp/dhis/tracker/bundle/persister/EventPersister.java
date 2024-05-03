@@ -30,9 +30,11 @@ package org.hisp.dhis.tracker.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -59,6 +61,7 @@ import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -116,6 +119,21 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, ProgramStageInstance programStageInstance) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+
+    if (isNew(preheat, programStageInstance.getUid())) {
+      if (programStageInstance.isCompleted()) {
+        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+      }
+    } else {
+      ProgramStageInstance existingEvent = preheat.getEvent(programStageInstance.getUid());
+      if (existingEvent.getStatus() != programStageInstance.getStatus()
+          && programStageInstance.isCompleted()) {
+        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+      }
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(ProgramStageInstance.class)
         .enrollmentRuleEffects(new HashMap<>())
@@ -126,6 +144,9 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         .accessedBy(bundle.getUsername())
         .programStageInstance(programStageInstance)
         .program(programStageInstance.getProgramStage().getProgram())
+        .programStageInstance(programStageInstance)
+        .program(programStageInstance.getProgramStage().getProgram())
+        .triggers(triggers)
         .build();
   }
 

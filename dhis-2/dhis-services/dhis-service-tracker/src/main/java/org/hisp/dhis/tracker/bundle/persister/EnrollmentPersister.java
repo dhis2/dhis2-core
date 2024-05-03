@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
@@ -42,6 +44,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -124,6 +127,22 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, ProgramInstance programInstance) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+
+    if (isNew(preheat, programInstance.getUid())) {
+      triggers.add(SideEffectTrigger.ENROLLMENT);
+      if (programInstance.isCompleted()) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      ProgramInstance exitingEnrollment = preheat.getEnrollment(programInstance.getUid());
+      if (exitingEnrollment.getStatus() != programInstance.getStatus()
+          && programInstance.isCompleted()) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(ProgramInstance.class)
         .enrollmentRuleEffects(
@@ -134,6 +153,9 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         .accessedBy(bundle.getUsername())
         .programInstance(programInstance)
         .program(programInstance.getProgram())
+        .programInstance(programInstance)
+        .program(programInstance.getProgram())
+        .triggers(triggers)
         .build();
   }
 
