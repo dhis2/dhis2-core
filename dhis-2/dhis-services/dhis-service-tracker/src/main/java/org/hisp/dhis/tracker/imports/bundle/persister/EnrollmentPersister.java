@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.note.Note;
@@ -39,6 +41,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChan
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
@@ -117,6 +120,21 @@ public class EnrollmentPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, Enrollment enrollment) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+
+    if (isNew(preheat, enrollment.getUid())) {
+      triggers.add(SideEffectTrigger.ENROLLMENT);
+      if (enrollment.isCompleted()) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    } else {
+      Enrollment exitingEnrollment = preheat.getEnrollment(enrollment.getUid());
+      if (exitingEnrollment.getStatus() != enrollment.getStatus() && enrollment.isCompleted()) {
+        triggers.add(SideEffectTrigger.ENROLLMENT_COMPLETION);
+      }
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
         .enrollmentRuleEffects(bundle.getEnrollmentRuleEffects())
@@ -126,6 +144,7 @@ public class EnrollmentPersister
         .accessedBy(bundle.getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
+        .triggers(triggers)
         .build();
   }
 
