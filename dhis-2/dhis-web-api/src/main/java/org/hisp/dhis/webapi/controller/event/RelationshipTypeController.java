@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +38,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @OpenApi.Tags("tracker")
 @Controller
-@RequestMapping(value = RelationshipTypeSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/relationshipTypes")
 public class RelationshipTypeController extends AbstractCrudController<RelationshipType> {}

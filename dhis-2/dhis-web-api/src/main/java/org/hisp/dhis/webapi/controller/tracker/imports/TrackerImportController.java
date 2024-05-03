@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -86,7 +85,7 @@ import org.springframework.web.client.HttpStatusCodeException;
  */
 @OpenApi.Tags("tracker")
 @RestController
-@RequestMapping(value = RESOURCE_PATH)
+@RequestMapping("/api/tracker")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class TrackerImportController {

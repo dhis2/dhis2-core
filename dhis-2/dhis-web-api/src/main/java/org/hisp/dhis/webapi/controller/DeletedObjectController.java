@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("data")
 @RestController
-@RequestMapping(value = "/deletedObjects")
+@RequestMapping("/api/deletedObjects")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DeletedObjectController {
   private final FieldFilterService fieldFilterService;

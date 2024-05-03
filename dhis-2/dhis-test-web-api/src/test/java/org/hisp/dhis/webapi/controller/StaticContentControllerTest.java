@@ -65,7 +65,7 @@ import org.springframework.test.web.servlet.ResultActions;
  */
 class StaticContentControllerTest extends DhisWebSpringTest {
 
-  private static final String URL = "/staticContent/";
+  private static final String URL = "/api/staticContent/";
 
   private static final String MIME_PNG = IMAGE_PNG.toString();
 

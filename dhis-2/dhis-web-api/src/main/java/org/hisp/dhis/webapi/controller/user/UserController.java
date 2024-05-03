@@ -62,6 +62,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
@@ -137,7 +138,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @OpenApi.Tags({"user", "management"})
 @Slf4j
 @Controller
-@RequestMapping(value = UserSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/users")
 public class UserController extends AbstractCrudController<User> {
   public static final String INVITE_PATH = "/invite";
 
@@ -657,6 +658,11 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     return importReport;
+  }
+
+  @Override
+  protected void postUpdateItems(User entity, IdentifiableObjects items) {
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   protected void updateUserGroups(String userUid, User parsed, User currentUser) {

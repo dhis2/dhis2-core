@@ -79,7 +79,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping(value = "/scheduler")
+@RequestMapping("/api/scheduler")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class JobSchedulerController {

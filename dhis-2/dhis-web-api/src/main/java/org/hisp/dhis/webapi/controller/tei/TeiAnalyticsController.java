@@ -85,7 +85,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DEFAULT, ALL})
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/analytics/trackedEntities")
+@RequestMapping("/api/analytics/trackedEntities")
 class TeiAnalyticsController {
   @Nonnull private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 

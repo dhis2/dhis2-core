@@ -77,7 +77,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Slf4j
 @OpenApi.Tags("analytics")
 @Controller
-@RequestMapping(value = "/resourceTables")
+@RequestMapping("/api/resourceTables")
 @ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 public class ResourceTableController {

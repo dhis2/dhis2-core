@@ -414,7 +414,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
         POST("/constants/", "{'name':'answer', 'shortName': 'answer', 'value': 42}");
     assertWebMessage("Created", 201, "OK", null, response.content(HttpStatus.CREATED));
     assertEquals(
-        "http://localhost/constants/" + assertStatus(HttpStatus.CREATED, response),
+        "http://localhost/api/constants/" + assertStatus(HttpStatus.CREATED, response),
         response.header("Location"));
   }
 

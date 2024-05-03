@@ -98,7 +98,7 @@ public class EventQueryTest extends AnalyticsApiTest {
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "eventdate", "Visit date", "DATE", "java.time.LocalDate", false, true);
+        response, 2, "eventdate", "Visit date", "DATETIME", "java.time.LocalDateTime", false, true);
     validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -112,9 +112,23 @@ public class EventQueryTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        6,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
-        response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -249,7 +263,7 @@ public class EventQueryTest extends AnalyticsApiTest {
     validateHeader(response, 0, "psi", "Event", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "eventdate", "Visit date", "DATE", "java.time.LocalDate", false, true);
+        response, 2, "eventdate", "Visit date", "DATETIME", "java.time.LocalDateTime", false, true);
     validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
@@ -263,9 +277,23 @@ public class EventQueryTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 6, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        6,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
-        response, 7, "scheduleddate", "Scheduled date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        7,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
@@ -417,11 +445,25 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // Validate headers.
     validateHeader(
-        response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        0,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 2, "lastupdated", "Last updated on", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Validate the first three rows, as samples.
     validateRow(
@@ -477,7 +519,14 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // Validate headers.
     validateHeader(
-        response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        0,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
 
@@ -528,7 +577,14 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // Validate headers.
     validateHeader(
-        response, 0, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        0,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     validateHeader(
         response, 1, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
 
@@ -608,7 +664,14 @@ public class EventQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double", false, true);
     validateHeader(
-        response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Validate the first three rows, as samples.
     validateRow(response, 0, List.of("Ngelehun CHC", "0", "2022-02-27 00:00:00.0"));
@@ -661,7 +724,14 @@ public class EventQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 1, "p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double", false, true);
     validateHeader(
-        response, 2, "eventdate", "Report date", "DATE", "java.time.LocalDate", false, true);
+        response,
+        2,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
 
     // Validate the first three rows, as samples.
     validateRow(response, 0, List.of("Ngelehun CHC", "0", "2022-02-27 00:00:00.0"));
