@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -36,7 +35,15 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, RelationshipTypeMapper.class, TrackedEntityMapper.class, EnrollmentMapper.class, EventMapper.class,AttributeValueMapper.class})
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      RelationshipTypeMapper.class,
+      TrackedEntityMapper.class,
+      EnrollmentMapper.class,
+      EventMapper.class,
+      AttributeValueMapper.class
+    })
 public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
 
