@@ -28,12 +28,15 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, RelationshipTypeMapper.class, AttributeValueMapper.class})
+@Mapper(uses = {DebugMapper.class, RelationshipTypeMapper.class, TrackedEntityMapper.class, EnrollmentMapper.class, EventMapper.class,AttributeValueMapper.class})
 public interface RelationshipMapper extends PreheatMapper<Relationship> {
   RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
 
@@ -42,8 +45,8 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "code")
-  @Mapping(target = "from")
-  @Mapping(target = "to")
+  @Mapping(target = "from", qualifiedByName = "itemMapper")
+  @Mapping(target = "to", qualifiedByName = "itemMapper")
   @Mapping(target = "key")
   @Mapping(target = "invertedKey")
   @Mapping(target = "created")
@@ -53,4 +56,12 @@ public interface RelationshipMapper extends PreheatMapper<Relationship> {
   @Mapping(target = "createdAtClient")
   @Mapping(target = "deleted")
   Relationship map(Relationship relationship);
+
+  @Named("itemMapper")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "trackedEntity")
+  @Mapping(target = "enrollment")
+  @Mapping(target = "event")
+  RelationshipItem mapItem(RelationshipItem relationshipItem);
 }
