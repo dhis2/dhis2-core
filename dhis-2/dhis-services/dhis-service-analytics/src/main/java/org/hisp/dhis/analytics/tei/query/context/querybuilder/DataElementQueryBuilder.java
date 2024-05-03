@@ -93,9 +93,9 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
           IdScheme.CODE, "_code");
 
   /**
-   * Returns true if this query builder should get headers, even if they are duplicated (i.e.
-   * they are part of the dimensions). This is a hack to allow the proper handling of data elements
-   * with legend sets.
+   * Returns true if this query builder should get headers, even if they are duplicated (i.e. they
+   * are part of the dimensions). This is a hack to allow the proper handling of data elements with
+   * legend sets.
    *
    * @return true if this query builder should get all headers, even if they are duplicated.
    */
