@@ -53,7 +53,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
+class ProgramRuleActionValidatorTest extends DhisConvenienceTest {
   @Mock private ProgramRuleActionValidationService programRuleActionValidationService;
   @Mock private ProgramService programService;
 
