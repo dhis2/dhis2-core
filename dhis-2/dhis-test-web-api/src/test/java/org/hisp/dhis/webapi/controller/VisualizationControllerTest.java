@@ -34,6 +34,8 @@ import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -294,5 +296,19 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
     assertThat(response.get("sorting").toString(), not(containsString("DESC")));
+  }
+
+  @Test
+  void testRelativePeriods() {
+    POST(
+            "/metadata?importStrategy=CREATE_AND_UPDATE&async=false",
+            WebClient.Body("metadata/metadata_with_visualization.json"))
+        .content(HttpStatus.OK)
+        .as(JsonImportSummary.class);
+    JsonMixed visualization =
+        GET("/visualizations/qD72aBqsHvt").content(HttpStatus.OK).as(JsonMixed.class);
+    assertNotNull(visualization);
+    assertTrue(
+        visualization.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
   }
 }
