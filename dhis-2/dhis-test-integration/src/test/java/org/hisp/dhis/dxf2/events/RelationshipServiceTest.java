@@ -45,7 +45,6 @@ import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -364,6 +363,25 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void shouldUpdateTeiToPiRelationship() {
+    teiA.setTrackedEntityAttributeValues(
+        Set.of(new TrackedEntityAttributeValue(teaA, teiA, "100")));
+    teiB.setTrackedEntityAttributeValues(
+        Set.of(
+            new TrackedEntityAttributeValue(teaA, teiB, "10"),
+            new TrackedEntityAttributeValue(teaB, teiB, "100")));
+
+    manager.update(teiA);
+    manager.update(teiB);
+
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.setAttributes(new LinkedHashSet<>(Set.of(teaA.getUid())));
+
+    relationshipTypeTeiToPi.getFromConstraint().setTrackerDataView(trackerDataView);
+
+    relationshipTypeTeiToPi.getToConstraint().setTrackerDataView(trackerDataView);
+
+    manager.update(relationshipTypeTeiToPi);
+
     org.hisp.dhis.relationship.Relationship relationship =
         relationship(teiA, null, programInstanceA, null);
 
@@ -402,8 +420,8 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
                       List.of(attributeFromTea(teaA, "100")),
                       r.getFrom().getTrackedEntityInstance().getAttributes());
                   assertContainsOnly(
-                      List.of(new DataValue(dataElementA.getUid(), "10")),
-                      r.getTo().getEvent().getDataValues());
+                      List.of(attributeFromTea(teaA, "10")),
+                      r.getTo().getEnrollment().getAttributes());
                 }));
   }
 
