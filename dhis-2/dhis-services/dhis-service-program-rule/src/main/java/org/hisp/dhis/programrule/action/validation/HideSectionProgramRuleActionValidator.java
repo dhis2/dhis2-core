@@ -51,9 +51,7 @@ public class HideSectionProgramRuleActionValidator implements ProgramRuleActionV
     ProgramRule rule = validationContext.getProgramRule();
 
     if (!programRuleAction.hasProgramStageSection()) {
-      log.debug(
-          String.format(
-              "ProgramStageSection cannot be null for program rule: %s ", rule.getName()));
+      log.debug("Program stage section cannot be null for program rule: '{}'", rule.getName());
 
       return ProgramRuleActionValidationResult.builder()
           .valid(false)
@@ -73,9 +71,9 @@ public class HideSectionProgramRuleActionValidator implements ProgramRuleActionV
 
     if (stageSection == null) {
       log.debug(
-          String.format(
-              "ProgramStageSection: %s associated with program rule: %s does not exist",
-              programRuleAction.getProgramStageSection().getUid(), rule.getName()));
+          "Program stage section: '{}' associated with program rule: '{}' does not exist",
+          programRuleAction.getProgramStageSection().getUid(),
+          rule.getName());
 
       return ProgramRuleActionValidationResult.builder()
           .valid(false)

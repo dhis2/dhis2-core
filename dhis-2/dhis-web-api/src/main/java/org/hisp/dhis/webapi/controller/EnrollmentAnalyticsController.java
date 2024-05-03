@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -43,6 +46,8 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.analytics.util.AnalyticsPeriodCriteriaUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
@@ -52,7 +57,9 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -62,7 +69,6 @@ import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.EnrollmentAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -95,7 +101,11 @@ public class EnrollmentAnalyticsController {
 
   @Nonnull private final SystemSettingManager systemSettingManager;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @Nonnull private final PeriodDataProvider periodDataProvider;
+
+  @Nonnull private final AnalyticsTableSettings analyticsTableSettings;
+
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = "/aggregate/{program}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
@@ -229,7 +239,7 @@ public class EnrollmentAnalyticsController {
     GridUtils.toHtmlCss(grid, response.getWriter());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = "/query/{program}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
@@ -405,10 +415,17 @@ public class EnrollmentAnalyticsController {
       EndpointAction endpointAction) {
     criteria.definePageSize(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT));
 
-    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        criteria,
-        systemSettingManager.getSystemSetting(
-            SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+    if (endpointAction == QUERY) {
+      AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+          criteria,
+          periodDataProvider,
+          analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+    } else {
+      PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+          criteria,
+          systemSettingManager.getSystemSetting(
+              SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+    }
 
     EventDataQueryRequest request =
         EventDataQueryRequest.builder()

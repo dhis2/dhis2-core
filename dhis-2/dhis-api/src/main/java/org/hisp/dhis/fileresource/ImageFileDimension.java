@@ -28,10 +28,12 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.Optional;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @Author Zubair Asghar.
  */
+@OpenApi.Shared
 public enum ImageFileDimension {
   SMALL("small"),
   MEDIUM("medium"),

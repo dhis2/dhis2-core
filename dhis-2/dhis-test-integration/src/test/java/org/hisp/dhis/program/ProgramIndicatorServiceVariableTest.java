@@ -131,7 +131,7 @@ class ProgramIndicatorServiceVariableTest extends IntegrationTestBase {
 
   @Test
   void testCurrentDate() {
-    String today = "'" + DateUtils.getLongDateString().substring(0, 10);
+    String today = "'" + DateUtils.getLongDate().substring(0, 10);
     assertThat(getSql("V{current_date}"), startsWith(today));
     assertThat(getSqlEnrollment("V{current_date}"), startsWith(today));
   }

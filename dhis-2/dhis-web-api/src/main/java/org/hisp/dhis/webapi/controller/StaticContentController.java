@@ -37,13 +37,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.feedback.Status.WARNING;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
 import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
+import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_FRONT;
 import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.utils.ContextUtils.getContextPath;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
+import static org.hisp.dhis.webapi.utils.HttpServletRequestPaths.getContextPath;
 import static org.springframework.http.HttpStatus.FOUND;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
 import static org.springframework.http.MediaType.IMAGE_PNG_VALUE;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -64,13 +66,13 @@ import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.fileresource.SimpleImageResource;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -170,6 +172,7 @@ public class StaticContentController {
    * @param key key associated with the file.
    */
   @GetMapping("/{key}")
+  @ResponseStatus(OK)
   public void getStaticContent(
       @PathVariable("key") String key, HttpServletRequest request, HttpServletResponse response)
       throws WebMessageException {
@@ -178,7 +181,6 @@ public class StaticContentController {
     }
 
     boolean useCustomFile = systemSettingManager.getBoolSetting(KEY_WHITELIST_MAP.get(key));
-
     if (!useCustomFile) // Serve default
     {
       try {
@@ -190,7 +192,6 @@ public class StaticContentController {
     {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
-
         contentStore.copyContent(
             makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)), response.getOutputStream());
       } catch (NoSuchElementException e) {
@@ -207,7 +208,7 @@ public class StaticContentController {
    * @param key the key.
    * @param file the image file.
    */
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(NO_CONTENT)
   @PostMapping("/{key}")
   public void updateStaticContent(

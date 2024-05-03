@@ -27,13 +27,32 @@
  */
 package org.hisp.dhis.external.conf;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class DhisConfigurationProviderTest {
+
+  private DefaultDhisConfigurationProvider configProvider;
+
+  @BeforeEach
+  public void setup() {
+    System.setProperty("dhis2.home", "src/test/resources");
+    DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+    locationManager.init();
+    configProvider = new DefaultDhisConfigurationProvider(locationManager);
+    configProvider.init();
+  }
 
   @Test
   void isOn() {
@@ -51,15 +70,50 @@ class DhisConfigurationProviderTest {
 
   @Test
   void isEnabled() {
-    System.setProperty("dhis2.home", "src/test/resources");
-    DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
-    locationManager.init();
-    DefaultDhisConfigurationProvider configProvider =
-        new DefaultDhisConfigurationProvider(locationManager);
-    configProvider.init();
     assertFalse(configProvider.isEnabled(ConfigurationKey.REDIS_ENABLED));
     assertFalse(configProvider.isEnabled(ConfigurationKey.MONITORING_API_ENABLED));
     assertTrue(configProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING));
     assertFalse(configProvider.isEnabled(ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED));
+  }
+
+  @Test
+  @DisplayName("remote servers retrieved from config should have expected values")
+  void getRemoteServersAllowedTest() {
+    // given there are 2 remote servers in the test config allowed list
+    // when we retrieve the remote servers allowed
+    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
+
+    // then it should contain the expected values
+    assertNotNull(remoteServersAllowed);
+    assertEquals(2, remoteServersAllowed.size());
+    assertTrue(
+        remoteServersAllowed.containsAll(
+            List.of("https://validtesturl.com/", "https://validtesturl2.com/")));
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = {"", " ", "https://invalidurl.com/fail"})
+  @DisplayName("invalid URLs should return false")
+  void invalidUrlTest(String url) {
+    // given there are 2 remote servers in the test config allowed list
+    // when we check if an invalid url is in the allowed list
+    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList(url);
+
+    // then it should be false
+    assertFalse(urlIsAllowed);
+  }
+
+  @Test
+  @DisplayName("a valid url which is in the allowed list returns true")
+  void validUrlInAllowedListTest() {
+    // given there are 2 remote servers in the test config allowed list
+    // when we check if a valid url is in the allowed list
+    boolean urlIsAllowed =
+        configProvider.remoteServerIsInAllowedList(
+            "https://validtesturl.com/success/with/extra/path");
+
+    // then it should be true
+    assertTrue(urlIsAllowed);
   }
 }

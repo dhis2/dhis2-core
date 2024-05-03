@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.feedback.ErrorReport;
-
 /**
  * This interface is used for jobs in the system which are scheduled or executed by the Spring
  * scheduler. The actual job will contain an execute method which performs the appropriate actions.
@@ -39,11 +37,8 @@ import org.hisp.dhis.feedback.ErrorReport;
  * @author Henning Håkonsen
  */
 public interface Job {
+
   JobType getJobType();
 
-  default ErrorReport validate() {
-    return null;
-  }
-
-  void execute(JobConfiguration jobConfiguration, JobProgress progress);
+  void execute(JobConfiguration config, JobProgress progress);
 }

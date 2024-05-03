@@ -36,8 +36,7 @@ import lombok.experimental.Delegate;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * This class is used to hold the context of the query and the parameters that are used to build the
- * query.
+ * This class is used to hold the context of the query and the parameters that are used to build it.
  */
 @Getter
 @RequiredArgsConstructor(staticName = "of")

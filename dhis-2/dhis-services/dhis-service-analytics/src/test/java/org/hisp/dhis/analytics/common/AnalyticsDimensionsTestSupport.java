@@ -47,7 +47,7 @@ public class AnalyticsDimensionsTestSupport {
             .map(
                 trackedEntityAttribute ->
                     new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute))
-            .collect(Collectors.toList()));
+            .toList());
     return trackedEntityType;
   }
 
@@ -59,7 +59,7 @@ public class AnalyticsDimensionsTestSupport {
               trackedEntityAttribute.setValueType(valueType);
               return trackedEntityAttribute;
             })
-        .collect(Collectors.toList());
+        .toList();
   }
 
   public static Set<DataElement> allValueTypeDataElements() {

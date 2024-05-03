@@ -60,6 +60,7 @@ public interface AppManager {
           "event-visualizer",
           "import-export",
           "interpretation",
+          "login",
           "maintenance",
           "maps",
           "menu-management",
@@ -73,13 +74,7 @@ public interface AppManager {
           "translations",
           "usage-analytics",
           "user",
-          "user-profile",
-          // Struts apps
-          "approval",
-          "dataentry",
-          "maintenance-mobile");
-
-  static final String WEB_MAINTENANCE_APPMANAGER_AUTHORITY = "M_dhis-web-app-management";
+          "user-profile");
 
   static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 

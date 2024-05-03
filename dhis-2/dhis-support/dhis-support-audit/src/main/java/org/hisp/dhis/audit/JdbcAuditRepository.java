@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.audit;
 
-import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
+import static org.hisp.dhis.system.util.SqlUtils.escape;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -189,7 +189,7 @@ public class JdbcAuditRepository implements AuditRepository {
 
   private String buildQuotedSet(Set<?> items) {
     return items.stream()
-        .map(s -> "'" + escapeSql(s.toString()) + "'")
+        .map(s -> "'" + escape(s.toString()) + "'")
         .collect(Collectors.joining(", "));
   }
 

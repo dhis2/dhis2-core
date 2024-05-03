@@ -54,15 +54,35 @@ public interface PageRequestParams {
   /**
    * Indicates whether to return all items {@code skipPaging=true} or a page of items {@code
    * skipPaging=false}.
+   *
+   * @deprecated use {@link #getPaging} instead
    */
+  @Deprecated(since = "2.41")
   Boolean getSkipPaging();
 
   /**
+   * Indicates whether to return all items {@code paging=false} or a page of items {@code
+   * paging=true}.
+   */
+  Boolean getPaging();
+
+  /**
    * Indicates whether to return a page of items or all items. By default, responses are paginated.
+   *
+   * <p>Note: this assumes {@link #getPaging()} and {@link #getSkipPaging()} have been validated.
+   * Preference is given to {@link #getPaging()} as the other parameter is deprecated.
    */
   @OpenApi.Ignore
   default boolean isPaged() {
-    return !Boolean.TRUE.equals(getSkipPaging());
+    if (getPaging() != null) {
+      return Boolean.TRUE.equals(getPaging());
+    }
+
+    if (getSkipPaging() != null) {
+      return Boolean.FALSE.equals(getSkipPaging());
+    }
+
+    return true;
   }
 
   /** Indicates whether to include the total number of items and pages in the paginated response. */

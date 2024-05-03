@@ -30,12 +30,14 @@ package org.hisp.dhis.dxf2.webmessage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.webmessage.WebMessageResponse;
@@ -95,6 +97,7 @@ public class WebMessage implements WebMessageResponse {
    *
    * @see WebMessageResponse
    */
+  @OpenApi.Property({ObjectNode.class})
   private WebMessageResponse response;
 
   private DhisApiVersion plainResponseBefore;

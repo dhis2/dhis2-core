@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
@@ -92,7 +93,7 @@ class JobProgressTest {
         Stream.of(1, 2, 3), String::valueOf, worked::add, JobProgressTest::printSummary);
     assertTrue(worked.isEmpty());
     verify(progress).failedStage(any(CancellationException.class));
-    verify(progress, never()).startingWorkItem(any());
+    verify(progress, never()).startingWorkItem(anyInt());
     verify(progress, never()).completedWorkItem(any());
   }
 
@@ -247,6 +248,13 @@ class JobProgressTest {
     verify(progress, never()).failedWorkItem(any(Exception.class));
     verify(progress, never()).failedStage(anyString());
     verify(progress, never()).failedStage(any(Exception.class));
+  }
+
+  @Test
+  void testFormat() {
+    JobProgress progress = newMockJobProgress();
+    assertEquals(
+        "Found 2 items of type text", progress.format("Found {} items of type {}", 2, "text"));
   }
 
   private static String printSummary(int success, int failed) {

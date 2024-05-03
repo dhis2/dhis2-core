@@ -242,7 +242,7 @@ class AclEventExporterTest extends TrackerTest {
         "Expected to find events when no program specified, ou mode descendants and org units in search scope");
 
     assertContainsOnly(
-        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"),
+        List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp", "H0PbzJY8bJG"),
         events.stream().map(Event::getUid).collect(Collectors.toList()));
   }
 
@@ -345,7 +345,8 @@ class AclEventExporterTest extends TrackerTest {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8"),
+            "DiszpKrYNg8",
+            "g4w96yEMlzO"),
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 
@@ -369,7 +370,8 @@ class AclEventExporterTest extends TrackerTest {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8"),
+            "DiszpKrYNg8",
+            "g4w96yEMlzO"),
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 
@@ -392,7 +394,8 @@ class AclEventExporterTest extends TrackerTest {
             "RojfDTBhoGC",
             "tSsGrtfRzjY",
             "h4w96yEMlzO",
-            "DiszpKrYNg8"),
+            "DiszpKrYNg8",
+            "g4w96yEMlzO"),
         events.stream().map(Event::getOrgUnit).collect(Collectors.toSet()));
   }
 

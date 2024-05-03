@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -39,7 +40,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SQL_SYNTAX_ERROR;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_TABLE_NOT_EXISTING;
@@ -50,7 +51,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,13 +62,14 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
@@ -93,6 +97,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
+import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
@@ -119,7 +124,8 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Slf4j
-public class AnalyticsUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class AnalyticsUtils {
   private static final int DECIMALS_NO_ROUNDING = 10;
 
   private static final String KEY_AGG_VALUE = "[aggregated]";
@@ -172,9 +178,9 @@ public class AnalyticsUtils {
       Period pe = (Period) period;
       sql +=
           "(pe.startdate >= '"
-              + getMediumDateString(pe.getStartDate())
+              + toMediumDate(pe.getStartDate())
               + "' and pe.enddate <= '"
-              + getMediumDateString(pe.getEndDate())
+              + toMediumDate(pe.getEndDate())
               + "') or ";
     }
 
@@ -184,7 +190,7 @@ public class AnalyticsUtils {
       OrganisationUnit ou = (OrganisationUnit) orgUnit;
       int level = ou.getLevel();
       sql +=
-          "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel"
+          "(dv.sourceid in (select organisationunitid from analytics_rs_orgunitstructure where idlevel"
               + level
               + " = "
               + ou.getId()
@@ -192,7 +198,7 @@ public class AnalyticsUtils {
     }
 
     sql = TextUtils.removeLastOr(sql) + ") ";
-    sql += "and dv.deleted is false " + "limit 100000";
+    sql += "and dv.deleted = false limit 100000";
 
     return sql;
   }
@@ -316,21 +322,21 @@ public class AnalyticsUtils {
    *
    * @param valueType the value type to represent as database column type.
    * @param spatialSupport indicates whether spatial data types are enabled.
-   * @return the {@link ColumnDataType}.
+   * @return the {@link DataType}.
    */
-  public static ColumnDataType getColumnType(ValueType valueType, boolean spatialSupport) {
+  public static DataType getColumnType(ValueType valueType, boolean spatialSupport) {
     if (valueType.isDecimal()) {
-      return ColumnDataType.DOUBLE;
+      return DataType.DOUBLE;
     } else if (valueType.isInteger()) {
-      return ColumnDataType.BIGINT;
+      return DataType.BIGINT;
     } else if (valueType.isBoolean()) {
-      return ColumnDataType.INTEGER;
+      return DataType.INTEGER;
     } else if (valueType.isDate()) {
-      return ColumnDataType.TIMESTAMP;
+      return DataType.TIMESTAMP;
     } else if (valueType.isGeo() && spatialSupport) {
-      return ColumnDataType.GEOMETRY_POINT; // TODO consider GEOMETRY
+      return DataType.GEOMETRY_POINT; // TODO consider GEOMETRY
     } else {
-      return ColumnDataType.TEXT;
+      return DataType.TEXT;
     }
   }
 
@@ -476,7 +482,6 @@ public class AnalyticsUtils {
       dv.setAttributeOptionCombo(aoc != null ? String.valueOf(aoc) : null);
       dv.setValue(String.valueOf(row.get(vlInx)));
       dv.setComment(KEY_AGG_VALUE);
-      dv.setStoredBy(KEY_AGG_VALUE);
       dv.setCreated(created);
       dv.setLastUpdated(created);
 
@@ -486,6 +491,26 @@ public class AnalyticsUtils {
     }
 
     return dvs;
+  }
+
+  /**
+   * Retrieve fallback date parsed by dhis modified format yyyy-MM-dd'T'HH.mm or ..mm.ss
+   * 2024-04-04T15.00
+   *
+   * @param dateAsString
+   */
+  public static Date toAnalyticsFallbackDate(String dateAsString) {
+    try {
+      return org.apache.commons.lang3.time.DateUtils.parseDate(
+          dateAsString,
+          // known formats
+          "yyyy-MM-dd'T'HH.mm",
+          "yyyy-MM-dd'T'HH.mm.ss");
+    } catch (ParseException pe) {
+      throwIllegalQueryEx(ErrorCode.E7135, dateAsString);
+    }
+
+    return null;
   }
 
   /**
@@ -504,8 +529,6 @@ public class AnalyticsUtils {
     int coInx = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
     int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
     int vlInx = grid.getHeaderWidth() - 1;
-
-    String created = DateUtils.getMediumDateString();
 
     Grid dvs = new ListGrid();
 
@@ -530,9 +553,9 @@ public class AnalyticsUtils {
       objects.add(row.get(coInx));
       objects.add(row.get(aoInx));
       objects.add(row.get(vlInx));
-      objects.add(KEY_AGG_VALUE);
-      objects.add(created);
-      objects.add(created);
+      objects.add(null);
+      objects.add(null);
+      objects.add(null);
       objects.add(KEY_AGG_VALUE);
       objects.add(false);
 
@@ -1051,7 +1074,7 @@ public class AnalyticsUtils {
             dio ->
                 dio.getDimensionItem() != null
                     && dio.getDimensionItemWithQueryModsId().equals(dimensionIdentifier))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -1143,5 +1166,48 @@ public class AnalyticsUtils {
     }
 
     return Optional.empty();
+  }
+
+  /**
+   * Retrieves the sql string with content replacement between for example select and from
+   *
+   * @param original original sql string
+   * @param replacement the replacement content
+   */
+  public static String replaceStringBetween(
+      String original, String startToken, String endToken, String replacement) {
+    Pattern pattern =
+        Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
+    Matcher matcher = pattern.matcher(original);
+    return matcher.replaceAll(startToken + replacement + endToken);
+  }
+
+  /**
+   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
+   * number of missing closing parenthesis in the argument string.
+   *
+   * <p>Example:
+   *
+   * <p>{@code} input: "((( ))" -> output: ")" {@code}
+   *
+   * @param str a string.
+   * @return a String containing 0 or more "closing" parenthesis
+   */
+  public static String getClosingParentheses(String str) {
+    if (StringUtils.isEmpty(str)) {
+      return EMPTY;
+    }
+
+    int open = 0;
+
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == '(') {
+        open++;
+      } else if (str.charAt(i) == ')' && open >= 1) {
+        open--;
+      }
+    }
+
+    return StringUtils.repeat(")", open);
   }
 }

@@ -31,39 +31,44 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.Authorities;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
-@Setter
+@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
 public class UserDetailsImpl implements UserDetails {
 
-  private String uid;
-  private Long id;
-  private String code;
-  @EqualsAndHashCode.Include private String username;
-  private String firstName;
-  private String surname;
-  private String password;
-  private boolean externalAuth;
-  private boolean isTwoFactorEnabled;
-  private boolean enabled;
-  private boolean accountNonExpired;
-  private boolean accountNonLocked;
-  private boolean credentialsNonExpired;
-  private Collection<GrantedAuthority> authorities;
-  private Set<String> allAuthorities;
-  private Set<String> allRestrictions;
-  private Map<String, Serializable> userSettings;
-  private Set<String> userGroupIds;
-  private Set<String> userOrgUnitIds;
-  private boolean isSuper;
-  private Set<String> userRoleIds;
+  private final String uid;
+  @Setter private Long id;
+  private final String code;
+  @EqualsAndHashCode.Include private final String username;
+  private final String firstName;
+  private final String surname;
+  private final String password;
+  private final boolean externalAuth;
+  private final boolean isTwoFactorEnabled;
+  private final boolean enabled;
+  private final boolean accountNonExpired;
+  private final boolean accountNonLocked;
+  private final boolean credentialsNonExpired;
+  @Nonnull private final Collection<GrantedAuthority> authorities;
+  @Nonnull private final Set<String> allAuthorities;
+  @Nonnull private final Set<String> allRestrictions;
+  @Nonnull private final Map<String, Serializable> userSettings;
+  @Nonnull private final Set<String> userGroupIds;
+  @Nonnull private final Set<String> userOrgUnitIds;
+  @Nonnull private final Set<String> userDataOrgUnitIds;
+  @Nonnull private final Set<String> userSearchOrgUnitIds;
+  private final boolean isSuper;
+  @Nonnull private final Set<String> userRoleIds;
 
   @Override
   public boolean canModifyUser(User other) {
@@ -72,7 +77,7 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     final Set<String> auths = getAllAuthorities();
-    if (auths.contains(UserRole.AUTHORITY_ALL)) {
+    if (auths.contains(Authorities.ALL.toString())) {
       return true;
     }
 
@@ -90,11 +95,21 @@ public class UserDetailsImpl implements UserDetails {
   }
 
   @Override
+  public boolean hasAnyAuthorities(Collection<Authorities> auths) {
+    return hasAnyAuthority(Authorities.toStringList(auths));
+  }
+
+  @Override
   public boolean isAuthorized(String auth) {
     if (auth == null) {
       return false;
     }
     final Set<String> auths = getAllAuthorities();
-    return auths.contains(UserRole.AUTHORITY_ALL) || auths.contains(auth);
+    return auths.contains(Authorities.ALL.toString()) || auths.contains(auth);
+  }
+
+  @Override
+  public boolean isAuthorized(@Nonnull Authorities auth) {
+    return isAuthorized(auth.toString());
   }
 }

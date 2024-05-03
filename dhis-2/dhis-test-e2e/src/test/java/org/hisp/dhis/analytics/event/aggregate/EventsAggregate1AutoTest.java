@@ -759,21 +759,21 @@ public class EventsAggregate1AutoTest extends AnalyticsApiTest {
 
     // Assert rows.
     validateRow(response, List.of("MODTRANS", "", "2022Q3", "ImspTQPwCqd", "55.0"));
-    validateRow(response, List.of("MODTRANS", "Female", "2022Q4", "ImspTQPwCqd", "49.6"));
-    validateRow(response, List.of("MODTRANS", "Male", "2022Q4", "ImspTQPwCqd", "49.5"));
-    validateRow(response, List.of("MODTRANS", "Male", "2022Q3", "ImspTQPwCqd", "49.0"));
-    validateRow(response, List.of("MODTRANS", "Female", "2022Q3", "ImspTQPwCqd", "49.0"));
-    validateRow(response, List.of("MODDISCH", "Male", "2022Q3", "ImspTQPwCqd", "49.6"));
-    validateRow(response, List.of("MODDISCH", "Female", "2022Q3", "ImspTQPwCqd", "49.5"));
-    validateRow(response, List.of("MODDISCH", "Female", "2022Q4", "ImspTQPwCqd", "49.4"));
-    validateRow(response, List.of("MODDISCH", "Male", "2022Q4", "ImspTQPwCqd", "49.0"));
-    validateRow(response, List.of("MODDIED", "Male", "2022Q3", "ImspTQPwCqd", "50.3"));
-    validateRow(response, List.of("MODDIED", "Male", "2022Q4", "ImspTQPwCqd", "50.1"));
-    validateRow(response, List.of("MODDIED", "Female", "2022Q3", "ImspTQPwCqd", "49.8"));
-    validateRow(response, List.of("MODDIED", "Female", "2022Q4", "ImspTQPwCqd", "49.5"));
-    validateRow(response, List.of("MODABSC", "Male", "2022Q4", "ImspTQPwCqd", "49.5"));
-    validateRow(response, List.of("MODABSC", "Male", "2022Q3", "ImspTQPwCqd", "49.5"));
-    validateRow(response, List.of("MODABSC", "Female", "2022Q4", "ImspTQPwCqd", "49.2"));
-    validateRow(response, List.of("MODABSC", "Female", "2022Q3", "ImspTQPwCqd", "49.1"));
+    validateRow(response, List.of("MODTRANS", "Female", "2022Q4", "ImspTQPwCqd", "49.55"));
+    validateRow(response, List.of("MODTRANS", "Male", "2022Q4", "ImspTQPwCqd", "49.54"));
+    validateRow(response, List.of("MODTRANS", "Male", "2022Q3", "ImspTQPwCqd", "49.01"));
+    validateRow(response, List.of("MODTRANS", "Female", "2022Q3", "ImspTQPwCqd", "48.96"));
+    validateRow(response, List.of("MODDISCH", "Male", "2022Q3", "ImspTQPwCqd", "49.65"));
+    validateRow(response, List.of("MODDISCH", "Female", "2022Q3", "ImspTQPwCqd", "49.51"));
+    validateRow(response, List.of("MODDISCH", "Female", "2022Q4", "ImspTQPwCqd", "49.37"));
+    validateRow(response, List.of("MODDISCH", "Male", "2022Q4", "ImspTQPwCqd", "49.04"));
+    validateRow(response, List.of("MODDIED", "Male", "2022Q3", "ImspTQPwCqd", "50.29"));
+    validateRow(response, List.of("MODDIED", "Male", "2022Q4", "ImspTQPwCqd", "50.06"));
+    validateRow(response, List.of("MODDIED", "Female", "2022Q3", "ImspTQPwCqd", "49.85"));
+    validateRow(response, List.of("MODDIED", "Female", "2022Q4", "ImspTQPwCqd", "49.47"));
+    validateRow(response, List.of("MODABSC", "Male", "2022Q4", "ImspTQPwCqd", "49.46"));
+    validateRow(response, List.of("MODABSC", "Male", "2022Q3", "ImspTQPwCqd", "49.45"));
+    validateRow(response, List.of("MODABSC", "Female", "2022Q4", "ImspTQPwCqd", "49.23"));
+    validateRow(response, List.of("MODABSC", "Female", "2022Q3", "ImspTQPwCqd", "49.06"));
   }
 }

@@ -162,7 +162,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
         instancesWithTemplates.size(),
         SKIP_ITEM_OUTLIER);
     if (instancesWithTemplates.isEmpty()) {
-      progress.completedStage("No instances with templates found.");
+      progress.completedStage("No instances with templates found");
       return;
     }
 

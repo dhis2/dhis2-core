@@ -43,7 +43,7 @@ interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @param params EnrollmentQueryParams to use
    * @return Count of matching enrollments
    */
-  int countEnrollments(EnrollmentQueryParams params);
+  long countEnrollments(EnrollmentQueryParams params);
 
   /** Get all enrollments matching given params. */
   List<Enrollment> getEnrollments(EnrollmentQueryParams params);

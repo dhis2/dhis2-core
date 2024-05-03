@@ -28,70 +28,26 @@
 package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
+import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @deprecated This is added for backward compatibility. Use {@link #GenericHttpGatewayConfig}
  *     instead.
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
+@Getter
+@Setter
 @Deprecated
 public class GenericHttpGetGatewayConfig extends SmsGatewayConfig {
-  private static final long serialVersionUID = 6340853488475760213L;
+  @Serial private static final long serialVersionUID = 6340853488475760213L;
 
-  private String messageParameter;
-
-  private String recipientParameter;
-
-  private boolean useGet;
-
-  private ContentType contentType = ContentType.FORM_URL_ENCODED;
-
-  private List<GenericGatewayParameter> parameters = Lists.newArrayList();
-
-  @JsonProperty
-  public List<GenericGatewayParameter> getParameters() {
-    return parameters;
-  }
-
-  public void setParameters(List<GenericGatewayParameter> parameters) {
-    this.parameters = parameters;
-  }
-
-  @JsonProperty(value = "messageParameter")
-  public String getMessageParameter() {
-    return messageParameter;
-  }
-
-  public void setMessageParameter(String messageParameter) {
-    this.messageParameter = messageParameter;
-  }
-
-  @JsonProperty(value = "recipientParameter")
-  public String getRecipientParameter() {
-    return recipientParameter;
-  }
-
-  public void setRecipientParameter(String recipientParameter) {
-    this.recipientParameter = recipientParameter;
-  }
-
-  @JsonProperty
-  public boolean isUseGet() {
-    return useGet;
-  }
-
-  public void setUseGet(boolean useGet) {
-    this.useGet = useGet;
-  }
-
-  @JsonProperty
-  public ContentType getContentType() {
-    return contentType;
-  }
-
-  public void setContentType(ContentType contentType) {
-    this.contentType = contentType;
-  }
+  @JsonProperty private String messageParameter;
+  @JsonProperty private String recipientParameter;
+  @JsonProperty private boolean useGet;
+  @JsonProperty private ContentType contentType = ContentType.FORM_URL_ENCODED;
+  @JsonProperty private List<GenericGatewayParameter> parameters = new ArrayList<>();
 }

@@ -30,10 +30,10 @@ package org.hisp.dhis.analytics.table;
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static org.apache.commons.lang3.reflect.FieldUtils.writeField;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
-import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.ENDDATE;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.OU;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.STARTDATE;
+import static org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter.TEIUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
+import org.hisp.dhis.analytics.table.writer.JdbcOwnershipWriter;
 import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.StatementDialect;
@@ -126,6 +127,7 @@ class JdbcOwnershipWriterTest {
     verify(statement, never()).executeUpdate(any());
   }
 
+  /** Note that {@link BatchHandler} does not quote column names. */
   @Test
   void testWriteOneOwnershipChange() {
     writer.write(mapOf(TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01));
@@ -138,7 +140,7 @@ class JdbcOwnershipWriterTest {
     batchHandler.flush();
 
     assertEquals(
-        "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values "
+        "insert into analytics_ownership_programUidA (teiuid,ou,startdate,enddate) values "
             + "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-02-01'),"
             + "('teiAaaaaaaa','ouBbbbbbbbb','2022-02-02','9999-12-31')",
         getUpdateSql());
@@ -156,7 +158,7 @@ class JdbcOwnershipWriterTest {
     batchHandler.flush();
 
     assertEquals(
-        "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values "
+        "insert into analytics_ownership_programUidA (teiuid,ou,startdate,enddate) values "
             + "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-01-01'),"
             + "('teiAaaaaaaa','ouBbbbbbbbb','2022-01-02','2022-02-01'),"
             + "('teiAaaaaaaa','ouAaaaaaaaa','2022-02-02','9999-12-31')",
@@ -175,7 +177,7 @@ class JdbcOwnershipWriterTest {
     batchHandler.flush();
 
     assertEquals(
-        "insert into analytics_ownership_programUidA (\"teiuid\",\"ou\",\"startdate\",\"enddate\") values "
+        "insert into analytics_ownership_programUidA (teiuid,ou,startdate,enddate) values "
             + "('teiAaaaaaaa','ouAaaaaaaaa','1000-01-01','2022-01-01'),"
             + "('teiAaaaaaaa','ouBbbbbbbbb','2022-01-02','2022-02-01'),"
             + "('teiAaaaaaaa','ouAaaaaaaaa','2022-02-02','9999-12-31'),"
@@ -211,7 +213,7 @@ class JdbcOwnershipWriterTest {
     return map;
   }
 
-  /** Gets a list of invocations of a mocked object */
+  /** Returns the invoked SQL statement. */
   private String getUpdateSql() {
     List<Invocation> invocations = new ArrayList<>(mockingDetails(statement).getInvocations());
     assertEquals(2, invocations.size());

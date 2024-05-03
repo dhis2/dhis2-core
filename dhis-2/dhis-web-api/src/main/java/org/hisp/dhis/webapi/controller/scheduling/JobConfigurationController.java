@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
+import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -49,12 +51,12 @@ import org.hisp.dhis.scheduling.JobRunErrorsParams;
 import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -78,7 +80,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_JOB_LOG_READ)
   @GetMapping("/errors")
   public List<JsonObject> getJobRunErrors(JobRunErrorsParams params) {
     return jobConfigurationService.findJobRunErrors(params);
@@ -86,10 +88,9 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @GetMapping("{uid}/errors")
   public JsonObject getJobRunErrors(
-      @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid,
-      @CurrentUser User currentUser)
+      @PathVariable("uid") @OpenApi.Param({UID.class, JobConfiguration.class}) UID uid)
       throws NotFoundException, ForbiddenException {
-    checkExecutingUserOrAdmin(uid, currentUser);
+    checkExecutingUserOrAdmin(uid, true);
     List<JsonObject> errors =
         jobConfigurationService.findJobRunErrors(new JobRunErrorsParams().setJob(uid));
     return errors.isEmpty() ? JsonMixed.of("{}") : errors.get(0);
@@ -133,25 +134,27 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
 
   @PostMapping("{uid}/cancel")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void cancelExecution(@PathVariable("uid") UID uid, @CurrentUser User currentUser)
+  public void cancelExecution(@PathVariable("uid") UID uid)
       throws NotFoundException, ForbiddenException {
-    checkExecutingUserOrAdmin(uid, currentUser);
+    checkExecutingUserOrAdmin(uid, false);
     jobSchedulerService.requestCancel(uid.getValue());
   }
 
   @GetMapping("{uid}/progress")
-  public Progress getProgress(@PathVariable("uid") UID uid, @CurrentUser User currentUser)
+  public Progress getProgress(@PathVariable("uid") UID uid)
       throws ForbiddenException, NotFoundException {
-    checkExecutingUserOrAdmin(uid, currentUser);
+    checkExecutingUserOrAdmin(uid, true);
     return jobSchedulerService.getProgress(uid.getValue());
   }
 
   @GetMapping("{uid}/progress/errors")
-  public List<JobProgress.Error> getErrors(@PathVariable("uid") String uid) {
-    return jobSchedulerService.getErrors(uid);
+  public List<JobProgress.Error> getErrors(@PathVariable("uid") UID uid)
+      throws ForbiddenException, NotFoundException {
+    checkExecutingUserOrAdmin(uid, true);
+    return jobSchedulerService.getErrors(uid.getValue());
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
   @PostMapping("clean")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteDoneJobs(@RequestParam int minutes) {
@@ -165,6 +168,8 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
     checkModifiable(obj, "Job %s is a system job that cannot be modified.");
     if (!obj.isEnabled()) {
+      if (!obj.isReadyToRun())
+        throw new ConflictException("Job requires schedule setup before it can be enabled.");
       obj.setEnabled(true);
       jobConfigurationService.updateJobConfiguration(obj);
     }
@@ -217,14 +222,17 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     }
   }
 
-  private void checkExecutingUserOrAdmin(UID uid, User currentUser)
+  private void checkExecutingUserOrAdmin(UID uid, boolean read)
       throws NotFoundException, ForbiddenException {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
     if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
-    boolean canCancel =
-        currentUser.isSuper()
-            || currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
-            || currentUser.getUid().equals(obj.getExecutedBy());
-    if (!canCancel) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
+    boolean isAuthorized =
+        currentUser != null
+            && (currentUser.isSuper()
+                || (!read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
+                || (read && currentUser.isAuthorized(F_JOB_LOG_READ.toString()))
+                || currentUser.getUid().equals(obj.getExecutedBy()));
+    if (!isAuthorized) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }
 }

@@ -28,10 +28,10 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
-import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
@@ -87,7 +87,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -121,6 +120,7 @@ import org.hisp.dhis.program.function.D2YearsBetween;
 import org.hisp.dhis.program.function.D2Zing;
 import org.hisp.dhis.program.function.D2Zpvc;
 import org.hisp.dhis.program.variable.ProgramVariableItem;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,8 +138,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final StatementBuilder statementBuilder;
-
   private final ExpressionService expressionService;
 
   private final DimensionService dimensionService;
@@ -154,7 +152,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
           IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
       ProgramStageService programStageService,
       IdentifiableObjectManager idObjectManager,
-      StatementBuilder statementBuilder,
       ExpressionService expressionService,
       DimensionService dimensionService,
       I18nManager i18nManager,
@@ -163,7 +160,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
     checkNotNull(idObjectManager);
-    checkNotNull(statementBuilder);
     checkNotNull(expressionService);
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
@@ -173,7 +169,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.programIndicatorGroupStore = programIndicatorGroupStore;
     this.programStageService = programStageService;
     this.idObjectManager = idObjectManager;
-    this.statementBuilder = statementBuilder;
     this.expressionService = expressionService;
     this.dimensionService = dimensionService;
     this.i18nManager = i18nManager;
@@ -372,7 +367,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     return analyticsSqlCache.get(
         cacheKey,
         k ->
-            _getAnalyticsSql(
+            getAnalyticsSqlInternal(
                 expression, dataType, programIndicator, startDate, endDate, tableAlias));
   }
 
@@ -407,7 +402,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .orElse(StringUtils.EMPTY);
   }
 
-  private String _getAnalyticsSql(
+  private String getAnalyticsSqlInternal(
       String expression,
       DataType dataType,
       ProgramIndicator programIndicator,
@@ -458,7 +453,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       String sql = StringUtils.EMPTY;
 
       for (String uid : uids) {
-        sql += statementBuilder.columnQuote(uid) + " is not null or ";
+        sql += SqlUtils.quote(uid) + " is not null or ";
       }
 
       return TextUtils.removeLastOr(sql).trim();
@@ -521,7 +516,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .dimensionService(dimensionService)
         .programIndicatorService(this)
         .programStageService(programStageService)
-        .statementBuilder(statementBuilder)
         .i18nSupplier(Suppliers.memoize(i18nManager::getI18n))
         .constantMap(expressionService.getConstantMap())
         .itemMap(PROGRAM_INDICATOR_ITEMS)

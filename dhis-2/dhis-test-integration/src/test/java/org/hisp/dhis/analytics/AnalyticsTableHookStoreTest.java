@@ -40,10 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Lars Helge Overland
  */
 class AnalyticsTableHookStoreTest extends SingleSetupIntegrationTestBase {
-
   @Autowired private AnalyticsTableHookStore sqlHookStore;
 
-  private final String sql = "update _orgunitstructure set organisationunitid=1";
+  private final String sql = "update analytics_rs_orgunitstructure set organisationunitid=1";
 
   @Test
   void testGetByType() {

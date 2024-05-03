@@ -31,8 +31,8 @@ import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_COMPL
 import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_DATA_ENTRY;
 import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.getAll;
 
-import com.google.common.collect.Sets;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -40,21 +40,22 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 /**
  * @author Markus Bekken
  */
+@RequiredArgsConstructor
 public enum ProgramRuleActionType {
   DISPLAYTEXT("displaytext"),
   DISPLAYKEYVALUEPAIR("displaykeyvaluepair"),
   HIDEFIELD("hidefield"),
   HIDESECTION("hidesection"),
   HIDEPROGRAMSTAGE("hideprogramstage"),
-  ASSIGN("assign", ON_DATA_ENTRY, ON_COMPLETE),
+  ASSIGN("assign", Set.of(ON_DATA_ENTRY, ON_COMPLETE)),
   SHOWWARNING("showwarning"),
   WARNINGONCOMPLETE("warningoncomplete"),
   SHOWERROR("showerror"),
   ERRORONCOMPLETE("erroroncomplete"),
   CREATEEVENT("createevent"),
-  SETMANDATORYFIELD("setmandatoryfield", ON_DATA_ENTRY),
-  SENDMESSAGE("sendmessage", ON_DATA_ENTRY, ON_COMPLETE),
-  SCHEDULEMESSAGE("schedulemessage", ON_DATA_ENTRY, ON_COMPLETE),
+  SETMANDATORYFIELD("setmandatoryfield", Set.of(ON_DATA_ENTRY)),
+  SENDMESSAGE("sendmessage", Set.of(ON_DATA_ENTRY, ON_COMPLETE)),
+  SCHEDULEMESSAGE("schedulemessage", Set.of(ON_DATA_ENTRY, ON_COMPLETE)),
   HIDEOPTION("hideoption"),
   SHOWOPTIONGROUP("showoptiongroup"),
   HIDEOPTIONGROUP("hideoptiongroup");
@@ -90,10 +91,5 @@ public enum ProgramRuleActionType {
   ProgramRuleActionType(String value) {
     this.value = value;
     this.whenToRun = getAll();
-  }
-
-  ProgramRuleActionType(String value, ProgramRuleActionEvaluationTime... whenToRun) {
-    this.value = value;
-    this.whenToRun = Sets.newHashSet(whenToRun);
   }
 }

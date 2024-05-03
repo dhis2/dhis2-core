@@ -124,6 +124,18 @@ public interface TrackedEntityAttributeService {
 
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(UserDetails userDetails);
 
+  /**
+   * Get the tracked entity attributes for given program i.e. program attributes to which the
+   * current user must have data read access.
+   */
+  Set<TrackedEntityAttribute> getProgramAttributes(Program program);
+
+  /**
+   * Get the tracked entity attributes for given tracked entity type i.e. tracked entity type
+   * attributes to which the current user must have data read access.
+   */
+  Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(TrackedEntityType trackedEntityType);
+
   Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
       UserDetails userDetails, List<Program> programs, List<TrackedEntityType> trackedEntityTypes);
 

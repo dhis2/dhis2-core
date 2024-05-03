@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collection;
@@ -40,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,7 +122,13 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   @Transactional(readOnly = true)
   public Progress getProgress(@Nonnull String jobId) {
     String json = jobConfigurationStore.getProgress(jobId);
-    return json == null ? null : mapToProgress(json);
+    if (json == null) return null;
+    Progress progress = mapToProgress(json);
+    if (progress == null) return null;
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    if (user == null || !(user.isSuper() || user.isAuthorized(F_JOB_LOG_READ)))
+      return progress.withoutErrors();
+    return progress;
   }
 
   @Nonnull

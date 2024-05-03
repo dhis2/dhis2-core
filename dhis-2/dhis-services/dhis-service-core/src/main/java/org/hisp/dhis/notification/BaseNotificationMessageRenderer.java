@@ -316,6 +316,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   }
 
   protected static String formatDate(Date date) {
-    return DateUtils.getMediumDateString(date);
+    return DateUtils.toMediumDate(date);
   }
 }

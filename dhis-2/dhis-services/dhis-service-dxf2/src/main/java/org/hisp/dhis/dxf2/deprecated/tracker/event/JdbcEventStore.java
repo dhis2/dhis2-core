@@ -113,7 +113,6 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -343,8 +342,6 @@ public class JdbcEventStore implements EventStore {
   private static final ObjectReader eventDataValueJsonReader =
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
-  private final StatementBuilder statementBuilder;
-
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
   @Qualifier("dataValueJsonMapper")
@@ -430,20 +427,20 @@ public class JdbcEventStore implements EventStore {
 
             event.setStoredBy(resultSet.getString("psi_storedby"));
             event.setOrgUnitName(resultSet.getString("ou_name"));
-            event.setDueDate(DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_duedate")));
+            event.setDueDate(DateUtils.toIso8601NoTz(resultSet.getTimestamp("psi_duedate")));
             event.setEventDate(
-                DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_executiondate")));
-            event.setCreated(DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_created")));
+                DateUtils.toIso8601NoTz(resultSet.getTimestamp("psi_executiondate")));
+            event.setCreated(DateUtils.toIso8601NoTz(resultSet.getTimestamp("psi_created")));
             event.setCreatedByUserInfo(
                 jsonToUserInfo(resultSet.getString("psi_createdbyuserinfo"), jsonMapper));
             event.setLastUpdated(
-                DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_lastupdated")));
+                DateUtils.toIso8601NoTz(resultSet.getTimestamp("psi_lastupdated")));
             event.setLastUpdatedByUserInfo(
                 jsonToUserInfo(resultSet.getString("psi_lastupdatedbyuserinfo"), jsonMapper));
 
             event.setCompletedBy(resultSet.getString("psi_completedby"));
             event.setCompletedDate(
-                DateUtils.getIso8601NoTz(resultSet.getTimestamp("psi_completeddate")));
+                DateUtils.toIso8601NoTz(resultSet.getTimestamp("psi_completeddate")));
 
             if (resultSet.getObject("psi_geometry") != null) {
               try {
@@ -489,7 +486,7 @@ public class JdbcEventStore implements EventStore {
               Note note = new Note();
               note.setNote(resultSet.getString("psinote_uid"));
               note.setValue(resultSet.getString("psinote_value"));
-              note.setStoredDate(DateUtils.getIso8601NoTz(resultSet.getDate("psinote_storeddate")));
+              note.setStoredDate(DateUtils.toIso8601NoTz(resultSet.getDate("psinote_storeddate")));
               note.setStoredBy(resultSet.getString("psinote_storedby"));
 
               if (resultSet.getObject("usernote_id") != null) {
@@ -675,9 +672,9 @@ public class JdbcEventStore implements EventStore {
 
               eventRow.setTrackedEntityInstance(resultSet.getString("tei_uid"));
               eventRow.setOrgUnitName(resultSet.getString("ou_name"));
-              eventRow.setDueDate(DateUtils.getIso8601NoTz(resultSet.getDate("psi_duedate")));
+              eventRow.setDueDate(DateUtils.toIso8601NoTz(resultSet.getDate("psi_duedate")));
               eventRow.setEventDate(
-                  DateUtils.getIso8601NoTz(resultSet.getDate("psi_executiondate")));
+                  DateUtils.toIso8601NoTz(resultSet.getDate("psi_executiondate")));
 
               eventRows.add(eventRow);
             }
@@ -686,9 +683,9 @@ public class JdbcEventStore implements EventStore {
               String valueType = resultSet.getString("ta_valuetype");
 
               Attribute attribute = new Attribute();
-              attribute.setCreated(DateUtils.getIso8601NoTz(resultSet.getDate("pav_created")));
+              attribute.setCreated(DateUtils.toIso8601NoTz(resultSet.getDate("pav_created")));
               attribute.setLastUpdated(
-                  DateUtils.getIso8601NoTz(resultSet.getDate("pav_lastupdated")));
+                  DateUtils.toIso8601NoTz(resultSet.getDate("pav_lastupdated")));
               attribute.setValue(resultSet.getString("pav_value"));
               attribute.setDisplayName(resultSet.getString("ta_name"));
               attribute.setValueType(
@@ -715,7 +712,7 @@ public class JdbcEventStore implements EventStore {
               Note note = new Note();
               note.setNote(resultSet.getString("psinote_uid"));
               note.setValue(resultSet.getString("psinote_value"));
-              note.setStoredDate(DateUtils.getIso8601NoTz(resultSet.getDate("psinote_storeddate")));
+              note.setStoredDate(DateUtils.toIso8601NoTz(resultSet.getDate("psinote_storeddate")));
               note.setStoredBy(resultSet.getString("psinote_storedby"));
 
               eventRow.getNotes().add(note);
@@ -852,9 +849,9 @@ public class JdbcEventStore implements EventStore {
 
   private DataValue convertEventDataValueIntoDtoDataValue(EventDataValue eventDataValue) {
     DataValue dataValue = new DataValue();
-    dataValue.setCreated(DateUtils.getIso8601NoTz(eventDataValue.getCreated()));
+    dataValue.setCreated(DateUtils.toIso8601NoTz(eventDataValue.getCreated()));
     dataValue.setCreatedByUserInfo(eventDataValue.getCreatedByUserInfo());
-    dataValue.setLastUpdated(DateUtils.getIso8601NoTz(eventDataValue.getLastUpdated()));
+    dataValue.setLastUpdated(DateUtils.toIso8601NoTz(eventDataValue.getLastUpdated()));
     dataValue.setLastUpdatedByUserInfo(eventDataValue.getLastUpdatedByUserInfo());
     dataValue.setDataElement(eventDataValue.getDataElement());
     dataValue.setValue(eventDataValue.getValue());
@@ -935,8 +932,8 @@ public class JdbcEventStore implements EventStore {
   private void joinAttributeValueWithoutQueryParameter(
       StringBuilder attributes, List<QueryItem> filterItems) {
     for (QueryItem queryItem : filterItems) {
-      String teaValueCol = statementBuilder.columnQuote(queryItem.getItemId());
-      String teaCol = statementBuilder.columnQuote(queryItem.getItemId() + "ATT");
+      String teaValueCol = quote(queryItem.getItemId());
+      String teaCol = quote(queryItem.getItemId() + "ATT");
 
       attributes
           .append(" inner join trackedentityattributevalue ")
@@ -953,7 +950,7 @@ public class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(statementBuilder.encode(queryItem.getItem().getUid(), true));
+          .append(SqlUtils.singleQuote(queryItem.getItem().getUid()));
 
       attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
     }

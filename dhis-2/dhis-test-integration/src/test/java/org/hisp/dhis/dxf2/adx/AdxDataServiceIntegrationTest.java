@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.adx;
 
 import static org.hisp.dhis.common.IdScheme.CODE;
 import static org.hisp.dhis.common.IdScheme.UID;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -487,8 +487,8 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     adxDataService.saveDataValueSet(in, importOptions, null);
 
     DataValue dataValue = dataValueService.getAllDataValues().get(0);
-    assertEquals(getMediumDateString(today), getMediumDateString(dataValue.getCreated()));
-    assertEquals(getMediumDateString(today), getMediumDateString(dataValue.getLastUpdated()));
+    assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
+    assertEquals(toMediumDate(today), toMediumDate(dataValue.getLastUpdated()));
     assertEquals("33", dataValue.getValue());
   }
 
@@ -510,8 +510,8 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase {
     adxDataService.saveDataValueSet(in2, importOptions, null);
 
     DataValue dataValue = dataValueService.getAllDataValues().get(0);
-    assertEquals(getMediumDateString(today), getMediumDateString(dataValue.getCreated()));
-    assertEquals(getMediumDateString(today), getMediumDateString(dataValue.getLastUpdated()));
+    assertEquals(toMediumDate(today), toMediumDate(dataValue.getCreated()));
+    assertEquals(toMediumDate(today), toMediumDate(dataValue.getLastUpdated()));
     assertNotEquals(dataValue.getCreated(), dataValue.getLastUpdated());
     assertEquals("55", dataValue.getValue());
   }

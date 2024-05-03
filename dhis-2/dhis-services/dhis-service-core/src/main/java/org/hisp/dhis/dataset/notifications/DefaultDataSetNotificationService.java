@@ -222,8 +222,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
         msgText.setLength(0);
       }
     }
-    progress.completedStage(
-        format("%d summary dataset notifications created.", batch.dhisMessages.size()));
+    progress.completedStage("{} summary dataset notifications created.", batch.dhisMessages.size());
 
     return batch;
   }
@@ -341,9 +340,8 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
     MessageBatch batch = createMessageBatch(createGroupedByMapper(singleTemplates));
 
     progress.completedStage(
-        format(
-            "Number of SINGLE notifications created: %d",
-            batch.programMessages.size() + batch.dhisMessages.size()));
+        "Number of SINGLE notifications created: {}",
+        batch.programMessages.size() + batch.dhisMessages.size());
     return batch;
   }
 

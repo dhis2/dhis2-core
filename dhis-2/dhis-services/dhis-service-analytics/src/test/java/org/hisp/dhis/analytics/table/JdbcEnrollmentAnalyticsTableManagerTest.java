@@ -32,21 +32,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
+import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
@@ -76,9 +80,11 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
 
-  @Mock private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsTableSettings analyticsTableSettings;
 
   @Mock private PeriodDataProvider periodDataProvider;
+
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEnrollmentAnalyticsTableManager subject;
 
@@ -96,12 +102,12 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
             mock(DataApprovalLevelService.class),
             mock(ResourceTableService.class),
             mock(AnalyticsTableHookService.class),
-            new PostgreSQLStatementBuilder(),
             mock(PartitionManager.class),
             databaseInfoProvider,
             jdbcTemplate,
-            analyticsExportSettings,
-            periodDataProvider);
+            analyticsTableSettings,
+            periodDataProvider,
+            sqlBuilder);
   }
 
   @Test
@@ -124,9 +130,11 @@ class JdbcEnrollmentAnalyticsTableManagerTest {
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
 
-    subject.populateTable(
-        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
+    List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
+    assertFalse(analyticsTables.isEmpty());
+    AnalyticsTablePartition partition = new AnalyticsTablePartition(analyticsTables.get(0));
 
+    subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouQuery =

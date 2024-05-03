@@ -27,8 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,5 +53,19 @@ class PdfFormControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "An error occurred, please check import summary.",
         POST("/pdfForm/dataSet", "{}").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  @DisplayName("Should not return Http Error 500 if the DB_Locale is null.")
+  void testGetDataSetPdfForm() {
+    HttpResponse setting = GET("/userSettings/keyDbLocale");
+    Assertions.assertTrue(setting.content().isNull());
+
+    PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
+    DataSet dataSet = createDataSet('A');
+    dataSet.setPeriodType(periodType);
+    manager.save(dataSet);
+
+    assertFalse(GET("/pdfForm/dataSet/" + dataSet.getUid()).content("application/pdf").isEmpty());
   }
 }

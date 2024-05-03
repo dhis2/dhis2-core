@@ -29,21 +29,18 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import java.io.Serial;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Getter
+@Setter
 @JsonTypeName("clickatell")
 public class ClickatellGatewayConfig extends SmsGatewayConfig {
-  private static final long serialVersionUID = -4286107769356591957L;
+  @Serial private static final long serialVersionUID = -4286107769356591957L;
 
   @JsonProperty private String authToken;
-
-  public String getAuthToken() {
-    return authToken;
-  }
-
-  public void setAuthToken(String authToken) {
-    this.authToken = authToken;
-  }
 }

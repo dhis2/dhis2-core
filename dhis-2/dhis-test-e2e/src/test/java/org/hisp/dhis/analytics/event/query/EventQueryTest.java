@@ -399,7 +399,7 @@ public class EventQueryTest extends AnalyticsApiTest {
         .body("metaData.items.ImspTQPwCqd.code", equalTo("OU_525"))
         .body("metaData.items.ImspTQPwCqd.name", equalTo("Sierra Leone"))
         .body("metaData.items.ImspTQPwCqd.dimensionItemType", equalTo("ORGANISATION_UNIT"))
-        .body("metaData.items.ImspTQPwCqd.valueType", equalTo("NUMBER"))
+        .body("metaData.items.ImspTQPwCqd.valueType", equalTo("TEXT"))
         .body("metaData.items.ImspTQPwCqd.totalAggregationType", equalTo("SUM"))
         .body("metaData.items.eBAyeGv0exc.uid", equalTo("eBAyeGv0exc"))
         .body("metaData.items.eBAyeGv0exc.name", equalTo("Inpatient morbidity and mortality"))
@@ -581,7 +581,7 @@ public class EventQueryTest extends AnalyticsApiTest {
         .body("metaData.items.ImspTQPwCqd.code", equalTo("OU_525"))
         .body("metaData.items.ImspTQPwCqd.name", equalTo("Sierra Leone"))
         .body("metaData.items.ImspTQPwCqd.dimensionItemType", equalTo("ORGANISATION_UNIT"))
-        .body("metaData.items.ImspTQPwCqd.valueType", equalTo("NUMBER"))
+        .body("metaData.items.ImspTQPwCqd.valueType", equalTo("TEXT"))
         .body("metaData.items.ImspTQPwCqd.totalAggregationType", equalTo("SUM"))
         .body("metaData.items.p2Zxg0wcPQ3.uid", equalTo("p2Zxg0wcPQ3"))
         .body("metaData.items.p2Zxg0wcPQ3.code", equalTo("BCG_DOSE"))
@@ -676,16 +676,17 @@ public class EventQueryTest extends AnalyticsApiTest {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd")
+            .add("dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd, pe:THIS_YEAR")
             .add("headers=ou,ounamehierarchy,edqlbukwRfQ.vANAXwtLwcT")
             .add("stage=edqlbukwRfQ")
             .add("displayProperty=NAME")
             .add("outputType=EVENT")
-            .add("desc=incidentdate")
+            .add("desc=incidentdate,edqlbukwRfQ.vANAXwtLwcT")
             .add("totalPages=false")
-            .add("pageSize=100")
+            .add("pageSize=2")
             .add("page=1")
-            .add("rowContext=true");
+            .add("rowContext=true")
+            .add("relativePeriodDate=2022-09-22");
 
     // When
     ApiResponse response = analyticsEventActions.query().get("WSGAb5XwJ3Y", JSON, JSON, params);
@@ -693,7 +694,7 @@ public class EventQueryTest extends AnalyticsApiTest {
         .validate()
         .statusCode(200)
         .body("headers", hasSize(equalTo(3)))
-        .body("rows", hasSize(equalTo(100)));
+        .body("rows", hasSize(equalTo(2)));
 
     validateHeader(response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -717,11 +718,15 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     validateRow(
         response,
+        0,
         List.of(
-            "NjyJYiIuKIG", "Sierra Leone / Bombali / Sella Limba / Kathanta Yimbor CHC", "14.0"));
+            "zQpYVEyAM2t",
+            "Sierra Leone / Western Area / Rural Western Area / Hastings Health Centre",
+            "10.0"));
     validateRow(
         response,
-        List.of("xATvj8pdYoT", "Sierra Leone / Kailahun / Peje Bongre / Grima Jou MCHP", "24.0"));
+        1,
+        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17.0"));
   }
 
   @Test
@@ -795,7 +800,7 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":0,\"isLastPage\":false},\"items\":{\"kzgQRhOCadd\":{\"uid\":\"kzgQRhOCadd\",\"name\":\"MNCH Polio doses (0-3)\",\"options\":[{\"code\":\"2\",\"uid\":\"Xr0M5yEhtpT\"},{\"code\":\"1\",\"uid\":\"lFFqylGiWLk\"}]},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"Xr0M5yEhtpT\":{\"uid\":\"Xr0M5yEhtpT\",\"code\":\"2\",\"name\":\"Dose 2\"},\"A03MvHHogjR.ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"lFFqylGiWLk\":{\"uid\":\"lFFqylGiWLk\",\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.ebaJjqltK5N\":[\"lFFqylGiWLk\",\"Xr0M5yEhtpT\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":0,\"isLastPage\":false},\"items\":{\"kzgQRhOCadd\":{\"uid\":\"kzgQRhOCadd\",\"name\":\"MNCH Polio doses (0-3)\",\"options\":[{\"code\":\"2\",\"uid\":\"Xr0M5yEhtpT\"},{\"code\":\"1\",\"uid\":\"lFFqylGiWLk\"}]},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"Xr0M5yEhtpT\":{\"uid\":\"Xr0M5yEhtpT\",\"code\":\"2\",\"name\":\"Dose 2\"},\"A03MvHHogjR.ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"lFFqylGiWLk\":{\"uid\":\"lFFqylGiWLk\",\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.ebaJjqltK5N\":[\"lFFqylGiWLk\",\"Xr0M5yEhtpT\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -848,7 +853,7 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":1,\"isLastPage\":false},\"items\":{\"kzgQRhOCadd\":{\"uid\":\"kzgQRhOCadd\",\"name\":\"MNCH Polio doses (0-3)\",\"options\":[{\"code\":\"1\",\"uid\":\"lFFqylGiWLk\"}]},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"lFFqylGiWLk\":{\"uid\":\"lFFqylGiWLk\",\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.ebaJjqltK5N\":[\"lFFqylGiWLk\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":1,\"isLastPage\":false},\"items\":{\"kzgQRhOCadd\":{\"uid\":\"kzgQRhOCadd\",\"name\":\"MNCH Polio doses (0-3)\",\"options\":[{\"code\":\"1\",\"uid\":\"lFFqylGiWLk\"}]},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"lFFqylGiWLk\":{\"uid\":\"lFFqylGiWLk\",\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.ebaJjqltK5N\":[\"lFFqylGiWLk\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -902,7 +907,7 @@ public class EventQueryTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":10,\"pageSize\":1,\"isLastPage\":false},\"items\":{\"kzgQRhOCadd\":{\"uid\":\"kzgQRhOCadd\",\"name\":\"MNCH Polio doses (0-3)\",\"options\":[{\"code\":\"1\",\"uid\":\"lFFqylGiWLk\"}]},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"NUMBER\",\"totalAggregationType\":\"SUM\"},\"ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"lFFqylGiWLk\":{\"uid\":\"lFFqylGiWLk\",\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.ebaJjqltK5N\":[\"lFFqylGiWLk\"]}}";
+        "{\"pager\":{\"page\":10,\"pageSize\":1,\"isLastPage\":false},\"items\":{\"kzgQRhOCadd\":{\"uid\":\"kzgQRhOCadd\",\"name\":\"MNCH Polio doses (0-3)\",\"options\":[{\"code\":\"1\",\"uid\":\"lFFqylGiWLk\"}]},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ebaJjqltK5N\":{\"uid\":\"ebaJjqltK5N\",\"code\":\"DE_2006104\",\"name\":\"MCH OPV dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"TEXT\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"lFFqylGiWLk\":{\"uid\":\"lFFqylGiWLk\",\"code\":\"1\",\"name\":\"Dose 1\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.ebaJjqltK5N\":[\"lFFqylGiWLk\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

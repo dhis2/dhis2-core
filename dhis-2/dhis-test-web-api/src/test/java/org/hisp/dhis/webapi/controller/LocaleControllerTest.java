@@ -29,11 +29,14 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebLocale;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -96,6 +99,28 @@ class LocaleControllerTest extends DhisControllerConvenienceTest {
     assertEquals("ar", firstElement.getLocale());
     assertEquals("العربية", firstElement.getName());
     assertEquals("Arabic", firstElement.getDisplayName());
+  }
+
+  @Test
+  @DisplayName("Indonesian locales are returned with the expected locale codes")
+  void testGetUiIndonesianLocalesInUserLanguage() {
+    // given
+    String userEnglishLocale =
+        GET("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID)
+            .content("text/plain; charset=UTF-8");
+    assertEquals("en", userEnglishLocale);
+
+    // when
+    JsonArray response = GET("/locales/ui").content();
+
+    // then
+    List<String> localeCodes =
+        response.stream()
+            .map(o -> o.as(JsonWebLocale.class))
+            .map(JsonWebLocale::getLocale)
+            .toList();
+
+    assertTrue(localeCodes.containsAll(List.of("id", "id_ID")));
   }
 
   @Test

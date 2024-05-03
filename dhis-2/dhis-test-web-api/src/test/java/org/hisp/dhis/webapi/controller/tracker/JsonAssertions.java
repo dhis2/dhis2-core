@@ -69,7 +69,7 @@ public class JsonAssertions {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
     assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
     assertEquals(
-        DateUtils.getIso8601NoTz(expected.getCreatedAtClient()),
+        DateUtils.toIso8601NoTz(expected.getCreatedAtClient()),
         actual.getCreatedAtClient(),
         "createdAtClient date");
     assertEquals(
@@ -80,8 +80,8 @@ public class JsonAssertions {
 
   public static void assertNoRelationships(JsonObject json) {
     assertFalse(json.isEmpty());
-    JsonArray rels = json.getArray("instances");
-    assertTrue(rels.isEmpty(), "instances should not contain any relationships");
+    JsonArray rels = json.getArray("relationships");
+    assertTrue(rels.isEmpty(), "relationships should not contain any relationships");
   }
 
   public static void assertEventWithinRelationshipItem(

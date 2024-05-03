@@ -49,6 +49,7 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class SystemSettingControllerTest extends DhisControllerConvenienceTest {
+
   @Test
   void testSetSystemSettingOrTranslation_NoSuchObject() {
     assertWebMessage(
@@ -180,6 +181,16 @@ class SystemSettingControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Setting does not exist or is marked as confidential",
         GET("/systemSettings/keyDoesNotExist").content(HttpStatus.NOT_FOUND));
+  }
+
+  @Test
+  void testGetSystemSettings_Forbidden() {
+    switchToNewUser("someone");
+    assertStatus(HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword"));
+    assertStatus(
+        HttpStatus.NOT_FOUND, GET("/systemSettings/keyEmailPassword", Accept("application/json")));
+    switchToSuperuser();
+    assertStatus(HttpStatus.OK, GET("/systemSettings/keyEmailPassword"));
   }
 
   @Test

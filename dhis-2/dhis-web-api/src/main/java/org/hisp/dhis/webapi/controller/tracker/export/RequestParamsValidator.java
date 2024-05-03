@@ -46,6 +46,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -404,6 +405,13 @@ public class RequestParamsValidator {
 
   public static void validatePaginationParameters(PageRequestParams params)
       throws BadRequestException {
+    if (params.getPaging() != null
+        && params.getSkipPaging() != null
+        && params.getPaging().equals(params.getSkipPaging())) {
+      throw new BadRequestException(
+          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
+    }
+
     if (!params.isPaged()
         && (ObjectUtils.firstNonNull(params.getPage(), params.getPageSize()) != null
             || Boolean.TRUE.equals(params.getTotalPages()))) {
@@ -411,17 +419,29 @@ public class RequestParamsValidator {
           "Paging cannot be skipped with isSkipPaging=true while also requesting a paginated response with page, pageSize and/or totalPages=true");
     }
 
-    if (lessThan(params.getPage(), 1)) {
+    validatePaginationBounds(params.getPage(), params.getPageSize());
+  }
+
+  public static void validatePaginationBounds(Integer page, Integer pageSize)
+      throws BadRequestException {
+    if (lessThan(page, 1)) {
       throw new BadRequestException("page must be greater than or equal to 1 if specified");
     }
 
-    if (lessThan(params.getPageSize(), 1)) {
+    if (lessThan(pageSize, 1)) {
       throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
     }
   }
 
   private static boolean lessThan(Integer a, int b) {
     return a != null && a < b;
+  }
+
+  public static void validateUnsupportedParameter(
+      HttpServletRequest request, String dimension, String message) throws BadRequestException {
+    if (StringUtils.isNotEmpty(request.getParameter(dimension))) {
+      throw new BadRequestException(message);
+    }
   }
 
   private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)

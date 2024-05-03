@@ -215,7 +215,7 @@ class PasswordValidationRuleTest {
   @Test
   void testPasswordHistoryValidationRule() {
     List<String> history =
-        ListUtils.newList(
+        ListUtils.of(
             STRONG_PASSWORD,
             STRONG_PASSWORD + "1",
             STRONG_PASSWORD + "2",

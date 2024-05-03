@@ -1341,6 +1341,26 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
+  void testContains() {
+    assertTrue(evalBoolean("contains('ab,cd,ef','ab')"));
+    assertTrue(evalBoolean("contains('ab,cd,ef','ef', 'cd', 'ab')"));
+    assertTrue(evalBoolean("contains('ab,cd,ef','b,c')"));
+    assertTrue(evalBoolean("contains('ab,cd,ef','a')"));
+    assertFalse(evalBoolean("contains('ab,cd,ef','ac')"));
+    assertFalse(evalBoolean("contains('ab,cd,ef','xy')"));
+  }
+
+  @Test
+  void testContainsItems() {
+    assertTrue(evalBoolean("containsItems('ab,cd,ef','ab')"));
+    assertTrue(evalBoolean("containsItems('ab,cd,ef','ef', 'cd', 'ab')"));
+    assertFalse(evalBoolean("containsItems('ab,cd,ef','b,c')"));
+    assertFalse(evalBoolean("containsItems('ab,cd,ef','a')"));
+    assertFalse(evalBoolean("containsItems('ab,cd,ef','ac')"));
+    assertFalse(evalBoolean("containsItems('ab,cd,ef','xy')"));
+  }
+
+  @Test
   void testGetExpressionDescription() {
     assertEquals("DeA", desc("#{dataElemenA}"));
     assertEquals(

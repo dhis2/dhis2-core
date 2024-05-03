@@ -31,14 +31,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,26 +46,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService")
 public class DefaultTrackedEntityDataValueChangeLogService
     implements TrackedEntityDataValueChangeLogService {
-  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
 
+  private final TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore;
   private final Predicate<TrackedEntityDataValueChangeLog> aclFilter;
 
   public DefaultTrackedEntityDataValueChangeLogService(
       TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
-      TrackerAccessManager trackerAccessManager,
-      UserService userService) {
+      TrackerAccessManager trackerAccessManager) {
     checkNotNull(trackedEntityDataValueChangeLogStore);
     checkNotNull(trackerAccessManager);
-    checkNotNull(userService);
 
     this.trackedEntityDataValueChangeLogStore = trackedEntityDataValueChangeLogStore;
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     aclFilter =
-        audit ->
+        changeLog ->
             trackerAccessManager
-                .canRead(currentUser, audit.getEvent(), audit.getDataElement(), false)
+                .canRead(currentUser, changeLog.getEvent(), changeLog.getDataElement(), false)
                 .isEmpty();
   }
 
@@ -87,9 +83,10 @@ public class DefaultTrackedEntityDataValueChangeLogService
   @Transactional(readOnly = true)
   public List<TrackedEntityDataValueChangeLog> getTrackedEntityDataValueChangeLogs(
       TrackedEntityDataValueChangeLogQueryParams params) {
+
     return trackedEntityDataValueChangeLogStore.getTrackedEntityDataValueChangeLogs(params).stream()
         .filter(aclFilter)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @Override

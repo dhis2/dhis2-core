@@ -27,19 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.security.Authorities.F_EXPORT_DATA;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,25 +60,38 @@ import org.springframework.web.client.RestTemplate;
 @Controller
 @RequestMapping(value = SynchronizationController.RESOURCE_PATH)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class SynchronizationController {
   public static final String RESOURCE_PATH = "/synchronization";
 
-  @Autowired private SynchronizationManager synchronizationManager;
+  private final SynchronizationManager synchronizationManager;
+  private final DhisConfigurationProvider configProvider;
+  private final RestTemplate restTemplate;
 
-  @Autowired private RestTemplate restTemplate;
-
-  @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
+  @RequiresAuthority(anyOf = F_EXPORT_DATA)
   @PostMapping(value = "/dataPush", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public ImportConflicts execute() throws IOException {
     return synchronizationManager.executeDataValuePush();
   }
 
-  @PreAuthorize("hasRole('ALL')")
+  /**
+   * This endpoint is used to perform a metadata pull from a remote url. It accepts a user-supplied
+   * string parameter. The url is trimmed to remove any {@linkplain Character#isWhitespace(int)
+   * white space}. This is recommended when the parameter could be logged (which occurs later in the
+   * call chain).
+   *
+   * @param url to retrieve metadata from
+   * @return import report
+   */
+  @RequiresAuthority(anyOf = ALL)
   @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public ImportReport importMetaData(@RequestBody String url) {
-    return synchronizationManager.executeMetadataPull(url);
+  public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
+    String urlTrimmed = url.trim();
+    if (configProvider.remoteServerIsInAllowedList(urlTrimmed)) {
+      return synchronizationManager.executeMetadataPull(urlTrimmed);
+    } else throw new ConflictException("Provided URL is not in the remote servers allowed list");
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)

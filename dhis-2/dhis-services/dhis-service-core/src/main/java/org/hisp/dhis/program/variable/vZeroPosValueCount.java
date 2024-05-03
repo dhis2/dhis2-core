@@ -30,6 +30,7 @@ package org.hisp.dhis.program.variable;
 import java.util.Set;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Program indicator variable: zero pos value count
@@ -48,15 +49,9 @@ public class vZeroPosValueCount extends ProgramDoubleVariable {
     String sql = "nullif(cast((";
 
     for (String uid : uids) {
-      sql +=
-          "case when "
-              + visitor.getStatementBuilder().columnQuote(uid)
-              + " >= 0 then 1 else 0 end + ";
+      sql += "case when " + SqlUtils.quote(uid) + " >= 0 then 1 else 0 end + ";
     }
 
-    return TextUtils.removeLast(sql, "+").trim()
-        + ") as "
-        + visitor.getStatementBuilder().getDoubleColumnType()
-        + "),0)";
+    return TextUtils.removeLast(sql, "+").trim() + ") as double precision),0)";
   }
 }

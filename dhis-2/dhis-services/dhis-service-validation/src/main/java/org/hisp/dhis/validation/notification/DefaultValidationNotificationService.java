@@ -103,12 +103,13 @@ public class DefaultValidationNotificationService implements ValidationNotificat
     // order
     progress.startingStage("Filtering results with rule and template ");
     Set<ValidationResult> applicableResults =
-        progress.runStage(
-            Set.of(),
-            () ->
-                validationResults.stream()
-                    .filter(IS_APPLICABLE_RESULT)
-                    .collect(Collectors.toCollection(TreeSet::new)));
+        new TreeSet<>(
+            progress.runStage(
+                Set.of(),
+                () ->
+                    validationResults.stream()
+                        .filter(IS_APPLICABLE_RESULT)
+                        .collect(Collectors.toSet())));
 
     progress.startingStage(
         format("Creating notifications for %d validation results", applicableResults.size()));
@@ -278,8 +279,7 @@ public class DefaultValidationNotificationService implements ValidationNotificat
             .map(m -> m.result.getValidationRule().getImportance())
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-    String subject =
-        format("Validation violations as of %s", DateUtils.getLongDateString(validationDate));
+    String subject = format("Validation violations as of %s", DateUtils.toLongDate(validationDate));
 
     String message =
         format(

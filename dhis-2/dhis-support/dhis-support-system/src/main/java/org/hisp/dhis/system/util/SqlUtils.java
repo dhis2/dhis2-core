@@ -31,9 +31,9 @@ import com.google.common.collect.Sets;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.Assert;
+import org.hisp.dhis.common.CodeGenerator;
 
 /**
  * Utilities for SQL operations, compatible with PostgreSQL and H2 database platforms.
@@ -49,22 +49,24 @@ public class SqlUtils {
 
   public static final String OPTION_SEP = ".";
 
+  private static final String BACKSLASH = "\\";
+
   /**
-   * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
-   * (replaced by double quotes that is).
+   * Double quotes the given relation (typically a column). Quotes part of the given relation are
+   * escaped (replaced by two double quotes).
    *
    * @param relation the relation (typically a column).
    * @return the quoted relation.
    */
   public static String quote(String relation) {
-    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
+    String rel = relation.replace(QUOTE, (QUOTE + QUOTE));
 
     return QUOTE + rel + QUOTE;
   }
 
   /**
-   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
-   * are encoded (replaced by double quotes that is). The column name is qualified by the given
+   * Double quotes and qualifies the given relation (typically a column). Quotes part of the given
+   * relation are escaped (replaced by double quotes). The column name is qualified by the given
    * alias.
    *
    * @param relation the relation (typically a column).
@@ -72,22 +74,43 @@ public class SqlUtils {
    * @return the quoted relation.
    */
   public static String quote(String alias, String relation) {
-    Assert.notNull(alias, "Alias must be specified");
+    Objects.requireNonNull(alias);
 
     return alias + SEPARATOR + quote(relation);
   }
 
   /**
-   * Single-quotes the given relation (typically a value). Single-quotes part of the given relation
-   * are encoded (replaced by double single-quotes that is).
+   * Single quotes the given relation (typically a value). Escapes characters including single quote
+   * and backslash.
    *
-   * @param relation the relation (typically a column).
-   * @return the single-quoted relation.
+   * @param value the value.
+   * @return the single quoted relation.
    */
-  public static String singleQuote(String relation) {
-    String rel = relation.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+  public static String singleQuote(String value) {
+    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
+  }
 
-    return SINGLE_QUOTE + rel + SINGLE_QUOTE;
+  /**
+   * Escapes the given value. Replaces single quotes with two single quotes. Replaces backslash with
+   * two backslashes.
+   *
+   * @param value the value to escape.
+   * @return the escaped value.
+   */
+  public static String escape(String value) {
+    return value
+        .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
+  }
+
+  /**
+   * Appends an underscore and five character random suffix to the given relation.
+   *
+   * @param relation the relation.
+   * @return the appended relation.
+   */
+  public static String appendRandom(String relation) {
+    return String.format("%s_%s", relation, CodeGenerator.generateCode(5));
   }
 
   /**
@@ -114,14 +137,13 @@ public class SqlUtils {
     return "cast (" + value + " as numeric)";
   }
 
+  /**
+   * Lowers the given value.
+   *
+   * @param value the value.
+   * @return a string with the lower function.
+   */
   public static String lower(String value) {
     return "lower(" + value + ")";
-  }
-
-  public static String escapeSql(String str) {
-    if (str == null) {
-      return null;
-    }
-    return StringUtils.replace(str, "'", "''");
   }
 }

@@ -41,8 +41,8 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -85,7 +85,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
   @Override
   public boolean accept(RuleAction ruleAction) {
-    return ruleAction instanceof RuleActionSendMessage;
+    return ruleAction.getType().equals(ProgramRuleActionType.SENDMESSAGE.name());
   }
 
   @Override
@@ -146,7 +146,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   }
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
 
     if (template == null) {
       return;

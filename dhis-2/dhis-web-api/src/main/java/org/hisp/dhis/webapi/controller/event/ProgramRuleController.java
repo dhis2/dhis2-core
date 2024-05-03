@@ -70,7 +70,7 @@ public class ProgramRuleController extends AbstractCrudController<ProgramRule> {
 
     RuleValidationResult result = programRuleEngineService.getDescription(condition, programId);
 
-    if (result.isValid()) {
+    if (result.getValid()) {
       return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
           .setDescription(result.getDescription())
           .setMessage(i18n.getString(ProgramIndicator.VALID));

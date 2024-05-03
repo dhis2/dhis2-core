@@ -80,7 +80,7 @@ public class GoogleProvider extends AbstractOidcProvider {
         .mappingClaimKey(
             StringUtils.firstNonBlank(
                 config.getProperty(OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM.getKey()), "email"))
-        .loginIcon("../oidc/btn_google_light_normal_ios.svg")
+        .loginIcon("/dhis-web-commons/oidc/btn_google_light_normal_ios.svg")
         .loginIconPadding("0px 0px")
         .loginText("login_with_google")
         .externalClients(externalClientConfigs)

@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.message.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageConversationStore;
@@ -58,19 +55,12 @@ public class HibernateMessageConversationStore
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final StatementBuilder statementBuilder;
-
   public HibernateMessageConversationStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      StatementBuilder statementBuilder) {
+      AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, MessageConversation.class, aclService, false);
-
-    checkNotNull(statementBuilder);
-
-    this.statementBuilder = statementBuilder;
   }
 
   // -------------------------------------------------------------------------
@@ -211,7 +201,7 @@ public class HibernateMessageConversationStore
     sql += " order by userinfoid desc";
 
     if (first != null && max != null) {
-      sql += " " + statementBuilder.limitRecord(first, max);
+      sql += " limit " + max + " offset " + first;
     }
 
     return jdbcTemplate.query(

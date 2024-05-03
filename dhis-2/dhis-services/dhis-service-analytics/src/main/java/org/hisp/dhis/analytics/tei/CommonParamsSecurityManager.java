@@ -80,7 +80,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class CommonParamsSecurityManager {
-  private static final Collection<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
+  private static final List<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
       List.of(
           PROGRAM_ATTRIBUTE,
           DATA_ELEMENT,
@@ -219,9 +219,7 @@ public class CommonParamsSecurityManager {
       orgUnitItems.addAll(intersection);
     }
 
-    log.debug(
-        String.format(
-            "User: '%s' constrained by data view organisation units", currentUser.getUsername()));
+    log.debug("User: '{}' constrained by data view organisation units", currentUser.getUsername());
   }
 
   /**
@@ -248,7 +246,7 @@ public class CommonParamsSecurityManager {
             .collect(toList());
 
     // Categories the user is constrained to.
-    Collection<Category> categories =
+    List<Category> categories =
         currentUser.isSuper()
             ? List.of()
             : CategorySecurityUtils.getConstrainedCategories(
@@ -289,9 +287,9 @@ public class CommonParamsSecurityManager {
       dimension.getItems().addAll(canReadItems);
 
       log.debug(
-          String.format(
-              "User: '%s' constrained by dimension: '%s'",
-              currentUser.getUsername(), dimension.getDimension()));
+          "User: '{}' constrained by dimension: '{}'",
+          currentUser.getUsername(),
+          dimension.getDimension());
     }
   }
 

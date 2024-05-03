@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
-import javax.annotation.Nonnull;
+import java.util.Map;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -55,9 +55,9 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -296,23 +296,16 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
     template.setUid(NOTIFICATION_UID);
 
     ruleActionSendMessage =
-        new RuleActionSendMessage() {
-          @Nonnull
-          @Override
-          public String notification() {
-            return NOTIFICATION_UID;
-          }
+        new RuleAction(
+            "", ProgramRuleActionType.SENDMESSAGE.name(), Map.of("notification", NOTIFICATION_UID));
 
-          @Nonnull
-          @Override
-          public String data() {
-            return null;
-          }
-        };
+    ruleEffectWithActionSendMessage = new RuleEffect("ruleId", ruleActionSendMessage, "");
 
-    ruleEffectWithActionSendMessage = RuleEffect.create("", ruleActionSendMessage);
-
-    setMandatoryFieldFalse = RuleActionSetMandatoryField.create(MANDATORY_FIELD);
+    setMandatoryFieldFalse =
+        new RuleAction(
+            null,
+            ProgramRuleActionType.SETMANDATORYFIELD.name(),
+            Map.of("field", MANDATORY_FIELD, "attributeType", AttributeType.UNKNOWN.name()));
 
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
 

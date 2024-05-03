@@ -27,71 +27,28 @@
  */
 package org.hisp.dhis.sms.config;
 
-import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serial;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@EqualsAndHashCode(of = {"key", "value", "confidential", "encode", "header"})
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
 public class GenericGatewayParameter implements Serializable {
-  private static final long serialVersionUID = -863990758156009672L;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private String key;
+  @Serial private static final long serialVersionUID = -863990758156009672L;
 
-  @JsonView(SmsConfigurationViews.Public.class)
-  private String value;
-
-  @JsonView(SmsConfigurationViews.Public.class)
-  private boolean header;
-
-  @JsonView(SmsConfigurationViews.Public.class)
-  private boolean encode;
-
-  @JsonView(SmsConfigurationViews.Public.class)
-  private boolean confidential;
-
-  @JsonView(SmsConfigurationViews.Public.class)
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  public boolean isConfidential() {
-    return confidential;
-  }
-
-  public void setConfidential(boolean confidential) {
-    this.confidential = confidential;
-  }
-
-  public boolean isHeader() {
-    return header;
-  }
-
-  public void setHeader(boolean header) {
-    this.header = header;
-  }
-
-  public boolean isEncode() {
-    return encode;
-  }
-
-  public void setEncode(boolean encode) {
-    this.encode = encode;
-  }
+  @JsonProperty private String key;
+  @JsonProperty private String value;
+  @JsonProperty private boolean header;
+  @JsonProperty private boolean encode;
+  @JsonProperty private boolean confidential;
 }

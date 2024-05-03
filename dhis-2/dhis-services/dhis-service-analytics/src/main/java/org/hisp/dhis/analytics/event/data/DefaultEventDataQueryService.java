@@ -44,7 +44,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -243,7 +242,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private boolean hasNotDefaultPeriod(EventQueryParams eventQueryParams) {
     return Optional.ofNullable(getPeriodDimension(eventQueryParams))
         .map(DimensionalObject::getItems)
-        .orElse(Collections.emptyList())
+        .orElse(List.of())
         .stream()
         .noneMatch(this::isDefaultPeriod);
   }

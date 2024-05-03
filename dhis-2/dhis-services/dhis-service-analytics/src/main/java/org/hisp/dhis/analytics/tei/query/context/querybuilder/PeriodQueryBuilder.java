@@ -60,15 +60,13 @@ import org.springframework.stereotype.Service;
  * are not combined with other conditions and are rendered as a single group of "OR" conditions.
  */
 @Service
+@Getter
 @org.springframework.core.annotation.Order(3)
 public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
-  private static final String PERIOD_CONDITION_GROUP = "PERIOD_CONDITION";
 
-  @Getter
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
       List.of(d -> d.getDimension().isPeriodDimension());
 
-  @Getter
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
       List.of(sortingParams -> sortingParams.getOrderBy().getDimension().isPeriodDimension());
 
@@ -94,8 +92,10 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
         .forEach(builder::selectField);
 
     acceptedDimensions.stream()
-        .map(dimensionIdentifier -> PeriodCondition.of(dimensionIdentifier, ctx))
-        .map(periodCondition -> GroupableCondition.of(PERIOD_CONDITION_GROUP, periodCondition))
+        .map(
+            dimensionIdentifier ->
+                GroupableCondition.of(
+                    getGroupId(dimensionIdentifier), PeriodCondition.of(dimensionIdentifier, ctx)))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
@@ -114,6 +114,26 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
     return builder.build();
   }
 
+  /**
+   * Gets the group id for the period condition based on the dimension identifier and the time
+   * field.
+   *
+   * @param dimensionIdentifier the dimension identifier.
+   * @return the group id.
+   */
+  private String getGroupId(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return dimensionIdentifier.getGroupId() + ":" + getTimeField(dimensionIdentifier, Enum::name);
+  }
+
+  /**
+   * Extracts the time field from the dimension identifier. If the dimension identifier is a period
+   * dimension, the time field is extracted from the period object. If the dimension identifier is a
+   * static dimension, the time field is extracted from the static dimension.
+   *
+   * @param dimensionIdentifier the dimension identifier.
+   * @param staticDimensionNameExtractor the static dimension name extractor.
+   * @return the time field.
+   */
   private static String getTimeField(
       DimensionIdentifier<DimensionParam> dimensionIdentifier,
       Function<StaticDimension, String> staticDimensionNameExtractor) {

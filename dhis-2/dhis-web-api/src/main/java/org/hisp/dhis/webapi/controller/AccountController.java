@@ -72,10 +72,12 @@ import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
+import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -117,6 +119,7 @@ public class AccountController {
 
   @PostMapping("/recovery")
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage recoverAccount(@RequestParam String username, HttpServletRequest request)
       throws WebMessageException {
     if (!systemSettingManager.accountRecoveryEnabled()) {
@@ -138,7 +141,9 @@ public class AccountController {
     }
 
     if (!userService.sendRestoreOrInviteMessage(
-        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+        user,
+        HttpServletRequestPaths.getContextPath(request),
+        RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       return conflict("Account could not be recovered");
     }
 
@@ -163,6 +168,7 @@ public class AccountController {
 
   @PostMapping("/restore")
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage restoreAccount(@RequestParam String token, @RequestParam String password) {
     String[] idAndRestoreToken = userService.decodeEncodedTokens(token);
     String idToken = idAndRestoreToken[0];
@@ -206,6 +212,7 @@ public class AccountController {
 
   @PostMapping
   @ResponseBody
+  @Deprecated(forRemoval = true, since = "2.41")
   public WebMessage createAccount(
       @RequestParam String username,
       @RequestParam String firstName,
@@ -213,7 +220,6 @@ public class AccountController {
       @RequestParam String password,
       @RequestParam String email,
       @RequestParam String phoneNumber,
-      @RequestParam String employer,
       @RequestParam(required = false) String inviteUsername,
       @RequestParam(required = false) String inviteToken,
       @RequestParam(value = "g-recaptcha-response", required = false) String recapResponse,
@@ -239,7 +245,6 @@ public class AccountController {
               .password(StringUtils.trimToNull(password))
               .email(StringUtils.trimToNull(email))
               .phoneNumber(StringUtils.trimToNull(phoneNumber))
-              .employer(StringUtils.trimToNull(employer))
               .build();
 
       WebMessage validateInput = validateInput(userRegistration, usernameChoice);
@@ -276,7 +281,6 @@ public class AccountController {
               .password(StringUtils.trimToNull(password))
               .email(StringUtils.trimToNull(email))
               .phoneNumber(StringUtils.trimToNull(phoneNumber))
-              .employer(StringUtils.trimToNull(employer))
               .build();
 
       WebMessage validateInput = validateInput(userRegistration, true);
@@ -358,11 +362,6 @@ public class AccountController {
       return badRequest("Phone number is not specified or invalid");
     }
 
-    if (userRegistration.getEmployer() == null
-        || userRegistration.getEmployer().trim().length() > MAX_LENGTH) {
-      return badRequest("Employer is not specified or invalid");
-    }
-
     return null;
   }
 
@@ -380,8 +379,6 @@ public class AccountController {
     private final String email;
 
     private final String phoneNumber;
-
-    private final String employer;
   }
 
   private void createAndAddSelfRegisteredUser(
@@ -395,7 +392,6 @@ public class AccountController {
     user.setSurname(userRegistration.getSurname());
     user.setEmail(userRegistration.getEmail());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
-    user.setEmployer(userRegistration.getEmployer());
     user.getOrganisationUnits().add(orgUnit);
     user.getDataViewOrganisationUnits().add(orgUnit);
 
@@ -404,7 +400,7 @@ public class AccountController {
     user.setSelfRegistered(true);
     user.getUserRoles().add(userRole);
 
-    userService.addUser(user);
+    userService.addUser(user, new SystemUser());
 
     log.info("Created user with username: " + user.getUsername());
 
@@ -417,12 +413,10 @@ public class AccountController {
     user.setFirstName(userRegistration.getFirstName());
     user.setSurname(userRegistration.getSurname());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
-    user.setEmployer(userRegistration.getEmployer());
     user.setEmail(userRegistration.getEmail());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
-    user.setEmployer(userRegistration.getEmployer());
 
-    userService.updateUser(user);
+    userService.updateUser(user, new SystemUser());
 
     log.info("User " + user.getUsername() + " accepted invitation.");
 
@@ -502,8 +496,9 @@ public class AccountController {
   }
 
   @GetMapping("/linkedAccounts")
-  public @ResponseBody List<User> getLinkedAccounts(@CurrentUser User currentUser) {
-    return userService.getLinkedUserAccounts(currentUser);
+  public @ResponseBody UserLookups getLinkedAccounts(@CurrentUser User currentUser) {
+    List<UserLookup> linkedUserAccounts = userService.getLinkedUserAccounts(currentUser);
+    return new UserLookups(linkedUserAccounts);
   }
 
   @GetMapping("/username")
@@ -557,7 +552,8 @@ public class AccountController {
   }
 
   private Map<String, String> validatePassword(String password) {
-    CredentialsInfo credentialsInfo = new CredentialsInfo(password, true);
+    CredentialsInfo credentialsInfo =
+        CredentialsInfo.builder().password(password).newUser(true).build();
 
     PasswordValidationResult passwordValidationResult =
         passwordValidationService.validate(credentialsInfo);

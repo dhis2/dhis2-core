@@ -38,14 +38,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionError;
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -88,46 +82,43 @@ class RuleActionEventMapper {
         .map(
             effect ->
                 buildEventRuleActionExecutor(
-                    effect.ruleId(), effect.data(), effect.ruleAction(), event.getDataValues()))
+                    effect.getRuleId(),
+                    effect.getData(),
+                    effect.getRuleAction(),
+                    event.getDataValues()))
         .filter(Objects::nonNull)
         .filter(
             executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
         .filter(executor -> needsToValidateDataValues(event, programStage))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private RuleActionExecutor<Event> buildEventRuleActionExecutor(
       String ruleId, String data, RuleAction ruleAction, Set<DataValue> dataValues) {
-    if (ruleAction instanceof RuleActionAssign) {
-      RuleActionAssign action = (RuleActionAssign) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.ASSIGN.name())) {
       return new AssignDataValueExecutor(
-          systemSettingManager, ruleId, data, action.field(), dataValues);
+          systemSettingManager, ruleId, data, ruleAction.field(), dataValues);
     }
-    if (ruleAction instanceof RuleActionSetMandatoryField) {
-      RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-      return new SetMandatoryFieldExecutor(ruleId, action.field());
+    if (ruleAction.getType().equals(ProgramRuleActionType.SETMANDATORYFIELD.name())) {
+      return new SetMandatoryFieldExecutor(ruleId, ruleAction.field());
     }
-    if (ruleAction instanceof RuleActionShowError) {
-      RuleActionShowError action = (RuleActionShowError) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWERROR.name())) {
       return new ShowErrorExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionShowWarning) {
-      RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.SHOWWARNING.name())) {
       return new ShowWarningExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionErrorOnCompletion) {
-      RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.ERRORONCOMPLETE.name())) {
       return new ShowErrorOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionWarningOnCompletion) {
-      RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
+    if (ruleAction.getType().equals(ProgramRuleActionType.WARNINGONCOMPLETE.name())) {
       return new ShowWarningOnCompleteExecutor(
-          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+          new ValidationRuleAction(ruleId, data, ruleAction.field(), ruleAction.content()));
     }
-    if (ruleAction instanceof RuleActionError) {
+    if (ruleAction.getType().equals("ERROR")) {
       return new RuleEngineErrorExecutor(ruleId, data);
     }
     return null;

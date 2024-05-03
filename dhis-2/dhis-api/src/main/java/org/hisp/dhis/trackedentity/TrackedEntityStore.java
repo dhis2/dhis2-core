@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -91,7 +91,13 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
    */
   void updateTrackedEntitySyncTimestamp(List<String> trackedEntityUIDs, Date lastSynchronized);
 
-  void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated);
+  /**
+   * @param trackedEntityUIDs
+   * @param lastUpdated
+   * @param userInfoSnapshot
+   */
+  void updateTrackedEntityLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 
-  List<TrackedEntity> getTrackedEntityByUid(List<String> uids, User user);
+  List<TrackedEntity> getTrackedEntityByUid(List<String> uids, UserDetails user);
 }

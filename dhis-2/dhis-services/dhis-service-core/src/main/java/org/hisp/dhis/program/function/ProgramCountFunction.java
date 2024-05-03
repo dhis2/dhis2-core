@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import java.util.Date;
+import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
@@ -72,7 +72,7 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
         + " where "
         + eventTableName
         + ".pi = "
-        + StatementBuilder.ANALYTICS_TBL_ALIAS
+        + AnalyticsConstants.ANALYTICS_TBL_ALIAS
         + ".pi and "
         + columnName
         + " is not null and "

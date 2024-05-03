@@ -29,9 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.stream.Stream;
 import lombok.Data;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class PageRequestParamsTest {
 
@@ -41,27 +45,41 @@ class PageRequestParamsTest {
     private Integer pageSize;
     private Boolean totalPages;
     private Boolean skipPaging;
+    private Boolean paging;
   }
 
-  @Test
-  void shouldBePagedIfSkipPagingIsNull() {
+  private static Stream<Arguments> pagingEnabled() {
+    return Stream.of(
+        arguments(null, null),
+        arguments(true, null),
+        arguments(true, false),
+        arguments(true, true));
+  }
+
+  @MethodSource("pagingEnabled")
+  @ParameterizedTest
+  void shouldBePaged(Boolean paging, Boolean skipPaging) {
     PaginationParameters parameters = new PaginationParameters();
+    parameters.setPaging(paging);
+    parameters.setSkipPaging(skipPaging);
 
     assertTrue(parameters.isPaged());
   }
 
-  @Test
-  void shouldBePagedIfSkipPagingIsFalse() {
-    PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(false);
-
-    assertTrue(parameters.isPaged());
+  private static Stream<Arguments> pagingDisabled() {
+    return Stream.of(
+        arguments(null, true),
+        arguments(false, null),
+        arguments(false, true),
+        arguments(false, false));
   }
 
-  @Test
-  void shouldBeUnpagedIfSkipPagingIsTrue() {
+  @MethodSource("pagingDisabled")
+  @ParameterizedTest
+  void shouldBeUnPaged(Boolean paging, Boolean skipPaging) {
     PaginationParameters parameters = new PaginationParameters();
-    parameters.setSkipPaging(true);
+    parameters.setPaging(paging);
+    parameters.setSkipPaging(skipPaging);
 
     assertFalse(parameters.isPaged());
   }

@@ -42,9 +42,9 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
 
-/** Utilities for organisation unit criteria of outcoming analytics response. */
+/** Utilities for organisation unit criteria of analytics response. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class AnalyticsOrganisationUnitUtils {
+public final class AnalyticsOrganisationUnitUtils {
   /**
    * Retrieve collection of all uids of organisation units belongs to current user and present in
    * response grid.

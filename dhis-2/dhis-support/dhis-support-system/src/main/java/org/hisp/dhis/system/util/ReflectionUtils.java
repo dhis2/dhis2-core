@@ -217,7 +217,8 @@ public class ReflectionUtils {
   public static Method findGetterMethod(String fieldName, Class<?> clazz) {
     final String[] getterNames = new String[] {"get", "is", "has"};
 
-    Field field = _findField(clazz, StringUtils.uncapitalize(fieldName));
+    String property = StringUtils.uncapitalize(fieldName);
+    Field field = _findField(clazz, property);
     Method method;
 
     if (field != null) {
@@ -229,7 +230,7 @@ public class ReflectionUtils {
         }
       }
     }
-
+    if (property.matches("(?:is|has|get)[A-Z].*")) return _findMethod(clazz, property);
     return null;
   }
 
@@ -251,23 +252,30 @@ public class ReflectionUtils {
     if (target == null || !StringUtils.hasLength(fieldName)) {
       return null;
     }
+    String property = StringUtils.uncapitalize(fieldName);
+    Field field = _findField(target, property);
+    if (field == null) return null;
+    return findSetterMethod(field.getName(), target, field.getType());
+  }
+
+  public static Method findSetterMethod(String fieldName, Class<?> target, Class<?> type) {
+    if (target == null || !StringUtils.hasLength(fieldName)) {
+      return null;
+    }
 
     final String[] setterNames = new String[] {"set"};
 
-    Field field = _findField(target, StringUtils.uncapitalize(fieldName));
-    Method method;
+    String property = StringUtils.uncapitalize(fieldName);
+    for (String setterName : setterNames) {
+      Method method = _findMethod(target, setterName + StringUtils.capitalize(property), type);
 
-    if (field != null) {
-      for (String setterName : setterNames) {
-        method =
-            _findMethod(
-                target, setterName + StringUtils.capitalize(field.getName()), field.getType());
-
-        if (method != null) {
-          return method;
-        }
+      if (method != null) {
+        return method;
       }
     }
+    if (property.matches("(?:is|has|get)[A-Z].*"))
+      return _findMethod(
+          target, "set" + property.substring(property.startsWith("is") ? 2 : 3), type);
 
     return null;
   }

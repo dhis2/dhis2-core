@@ -54,7 +54,8 @@ public class DefaultUserDetailsService implements UserDetailsService {
 
     User user = userStore.getUserByUsername(username);
     if (user == null) {
-      throw new UsernameNotFoundException(String.format("Username '%s' not found.", username));
+      throw new UsernameNotFoundException(
+          String.format("User with username '%s' not found", username));
     }
 
     return userService.createUserDetails(user);

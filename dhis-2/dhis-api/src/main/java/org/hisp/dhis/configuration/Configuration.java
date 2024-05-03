@@ -251,4 +251,9 @@ public class Configuration implements Serializable {
   public void setCorsWhitelist(Set<String> corsWhitelist) {
     this.corsWhitelist = corsWhitelist;
   }
+
+  @JsonProperty
+  public Set<String> getCorsAllowlist() {
+    return getCorsWhitelist(); // just an alias
+  }
 }

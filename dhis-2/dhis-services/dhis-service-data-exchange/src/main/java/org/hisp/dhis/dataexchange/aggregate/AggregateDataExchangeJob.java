@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import static java.lang.String.format;
-
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -42,6 +40,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AggregateDataExchangeJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
 /**
@@ -69,7 +68,7 @@ public class AggregateDataExchangeJob implements Job {
 
     List<String> dataExchangeIds = params.getDataExchangeIds();
     progress.startingProcess(
-        format("Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size()));
+        "Aggregate data exchange with {} exchange(s) started", dataExchangeIds.size());
     ImportSummaries allSummaries = new ImportSummaries();
     for (String dataExchangeId : dataExchangeIds) {
       AggregateDataExchange exchange;
@@ -81,14 +80,16 @@ public class AggregateDataExchangeJob implements Job {
         allSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, ex.getMessage()));
         continue;
       }
-      allSummaries.addImportSummaries(dataExchangeService.exchangeData(exchange, progress));
+      allSummaries.addImportSummaries(
+          dataExchangeService.exchangeData(
+              CurrentUserUtil.getCurrentUserDetails(), exchange, progress));
     }
     notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
     ImportStatus status = allSummaries.getStatus();
     if (status == ImportStatus.ERROR) {
       progress.failedProcess("Aggregate data exchange completed with errors");
     } else {
-      progress.completedProcess("Aggregate data exchange completed with status " + status);
+      progress.completedProcess("Aggregate data exchange completed with status: {}", status);
     }
   }
 }

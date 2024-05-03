@@ -88,10 +88,7 @@ public class HibernateAnalyticsTableHookStore
   @Override
   public void executeAnalyticsTableSqlHooks(List<AnalyticsTableHook> hooks) {
     for (AnalyticsTableHook hook : hooks) {
-      log.info(
-          String.format(
-              "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName()));
-
+      log.info("Executing analytics table hook: '{}', '{}'", hook.getUid(), hook.getName());
       jdbcTemplate.execute(hook.getSql());
     }
   }

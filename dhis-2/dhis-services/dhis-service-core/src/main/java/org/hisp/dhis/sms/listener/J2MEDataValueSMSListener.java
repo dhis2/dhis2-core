@@ -333,11 +333,11 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
   public Period getPeriod(String periodName, PeriodType periodType)
       throws IllegalArgumentException {
     if (periodType instanceof DailyPeriodType) {
-      return periodType.createPeriod(DateUtils.getMediumDate(periodName));
+      return periodType.createPeriod(DateUtils.toMediumDate(periodName));
     }
 
     if (periodType instanceof WeeklyPeriodType) {
-      return periodType.createPeriod(DateUtils.getMediumDate(periodName));
+      return periodType.createPeriod(DateUtils.toMediumDate(periodName));
     }
 
     if (periodType instanceof MonthlyPeriodType) {

@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query;
 
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.query.AndCondition;
@@ -53,7 +52,7 @@ public class CoordinatesOnlyCondition extends BaseRenderable {
             Stream.of(LATITUDE, LONGITUDE)
                 .map(field -> Field.of(TEI_ALIAS, () -> field, StringUtils.EMPTY))
                 .map(IsNotNullCondition::of)
-                .collect(Collectors.toList()))
+                .toList())
         .render();
   }
 }

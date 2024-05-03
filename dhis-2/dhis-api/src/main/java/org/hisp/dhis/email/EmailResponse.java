@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.email;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Getter
+@RequiredArgsConstructor
 public enum EmailResponse {
   SENT("Email sent successfully"),
   FAILED("Failed to send emal"),
@@ -38,12 +43,4 @@ public enum EmailResponse {
   HOST_CONFIG_NOT_FOUND("Host configuration not found");
 
   private final String responseMessage;
-
-  EmailResponse(String responseMessage) {
-    this.responseMessage = responseMessage;
-  }
-
-  public String getResponseMessage() {
-    return responseMessage;
-  }
 }

@@ -125,11 +125,40 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
+            .toList(JsonRelationship::getRelationship));
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertHasNoMember(page.getPager(), "total");
+    assertHasNoMember(page.getPager(), "pageCount");
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithPagingSetToTrue() {
+    TrackedEntity to = trackedEntity();
+    Event from1 = event(enrollment(to));
+    Event from2 = event(enrollment(to));
+    Relationship r1 = relationship(from1, to);
+    Relationship r2 = relationship(from2, to);
+
+    JsonPage page =
+        GET("/tracker/relationships?trackedEntity={uid}&paging=true", to.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(r1.getUid(), r2.getUid()),
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
@@ -154,11 +183,11 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&totalPages=true", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertEquals(1, page.getPager().getPage());
     assertEquals(50, page.getPager().getPageSize());
@@ -183,13 +212,15 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&page=2&pageSize=1", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
-    JsonList<JsonRelationship> instances = page.getList("instances", JsonRelationship.class);
+    JsonList<JsonRelationship> relationships =
+        page.getList("relationships", JsonRelationship.class);
     assertEquals(
         1,
-        instances.size(),
-        () -> String.format("mismatch in number of expected relationship(s), got %s", instances));
+        relationships.size(),
+        () ->
+            String.format("mismatch in number of expected relationship(s), got %s", relationships));
     assertEquals(2, page.getPager().getPage());
     assertEquals(1, page.getPager().getPageSize());
     assertHasNoMember(page.getPager(), "total");
@@ -215,13 +246,15 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
                 "/tracker/relationships?trackedEntity={uid}&page=2&pageSize=1&totalPages=true",
                 to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
-    JsonList<JsonRelationship> instances = page.getList("instances", JsonRelationship.class);
+    JsonList<JsonRelationship> relationships =
+        page.getList("relationships", JsonRelationship.class);
     assertEquals(
         1,
-        instances.size(),
-        () -> String.format("mismatch in number of expected relationship(s), got %s", instances));
+        relationships.size(),
+        () ->
+            String.format("mismatch in number of expected relationship(s), got %s", relationships));
     assertEquals(2, page.getPager().getPage());
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
@@ -245,11 +278,37 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
     JsonPage page =
         GET("/tracker/relationships?trackedEntity={uid}&skipPaging=true", to.getUid())
             .content(HttpStatus.OK)
-            .asObject(JsonPage.class);
+            .asA(JsonPage.class);
 
     assertContainsOnly(
         List.of(r1.getUid(), r2.getUid()),
-        page.getList("instances", JsonRelationship.class)
+        page.getList("relationships", JsonRelationship.class)
+            .toList(JsonRelationship::getRelationship));
+    assertHasNoMember(page, "pager");
+
+    // assert deprecated fields
+    assertHasNoMember(page, "page");
+    assertHasNoMember(page, "pageSize");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
+    TrackedEntity to = trackedEntity();
+    Event from1 = event(enrollment(to));
+    Event from2 = event(enrollment(to));
+    Relationship r1 = relationship(from1, to);
+    Relationship r2 = relationship(from2, to);
+
+    JsonPage page =
+        GET("/tracker/relationships?trackedEntity={uid}&paging=false", to.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(r1.getUid(), r2.getUid()),
+        page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
 

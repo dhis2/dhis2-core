@@ -44,6 +44,7 @@ import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
+import org.hisp.dhis.datasource.model.PoolConfig;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -70,6 +71,8 @@ import org.springframework.security.authentication.event.AuthenticationFailureBa
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -123,6 +126,11 @@ public class WebTestConfiguration {
     return new org.springframework.security.core.session.SessionRegistryImpl();
   }
 
+  @Bean
+  public RequestCache requestCache() {
+    return new HttpSessionRequestCache();
+  }
+
   @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
@@ -140,7 +148,7 @@ public class WebTestConfiguration {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 
@@ -168,16 +176,6 @@ public class WebTestConfiguration {
   public BCryptPasswordEncoder bCryptPasswordEncoder() {
     return new BCryptPasswordEncoder();
   }
-
-  //  @Bean
-  //  public LdapAuthenticator ldapAuthenticator() {
-  //    return authentication -> null;
-  //  }
-
-  //  @Bean
-  //  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-  //    return (dirContextOperations, s) -> null;
-  //  }
 
   @Bean
   public DefaultAuthenticationEventPublisher authenticationEventPublisher() {

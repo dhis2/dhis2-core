@@ -40,8 +40,8 @@ public interface JsonObjectReport extends JsonObject {
     return getString("klass").parsedClass();
   }
 
-  default int getIndex() {
-    return getNumber("index").intValue();
+  default Integer getIndex() {
+    return getNumber("index").integer();
   }
 
   default String getUid() {

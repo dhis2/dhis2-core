@@ -55,6 +55,8 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,6 +80,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   private JdbcAnalyticsManager analyticsManager;
 
   private static Stream<Arguments> data() {
@@ -90,7 +94,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest {
 
   @BeforeEach
   void before() {
-    analyticsManager = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore);
+    analyticsManager =
+        new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, sqlBuilder);
   }
 
   @ParameterizedTest

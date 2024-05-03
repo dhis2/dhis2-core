@@ -42,6 +42,6 @@ public class WriteInstantStdSerializer extends StdSerializer<Instant> {
   @Override
   public void serialize(Instant value, JsonGenerator gen, SerializerProvider provider)
       throws IOException {
-    gen.writeString(DateUtils.getIso8601NoTz(DateUtils.fromInstant(value)));
+    gen.writeString(DateUtils.toIso8601NoTz(DateUtils.fromInstant(value)));
   }
 }

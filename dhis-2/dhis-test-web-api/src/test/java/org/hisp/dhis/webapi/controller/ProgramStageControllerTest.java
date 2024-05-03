@@ -58,16 +58,24 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest {
   void testCreateProgramStageOk() {
     POST(
             "/programs/",
-            "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION' }")
+            """
+        {'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION'}""")
         .content(HttpStatus.CREATED);
     String programStageId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
-                "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}"));
+                "/programStages/",
+                """
+        {'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}
+        ,'executionDateLabel':'executiondatelabel', 'dueDateLabel':'duedatelabel', 'programStageLabel':'programstagelabel', 'eventLabel':'eventlabel' }"""));
     JsonObject programStage = GET("/programStages/{id}", programStageId).content();
     assertEquals("VoZMWi7rBgj", programStage.getString("program.id").string());
     JsonObject program = GET("/programs/{id}", "VoZMWi7rBgj").content();
     assertEquals(programStageId, program.getString("programStages[0].id").string());
+    assertEquals("executiondatelabel", programStage.getString("executionDateLabel").string());
+    assertEquals("duedatelabel", programStage.getString("dueDateLabel").string());
+    assertEquals("programstagelabel", programStage.getString("programStageLabel").string());
+    assertEquals("eventlabel", programStage.getString("eventLabel").string());
   }
 }

@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.With;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
@@ -40,6 +42,7 @@ import org.hisp.dhis.option.OptionSet;
 /**
  * @author Lars Helge Overland
  */
+@AllArgsConstructor
 public class GridHeader implements Serializable {
   private static final Set<String> NUMERIC_TYPES =
       Set.of(
@@ -70,7 +73,7 @@ public class GridHeader implements Serializable {
 
   private String displayColumn;
 
-  private transient RepeatableStageParams repeatableStageParams;
+  @With private transient RepeatableStageParams repeatableStageParams;
 
   // -------------------------------------------------------------------------
   // Constructors

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfWriter;
@@ -49,8 +50,10 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
@@ -58,7 +61,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -105,9 +107,9 @@ public class PdfFormController {
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     PdfWriter writer = PdfWriter.getInstance(document, baos);
-
     PdfFormFontSettings pdfFormFontSettings =
-        new PdfFormFontSettings(CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE));
+        new PdfFormFontSettings(
+            CurrentUserUtil.getUserSetting(UserSettingKey.UI_LOCALE, LocaleManager.DEFAULT_LOCALE));
 
     PdfDataEntryFormUtil.setDefaultFooterOnDocument(
         document,
@@ -137,7 +139,7 @@ public class PdfFormController {
   }
 
   @PostMapping("/dataSet")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_DATAVALUE_ADD')")
+  @RequiresAuthority(anyOf = F_DATAVALUE_ADD)
   @ResponseBody
   public WebMessage sendFormPdfDataSet(HttpServletRequest request) throws Exception {
     JobConfiguration jobId =

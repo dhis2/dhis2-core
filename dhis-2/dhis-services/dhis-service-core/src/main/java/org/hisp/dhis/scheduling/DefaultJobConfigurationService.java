@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -52,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,9 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -277,11 +279,12 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
   private JsonNode getJobInput(JobRunErrorsParams params, String fileResourceId) {
     if (!params.isIncludeInput()) return JsonNode.of("null");
     try {
-      byte[] bytes =
-          fileResourceService.copyFileResourceContent(
-              fileResourceService.getFileResource(fileResourceId));
+      FileResource fr = fileResourceService.getFileResource(fileResourceId);
+      if (fr == null || fr.getStorageStatus() != FileResourceStorageStatus.STORED)
+        return JsonNode.NULL;
+      byte[] bytes = fileResourceService.copyFileResourceContent(fr);
       return JsonNode.of(new String(bytes, StandardCharsets.UTF_8));
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       log.warn("Could not copy file content to error info for file: " + fileResourceId, ex);
       return JsonNode.of("\"" + ex.getMessage() + "\"");
     }
@@ -368,25 +371,30 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
               .filter(pd -> pd.getName().equals(field.getName()))
               .findFirst()
               .orElse(null);
-      if (isProperty(field, descriptor)) {
-        jobParameters.add(getProperty(jobType, paramsType, field));
+      JsonProperty property = getJsonProperty(field, descriptor);
+      if (property != null) {
+        jobParameters.add(getProperty(jobType, paramsType, field, property));
       }
     }
 
     return jobParameters;
   }
 
-  private boolean isProperty(Field field, PropertyDescriptor descriptor) {
-    return !(descriptor == null
-        || (descriptor.getReadMethod().getAnnotation(JsonProperty.class) == null
-            && field.getAnnotation(JsonProperty.class) == null));
+  @CheckForNull
+  private JsonProperty getJsonProperty(Field field, PropertyDescriptor descriptor) {
+    JsonProperty property = field.getAnnotation(JsonProperty.class);
+    if (property != null) return property;
+    if (descriptor == null) return null;
+    return descriptor.getReadMethod().getAnnotation(JsonProperty.class);
   }
 
-  private static Property getProperty(JobType jobType, Class<?> paramsType, Field field) {
+  private static Property getProperty(
+      JobType jobType, Class<?> paramsType, Field field, @Nonnull JsonProperty annotation) {
     Class<?> valueType = field.getType();
     Property property = new Property(Primitives.wrap(valueType), null, null);
     property.setName(field.getName());
     property.setFieldName(TextUtils.getPrettyPropertyName(field.getName()));
+    property.setRequired(annotation.required());
 
     try {
       field.setAccessible(true);

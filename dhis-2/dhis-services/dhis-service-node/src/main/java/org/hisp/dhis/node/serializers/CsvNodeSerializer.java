@@ -167,7 +167,7 @@ public class CsvNodeSerializer extends AbstractNodeSerializer {
     String value = String.format("%s", simpleNode.getValue());
 
     if (Date.class.isAssignableFrom(simpleNode.getValue().getClass())) {
-      value = DateUtils.getIso8601NoTz((Date) simpleNode.getValue());
+      value = DateUtils.toIso8601NoTz((Date) simpleNode.getValue());
     }
 
     csvGenerator.writeObjectField(simpleNode.getName(), value);

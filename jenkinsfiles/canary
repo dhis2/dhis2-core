@@ -48,7 +48,6 @@ pipeline {
                 script {
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
-                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress package -f dhis-2/dhis-web/pom.xml -P -default --update-snapshots'
                     }
                 }
             }
@@ -115,7 +114,8 @@ pipeline {
                             echo "Database: ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play nightly${branch} && ./restart.sh play nightly${branch}) || ./deploy-dhis2.sh play nightly${branch}"
+                                description = "DHIS 2 nightly development branch ${env.GIT_BRANCH}"
+                                sh "./findByName.sh play nightly${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play nightly${branch} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play nightly${branch} ${description}"
                                 timeout(10) {
                                     waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }

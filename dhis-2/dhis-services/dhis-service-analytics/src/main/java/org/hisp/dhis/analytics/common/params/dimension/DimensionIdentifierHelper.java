@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.analytics.common.params.dimension;
 
+import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.ENROLLMENTDATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.INCIDENTDATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OCCURREDDATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.OUNAME;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TEI_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -38,16 +43,36 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.feedback.ErrorCode;
 
 @NoArgsConstructor(access = PRIVATE)
 public class DimensionIdentifierHelper {
   public static final Character DIMENSION_SEPARATOR = '.';
+
+  /**
+   * A map of static dimensions and an extractor function that will return the display name of the
+   * dimension.
+   */
+  private static final Map<StaticDimension, Function<DimensionIdentifier<DimensionParam>, String>>
+      DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION =
+          Map.of(
+              ENROLLMENTDATE,
+              di -> di.getProgram().getElement().getDisplayEnrollmentDateLabel(),
+              INCIDENTDATE,
+              di -> di.getProgram().getElement().getDisplayIncidentDateLabel(),
+              OCCURREDDATE,
+              di -> di.getProgramStage().getElement().getDisplayExecutionDateLabel(),
+              OUNAME,
+              di -> di.getProgram().getElement().getDisplayOrgUnitLabel());
 
   /**
    * Will parse the given argument into a {@link DimensionIdentifier} object.
@@ -163,5 +188,96 @@ public class DimensionIdentifierHelper {
         .filter(StringUtils::isNotBlank)
         .map(s -> quote ? doubleQuote(s) : s)
         .orElse(TEI_ALIAS);
+  }
+
+  public static boolean supportsCustomLabel(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return Objects.nonNull(dimensionIdentifier.getDimension().getStaticDimension())
+        && DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION.containsKey(
+            dimensionIdentifier.getDimension().getStaticDimension());
+  }
+
+  public static String getCustomLabelOrHeaderColumnName(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      boolean useOffset,
+      boolean skipSuffixes) {
+    return getCustomLabel(
+        dimensionIdentifier, StaticDimension::getHeaderColumnName, useOffset, skipSuffixes);
+  }
+
+  public static String getCustomLabelOrFullName(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      boolean useOffset,
+      boolean skipSuffixes) {
+    return getCustomLabel(
+        dimensionIdentifier, StaticDimension::getFullName, useOffset, skipSuffixes);
+  }
+
+  private static String getCustomLabel(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier,
+      Function<StaticDimension, String> defaultLabelMapper,
+      boolean useOffset,
+      boolean skipSuffixes) {
+    String label =
+        Optional.of(dimensionIdentifier)
+            .filter(DimensionIdentifierHelper::supportsCustomLabel)
+            .map(DimensionIdentifierHelper::getStaticDimensionDisplayName)
+            .orElseGet(
+                () ->
+                    defaultLabelMapper.apply(
+                        dimensionIdentifier.getDimension().getStaticDimension()));
+
+    if (skipSuffixes) {
+      return label;
+    }
+
+    return joinedWithPrefixesIfNeeded(dimensionIdentifier, label, useOffset);
+  }
+
+  public static String joinedWithPrefixesIfNeeded(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, String label, boolean useOffset) {
+    if (dimensionIdentifier.isEventDimension()) {
+      return join(
+              ", ",
+              label,
+              getDisplayNameWithOffset(
+                  dimensionIdentifier.getProgram(),
+                  BaseIdentifiableObject::getDisplayName,
+                  useOffset),
+              getDisplayNameWithOffset(
+                  dimensionIdentifier.getProgramStage(),
+                  BaseIdentifiableObject::getDisplayName,
+                  useOffset))
+          .trim();
+    } else if (dimensionIdentifier.isEnrollmentDimension()) {
+      return join(
+              ", ",
+              label,
+              getDisplayNameWithOffset(
+                  dimensionIdentifier.getProgram(),
+                  BaseIdentifiableObject::getDisplayName,
+                  useOffset))
+          .trim();
+    }
+    return label;
+  }
+
+  private static <T extends UidObject> String getDisplayNameWithOffset(
+      ElementWithOffset<T> element, Function<T, String> displayNameExtractor, boolean useOffset) {
+    String displayName = displayNameExtractor.apply(element.getElement());
+    return element.hasOffset() && element.getOffset() != 0 && useOffset
+        ? displayName + " (" + element.getOffset() + ")"
+        : displayName;
+  }
+
+  private static String getStaticDimensionDisplayName(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    try {
+      return DISPLAYNAME_EXTRACTOR_BY_STATIC_DIMENSION
+          .get(dimensionIdentifier.getDimension().getStaticDimension())
+          .apply(dimensionIdentifier);
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

@@ -143,7 +143,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             + "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) "
             + "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) "
             + "where cdr.lastupdated >= '"
-            + DateUtils.getLongDateString(lastUpdated)
+            + DateUtils.toLongDate(lastUpdated)
             + "' ";
 
     writeCompleteness(completenessSql, completeDataSetRegistrations);
@@ -302,8 +302,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
       ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder) {
     if (params.hasStartEndDate()) {
       namedParamsBuilder
-          .put("startDate", DateUtils.getMediumDateString(params.getStartDate()))
-          .put("endDate", DateUtils.getMediumDateString(params.getEndDate()));
+          .put("startDate", DateUtils.toMediumDate(params.getStartDate()))
+          .put("endDate", DateUtils.toMediumDate(params.getEndDate()));
 
       return " AND ( pe.startdate >= '${startDate}' AND pe.enddate <= '${endDate}' ) ";
     } else if (params.hasPeriods()) {
@@ -318,13 +318,13 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
   private static String createCreatedClause(
       ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder) {
     if (params.hasCreated()) {
-      namedParamsBuilder.put("created", DateUtils.getLongGmtDateString(params.getCreated()));
+      namedParamsBuilder.put("created", DateUtils.toLongGmtDate(params.getCreated()));
 
       return " AND cdsr.date >= '${created}' ";
     } else if (params.hasCreatedDuration()) {
       namedParamsBuilder.put(
           "createdDuration",
-          DateUtils.getLongGmtDateString(DateUtils.nowMinusDuration(params.getCreatedDuration())));
+          DateUtils.toLongGmtDate(DateUtils.nowMinusDuration(params.getCreatedDuration())));
 
       return " AND cdsr.date >= '${createdDuration}' ";
     } else {

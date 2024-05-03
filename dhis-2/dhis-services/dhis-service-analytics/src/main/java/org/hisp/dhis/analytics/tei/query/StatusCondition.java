@@ -31,7 +31,6 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifie
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +66,7 @@ public class StatusCondition extends BaseRenderable {
                 dimensionIdentifier.getDimension().getItems().stream()
                     .map(DimensionParamItem::getValues)
                     .flatMap(Collection::stream)
-                    .collect(Collectors.toList()),
+                    .toList(),
                 ValueTypeMapping.TEXT,
                 queryContext))
         .render();

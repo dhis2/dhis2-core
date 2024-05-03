@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
@@ -74,8 +75,7 @@ public class FieldPathHelper {
 
     applyProperties(fieldPathMap.values(), rootKlass);
 
-    List<FieldPath> presets =
-        fieldPaths.stream().filter(FieldPath::isPreset).collect(Collectors.toList());
+    List<FieldPath> presets = fieldPaths.stream().filter(FieldPath::isPreset).toList();
     applyPresets(presets, fieldPathMap, rootKlass);
 
     calculatePathCount(fieldPathMap.values())
@@ -88,8 +88,7 @@ public class FieldPathHelper {
               applyDefaults(fieldPathMap.get(k), rootKlass, fieldPathMap);
             });
 
-    List<FieldPath> exclusions =
-        fieldPaths.stream().filter(FieldPath::isExclude).collect(Collectors.toList());
+    List<FieldPath> exclusions = fieldPaths.stream().filter(FieldPath::isExclude).toList();
     applyExclusions(exclusions, fieldPathMap);
 
     return new ArrayList<>(fieldPathMap.values());
@@ -273,17 +272,14 @@ public class FieldPathHelper {
     }
   }
 
-  /**
-   * Returns included field paths. Included paths are not explicitly excluded (full-path matches
-   * exclusion) and not indirectly excluded via a parent field path.
-   */
+  /** Modifies the passed in fieldPathMap by removing any matching exclusions. */
   private void applyExclusions(List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap) {
     Set<String> excludedPaths = new HashSet<>();
     for (FieldPath exclusion : exclusions) {
       excludedPaths.add(exclusion.toFullPath());
 
       for (String path : fieldPathMap.keySet()) {
-        if (path.startsWith(exclusion.toFullPath())) {
+        if (fieldEqualsRootField(path, exclusion.toFullPath())) {
           excludedPaths.add(path);
         }
       }
@@ -294,6 +290,35 @@ public class FieldPathHelper {
   // ----------------------------------------------------------------------------------------------------------------
   // Helpers
   // ----------------------------------------------------------------------------------------------------------------
+
+  /**
+   * Method that checks whether a field is equal to the root field. <br>
+   * examples: <br>
+   *
+   * <ul>
+   *   <li>fullFieldPath = "root", field = "root" -> return true
+   *   <li>fullFieldPath = "root.name", field = "root" -> return true
+   *   <li>fullFieldPath = "root.name", field = "name" -> return false
+   *   <li>fullFieldPath = "username", field = "user" -> return false
+   * </ul>
+   *
+   * @param fullFieldPath field path that represents the full path of a given field(in dot
+   *     notation). It might look like any of the following examples: <br>
+   *     <ul>
+   *       <li>root
+   *       <li>root.name
+   *       <li>root.name.last
+   *     </ul>
+   *
+   * @param field is the actual field which should be checked. This will only be 1 word (no dot
+   *     notation)
+   * @return true if the field is equal to the fullFieldPath root <br>
+   */
+  public static boolean fieldEqualsRootField(String fullFieldPath, String field) {
+    if (ObjectUtils.anyNull(fullFieldPath, field)) return false;
+    String root = fullFieldPath.split("\\.")[0];
+    return root.equals(field);
+  }
 
   private boolean isReference(Property property) {
     return property.is(PropertyType.REFERENCE) || property.itemIs(PropertyType.REFERENCE);

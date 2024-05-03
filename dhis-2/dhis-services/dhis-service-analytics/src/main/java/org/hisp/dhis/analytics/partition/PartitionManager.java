@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.partition;
 
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**

@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.base.Preconditions;
 import java.io.OutputStream;
@@ -157,7 +157,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
             + "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) "
             + "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) "
             + "where dv.lastupdated >= '"
-            + DateUtils.getLongDateString(lastUpdated)
+            + DateUtils.toLongDate(lastUpdated)
             + "' ";
 
     return sql;
@@ -173,7 +173,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
       writer.writeHeader(
           params.getFirstDataSet().getPropertyValue(dataSetScheme),
-          getLongGmtDateString(completeDate),
+          toLongGmtDate(completeDate),
           params.getFirstPeriod().getIsoDate(),
           params.getFirstOrganisationUnit().getPropertyValue(ouScheme));
     } else {
@@ -318,9 +318,9 @@ public class SpringDataValueSetStore implements DataValueSetStore {
     if (params.hasStartEndDate()) {
       sql +=
           "and (pe.startdate >= '"
-              + getMediumDateString(params.getStartDate())
+              + toMediumDate(params.getStartDate())
               + "' and pe.enddate <= '"
-              + getMediumDateString(params.getEndDate())
+              + toMediumDate(params.getEndDate())
               + "') ";
     } else if (params.hasPeriods()) {
       sql +=
@@ -337,11 +337,11 @@ public class SpringDataValueSetStore implements DataValueSetStore {
     }
 
     if (params.hasLastUpdated()) {
-      sql += "and dv.lastupdated >= '" + getLongGmtDateString(params.getLastUpdated()) + "' ";
+      sql += "and dv.lastupdated >= '" + toLongGmtDate(params.getLastUpdated()) + "' ";
     } else if (params.hasLastUpdatedDuration()) {
       sql +=
           "and dv.lastupdated >= '"
-              + getLongGmtDateString(DateUtils.nowMinusDuration(params.getLastUpdatedDuration()))
+              + toLongGmtDate(DateUtils.nowMinusDuration(params.getLastUpdatedDuration()))
               + "' ";
     }
 
@@ -425,12 +425,12 @@ public class SpringDataValueSetStore implements DataValueSetStore {
 
     @Override
     public String getCreated() {
-      return getLongGmtDateString(getTimestamp("created"));
+      return toLongGmtDate(getTimestamp("created"));
     }
 
     @Override
     public String getLastUpdated() {
-      return getLongGmtDateString(getTimestamp("lastupdated"));
+      return toLongGmtDate(getTimestamp("lastupdated"));
     }
 
     @Override

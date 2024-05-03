@@ -56,6 +56,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumMap;
@@ -64,13 +65,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -89,6 +93,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
@@ -102,6 +107,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -690,46 +696,42 @@ public class DataQueryParams {
 
   /**
    * Finds the latest endDate associated with this DataQueryParams. Checks endDate, period
-   * dimensions and period filters.
+   * dimensions, period filters and timeRanges.
    */
   public Date getLatestEndDate() {
-    Date latestEndDate = new Date(Long.MIN_VALUE);
-
-    if (endDate != null && endDate.after(latestEndDate)) {
-      latestEndDate = endDate;
-    }
-
-    for (DimensionalItemObject object : getAllPeriods()) {
-      Period period = (Period) object;
-
-      latestEndDate =
-          period.getEndDate().after(latestEndDate) ? period.getEndDate() : latestEndDate;
-    }
-
-    return latestEndDate;
+    // building a Stream<Stream<Date>> to make things easier later
+    return Stream.of(
+            streamOfOrEmpty(endDate),
+            getAllPeriods().stream().map(Period.class::cast).map(Period::getEndDate),
+            getTimeDateRanges().values().stream()
+                .flatMap(Collection::stream)
+                .map(DateRange::getEndDate))
+        .flatMap(Function.identity())
+        // latest date
+        .max(Date::compareTo)
+        .orElseThrow(() -> new IllegalQueryException(ErrorCode.E7146, "end"));
   }
 
   /**
    * Finds the earliest startDate associated with this DataQueryParams. Checks startDate, period
-   * dimensions and period filters.
+   * dimensions, period filters and timeRanges.
    */
   public Date getEarliestStartDate() {
-    Date earliestStartDate = new Date(Long.MAX_VALUE);
+    // building a Stream<Stream<Date>> to make things easier later
+    return Stream.of(
+            streamOfOrEmpty(startDate),
+            getAllPeriods().stream().map(Period.class::cast).map(Period::getStartDate),
+            getTimeDateRanges().values().stream()
+                .flatMap(Collection::stream)
+                .map(DateRange::getStartDate))
+        .flatMap(Function.identity())
+        // earliest date
+        .min(Date::compareTo)
+        .orElseThrow(() -> new IllegalQueryException(ErrorCode.E7146, "start"));
+  }
 
-    if (startDate != null && startDate.before(earliestStartDate)) {
-      earliestStartDate = startDate;
-    }
-
-    for (DimensionalItemObject object : getAllPeriods()) {
-      Period period = (Period) object;
-
-      earliestStartDate =
-          period.getStartDate().before(earliestStartDate)
-              ? period.getStartDate()
-              : earliestStartDate;
-    }
-
-    return earliestStartDate;
+  private static <T> Stream<T> streamOfOrEmpty(T value) {
+    return Objects.nonNull(value) ? Stream.of(value) : Stream.empty();
   }
 
   /** Indicates whether organisation units are present as dimension or filter. */
@@ -1012,14 +1014,14 @@ public class DataQueryParams {
   public List<DimensionalObject> getDimensionsAndFilters(DimensionType dimensionType) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionType == d.getDimensionType())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns a list of dimensions and filters of the given set of dimension types. */
   public List<DimensionalObject> getDimensionsAndFilters(Set<DimensionType> dimensionTypes) {
     return getDimensionsAndFilters().stream()
         .filter(d -> dimensionTypes.contains(d.getDimensionType()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /** Returns all dimensions except any period dimension. */
@@ -1093,7 +1095,7 @@ public class DataQueryParams {
     return getDimensionsAndFilters(dimensionType).stream()
         .map(DimensionalObject::getItems)
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -1453,7 +1455,7 @@ public class DataQueryParams {
     return dataElements.stream()
         .filter(de -> de.getCategoryCombo().isSkipTotal())
         .filter(de -> !isAllCategoriesDimensionOrFilterWithItems(de))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**
@@ -2223,7 +2225,7 @@ public class DataQueryParams {
     return Stream.concat(dimensions.stream(), filters.stream())
         .filter(d -> PERIOD == d.getDimensionType())
         .flatMap(d -> d.getItems().stream())
-        .toList();
+        .collect(Collectors.toList());
   }
 
   /** Returns all organisation units part of a dimension or filter. */
@@ -3042,5 +3044,9 @@ public class DataQueryParams {
     public DataQueryParams build() {
       return params;
     }
+  }
+
+  protected Map<TimeField, List<DateRange>> getTimeDateRanges() {
+    return Collections.emptyMap();
   }
 }

@@ -60,7 +60,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.cache.OutliersCache;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.common.TableInfoReader;
@@ -88,7 +87,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
-@Slf4j
 @AllArgsConstructor
 @Service
 public class AnalyticsOutlierService {
@@ -311,7 +309,7 @@ public class AnalyticsOutlierService {
           grid.addValue(getIdProperty(object, outlier.getOu(), outlierRequest.getOutputIdScheme()));
           grid.addValue(getIdProperty(object, outlier.getOu(), IdScheme.NAME));
 
-          grid.addValue(ou.getParentNameGraph(roots, true));
+          grid.addValue(ou.getParentNameGraph(roots, true, " / ", false));
 
           object = idObjectManager.get(CategoryOptionCombo.class, outlier.getCoc());
           grid.addValue(

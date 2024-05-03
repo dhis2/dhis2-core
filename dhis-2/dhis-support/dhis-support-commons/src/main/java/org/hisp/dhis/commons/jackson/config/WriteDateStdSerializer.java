@@ -41,6 +41,6 @@ public class WriteDateStdSerializer extends JsonSerializer<Date> {
   @Override
   public void serialize(Date date, JsonGenerator generator, SerializerProvider provider)
       throws IOException {
-    generator.writeString(DateUtils.getIso8601NoTz(date));
+    generator.writeString(DateUtils.toIso8601NoTz(date));
   }
 }

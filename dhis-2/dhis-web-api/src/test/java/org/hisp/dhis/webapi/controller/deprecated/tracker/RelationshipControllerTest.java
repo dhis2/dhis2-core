@@ -111,7 +111,8 @@ class RelationshipControllerTest {
     mockMvc.perform(get(ENDPOINT).param("tei", TEI_ID)).andExpect(status().isOk());
 
     verify(trackedEntityService).getTrackedEntity(TEI_ID);
-    verify(relationshipService).getRelationshipsByTrackedEntityInstance(eq(tei), any(), eq(false));
+    verify(relationshipService)
+        .getRelationshipsByTrackedEntityInstance(eq(tei), any(), eq(false), eq(false));
   }
 
   @Test
@@ -127,7 +128,7 @@ class RelationshipControllerTest {
     mockMvc.perform(get(ENDPOINT).param("event", EVENT_ID)).andExpect(status().isOk());
 
     verify(eventService).getEvent(EVENT_ID);
-    verify(relationshipService).getRelationshipsByEvent(eq(event), any(), eq(false));
+    verify(relationshipService).getRelationshipsByEvent(eq(event), any(), eq(false), eq(false));
   }
 
   @Test
@@ -143,7 +144,8 @@ class RelationshipControllerTest {
     mockMvc.perform(get(ENDPOINT).param("enrollment", ENROLLMENT_ID)).andExpect(status().isOk());
 
     verify(enrollmentService).getEnrollment(ENROLLMENT_ID);
-    verify(relationshipService).getRelationshipsByEnrollment(eq(enrollment), any(), eq(false));
+    verify(relationshipService)
+        .getRelationshipsByEnrollment(eq(enrollment), any(), eq(false), eq(false));
   }
 
   @Test

@@ -123,7 +123,7 @@ public class MetadataSyncPreProcessor {
       List<MetadataVersion> versions = metadataVersionDelegate.getMetaDataDifference(version);
 
       if (isRemoteVersionEmpty(version, versions)) {
-        progress.completedStage("There are no metadata versions created in the remote instance.");
+        progress.completedStage("There are no metadata versions created in the remote instance");
         return versions;
       }
 
@@ -181,7 +181,7 @@ public class MetadataSyncPreProcessor {
 
     try {
       MetadataVersion version = metadataVersionService.getCurrentVersion();
-      progress.completedStage("Current Metadata Version of the system: " + version);
+      progress.completedStage("Current Metadata Version of the system: {}", version);
       return version;
     } catch (MetadataVersionServiceException ex) {
       context.updateRetryContext(MetadataSyncJob.GET_METADATAVERSION, ex.getMessage(), null, null);

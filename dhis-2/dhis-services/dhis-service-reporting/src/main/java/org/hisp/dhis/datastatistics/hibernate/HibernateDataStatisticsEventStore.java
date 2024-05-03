@@ -30,7 +30,7 @@ package org.hisp.dhis.datastatistics.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
-import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
+import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
@@ -101,12 +101,10 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     jdbcTemplate.query(
         sql,
         pss,
-        (rs, i) -> {
-          eventTypeCountMap.put(
-              DataStatisticsEventType.valueOf(rs.getString("eventtype")),
-              rs.getDouble("numberofviews"));
-          return eventTypeCountMap;
-        });
+        (rs, i) ->
+            eventTypeCountMap.put(
+                DataStatisticsEventType.valueOf(rs.getString("eventtype")),
+                rs.getDouble("numberofviews")));
 
     final String totalSql =
         "select count(eventtype) as total "
@@ -116,10 +114,20 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     jdbcTemplate.query(
         totalSql,
         pss,
-        (resultSet, i) -> {
-          return eventTypeCountMap.put(
-              DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble("total"));
-        });
+        (resultSet, i) ->
+            eventTypeCountMap.put(
+                DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble("total")));
+
+    final String activeUsersSql =
+        "select count(distinct username) as activeusers "
+            + "from datastatisticsevent "
+            + "where timestamp between ? and ?;";
+    jdbcTemplate.query(
+        activeUsersSql,
+        pss,
+        (resultSet, i) ->
+            eventTypeCountMap.put(
+                DataStatisticsEventType.ACTIVE_USERS, resultSet.getDouble("activeusers")));
 
     return eventTypeCountMap;
   }
@@ -150,13 +158,13 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     sql +=
         " group by uid) as events"
             + " inner join "
-            + escapeSql(eventType.getTable())
+            + escape(eventType.getTable())
             + " c on c.uid = events.uid"
             + " left join jsonb_to_recordset(c.translations) as i18name(value TEXT, locale TEXT, property TEXT)"
             + " on i18name.locale = ?"
             + " and i18name.property = 'NAME'"
             + " order by events.views "
-            + escapeSql(sortOrder.getValue())
+            + escape(sortOrder.getValue())
             + " limit ?;";
 
     PreparedStatementSetter pss =

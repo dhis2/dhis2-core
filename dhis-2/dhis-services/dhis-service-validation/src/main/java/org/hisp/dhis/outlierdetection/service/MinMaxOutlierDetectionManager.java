@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.outlierdetection.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.outlierdetection.OutlierValue;
 import org.hisp.dhis.outlierdetection.processor.OutlierSqlStatementProcessor;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Repository;
  *
  * @author Lars Helge Overland
  */
-@Slf4j
 @Repository
 public class MinMaxOutlierDetectionManager extends AbstractOutlierDetectionManager {
   protected MinMaxOutlierDetectionManager(

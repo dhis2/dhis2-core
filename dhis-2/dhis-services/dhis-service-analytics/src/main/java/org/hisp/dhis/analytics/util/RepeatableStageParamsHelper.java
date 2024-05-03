@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.exception.InvalidRepeatableStageParamsException;
 import org.hisp.dhis.period.Period;
@@ -41,7 +43,8 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.util.DateUtils;
 
-public class RepeatableStageParamsHelper {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class RepeatableStageParamsHelper {
   private static final String SEPARATOR = "~";
 
   // [-1]
@@ -85,9 +88,6 @@ public class RepeatableStageParamsHelper {
     Pattern.compile(PS_START_DATE_END_DATE_REGEX),
     Pattern.compile(PS_RELATIVE_PERIOD_REGEX)
   };
-
-  /** private constructor */
-  private RepeatableStageParamsHelper() {}
 
   /**
    * @param dimension
@@ -208,12 +208,12 @@ public class RepeatableStageParamsHelper {
    * @return RepeatableStageParams instance
    */
   private static RepeatableStageParams getRepeatableStageParams(int startIndex, int count) {
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-    repeatableStageParams.setStartIndex(startIndex);
-    repeatableStageParams.setCount(count);
-    repeatableStageParams.setDefaultObject(false);
+    RepeatableStageParams params = new RepeatableStageParams();
+    params.setStartIndex(startIndex);
+    params.setCount(count);
+    params.setDefaultObject(false);
 
-    return repeatableStageParams;
+    return params;
   }
 
   /**
@@ -246,14 +246,14 @@ public class RepeatableStageParamsHelper {
    */
   private static RepeatableStageParams getRepeatableStageParams(
       int startIndex, int count, Date startDate, Date endDate) {
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-    repeatableStageParams.setStartIndex(startIndex);
-    repeatableStageParams.setCount(count);
-    repeatableStageParams.setStartDate(startDate);
-    repeatableStageParams.setEndDate(endDate);
-    repeatableStageParams.setDefaultObject(false);
+    RepeatableStageParams params = new RepeatableStageParams();
+    params.setStartIndex(startIndex);
+    params.setCount(count);
+    params.setStartDate(startDate);
+    params.setEndDate(endDate);
+    params.setDefaultObject(false);
 
-    return repeatableStageParams;
+    return params;
   }
 
   /**
@@ -277,14 +277,14 @@ public class RepeatableStageParamsHelper {
    * @return RepeatableStageParams instance
    */
   private static RepeatableStageParams getRepeatableStageParams(Date startDate, Date endDate) {
-    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-    repeatableStageParams.setStartIndex(0);
-    repeatableStageParams.setCount(Integer.MAX_VALUE);
-    repeatableStageParams.setStartDate(startDate);
-    repeatableStageParams.setEndDate(endDate);
-    repeatableStageParams.setDefaultObject(false);
+    RepeatableStageParams params = new RepeatableStageParams();
+    params.setStartIndex(0);
+    params.setCount(Integer.MAX_VALUE);
+    params.setStartDate(startDate);
+    params.setEndDate(endDate);
+    params.setDefaultObject(false);
 
-    return repeatableStageParams;
+    return params;
   }
 
   /**

@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.P_
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -56,7 +57,7 @@ class SqlQueryHelper {
     return "select innermost_enr.*"
         + " from (select *,"
         + " row_number() over (partition by trackedentityinstanceuid order by enrollmentdate "
-        + (offset >= 0 ? "desc" : "asc")
+        + (offset > 0 ? "asc" : "desc")
         + ") as rn "
         + " from "
         + ANALYTICS_TEI_ENR
@@ -68,7 +69,7 @@ class SqlQueryHelper {
         + ") innermost_enr"
         + " where innermost_enr.rn = "
         // This logic is needed because of the row_number(), which starts in 1.
-        + (offset >= 0 ? ++offset : abs(offset));
+        + (offset > 0 ? offset : abs(offset) + 1);
   }
 
   static String eventSelect(
@@ -77,16 +78,21 @@ class SqlQueryHelper {
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
     int offset = programStage.getOffsetWithDefault();
+    String orderByDirection = offset > 0 ? "asc" : "desc";
 
     return "select innermost_evt.*"
         + " from (select *,"
         + " row_number() over (partition by programinstanceuid order by occurreddate "
-        + (offset >= 0 ? "desc" : "asc")
+        + orderByDirection
+        + ", created "
+        + orderByDirection
         + " ) as rn"
         + " from "
         + ANALYTICS_TEI_EVT
         + trackedEntityType.getUid().toLowerCase()
-        + " where "
+        + " where status != '"
+        + EventStatus.SCHEDULE
+        + "' and "
         + P_UID
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())
@@ -97,6 +103,6 @@ class SqlQueryHelper {
         + ") innermost_evt"
         + " where innermost_evt.rn = "
         // This logic is needed because of the row_number(), which starts in 1.
-        + (offset >= 0 ? ++offset : abs(offset));
+        + (offset > 0 ? offset : abs(offset) + 1);
   }
 }

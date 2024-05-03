@@ -26,7 +26,7 @@
 #
 ---
   name: data_elements_aggregate_with_different_period_types
-  description: Aggregate data elements which belong to datasets with different period types.
+  description: Aggregate data elements which belong to data sets with different period types.
   section: Data elements (aggregate)
   section_order: 7
   summary_sql: >-

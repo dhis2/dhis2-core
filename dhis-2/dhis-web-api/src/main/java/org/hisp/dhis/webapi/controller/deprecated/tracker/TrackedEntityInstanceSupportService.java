@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.google.common.base.Joiner;
 import java.util.List;
@@ -50,8 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
 /**
@@ -65,8 +65,6 @@ public class TrackedEntityInstanceSupportService {
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-  private final UserService userService;
-
   private final ProgramService programService;
 
   private final TrackerAccessManager trackerAccessManager;
@@ -77,22 +75,22 @@ public class TrackedEntityInstanceSupportService {
 
   @SneakyThrows
   public TrackedEntityInstance getTrackedEntityInstance(String id, String pr, List<String> fields) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     TrackedEntityInstanceParams trackedEntityInstanceParams =
         getTrackedEntityInstanceParams(fields);
 
-    TrackedEntityInstance trackedEntityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
-
-    if (trackedEntityInstance == null) {
-      throw new NotFoundException(TrackedEntityInstance.class, id);
-    }
-
+    TrackedEntityInstance trackedEntityInstance;
     if (pr != null) {
       Program program = programService.getProgram(pr);
-
       if (program == null) {
         throw new NotFoundException(Program.class, pr);
+      }
+
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstance(
+              id, currentUser, trackedEntityInstanceParams);
+      if (trackedEntityInstance == null) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
       }
 
       List<String> errors =
@@ -120,6 +118,29 @@ public class TrackedEntityInstanceSupportService {
       }
     } else {
       // return only tracked entity type attributes
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
+      if (trackedEntityInstance == null) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
+      }
+
+      if (programService.getAllPrograms().stream()
+          .noneMatch(
+              p ->
+                  p.getTrackedEntityType() != null
+                      && p.getTrackedEntityType()
+                          .getUid()
+                          .equalsIgnoreCase(trackedEntityInstance.getTrackedEntityType())
+                      && trackerAccessManager
+                          .canRead(
+                              getCurrentUserDetails(),
+                              instanceService.getTrackedEntity(
+                                  trackedEntityInstance.getTrackedEntityInstance()),
+                              p,
+                              false)
+                          .isEmpty())) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
+      }
 
       TrackedEntityType trackedEntityType =
           trackedEntityTypeService.getTrackedEntityType(

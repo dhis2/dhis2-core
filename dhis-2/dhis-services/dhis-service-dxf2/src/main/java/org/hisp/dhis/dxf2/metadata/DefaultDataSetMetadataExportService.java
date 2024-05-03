@@ -57,6 +57,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -84,6 +85,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
   private static final List<Class<? extends IdentifiableObject>> METADATA_TYPES =
       List.of(
           DataSet.class,
+          Section.class,
           DataElement.class,
           Indicator.class,
           CategoryCombo.class,
@@ -100,7 +102,7 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
           + "dataInputPeriods[period,openingDate,closingDate],"
           + "indicators~pluck[id],"
           + "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]],"
-          + "sections[:simple,dataElements~pluck[id],indicators~pluck[id],"
+          + "sections[:simple,displayOptions,dataElements~pluck[id],indicators~pluck[id],"
           + "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
   private static final String FIELDS_DATA_SET_ELEMENTS = "dataElement[id],categoryCombo[id]";

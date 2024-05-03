@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -81,7 +80,7 @@ class ValidatingEventCheckerTest {
             aclService,
             userService,
             new ObjectBundleHooks(Collections.emptyList()),
-            new ValidationRunner(Map.of(CREATE_AND_UPDATE, ListUtils.newList(new DummyCheck()))));
+            new ValidationRunner(Map.of(CREATE_AND_UPDATE, List.of(new DummyCheck()))));
   }
 
   @Test

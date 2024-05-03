@@ -47,6 +47,10 @@
 
         <property name="dueDateLabel" column="duedatelabel"/>
 
+        <property name="programStageLabel" column="programstagelabel"/>
+
+        <property name="eventLabel" column="eventlabel"/>
+
         <set name="notificationTemplates" cascade="all-delete-orphan">
             <key column="programstageid"/>
             <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"/>

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_SEND_EMAIL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Set;
@@ -42,13 +43,13 @@ import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -111,7 +112,7 @@ public class EmailController {
     return emailResponseHandler(emailResponse);
   }
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SEND_EMAIL')")
+  @RequiresAuthority(anyOf = F_SEND_EMAIL)
   @PostMapping(value = "/notification", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage sendEmailNotification(

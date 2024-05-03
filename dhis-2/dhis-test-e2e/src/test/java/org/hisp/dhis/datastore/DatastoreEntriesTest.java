@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.datastore;
 
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.datastore.DatastoreKeysTest.newEntry;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hisp.dhis.datastore.DatastoreKeysTest.getEntry;
 import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingNoPublicAccess;
 import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingUserAccess;
 import static org.hisp.dhis.datastore.DatastoreKeysTest.sharingUserGroupAccess;
@@ -41,6 +41,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -75,11 +76,18 @@ class DatastoreEntriesTest extends ApiTest {
 
   @AfterEach
   public void deleteEntries() {
+    loginActions.loginAsSuperUser();
     datastoreActions
-        .post("/" + NAMESPACE + "/testEntry", newEntry("testEntry"))
+        .post("/" + NAMESPACE + "/testEntry", getEntry("testEntry"))
         .validate()
         .statusCode(201);
     datastoreActions.delete(NAMESPACE).validateStatus(200);
+  }
+
+  @AfterAll
+  public void deleteUser() {
+    loginActions.loginAsSuperUser();
+    userActions.delete(basicUserId).validateStatus(200);
   }
 
   @Test
@@ -88,7 +96,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // make call as basic user and check can see entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
@@ -98,14 +106,41 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
+  @DisplayName("User can update a datastore entry with default public sharing")
+  void updateEntry_DefaultPublicAccess_BasicUser() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+
+    // make update as basic user and check can see entry
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    datastoreActions
+        .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update"))
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key updated: 'arsenal'"));
+
+    datastoreActions
+        .get("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .body("name", equalTo("arsenal update"));
+  }
+
+  @Test
   @DisplayName("Superuser can read a datastore entry when public sharing set to none")
   void testDatastoreSharing_NoPublicAccess_SuperUser() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
-    // get ids of entries
+    // get id of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
     String uid1 = mdResponse1.extractUid();
 
@@ -122,12 +157,79 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
+  @DisplayName("Superuser can update a datastore entry with no public sharing")
+  void updateEntry_NoPublicAccess_SuperUser() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+
+    // get id of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
+
+    // make update as superuser
+    loginActions.loginAsSuperUser();
+
+    datastoreActions
+        .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update2"))
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key updated: 'arsenal'"));
+
+    // check entry has been updated
+    datastoreActions
+        .get("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .body("name", equalTo("arsenal update2"));
+  }
+
+  @Test
+  @DisplayName("Basic user cannot update a datastore entry with no public sharing")
+  void updateEntry_NoPublicAccess_BasicUser() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+
+    // get id of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // set sharing public access to '--------'
+    QueryParamsBuilder sharingParams =
+        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
+
+    // make update as basic user
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    datastoreActions
+        .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update3"))
+        .validateStatus(403)
+        .validate()
+        .statusCode(403)
+        .body("httpStatus", equalTo("Forbidden"))
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"));
+  }
+
+  @Test
   @DisplayName("User can't read a datastore entry when public sharing set to none")
   void testDatastoreUserSharing_NoPublicAccess_UserNoAccess() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get id of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -154,7 +256,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -172,12 +274,49 @@ class DatastoreEntriesTest extends ApiTest {
 
   @Test
   @DisplayName(
+      "User can update a datastore entry when public sharing set to none and user has user sharing access")
+  void updateEntry_NoPublicAccess_BasicUserHasUserSharing() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+
+    // get ids of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // share entry with user and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
+
+    // make update as basic user
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    datastoreActions
+        .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update4"))
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key updated: 'arsenal'"));
+
+    // check entry has been updated
+    datastoreActions
+        .get("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .body("name", equalTo("arsenal update4"));
+  }
+
+  @Test
+  @DisplayName(
       "User can read a datastore entry when public sharing set to none and user has user group sharing access")
   void testDatastoreUserGroupSharing_NoPublicAccess_UserHasAccess() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -198,12 +337,52 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
+  @DisplayName(
+      "User can update a datastore entry when public sharing set to none and user has group sharing access")
+  void updateEntry_NoPublicAccess_BasicUserHasGroupSharing() {
+    // add entry as admin
+    loginActions.loginAsAdmin();
+    String key1 = "arsenal";
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
+
+    // get ids of entry
+    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
+    String uid1 = mdResponse1.extractUid();
+
+    // add user to user group
+    userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
+
+    // share entries with user group and set public access to '--------'
+    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
+    sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
+
+    // make update as basic user
+    loginActions.loginAsUser(BASIC_USER, "Test1234!");
+
+    datastoreActions
+        .update("/" + NAMESPACE + "/" + key1, getEntry("arsenal update5"))
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key updated: 'arsenal'"));
+
+    // check entry has been updated
+    datastoreActions
+        .get("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .body("name", equalTo("arsenal update5"));
+  }
+
+  @Test
   @DisplayName("User can read datastore entry metadata with default public sharing")
   void testDatastoreMetadataSharing_DefaultPublicAccess_BasicUser() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // make call as user and check can see entry metadata
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
@@ -221,7 +400,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -248,7 +427,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get id of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -275,7 +454,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -301,7 +480,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -325,135 +504,23 @@ class DatastoreEntriesTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("User can update a datastore entry with default public sharing")
-  void testDatastoreSharing_DefaultPublicAccess_BasicUserUpdate() {
-    // add entry as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-
-    // make call as basic user and check can update entry
-    loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.update("/" + NAMESPACE + "/" + key1, newEntry("newName")).validateStatus(200);
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
-    getResponse.validate().body("name", is("newName"));
-  }
-
-  @Test
-  @DisplayName("Superuser can update a datastore entry when public sharing set to none")
-  void testDatastoreSharing_NoPublicAccess_SuperUserUpdate() {
-    // add entry as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-
-    // get ids of entries
-    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
-    String uid1 = mdResponse1.extractUid();
-
-    // set sharing public access to '--------'
-    QueryParamsBuilder sharingParams =
-        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
-    sharingActions.post("", sharingNoPublicAccess(), sharingParams).validateStatus(200);
-
-    // make call as superuser and check can see entry
-    loginActions.loginAsSuperUser();
-    datastoreActions.update("/" + NAMESPACE + "/" + key1, newEntry("super")).validateStatus(200);
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
-    getResponse.validate().body("name", is("super"));
-  }
-
-  @Test
-  @DisplayName("User can't update a datastore entry when public sharing set to none")
-  void testDatastoreUserSharing_NoPublicAccess_UserNoAccessUpdate() {
-    // add entry as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-
-    // get id of entry
-    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
-    String uid1 = mdResponse1.extractUid();
-
-    // set sharing public access to '--------'
-    QueryParamsBuilder sharingParams1 =
-        new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
-    sharingActions.post("", sharingNoPublicAccess(), sharingParams1).validateStatus(200);
-
-    // make call as user with no access and check can't update entry
-    loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.update("/" + NAMESPACE + "/" + key1, newEntry("super")).validateStatus(403);
-  }
-
-  @Test
-  @DisplayName(
-      "User can update a datastore entry when public sharing set to none and user has user sharing access")
-  void testDatastoreUserSharing_NoPublicAccess_UserHasAccessUpdate() {
-    // add entry as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
-
-    // get ids of entry
-    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
-    String uid1 = mdResponse1.extractUid();
-
-    // share entry with user and set public access to '--------'
-    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
-    sharingActions.post("", sharingUserAccess(basicUserId), params).validateStatus(200);
-
-    // make call as user with access and check can update entry
-    loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.update("/" + NAMESPACE + "/" + key1, newEntry("basic")).validateStatus(200);
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
-    getResponse.validate().body("name", is("basic"));
-  }
-
-  @Test
-  @DisplayName(
-      "User can update a datastore entry when public sharing set to none and user has user group sharing access")
-  void testDatastoreUserGroupSharing_NoPublicAccess_UserHasAccessUpdate() {
-    // add entry as admin
-    loginActions.loginAsAdmin();
-    String key1 = "arsenal";
-    datastoreActions
-        .post("/" + NAMESPACE + "/" + key1, newEntry("newName"))
-        .validate()
-        .statusCode(201);
-
-    // get ids of entry
-    ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
-    String uid1 = mdResponse1.extractUid();
-
-    // add user to user group
-    userActions.post(basicUserId + "/userGroups/" + userGroupId, "").validateStatus(200);
-
-    // share entries with user group and set public access to '--------'
-    QueryParamsBuilder params = new QueryParamsBuilder().add("type", "dataStore").add("id", uid1);
-    sharingActions.post("", sharingUserGroupAccess(userGroupId), params).validateStatus(200);
-
-    // make call as user with access and check can update entry
-    loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.update("/" + NAMESPACE + "/" + key1, newEntry("basic2")).validateStatus(200);
-    ApiResponse getResponse =
-        datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(200);
-    getResponse.validate().body("name", is("basic2"));
-  }
-
-  @Test
   @DisplayName("User can delete a datastore entry with default public sharing")
   void testDatastoreSharing_DefaultPublicAccess_BasicUserDelete() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // make call as basic user and check can delete entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.delete("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    datastoreActions
+        .delete("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key 'arsenal' deleted from namespace 'football'"));
+
     datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(404);
   }
 
@@ -463,7 +530,7 @@ class DatastoreEntriesTest extends ApiTest {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entries
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -476,17 +543,26 @@ class DatastoreEntriesTest extends ApiTest {
 
     // make call as superuser and check can delete entry
     loginActions.loginAsSuperUser();
-    datastoreActions.delete("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    datastoreActions
+        .delete("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key 'arsenal' deleted from namespace 'football'"));
+
     datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(404);
   }
 
   @Test
-  @DisplayName("User can't delete a datastore entry when public sharing set to none")
+  @DisplayName(
+      "User can't delete a datastore entry when public access set to none and no user sharing access")
   void testDatastoreUserSharing_NoPublicAccess_UserNoAccessDelete() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get id of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -499,17 +575,25 @@ class DatastoreEntriesTest extends ApiTest {
 
     // make call as user with no access and check can't delete entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.delete("/" + NAMESPACE + "/" + key1).validateStatus(403);
+    datastoreActions
+        .delete("/" + NAMESPACE + "/" + key1)
+        .validateStatus(403)
+        .validate()
+        .statusCode(403)
+        .body("httpStatus", equalTo("Forbidden"))
+        .body("status", equalTo("ERROR"))
+        .body("message", equalTo("Access denied for key 'arsenal' in namespace 'football'"));
+    ;
   }
 
   @Test
   @DisplayName(
-      "User can delete a datastore entry when public sharing set to none and user has user sharing access")
+      "User can delete a datastore entry when public access set to none and user has user sharing access")
   void testDatastoreUserSharing_NoPublicAccess_UserHasAccessDelete() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -521,18 +605,26 @@ class DatastoreEntriesTest extends ApiTest {
 
     // make call as user with access and check can delete entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.delete("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    datastoreActions
+        .delete("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key 'arsenal' deleted from namespace 'football'"));
+
     datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(404);
   }
 
   @Test
   @DisplayName(
-      "User can delete a datastore entry when public sharing set to none and user has user group sharing access")
+      "User can delete a datastore entry when public access set to none and user has user group sharing access")
   void testDatastoreUserGroupSharing_NoPublicAccess_UserHasAccessDelete() {
     // add entry as admin
     loginActions.loginAsAdmin();
     String key1 = "arsenal";
-    datastoreActions.post("/" + NAMESPACE + "/" + key1, newEntry(key1)).validate().statusCode(201);
+    datastoreActions.post("/" + NAMESPACE + "/" + key1, getEntry(key1)).validate().statusCode(201);
 
     // get ids of entry
     ApiResponse mdResponse1 = datastoreActions.get("/" + NAMESPACE + "/" + key1 + "/metaData");
@@ -547,7 +639,15 @@ class DatastoreEntriesTest extends ApiTest {
 
     // make call as user with access and check can delete entry
     loginActions.loginAsUser(BASIC_USER, "Test1234!");
-    datastoreActions.delete("/" + NAMESPACE + "/" + key1).validateStatus(200);
+    datastoreActions
+        .delete("/" + NAMESPACE + "/" + key1)
+        .validateStatus(200)
+        .validate()
+        .statusCode(200)
+        .body("httpStatus", equalTo("OK"))
+        .body("status", equalTo("OK"))
+        .body("message", equalTo("Key 'arsenal' deleted from namespace 'football'"));
+
     datastoreActions.get("/" + NAMESPACE + "/" + key1).validateStatus(404);
   }
 }

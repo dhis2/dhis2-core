@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.hamcrest.Matchers;
@@ -67,6 +68,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
@@ -112,35 +114,42 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
   protected void setUpTest() {
     final int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
     userService = _userService;
-    createUserAndInjectSecurityContext(
-        false,
-        "F_TRACKED_ENTITY_DATAVALUE_ADD",
-        "F_TRACKED_ENTITY_DATAVALUE_DELETE",
-        "F_UNCOMPLETE_EVENT",
-        "F_PROGRAMSTAGE_ADD",
-        "F_PROGRAMSTAGE_DELETE",
-        "F_PROGRAM_PUBLIC_ADD",
-        "F_PROGRAM_PRIVATE_ADD",
-        "F_PROGRAM_DELETE",
-        "F_TRACKED_ENTITY_ADD",
-        "F_TRACKED_ENTITY_UPDATE",
-        "F_TRACKED_ENTITY_DELETE",
-        "F_DATAELEMENT_PUBLIC_ADD",
-        "F_DATAELEMENT_PRIVATE_ADD",
-        "F_DATAELEMENT_DELETE",
-        "F_CATEGORY_COMBO_PUBLIC_ADD",
-        "F_CATEGORY_COMBO_PRIVATE_ADD",
-        "F_CATEGORY_COMBO_DELETE");
-    User currentUser = getCurrentUser();
+
+    organisationUnitA = createOrganisationUnit('A');
+    manager.save(organisationUnitA, false);
+
+    User currentUser =
+        createUserAndInjectSecurityContext(
+            Set.of(organisationUnitA),
+            false,
+            "F_TRACKED_ENTITY_DATAVALUE_ADD",
+            "F_TRACKED_ENTITY_DATAVALUE_DELETE",
+            "F_UNCOMPLETE_EVENT",
+            "F_PROGRAMSTAGE_ADD",
+            "F_PROGRAMSTAGE_DELETE",
+            "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_PRIVATE_ADD",
+            "F_PROGRAM_DELETE",
+            "F_TRACKED_ENTITY_ADD",
+            "F_TRACKED_ENTITY_UPDATE",
+            "F_TRACKED_ENTITY_DELETE",
+            "F_DATAELEMENT_PUBLIC_ADD",
+            "F_DATAELEMENT_PRIVATE_ADD",
+            "F_DATAELEMENT_DELETE",
+            "F_CATEGORY_COMBO_PUBLIC_ADD",
+            "F_CATEGORY_COMBO_PRIVATE_ADD",
+            "F_CATEGORY_COMBO_DELETE");
+    currentUser.getTeiSearchOrganisationUnits().add(organisationUnitA);
+    userService.updateUser(currentUser);
+    injectSecurityContext(UserDetails.fromUser(currentUser));
+
     UserAccess userAccess1 = new UserAccess(currentUser, "rwrw----");
     UserAccess userAccess2 = new UserAccess(currentUser, "rwrw----");
     UserAccess userAccess3 = new UserAccess(currentUser, "rwrw----");
-    organisationUnitA = createOrganisationUnit('A');
-    organisationUnitA.addUser(currentUser);
     organisationUnitA.getSharing().addUserAccess(userAccess1);
-    currentUser.getTeiSearchOrganisationUnits().add(organisationUnitA);
-    manager.save(organisationUnitA, false);
-    userService.updateUser(currentUser);
+
+    manager.update(organisationUnitA);
+
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.getSharing().addUserAccess(userAccess1);
     manager.save(trackedEntityType, false);

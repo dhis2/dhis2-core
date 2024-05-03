@@ -27,60 +27,30 @@
  */
 package org.hisp.dhis.sms.config;
 
+import static java.util.stream.Collectors.toMap;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.google.common.collect.Lists;
+import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @JsonTypeName("http")
 public class GenericHttpGatewayConfig extends SmsGatewayConfig {
-  private static final long serialVersionUID = 6340853488475760213L;
+  @Serial private static final long serialVersionUID = 6340853488475760213L;
 
   @JsonProperty private String configurationTemplate;
-
   @JsonProperty private boolean useGet;
-
   @JsonProperty private ContentType contentType = ContentType.FORM_URL_ENCODED;
-
-  @JsonProperty private List<GenericGatewayParameter> parameters = Lists.newArrayList();
-
-  public List<GenericGatewayParameter> getParameters() {
-    return parameters;
-  }
+  @JsonProperty private List<GenericGatewayParameter> parameters = new ArrayList<>();
 
   public Map<String, String> getParametersMap() {
     return parameters.stream()
-        .collect(
-            Collectors.toMap(GenericGatewayParameter::getKey, GenericGatewayParameter::getValue));
-  }
-
-  public void setParameters(List<GenericGatewayParameter> parameters) {
-    this.parameters = parameters;
-  }
-
-  public boolean isUseGet() {
-    return useGet;
-  }
-
-  public void setUseGet(boolean useGet) {
-    this.useGet = useGet;
-  }
-
-  public String getConfigurationTemplate() {
-    return configurationTemplate;
-  }
-
-  public void setConfigurationTemplate(String configurationTemplate) {
-    this.configurationTemplate = configurationTemplate;
-  }
-
-  public ContentType getContentType() {
-    return contentType;
-  }
-
-  public void setContentType(ContentType contentType) {
-    this.contentType = contentType;
+        .collect(toMap(GenericGatewayParameter::getKey, GenericGatewayParameter::getValue));
   }
 }

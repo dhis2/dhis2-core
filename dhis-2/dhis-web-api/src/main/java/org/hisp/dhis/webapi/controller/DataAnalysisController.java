@@ -29,11 +29,11 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.security.Authorities.F_RUN_VALIDATION;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,6 +79,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -97,7 +98,6 @@ import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -115,7 +115,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping(value = DataAnalysisController.RESOURCE_PATH)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j
-@PreAuthorize("hasRole('ALL') or hasRole('F_RUN_VALIDATION')")
+@RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class DataAnalysisController {
   public static final String RESOURCE_PATH = "/dataAnalysis";
 
@@ -290,7 +290,7 @@ public class DataAnalysisController {
     List<DeflatedDataValue> dataValues =
         new ArrayList<>(
             stdDevOutlierAnalysisService.analyse(
-                Sets.newHashSet(organisationUnit),
+                organisationUnit,
                 dataElements,
                 periods,
                 stdDevOutlierAnalysisParams.getStandardDeviation(),
@@ -345,7 +345,7 @@ public class DataAnalysisController {
     List<DeflatedDataValue> dataValues =
         new ArrayList<>(
             minMaxOutlierAnalysisService.analyse(
-                Sets.newHashSet(organisationUnit), dataElements, periods, null, from));
+                organisationUnit, dataElements, periods, null, from));
 
     session.setAttribute(KEY_ANALYSIS_DATA_VALUES, dataValues);
     session.setAttribute(KEY_ORG_UNIT, organisationUnit);
@@ -379,10 +379,7 @@ public class DataAnalysisController {
     List<DeflatedDataValue> dataValues =
         new ArrayList<>(
             followupAnalysisService.getFollowupDataValues(
-                Sets.newHashSet(organisationUnit),
-                dataElements,
-                periods,
-                DataAnalysisService.MAX_OUTLIERS + 1));
+                organisationUnit, dataElements, periods, DataAnalysisService.MAX_OUTLIERS + 1));
     // +1 to detect overflow
 
     session.setAttribute(KEY_ANALYSIS_DATA_VALUES, dataValues);

@@ -58,10 +58,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 public class DimensionsServiceCommon {
 
-  protected static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES =
+  protected static final EnumSet<ValueType> QUERY_DISALLOWED_VALUE_TYPES =
       EnumSet.of(IMAGE, FILE_RESOURCE, TRACKER_ASSOCIATE);
 
-  protected static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES =
+  protected static final EnumSet<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES =
       EnumSet.of(
           NUMBER,
           UNIT_INTERVAL,

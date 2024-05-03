@@ -29,7 +29,6 @@ package org.hisp.dhis.outlierdetection.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierValue;
@@ -49,7 +48,6 @@ import org.springframework.stereotype.Repository;
  *
  * @author Lars Helge Overland
  */
-@Slf4j
 @Repository
 public class ZScoreOutlierDetectionManager extends AbstractOutlierDetectionManager {
 

@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
@@ -59,7 +58,6 @@ import org.springframework.stereotype.Service;
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
 @Service("org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService")
 @RequiredArgsConstructor
 public class DefaultOrgUnitAnalyticsService implements OrgUnitAnalyticsService {
@@ -90,8 +88,6 @@ public class DefaultOrgUnitAnalyticsService implements OrgUnitAnalyticsService {
 
   @Override
   public Grid getOrgUnitData(OrgUnitQueryParams params) {
-    log.info(String.format("Get org unit data for query: %s", params));
-
     validate(params);
 
     return params.isTableLayout() ? getOrgUnitDataTableLayout(params) : getNormalizedData(params);

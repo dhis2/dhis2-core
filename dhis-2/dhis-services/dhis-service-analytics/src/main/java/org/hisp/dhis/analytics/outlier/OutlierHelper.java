@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.outlier;
 
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.feedback.ErrorCode.E2208;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
@@ -62,10 +63,16 @@ public class OutlierHelper {
    * OrganisationUnit}.
    *
    * @param orgUnits the list of {@link OrganisationUnit}.
+   * @param relation is sql logical operator.
    * @return an organisation unit 'path' "like" clause.
    */
-  public static String getOrgUnitPathClause(List<OrganisationUnit> orgUnits, String pathAlias) {
-    StringBuilder sql = new StringBuilder("(");
+  public static String getOrgUnitPathClause(
+      List<OrganisationUnit> orgUnits, String pathAlias, String relation) {
+    if (orgUnits == null || orgUnits.isEmpty()) {
+      return EMPTY;
+    }
+
+    StringBuilder sql = new StringBuilder(relation + " (");
     orgUnits.forEach(
         ou ->
             sql.append(pathAlias).append(".\"path\" like '").append(ou.getPath()).append("%' or "));

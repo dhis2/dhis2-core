@@ -48,11 +48,11 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataDimensionItemType;
@@ -88,9 +88,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public DataQueryGroups planQuery(DataQueryParams params, QueryPlannerParams plannerParams) {
     params = PeriodOffsetUtils.addShiftedPeriods(params);
 
-    // ---------------------------------------------------------------------
     // Group queries which can be executed together
-    // ---------------------------------------------------------------------
 
     params = withTableNameAndPartitions(params, plannerParams);
 
@@ -119,9 +117,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
       currentQueries.forEach(query -> queries.addAll(grouper.apply(query)));
     }
 
-    // ---------------------------------------------------------------------
-    // Split queries until optimal number
-    // ---------------------------------------------------------------------
+    // Split queries until the optimal number is reached
 
     DataQueryGroups queryGroups = DataQueryGroups.newBuilder().withQueries(queries).build();
 
@@ -213,9 +209,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (subQueries.size() > queryGroups.getAllQueries().size()) {
       log.debug(
-          String.format(
-              "Split on dimension %s: %d",
-              dimension, (subQueries.size() / queryGroups.getAllQueries().size())));
+          "Split on dimension {}: {}",
+          dimension,
+          (subQueries.size() / queryGroups.getAllQueries().size()));
     }
 
     return DataQueryGroups.newBuilder().withQueries(subQueries).build();
@@ -708,7 +704,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private void logQuerySplit(List<DataQueryParams> queries, String splitCriteria) {
     if (queries.size() > 1) {
-      log.debug(String.format("Split on '%s': %d", splitCriteria, queries.size()));
+      log.debug("Split on '{}': {}", splitCriteria, queries.size());
     }
   }
 }

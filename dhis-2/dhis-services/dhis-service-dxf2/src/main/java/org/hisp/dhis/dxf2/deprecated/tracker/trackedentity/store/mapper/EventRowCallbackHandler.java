@@ -64,20 +64,20 @@ public class EventRowCallbackHandler extends AbstractMapper<Event> {
         EnrollmentStatus.fromStatusString(rs.getString(getColumnName(COLUMNS.ENROLLMENT_STATUS))));
     event.setStatus(EventStatus.valueOf(rs.getString(getColumnName(COLUMNS.STATUS))));
     event.setEventDate(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.EXECUTION_DATE))));
-    event.setDueDate(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.DUE_DATE))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.EXECUTION_DATE))));
+    event.setDueDate(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.DUE_DATE))));
     event.setStoredBy(rs.getString(getColumnName(COLUMNS.STOREDBY)));
     event.setCompletedBy(rs.getString(getColumnName(COLUMNS.COMPLETEDBY)));
     event.setCompletedDate(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.COMPLETEDDATE))));
-    event.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.CREATED))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.COMPLETEDDATE))));
+    event.setCreated(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.CREATED))));
     event.setCreatedAtClient(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.CREATEDCLIENT))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.CREATEDCLIENT))));
     JsonbToObjectHelper.setUserInfoSnapshot(
         rs, getColumnName(COLUMNS.CREATED_BY), event::setCreatedByUserInfo);
-    event.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.UPDATED))));
+    event.setLastUpdated(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.UPDATED))));
     event.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.UPDATEDCLIENT))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(COLUMNS.UPDATEDCLIENT))));
     JsonbToObjectHelper.setUserInfoSnapshot(
         rs, getColumnName(COLUMNS.LAST_UPDATED_BY), event::setLastUpdatedByUserInfo);
 

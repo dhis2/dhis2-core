@@ -34,7 +34,11 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(staticName = "of")
 public class AndCondition extends BaseRenderable {
-  private final List<Renderable> conditions;
+  private final List<? extends Renderable> conditions;
+
+  public static AndCondition of(Renderable... conditions) {
+    return new AndCondition(List.of(conditions));
+  }
 
   @Override
   /**

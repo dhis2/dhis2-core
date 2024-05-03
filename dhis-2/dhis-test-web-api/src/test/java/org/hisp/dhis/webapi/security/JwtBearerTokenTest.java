@@ -174,7 +174,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
         createJwt(TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL)
             .getTokenValue();
     assertInvalidTokenError(
-        "Found no matching DHIS2 user for the mapping claim:'email' with the value:'admin@dhis2.org'",
+        "Found no matching DHIS2 user for the mapping claim: 'email' with the value: 'admin@dhis2.org'",
         GET("/me", JwtTokenHeader(tokenValue)));
   }
 

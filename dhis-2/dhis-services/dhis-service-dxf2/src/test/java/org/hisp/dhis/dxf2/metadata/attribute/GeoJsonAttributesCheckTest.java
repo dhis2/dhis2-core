@@ -59,7 +59,7 @@ import org.mockito.internal.util.collections.Sets;
 /**
  * @author viet@dhis2.org
  */
-public class GeoJsonAttributesCheckTest {
+class GeoJsonAttributesCheckTest {
   private GeoJsonAttributesCheck geoJsonAttributesCheck = new GeoJsonAttributesCheck();
 
   private OrganisationUnit organisationUnit;

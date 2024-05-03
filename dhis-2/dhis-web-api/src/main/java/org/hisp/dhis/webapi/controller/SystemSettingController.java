@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -42,7 +43,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -51,10 +51,11 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -63,7 +64,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -103,21 +103,19 @@ public class SystemSettingController {
         ContextUtils.CONTENT_TYPE_TEXT,
         ContextUtils.CONTENT_TYPE_HTML
       })
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingOrTranslation(
       @PathVariable(value = "key") String key,
       @RequestParam(value = "locale", required = false) String locale,
       @RequestParam(value = "value", required = false) String value,
-      @RequestBody(required = false) String valuePayload,
-      HttpServletResponse response,
-      HttpServletRequest request)
+      @RequestBody(required = false) String valuePayload)
       throws WebMessageException {
     validateParameters(key, value, valuePayload);
 
     Optional<SettingKey> setting = SettingKey.getByName(key);
 
-    if (!setting.isPresent()) {
+    if (setting.isEmpty()) {
       return conflict("Key is not supported: " + key);
     }
 
@@ -168,13 +166,11 @@ public class SystemSettingController {
   }
 
   @PostMapping(consumes = ContextUtils.CONTENT_TYPE_JSON)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseBody
   public WebMessage setSystemSettingV29(@RequestBody Map<String, Object> settings) {
     List<String> invalidKeys =
-        settings.keySet().stream()
-            .filter((key) -> !SettingKey.getByName(key).isPresent())
-            .collect(Collectors.toList());
+        settings.keySet().stream().filter(key -> SettingKey.getByName(key).isEmpty()).toList();
 
     if (!invalidKeys.isEmpty()) {
       return conflict("Key(s) is not supported: " + StringUtils.join(invalidKeys, ", "));
@@ -183,7 +179,9 @@ public class SystemSettingController {
     for (Entry<String, Object> entry : settings.entrySet()) {
       String key = entry.getKey();
       Serializable valueObject = SettingKey.getAsRealClass(key, entry.getValue().toString());
-      systemSettingManager.saveSystemSetting(SettingKey.getByName(key).get(), valueObject);
+      Optional<SettingKey> settingByName = SettingKey.getByName(key);
+      settingByName.ifPresent(
+          settingKey -> systemSettingManager.saveSystemSetting(settingKey, valueObject));
     }
 
     return ok("System settings imported");
@@ -198,8 +196,8 @@ public class SystemSettingController {
       @PathVariable("key") String key,
       @RequestParam(value = "locale", required = false) String locale,
       HttpServletResponse response,
-      @CurrentUser User currentUser) {
-    if (!settingExistsAndIsNotConfidential(key)) {
+      @CurrentUser UserDetails currentUser) {
+    if (!settingExistsAndIsNotConfidential(key, currentUser)) {
       return ResponseEntity.status(404).body(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
     }
     response.setHeader(
@@ -216,9 +214,9 @@ public class SystemSettingController {
       getSystemSettingOrTranslationAsJson(
           @PathVariable("key") String key,
           @RequestParam(value = "locale", required = false) String locale,
-          @CurrentUser User currentUser)
+          @CurrentUser UserDetails currentUser)
           throws NotFoundException {
-    if (!settingExistsAndIsNotConfidential(key)) {
+    if (!settingExistsAndIsNotConfidential(key, currentUser)) {
       throw new NotFoundException(SETTING_DOESNT_EXIST_OR_CONFIDENTIAL);
     }
 
@@ -228,13 +226,17 @@ public class SystemSettingController {
         .body(Map.of(key, getSystemSettingOrTranslation(key, locale, currentUser)));
   }
 
-  private boolean settingExistsAndIsNotConfidential(String key) {
-    return SettingKey.getByName(key).isPresent() && !systemSettingManager.isConfidential(key);
+  private boolean settingExistsAndIsNotConfidential(String key, UserDetails currentUser) {
+    if (SettingKey.getByName(key).isEmpty()) return false;
+    return !systemSettingManager.isConfidential(key) || currentUser.isSuper();
   }
 
-  private Serializable getSystemSettingOrTranslation(String key, String locale, User currentUser) {
-    if (settingExistsAndIsNotConfidential(key)) {
+  private Serializable getSystemSettingOrTranslation(
+      String key, String locale, UserDetails currentUser) {
+    if (settingExistsAndIsNotConfidential(key, currentUser)) {
       Optional<SettingKey> settingKey = SettingKey.getByName(key);
+      if (settingKey.isEmpty()) return StringUtils.EMPTY;
+
       Optional<String> localeToFetch = getLocaleToFetch(locale, key, currentUser);
 
       if (localeToFetch.isPresent()) {
@@ -259,11 +261,12 @@ public class SystemSettingController {
     return StringUtils.EMPTY;
   }
 
-  private Optional<String> getLocaleToFetch(String locale, String key, User currentUser) {
+  private Optional<String> getLocaleToFetch(String locale, String key, UserDetails currentUser) {
     if (systemSettingManager.isTranslatable(key)) {
       if (StringUtils.isNotEmpty(locale)) {
         return Optional.of(locale);
-      } else if (currentUser != null) {
+      }
+      if (currentUser != null) {
         Locale userLocale =
             (Locale)
                 userSettingService.getUserSetting(
@@ -316,7 +319,7 @@ public class SystemSettingController {
   // -------------------------------------------------------------------------
 
   @DeleteMapping("/{key}")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @RequiresAuthority(anyOf = F_SYSTEM_SETTING)
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void removeSystemSetting(
       @PathVariable("key") String key,
@@ -324,7 +327,7 @@ public class SystemSettingController {
       throws WebMessageException {
     Optional<SettingKey> setting = SettingKey.getByName(key);
 
-    if (!setting.isPresent()) {
+    if (setting.isEmpty()) {
       throw new WebMessageException(conflict("Key is not supported: " + key));
     }
 

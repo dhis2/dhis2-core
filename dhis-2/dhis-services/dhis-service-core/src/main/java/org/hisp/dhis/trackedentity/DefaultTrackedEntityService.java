@@ -337,15 +337,17 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
     Set<String> tes = new HashSet<>();
 
+    User user = params.getUser();
+    UserDetails userDetails = UserDetails.fromUser(user);
     for (Map<String, String> entity : entities) {
-      if (params.getUser() != null
-          && !params.getUser().isSuper()
+      if (userDetails != null
+          && !userDetails.isSuper()
           && params.hasProgram()
           && (params.getProgram().getAccessLevel().equals(AccessLevel.PROTECTED)
               || params.getProgram().getAccessLevel().equals(AccessLevel.CLOSED))) {
         TrackedEntity te = trackedEntityStore.getByUid(entity.get(TRACKED_ENTITY_ID));
 
-        if (!trackerOwnershipAccessManager.hasAccess(params.getUser(), te, params.getProgram())) {
+        if (!trackerOwnershipAccessManager.hasAccess(userDetails, te, params.getProgram())) {
           continue;
         }
       }
@@ -443,8 +445,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     User user = params.isInternalSearch() ? null : params.getUser();
     if (params.isOrganisationUnitMode(ALL)
         && !(user != null
-            && user.isAuthorized(
-                Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()))
+            && user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS))
         && !params.isInternalSearch()) {
       throw new IllegalQueryException(
           "Current user is not authorized to query across all organisation units");
@@ -751,7 +752,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<TrackedEntity> getTrackedEntitiesByUid(List<String> uids, User user) {
+  public List<TrackedEntity> getTrackedEntitiesByUid(List<String> uids, UserDetails user) {
     if (uids == null || uids.isEmpty()) {
       return Collections.emptyList();
     }
@@ -766,8 +767,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public void updateTrackedEntity(TrackedEntity trackedEntity, User user) {
-    trackedEntityStore.update(trackedEntity, UserDetails.fromUser(user));
+  public void updateTrackedEntity(TrackedEntity trackedEntity, UserDetails user) {
+    trackedEntityStore.update(trackedEntity, user);
   }
 
   @Override
@@ -779,8 +780,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   @Transactional
-  public void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated) {
-    trackedEntityStore.updateTrackedEntityLastUpdated(trackedEntityUIDs, lastUpdated);
+  public void updateTrackedEntityLastUpdated(
+      Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot) {
+    trackedEntityStore.updateTrackedEntityLastUpdated(
+        trackedEntityUIDs, lastUpdated, userInfoSnapshot);
   }
 
   @Override
@@ -810,7 +813,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public TrackedEntity getTrackedEntity(String uid, User user) {
+  public TrackedEntity getTrackedEntity(String uid, UserDetails user) {
     TrackedEntity te = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(te, User.username(user), ChangeLogType.READ);
 

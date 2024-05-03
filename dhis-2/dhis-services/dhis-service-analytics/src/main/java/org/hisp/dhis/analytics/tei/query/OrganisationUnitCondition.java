@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -92,8 +91,7 @@ public class OrganisationUnitCondition extends BaseRenderable {
     List<OrganisationUnit> organisationUnits = getOrganisationUnits();
 
     if (ouMode == SELECTED) {
-      List<String> items =
-          organisationUnits.stream().map(IdentifiableObject::getUid).collect(Collectors.toList());
+      List<String> items = organisationUnits.stream().map(IdentifiableObject::getUid).toList();
 
       return isEmpty(items)
           ? FALSE_CONDITION
@@ -106,7 +104,7 @@ public class OrganisationUnitCondition extends BaseRenderable {
               .map(OrganisationUnit::getChildren)
               .flatMap(Collection::stream)
               .map(IdentifiableObject::getUid)
-              .collect(Collectors.toList());
+              .toList();
 
       return isEmpty(items)
           ? FALSE_CONDITION
@@ -128,7 +126,7 @@ public class OrganisationUnitCondition extends BaseRenderable {
               queryContext));
     }
 
-    return isEmpty(orgUnitConditions) ? FALSE_CONDITION : OrCondition.of(orgUnitConditions);
+    return isEmpty(orgUnitConditions) ? FALSE_CONDITION : OrCondition.ofList(orgUnitConditions);
   }
 
   private OrganisationUnitSelectionMode getOuMode() {
@@ -148,6 +146,6 @@ public class OrganisationUnitCondition extends BaseRenderable {
         .orElse(List.of())
         .stream()
         .map(OrganisationUnit.class::cast)
-        .collect(Collectors.toList());
+        .toList();
   }
 }

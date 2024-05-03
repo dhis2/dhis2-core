@@ -36,6 +36,7 @@ import org.apache.commons.lang3.BooleanUtils;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class PagerUtils {
+
   public static <T> List<T> pageCollection(Collection<T> col, Pager pager) {
     return pageCollection(col, pager.getOffset(), pager.getPageSize());
   }

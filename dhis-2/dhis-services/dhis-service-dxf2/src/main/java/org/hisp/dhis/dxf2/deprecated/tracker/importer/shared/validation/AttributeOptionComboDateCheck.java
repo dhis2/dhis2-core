@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import java.util.Date;
 import org.hisp.dhis.category.CategoryOption;
@@ -76,9 +76,9 @@ public class AttributeOptionComboDateCheck implements Checker {
           && eventDate.compareTo(categoryOption.getStartDate()) < 0) {
         return error(
             "Event date "
-                + getMediumDateString(eventDate)
+                + toMediumDate(eventDate)
                 + " is before start date "
-                + getMediumDateString(categoryOption.getStartDate())
+                + toMediumDate(categoryOption.getStartDate())
                 + " for attributeOption '"
                 + categoryOption.getName()
                 + "'",
@@ -89,9 +89,9 @@ public class AttributeOptionComboDateCheck implements Checker {
           && eventDate.compareTo(categoryOption.getAdjustedEndDate(program)) > 0) {
         return error(
             "Event date "
-                + getMediumDateString(eventDate)
+                + toMediumDate(eventDate)
                 + " is after end date "
-                + getMediumDateString(categoryOption.getAdjustedEndDate(program))
+                + toMediumDate(categoryOption.getAdjustedEndDate(program))
                 + " for attributeOption '"
                 + categoryOption.getName()
                 + "' in program '"

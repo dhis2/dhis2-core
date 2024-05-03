@@ -55,7 +55,7 @@ public interface DataAnalysisStore {
   List<DataAnalysisMeasures> getDataAnalysisMeasures(
       DataElement dataElement,
       Collection<CategoryOptionCombo> categoryOptionCombos,
-      Collection<String> parentPaths,
+      OrganisationUnit orgUnit,
       Date from);
 
   /**
@@ -72,7 +72,7 @@ public interface DataAnalysisStore {
       Collection<DataElement> dataElements,
       Collection<CategoryOptionCombo> categoryOptionCombos,
       Collection<Period> periods,
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       int limit);
 
   /**
@@ -107,6 +107,6 @@ public interface DataAnalysisStore {
       Collection<DataElement> dataElements,
       Collection<CategoryOptionCombo> categoryOptionCombos,
       Collection<Period> periods,
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       int limit);
 }

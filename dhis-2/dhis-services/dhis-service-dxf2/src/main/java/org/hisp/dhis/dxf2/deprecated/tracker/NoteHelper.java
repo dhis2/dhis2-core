@@ -52,7 +52,7 @@ public class NoteHelper {
     note.setNote(trackedEntityComment.getUid());
     note.setValue(trackedEntityComment.getNoteText());
     note.setStoredBy(trackedEntityComment.getCreator());
-    note.setStoredDate(DateUtils.getIso8601NoTz(trackedEntityComment.getCreated()));
+    note.setStoredDate(DateUtils.toIso8601NoTz(trackedEntityComment.getCreated()));
 
     note.setLastUpdatedBy(
         UserInfoSnapshot.from(UserDetails.fromUser(trackedEntityComment.getLastUpdatedBy())));

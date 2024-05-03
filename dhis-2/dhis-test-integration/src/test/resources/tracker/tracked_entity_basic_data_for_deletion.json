@@ -32,310 +32,31 @@
   "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntity": "NCc1rCEOKaY",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "NCc1rCEOKaY"
     },
     {
-      "trackedEntity": "PB9VMezGkwA",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "PB9VMezGkwA"
     },
     {
-      "trackedEntity": "N0wuhEwexUW",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "N0wuhEwexUW"
     },
     {
-      "trackedEntity": "g3eF1fJXuSz",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "g3eF1fJXuSz"
     },
     {
-      "trackedEntity": "s9D7VHiYLwj",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "s9D7VHiYLwj"
     },
     {
-      "trackedEntity": "C5nACFyIFQo",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "C5nACFyIFQo"
     },
     {
-      "trackedEntity": "Jx8Ul6pnRfM",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "Jx8Ul6pnRfM"
     },
     {
-      "trackedEntity": "Z324qoN3WrF",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "Z324qoN3WrF"
     },
     {
-      "trackedEntity": "TGeGZIIt4MO",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fmBIpOStKkF"
-          },
-          "storedBy": "admin",
-          "value": "PersonA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "sTJvSLN7Kcb"
-          },
-          "storedBy": "admin",
-          "value": "AddressA"
-        }
-      ],
-      "enrollments": []
+      "trackedEntity": "TGeGZIIt4MO"
     }
   ],
   "enrollments": [],

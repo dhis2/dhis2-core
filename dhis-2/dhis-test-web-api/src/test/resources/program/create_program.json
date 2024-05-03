@@ -66,7 +66,16 @@
             "id": "PrZMWi7rBga"
           }
         }
-      ]
+      ],
+      "enrollmentDateLabel": "Label for Enrollment Date",
+      "enrollmentLabel": "Label for Enrollment",
+      "followUpLabel": "Label for Follow Up",
+      "orgUnitLabel": "Label for Org Unit",
+      "relationshipLabel": "Label for Relationship",
+      "noteLabel": "Label for Note",
+      "trackedEntityAttributeLabel": "Label for Tracked Entity Attribute",
+      "programStageLabel": "Label for Program Stage",
+      "eventLabel": "Label for Event"
     }
   ],
   "programStages": [

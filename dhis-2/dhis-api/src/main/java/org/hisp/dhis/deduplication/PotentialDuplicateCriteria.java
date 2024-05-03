@@ -30,11 +30,38 @@ package org.hisp.dhis.deduplication;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @Data
 public class PotentialDuplicateCriteria extends PagingAndSortingCriteriaAdapter {
+  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
+  // now. This would lead to invalid parameters if the user passes the other param i.e.
+  // skipPaging==paging.
+  // isPaged() handles the default case of skipPaging==paging==null => paging enabled
+  @OpenApi.Property(defaultValue = "true")
+  private Boolean paging;
+
   private List<String> trackedEntities = new ArrayList<>();
 
   private DeduplicationStatus status = DeduplicationStatus.OPEN;
+
+  /**
+   * Indicates whether to return a page of items or all items. By default, responses are paginated.
+   *
+   * <p>Note: this assumes {@link #getPaging()} and {@link #getSkipPaging()} have been validated.
+   * Preference is given to {@link #getPaging()} as the other parameter is deprecated.
+   */
+  @OpenApi.Ignore
+  public boolean isPaged() {
+    if (getPaging() != null) {
+      return Boolean.TRUE.equals(getPaging());
+    }
+
+    if (getSkipPaging() != null) {
+      return Boolean.FALSE.equals(getSkipPaging());
+    }
+
+    return true;
+  }
 }

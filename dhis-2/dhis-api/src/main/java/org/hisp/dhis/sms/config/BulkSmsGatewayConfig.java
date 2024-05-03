@@ -29,19 +29,18 @@ package org.hisp.dhis.sms.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import java.io.Serial;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JsonTypeName("bulksms")
 public class BulkSmsGatewayConfig extends SmsGatewayConfig {
-  private static final long serialVersionUID = 5249703354480948250L;
-
-  private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
+  @Serial private static final long serialVersionUID = 5249703354480948250L;
 
   @Override
-  @JsonProperty(value = "urlTemplate")
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getUrlTemplate() {
-    return this.JSON_API_URL;
+    return "https://api.bulksms.com/v1/messages";
   }
 }

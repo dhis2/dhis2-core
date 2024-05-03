@@ -29,19 +29,16 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.collect.Sets;
 import java.util.Arrays;
@@ -68,11 +65,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
@@ -91,7 +88,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   private static final String ANALYTICS_EVENT = "analytics_event_";
 
-  private static final String ORDER_BY_EXECUTION_DATE = "order by occurreddate ";
+  private static final String DIRECTION_PLACEHOLDER = "#DIRECTION_PLACEHOLDER";
+
+  private static final String ORDER_BY_EXECUTION_DATE =
+      "order by occurreddate " + DIRECTION_PLACEHOLDER + ", created " + DIRECTION_PLACEHOLDER;
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -120,9 +120,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
-      ExecutionPlanStore executionPlanStore) {
+      ExecutionPlanStore executionPlanStore,
+      SqlBuilder sqlBuilder) {
     super(
-        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore);
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        executionPlanStore,
+        sqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -151,7 +156,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   private void getEnrollments(
       EventQueryParams params, Grid grid, String sql, boolean unlimitedPaging) {
-    log.debug(String.format("Analytics enrollment query SQL: %s", sql));
+    log.debug("Analytics enrollment query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -178,12 +183,29 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       for (int i = 0; i < grid.getHeaders().size(); ++i) {
         addGridValue(grid, grid.getHeaders().get(i), i + 1 + columnOffset, rowSet, params);
 
-        if (params.isRowContext()
-            && addValueMetaInfo(grid, rowSet, grid.getHeaders().get(i).getName())) {
-          ++columnOffset;
+        if (params.isRowContext()) {
+          addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
+          columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
         }
       }
     }
+  }
+
+  /**
+   * The method retrieves the amount of the supportive columns in database result set
+   *
+   * @param rowSet {@link SqlRowSet}.
+   * @param columnName The name of the investigated column.
+   * @return If the investigated column has some supportive columns lie .exists or .status, the
+   *     count of the columns is returned.
+   */
+  private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
+    return Arrays.stream(rowSet.getMetaData().getColumnNames())
+        .filter(
+            c ->
+                c.equalsIgnoreCase(columnName + ".exists")
+                    || c.equalsIgnoreCase(columnName + ".status"))
+        .count();
   }
 
   /**
@@ -193,25 +215,37 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * @param grid the {@link Grid}.
    * @param rowSet the {@link SqlRowSet}.
    * @param columnName the {@link String}.
-   * @return true when ValueMetaInfo added
+   * @return int, the amount of written info items
    */
-  private boolean addValueMetaInfo(Grid grid, SqlRowSet rowSet, String columnName) {
+  private boolean addValueOriginInfo(Grid grid, SqlRowSet rowSet, String columnName) {
     int gridRowIndex = grid.getRows().size() - 1;
 
-    Optional<String> valueMetaInfoColumnName =
+    Optional<String> existsMetaInfoColumnName =
         Arrays.stream(rowSet.getMetaData().getColumnNames())
             .filter((columnName + ".exists")::equalsIgnoreCase)
             .findFirst();
 
-    if (valueMetaInfoColumnName.isPresent()) {
+    if (existsMetaInfoColumnName.isPresent()) {
       try {
-        boolean isDefined = rowSet.getBoolean(valueMetaInfoColumnName.get());
+        Optional<String> statusMetaInfoColumnName =
+            Arrays.stream(rowSet.getMetaData().getColumnNames())
+                .filter((columnName + ".status")::equalsIgnoreCase)
+                .findFirst();
+
+        boolean isDefined = rowSet.getBoolean(existsMetaInfoColumnName.get());
 
         boolean isSet = rowSet.getObject(columnName) != null;
 
-        ValueStatus valueStatus = ValueStatus.of(isDefined, isSet);
+        boolean isScheduled = false;
 
-        if (valueStatus != ValueStatus.NOT_DEFINED) {
+        if (statusMetaInfoColumnName.isPresent()) {
+          String status = rowSet.getString(statusMetaInfoColumnName.get());
+          isScheduled = "schedule".equalsIgnoreCase(status);
+        }
+
+        ValueStatus valueStatus = ValueStatus.of(isDefined, isSet, isScheduled);
+
+        if (valueStatus == ValueStatus.SET) {
           return true;
         }
 
@@ -251,7 +285,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     long count = 0;
 
-    log.debug("Analytics enrollment count SQL: " + sql);
+    log.debug("Analytics enrollment count SQL: '{}'", sql);
 
     final String finalSqlValue = sql;
 
@@ -406,7 +440,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     if (params.hasProgramStatus()) {
       sql +=
           "and enrollmentstatus in ("
-              + params.getProgramStatus().stream().map(p -> encode(p.name())).collect(joining(","))
+              + params.getProgramStatus().stream()
+                  .map(p -> singleQuote(p.name()))
+                  .collect(joining(","))
               + ") ";
     }
 
@@ -515,8 +551,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + colName
               + IS_NOT_NULL
               + psCondition
-              + ORDER_BY_EXECUTION_DATE
-              + createOrderTypeAndOffset(item.getProgramStageOffset())
+              + " "
+              + createOrderType(item.getProgramStageOffset())
+              + " "
+              + createOffset(item.getProgramStageOffset())
               + " "
               + LIMIT_1
               + " )",
@@ -547,6 +585,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       colName = quote(colName + suffix);
 
       String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+      String excludingScheduledCondition =
+          eventTableName + ".psistatus != '" + EventStatus.SCHEDULE + "' and ";
 
       if (item.getProgramStage().getRepeatable()
           && item.hasRepeatableStageParams()
@@ -557,6 +597,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " from "
             + eventTableName
             + " where "
+            + excludingScheduledCondition
             + eventTableName
             + ".pi = "
             + ANALYTICS_TBL_ALIAS
@@ -567,8 +608,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + getExecutionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + ORDER_BY_EXECUTION_DATE
-            + createOrderTypeAndOffset(item.getProgramStageOffset())
+            + createOrderType(item.getProgramStageOffset())
+            + " "
+            + createOffset(item.getProgramStageOffset())
+            + " "
             + getLimit(item.getRepeatableStageParams().getCount())
             + " ) as t1)";
       }
@@ -579,6 +622,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + " from "
             + eventTableName
             + " where "
+            + excludingScheduledCondition
             + eventTableName
             + ".pi = "
             + ANALYTICS_TBL_ALIAS
@@ -589,8 +633,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + getExecutionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + ORDER_BY_EXECUTION_DATE
-            + createOrderTypeAndOffset(item.getProgramStageOffset())
+            + createOrderType(item.getProgramStageOffset())
+            + " "
+            + createOffset(item.getProgramStageOffset())
             + " "
             + LIMIT_1
             + " )";
@@ -606,6 +651,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + " from "
           + eventTableName
           + " where "
+          + excludingScheduledCondition
           + eventTableName
           + ".pi = "
           + ANALYTICS_TBL_ALIAS
@@ -616,8 +662,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + "and ps = '"
           + item.getProgramStage().getUid()
           + "' "
-          + ORDER_BY_EXECUTION_DATE
-          + createOrderTypeAndOffset(item.getProgramStageOffset())
+          + createOrderType(item.getProgramStageOffset())
+          + " "
+          + createOffset(item.getProgramStageOffset())
           + " "
           + LIMIT_1
           + " )";
@@ -636,26 +683,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return getColumn(item, "");
   }
 
-  private static String getExecutionDateFilter(Date startDate, Date endDate) {
+  private String getExecutionDateFilter(Date startDate, Date endDate) {
     StringBuilder sb = new StringBuilder();
 
     if (startDate != null) {
       sb.append(" and occurreddate >= ");
 
-      sb.append(
-          String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(startDate))));
+      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(startDate))));
     }
 
     if (endDate != null) {
       sb.append(" and occurreddate <= ");
 
-      sb.append(String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(endDate))));
+      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(endDate))));
     }
 
     return sb.toString();
   }
 
-  private static String getLimit(int count) {
+  private String getLimit(int count) {
     if (count == Integer.MAX_VALUE) {
       return "";
     }
@@ -674,14 +720,26 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return AnalyticsType.ENROLLMENT;
   }
 
-  private String createOrderTypeAndOffset(int offset) {
+  private String createOffset(int offset) {
     if (offset == 0) {
-      return "desc";
+      return EMPTY;
+    }
+
+    if (offset < 0) {
+      return "offset " + (-1 * offset);
+    } else {
+      return "offset " + (offset - 1);
+    }
+  }
+
+  private String createOrderType(int offset) {
+    if (offset == 0) {
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
     }
     if (offset < 0) {
-      return "desc offset " + (-1 * offset);
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
     } else {
-      return "asc offset " + (offset - 1);
+      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "asc");
     }
   }
 }

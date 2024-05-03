@@ -33,7 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.fileresource.FileResourceDomain.DATA_VALUE;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
 import com.google.common.base.Preconditions;
 import java.util.Date;
@@ -362,7 +362,7 @@ public class DataValidator {
             new ErrorMessage(
                 ErrorCode.E2023,
                 period.getIsoDate(),
-                getMediumDateString(option.getStartDate()),
+                toMediumDate(option.getStartDate()),
                 option.getUid()));
       }
 
@@ -376,7 +376,7 @@ public class DataValidator {
             new ErrorMessage(
                 ErrorCode.E2024,
                 period.getIsoDate(),
-                getMediumDateString(adjustedEndDate),
+                toMediumDate(adjustedEndDate),
                 option.getUid()));
       }
     }

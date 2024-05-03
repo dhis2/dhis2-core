@@ -45,7 +45,7 @@ public interface FollowupAnalysisService {
    */
   @Deprecated
   List<DeflatedDataValue> getFollowupDataValues(
-      Collection<OrganisationUnit> parents,
+      OrganisationUnit orgUnit,
       Collection<DataElement> dataElements,
       Collection<Period> periods,
       int limit);

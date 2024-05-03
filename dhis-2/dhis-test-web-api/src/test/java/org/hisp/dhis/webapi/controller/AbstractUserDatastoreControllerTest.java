@@ -42,7 +42,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
  *
  * @author Jan Bernitt
  */
-abstract class AbstractUserDatastoreControllerTest extends DhisControllerConvenienceTest {
+public abstract class AbstractUserDatastoreControllerTest extends DhisControllerConvenienceTest {
 
   /**
    * Creates a new entry with the given key and value in the given namespace.
@@ -51,11 +51,11 @@ abstract class AbstractUserDatastoreControllerTest extends DhisControllerConveni
    * @param key key of the entry
    * @param value value of the entry, valid JSON - consider using {@link JavaToJson#toJson(Object)}
    */
-  final void postEntry(String ns, String key, String value) {
+  protected final void postEntry(String ns, String key, String value) {
     assertStatus(HttpStatus.CREATED, POST("/userDataStore/" + ns + "/" + key, value));
   }
 
-  final void postPet(String key, String name, int age, List<String> eats) {
+  protected final void postPet(String key, String name, int age, List<String> eats) {
     Map<String, Object> objectMap =
         Map.of(
             "name",

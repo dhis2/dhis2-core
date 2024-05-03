@@ -33,11 +33,13 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
 import com.google.common.base.Strings;
 import java.util.Date;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -48,7 +50,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorSubqueryBuilder {
-  private static final String ANALYTICS_TABLE_NAME = "analytics";
+  private static final Map<AnalyticsType, AnalyticsTableType> ANALYTICS_TYPE_MAP =
+      Map.of(
+          AnalyticsType.EVENT, AnalyticsTableType.EVENT,
+          AnalyticsType.ENROLLMENT, AnalyticsTableType.ENROLLMENT);
 
   private static final String SUBQUERY_TABLE_ALIAS = "subax";
 
@@ -133,10 +138,9 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   private String getFrom(ProgramIndicator pi) {
-    String baseTableName = ANALYTICS_TABLE_NAME + "_" + pi.getAnalyticsType().getValue();
-
+    AnalyticsTableType tableType = ANALYTICS_TYPE_MAP.get(pi.getAnalyticsType());
     return " FROM "
-        + PartitionUtils.getTableName(baseTableName, pi.getProgram())
+        + AnalyticsTable.getTableName(tableType, pi.getProgram())
         + " as "
         + SUBQUERY_TABLE_ALIAS;
   }

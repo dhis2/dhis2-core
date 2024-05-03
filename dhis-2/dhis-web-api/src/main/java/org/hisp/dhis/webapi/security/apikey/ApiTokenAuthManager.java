@@ -28,10 +28,13 @@
 package org.hisp.dhis.webapi.security.apikey;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
 import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
@@ -57,7 +60,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ApiTokenAuthManager implements AuthenticationManager {
   private final ApiTokenService apiTokenService;
-
+  private final OrganisationUnitService organisationUnitService;
   private final UserService userService;
   private final UserStore userStore;
 
@@ -70,11 +73,13 @@ public class ApiTokenAuthManager implements AuthenticationManager {
       ApiTokenService apiTokenService,
       CacheProvider cacheProvider,
       @Lazy UserService userService,
-      UserSettingService userSettingService) {
+      UserSettingService userSettingService,
+      OrganisationUnitService organisationUnitService) {
     this.userService = userService;
     this.userStore = userStore;
     this.apiTokenService = apiTokenService;
     this.userSettingService = userSettingService;
+    this.organisationUnitService = organisationUnitService;
 
     this.apiTokenCache = cacheProvider.createApiKeyCache();
   }
@@ -141,8 +146,21 @@ public class ApiTokenAuthManager implements AuthenticationManager {
 
     Map<String, Serializable> userSettings = userSettingService.getUserSettingsAsMap(user);
 
+    List<String> organisationUnitsUidsByUser =
+        organisationUnitService.getOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> searchOrganisationUnitsUidsByUser =
+        organisationUnitService.getSearchOrganisationUnitsUidsByUser(user.getUsername());
+    List<String> dataViewOrganisationUnitsUidsByUser =
+        organisationUnitService.getDataViewOrganisationUnitsUidsByUser(user.getUsername());
+
     return UserDetails.createUserDetails(
-        user, accountNonLocked, credentialsNonExpired, userSettings);
+        user,
+        accountNonLocked,
+        credentialsNonExpired,
+        new HashSet<>(organisationUnitsUidsByUser),
+        new HashSet<>(searchOrganisationUnitsUidsByUser),
+        new HashSet<>(dataViewOrganisationUnitsUidsByUser),
+        userSettings);
   }
 
   private static void validateTokenExpiry(Long expiry) {

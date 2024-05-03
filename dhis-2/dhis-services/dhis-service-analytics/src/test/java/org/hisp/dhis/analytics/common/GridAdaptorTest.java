@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.hisp.dhis.analytics.common.query.Field.ofUnquoted;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,7 +50,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -69,7 +69,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,8 +91,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
 
   private SchemeIdResponseMapper schemeIdResponseMapper;
 
-  private User user;
-
   @BeforeEach
   void setUp() {
     headerParamsHandler = new HeaderParamsHandler();
@@ -101,7 +98,6 @@ class GridAdaptorTest extends DhisConvenienceTest {
     schemeIdResponseMapper = new SchemeIdResponseMapper();
     gridAdaptor =
         new GridAdaptor(headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper);
-    user = makeUser(ADMIN_USER_UID);
   }
 
   @Test
@@ -267,12 +263,10 @@ class GridAdaptorTest extends DhisConvenienceTest {
         new BaseDimensionalObject(
             dimensionUid,
             DATA_X,
-            ous.stream()
-                .map(item -> new BaseDimensionalItemObject(item))
-                .collect(Collectors.toList()),
+            ous.stream().map(item -> new BaseDimensionalItemObject(item)).toList(),
             TEXT);
 
-    DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);
+    DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, UID, ous);
 
     ElementWithOffset<Program> program = emptyElementWithOffset();
     ElementWithOffset<ProgramStage> programStage = emptyElementWithOffset();

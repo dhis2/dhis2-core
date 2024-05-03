@@ -1358,6 +1358,6 @@ public class DefaultDataValueSetService implements DataValueSetService {
       registrationService.saveCompleteDataSetRegistration(registration);
     }
 
-    summary.setDataSetComplete(DateUtils.getMediumDateString(completeDate));
+    summary.setDataSetComplete(DateUtils.toMediumDate(completeDate));
   }
 }

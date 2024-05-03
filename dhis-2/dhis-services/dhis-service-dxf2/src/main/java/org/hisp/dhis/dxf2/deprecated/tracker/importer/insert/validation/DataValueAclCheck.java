@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,7 +54,7 @@ public class DataValueAclCheck implements Checker {
 
     Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
 
-    final User user = ctx.getImportOptions().getUser();
+    final UserDetails user = UserDetails.fromUser(ctx.getImportOptions().getUser());
     final ImportSummary importSummary = new ImportSummary();
 
     // Note that here we are passing a Event, which during a

@@ -29,14 +29,15 @@ package org.hisp.dhis.external.conf;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
 /**
- * Interface which provides access to the DHIS 2 configuration specified through the dhis.config
- * file.
+ * Provider of DHIS 2 configuration properties specified in the {@code dhis.conf} file.
  *
  * @author Lars Helge Overland
  */
@@ -146,11 +147,26 @@ public interface DhisConfigurationProvider {
   boolean isClusterEnabled();
 
   /**
-   * Returns the server base url
+   * Returns the server base URL.
    *
-   * @return the url.
+   * @return the server base URL.
    */
   String getServerBaseUrl();
+
+  /**
+   * Returns the remote servers allowed to make calls to.
+   *
+   * @return the remote servers.
+   */
+  List<String> getRemoteServersAllowed();
+
+  /**
+   * Checks whether the supplied URL is contained in the remote servers allowed list.
+   *
+   * @param url the URL to check.
+   * @return true if in the remote servers allowed list.
+   */
+  boolean remoteServerIsInAllowedList(String url);
 
   /**
    * Indicates whether LDAP authentication is configured.
@@ -167,7 +183,14 @@ public interface DhisConfigurationProvider {
   EncryptionStatus getEncryptionStatus();
 
   /**
-   * Gets map of all properties except those which are confidential
+   * Indicates whether an analytics database instance is configured.
+   *
+   * @return true if an analytics database instance is configured.
+   */
+  boolean isAnalyticsDatabaseConfigured();
+
+  /**
+   * Gets map of all properties except those which are confidential.
    *
    * @return map containing name of property and its value.
    */

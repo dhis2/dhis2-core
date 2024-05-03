@@ -128,7 +128,8 @@ public class DefaultCacheProvider implements CacheProvider {
     runningJobsInfo,
     jobCancelRequested,
     dataIntegritySummaryCache,
-    dataIntegrityDetailsCache
+    dataIntegrityDetailsCache,
+    queryAliasCache
   }
 
   private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -625,5 +626,16 @@ public class DefaultCacheProvider implements CacheProvider {
         this.<V>newBuilder()
             .forRegion(Region.dataIntegrityDetailsCache.name())
             .expireAfterWrite(1, HOURS));
+  }
+
+  @Override
+  public <V> Cache<V> createQueryAliasCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.queryAliasCache.name())
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .withInitialCapacity((int) getActualSize(SIZE_100))
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_10K))));
   }
 }

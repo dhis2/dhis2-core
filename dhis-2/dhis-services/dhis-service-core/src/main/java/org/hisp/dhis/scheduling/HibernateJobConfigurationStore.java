@@ -45,7 +45,6 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -270,9 +269,8 @@ public class HibernateJobConfigurationStore
     List<UID> objectList = params.getObject();
     List<String> errors =
         objectList == null ? List.of() : objectList.stream().map(UID::getValue).toList();
-    List<ErrorCode> codeList = params.getCode();
-    List<String> codes =
-        codeList == null ? List.of() : codeList.stream().map(ErrorCode::name).toList();
+    List<String> codeList = params.getCode();
+    List<String> codes = codeList == null ? List.of() : codeList;
     List<JobType> typeList = params.getType();
     List<String> types =
         typeList == null ? List.of() : typeList.stream().map(JobType::name).toList();
@@ -504,6 +502,11 @@ public class HibernateJobConfigurationStore
         set
           lastupdated = now(),
           jobstatus = 'SCHEDULED',
+          enabled = case
+            when cronexpression is not null then true
+            when delay is not null then true
+            when queueposition is not null then true
+            else false end,
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
@@ -515,7 +518,6 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and enabled = true
-        and (schedulingtype != 'ONCE_ASAP' or lastfinished is null)
         and now() > lastalive + :timeout * interval '1 minute'
         """;
     return nativeQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();

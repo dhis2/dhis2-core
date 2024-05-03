@@ -32,8 +32,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -49,43 +55,33 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  */
 @Auditable(scope = AuditScope.TRACKER)
 @JacksonXmlRootElement(localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0)
+@Accessors(chain = true)
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class TrackedEntityAttributeValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -4469496681709547707L;
+  @Serial private static final long serialVersionUID = -4469496681709547707L;
 
-  @AuditAttribute private TrackedEntityAttribute attribute;
+  @Setter @ToString.Include @EqualsAndHashCode.Include @AuditAttribute
+  private TrackedEntityAttribute attribute;
 
-  @AuditAttribute private TrackedEntity trackedEntity;
-
-  private Date created;
-
-  private Date lastUpdated;
+  @Setter @ToString.Include @AuditAttribute private TrackedEntity trackedEntity;
+  @Setter @ToString.Include private Date created;
+  @Setter @ToString.Include private Date lastUpdated;
+  @Setter @ToString.Include private String storedBy;
 
   private String encryptedValue;
-
   private String plainValue;
 
   /**
    * This value is only used to store values from setValue when we don't know if attribute is set or
    * not.
    */
-  private String value;
-
-  private String storedBy;
-
-  // -------------------------------------------------------------------------
-  // Transient properties
-  // -------------------------------------------------------------------------
+  @ToString.Include private String value;
 
   private transient boolean auditValueIsSet = false;
-
   private transient boolean valueIsSet = false;
-
-  private transient String auditValue;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+  @Getter private transient String auditValue;
 
   public TrackedEntityAttributeValue() {
     setAutoFields();
@@ -114,87 +110,6 @@ public class TrackedEntityAttributeValue implements Serializable {
     setLastUpdated(date);
   }
 
-  // -------------------------------------------------------------------------
-  // hashCode and equals
-  // -------------------------------------------------------------------------
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
-    result = prime * result + ((attribute == null) ? 0 : attribute.hashCode());
-    result = prime * result + ((getValue() == null) ? 0 : getValue().hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object object) {
-    if (this == object) {
-      return true;
-    }
-
-    if (object == null) {
-      return false;
-    }
-
-    if (!getClass().isAssignableFrom(object.getClass())) {
-      return false;
-    }
-
-    final TrackedEntityAttributeValue other = (TrackedEntityAttributeValue) object;
-
-    if (trackedEntity == null) {
-      if (other.trackedEntity != null) {
-        return false;
-      }
-    } else if (!trackedEntity.equals(other.trackedEntity)) {
-      return false;
-    }
-
-    if (attribute == null) {
-      if (other.attribute != null) {
-        return false;
-      }
-    } else if (!attribute.equals(other.attribute)) {
-      return false;
-    }
-
-    if (getValue() == null) {
-      if (other.getValue() != null) {
-        return false;
-      }
-    } else if (!getValue().equals(other.getValue())) {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    return "TrackedEntityAttributeValue{"
-        + "attribute="
-        + attribute
-        + ", entityInstance="
-        + (trackedEntity != null ? trackedEntity.getUid() : "null")
-        + ", value='"
-        + value
-        + '\''
-        + ", created="
-        + created
-        + ", lastUpdated="
-        + lastUpdated
-        + ", storedBy='"
-        + storedBy
-        + '\''
-        + '}';
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
   @AuditAttribute
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
@@ -202,21 +117,11 @@ public class TrackedEntityAttributeValue implements Serializable {
     return created;
   }
 
-  public TrackedEntityAttributeValue setCreated(Date created) {
-    this.created = created;
-    return this;
-  }
-
   @AuditAttribute
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   public Date getLastUpdated() {
     return lastUpdated;
-  }
-
-  public TrackedEntityAttributeValue setLastUpdated(Date lastUpdated) {
-    this.lastUpdated = lastUpdated;
-    return this;
   }
 
   /**
@@ -269,6 +174,7 @@ public class TrackedEntityAttributeValue implements Serializable {
   @AuditAttribute
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @EqualsAndHashCode.Include
   public String getValue() {
     return (getAttribute().getConfidential() ? this.getEncryptedValue() : this.getPlainValue());
   }
@@ -300,11 +206,6 @@ public class TrackedEntityAttributeValue implements Serializable {
     return storedBy;
   }
 
-  public TrackedEntityAttributeValue setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
-    return this;
-  }
-
   @JsonProperty("trackedEntityAttribute")
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(localName = "trackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0)
@@ -312,24 +213,10 @@ public class TrackedEntityAttributeValue implements Serializable {
     return attribute;
   }
 
-  public TrackedEntityAttributeValue setAttribute(TrackedEntityAttribute attribute) {
-    this.attribute = attribute;
-    return this;
-  }
-
   @JsonProperty("trackedEntityInstance")
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
   public TrackedEntity getTrackedEntity() {
     return trackedEntity;
-  }
-
-  public TrackedEntityAttributeValue setTrackedEntity(TrackedEntity trackedEntity) {
-    this.trackedEntity = trackedEntity;
-    return this;
-  }
-
-  public String getAuditValue() {
-    return auditValue;
   }
 }

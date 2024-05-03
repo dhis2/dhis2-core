@@ -166,7 +166,7 @@ public class Dhis2JwtAuthenticationManagerResolver
       if (user == null) {
         throw new InvalidBearerTokenException(
             String.format(
-                "Found no matching DHIS2 user for the mapping claim:'%s' with the value:'%s'",
+                "Found no matching DHIS2 user for the mapping claim: '%s' with the value: '%s'",
                 mappingClaimKey, mappingValue));
       }
 

@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -38,8 +39,7 @@ import org.hisp.dhis.util.DateUtils;
 public class vAnalyticsPeriodStart extends ProgramDateVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    return visitor
-        .getStatementBuilder()
-        .encode(DateUtils.getSqlDateString(visitor.getProgParams().getReportingStartDate()));
+    return SqlUtils.singleQuote(
+        DateUtils.getSqlDateString(visitor.getProgParams().getReportingStartDate()));
   }
 }

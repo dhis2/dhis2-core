@@ -76,6 +76,10 @@ public interface WebClient {
     return Header("Authorization", "Bearer " + token);
   }
 
+  static Header CookieHeader(String cookie) {
+    return Header("Cookie", cookie);
+  }
+
   static Header ContentType(Object mimeType) {
     return ContentType(mimeType.toString());
   }
@@ -229,6 +233,8 @@ public interface WebClient {
     String getErrorMessage();
 
     String getHeader(String name);
+
+    String[] getCookies();
   }
 
   final class HttpResponse {
@@ -327,6 +333,10 @@ public interface WebClient {
 
     public String header(String name) {
       return response.getHeader(name);
+    }
+
+    public String[] cookies() {
+      return response.getCookies();
     }
   }
 }

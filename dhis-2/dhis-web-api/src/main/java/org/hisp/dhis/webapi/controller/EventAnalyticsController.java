@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -60,6 +61,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -70,7 +72,6 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.EventAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -109,7 +110,7 @@ public class EventAnalyticsController {
   // Aggregate
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
@@ -292,7 +293,7 @@ public class EventAnalyticsController {
   // Query
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
       value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})

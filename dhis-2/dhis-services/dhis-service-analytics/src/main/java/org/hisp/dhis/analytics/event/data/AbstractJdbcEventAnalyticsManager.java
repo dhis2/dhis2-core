@@ -40,6 +40,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -48,11 +49,7 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -114,6 +111,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -163,6 +161,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
   protected final ExecutionPlanStore executionPlanStore;
+
+  protected final SqlBuilder sqlBuilder;
 
   /**
    * Returns a SQL paging clause.
@@ -262,9 +262,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return "WHEN "
         + quotedAlias
         + "="
-        + encode(item.getUid())
+        + singleQuote(item.getUid())
         + " THEN "
-        + (dp == DisplayProperty.NAME ? encode(item.getName()) : encode(item.getShortName()));
+        + (dp == DisplayProperty.NAME
+            ? singleQuote(item.getName())
+            : singleQuote(item.getShortName()));
   }
 
   private boolean isSupported(DimensionalObject dimension) {
@@ -367,14 +369,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               } else if (params.hasSinglePeriod()) {
                 Period period = (Period) params.getPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get(0);
                 columns.add(
-                    encode(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
               } else {
                 throw new IllegalStateException(
                     "Program indicator non-default boundary query must have "
@@ -394,11 +396,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
       columns.add(columnAndAlias.asSql());
 
-      // asked for row context if allowed and needed
-      if (rowContextAllowedAndNeeded(params, queryItem)) {
-        String column = " exists (" + columnAndAlias.column + ")";
-        String alias = columnAndAlias.alias + ".exists";
-        columns.add((new ColumnAndAlias(column, alias)).asSql());
+      // asked for row context if allowed and needed based on column and its alias
+      if (rowContextAllowedAndNeeded(params, queryItem) && !isEmpty(columnAndAlias.alias)) {
+        String columnForExists = " exists (" + columnAndAlias.column + ")";
+        String aliasForExists = columnAndAlias.alias + ".exists";
+        columns.add((new ColumnAndAlias(columnForExists, aliasForExists)).asSql());
+        String columnForStatus =
+            replaceStringBetween(columnAndAlias.column, "select", "from", " psistatus ");
+        String aliasForStatus = columnAndAlias.alias + ".status";
+        columns.add((new ColumnAndAlias(columnForStatus, aliasForStatus)).asSql());
       }
     }
   }
@@ -448,7 +454,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
         return getCoordinateColumn(queryItem, OU_GEOMETRY_COL_SUFFIX);
       } else {
-        return ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
+        return getOrgUnitQueryItemColumnAndAlias(params, queryItem);
       }
     } else if (queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause) {
       ColumnAndAlias columnAndAlias =
@@ -464,6 +470,23 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return getColumnAndAlias(queryItem, isGroupByClause, "");
     }
+  }
+
+  /**
+   * The method create a ColumnAndAlias object for query item with repeatable stage and organization
+   * unit value type, will return f.e. select 'w75KJ2mc4zz' from..., '') as 'w75KJ2mc4zz'
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param queryItem the {@link QueryItem}.
+   * @return the {@link ColumnAndAlias}
+   */
+  private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
+      EventQueryParams params, QueryItem queryItem) {
+    return rowContextAllowedAndNeeded(params, queryItem)
+        ? ColumnAndAlias.ofColumnAndAlias(
+            getColumn(queryItem, OU_NAME_COL_SUFFIX),
+            getAlias(queryItem).orElse(queryItem.getItemName()))
+        : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_SUFFIX));
   }
 
   /**
@@ -865,9 +888,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getSqlFilter(QueryFilter queryFilter, QueryItem item) {
     String filter = getFilter(queryFilter.getFilter(), item);
-    String encodedFilter = encode(filter, false);
 
-    return item.getSqlFilter(queryFilter, encodedFilter, true);
+    return item.getSqlFilter(queryFilter, sqlBuilder.escape(filter), true);
   }
 
   /**
@@ -882,7 +904,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String col = dimension.getDimensionName();
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
-      return quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
       return params.getOrgUnitField().getOrgUnitStructCol(col, getAnalyticsType(), isGroupByClause);
     } else if (DimensionType.ORGANISATION_UNIT_GROUP_SET == dimension.getDimensionType()) {
@@ -890,7 +912,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .getOrgUnitField()
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
     } else {
-      return quote(ANALYTICS_TBL_ALIAS, col);
+      return quoteAlias(col);
     }
   }
 
@@ -1081,6 +1103,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addGridDoubleTypeValue(
       Double value, Grid grid, GridHeader header, EventQueryParams params) {
+    final int defaultScale = 10;
     if (header.hasOptionSet()) {
       Optional<Option> option =
           header.getOptionSetObject().getOptions().stream()
@@ -1093,10 +1116,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (option.isPresent()) {
         grid.addValue(option.get().getCode());
       } else {
-        grid.addValue(params.isSkipRounding() ? value : MathUtils.getRoundedObject(value));
+        grid.addValue(
+            params.isSkipRounding()
+                ? MathUtils.getRoundedObject(value, defaultScale)
+                : MathUtils.getRoundedObject(value));
       }
     } else {
-      grid.addValue(params.isSkipRounding() ? value : MathUtils.getRoundedObject(value));
+      grid.addValue(
+          params.isSkipRounding()
+              ? MathUtils.getRoundedObject(value, defaultScale)
+              : MathUtils.getRoundedObject(value));
     }
   }
 
@@ -1131,13 +1160,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     IdentifiableSql::getIdentifier, mapping(IdentifiableSql::getSql, toList())));
 
     // Joins each group with OR
-    Collection<String> orConditions =
+    List<String> orConditions =
         repeatableConditionsByIdentifier.values().stream()
             .map(sameGroup -> joinSql(sameGroup, OR_JOINER))
             .collect(toList());
 
     // Non-repeatable conditions
-    Collection<String> andConditions =
+    List<String> andConditions =
         asSqlCollection(itemsByRepeatableFlag.get(false), params)
             .map(IdentifiableSql::getSql)
             .collect(toList());
@@ -1149,6 +1178,41 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return helper.whereAnd()
         + " "
         + joinSql(Stream.concat(orConditions.stream(), andConditions.stream()), AND_JOINER);
+  }
+
+  /**
+   * @param relation the relation to quote, e.g. a table or column name.
+   * @return a double quoted relation.
+   */
+  protected String quote(String relation) {
+    return sqlBuilder.quote(relation);
+  }
+
+  /**
+   * @param relation the relation to quote.
+   * @return an "ax" aliased and double quoted relation.
+   */
+  protected String quoteAlias(String relation) {
+    return sqlBuilder.quoteAx(relation);
+  }
+
+  /**
+   * @param value the value to quote.
+   * @return a single quoted value.
+   */
+  protected String singleQuote(String value) {
+    return sqlBuilder.singleQuote(value);
+  }
+
+  /**
+   * Returns a concatenated string of the given items separated by comma where each item is quoted
+   * and aliased.
+   *
+   * @param items the collection of items.
+   * @return a string.
+   */
+  protected String quoteAliasCommaDelimited(Collection<String> items) {
+    return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
   }
 
   /**
@@ -1244,7 +1308,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (IN.equals(filter.getOperator())) {
       InQueryFilter inQueryFilter =
-          new InQueryFilter(field, encode(filter.getFilter(), false), item.isText());
+          new InQueryFilter(field, sqlBuilder.escape(filter.getFilter()), item.isText());
 
       return inQueryFilter.getSqlFilter();
     } else {
@@ -1354,6 +1418,27 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected boolean isUnlimitedQuery(EventQueryParams params, boolean unlimitedPaging) {
     return unlimitedPaging && (Objects.isNull(params.getPageSize()) || params.getPageSize() == 0);
+  }
+
+  /**
+   * Returns a coalesce expression for coordinates fallback.
+   *
+   * @param fields Collection of coordinate fields.
+   * @param defaultColumnName Default coordinate field
+   * @return a coalesce expression for coordinates fallback.
+   */
+  protected String getCoalesce(List<String> fields, String defaultColumnName) {
+    if (fields == null) {
+      return defaultColumnName;
+    }
+
+    String args =
+        fields.stream()
+            .filter(f -> f != null && !f.isBlank())
+            .map(f -> sqlBuilder.quoteAx(f))
+            .collect(Collectors.joining(","));
+
+    return args.isEmpty() ? defaultColumnName : "coalesce(" + args + ")";
   }
 
   /**

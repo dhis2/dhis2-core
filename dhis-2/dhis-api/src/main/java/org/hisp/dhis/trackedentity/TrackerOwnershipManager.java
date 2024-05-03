@@ -30,7 +30,7 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Ameen Mohamed
@@ -39,6 +39,8 @@ public interface TrackerOwnershipManager {
   String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
 
   String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
+
+  String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
 
   /**
    * @param entityInstance The tracked entity instance object
@@ -74,10 +76,10 @@ public interface TrackerOwnershipManager {
    * @param program The program.
    * @return true if the user has access, false otherwise.
    */
-  boolean hasAccess(User user, TrackedEntity entityInstance, Program program);
+  boolean hasAccess(UserDetails user, TrackedEntity entityInstance, Program program);
 
   boolean hasAccess(
-      User user, String entityInstance, OrganisationUnit organisationUnit, Program program);
+      UserDetails user, String entityInstance, OrganisationUnit organisationUnit, Program program);
 
   /**
    * Grant temporary ownership for a user for a specific te-program combination
@@ -88,7 +90,7 @@ public interface TrackerOwnershipManager {
    * @param reason The reason for requesting temporary ownership
    */
   void grantTemporaryOwnership(
-      TrackedEntity entityInstance, Program program, User user, String reason);
+      TrackedEntity entityInstance, Program program, UserDetails user, String reason);
 
   /**
    * Ownership check can be skipped if the user is super user or if the program type is without
@@ -98,7 +100,7 @@ public interface TrackerOwnershipManager {
    * @param program the {@link Program}.
    * @return true if ownership check can be skipped.
    */
-  boolean canSkipOwnershipCheck(User user, Program program);
+  boolean canSkipOwnershipCheck(UserDetails user, Program program);
 
   /**
    * Ownership check can be skipped if the user is super user or if the program type is without
@@ -108,5 +110,5 @@ public interface TrackerOwnershipManager {
    * @param programType the {@link ProgramType}.
    * @return true if ownership check can be skipped.
    */
-  boolean canSkipOwnershipCheck(User user, ProgramType programType);
+  boolean canSkipOwnershipCheck(UserDetails user, ProgramType programType);
 }

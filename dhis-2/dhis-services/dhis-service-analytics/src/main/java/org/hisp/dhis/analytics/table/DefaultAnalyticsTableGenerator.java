@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -72,7 +72,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
   // TODO introduce last successful timestamps per table type
 
   @Override
-  public void generateTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
+  public void generateAnalyticsTables(AnalyticsTableUpdateParams params0, JobProgress progress) {
     Clock clock = new Clock(log).startClock();
     Date lastSuccessfulUpdate =
         systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
@@ -89,11 +89,10 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
 
     log.info("Found {} analytics table types: {}", availableTypes.size(), availableTypes);
     log.info("Analytics table update: {}", params);
-    log.info(
-        "Last successful analytics table update: '{}'", getLongDateString(lastSuccessfulUpdate));
+    log.info("Last successful analytics table update: {}", toLongDate(lastSuccessfulUpdate));
 
     progress.startingProcess(
-        "Analytics table update process" + (params.isLatestUpdate() ? "(latest partition)" : ""));
+        "Analytics table update process{}", (params.isLatestUpdate() ? " (latest partition)" : ""));
 
     if (!params.isSkipResourceTables() && !params.isLatestUpdate()) {
       generateResourceTablesInternal(progress);
@@ -105,17 +104,17 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
       AnalyticsTableType tableType = service.getAnalyticsTableType();
 
       if (!skipTypes.contains(tableType)) {
-        service.update(params, progress);
+        service.create(params, progress);
       }
     }
 
-    progress.startingStage("Updating settings");
+    progress.startingStage("Updating system settings");
     progress.runStage(() -> updateLastSuccessfulSystemSettings(params, clock));
 
     progress.startingStage("Invalidate analytics caches", SKIP_STAGE);
     progress.runStage(analyticsCache::invalidateAll);
     progress.runStage(outliersCache::invalidateAll);
-    progress.completedProcess("Analytics tables updated: " + clock.time());
+    progress.completedProcess("Analytics tables updated: {}", clock.time());
   }
 
   private void updateLastSuccessfulSystemSettings(AnalyticsTableUpdateParams params, Clock clock) {
@@ -141,9 +140,9 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     try {
       generateResourceTablesInternal(progress);
 
-      progress.completedProcess("Resource tables generated: " + clock.time());
+      progress.completedProcess("Resource tables generated: {}", clock.time());
     } catch (RuntimeException ex) {
-      progress.failedProcess("Resource tables generation: " + ex.getMessage());
+      progress.failedProcess("Resource tables generation: {}", ex.getMessage());
       throw ex;
     }
   }
@@ -156,30 +155,7 @@ public class DefaultAnalyticsTableGenerator implements AnalyticsTableGenerator {
     resourceTableService.dropAllSqlViews(progress);
 
     Map<String, Runnable> generators = new LinkedHashMap<>();
-    generators.put(
-        "generating OrganisationUnit structures",
-        resourceTableService::generateOrganisationUnitStructures);
-    generators.put(
-        "generating DataSetOrganisationUnitCategory table",
-        resourceTableService::generateDataSetOrganisationUnitCategoryTable);
-    generators.put(
-        "generating CategoryOptionCombo names",
-        resourceTableService::generateCategoryOptionComboNames);
-    generators.put(
-        "generating DataElementGroupSet table",
-        resourceTableService::generateDataElementGroupSetTable);
-    generators.put(
-        "generating IndicatorGroupSet table", resourceTableService::generateIndicatorGroupSetTable);
-    generators.put(
-        "generating OrganisationUnitGroupSet table",
-        resourceTableService::generateOrganisationUnitGroupSetTable);
-    generators.put("generating Category table", resourceTableService::generateCategoryTable);
-    generators.put("generating DataElement table", resourceTableService::generateDataElementTable);
-    generators.put("generating Period table", resourceTableService::generatePeriodTable);
-    generators.put("generating DatePeriod table", resourceTableService::generateDatePeriodTable);
-    generators.put(
-        "generating CategoryOptionCombo table",
-        resourceTableService::generateCategoryOptionComboTable);
+    generators.put("Generating resource tables", resourceTableService::generateResourceTables);
     progress.startingStage("Generating resource tables", generators.size(), SKIP_STAGE);
     progress.runStage(generators);
 

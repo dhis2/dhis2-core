@@ -29,14 +29,20 @@ package org.hisp.dhis.dataset;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,6 +57,8 @@ class SectionStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private DataElementService dataElementService;
 
   @Autowired private DataSetService dataSetService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private DataElement de;
 
@@ -80,5 +88,43 @@ class SectionStoreTest extends SingleSetupIntegrationTestBase {
     assertDoesNotThrow(() -> sectionStore.save(s));
 
     assertEquals(1, sectionStore.getSectionsByDataElement(de.getUid()).size());
+  }
+
+  @Test
+  @DisplayName("get sections with indicator references")
+  void getSectionsWithIndicators() {
+    // given 3 sections exist, each of which has an indicator
+    IndicatorType indicatorType = createIndicatorType('t');
+    manager.save(indicatorType);
+
+    Indicator indicator1 = createIndicator('a', indicatorType);
+    Indicator indicator2 = createIndicator('b', indicatorType);
+    Indicator indicator3 = createIndicator('c', indicatorType);
+
+    manager.save(indicator1);
+    manager.save(indicator2);
+    manager.save(indicator3);
+
+    Section s1 = new Section("s1", ds, List.of(), Set.of());
+    s1.setIndicators(List.of(indicator1));
+    Section s2 = new Section("s2", ds, List.of(), Set.of());
+    s2.setIndicators(List.of(indicator2));
+    Section s3 = new Section("s3", ds, List.of(), Set.of());
+    s3.setIndicators(List.of(indicator3));
+
+    sectionStore.save(s1);
+    sectionStore.save(s2);
+    sectionStore.save(s3);
+
+    // when searching for sections with specific indicators
+    List<Section> matchedSections =
+        sectionStore.getSectionsByIndicators(List.of(indicator1, indicator2));
+
+    // then only the 2 sections with matching indicators are retrieved
+    assertTrue(matchedSections.contains(s1));
+    assertTrue(matchedSections.contains(s2));
+
+    // and the section with no matching indicator is not retrieved
+    assertFalse(matchedSections.contains(s3));
   }
 }

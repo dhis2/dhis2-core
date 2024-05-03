@@ -37,6 +37,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
@@ -110,10 +111,20 @@ public interface FileResourceService {
    * Creates the provided file resource and stores the content synchronously.
    *
    * @param fileResource the resource to create
-   * @param bytes the content stored asynchronously
+   * @param bytes the content stored synchronously
    * @return the UID of the created file resource
    */
   String syncSaveFileResource(FileResource fileResource, byte[] bytes) throws ConflictException;
+
+  /**
+   * Creates a new file resource with the provided UID, domain and content data.
+   *
+   * @param content the content stored synchronously
+   * @return the created {@link FileResource}
+   * @throws ConflictException when the content could not be stored
+   */
+  String syncSaveFileResource(FileResource fileResource, InputStream content)
+      throws ConflictException;
 
   void deleteFileResource(String uid);
 
@@ -129,6 +140,34 @@ public interface FileResourceService {
   /** Copy fileResource content to a byte array */
   byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException;
+
+  /**
+   * Copies the file resource content of an image of the given dimension. Copies the image in its
+   * original dimensions if the given {@code dimension} is {@code null}.
+   *
+   * @param dimension the dimension of the image to copy
+   * @return image bytes
+   * @throws BadRequestException when the file resource is not an image, does not support multiple
+   *     dimensions or does not have multiple dimension files stored
+   */
+  byte[] copyImageContent(FileResource fileResource, ImageFileDimension dimension)
+      throws BadRequestException, IOException;
+
+  /** Opens a stream to the file resource content. */
+  InputStream openContentStream(FileResource fileResource)
+      throws IOException, NoSuchElementException;
+
+  /**
+   * Opens a stream to the file resource content of an image of the given dimension. Returns the
+   * image in its original dimensions if the given {@code dimension} is {@code null}.
+   *
+   * @param dimension the dimension of the image to open
+   * @return the stream to the image
+   * @throws BadRequestException when the file resource is not an image, does not support multiple
+   *     dimensions or does not have multiple dimension files stored
+   */
+  InputStream openContentStreamToImage(FileResource fileResource, ImageFileDimension dimension)
+      throws IOException, NoSuchElementException, BadRequestException;
 
   boolean fileResourceExists(String uid);
 

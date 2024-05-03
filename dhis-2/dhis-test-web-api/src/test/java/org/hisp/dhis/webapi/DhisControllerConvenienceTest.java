@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -68,6 +69,7 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
   @Autowired private WebApplicationContext webApplicationContext;
 
   @Autowired private UserService _userService;
+  @Autowired private RenderService _renderService;
 
   @Autowired protected IdentifiableObjectManager manager;
 
@@ -76,8 +78,9 @@ public abstract class DhisControllerConvenienceTest extends DhisControllerTestBa
   private User adminUser;
 
   @BeforeEach
-  final void setup() throws Exception {
+  public final void setup() throws Exception {
     userService = _userService;
+    renderService = _renderService;
     clearSecurityContext();
 
     this.adminUser = XpreCreateInjectAdminUserWithoutPersistence();

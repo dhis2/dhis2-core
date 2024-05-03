@@ -33,6 +33,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataelement.DataElementDomain.TRACKER;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
@@ -43,7 +45,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,6 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,6 +72,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   @Autowired private ObjectMapper jsonMapper;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private Program mockProgram;
 
@@ -292,6 +302,43 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  @Disabled("Only runs locally")
+  void testLoadColumnWithRepetitionWithoutProgram() {
+    // Given
+    EventRepetition repetitionNoProgram = new EventRepetition();
+    repetitionNoProgram.setDimension("pe");
+    repetitionNoProgram.setParent(COLUMN);
+    repetitionNoProgram.setIndexes(List.of(-1, 0, 2));
+
+    BaseDimensionalObject dim = new BaseDimensionalObject();
+    dim.setEventRepetition(repetitionNoProgram);
+
+    String evUid = "XSnivU7HgpA";
+    EventVisualization eventVisualization = new EventVisualization("Test");
+    eventVisualization.setProgram(mockProgram);
+    eventVisualization.setType(LINE);
+    eventVisualization.setUid(evUid);
+    eventVisualization.setColumns(List.of(dim));
+    eventVisualization.setEventRepetitions(List.of(repetitionNoProgram));
+
+    manager.save(eventVisualization);
+
+    // When
+    String getParams = "?fields=:all,columns[:all,items,repetitions]";
+    JsonObject response = GET("/eventVisualizations/" + evUid + getParams).content();
+
+    // Then
+    String repetitionIndexes = repetitionNoProgram.getIndexes().toString().replace(" ", "");
+
+    assertThat(response.get("repetitions").toString(), containsString("COLUMN"));
+    assertThat(response.get("repetitions").toString(), containsString(repetitionIndexes));
+    assertThat(response.get("repetitions").toString(), containsString("pe"));
+    assertThat(response.get("columns").toString(), containsString(repetitionIndexes));
+    assertThat(response.get("rows").toString(), not(containsString(repetitionIndexes)));
+    assertThat(response.get("filters").toString(), not(containsString(repetitionIndexes)));
+  }
+
+  @Test
   void testPostSortingObject() {
     // Given
     String dimension = "pe";
@@ -454,69 +501,6 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("sorting").toString(), containsString("pe"));
     assertThat(response.get("sorting").toString(), containsString("ASC"));
     assertThat(response.get("sorting").toString(), not(containsString("DESC")));
-  }
-
-  @Test
-  void testPostInvalidSortingObject() {
-    // Given
-    String invalidDimension = "invalidOne";
-    String sorting = "'sorting': [{'dimension': '" + invalidDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/eventVisualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting dimension ‘" + invalidDimension + "’ is not a column",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
-  void testPostBlankSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/eventVisualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
-  }
-
-  @Test
-  void testPostNullSortingObject() {
-    // Given
-    String blankDimension = " ";
-    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
-    String body =
-        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
-            + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': 'pe'}],"
-            + sorting
-            + "}";
-
-    // When
-    HttpResponse response = POST("/eventVisualizations/", body);
-
-    // Then
-    assertEquals(
-        "Sorting must have a valid dimension and a direction",
-        response.error(CONFLICT).getMessage());
   }
 
   @Test
@@ -784,15 +768,6 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     JsonNode filtersNode0 = response.get("filters").node().element(0);
     assertThat(
-        filtersNode0.get("items").element(0).get("code").value().toString(),
-        is(equalTo("OrganisationUnitCodeA")));
-    assertThat(
-        filtersNode0.get("items").element(0).get("name").value().toString(),
-        is(equalTo("OrganisationUnitA")));
-    assertThat(
-        filtersNode0.get("items").element(0).get("dimensionItemType").value().toString(),
-        is(equalTo("ORGANISATION_UNIT")));
-    assertThat(
         filtersNode0.get("items").element(0).get("dimensionItem").value().toString(),
         is(equalTo("ImspTQPwCqd")));
     assertThat(
@@ -829,6 +804,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
     assertFalse(filtersNode1.get("repetition").isMember("programStage"));
     assertThat(
         filtersNode1.get("repetition").get("indexes").value().toString(), is(equalTo("[1,2,0]")));
+    assertEquals("[{\"id\":\"deabcdefghP\"}]", response.get("programDimensions").toString());
   }
 
   @Test

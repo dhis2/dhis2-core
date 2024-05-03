@@ -58,6 +58,11 @@ import org.springframework.http.HttpStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class WebMessageUtils {
+
+  public static WebMessage createWebMessage(Status status, HttpStatus httpStatus) {
+    return new WebMessage(status, httpStatus);
+  }
+
   public static WebMessage createWebMessage(String message, Status status, HttpStatus httpStatus) {
     return new WebMessage(status, httpStatus).setMessage(message);
   }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.metadata.sync;
 
+import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -42,6 +44,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableExcepti
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -50,7 +53,6 @@ import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -69,7 +71,7 @@ public class MetadataSyncController {
 
   @Autowired private MetadataSyncService metadataSyncService;
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_METADATA_MANAGE')")
+  @RequiresAuthority(anyOf = F_METADATA_MANAGE)
   @GetMapping
   public ResponseEntity<? extends WebMessageResponse> metadataSync(
       HttpServletRequest request, HttpServletResponse response)

@@ -83,13 +83,13 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
     enrollment.setTrackedEntityInstance(rs.getString(getColumnName(TEI_UID)));
     enrollment.setOrgUnit(rs.getString(getColumnName(ORGUNIT_UID)));
     enrollment.setOrgUnitName(rs.getString(getColumnName(ORGUNIT_NAME)));
-    enrollment.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
+    enrollment.setCreated(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
     enrollment.setCreatedAtClient(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATEDCLIENT))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(CREATEDCLIENT))));
     setUserInfoSnapshot(rs, getColumnName(CREATED_BY), enrollment::setCreatedByUserInfo);
-    enrollment.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
+    enrollment.setLastUpdated(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
     enrollment.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATEDCLIENT))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(UPDATEDCLIENT))));
     setUserInfoSnapshot(rs, getColumnName(LAST_UPDATED_BY), enrollment::setLastUpdatedByUserInfo);
     enrollment.setProgram(rs.getString(getColumnName(PROGRAM_UID)));
     enrollment.setStatus(EnrollmentStatus.fromStatusString(rs.getString(getColumnName(STATUS))));

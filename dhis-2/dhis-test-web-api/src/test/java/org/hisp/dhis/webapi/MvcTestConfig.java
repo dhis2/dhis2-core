@@ -50,6 +50,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
@@ -70,6 +71,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -102,6 +104,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private MetadataExportService metadataExportService;
 
+  @Autowired private AuthorityInterceptor authorityInterceptor;
+
   @Autowired
   private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
@@ -132,6 +136,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addInterceptor(new ResourceUrlProviderExposingInterceptor(mvcResourceUrlProvider));
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    registry.addInterceptor(authorityInterceptor);
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
@@ -205,6 +210,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
+    registry.addInterceptor(authorityInterceptor);
   }
 
   @Bean
@@ -255,6 +261,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
     converters.add(mappingJackson2HttpMessageConverter());
     converters.add(mappingJackson2XmlHttpMessageConverter());
+    converters.add(new ResourceHttpMessageConverter());
   }
 
   @Override

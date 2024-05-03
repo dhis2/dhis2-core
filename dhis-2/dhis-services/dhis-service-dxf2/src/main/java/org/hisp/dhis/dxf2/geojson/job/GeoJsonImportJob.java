@@ -32,6 +32,8 @@ import java.io.InputStream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.geojson.GeoJsonService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.scheduling.Job;
@@ -70,7 +72,24 @@ public class GeoJsonImportJob implements Job {
       progress.startingStage("Importing GeoJSON");
       GeoJsonImportReport report =
           progress.runStage(() -> geoJsonService.importGeoData(jobParams, input));
-      progress.completedProcess("GeoJSON import completed : " + report.getImportCount());
+      if (report == null) {
+        progress.failedProcess("Import failed, no report available");
+        return;
+      }
+      if (report.hasConflicts()) {
+        for (ImportConflict c : report.getConflicts())
+          progress.addError(c.getErrorCode(), c.getObject(), c.getGroupingKey(), c.getArgs());
+      }
+
+      ImportCount count = report.getImportCount();
+      progress.completedProcess(
+          "GeoJSON import completed with status {}, {} created, {} updated, {} deleted, {} ignored",
+          report.getStatus(),
+          count.getImported(),
+          count.getUpdated(),
+          count.getDeleted(),
+          count.getIgnored());
+
       notifier.addJobSummary(jobConfig, report, GeoJsonImportReport.class);
     } catch (IOException e) {
       progress.failedProcess(e);

@@ -92,34 +92,34 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("Uvn6LCg7dVU", "ImspTQPwCqd", "101.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "O6uvpzGd5pu", "142.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "fdc6uOvgoji", "82.2"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "ImspTQPwCqd", "101.47"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "O6uvpzGd5pu", "142.27"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "fdc6uOvgoji", "82.19"));
     validateRow(response, List.of("Uvn6LCg7dVU", "lc3eMKXaEfw", "90.0"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "jUb8gELQApl", "81.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "PMa2VCrupOd", "102.9"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "kJq2mPyFEHo", "94.4"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "qhqAxPSTUXp", "67.0"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "Vth0fbpFcsO", "52.8"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "jmIPBj66vD6", "118.4"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jUb8gELQApl", "81.58"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "PMa2VCrupOd", "102.87"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "kJq2mPyFEHo", "94.42"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "qhqAxPSTUXp", "66.95"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "Vth0fbpFcsO", "52.76"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jmIPBj66vD6", "118.41"));
     validateRow(response, List.of("Uvn6LCg7dVU", "TEQlaapDQoK", "99.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "bL4ooGhyHRQ", "88.5"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "bL4ooGhyHRQ", "88.55"));
     validateRow(response, List.of("Uvn6LCg7dVU", "eIQbndfxQMb", "124.7"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "at6UHUQatSo", "124.7"));
-    validateRow(response, List.of("sB79w2hiLp8", "ImspTQPwCqd", "65.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "O6uvpzGd5pu", "92.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "fdc6uOvgoji", "51.0"));
-    validateRow(response, List.of("sB79w2hiLp8", "lc3eMKXaEfw", "59.7"));
-    validateRow(response, List.of("sB79w2hiLp8", "jUb8gELQApl", "71.0"));
-    validateRow(response, List.of("sB79w2hiLp8", "PMa2VCrupOd", "65.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "kJq2mPyFEHo", "86.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "qhqAxPSTUXp", "38.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "Vth0fbpFcsO", "36.9"));
-    validateRow(response, List.of("sB79w2hiLp8", "jmIPBj66vD6", "92.4"));
-    validateRow(response, List.of("sB79w2hiLp8", "TEQlaapDQoK", "47.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "bL4ooGhyHRQ", "56.9"));
-    validateRow(response, List.of("sB79w2hiLp8", "eIQbndfxQMb", "58.7"));
-    validateRow(response, List.of("sB79w2hiLp8", "at6UHUQatSo", "72.8"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "at6UHUQatSo", "124.69"));
+    validateRow(response, List.of("sB79w2hiLp8", "ImspTQPwCqd", "65.83"));
+    validateRow(response, List.of("sB79w2hiLp8", "O6uvpzGd5pu", "92.35"));
+    validateRow(response, List.of("sB79w2hiLp8", "fdc6uOvgoji", "50.95"));
+    validateRow(response, List.of("sB79w2hiLp8", "lc3eMKXaEfw", "59.73"));
+    validateRow(response, List.of("sB79w2hiLp8", "jUb8gELQApl", "70.97"));
+    validateRow(response, List.of("sB79w2hiLp8", "PMa2VCrupOd", "65.18"));
+    validateRow(response, List.of("sB79w2hiLp8", "kJq2mPyFEHo", "86.79"));
+    validateRow(response, List.of("sB79w2hiLp8", "qhqAxPSTUXp", "38.76"));
+    validateRow(response, List.of("sB79w2hiLp8", "Vth0fbpFcsO", "36.93"));
+    validateRow(response, List.of("sB79w2hiLp8", "jmIPBj66vD6", "92.42"));
+    validateRow(response, List.of("sB79w2hiLp8", "TEQlaapDQoK", "47.81"));
+    validateRow(response, List.of("sB79w2hiLp8", "bL4ooGhyHRQ", "56.94"));
+    validateRow(response, List.of("sB79w2hiLp8", "eIQbndfxQMb", "58.67"));
+    validateRow(response, List.of("sB79w2hiLp8", "at6UHUQatSo", "72.85"));
   }
 
   @Test
@@ -161,19 +161,19 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("ReUHfIn0pTQ", "O6uvpzGd5pu", "34.4"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "fdc6uOvgoji", "38.0"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "lc3eMKXaEfw", "33.6"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "jUb8gELQApl", "13.0"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "PMa2VCrupOd", "36.6"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "kJq2mPyFEHo", "8.1"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "qhqAxPSTUXp", "42.1"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "O6uvpzGd5pu", "34.38"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "fdc6uOvgoji", "38.01"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "lc3eMKXaEfw", "33.63"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "jUb8gELQApl", "13.01"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "PMa2VCrupOd", "36.63"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "kJq2mPyFEHo", "8.09"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "qhqAxPSTUXp", "42.11"));
     validateRow(response, List.of("ReUHfIn0pTQ", "Vth0fbpFcsO", "30.0"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "jmIPBj66vD6", "21.9"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "TEQlaapDQoK", "52.0"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "jmIPBj66vD6", "21.95"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "TEQlaapDQoK", "51.95"));
     validateRow(response, List.of("ReUHfIn0pTQ", "bL4ooGhyHRQ", "35.7"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "eIQbndfxQMb", "52.9"));
-    validateRow(response, List.of("ReUHfIn0pTQ", "at6UHUQatSo", "41.6"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "eIQbndfxQMb", "52.95"));
+    validateRow(response, List.of("ReUHfIn0pTQ", "at6UHUQatSo", "41.58"));
   }
 
   @Test
@@ -214,42 +214,42 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.7"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.4"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202104", "92.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202105", "142.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202106", "118.8"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.65"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.38"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.59"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202104", "92.64"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202105", "142.19"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202106", "118.76"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202107", "107.9"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202108", "106.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202109", "111.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202110", "86.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202111", "98.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202112", "79.4"));
-    validateRow(response, List.of("OdiHJayrsKo", "202101", "83.3"));
-    validateRow(response, List.of("OdiHJayrsKo", "202102", "98.8"));
-    validateRow(response, List.of("OdiHJayrsKo", "202103", "94.5"));
-    validateRow(response, List.of("OdiHJayrsKo", "202104", "91.8"));
-    validateRow(response, List.of("OdiHJayrsKo", "202105", "114.5"));
-    validateRow(response, List.of("OdiHJayrsKo", "202106", "119.2"));
-    validateRow(response, List.of("OdiHJayrsKo", "202107", "102.0"));
-    validateRow(response, List.of("OdiHJayrsKo", "202108", "98.5"));
-    validateRow(response, List.of("OdiHJayrsKo", "202109", "101.9"));
-    validateRow(response, List.of("OdiHJayrsKo", "202110", "77.8"));
-    validateRow(response, List.of("OdiHJayrsKo", "202111", "97.0"));
-    validateRow(response, List.of("OdiHJayrsKo", "202112", "73.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202101", "57.0"));
-    validateRow(response, List.of("sB79w2hiLp8", "202102", "64.5"));
-    validateRow(response, List.of("sB79w2hiLp8", "202103", "67.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202104", "62.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202105", "75.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "202106", "78.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202107", "71.7"));
-    validateRow(response, List.of("sB79w2hiLp8", "202108", "70.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "202109", "76.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202110", "57.1"));
-    validateRow(response, List.of("sB79w2hiLp8", "202111", "74.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202112", "51.3"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202109", "111.26"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202110", "86.52"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202111", "98.21"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202112", "79.37"));
+    validateRow(response, List.of("OdiHJayrsKo", "202101", "83.35"));
+    validateRow(response, List.of("OdiHJayrsKo", "202102", "98.79"));
+    validateRow(response, List.of("OdiHJayrsKo", "202103", "94.47"));
+    validateRow(response, List.of("OdiHJayrsKo", "202104", "91.78"));
+    validateRow(response, List.of("OdiHJayrsKo", "202105", "114.51"));
+    validateRow(response, List.of("OdiHJayrsKo", "202106", "119.22"));
+    validateRow(response, List.of("OdiHJayrsKo", "202107", "101.98"));
+    validateRow(response, List.of("OdiHJayrsKo", "202108", "98.52"));
+    validateRow(response, List.of("OdiHJayrsKo", "202109", "101.91"));
+    validateRow(response, List.of("OdiHJayrsKo", "202110", "77.77"));
+    validateRow(response, List.of("OdiHJayrsKo", "202111", "97.02"));
+    validateRow(response, List.of("OdiHJayrsKo", "202112", "73.28"));
+    validateRow(response, List.of("sB79w2hiLp8", "202101", "56.97"));
+    validateRow(response, List.of("sB79w2hiLp8", "202102", "64.55"));
+    validateRow(response, List.of("sB79w2hiLp8", "202103", "67.25"));
+    validateRow(response, List.of("sB79w2hiLp8", "202104", "62.18"));
+    validateRow(response, List.of("sB79w2hiLp8", "202105", "75.77"));
+    validateRow(response, List.of("sB79w2hiLp8", "202106", "78.24"));
+    validateRow(response, List.of("sB79w2hiLp8", "202107", "71.68"));
+    validateRow(response, List.of("sB79w2hiLp8", "202108", "70.77"));
+    validateRow(response, List.of("sB79w2hiLp8", "202109", "76.34"));
+    validateRow(response, List.of("sB79w2hiLp8", "202110", "57.07"));
+    validateRow(response, List.of("sB79w2hiLp8", "202111", "74.19"));
+    validateRow(response, List.of("sB79w2hiLp8", "202112", "51.33"));
   }
 
   @Test
@@ -471,29 +471,29 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.7"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.4"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202104", "92.6"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202105", "142.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202106", "118.8"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.65"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.38"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.59"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202104", "92.64"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202105", "142.19"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202106", "118.76"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202107", "107.9"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202108", "106.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202109", "111.3"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202110", "86.5"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202111", "98.2"));
-    validateRow(response, List.of("Uvn6LCg7dVU", "202112", "79.4"));
-    validateRow(response, List.of("sB79w2hiLp8", "202101", "57.0"));
-    validateRow(response, List.of("sB79w2hiLp8", "202102", "64.5"));
-    validateRow(response, List.of("sB79w2hiLp8", "202103", "67.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202104", "62.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202105", "75.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "202106", "78.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202107", "71.7"));
-    validateRow(response, List.of("sB79w2hiLp8", "202108", "70.8"));
-    validateRow(response, List.of("sB79w2hiLp8", "202109", "76.3"));
-    validateRow(response, List.of("sB79w2hiLp8", "202110", "57.1"));
-    validateRow(response, List.of("sB79w2hiLp8", "202111", "74.2"));
-    validateRow(response, List.of("sB79w2hiLp8", "202112", "51.3"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202109", "111.26"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202110", "86.52"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202111", "98.21"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "202112", "79.37"));
+    validateRow(response, List.of("sB79w2hiLp8", "202101", "56.97"));
+    validateRow(response, List.of("sB79w2hiLp8", "202102", "64.55"));
+    validateRow(response, List.of("sB79w2hiLp8", "202103", "67.25"));
+    validateRow(response, List.of("sB79w2hiLp8", "202104", "62.18"));
+    validateRow(response, List.of("sB79w2hiLp8", "202105", "75.77"));
+    validateRow(response, List.of("sB79w2hiLp8", "202106", "78.24"));
+    validateRow(response, List.of("sB79w2hiLp8", "202107", "71.68"));
+    validateRow(response, List.of("sB79w2hiLp8", "202108", "70.77"));
+    validateRow(response, List.of("sB79w2hiLp8", "202109", "76.34"));
+    validateRow(response, List.of("sB79w2hiLp8", "202110", "57.07"));
+    validateRow(response, List.of("sB79w2hiLp8", "202111", "74.19"));
+    validateRow(response, List.of("sB79w2hiLp8", "202112", "51.33"));
   }
 }

@@ -91,7 +91,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
   void testGetProposal() {
     String proposalId = postAddProposal("My Unit", "OU2");
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertTrue(proposal.exists());
   }
 
@@ -99,7 +99,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
   void testMakeAddProposal() {
     String proposalId = postAddProposal("My Unit", "OU1");
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.PROPOSED, proposal.getStatus());
     assertEquals(MetadataProposalType.ADD, proposal.getType());
     assertEquals(MetadataProposalTarget.ORGANISATION_UNIT, proposal.getTarget());
@@ -154,7 +154,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
   void testMakeUpdateProposal() {
     String proposalId = postUpdateNameProposal(defaultTargetId, "New Name");
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.PROPOSED, proposal.getStatus());
     assertEquals(MetadataProposalType.UPDATE, proposal.getType());
     assertEquals(MetadataProposalTarget.ORGANISATION_UNIT, proposal.getTarget());
@@ -236,7 +236,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
   void testMakeRemoveProposal() {
     String proposalId = postRemoveProposal(defaultTargetId);
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.PROPOSED, proposal.getStatus());
     assertEquals(MetadataProposalType.REMOVE, proposal.getType());
     assertEquals(MetadataProposalTarget.ORGANISATION_UNIT, proposal.getTarget());
@@ -271,7 +271,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{uid}", ouId).content().as(JsonOrganisationUnit.class);
     assertEquals("My OU", ou.getName());
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.ACCEPTED, proposal.getStatus());
     assertNotNull(proposal.getFinalisedBy());
     assertNotNull(proposal.getFinalised());
@@ -285,7 +285,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
         GET("/organisationUnits/{uid}", defaultTargetId).content().as(JsonOrganisationUnit.class);
     assertEquals("New name", ou.getName());
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.ACCEPTED, proposal.getStatus());
     assertNotNull(proposal.getFinalisedBy());
     assertNotNull(proposal.getFinalised());
@@ -318,7 +318,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.OK, POST("/metadata/proposals/" + proposalId));
     assertStatus(HttpStatus.NOT_FOUND, GET("/organisationUnits/{uid}", defaultTargetId));
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.ACCEPTED, proposal.getStatus());
     assertNotNull(proposal.getFinalisedBy());
     assertNotNull(proposal.getFinalised());
@@ -359,7 +359,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.OK, DELETE("/organisationUnits/" + defaultTargetId));
     assertStatus(HttpStatus.CONFLICT, POST("/metadata/proposals/" + proposalId));
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus());
     assertNotNull(proposal.getReason());
     assertWebMessage(
@@ -408,7 +408,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
     // reject
     assertStatus(HttpStatus.NO_CONTENT, DELETE("/metadata/proposals/" + proposalId));
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.REJECTED, proposal.getStatus());
     assertNotNull(proposal.getFinalisedBy());
     assertNotNull(proposal.getFinalised());
@@ -449,7 +449,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
         MetadataProposalStatus.NEEDS_UPDATE,
         GET("/metadata/proposals/{uid}", proposalId)
             .content()
-            .asObject(JsonMetadataProposal.class)
+            .asA(JsonMetadataProposal.class)
             .getStatus());
     assertWebMessage(
         "Conflict",
@@ -474,7 +474,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
             Body("Just NO!"),
             ContentType(MediaType.TEXT_PLAIN)));
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals("Just NO!", proposal.getReason());
     assertEquals(MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus());
   }
@@ -505,7 +505,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
     assertStatus(HttpStatus.OK, DELETE("/organisationUnits/" + defaultTargetId));
     assertStatus(HttpStatus.CONFLICT, POST("/metadata/proposals/" + proposalId));
     JsonMetadataProposal proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertNotNull(proposal.getReason());
     assertEquals(MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus());
     String ouId =
@@ -517,7 +517,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest {
     assertStatus(
         HttpStatus.OK, PUT("/metadata/proposals/" + proposalId, "{'targetId':'" + ouId + "'}"));
     proposal =
-        GET("/metadata/proposals/{uid}", proposalId).content().asObject(JsonMetadataProposal.class);
+        GET("/metadata/proposals/{uid}", proposalId).content().asA(JsonMetadataProposal.class);
     assertEquals(MetadataProposalStatus.PROPOSED, proposal.getStatus());
     assertEquals(ouId, proposal.getTargetId());
   }

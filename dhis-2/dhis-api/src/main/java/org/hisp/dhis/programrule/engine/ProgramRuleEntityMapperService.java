@@ -34,7 +34,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.rules.DataItem;
+import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;

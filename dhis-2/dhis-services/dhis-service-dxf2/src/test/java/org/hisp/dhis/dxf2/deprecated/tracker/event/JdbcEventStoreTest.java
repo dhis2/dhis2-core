@@ -49,7 +49,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -105,7 +104,6 @@ class JdbcEventStoreTest {
     ObjectMapper objectMapper = new ObjectMapper();
     subject =
         new JdbcEventStore(
-            new PostgreSQLStatementBuilder(),
             namedParameterJdbcTemplate,
             objectMapper,
             manager,

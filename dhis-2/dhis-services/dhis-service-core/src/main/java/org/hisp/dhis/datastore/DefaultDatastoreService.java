@@ -189,9 +189,9 @@ public class DefaultDatastoreService implements DatastoreService {
    * @param whenHidden value to return when namespace is hidden & no access
    * @param read data supplier
    * @return data supplier value or whenHidden value
-   * @throws AccessDeniedException if {@link User} has no {@link Sharing} access to {@link
-   *     DatastoreEntry} or {@link User} has no {@link Sharing} access for restricted namespace
-   *     {@link DatastoreEntry}
+   * @throws AccessDeniedException if {@link org.hisp.dhis.user.User} has no {@link Sharing} access
+   *     to {@link DatastoreEntry} or {@link org.hisp.dhis.user.User} has no {@link Sharing} access
+   *     for restricted namespace {@link DatastoreEntry}
    */
   private <T> T readProtectedIn(String namespace, T whenHidden, Supplier<T> read) {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
@@ -215,13 +215,37 @@ public class DefaultDatastoreService implements DatastoreService {
         || currentUserHasAuthority(protection.getAuthorities());
   }
 
+  private boolean userHasNamespaceWriteAccess(DatastoreNamespaceProtection protection) {
+    return protection == null
+        || protection.getWrites() == ProtectionType.NONE
+        || currentUserHasAuthority(protection.getAuthorities());
+  }
+
+  /**
+   * There are 2 levels of access to be aware of in a Datastore: <br>
+   *
+   * <ol>
+   *   <li>{@link DatastoreNamespaceProtection}
+   *       <ul>
+   *         <li>this is currently only set programmatically
+   *         <li>new namespaces setup through the API will have no {@link
+   *             DatastoreNamespaceProtection}
+   *       </ul>
+   *   <li>standard {@link Sharing}
+   * </ol>
+   *
+   * @param namespace namespace
+   * @param entries datastore entries
+   * @param write write operation to run
+   * @throws AccessDeniedException if {@link org.hisp.dhis.user.User} has no {@link Sharing} access
+   *     to {@link DatastoreEntry} or {@link org.hisp.dhis.user.User} has no {@link Sharing} access
+   *     for restricted namespace {@link DatastoreEntry}
+   */
   private void writeProtectedIn(
-      String namespace, Supplier<List<DatastoreEntry>> whenSharing, Runnable write) {
+      String namespace, Supplier<List<DatastoreEntry>> entries, Runnable write) {
     DatastoreNamespaceProtection protection = protectionByNamespace.get(namespace);
-    if (protection == null || protection.getWrites() == ProtectionType.NONE) {
-      write.run();
-    } else if (currentUserHasAuthority(protection.getAuthorities())) {
-      for (DatastoreEntry entry : whenSharing.get()) {
+    if (userHasNamespaceWriteAccess(protection)) {
+      for (DatastoreEntry entry : entries.get()) {
         if (!aclService.canWrite(CurrentUserUtil.getCurrentUserDetails(), entry)) {
           throw accessDeniedTo(namespace, entry.getKey());
         }

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -73,7 +73,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Transactional(readOnly = true)
   public List<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
       TrackedEntityChangeLogQueryParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     return trackedEntityChangeLogStore.getTrackedEntityChangeLogs(params).stream()
         .filter(
             a ->

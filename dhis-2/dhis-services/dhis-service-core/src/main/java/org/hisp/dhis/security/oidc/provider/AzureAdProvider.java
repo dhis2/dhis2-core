@@ -80,7 +80,7 @@ public class AzureAdProvider extends AbstractOidcProvider {
               .mappingClaimKey(
                   MoreObjects.firstNonNull(
                       config.getProperty(propertyPrefix + MAPPING_CLAIM), DEFAULT_MAPPING_CLAIM))
-              .loginIcon("../oidc/btn_azure_login.svg")
+              .loginIcon("/dhis-web-commons/oidc/btn_azure_login.svg")
               .loginIconPadding("13px 13px")
               .loginText(config.getProperty(propertyPrefix + DISPLAY_ALIAS, "login_with_azure"))
               .build();

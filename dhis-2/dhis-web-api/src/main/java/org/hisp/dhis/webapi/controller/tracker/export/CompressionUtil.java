@@ -45,15 +45,14 @@ public class CompressionUtil {
    * @param requestOutputStream Output stream from request
    * @param toCompress Objects to compress
    * @param objectWriter Object writer from a mapper
-   * @param attachment Attachment file name
-   * @param <T>
-   * @throws IOException
+   * @param entry entry file name
+   * @throws IOException zip compression exception
    */
   public static <T> void writeZip(
-      OutputStream requestOutputStream, T toCompress, ObjectWriter objectWriter, String attachment)
+      OutputStream requestOutputStream, T toCompress, ObjectWriter objectWriter, String entry)
       throws IOException {
     ZipOutputStream outputStream = new ZipOutputStream(requestOutputStream);
-    outputStream.putNextEntry(new ZipEntry(attachment));
+    outputStream.putNextEntry(new ZipEntry(entry));
 
     objectWriter.writeValue(outputStream, toCompress);
     outputStream.close();
@@ -63,8 +62,7 @@ public class CompressionUtil {
    * @param requestOutputStream Output stream from request
    * @param toCompress Objects to compress
    * @param objectWriter Object writer from a mapper
-   * @param <T>
-   * @throws IOException
+   * @throws IOException gzip compression exception
    */
   public static <T> void writeGzip(
       OutputStream requestOutputStream, T toCompress, ObjectWriter objectWriter)

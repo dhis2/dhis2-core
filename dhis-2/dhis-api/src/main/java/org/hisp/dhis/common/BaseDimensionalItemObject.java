@@ -66,6 +66,11 @@ public class BaseDimensionalItemObject extends BaseNameableObject implements Dim
     this.name = dimensionItem;
   }
 
+  public BaseDimensionalItemObject(String dimensionItem, String code) {
+    this.uid = dimensionItem;
+    this.code = code;
+  }
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------

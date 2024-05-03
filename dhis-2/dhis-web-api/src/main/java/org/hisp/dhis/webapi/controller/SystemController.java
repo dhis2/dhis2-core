@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
@@ -55,6 +54,9 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
@@ -69,6 +71,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.CodeList;
 import org.hisp.dhis.webapi.webdomain.ObjectCount;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +109,8 @@ public class SystemController {
   @Autowired private StatisticsProvider statisticsProvider;
 
   @Autowired private FieldFilterService fieldFilterService;
+
+  @Autowired private JobConfigurationService jobConfigurationService;
 
   private static final CsvFactory CSV_FACTORY = new CsvMapper().getFactory();
 
@@ -181,11 +186,26 @@ public class SystemController {
   @GetMapping(value = "/tasks/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Collection<Notification>> getTaskJsonByUid(
       @PathVariable("jobType") String jobType, @PathVariable("jobId") String jobId) {
-    Collection<Notification> notifications =
-        jobType == null
-            ? emptyList()
-            : notifier.getNotificationsByJobId(JobType.valueOf(jobType.toUpperCase()), jobId);
+    if (jobType == null) {
+      return ResponseEntity.ok().cacheControl(noStore()).body(List.of());
+    }
 
+    Deque<Notification> notifications =
+        notifier.getNotificationsByJobId(JobType.valueOf(jobType.toUpperCase()), jobId);
+
+    if (notifications.isEmpty()) {
+      return ResponseEntity.ok().cacheControl(noStore()).body(List.of());
+    }
+
+    if (!notifications.getFirst().isCompleted()) {
+      JobConfiguration job = jobConfigurationService.getJobConfigurationByUid(jobId);
+      if (job == null || job.getJobStatus() != JobStatus.RUNNING) {
+        notifier.clear(getJobSafe(job, JobType.valueOf(jobType.toUpperCase()), jobId));
+        Notification notification = notifications.getFirst();
+        notification.setCompleted(true);
+        return ResponseEntity.ok().cacheControl(noStore()).body(List.of(notification));
+      }
+    }
     return ResponseEntity.ok().cacheControl(noStore()).body(notifications);
   }
 
@@ -236,7 +256,7 @@ public class SystemController {
       @CurrentUser User currentUser) {
     SystemInfo info =
         systemService.getSystemInfo().toBuilder()
-            .contextPath(ContextUtils.getContextPath(request))
+            .contextPath(HttpServletRequestPaths.getContextPath(request))
             .userAgent(request.getHeader(ContextUtils.HEADER_USER_AGENT))
             .build();
 
@@ -295,5 +315,14 @@ public class SystemController {
     }
 
     return codeList;
+  }
+
+  private JobConfiguration getJobSafe(JobConfiguration job, JobType jobType, String uid) {
+    if (job == null) {
+      job = new JobConfiguration();
+      job.setJobType(jobType);
+      job.setUid(uid);
+    }
+    return job;
   }
 }

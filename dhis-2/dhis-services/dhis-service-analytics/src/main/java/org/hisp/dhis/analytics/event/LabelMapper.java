@@ -74,6 +74,36 @@ public class LabelMapper {
   }
 
   /**
+   * Returns a custom label for the event if it exists, otherwise the given default label.
+   *
+   * @param programStage the {@link ProgramStage}.
+   * @param defaultLabel the default label.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getEventLabel(ProgramStage programStage, String defaultLabel) {
+    if (programStage != null && isNotBlank(programStage.getDisplayEventLabel())) {
+      return programStage.getDisplayEventLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
+   * Returns a custom label for the event date if it exists, otherwise the given default label.
+   *
+   * @param programStage the {@link ProgramStage}.
+   * @param defaultLabel the default label.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getProgramStageLabel(ProgramStage programStage, String defaultLabel) {
+    if (programStage != null && isNotBlank(programStage.getDisplayProgramStageLabel())) {
+      return programStage.getDisplayProgramStageLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
    * Returns a custom label for enrollment date if one exists, otherwise the given default label.
    *
    * @param program the {@link Program}.
@@ -96,6 +126,34 @@ public class LabelMapper {
   public static String getIncidentDateLabel(Program program, String defaultLabel) {
     if (program != null && isNotBlank(program.getDisplayIncidentDateLabel())) {
       return program.getDisplayIncidentDateLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
+   * Returns a custom label for enrollment if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getEnrollmentLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayEnrollmentLabel())) {
+      return program.getDisplayEnrollmentLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
+   * Returns a custom label for org. unit if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getOrgUnitLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayOrgUnitLabel())) {
+      return program.getDisplayOrgUnitLabel();
     }
 
     return defaultLabel;

@@ -30,11 +30,13 @@ package org.hisp.dhis.programrule;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Enrico Colasante
  */
+@RequiredArgsConstructor
 @JacksonXmlRootElement(localName = "programRuleEvaluationTime", namespace = DxfNamespaces.DXF_2_0)
 public enum ProgramRuleActionEvaluationTime {
   ON_DATA_ENTRY("on_data_entry"),
@@ -42,10 +44,6 @@ public enum ProgramRuleActionEvaluationTime {
   ALWAYS("always");
 
   private final String value;
-
-  ProgramRuleActionEvaluationTime(String value) {
-    this.value = value;
-  }
 
   public static ProgramRuleActionEvaluationTime fromValue(String value) {
     for (ProgramRuleActionEvaluationTime type : ProgramRuleActionEvaluationTime.values()) {

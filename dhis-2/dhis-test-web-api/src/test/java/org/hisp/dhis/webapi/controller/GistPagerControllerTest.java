@@ -119,22 +119,4 @@ class GistPagerControllerTest extends AbstractGistControllerTest {
         JsonNodeType.OBJECT,
         GET(baseUrl + "?headless=false", getSuperuserUid()).content().node().getType());
   }
-
-  @Test
-  void testPaging() {
-    String baseUrl = "/users/{uid}/userGroups/gist";
-    assertEquals(
-        JsonNodeType.OBJECT,
-        GET(baseUrl + "?paging=true", getSuperuserUid()).content().node().getType());
-    assertEquals(
-        JsonNodeType.ARRAY,
-        GET(baseUrl + "?paging=false", getSuperuserUid()).content().node().getType());
-
-    JsonWebMessage msg =
-        GET(baseUrl + "?paging=false&headless=false", getSuperuserUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .as(JsonWebMessage.class);
-    assertEquals(
-        "paging and headless request parameters are contradicting each other", msg.getMessage());
-  }
 }

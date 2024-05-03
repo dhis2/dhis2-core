@@ -311,7 +311,7 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
 
       if (minDate != null) {
         List<String> defaultFilterList = new ArrayList<>();
-        defaultFilterList.add("lastUpdated:gte:" + DateUtils.getLongGmtDateString(minDate));
+        defaultFilterList.add("lastUpdated:gte:" + DateUtils.toLongGmtDate(minDate));
         exportParams.setDefaultFilter(defaultFilterList);
         exportParams.setDefaultFields(Lists.newArrayList(":all"));
         metadataExportService.validate(exportParams);

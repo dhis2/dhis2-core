@@ -334,7 +334,7 @@ public class ListUtils {
    * @return a list.
    */
   @SafeVarargs
-  public static <T> List<T> newList(T... items) {
+  public static <T> List<T> of(T... items) {
     List<T> list = new ArrayList<>();
 
     for (T item : items) {

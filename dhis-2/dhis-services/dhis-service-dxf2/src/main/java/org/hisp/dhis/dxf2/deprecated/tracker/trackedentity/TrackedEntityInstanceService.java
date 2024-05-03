@@ -39,7 +39,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -85,13 +85,16 @@ public interface TrackedEntityInstanceService {
 
   TrackedEntityInstance getTrackedEntityInstance(String uid, TrackedEntityInstanceParams params);
 
+  TrackedEntityInstance getTrackedEntityInstance(
+      String uid, UserDetails currentUser, TrackedEntityInstanceParams params);
+
   TrackedEntityInstance getTrackedEntityInstance(TrackedEntity entityInstance);
 
   TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity entityInstance, TrackedEntityInstanceParams params);
 
   TrackedEntityInstance getTrackedEntityInstance(
-      TrackedEntity entityInstance, TrackedEntityInstanceParams params, User user);
+      TrackedEntity entityInstance, TrackedEntityInstanceParams params, UserDetails user);
 
   List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids);
 

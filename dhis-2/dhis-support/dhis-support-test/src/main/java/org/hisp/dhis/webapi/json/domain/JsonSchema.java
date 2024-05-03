@@ -172,6 +172,6 @@ public interface JsonSchema extends JsonObject {
   }
 
   default Iterable<JsonProperty> getRequiredProperties() {
-    return getProperties().filtered(JsonProperty::isRequired);
+    return getProperties().stream().filter(JsonProperty::isRequired).toList();
   }
 }

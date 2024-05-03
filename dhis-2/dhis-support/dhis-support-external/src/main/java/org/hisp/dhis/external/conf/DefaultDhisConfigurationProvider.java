@@ -28,6 +28,7 @@
 package org.hisp.dhis.external.conf;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,8 +38,10 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -50,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.external.util.LogOnceLogger;
@@ -227,6 +231,24 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
+  public List<String> getRemoteServersAllowed() {
+    String remoteServers =
+        StringUtils.trimToEmpty(
+            properties.getProperty(ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey()));
+    return Arrays.stream(remoteServers.split(",")).filter(StringUtils::isNotEmpty).toList();
+  }
+
+  @Override
+  public boolean remoteServerIsInAllowedList(String url) {
+    if (StringUtils.isNotBlank(url)) {
+      List<String> remoteServersAllowed = getRemoteServersAllowed();
+      return !getRemoteServersAllowed().isEmpty()
+          && remoteServersAllowed.stream().anyMatch(url::startsWith);
+    }
+    return false;
+  }
+
+  @Override
   public boolean isLdapConfigured() {
     String ldapUrl = getProperty(ConfigurationKey.LDAP_URL);
     String managerDn = getProperty(ConfigurationKey.LDAP_MANAGER_DN);
@@ -234,6 +256,11 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     return !(ConfigurationKey.LDAP_URL.getDefaultValue().equals(ldapUrl)
         || ldapUrl == null
         || managerDn == null);
+  }
+
+  @Override
+  public boolean isAnalyticsDatabaseConfigured() {
+    return StringUtils.isNotBlank(getProperty(ANALYTICS_CONNECTION_URL));
   }
 
   @Override

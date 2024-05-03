@@ -29,25 +29,30 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityService {
 
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+  /** Get a file for a tracked entities' attribute. */
+  FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
+      throws NotFoundException;
 
-  TrackedEntity getTrackedEntity(
-      TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException;
+  /** Get an image for a tracked entities' attribute in the given dimension. */
+  FileResourceStream getFileResourceImage(
+      UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
+      throws NotFoundException;
 
   TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException;
+      throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
   List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)

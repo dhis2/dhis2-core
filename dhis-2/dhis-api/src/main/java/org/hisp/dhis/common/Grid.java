@@ -448,14 +448,6 @@ public interface Grid extends JRDataSource, Serializable {
   Grid addRows(SqlRowSet rs);
 
   /**
-   * Moves the cursor to the next row and adds values for each column name of the given SQL row set.
-   * Adds only columns that are part of the headers respecting the order of each header.
-   *
-   * @param rs the {@link SqlRowSet}.
-   */
-  Grid addNamedRows(SqlRowSet rs);
-
-  /**
    * Moves the cursor the next row and adds values for each column of the given SQL row set.
    *
    * @param rs the row set.

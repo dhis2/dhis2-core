@@ -101,7 +101,7 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer {
     Object value = simpleNode.getValue();
 
     if (Date.class.isAssignableFrom(simpleNode.getValue().getClass())) {
-      value = DateUtils.getIso8601NoTz((Date) value);
+      value = DateUtils.toIso8601NoTz((Date) value);
     }
 
     if (Geometry.class.isAssignableFrom(simpleNode.getValue().getClass())) {

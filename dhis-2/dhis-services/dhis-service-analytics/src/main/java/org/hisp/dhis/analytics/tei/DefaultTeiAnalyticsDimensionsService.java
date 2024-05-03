@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.tei;
 
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
@@ -83,7 +82,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
           .collect(toList());
     }
 
-    return emptyList();
+    return List.of();
   }
 
   private boolean isDefinedOnTrackedEntityType(Program program, String trackedEntityTypeId) {

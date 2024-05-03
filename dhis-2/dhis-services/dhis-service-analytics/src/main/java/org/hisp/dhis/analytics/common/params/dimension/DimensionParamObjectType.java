@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.common.params.dimension;
 
 import java.util.Arrays;
+import lombok.Getter;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 
@@ -67,7 +68,7 @@ public enum DimensionParamObjectType {
   DATA_ELEMENT_GROUP(DimensionItemType.DATA_ELEMENT_GROUP),
   CATEGORY_OPTION_GROUP(DimensionItemType.CATEGORY_OPTION_GROUP);
 
-  private final DimensionType dimensionType;
+  @Getter private final DimensionType dimensionType;
 
   private final DimensionItemType dimensionItemType;
 

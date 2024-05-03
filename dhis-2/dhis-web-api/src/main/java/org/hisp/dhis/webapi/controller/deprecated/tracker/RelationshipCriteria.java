@@ -43,6 +43,8 @@ public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter {
 
   private String event;
 
+  private boolean includeDeleted;
+
   /** TODO Add Pager */
   @Override
   public Boolean isSkipPaging() {

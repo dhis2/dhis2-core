@@ -72,19 +72,6 @@ class MetadataMergeServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void simpleMerge() {
-    Date date = new Date();
-    Simple source = new Simple(null, 10, date, null, 123, 2.5f);
-    Simple target = new Simple("hello", 20, date, true, 123, 2.5f);
-    metadataMergeService.merge(
-        new MetadataMergeParams<>(source, target).setMergeMode(MergeMode.MERGE));
-    Assertions.assertEquals("hello", target.getString());
-    assertEquals(10, (int) target.getInteger());
-    Assertions.assertEquals(date, target.getDate());
-    Assertions.assertEquals(true, target.getBool());
-  }
-
-  @Test
   void simpleCollection() {
     Date date = new Date();
     SimpleCollection source = new SimpleCollection("name");

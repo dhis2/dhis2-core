@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +59,7 @@ class TeiQueryRequestMapperTest {
   private CommonQueryRequestMapper commonQueryRequestMapper;
 
   @BeforeEach
+  @SuppressWarnings("unchecked")
   public void setUp() {
     commonQueryRequestMapper = mock(CommonQueryRequestMapper.class);
     teiQueryRequestMapper =
@@ -98,8 +100,12 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+
     final IllegalQueryException thrown =
-        assertThrows(IllegalQueryException.class, () -> teiQueryRequestMapper.map(queryRequest));
+        assertThrows(
+            IllegalQueryException.class,
+            () -> teiQueryRequestMapper.map(queryRequest, commonQueryRequest));
 
     assertEquals(expectedMessage, thrown.getMessage());
   }
@@ -124,9 +130,9 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-    when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
+    when(commonQueryRequestMapper.map(any(), any())).thenReturn(CommonParams.builder().build());
 
-    TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
   }
 
   @Test
@@ -146,9 +152,9 @@ class TeiQueryRequestMapperTest {
 
     when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of());
 
-    when(commonQueryRequestMapper.map(any())).thenReturn(CommonParams.builder().build());
+    when(commonQueryRequestMapper.map(any(), any())).thenReturn(CommonParams.builder().build());
 
-    TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
+    assertDoesNotThrow(() -> teiQueryRequestMapper.map(queryRequest, new CommonQueryRequest()));
   }
 
   private Program stubProgram(String uid, String tetUid) {

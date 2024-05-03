@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.hisp.dhis.security.Authorities.F_REPLICATE_USER;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoCopyOnlyChanges;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -97,6 +98,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -113,13 +115,12 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -338,7 +339,9 @@ public class UserController extends AbstractCrudController<User> {
 
     validateInviteUser(user, currentUser);
 
-    return postObject(inviteUser(user, currentUser, request));
+    ObjectReport objectReport = inviteUser(user, currentUser, request);
+
+    return postObject(objectReport);
   }
 
   @PostMapping(value = BULK_INVITE_PATH, consumes = APPLICATION_JSON_VALUE)
@@ -395,7 +398,7 @@ public class UserController extends AbstractCrudController<User> {
 
     if (!userService.sendRestoreOrInviteMessage(
         user,
-        ContextUtils.getContextPath(request),
+        HttpServletRequestPaths.getContextPath(request),
         userService.getRestoreOptions(user.getRestoreToken()))) {
       throw new WebMessageException(error("Failed to send invite message"));
     }
@@ -424,11 +427,13 @@ public class UserController extends AbstractCrudController<User> {
 
     userService.prepareUserForInvite(user);
     userService.sendRestoreOrInviteMessage(
-        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION);
+        user,
+        HttpServletRequestPaths.getContextPath(request),
+        RestoreOptions.RECOVER_PASSWORD_OPTION);
   }
 
   @SuppressWarnings("unchecked")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_REPLICATE_USER')")
+  @RequiresAuthority(anyOf = F_REPLICATE_USER)
   @PostMapping("/{uid}/replica")
   @ResponseBody
   public WebMessage replicateUser(
@@ -794,7 +799,7 @@ public class UserController extends AbstractCrudController<User> {
         && importReport.getStats().getCreated() == 1
         && objectReport != null) {
       userService.sendRestoreOrInviteMessage(
-          user, ContextUtils.getContextPath(request), restoreOptions);
+          user, HttpServletRequestPaths.getContextPath(request), restoreOptions);
 
       log.info(String.format("An invite email was successfully sent to: %s", user.getEmail()));
     }

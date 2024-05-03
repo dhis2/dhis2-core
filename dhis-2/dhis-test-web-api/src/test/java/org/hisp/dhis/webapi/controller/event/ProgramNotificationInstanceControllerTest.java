@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,10 +66,11 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Autowired private TrackedEntityService teiService;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-  private Enrollment enrollmentA;
-
-  private Event eventA;
-  private ProgramNotificationInstance programNotification;
+  private Enrollment enrollment;
+  private Event event;
+  private ProgramNotificationInstance enrollmentNotification1;
+  private ProgramNotificationInstance enrollmentNotification2;
+  private ProgramNotificationInstance eventNotification;
 
   @BeforeEach
   void setUp() {
@@ -76,41 +81,39 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
     idObjectManager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     idObjectManager.save(psA);
-
     TrackedEntity teiA = createTrackedEntity('A', ouA);
     teiService.addTrackedEntity(teiA);
+    enrollment = createEnrollment(prA, teiA, ouA);
+    enrollmentService.addEnrollment(enrollment);
 
-    enrollmentA = createEnrollment(prA, teiA, ouA);
-    enrollmentService.addEnrollment(enrollmentA);
+    enrollmentNotification1 = new ProgramNotificationInstance();
+    enrollmentNotification1.setName("enrollment A notification 1");
+    enrollmentNotification1.setEnrollment(enrollment);
+    programNotificationInstanceService.save(enrollmentNotification1);
 
-    eventA = createEvent(psA, enrollmentA, ouA);
-    eventService.addEvent(eventA);
+    enrollmentNotification2 = new ProgramNotificationInstance();
+    enrollmentNotification2.setName("enrollment A notification 2");
+    enrollmentNotification2.setEnrollment(enrollment);
+    programNotificationInstanceService.save(enrollmentNotification2);
 
-    programNotification = new ProgramNotificationInstance();
-    programNotification.setName("notify");
-    programNotification.setEnrollment(enrollmentA);
-    programNotification.setEvent(eventA);
-    programNotificationInstanceService.save(programNotification);
+    event = createEvent(psA, enrollment, ouA);
+    eventService.addEvent(event);
+    eventNotification = new ProgramNotificationInstance();
+    eventNotification.setName("event A notification");
+    eventNotification.setEvent(event);
+    programNotificationInstanceService.save(eventNotification);
   }
 
   @Test
   void shouldGetProgramNotificationWhenPassingDeprecatedProgramInstanceParam() {
     JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programInstance={uid}", enrollmentA.getUid())
+        GET("/programNotificationInstances?programInstance={uid}", enrollment.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
+            .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
-    assertEquals(programNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingEnrollmentParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?enrollment={uid}", enrollmentA.getUid())
-            .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
-
-    assertEquals(programNotification.getName(), list.get(0).getName());
+    assertContainsOnly(
+        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        list.toList(JsonIdentifiableObject::getName));
   }
 
   @Test
@@ -119,8 +122,8 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
         "Only one parameter of 'programInstance' and 'enrollment'",
         GET(
                 "/programNotificationInstances?enrollment={uid}&programInstance={uid}",
-                enrollmentA.getUid(),
-                enrollmentA.getUid())
+                enrollment.getUid(),
+                enrollment.getUid())
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -128,21 +131,21 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
   @Test
   void shouldGetProgramNotificationWhenPassingDeprecatedProgramStageInstanceParam() {
     JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programStageInstance={uid}", eventA.getUid())
+        GET("/programNotificationInstances?programStageInstance={uid}", event.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
+            .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
-    assertEquals(programNotification.getName(), list.get(0).getName());
+    assertEquals(eventNotification.getName(), list.get(0).getName());
   }
 
   @Test
   void shouldGetProgramNotificationWhenPassingEventParams() {
     JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?event={uid}", eventA.getUid())
+        GET("/programNotificationInstances?event={uid}", event.getUid())
             .content(HttpStatus.OK)
-            .getList("instances", JsonIdentifiableObject.class);
+            .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
-    assertEquals(programNotification.getName(), list.get(0).getName());
+    assertEquals(eventNotification.getName(), list.get(0).getName());
   }
 
   @Test
@@ -151,9 +154,153 @@ class ProgramNotificationInstanceControllerTest extends DhisControllerConvenienc
         "Only one parameter of 'programStageInstance' and 'event'",
         GET(
                 "/programNotificationInstances?event={uid}&programStageInstance={uid}",
-                eventA.getUid(),
-                eventA.getUid())
+                event.getUid(),
+                event.getUid())
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithDefaults() {
+    JsonPage page =
+        GET("/programNotificationInstances?enrollment={uid}", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertContainsOnly(
+        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        list.toList(JsonIdentifiableObject::getName));
+
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertEquals(2, page.getPager().getTotal());
+    assertEquals(1, page.getPager().getPageCount());
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertEquals(2, page.getTotal());
+    assertEquals(1, page.getPageCount());
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithNonDefaults() {
+    JsonPage page =
+        GET("/programNotificationInstances?enrollment={uid}&page=2&pageSize=1", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertEquals(
+        1,
+        list.size(),
+        () -> String.format("mismatch in number of expected notification(s), got %s", list));
+
+    assertEquals(2, page.getPager().getPage());
+    assertEquals(1, page.getPager().getPageSize());
+    assertEquals(2, page.getPager().getTotal());
+    assertEquals(2, page.getPager().getPageCount());
+
+    // assert deprecated fields
+    assertEquals(2, page.getPage());
+    assertEquals(1, page.getPageSize());
+    assertEquals(2, page.getTotal());
+    assertEquals(2, page.getPageCount());
+  }
+
+  @Test
+  void shouldGetPaginatedItemsWithPagingSetToTrue() {
+    JsonPage page =
+        GET("/programNotificationInstances?enrollment={uid}&paging=true", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertContainsOnly(
+        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        list.toList(JsonIdentifiableObject::getName));
+
+    assertEquals(1, page.getPager().getPage());
+    assertEquals(50, page.getPager().getPageSize());
+    assertEquals(2, page.getPager().getTotal());
+    assertEquals(1, page.getPager().getPageCount());
+
+    // assert deprecated fields
+    assertEquals(1, page.getPage());
+    assertEquals(50, page.getPageSize());
+    assertEquals(2, page.getTotal());
+    assertEquals(1, page.getPageCount());
+  }
+
+  @Test
+  void shouldGetNonPaginatedItemsWithSkipPaging() {
+    JsonPage page =
+        GET("/programNotificationInstances?enrollment={uid}&skipPaging=true", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertContainsOnly(
+        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        list.toList(JsonIdentifiableObject::getName));
+    assertHasNoMember(page, "pager");
+
+    // assert deprecated fields
+    assertHasNoMember(page, "page");
+    assertHasNoMember(page, "pageSize");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
+    JsonPage page =
+        GET("/programNotificationInstances?enrollment={uid}&paging=false", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertContainsOnly(
+        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
+        list.toList(JsonIdentifiableObject::getName));
+    assertHasNoMember(page, "pager");
+
+    // assert deprecated fields
+    assertHasNoMember(page, "page");
+    assertHasNoMember(page, "pageSize");
+    assertHasNoMember(page, "total");
+    assertHasNoMember(page, "pageCount");
+  }
+
+  @Test
+  void shouldFailWhenSkipPagingAndPagingAreFalse() {
+    String message =
+        GET(
+                "/programNotificationInstances?enrollment={uid}&paging=false&skipPaging=false",
+                enrollment.getUid())
+            .content(HttpStatus.BAD_REQUEST)
+            .getString("message")
+            .string();
+
+    assertStartsWith("Paging can either be enabled or disabled", message);
+  }
+
+  @Test
+  void shouldFailWhenSkipPagingAndPagingAreTrue() {
+    String message =
+        GET(
+                "/programNotificationInstances?enrollment={uid}&paging=true&skipPaging=true",
+                enrollment.getUid())
+            .content(HttpStatus.BAD_REQUEST)
+            .getString("message")
+            .string();
+
+    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 }

@@ -156,10 +156,7 @@ class DataAnalysisStoreTest extends SingleSetupIntegrationTestBase {
         createDataValue(dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo));
     List<DataAnalysisMeasures> measures =
         dataAnalysisStore.getDataAnalysisMeasures(
-            dataElementA,
-            Lists.newArrayList(categoryOptionCombo),
-            Lists.newArrayList(organisationUnitA.getPath()),
-            from);
+            dataElementA, Lists.newArrayList(categoryOptionCombo), organisationUnitA, from);
     assertEquals(1, measures.size());
     assertEquals(measures.get(0).getAverage(), DELTA, 12.78);
     assertEquals(measures.get(0).getStandardDeviation(), DELTA, 15.26);

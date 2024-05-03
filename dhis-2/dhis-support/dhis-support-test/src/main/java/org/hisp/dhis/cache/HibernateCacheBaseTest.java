@@ -46,15 +46,6 @@ public class HibernateCacheBaseTest extends BaseSpringTest {
 
   @AfterEach
   public final void after() throws Exception {
-
-    clearSecurityContext();
-
-    tearDownTest();
-
-    try {
-      dbmsManager.clearSession();
-    } catch (Exception e) {
-      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
-    }
+    nonTransactionalAfter();
   }
 }

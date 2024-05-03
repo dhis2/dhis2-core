@@ -67,3 +67,7 @@ unnecessary fields from
 the JSON response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
+
+### `*.parameter.RelationshipRequestParams.includeDeleted`
+
+Get soft-deleted relationships by specifying `includeDeleted=true`. Soft-deleted relationships are excluded by default.

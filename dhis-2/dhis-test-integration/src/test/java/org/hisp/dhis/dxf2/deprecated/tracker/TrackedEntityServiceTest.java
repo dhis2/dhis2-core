@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -75,6 +74,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
@@ -165,7 +165,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
     fileResourceService.asyncSaveFileResource(fileResource, "fileResource".getBytes());
 
     userService = _userService;
-    user = createAndAddAdminUser(AUTHORITY_ALL);
+    user = createAndAddAdminUserWithAuth(Authorities.ALL);
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -787,5 +787,43 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest {
                 trackedEntityInstanceService
                     .getTrackedEntityInstance(tei.getTrackedEntityInstance())
                     .getLastUpdatedByUserInfo()));
+  }
+
+  @Test
+  void shouldSetLastUpdatedInfoWhenDeleteTe() {
+
+    TrackedEntity entityBefore = getTrackedEntity(maleA.getUid());
+
+    dbmsManager.clearSession();
+
+    injectSecurityContextUser(user);
+
+    ImportSummary importSummaries =
+        trackedEntityInstanceService.deleteTrackedEntityInstance(maleA.getUid());
+
+    dbmsManager.clearSession();
+
+    TrackedEntity entityAfter = getTrackedEntity(maleA.getUid());
+
+    assertAll(
+        () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
+        () ->
+            assertEquals(
+                UserInfoSnapshot.from(user).getUid(),
+                getTrackedEntity(maleA.getUid()).getLastUpdatedByUserInfo().getUid()),
+        () ->
+            assertTrue(
+                entityAfter.getLastUpdated().getTime() > entityBefore.getLastUpdated().getTime()));
+  }
+
+  /** Get with the entity manager because some Store exclude deleted */
+  public TrackedEntity getTrackedEntity(String uid) {
+
+    return (TrackedEntity)
+        entityManager
+            .createQuery(
+                "SELECT e FROM " + TrackedEntity.class.getSimpleName() + " e WHERE e.uid = :uid")
+            .setParameter("uid", uid)
+            .getSingleResult();
   }
 }

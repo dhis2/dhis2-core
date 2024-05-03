@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ReferencesCheckTest extends SingleSetupIntegrationTestBase {
+class ReferencesCheckTest extends SingleSetupIntegrationTestBase {
   @Autowired private SchemaValidator schemaValidator;
 
   @Autowired private SchemaService schemaService;

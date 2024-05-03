@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +43,6 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,16 +78,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
   @Transactional(readOnly = true)
   public ProgramNotificationTemplate getNotificationTemplate(RuleAction action) {
-    String uid = "";
-
-    if (action instanceof RuleActionSendMessage) {
-      RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
-      uid = sendMessage.notification();
-    } else if (action instanceof RuleActionScheduleMessage) {
-      RuleActionScheduleMessage scheduleMessage = (RuleActionScheduleMessage) action;
-      uid = scheduleMessage.notification();
-    }
-
+    String uid = action.getValues().get(NOTIFICATION);
     return programNotificationTemplateService.getByUid(uid);
   }
 
@@ -101,7 +91,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     checkNotNull(ruleEffect, "Rule Effect cannot be null");
     checkNotNull(enrollment, "Enrollment cannot be null");
 
-    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
 
     if (template == null) {
       log.warn(

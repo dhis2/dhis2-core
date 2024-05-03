@@ -33,14 +33,15 @@ import static java.lang.String.format;
 import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.TransactionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -55,7 +56,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.sqlview.SqlViewStore")
 public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore {
-  private final StatementBuilder statementBuilder;
 
   private final JdbcTemplate readOnlyJdbcTemplate;
 
@@ -66,16 +66,13 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
-      StatementBuilder statementBuilder,
       @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
       SystemSettingManager systemSettingManager) {
     super(entityManager, jdbcTemplate, publisher, SqlView.class, aclService, false);
 
-    checkNotNull(statementBuilder);
     checkNotNull(readOnlyJdbcTemplate);
     checkNotNull(systemSettingManager);
 
-    this.statementBuilder = statementBuilder;
     this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
     this.systemSettingManager = systemSettingManager;
   }
@@ -114,7 +111,7 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
         type == SqlViewType.MATERIALIZED_VIEW
             ? "CREATE MATERIALIZED VIEW %s AS %s"
             : "CREATE VIEW %s AS %s";
-    sql = format(sql, statementBuilder.columnQuote(viewName), viewQuery);
+    sql = format(sql, SqlUtils.quote(viewName), viewQuery);
 
     log.debug("Create view SQL: " + sql);
 
@@ -122,8 +119,12 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
   }
 
   @Override
-  public void populateSqlViewGrid(Grid grid, String sql) {
-    SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet(sql);
+  public void populateSqlViewGrid(Grid grid, String sql, TransactionMode transactionMode) {
+    SqlRowSet rs =
+        switch (transactionMode) {
+          case READ -> readOnlyJdbcTemplate.queryForRowSet(sql);
+          case WRITE -> jdbcTemplate.queryForRowSet(sql);
+        };
 
     int maxLimit = systemSettingManager.getIntSetting(SettingKey.SQL_VIEW_MAX_LIMIT);
 
@@ -145,7 +146,7 @@ public class HibernateSqlViewStore extends HibernateIdentifiableObjectStore<SqlV
     }
     String sql =
         type == SqlViewType.MATERIALIZED_VIEW ? "DROP MATERIALIZED VIEW %s" : "DROP VIEW %s";
-    sql = format(sql, statementBuilder.columnQuote(viewName));
+    sql = format(sql, SqlUtils.quote(viewName));
 
     log.debug("Drop view SQL: " + sql);
     try {

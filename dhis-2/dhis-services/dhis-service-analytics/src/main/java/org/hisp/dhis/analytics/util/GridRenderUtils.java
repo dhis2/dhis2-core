@@ -34,6 +34,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -44,7 +46,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 /**
  * @author Lars Helge Overland
  */
-public class GridRenderUtils {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class GridRenderUtils {
   /**
    * Generates a grid according to the provided columns, rows and values.
    *

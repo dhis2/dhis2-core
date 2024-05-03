@@ -56,9 +56,11 @@ public class NotifierJobProgress implements JobProgress {
   private int stageItem;
 
   @Override
-  public void startingProcess(String description) {
+  public void startingProcess(String description, Object... args) {
     String message =
-        isNotEmpty(description) ? description : jobId.getJobType() + " process started";
+        isNotEmpty(description)
+            ? format(description, args)
+            : jobId.getJobType() + " process started";
     if (hasCleared.compareAndSet(false, true)) {
       notifier.clear(jobId);
     }
@@ -72,13 +74,13 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedProcess(String summary) {
-    notifier.notify(jobId, summary, true);
+  public void completedProcess(String summary, Object... args) {
+    notifier.notify(jobId, format(summary, args), true);
   }
 
   @Override
-  public void failedProcess(String error) {
-    notifier.notify(jobId, NotificationLevel.ERROR, error, true);
+  public void failedProcess(String error, Object... args) {
+    notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), true);
   }
 
   @Override
@@ -91,16 +93,16 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedStage(String summary) {
+  public void completedStage(String summary, Object... args) {
     if (isNotEmpty(summary)) {
-      notifier.notify(jobId, summary);
+      notifier.notify(jobId, format(summary, args));
     }
   }
 
   @Override
-  public void failedStage(String error) {
+  public void failedStage(String error, Object... args) {
     if (isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
+      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 
@@ -114,17 +116,17 @@ public class NotifierJobProgress implements JobProgress {
   }
 
   @Override
-  public void completedWorkItem(String summary) {
+  public void completedWorkItem(String summary, Object... args) {
     if (isNotEmpty(summary)) {
       String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-      notifier.notify(jobId, NotificationLevel.LOOP, nOf + summary, false);
+      notifier.notify(jobId, NotificationLevel.LOOP, nOf + format(summary, args), false);
     }
   }
 
   @Override
-  public void failedWorkItem(String error) {
+  public void failedWorkItem(String error, Object... args) {
     if (isNotEmpty(error)) {
-      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
+      notifier.notify(jobId, NotificationLevel.ERROR, format(error, args), false);
     }
   }
 

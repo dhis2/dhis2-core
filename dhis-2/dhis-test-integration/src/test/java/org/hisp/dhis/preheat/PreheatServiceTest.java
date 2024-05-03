@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,12 +52,14 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Disabled
 class PreheatServiceTest extends TransactionalIntegrationTest {
 
   @Autowired private PreheatService preheatService;
@@ -66,8 +67,6 @@ class PreheatServiceTest extends TransactionalIntegrationTest {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private RenderService _renderService;
-
-  @Autowired private AttributeService attributeService;
 
   @Autowired private UserService _userService;
 

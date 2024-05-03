@@ -62,7 +62,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -85,8 +84,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
   private final PeriodStore periodStore;
 
-  private final StatementBuilder statementBuilder;
-
   private static final String DELETED = "deleted";
 
   private static final String LAST_UPATED = "lastUpdated";
@@ -95,11 +92,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      PeriodStore periodStore,
-      StatementBuilder statementBuilder) {
+      PeriodStore periodStore) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
-    this.statementBuilder = statementBuilder;
   }
 
   // -------------------------------------------------------------------------
@@ -185,13 +180,23 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     dataValue.setPeriod(storedPeriod);
 
-    CriteriaBuilder builder = getCriteriaBuilder();
+    String sql =
+        """
+        select * from datavalue where dataelementid = :deid
+        and periodid = :periodid
+        and attributeoptioncomboid = :attributeOptionCombo
+        and categoryoptioncomboid = :categoryOptionCombo
+        and sourceid = :sourceid
+        and deleted is true""";
 
     return getSingleResult(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root, dataValue))
-            .addPredicate(root -> builder.equal(root.get(DELETED), true)));
+        getSession()
+            .createNativeQuery(sql, DataValue.class)
+            .setParameter("deid", dataValue.getDataElement().getId())
+            .setParameter("periodid", storedPeriod.getId())
+            .setParameter("attributeOptionCombo", dataValue.getAttributeOptionCombo().getId())
+            .setParameter("categoryOptionCombo", dataValue.getCategoryOptionCombo().getId())
+            .setParameter("sourceid", dataValue.getSource().getId()));
   }
 
   @Override
@@ -266,8 +271,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     Query<DataValue> query = getQuery(hql);
 
     getDataValuesQueryParameters(params, query, periods, organisationUnits);
-
-    // TODO last updated duration support
 
     return query.list();
   }
@@ -449,7 +452,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     if (!cocIds.isEmpty()) {
       sql.append(" join ")
-          .append(statementBuilder.literalLongLongTable(deIds, cocIds, "deo", "deid", "cocid"))
+          .append(literalLongLongTable(deIds, cocIds, "deo", "deid", "cocid"))
           .append(
               " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid::bigint = dv.categoryoptioncomboid)");
     } else if (!deIds.isEmpty()) {
@@ -495,19 +498,19 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         where
             .append(sqlHelper.whereAnd())
             .append("p.startdate >= '")
-            .append(DateUtils.getMediumDateString(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'")
             .append(" and p.enddate <= '")
-            .append(DateUtils.getMediumDateString(params.getStartDate()))
+            .append(DateUtils.toMediumDate(params.getStartDate()))
             .append("'");
       } else if (params.hasIncludedDate()) {
         where
             .append(sqlHelper.whereAnd())
             .append("p.startdate <= '")
-            .append(DateUtils.getMediumDateString(params.getIncludedDate()))
+            .append(DateUtils.toMediumDate(params.getIncludedDate()))
             .append("'")
             .append(" and p.enddate >= '")
-            .append(DateUtils.getMediumDateString(params.getIncludedDate()))
+            .append(DateUtils.toMediumDate(params.getIncludedDate()))
             .append("'");
       }
     }
@@ -610,7 +613,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       where
           .append(sqlHelper.whereAnd())
           .append("dv.lastupdated >= ")
-          .append(DateUtils.getMediumDateString(params.getLastUpdated()));
+          .append(DateUtils.toMediumDate(params.getLastUpdated()));
     }
   }
 
@@ -676,6 +679,47 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         cocIds.add(ddv.getCategoryOptionComboId());
       }
     }
+  }
+
+  /**
+   * Generates a derived table containing literals in two columns: long and long.
+   *
+   * @param long1Values (non-empty) 1st long column values for the table
+   * @param long2Values (same size) 2nd long column values for the table
+   * @param table the desired table name alias
+   * @param long1Column the desired 1st long column name
+   * @param long2Column the desired 2nd long column name
+   * @return the derived literal table
+   *     <p>The generic implementation, which works in all supported database types, returns a
+   *     subquery in the following form: <code>
+   *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
+   * </code>
+   */
+  private String literalLongLongTable(
+      List<Long> long1Values,
+      List<Long> long2Values,
+      String table,
+      String long1Column,
+      String long2Column) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (int i = 0; i < long1Values.size(); i++) {
+      sb.append("(")
+          .append(long1Values.get(i))
+          .append(", ")
+          .append(long2Values.get(i))
+          .append("),");
+    }
+
+    return sb.deleteCharAt(sb.length() - 1)
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(long1Column)
+        .append(", ")
+        .append(long2Column)
+        .append(")")
+        .toString();
   }
 
   /** getDeflatedDataValues - Creates a {@link DeflatedDataValue} from a query result row. */

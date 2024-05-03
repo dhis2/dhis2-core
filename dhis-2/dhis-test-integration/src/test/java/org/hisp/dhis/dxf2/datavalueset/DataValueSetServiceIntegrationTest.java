@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -465,7 +465,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
-    assertEquals(getMediumDateString(todaysDate), getMediumDateString(dv2.getCreated()));
+    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getCreated()));
   }
 
   @Test
@@ -493,7 +493,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     assertEquals("new comment", dv2.getComment());
     assertEquals("22", dv2.getValue());
     assertNotEquals(dv2.getCreated(), dv2.getLastUpdated());
-    assertEquals(getMediumDateString(todaysDate), getMediumDateString(dv2.getCreated()));
+    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getCreated()));
   }
 
   @Test
@@ -511,7 +511,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
 
     // get newly-created data value
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
-    assertEquals(getMediumDateString(todaysDate), getMediumDateString(dv2.getLastUpdated()));
+    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getLastUpdated()));
   }
 
   @Test
@@ -536,7 +536,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase {
     DataValue dv2 = dataValueService.getDataValue(deA, peA, ouA, cc, cc);
     assertEquals("new comment", dv2.getComment());
     assertEquals("22", dv2.getValue());
-    assertEquals(getMediumDateString(todaysDate), getMediumDateString(dv2.getLastUpdated()));
+    assertEquals(toMediumDate(todaysDate), toMediumDate(dv2.getLastUpdated()));
   }
 
   /**

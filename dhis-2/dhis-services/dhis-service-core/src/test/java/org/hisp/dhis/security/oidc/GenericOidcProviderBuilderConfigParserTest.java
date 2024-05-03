@@ -53,7 +53,7 @@ class GenericOidcProviderBuilderConfigParserTest {
     p.put("oidc.provider.idporten.mapping_claim", "helseid://claims/identity/pid");
     p.put("oidc.provider.idporten.display_alias", "IdPorten");
     p.put("oidc.provider.idporten.enable_logout", "true");
-    p.put("oidc.provider.idporten.login_image", "../oidc/idporten-logo.svg");
+    p.put("oidc.provider.idporten.login_image", "/dhis-web-commons/oidc/idporten-logo.svg");
     p.put("oidc.provider.idporten.login_image_padding", "0px 0px");
     p.put("oidc.provider.idporten.extra_request_parameters", "acr_value 4,test_param five");
     p.put("oidc.provider.idporten.enable_pkce", "false");

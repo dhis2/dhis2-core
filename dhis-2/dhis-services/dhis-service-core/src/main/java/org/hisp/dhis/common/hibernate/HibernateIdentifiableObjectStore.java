@@ -326,9 +326,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     return object;
   }
 
+  /**
+   * Method that updates a {@link BaseIdentifiableObject}, bypassing any ACL checks. It calls {@link
+   * #setFields(BaseIdentifiableObject, UserDetails)} which ensures that the following properties
+   * are set before updating:
+   * <li>UID
+   * <li>created
+   * <li>createdBy
+   * <li>lastUpdated
+   * <li>lastUpdatedBy <br>
+   *     <br>
+   *     The current user is passed as the User to set for any relevant fields.
+   *
+   * @param object Object to update
+   */
   @Override
   public final void updateNoAcl(@Nonnull T object) {
-    object.setAutoFields();
+    setFields(object, CurrentUserUtil.getCurrentUserDetails());
     getSession().update(object);
   }
 
@@ -448,6 +462,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     JpaQueryParameters<T> param =
         new JpaQueryParameters<T>()
             .addPredicates(getSharingPredicates(builder))
+            .addPredicate(root -> builder.equal(root.get("name"), name))
+            .addOrder(root -> builder.asc(root.get("name")));
+
+    return getList(builder, param);
+  }
+
+  @Nonnull
+  @Override
+  public List<T> getAllEqName(@Nonnull String name, UserDetails userDetails) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<T> param =
+        new JpaQueryParameters<T>()
+            .addPredicates(getSharingPredicates(builder, userDetails))
             .addPredicate(root -> builder.equal(root.get("name"), name))
             .addOrder(root -> builder.asc(root.get("name")));
 

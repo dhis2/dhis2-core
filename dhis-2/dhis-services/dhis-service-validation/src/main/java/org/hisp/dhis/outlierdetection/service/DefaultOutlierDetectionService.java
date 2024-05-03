@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.outlierdetection.OutlierDetectionMetadata;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
@@ -43,7 +42,6 @@ import org.springframework.stereotype.Service;
 /**
  * @author Lars Helge Overland
  */
-@Slf4j
 @AllArgsConstructor
 @Service
 public class DefaultOutlierDetectionService {

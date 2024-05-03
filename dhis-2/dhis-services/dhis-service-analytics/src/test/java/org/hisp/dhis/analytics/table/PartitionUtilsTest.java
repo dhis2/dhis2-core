@@ -28,19 +28,15 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.Partitions;
+import org.hisp.dhis.analytics.table.model.Partitions;
+import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
@@ -91,21 +87,6 @@ class PartitionUtilsTest {
     expected = new Partitions(Set.of(2009, 2010));
 
     assertEquals(expected, PartitionUtils.getPartitions(period));
-  }
-
-  @Test
-  void testGetTablePartitions() {
-    List<AnalyticsTableColumn> dimensions = List.of(new AnalyticsTableColumn("dx", TEXT, "dx"));
-    List<AnalyticsTableColumn> values = List.of(new AnalyticsTableColumn("value", DOUBLE, "value"));
-    AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, dimensions, values);
-    tA.addPartitionTable(
-        2010, new DateTime(2010, 1, 1, 0, 0).toDate(), new DateTime(2010, 12, 31, 0, 0).toDate());
-    tA.addPartitionTable(
-        2011, new DateTime(2011, 1, 1, 0, 0).toDate(), new DateTime(2011, 12, 31, 0, 0).toDate());
-    AnalyticsTable tB = new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, dimensions, values);
-    List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions(List.of(tA, tB));
-
-    assertEquals(3, partitions.size());
   }
 
   @Test

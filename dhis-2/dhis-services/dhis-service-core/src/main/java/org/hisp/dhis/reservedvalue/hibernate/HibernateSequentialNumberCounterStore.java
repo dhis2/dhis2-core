@@ -28,7 +28,6 @@
 package org.hisp.dhis.reservedvalue.hibernate;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -54,9 +53,7 @@ public class HibernateSequentialNumberCounterStore implements SequentialNumberCo
                 .setParameter("length", length)
                 .getSingleResult();
 
-    return IntStream.range(count - length, length + (count - length))
-        .boxed()
-        .collect(Collectors.toList());
+    return IntStream.range(count - length, length + (count - length)).boxed().toList();
   }
 
   @Override

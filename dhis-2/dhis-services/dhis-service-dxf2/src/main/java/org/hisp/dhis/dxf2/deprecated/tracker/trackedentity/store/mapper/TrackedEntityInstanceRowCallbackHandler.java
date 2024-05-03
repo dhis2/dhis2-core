@@ -71,13 +71,13 @@ public class TrackedEntityInstanceRowCallbackHandler implements RowCallbackHandl
     tei.setTrackedEntityInstance(rs.getString(getColumnName(UID)));
     tei.setOrgUnit(rs.getString(getColumnName(ORGUNIT_UID)));
     tei.setTrackedEntityType(rs.getString(getColumnName(TYPE_UID)));
-    tei.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
-    tei.setCreatedAtClient(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATEDCLIENT))));
+    tei.setCreated(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
+    tei.setCreatedAtClient(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(CREATEDCLIENT))));
     JsonbToObjectHelper.setUserInfoSnapshot(
         rs, getColumnName(CREATED_BY), tei::setCreatedByUserInfo);
-    tei.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
+    tei.setLastUpdated(DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
     tei.setLastUpdatedAtClient(
-        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATEDCLIENT))));
+        DateUtils.toIso8601NoTz(rs.getTimestamp(getColumnName(UPDATEDCLIENT))));
     JsonbToObjectHelper.setUserInfoSnapshot(
         rs, getColumnName(LAST_UPDATED_BY), tei::setLastUpdatedByUserInfo);
     tei.setInactive(rs.getBoolean(getColumnName(INACTIVE)));

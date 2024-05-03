@@ -163,7 +163,7 @@ public enum ErrorCode {
   E2210("Data end date not allowed"),
   E2211("Algorithm min-max values not allowed"),
   E2212("Specifying both a start date/end date and a relative period is not allowed"),
-
+  E2213("Value of param orderBy is not compatible with algorithm `{0}`"),
   /* Followup analysis */
   E2300("At least one data element or data set must be specified"),
   E2301("Start date and end date must be specified directly or indirectly by specifying a period"),
@@ -445,11 +445,13 @@ public enum ErrorCode {
   E7144(
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
+  E7146("A {0} date was not specified in periods, dimensions, filters"),
 
   /* Analytics outliers */
 
   E7180(
       "The analytics outliers data does not exist. Please ensure analytics job was run and did not skip the outliers"),
+  E7181("Column `{0}` specified, in orderBy, is not eligible for orderBy or does not exist"),
 
   /* Event analytics */
   E7200(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -498,6 +500,7 @@ public enum ErrorCode {
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
+  E7251("Query does not support program indicators: `{0}`"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -534,6 +537,7 @@ public enum ErrorCode {
   E7619("Value must match value type of data element `{0}`: `{1}`"),
   E7620("Invalid comment: {0}"),
   E7621("Data value is not a valid option of the data element option set: `{0}`"),
+  E7622("Current user `{0}` has no access to any organisation unit data"),
   // Data Value constraints
   E7630("Category option combo is required but is not specified"),
   E7631("Attribute option combo is required but is not specified"),

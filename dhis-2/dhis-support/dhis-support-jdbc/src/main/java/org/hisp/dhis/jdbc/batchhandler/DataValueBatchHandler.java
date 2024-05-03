@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.jdbc.batchhandler;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.toLongDate;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -126,8 +126,8 @@ public class DataValueBatchHandler extends AbstractBatchHandler<DataValue> {
         value.getAttributeOptionCombo().getId(),
         value.getValue(),
         value.getStoredBy(),
-        getLongDateString(value.getCreated()),
-        getLongDateString(value.getLastUpdated()),
+        toLongDate(value.getCreated()),
+        toLongDate(value.getLastUpdated()),
         value.getComment(),
         value.isFollowup(),
         value.isDeleted());

@@ -41,7 +41,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
@@ -56,6 +55,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,11 +67,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 class SecurityOwnershipValidator implements Validator<Enrollment> {
+
   @Nonnull private final AclService aclService;
-
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
-
-  @Nonnull private final OrganisationUnitService organisationUnitService;
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
       " has no organisation unit assigned, so we skip user validation";
@@ -159,12 +157,12 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
 
-    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+    if (!user.isInUserHierarchy(orgUnit.getPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
@@ -172,7 +170,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private void checkTeiTypeAndTeiProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      User user,
+      UserDetails user,
       String trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program) {
@@ -197,7 +195,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Enrollment enrollment,
       Program program,
       OrganisationUnit ownerOrgUnit) {
-    User user = bundle.getUser();
+    UserDetails user = UserDetails.fromUser(bundle.getUser());
 
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
@@ -221,7 +219,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   }
 
   private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, User user, Program program) {
+      Reporter reporter, TrackerDto dto, UserDetails user, Program program) {
     checkNotNull(user, USER_CANT_BE_NULL);
     checkNotNull(program, PROGRAM_CANT_BE_NULL);
 

@@ -47,6 +47,7 @@ public class AggregateDataExchangeSchemaDescriptor implements SchemaDescriptor {
     Schema schema = new Schema(AggregateDataExchange.class, SINGULAR, PLURAL);
     schema.setRelativeApiEndpoint(API_ENDPOINT);
     schema.setOrder(1900);
+    schema.setDataShareable(true);
 
     schema.add(
         new Authority(

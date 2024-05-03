@@ -54,7 +54,7 @@ import org.springframework.core.io.ClassPathResource;
 
 @Slf4j
 public abstract class EmbeddedJettyBase {
-  private String resourceBase = "./dhis-web/dhis-web-portal/target/dhis";
+  private String resourceBase = "./dhis-web-portal/target/dhis";
 
   protected EmbeddedJettyBase() {
     Thread.currentThread()
@@ -81,7 +81,7 @@ public abstract class EmbeddedJettyBase {
     rewrite.setHandler(resourceHandler);
     RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
     rewritePatternRule.setPattern("");
-    rewritePatternRule.setLocation("/index.html");
+    rewritePatternRule.setLocation("/dhis-web-login");
     rewrite.addRule(rewritePatternRule);
 
     HandlerList handlers = new HandlerList();

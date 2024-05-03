@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.F_INSERT_CUSTOM_JS_CSS;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -38,13 +39,13 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -86,7 +87,7 @@ public class FileController {
   }
 
   @PostMapping(value = "/script", consumes = "application/javascript")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomScript(@RequestBody String content) {
@@ -98,7 +99,7 @@ public class FileController {
   }
 
   @DeleteMapping("/script")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeCustomScript(HttpServletResponse response) {
     systemSettingManager.deleteSystemSetting(SettingKey.CUSTOM_JS);
@@ -126,7 +127,7 @@ public class FileController {
   }
 
   @PostMapping(value = "/style", consumes = "text/css")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
   public WebMessage postCustomStyle(@RequestBody String content) {
@@ -138,7 +139,7 @@ public class FileController {
   }
 
   @DeleteMapping("/style")
-  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @RequiresAuthority(anyOf = F_INSERT_CUSTOM_JS_CSS)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void removeCustomStyle(HttpServletResponse response) {
     systemSettingManager.deleteSystemSetting(SettingKey.CUSTOM_CSS);

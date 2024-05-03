@@ -27,15 +27,18 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import java.util.Objects;
+import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.common.query.Renderable;
+import org.hisp.dhis.legend.LegendSet;
 
-@RequiredArgsConstructor(staticName = "of")
+@RequiredArgsConstructor
 public class RenderableDataValue extends BaseRenderable {
   private final String alias;
 
@@ -43,27 +46,56 @@ public class RenderableDataValue extends BaseRenderable {
 
   private final ValueTypeMapping valueTypeMapping;
 
-  private final String asAlias;
-
   public static RenderableDataValue of(
       String alias, String dataValue, ValueTypeMapping valueTypeMapping) {
-    return RenderableDataValue.of(alias, dataValue, valueTypeMapping, null);
+    return new RenderableDataValue(alias, dataValue, valueTypeMapping);
+  }
+
+  /**
+   * Returns a Renderable that transforms the data value using the provided legend set.
+   *
+   * @param renderableDataValue RenderableDataValue
+   * @param legendSet LegendSet
+   * @return Renderable with legend set transformation
+   */
+  public static Renderable withLegendSet(
+      RenderableDataValue renderableDataValue, LegendSet legendSet) {
+    return renderableDataValue.transformedIfNecessary(
+        value ->
+            legendSet.getLegends().stream()
+                .map(
+                    legend ->
+                        String.format(
+                            "WHEN %s BETWEEN '%s' AND '%s' THEN '%s'",
+                            value,
+                            legend.getStartValue(),
+                            legend.getEndValue(),
+                            legend.getDisplayName()))
+                .collect(joining(" ", "CASE ", " END")));
+  }
+
+  public Renderable transformedIfNecessary() {
+    return transformedIfNecessary(valueTypeMapping.getSelectTransformer());
+  }
+
+  public Renderable transformedIfNecessary(UnaryOperator<String> dataValueTransformer) {
+    RenderableDataValue withoutAsAlias = RenderableDataValue.of(alias, dataValue, valueTypeMapping);
+
+    return Field.ofUnquoted(
+        EMPTY, () -> dataValueTransformer.apply(withoutAsAlias.render()), EMPTY);
   }
 
   @Override
   public String render() {
-    String rendered =
-        "("
-            + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
-            + " -> '"
-            + dataValue
-            + "' ->> 'value')::"
-            + valueTypeMapping.name();
+    return String.format(
+        "(%s -> '%s' ->> 'value%s')::%s",
+        Field.of(alias, () -> "eventdatavalues", EMPTY).render(),
+        dataValue,
+        getValueSuffix(),
+        valueTypeMapping.getPostgresCast());
+  }
 
-    if (Objects.nonNull(asAlias)) {
-      rendered += " as " + asAlias;
-    }
-
-    return rendered;
+  protected String getValueSuffix() {
+    return EMPTY;
   }
 }

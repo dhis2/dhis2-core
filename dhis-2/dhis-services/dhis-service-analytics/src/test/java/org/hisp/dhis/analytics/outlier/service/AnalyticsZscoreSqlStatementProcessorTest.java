@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.outlier.service;
 
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
@@ -40,7 +41,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.outlier.OutlierSqlStatementProcessor;
+import org.hisp.dhis.analytics.outlier.data.DataDimension;
 import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,11 +61,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   // Fixture
   // -------------------------------------------------------------------------
 
-  private DataElement deA;
-
-  private DataElement deB;
-
-  private DataElement deC;
+  private List<DataDimension> dataDimensions;
 
   private OrganisationUnit ouA;
 
@@ -72,9 +71,19 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   public void setUp() {
     subject = new AnalyticsZScoreSqlStatementProcessor();
 
-    deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
-    deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
-    deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);
+    DataElement deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
+    DataElement deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
+    DataElement deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);
+
+    CategoryOptionCombo cocA = createCategoryOptionCombo('A');
+    CategoryOptionCombo cocB = createCategoryOptionCombo('B');
+    CategoryOptionCombo cocC = createCategoryOptionCombo('C');
+
+    dataDimensions =
+        List.of(
+            new DataDimension(deA, cocA),
+            new DataDimension(deB, cocB),
+            new DataDimension(deC, cocC));
 
     ouA = createOrganisationUnit('A');
     ouB = createOrganisationUnit('B');
@@ -84,7 +93,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   void testGetSqlStatementWithZScore() {
     OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
     builder
-        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .dataDimensions(dataDimensions)
         .startDate(getDate(2020, 1, 1))
         .endDate(getDate(2020, 3, 1))
         .orgUnits(Lists.newArrayList(ouA, ouB))
@@ -98,7 +107,7 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   void testGetSqlStatementWithModifiedZScore() {
     OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
     builder
-        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .dataDimensions(dataDimensions)
         .startDate(getDate(2020, 1, 1))
         .endDate(getDate(2020, 3, 1))
         .orgUnits(Lists.newArrayList(ouA, ouB))
@@ -122,13 +131,13 @@ class AnalyticsZscoreSqlStatementProcessorTest {
     List<Period> periods = List.of(period);
     OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
     builder
-        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .dataDimensions(dataDimensions)
         .periods(periods)
         .orgUnits(Lists.newArrayList(ouA, ouB))
         .build();
     String sql = subject.getSqlStatement(builder.build());
     String expected =
-        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ( ax.pestartdate >= :start_date0 and ax.peenddate <= :end_date0 )) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
+        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where ((ax.dataelementid = :data_element_id0 and ax.categoryoptioncomboid = :category_option_combo_id0) or (ax.dataelementid = :data_element_id1 and ax.categoryoptioncomboid = :category_option_combo_id1) or (ax.dataelementid = :data_element_id2 and ax.categoryoptioncomboid = :category_option_combo_id2)) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ( ax.pestartdate >= :start_date0 and ax.peenddate <= :end_date0 )) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
     assertEquals(expected, sql);
   }
 
@@ -136,14 +145,14 @@ class AnalyticsZscoreSqlStatementProcessorTest {
   void testGetSqlStatementWithStartEndDate() {
     OutlierRequest.OutlierRequestBuilder builder = OutlierRequest.builder();
     builder
-        .dataElements(Lists.newArrayList(deA, deB, deC))
+        .dataDimensions(dataDimensions)
         .startDate(getDate(2020, 1, 1))
         .endDate(getDate(2020, 3, 1))
         .orgUnits(Lists.newArrayList(ouA, ouB))
         .build();
     String sql = subject.getSqlStatement(builder.build());
     String expected =
-        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where dataelementid in  (:data_element_ids) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
+        "select * from (select ax.dx as de_uid, ax.ou as ou_uid, ax.co as coc_uid, ax.ao as aoc_uid, ax.value, ax.pestartdate as pe_start_date, ax.petype as pt_name,  ax.avg_middle_value as middle_value, ax.std_dev, ax.mad, abs(ax.value::double precision -  ax.avg_middle_value) as middle_value_abs_dev, (case when ax.std_dev = 0 then 0       else abs(ax.value::double precision -  ax.avg_middle_value ) / ax.std_dev        end) as z_score,  ax.avg_middle_value - (ax.std_dev * :threshold) as lower_bound,  ax.avg_middle_value + (ax.std_dev * :threshold) as upper_bound from analytics ax where ((ax.dataelementid = :data_element_id0 and ax.categoryoptioncomboid = :category_option_combo_id0) or (ax.dataelementid = :data_element_id1 and ax.categoryoptioncomboid = :category_option_combo_id1) or (ax.dataelementid = :data_element_id2 and ax.categoryoptioncomboid = :category_option_combo_id2)) and (ax.\"path\" like '/ouabcdefghA%' or ax.\"path\" like '/ouabcdefghB%') and ax.pestartdate >= :start_date and ax.peenddate <= :end_date) t1 where t1.z_score > :threshold order by middle_value_abs_dev desc limit :max_results ";
     assertEquals(expected, sql);
   }
 }

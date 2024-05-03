@@ -32,7 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
+import javax.servlet.http.Cookie;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpMethod;
@@ -142,6 +144,12 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     @Override
     public String getHeader(String name) {
       return response.getHeader(name);
+    }
+
+    @Override
+    public String[] getCookies() {
+      Cookie[] cookies = response.getCookies();
+      return Arrays.stream(cookies).map(Cookie::getValue).toArray(String[]::new);
     }
   }
 }

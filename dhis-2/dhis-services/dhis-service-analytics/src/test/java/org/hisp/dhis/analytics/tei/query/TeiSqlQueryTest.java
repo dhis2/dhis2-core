@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.tei.query;
 
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -55,6 +56,7 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryCreatorService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -81,7 +83,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
             new OrgUnitQueryBuilder(),
             new PeriodQueryBuilder(),
             new EnrolledInProgramQueryBuilder(),
-            new TeiQueryBuilder(),
+            new TeiQueryBuilder(mock(IdentifiableObjectManager.class)),
             new ProgramIndicatorQueryBuilder(programIndicatorService));
     sqlQueryCreatorService = new SqlQueryCreatorService(queryBuilders);
   }
@@ -197,7 +199,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest {
             prg,
             programStage,
             DimensionParam.ofObject(
-                dimensionalObject, DimensionParamType.SORTING, List.of(StringUtils.EMPTY)));
+                dimensionalObject, DimensionParamType.SORTING, UID, List.of(StringUtils.EMPTY)));
 
     AnalyticsSortingParams analyticsSortingParams =
         AnalyticsSortingParams.builder()

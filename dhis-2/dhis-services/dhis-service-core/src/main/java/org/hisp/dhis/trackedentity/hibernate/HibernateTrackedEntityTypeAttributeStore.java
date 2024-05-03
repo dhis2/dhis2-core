@@ -33,7 +33,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -51,8 +50,7 @@ public class HibernateTrackedEntityTypeAttributeStore
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      AclService aclService,
-      StatementBuilder statementBuilder) {
+      AclService aclService) {
     super(
         entityManager, jdbcTemplate, publisher, TrackedEntityTypeAttribute.class, aclService, true);
   }

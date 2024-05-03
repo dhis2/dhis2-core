@@ -92,7 +92,7 @@ public class AdxPeriod {
     try {
       Period period;
       PeriodType periodType = null;
-      Date startDate = DateUtils.getMediumDate(tokens[0]);
+      Date startDate = DateUtils.toMediumDate(tokens[0]);
       Calendar cal = Calendar.getInstance();
       cal.setTime(startDate);
       Duration duration = Duration.valueOf(tokens[1]);
@@ -189,7 +189,7 @@ public class AdxPeriod {
   }
 
   public static String serialize(Period period) {
-    return DateUtils.getMediumDateString(period.getStartDate())
+    return DateUtils.toMediumDate(period.getStartDate())
         + "/"
         + period.getPeriodType().getIso8601Duration();
   }

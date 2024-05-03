@@ -51,7 +51,7 @@ public class HibernateEncryptionConfig {
 
   public static final String AES_128_STRING_ENCRYPTOR = "aes128StringEncryptor";
 
-  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
+  @Autowired private DhisConfigurationProvider config;
 
   private String password;
 
@@ -102,7 +102,7 @@ public class HibernateEncryptionConfig {
   }
 
   private Object getConnectionProperty(ConfigurationKey key, String defaultValue) {
-    String value = dhisConfigurationProvider.getPropertyOrDefault(key, defaultValue);
+    String value = config.getPropertyOrDefault(key, defaultValue);
 
     return StringUtils.defaultIfEmpty(value, defaultValue);
   }

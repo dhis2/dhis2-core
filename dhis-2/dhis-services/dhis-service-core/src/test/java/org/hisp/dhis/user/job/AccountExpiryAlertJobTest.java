@@ -29,16 +29,14 @@ package org.hisp.dhis.user.job;
 
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Date;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.NoopJobProgress;
@@ -82,6 +80,7 @@ class AccountExpiryAlertJobTest {
 
   @Test
   void testEnabledJobSendsEmail() {
+    when(messageSender.isConfigured()).thenReturn(true);
     when(userService.getExpiringUserAccounts(anyInt()))
         .thenReturn(
             singletonList(
@@ -100,18 +99,9 @@ class AccountExpiryAlertJobTest {
   }
 
   @Test
-  void testValidate() {
-    when(messageSender.isConfigured()).thenReturn(true);
-    assertNull(job.validate());
-  }
-
-  @Test
   void testValidate_Error() {
     when(messageSender.isConfigured()).thenReturn(false);
-    ErrorReport report = job.validate();
-    assertEquals(ErrorCode.E7010, report.getErrorCode());
-    assertEquals(
-        "Failed to validate job runtime: `EMAIL gateway configuration does not exist`",
-        report.getMessage());
+    job.execute(new JobConfiguration(), NoopJobProgress.INSTANCE);
+    verify(messageSender, never()).sendMessage(anyString(), anyString(), anyString());
   }
 }

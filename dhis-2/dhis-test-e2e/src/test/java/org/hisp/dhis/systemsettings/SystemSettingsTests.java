@@ -28,6 +28,7 @@
 package org.hisp.dhis.systemsettings;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -324,5 +325,16 @@ class SystemSettingsTests extends ApiTest {
     ValidatableResponse validate = systemSettingActions.get().validate();
     validate.statusCode(200);
     validate.header("Cache-Control", "no-cache, no-store, must-revalidate");
+  }
+
+  @Test
+  @DisplayName(
+      "The value/default value returned for the Google Maps API key is an empty string, when JSON requested")
+  void getSystemSettingsGoogleMapsApiKeyJson() {
+    systemSettingActions
+        .get("keyGoogleMapsApiKey")
+        .validate()
+        .statusCode(200)
+        .body("keyGoogleMapsApiKey", emptyString());
   }
 }

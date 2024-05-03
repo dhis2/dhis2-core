@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,21 +36,26 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -58,8 +65,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -70,7 +77,6 @@ import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggreg
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,48 +103,128 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final EventService eventService;
 
+  private final AclService aclService;
+
+  private final FileResourceService fileResourceService;
+
   private final TrackedEntityOperationParamsMapper mapper;
 
-  private final UserService userService;
+  @Override
+  public FileResourceStream getFileResource(
+      UID trackedEntity, UID attribute, @CheckForNull UID program) throws NotFoundException {
+    FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
+    return FileResourceStream.of(fileResourceService, fileResource);
+  }
 
   @Override
-  public TrackedEntity getTrackedEntity(
-      String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException {
-    TrackedEntity daoTrackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(daoTrackedEntity, CurrentUserUtil.getCurrentUsername());
-    if (daoTrackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
+  public FileResourceStream getFileResourceImage(
+      UID trackedEntity, UID attribute, @CheckForNull UID program, ImageFileDimension dimension)
+      throws NotFoundException {
+    FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
+    return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
+  }
+
+  private FileResource getFileResourceMetadata(
+      UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
+      throws NotFoundException {
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
+    if (trackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
-    return getTrackedEntity(daoTrackedEntity, params, includeDeleted);
+    TrackedEntityAttribute attribute = getAttribute(attributeUid, trackedEntity, programUid);
+    if (!attribute.getValueType().isFile()) {
+      throw new NotFoundException(
+          "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
+    }
+
+    String fileResourceUid = null;
+    for (TrackedEntityAttributeValue attributeValue :
+        trackedEntity.getTrackedEntityAttributeValues()) {
+      if (attributeUid.getValue().equals(attributeValue.getAttribute().getUid())) {
+        fileResourceUid = attributeValue.getValue();
+        break;
+      }
+    }
+
+    if (fileResourceUid == null) {
+      throw new NotFoundException(
+          "Attribute value for tracked entity attribute "
+              + attributeUid.getValue()
+              + " could not be found.");
+    }
+
+    return fileResourceService.getExistingFileResource(fileResourceUid);
+  }
+
+  /**
+   * Tracked entity attributes are fetched from the program if supplied, otherwise from the tracked
+   * entities type. Access is determined through the program sharing and ownership if present. If no
+   * program is supplied, we fall back to tracked entity type ownership and the registering org unit
+   * of the tracked entity.
+   */
+  private TrackedEntityAttribute getAttribute(
+      UID attributeUid, TrackedEntity trackedEntity, @CheckForNull UID programUid)
+      throws NotFoundException {
+    UserDetails currentUser = getCurrentUserDetails();
+
+    if (programUid != null) {
+      Program program = programService.getProgram(programUid.getValue());
+      if (program == null) {
+        throw new NotFoundException(Program.class, programUid.getValue());
+      }
+
+      if (!trackerAccessManager.canRead(currentUser, trackedEntity, program, false).isEmpty()) {
+        throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
+      }
+      return getAttribute(attributeUid, program);
+    }
+
+    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
+      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
+    }
+    return getAttribute(attributeUid, trackedEntity.getTrackedEntityType());
+  }
+
+  private TrackedEntityAttribute getAttribute(UID attribute, Program program)
+      throws NotFoundException {
+    Set<TrackedEntityAttribute> attributes =
+        trackedEntityAttributeService.getProgramAttributes(program);
+    return getAttribute(attributes, attribute);
+  }
+
+  private TrackedEntityAttribute getAttribute(UID attribute, TrackedEntityType trackedEntityType)
+      throws NotFoundException {
+    Set<TrackedEntityAttribute> attributes =
+        trackedEntityAttributeService.getTrackedEntityTypeAttributes(trackedEntityType);
+    return getAttribute(attributes, attribute);
+  }
+
+  private static TrackedEntityAttribute getAttribute(
+      Set<TrackedEntityAttribute> attributes, UID attribute) throws NotFoundException {
+    return attributes.stream()
+        .filter(att -> attribute.getValue().equals(att.getUid()))
+        .findFirst()
+        .orElseThrow(
+            () -> new NotFoundException(TrackedEntityAttribute.class, attribute.getValue()));
   }
 
   @Override
   public TrackedEntity getTrackedEntity(
       String uid, String programIdentifier, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     Program program = null;
 
     if (StringUtils.isNotEmpty(programIdentifier)) {
       program = programService.getProgram(programIdentifier);
-
       if (program == null) {
         throw new NotFoundException(Program.class, programIdentifier);
       }
     }
 
-    TrackedEntity trackedEntity = getTrackedEntity(uid, params, includeDeleted);
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
+    TrackedEntity trackedEntity;
     if (program != null) {
-      if (!trackerAccessManager.canRead(currentUser, trackedEntity, program, false).isEmpty()) {
-        if (program.getAccessLevel() == AccessLevel.CLOSED) {
-          throw new ForbiddenException(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED);
-        }
-        throw new ForbiddenException(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
-      }
+      trackedEntity = getTrackedEntity(uid, program, params, includeDeleted);
 
       if (params.isIncludeProgramOwners()) {
         Set<TrackedEntityProgramOwner> filteredProgramOwners =
@@ -148,35 +234,141 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         trackedEntity.setProgramOwners(filteredProgramOwners);
       }
     } else {
-      // return only tracked entity type attributes
-      TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-      if (trackedEntityType != null) {
-        Set<String> tetAttributes =
-            trackedEntityType.getTrackedEntityAttributes().stream()
-                .map(TrackedEntityAttribute::getUid)
-                .collect(Collectors.toSet());
-        Set<TrackedEntityAttributeValue> tetAttributeValues =
-            trackedEntity.getTrackedEntityAttributeValues().stream()
-                .filter(att -> tetAttributes.contains(att.getAttribute().getUid()))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-        trackedEntity.setTrackedEntityAttributeValues(tetAttributeValues);
-      }
-    }
+      trackedEntity =
+          mapTrackedEntity(getTrackedEntity(uid), params, getCurrentUserDetails(), includeDeleted);
 
+      mapTrackedEntityTypeAttributes(trackedEntity);
+    }
     return trackedEntity;
   }
 
-  @Override
-  public TrackedEntity getTrackedEntity(
-      @Nonnull TrackedEntity trackedEntity, TrackedEntityParams params, boolean includeDeleted)
-      throws ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+  /**
+   * Gets a tracked entity based on the TE registration org unit
+   *
+   * @return the TE object if found and accessible by the current user
+   * @throws NotFoundException if uid does not exist
+   * @throws ForbiddenException if TE registration org unit not in user's scope or not enough
+   *     sharing access
+   */
+  private TrackedEntity getTrackedEntity(
+      String uid, TrackedEntityParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity = getTrackedEntity(uid);
+    UserDetails currentUser = getCurrentUserDetails();
 
+    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
+    return mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted);
+  }
+
+  /**
+   * Gets a tracked entity based on the program and org unit ownership
+   *
+   * @return the TE object if found and accessible by the current user
+   * @throws NotFoundException if uid does not exist
+   * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
+   */
+  private TrackedEntity getTrackedEntity(
+      String uid, Program program, TrackedEntityParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    if (trackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+
+    UserDetails userDetails = getCurrentUserDetails();
+    List<String> errors =
+        trackerAccessManager.canReadProgramAndTrackedEntityType(
+            userDetails, trackedEntity, program);
+    if (!errors.isEmpty()) {
+      throw new ForbiddenException(errors.toString());
+    }
+
+    String error =
+        trackerAccessManager.canAccessProgramOwner(userDetails, trackedEntity, program, false);
+    if (error != null) {
+      throw new ForbiddenException(error);
+    }
+
+    return mapTrackedEntity(trackedEntity, params, userDetails, includeDeleted);
+  }
+
+  /**
+   * Gets the requested tracked entity if the user owns at least one TE/program pair, or has access
+   * to the TE registering org unit, in case it doesn't own any.
+   *
+   * @return the TE object if found and accessible by the user
+   * @throws NotFoundException if TE does not exist
+   * @throws ForbiddenException if TE is not accessible
+   */
+  private TrackedEntity getTrackedEntity(String uid) throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    if (trackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+
+    /**
+     * TODO This is a temporary fix, a more permanent solution needs to be found, maybe store the
+     * org unit path directly in the cache as a string or avoid using an Hibernate object in the
+     * cache
+     *
+     * <p>The tracked entity org unit will be used as a fallback in case no owner is found. In that
+     * case, it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be
+     * loaded unless accessed. This is a problem because we save the org unit object in the cache,
+     * and when we retrieve it, we can't get the value of the parents, since there's no session. We
+     * need the parents to build the org unit path, that later will be used to validate the
+     * ownership.
+     */
+    initializeTrackedEntityOrgUnitParents(trackedEntity);
+
+    if (programService.getAllPrograms().stream()
+        .anyMatch(
+            p ->
+                p.getTrackedEntityType() != null
+                    && p.getTrackedEntityType()
+                        .getUid()
+                        .equals(trackedEntity.getTrackedEntityType().getUid())
+                    && trackerAccessManager
+                        .canRead(getCurrentUserDetails(), trackedEntity, p, false)
+                        .isEmpty())) {
+      return trackedEntity;
+    }
+
+    throw new ForbiddenException(TrackedEntity.class, uid);
+  }
+
+  private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
+    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
+    while (organisationUnit.getParent() != null) {
+      organisationUnit = organisationUnit.getParent();
+    }
+  }
+
+  private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    if (trackedEntityType != null) {
+      Set<String> tetAttributes =
+          trackedEntityType.getTrackedEntityAttributes().stream()
+              .map(TrackedEntityAttribute::getUid)
+              .collect(Collectors.toSet());
+      Set<TrackedEntityAttributeValue> tetAttributeValues =
+          trackedEntity.getTrackedEntityAttributeValues().stream()
+              .filter(att -> tetAttributes.contains(att.getAttribute().getUid()))
+              .collect(Collectors.toCollection(LinkedHashSet::new));
+      trackedEntity.setTrackedEntityAttributeValues(tetAttributeValues);
+    }
+  }
+
+  private TrackedEntity mapTrackedEntity(
+      TrackedEntity trackedEntity,
+      TrackedEntityParams params,
+      UserDetails currentUser,
+      boolean includeDeleted) {
     TrackedEntity result = new TrackedEntity();
     result.setId(trackedEntity.getId());
     result.setUid(trackedEntity.getUid());
@@ -203,14 +395,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
     }
-    result.setTrackedEntityAttributeValues(
-        getTrackedEntityAttributeValues(trackedEntity, currentUser));
+    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity));
 
     return result;
   }
 
   private Set<RelationshipItem> getRelationshipItems(
-      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
+      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted) {
     Set<RelationshipItem> items = new HashSet<>();
 
     for (RelationshipItem relationshipItem : trackedEntity.getRelationshipItems()) {
@@ -225,7 +416,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
+      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted) {
     Set<Enrollment> enrollments = new HashSet<>();
 
     for (Enrollment enrollment : trackedEntity.getEnrollments()) {
@@ -245,10 +436,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity, User user) {
+      TrackedEntity trackedEntity) {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            UserDetails.fromUser(user));
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -331,7 +521,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
-    return Page.of(trackedEntities, ids.getPager(), ids.isPageTotal());
+    return ids.withItems(trackedEntities);
   }
 
   public List<Long> getTrackedEntityIds(TrackedEntityQueryParams params) {

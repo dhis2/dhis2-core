@@ -33,9 +33,16 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           allowed-conclusions: success
 
+      - name: 'Get latest IM tag'
+        id: latest-im-tag
+        run: |
+          LATEST_IM_TAG=$(git ls-remote --tags --sort='v:refname' https://github.com/dhis2-sre/im-manager | tail -1 | awk '{print $2}')
+          echo "LATEST_IM_TAG=$LATEST_IM_TAG" >> $GITHUB_ENV
+
       - uses: actions/checkout@v4
         with:
           repository: dhis2-sre/im-manager
+          ref: ${{ env.LATEST_IM_TAG }}
           sparse-checkout: scripts/instances
 
       - name: Install HTTPie
@@ -48,13 +55,18 @@ jobs:
           IMAGE_TAG: ${{ github.event.pull_request.number }}
           IMAGE_PULL_POLICY: Always
           DATABASE_ID: test-dbs-sierra-leone-dev-sql-gz
-        run: ./findByName.sh dev $INSTANCE_NAME && ./restart.sh dev $INSTANCE_NAME || ./deploy-dhis2.sh dev $INSTANCE_NAME
+        run: |
+          ./findByName.sh dev $INSTANCE_NAME | jq --exit-status 'has("id")' &&
+          ./restart.sh $(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id') ||
+          ./deploy-dhis2.sh dev $INSTANCE_NAME
 
       - name: Wait for instance
         working-directory: scripts/instances
         env:
           EXPECTED_STATUS: Running
-        run: timeout 600 bash -ex -c 'until [[ "$(./status.sh dev $INSTANCE_NAME | jq -r)" == "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
+        run: |
+          export INSTANCE_ID=$(./findByName.sh dev $INSTANCE_NAME | jq '.instances[] | select(.stackName=="dhis2-core") | .id')
+          timeout 600 bash -ex -c 'until [[ "$(./status.sh $INSTANCE_ID | jq -r)" == "$EXPECTED_STATUS" ]]; do echo "Instance is not $EXPECTED_STATUS yet ..."; sleep 5; done'
 
       - name: Start analytics generation
         run: curl -X POST -u "${{ secrets.DHIS2_USERNAME }}:${{ secrets.DHIS2_PASSWORD }}" "$INSTANCE_HOST/$INSTANCE_NAME/api/resourceTables/analytics" -d 'executeTei=true'
