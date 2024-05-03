@@ -202,7 +202,18 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
         assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
     assertNotNull(persistenceException.getMessage());
 
-    assertEquals("test", persistenceException.getCause().getMessage());
+    // then DB constraint is thrown
+    List<String> expectedStrings =
+        List.of(
+            "duplicate key value violates unique constraint",
+            "minmaxdataelement_unique_key",
+            "Detail: Key (sourceid, dataelementid, categoryoptioncomboid)",
+            "already exists");
+
+    assertTrue(
+        expectedStrings.stream()
+            .allMatch(
+                exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
   }
 
   // -------------------------------
