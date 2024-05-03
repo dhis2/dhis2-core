@@ -55,28 +55,28 @@ public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
    * @throws IllegalArgumentException if the query argument is null.
    */
   @Override
-  public SqlQueryResult find(@Nonnull SqlQuery sqlQuery) {
-    notNull(sqlQuery, "The 'query' must not be null");
+  public SqlQueryResult find(@Nonnull SqlQuery query) {
+    notNull(query, "The 'query' must not be null");
 
     SqlRowSet rowSet =
         namedParameterJdbcTemplate.queryForRowSet(
-            sqlQuery.getStatement(), new MapSqlParameterSource().addValues(sqlQuery.getParams()));
+            query.getStatement(), new MapSqlParameterSource().addValues(query.getParams()));
 
     return new SqlQueryResult(
-        new SqlRowSetJsonExtractorDelegator(rowSet, sqlQuery.getDimensionIdentifiers()));
+        new SqlRowSetJsonExtractorDelegator(rowSet, query.getDimensionIdentifiers()));
   }
 
   /**
    * @throws IllegalArgumentException if the query argument is null.
    */
   @Override
-  public long count(SqlQuery forCount) {
-    notNull(forCount, "The 'query' must not be null");
+  public long count(SqlQuery query) {
+    notNull(query, "The 'query' must not be null");
 
     return Optional.ofNullable(
             namedParameterJdbcTemplate.queryForObject(
-                forCount.getStatement(),
-                new MapSqlParameterSource().addValues(forCount.getParams()),
+                query.getStatement(),
+                new MapSqlParameterSource().addValues(query.getParams()),
                 Long.class))
         .orElse(0L);
   }

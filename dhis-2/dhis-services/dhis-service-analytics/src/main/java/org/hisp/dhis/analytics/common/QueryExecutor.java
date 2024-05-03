@@ -41,17 +41,17 @@ public interface QueryExecutor<T extends Query, E extends QueryResult> {
   /**
    * Executes a find operation based on the given SQL query object.
    *
-   * @param queryCreator the SQL statement to be executed.
+   * @param query the SQL statement to be executed.
    * @return the result of the execution represented by a {@link QueryResult} object.
    */
   @Nonnull
-  E find(@Nonnull T queryCreator);
+  E find(@Nonnull T query);
 
   /**
    * Executes a count operation based on the given SQL query object.
    *
-   * @param queryCreator the SQL statement to be executed.
+   * @param query the SQL statement to be executed.
    * @return the number of results found.
    */
-  long count(@Nonnull T queryCreator);
+  long count(@Nonnull T query);
 }
