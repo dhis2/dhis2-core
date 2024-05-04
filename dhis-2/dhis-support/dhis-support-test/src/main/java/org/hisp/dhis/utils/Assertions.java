@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -151,6 +152,27 @@ public final class Assertions {
                 "expected string to start with '%s', got '%s' instead", expected, actual));
   }
 
+  /**
+   * Asserts that the given string neither null, a length of zero nor
+   * whitespace only.
+   *
+   * @param actual the string.
+   */
+  public static void assertNotBlank(String actual) {
+      assertNotNull( actual );
+      assertTrue( !actual.isBlank() );
+  }
+
+  /**
+   * Asserts that the given string neither null or a length of zero.
+   *
+   * @param actual the string.
+   */
+  public static void assertNotEmpty(String actual) {
+      assertNotNull( actual );
+      assertTrue( !actual.isEmpty() );
+  }
+  
   /**
    * Asserts that the given character sequence is contained within the actual string.
    *
