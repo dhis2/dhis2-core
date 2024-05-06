@@ -43,9 +43,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -65,21 +62,18 @@ class TrackedEntitiesSupportService {
 
   @Nonnull private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
-  @Nonnull private final TrackedEntityTypeService trackedEntityTypeService;
-
   @SneakyThrows
   public TrackedEntityInstance getTrackedEntityInstance(
       String id, String pr, TrackedEntityInstanceParams trackedEntityInstanceParams) {
     User user = currentUserService.getCurrentUser();
 
-    TrackedEntityInstance trackedEntityInstance =
-        trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
-
-    if (trackedEntityInstance == null) {
-      throw new NotFoundException(TrackedEntityInstance.class, id);
-    }
+    TrackedEntityInstance trackedEntityInstance = null;
 
     if (pr != null) {
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
+              id, trackedEntityInstanceParams);
+
       Program program = programService.getProgram(pr);
 
       if (program == null) {
@@ -112,21 +106,11 @@ class TrackedEntitiesSupportService {
       }
     } else {
       // return only tracked entity type attributes
+      trackedEntityInstance =
+          trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
 
-      TrackedEntityType trackedEntityType =
-          trackedEntityTypeService.getTrackedEntityType(
-              trackedEntityInstance.getTrackedEntityType());
-
-      if (trackedEntityType != null) {
-        List<String> tetAttributes =
-            trackedEntityType.getTrackedEntityAttributes().stream()
-                .map(TrackedEntityAttribute::getUid)
-                .collect(Collectors.toList());
-
-        trackedEntityInstance.setAttributes(
-            trackedEntityInstance.getAttributes().stream()
-                .filter(att -> tetAttributes.contains(att.getAttribute()))
-                .collect(Collectors.toList()));
+      if (trackedEntityInstance == null) {
+        throw new NotFoundException(TrackedEntityInstance.class, id);
       }
     }
 
