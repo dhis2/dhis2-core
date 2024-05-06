@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.switchuser;
+package org.hisp.dhis.webapi.controller.security;
 
-import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-public class DhisSwitchUserFilter extends SwitchUserFilter {
-  private final DhisConfigurationProvider config;
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class ImpersonateUserResponse {
+  @Getter
+  public enum STATUS {
+    IMPERSONATION_SUCCESS("impersonateSuccess"),
+    IMPERSONATION_EXIT_SUCCESS("exitSuccess"),
+    IP_NOT_ALLOWED("ipNotAllowed"),
+    FEATURE_IS_DISABLED("featureDisabled"),
+    USER_IS_ROOT("userIsRoot"),
+    GENERIC_FAILURE("genericFailure");
 
-  @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
+    private final String keyName;
+    private final String defaultValue;
 
-    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
-    if (enabled && isAllowListedIp(request.getRemoteAddr())) {
-      super.doFilter(request, response, chain);
-      return;
+    STATUS(String keyName) {
+      this.keyName = keyName;
+      this.defaultValue = null;
     }
-
-    chain.doFilter(request, response);
   }
 
-  private boolean isAllowListedIp(String remoteAddr) {
-    String property = config.getProperty(ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS);
-    for (String ip : property.split(",")) {
-      if (ip.trim().equalsIgnoreCase(remoteAddr)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
+  @JsonProperty private STATUS status;
+  @JsonProperty private String impersonatedUsername;
 }
