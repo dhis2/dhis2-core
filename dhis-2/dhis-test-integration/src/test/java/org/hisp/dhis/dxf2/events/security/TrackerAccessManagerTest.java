@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.security;
 
+import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -124,6 +125,9 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     organisationUnitB = createOrganisationUnit('B');
     manager.save(organisationUnitA);
     manager.save(organisationUnitB);
+    trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     dataElementA = createDataElement('A');
     dataElementB = createDataElement('B');
     dataElementA.setValueType(ValueType.INTEGER);
@@ -140,6 +144,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     programA.setAccessLevel(AccessLevel.PROTECTED);
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.addOrganisationUnit(organisationUnitB);
+    programA.setTrackedEntityType(trackedEntityType);
     manager.save(programA);
     ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
     programStageDataElement.setDataElement(dataElementA);
@@ -159,9 +164,6 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    trackedEntityType = createTrackedEntityType('A');
-    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     maleA = createTrackedEntityInstance(organisationUnitA);
     maleB = createTrackedEntityInstance(organisationUnitB);
     femaleA = createTrackedEntityInstance(organisationUnitA);
@@ -210,6 +212,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(organisationUnitA, organisationUnitB));
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
+    programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(trackedEntityType);
     TrackedEntityInstance tei =
         trackedEntityInstanceService.getTrackedEntityInstance(maleA.getUid());
@@ -222,6 +225,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
   @Test
   void checkAccessPermissionForTeiWhenTeiOuOutsideSearchScope() {
     programA.setPublicAccess(AccessStringHelper.FULL);
+    programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
     User user =
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitB));
@@ -230,8 +234,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest {
     TrackedEntityInstance tei =
         trackedEntityInstanceService.getTrackedEntityInstance(maleA.getUid());
     // Cannot Read
-    assertHasError(
-        trackerAccessManager.canRead(user, tei), "User has no read access to organisation unit:");
+    assertHasError(trackerAccessManager.canRead(user, tei), OWNERSHIP_ACCESS_DENIED);
     // Cannot write
     assertHasError(
         trackerAccessManager.canWrite(user, tei), "User has no write access to organisation unit:");

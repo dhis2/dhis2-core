@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.trackedentity.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -111,10 +112,13 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
+    trackedEntityType = trackedEntityTypeAccessible();
+
     program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
     program.getSharing().setOwner(owner);
     program.getSharing().addUserAccess(userAccess());
+    program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
     programStage = createProgramStage('A', program);
@@ -122,8 +126,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
     manager.save(programStage, false);
-
-    trackedEntityType = trackedEntityTypeAccessible();
   }
 
   @Test
@@ -257,7 +259,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
             .error(HttpStatus.CONFLICT)
             .getMessage()
-            .contains("User has no read access to organisation unit"));
+            .contains(OWNERSHIP_ACCESS_DENIED));
   }
 
   @Test
@@ -271,7 +273,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
             .error(HttpStatus.CONFLICT)
             .getMessage()
-            .contains("User has no read access to organisation unit"));
+            .contains(OWNERSHIP_ACCESS_DENIED));
   }
 
   @Test
