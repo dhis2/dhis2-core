@@ -151,7 +151,7 @@ public class DhisWebApiWebSecurityConfig {
   protected AuthenticationManager authenticationManagers(
       TwoFactorAuthenticationProvider twoFactorProvider,
       @Qualifier("customLdapAuthenticationProvider")
-      CustomLdapAuthenticationProvider ldapProvider) {
+          CustomLdapAuthenticationProvider ldapProvider) {
 
     ProviderManager providerManager =
         new ProviderManager(Arrays.asList(twoFactorProvider, ldapProvider));
@@ -216,9 +216,9 @@ public class DhisWebApiWebSecurityConfig {
         httpSecuritySecurityContextConfigurer ->
             httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
 
-//    http.securityContext(securityContext -> securityContext.
-//        securityContextRepository(new HttpSessionSecurityContextRepository())
-//    );
+    //    http.securityContext(securityContext -> securityContext.
+    //        securityContextRepository(new HttpSessionSecurityContextRepository())
+    //    );
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(
@@ -407,7 +407,6 @@ public class DhisWebApiWebSecurityConfig {
         ///////////////
         .exceptionHandling()
         .authenticationEntryPoint(entryPoint())
-
         .and()
         /// SESSION ////////////////
         /// LOGOUT //////////////////
@@ -488,14 +487,14 @@ public class DhisWebApiWebSecurityConfig {
    * @return BearerTokenAuthenticationFilter to be added to the filter chain
    */
   private org.springframework.security.oauth2.server.resource.web.authentication
-      .BearerTokenAuthenticationFilter
-  getJwtBearerTokenAuthenticationFilter() {
+          .BearerTokenAuthenticationFilter
+      getJwtBearerTokenAuthenticationFilter() {
 
     org.springframework.security.oauth2.server.resource.web.authentication
-        .BearerTokenAuthenticationFilter
+            .BearerTokenAuthenticationFilter
         jwtFilter =
-        new org.springframework.security.oauth2.server.resource.web.authentication
-            .BearerTokenAuthenticationFilter(dhis2JwtAuthenticationManagerResolver);
+            new org.springframework.security.oauth2.server.resource.web.authentication
+                .BearerTokenAuthenticationFilter(dhis2JwtAuthenticationManagerResolver);
 
     jwtFilter.setAuthenticationEntryPoint(bearerTokenEntryPoint);
     jwtFilter.setBearerTokenResolver(new DefaultBearerTokenResolver());

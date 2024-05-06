@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller.security;
 
 import java.util.ArrayList;
@@ -15,8 +42,6 @@ import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.webapi.controller.security.ImpersonateUserResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.log.LogMessage;
-import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -55,18 +80,18 @@ public class ImpersonateUserController {
   private final ApplicationEventPublisher eventPublisher;
 
   private UserDetailsChecker userDetailsChecker = new ImpersonatingUserDetailsChecker();
-  private SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
-      .getContextHolderStrategy();
+  private SecurityContextHolderStrategy securityContextHolderStrategy =
+      SecurityContextHolder.getContextHolderStrategy();
   private SwitchUserAuthorityChanger switchUserAuthorityChanger;
   private String switchAuthorityRole = ROLE_PREVIOUS_ADMINISTRATOR;
-  private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
-  private SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+  private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
+      new WebAuthenticationDetailsSource();
+  private SecurityContextRepository securityContextRepository =
+      new HttpSessionSecurityContextRepository();
 
   @PostMapping("/impersonate")
   public ImpersonateUserResponse impersonateUser(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      @RequestParam String username) {
+      HttpServletRequest request, HttpServletResponse response, @RequestParam String username) {
 
     boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
     if (!enabled) {
@@ -83,17 +108,13 @@ public class ImpersonateUserController {
     try {
       Authentication targetUser = attemptSwitchUser(request, username);
       // update the current context to the new target user
-//      SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
 
       context.setAuthentication(targetUser);
-//      this.securityContextHolderStrategy.setContext(context);
+      this.securityContextHolderStrategy.setContext(context);
       log.debug("Set SecurityContextHolder to %s".formatted(targetUser));
 
-      context.setAuthentication(targetUser);
-      SecurityContextHolder.setContext(context);
-
-//      this.securityContextRepository.saveContext(context, request, response);
+      this.securityContextRepository.saveContext(context, request, response);
 
       return ImpersonateUserResponse.builder()
           .status(ImpersonateUserResponse.STATUS.IMPERSONATION_SUCCESS)
@@ -111,21 +132,18 @@ public class ImpersonateUserController {
 
   @PostMapping("/impersonateExit")
   public ImpersonateUserResponse impersonateExit(
-      HttpServletRequest request,
-      HttpServletResponse response) {
+      HttpServletRequest request, HttpServletResponse response) {
 
     // get the original authentication object (if exists)
     Authentication originalUser = attemptExitUser(request);
     // update the current context back to the original user
-//    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
 
     context.setAuthentication(originalUser);
-//    this.securityContextHolderStrategy.setContext(context);
+    this.securityContextHolderStrategy.setContext(context);
 
     log.debug("Set SecurityContextHolder to %s".formatted(originalUser));
-    SecurityContextHolder.setContext(context);
-//    this.securityContextRepository.saveContext(context, request, response);
+    this.securityContextRepository.saveContext(context, request, response);
 
     return ImpersonateUserResponse.builder()
         .status(ImpersonateUserResponse.STATUS.IMPERSONATION_EXIT_SUCCESS)
@@ -147,37 +165,39 @@ public class ImpersonateUserController {
 
     // publish event
     if (this.eventPublisher != null) {
-      this.eventPublisher.publishEvent(new AuthenticationSwitchUserEvent(
-          this.securityContextHolderStrategy.getContext().getAuthentication(), targetUser));
+      this.eventPublisher.publishEvent(
+          new AuthenticationSwitchUserEvent(
+              this.securityContextHolderStrategy.getContext().getAuthentication(), targetUser));
     }
 
     return targetUserRequest;
   }
 
-  private UsernamePasswordAuthenticationToken createSwitchUserToken(HttpServletRequest request,
-      UserDetails targetUser) {
+  private UsernamePasswordAuthenticationToken createSwitchUserToken(
+      HttpServletRequest request, UserDetails targetUser) {
     UsernamePasswordAuthenticationToken targetUserRequest;
     // grant an additional authority that contains the original Authentication object
     // which will be used to 'exit' from the current switched user.
     Authentication currentAuthentication = getCurrentAuthentication(request);
-    GrantedAuthority switchAuthority = new SwitchUserGrantedAuthority(this.switchAuthorityRole,
-        currentAuthentication);
+    GrantedAuthority switchAuthority =
+        new SwitchUserGrantedAuthority(this.switchAuthorityRole, currentAuthentication);
     // get the original authorities
     Collection<? extends GrantedAuthority> orig = targetUser.getAuthorities();
 
     // Allow subclasses to change the authorities to be granted
     if (this.switchUserAuthorityChanger != null) {
-      orig = this.switchUserAuthorityChanger.modifyGrantedAuthorities(targetUser,
-          currentAuthentication, orig);
+      orig =
+          this.switchUserAuthorityChanger.modifyGrantedAuthorities(
+              targetUser, currentAuthentication, orig);
     }
     // add the new switch user authority
     List<GrantedAuthority> newAuths = new ArrayList<>(orig);
     newAuths.add(switchAuthority);
 
     // create the new authentication token
-    targetUserRequest = UsernamePasswordAuthenticationToken.authenticated(targetUser,
-        targetUser.getPassword(),
-        newAuths);
+    targetUserRequest =
+        UsernamePasswordAuthenticationToken.authenticated(
+            targetUser, targetUser.getPassword(), newAuths);
     // set details
     targetUserRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
 
@@ -240,7 +260,6 @@ public class ImpersonateUserController {
     }
     return original;
   }
-
 
   private boolean hasAllowListedIp(String remoteAddr) {
     String property = config.getProperty(ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS);
