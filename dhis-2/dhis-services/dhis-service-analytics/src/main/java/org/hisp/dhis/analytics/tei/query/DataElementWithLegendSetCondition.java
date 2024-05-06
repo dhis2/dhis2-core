@@ -57,13 +57,14 @@ public class DataElementWithLegendSetCondition extends BaseRenderable {
     LegendSet legendSet = dimensionIdentifier.getDimension().getQueryItem().getLegendSet();
     return OrCondition.ofList(
             dimensionIdentifier.getDimension().getItems().stream()
+                .map(DimensionParamItem::getValues)
+                .flatMap(List::stream)
                 .map(item -> toCondition(item, legendSet))
                 .toList())
         .render();
   }
 
-  private Renderable toCondition(DimensionParamItem dimensionParamItem, LegendSet legendSet) {
-    String legendUid = dimensionParamItem.getValues().get(0);
+  private Renderable toCondition(String legendUid, LegendSet legendSet) {
     Legend legend = legendSet.getLegendByUid(legendUid);
     Double startValue = legend.getStartValue();
     Double endValue = legend.getEndValue();
