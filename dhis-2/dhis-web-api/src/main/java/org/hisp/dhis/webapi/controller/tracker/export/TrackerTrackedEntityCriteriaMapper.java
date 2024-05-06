@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
@@ -62,6 +63,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -110,12 +112,16 @@ public class TrackerTrackedEntityCriteriaMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
+  @Nonnull private AclService aclService;
+
   @Transactional(readOnly = true)
   public TrackedEntityInstanceQueryParams map(TrackerTrackedEntityCriteria criteria)
       throws BadRequestException, ForbiddenException {
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
     validateProgram(criteria.getProgram(), program);
     ProgramStage programStage = validateProgramStage(criteria, program);
+    User user = currentUserService.getCurrentUser();
+    List<Program> programs = getTrackerPrograms(program, user);
 
     TrackedEntityType trackedEntityType =
         applyIfNonEmpty(
@@ -124,7 +130,6 @@ public class TrackerTrackedEntityCriteriaMapper {
 
     Set<String> assignedUserIds = parseAndFilterUids(criteria.getAssignedUser());
 
-    User user = currentUserService.getCurrentUser();
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds);
@@ -160,6 +165,7 @@ public class TrackerTrackedEntityCriteriaMapper {
     params
         .setQuery(queryFilter)
         .setProgram(program)
+        .setPrograms(programs)
         .setProgramStage(programStage)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
@@ -276,6 +282,17 @@ public class TrackerTrackedEntityCriteriaMapper {
           "Program does not contain the specified programStage: " + programStage);
     }
     return ps;
+  }
+
+  private List<Program> getTrackerPrograms(Program program, User user) {
+    if (program == null) {
+      return programService.getAllPrograms().stream()
+          .filter(Program::isRegistration)
+          .filter(p -> aclService.canDataRead(user, p))
+          .collect(Collectors.toList());
+    }
+
+    return emptyList();
   }
 
   private ProgramStage getProgramStageFromProgram(Program program, String programStage) {
