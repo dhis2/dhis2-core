@@ -222,9 +222,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
       throws IOException {
-    TrackerImportParams trackerObjects =
-        fromJson("tracker/validations/enrollments_te_te-data.json");
-    TrackerImportParams params = new TrackerImportParams();
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_te-data.json");
     assertNoErrors(trackerImportService.importTracker(params));
     importProgramInstances();
     manager.flush();
