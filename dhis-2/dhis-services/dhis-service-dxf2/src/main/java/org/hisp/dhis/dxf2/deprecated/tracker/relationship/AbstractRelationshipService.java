@@ -497,6 +497,18 @@ public abstract class AbstractRelationshipService implements RelationshipService
         tei =
             trackedEntityInstanceService.getTrackedEntityInstance(
                 dao.getTrackedEntity(), TrackedEntityInstanceParams.TRUE);
+
+        if (constraint.getTrackerDataView() != null) {
+          tei.setAttributes(
+              tei.getAttributes().stream()
+                  .filter(
+                      a ->
+                          constraint
+                              .getTrackerDataView()
+                              .getAttributes()
+                              .contains(a.getAttribute()))
+                  .toList());
+        }
       }
 
       relationshipItem.setTrackedEntityInstance(tei);
@@ -511,6 +523,18 @@ public abstract class AbstractRelationshipService implements RelationshipService
         enrollment.setEnrollment(uid);
       } else {
         enrollment = enrollmentService.getEnrollment(dao.getEnrollment(), EnrollmentParams.TRUE);
+
+        if (constraint.getTrackerDataView() != null) {
+          enrollment.setAttributes(
+              enrollment.getAttributes().stream()
+                  .filter(
+                      a ->
+                          constraint
+                              .getTrackerDataView()
+                              .getAttributes()
+                              .contains(a.getAttribute()))
+                  .toList());
+        }
       }
 
       relationshipItem.setEnrollment(enrollment);
@@ -524,6 +548,18 @@ public abstract class AbstractRelationshipService implements RelationshipService
         event.setEvent(uid);
       } else {
         event = eventService.getEvent(dao.getEvent(), EventParams.FALSE);
+
+        if (constraint.getTrackerDataView() != null) {
+          event.setDataValues(
+              event.getDataValues().stream()
+                  .filter(
+                      d ->
+                          constraint
+                              .getTrackerDataView()
+                              .getDataElements()
+                              .contains(d.getDataElement()))
+                  .collect(Collectors.toSet()));
+        }
       }
 
       relationshipItem.setEvent(event);
