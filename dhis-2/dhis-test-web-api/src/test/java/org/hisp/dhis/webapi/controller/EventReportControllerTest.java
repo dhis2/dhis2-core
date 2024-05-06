@@ -70,15 +70,12 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     final String eventDate = "2021-07-21_2021-08-01";
     final String dimensionBody =
         "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
-    final String relativePeriods = "{'last12Months': true}";
     final String body =
         "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
             + mockProgram.getUid()
             + "'}, 'columns': ["
             + dimensionBody
-            + "] , 'relativePeriods': "
-            + relativePeriods
-            + "}";
+            + "]}";
 
     // When
     final String uid = assertStatus(CREATED, POST("/eventReports/", body));
@@ -92,8 +89,6 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("columns").toString(), containsString(eventDateDimension));
     assertThat(response.get("rows").toString(), not(containsString(eventDateDimension)));
     assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
-    assertTrue(response.get("relativePeriods").exists());
-    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
   }
 
   @Test
