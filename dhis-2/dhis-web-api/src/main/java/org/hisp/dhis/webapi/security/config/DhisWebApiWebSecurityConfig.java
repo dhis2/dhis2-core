@@ -151,7 +151,7 @@ public class DhisWebApiWebSecurityConfig {
   protected AuthenticationManager authenticationManagers(
       TwoFactorAuthenticationProvider twoFactorProvider,
       @Qualifier("customLdapAuthenticationProvider")
-          CustomLdapAuthenticationProvider ldapProvider) {
+      CustomLdapAuthenticationProvider ldapProvider) {
 
     ProviderManager providerManager =
         new ProviderManager(Arrays.asList(twoFactorProvider, ldapProvider));
@@ -215,6 +215,10 @@ public class DhisWebApiWebSecurityConfig {
     http.securityContext(
         httpSecuritySecurityContextConfigurer ->
             httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
+
+//    http.securityContext(securityContext -> securityContext.
+//        securityContextRepository(new HttpSessionSecurityContextRepository())
+//    );
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(
@@ -372,12 +376,23 @@ public class DhisWebApiWebSecurityConfig {
                   .requestMatchers(new AntPathRequestMatcher("/**"))
                   .authenticated();
             })
+
         /// HTTP BASIC///////////////////////////////////////
         .httpBasic()
         .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
-        /// OAUTH/////////
-        .and()
-        .oauth2Login(
+        .addObjectPostProcessor(
+            new ObjectPostProcessor<BasicAuthenticationFilter>() {
+              @Override
+              public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                // Explicitly set security context repository on http basic, is
+                // NullSecurityContextRepository by default now.
+                filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
+                return filter;
+              }
+            });
+
+    /// OAUTH/////////
+    http.oauth2Login(
             oauth2 ->
                 oauth2
                     .tokenEndpoint()
@@ -392,6 +407,7 @@ public class DhisWebApiWebSecurityConfig {
         ///////////////
         .exceptionHandling()
         .authenticationEntryPoint(entryPoint())
+
         .and()
         /// SESSION ////////////////
         /// LOGOUT //////////////////
@@ -409,19 +425,7 @@ public class DhisWebApiWebSecurityConfig {
         .enableSessionUrlRewriting(false)
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-        .expiredUrl("/dhis-web-commons-security/logout.action")
-        .and()
-        //////////////////////////////
-        .addObjectPostProcessor(
-            new ObjectPostProcessor<BasicAuthenticationFilter>() {
-              @Override
-              public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                // Explicitly set security context repository on http basic, is
-                // NullSecurityContextRepository by default now.
-                filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
-                return filter;
-              }
-            });
+        .expiredUrl("/dhis-web-commons-security/logout.action");
   }
 
   @Bean
@@ -484,14 +488,14 @@ public class DhisWebApiWebSecurityConfig {
    * @return BearerTokenAuthenticationFilter to be added to the filter chain
    */
   private org.springframework.security.oauth2.server.resource.web.authentication
-          .BearerTokenAuthenticationFilter
-      getJwtBearerTokenAuthenticationFilter() {
+      .BearerTokenAuthenticationFilter
+  getJwtBearerTokenAuthenticationFilter() {
 
     org.springframework.security.oauth2.server.resource.web.authentication
-            .BearerTokenAuthenticationFilter
+        .BearerTokenAuthenticationFilter
         jwtFilter =
-            new org.springframework.security.oauth2.server.resource.web.authentication
-                .BearerTokenAuthenticationFilter(dhis2JwtAuthenticationManagerResolver);
+        new org.springframework.security.oauth2.server.resource.web.authentication
+            .BearerTokenAuthenticationFilter(dhis2JwtAuthenticationManagerResolver);
 
     jwtFilter.setAuthenticationEntryPoint(bearerTokenEntryPoint);
     jwtFilter.setBearerTokenResolver(new DefaultBearerTokenResolver());

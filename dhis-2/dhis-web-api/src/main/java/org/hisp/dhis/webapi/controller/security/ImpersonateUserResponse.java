@@ -61,4 +61,5 @@ public class ImpersonateUserResponse {
 
   @JsonProperty private STATUS status;
   @JsonProperty private String impersonatedUsername;
+  @JsonProperty private String message;
 }

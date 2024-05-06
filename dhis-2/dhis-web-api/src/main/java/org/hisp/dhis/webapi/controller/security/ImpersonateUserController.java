@@ -12,6 +12,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
+import org.hisp.dhis.webapi.controller.security.ImpersonateUserResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.log.LogMessage;
@@ -50,9 +51,10 @@ public class ImpersonateUserController {
   public static final String ROLE_PREVIOUS_ADMINISTRATOR = "ROLE_PREVIOUS_ADMINISTRATOR";
 
   private final DhisConfigurationProvider config;
-  private UserDetailsService userDetailsService;
+  private final UserDetailsService userDetailsService;
+  private final ApplicationEventPublisher eventPublisher;
+
   private UserDetailsChecker userDetailsChecker = new ImpersonatingUserDetailsChecker();
-  private ApplicationEventPublisher eventPublisher;
   private SecurityContextHolderStrategy securityContextHolderStrategy = SecurityContextHolder
       .getContextHolderStrategy();
   private SwitchUserAuthorityChanger switchUserAuthorityChanger;
@@ -81,12 +83,17 @@ public class ImpersonateUserController {
     try {
       Authentication targetUser = attemptSwitchUser(request, username);
       // update the current context to the new target user
-      SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+//      SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+
       context.setAuthentication(targetUser);
-      this.securityContextHolderStrategy.setContext(context);
+//      this.securityContextHolderStrategy.setContext(context);
       log.debug("Set SecurityContextHolder to %s".formatted(targetUser));
 
-      this.securityContextRepository.saveContext(context, request, response);
+      context.setAuthentication(targetUser);
+      SecurityContextHolder.setContext(context);
+
+//      this.securityContextRepository.saveContext(context, request, response);
 
       return ImpersonateUserResponse.builder()
           .status(ImpersonateUserResponse.STATUS.IMPERSONATION_SUCCESS)
@@ -94,9 +101,10 @@ public class ImpersonateUserController {
           .build();
 
     } catch (AuthenticationException ex) {
-      log.debug("Failed to switch user", ex);
+      log.warn("Failed to switch user", ex);
       return ImpersonateUserResponse.builder()
-          .status(ImpersonateUserResponse.STATUS.USER_IS_ROOT)
+          .status(STATUS.GENERIC_FAILURE)
+          .message(ex.getMessage())
           .build();
     }
   }
@@ -109,12 +117,15 @@ public class ImpersonateUserController {
     // get the original authentication object (if exists)
     Authentication originalUser = attemptExitUser(request);
     // update the current context back to the original user
-    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+//    SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+
     context.setAuthentication(originalUser);
-    this.securityContextHolderStrategy.setContext(context);
+//    this.securityContextHolderStrategy.setContext(context);
 
     log.debug("Set SecurityContextHolder to %s".formatted(originalUser));
-    this.securityContextRepository.saveContext(context, request, response);
+    SecurityContextHolder.setContext(context);
+//    this.securityContextRepository.saveContext(context, request, response);
 
     return ImpersonateUserResponse.builder()
         .status(ImpersonateUserResponse.STATUS.IMPERSONATION_EXIT_SUCCESS)
@@ -153,6 +164,7 @@ public class ImpersonateUserController {
         currentAuthentication);
     // get the original authorities
     Collection<? extends GrantedAuthority> orig = targetUser.getAuthorities();
+
     // Allow subclasses to change the authorities to be granted
     if (this.switchUserAuthorityChanger != null) {
       orig = this.switchUserAuthorityChanger.modifyGrantedAuthorities(targetUser,
@@ -161,12 +173,14 @@ public class ImpersonateUserController {
     // add the new switch user authority
     List<GrantedAuthority> newAuths = new ArrayList<>(orig);
     newAuths.add(switchAuthority);
+
     // create the new authentication token
     targetUserRequest = UsernamePasswordAuthenticationToken.authenticated(targetUser,
         targetUser.getPassword(),
         newAuths);
     // set details
     targetUserRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
+
     return targetUserRequest;
   }
 
