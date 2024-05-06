@@ -154,7 +154,9 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
   private FileResource fileResource;
 
-  private User user;
+  private User adminUser;
+
+  private User regularUser;
 
   @Override
   protected void setUpTest() throws Exception {
@@ -163,7 +165,8 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     fileResourceService.saveFileResource(fileResource, "fileResource".getBytes());
 
     userService = _userService;
-    user = createAndAddAdminUser(AUTHORITY_ALL);
+    adminUser = createAndAddAdminUser(AUTHORITY_ALL);
+    regularUser = createUserWithAuth("regular-user");
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitB = createOrganisationUnit('B');
@@ -721,19 +724,19 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
     ImportSummaries importSummaries =
         trackedEntityInstanceService.addTrackedEntityInstances(
-            List.of(tei), new ImportOptions().setUser(user));
+            List.of(tei), new ImportOptions().setUser(adminUser));
 
     assertAll(
         () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
         () ->
             assertEquals(
-                UserInfoSnapshot.from(user),
+                UserInfoSnapshot.from(adminUser),
                 trackedEntityInstanceService
                     .getTrackedEntityInstance(tei.getTrackedEntityInstance())
                     .getCreatedByUserInfo()),
         () ->
             assertEquals(
-                UserInfoSnapshot.from(user),
+                UserInfoSnapshot.from(adminUser),
                 trackedEntityInstanceService
                     .getTrackedEntityInstance(tei.getTrackedEntityInstance())
                     .getLastUpdatedByUserInfo()));
@@ -746,13 +749,13 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
     ImportSummary importSummaries =
         trackedEntityInstanceService.updateTrackedEntityInstance(
-            tei, null, new ImportOptions().setUser(user), true);
+            tei, null, new ImportOptions().setUser(adminUser), true);
 
     assertAll(
         () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
         () ->
             assertEquals(
-                UserInfoSnapshot.from(user),
+                UserInfoSnapshot.from(adminUser),
                 trackedEntityInstanceService
                     .getTrackedEntityInstance(tei.getTrackedEntityInstance())
                     .getLastUpdatedByUserInfo()));
@@ -766,7 +769,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
 
     dbmsManager.clearSession();
 
-    injectSecurityContext(user);
+    injectSecurityContext(adminUser);
 
     ImportSummary importSummaries =
         trackedEntityInstanceService.deleteTrackedEntityInstance(maleA.getUid());
@@ -780,11 +783,22 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
         () -> assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus()),
         () ->
             assertEquals(
-                UserInfoSnapshot.from(user).getUid(),
+                UserInfoSnapshot.from(adminUser).getUid(),
                 getTrackedEntity(maleA.getUid()).getLastUpdatedByUserInfo().getUid()),
         () ->
             assertTrue(
                 entityAfter.getLastUpdated().getTime() > entityBefore.getLastUpdated().getTime()));
+  }
+
+  @Test
+  void shouldReturnTEIEvenIfTrackedEntityTypeNotAccessible() {
+    injectSecurityContext(regularUser);
+
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstanceExcludingACL(
+            maleA.getUid(), TrackedEntityInstanceParams.TRUE);
+
+    assertEquals(maleA.getUid(), trackedEntityInstance.getTrackedEntityInstance());
   }
 
   /** Get with the current session because some Store exclude deleted */
