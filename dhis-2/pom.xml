@@ -179,7 +179,7 @@
 
     <!-- Div. utils -->
     <version.debezium>2.6.1.Final</version.debezium>
-    <guava.version>33.1.0-jre</guava.version>
+    <guava.version>33.2.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.4.1</google-api-client.version>
@@ -1908,7 +1908,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.8.4</version>
+              <version>4.8.5</version>
             </dependency>
           </dependencies>
         </plugin>
