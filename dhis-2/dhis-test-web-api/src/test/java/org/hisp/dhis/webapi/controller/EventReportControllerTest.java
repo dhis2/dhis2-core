@@ -32,6 +32,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
+import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,12 +70,15 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     final String eventDate = "2021-07-21_2021-08-01";
     final String dimensionBody =
         "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String relativePeriods = "{'last12Months': true}";
     final String body =
         "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'"
             + mockProgram.getUid()
             + "'}, 'columns': ["
             + dimensionBody
-            + "]}";
+            + "] , 'relativePeriods': "
+            + relativePeriods
+            + "}";
 
     // When
     final String uid = assertStatus(CREATED, POST("/eventReports/", body));
@@ -87,6 +92,8 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     assertThat(response.get("columns").toString(), containsString(eventDateDimension));
     assertThat(response.get("rows").toString(), not(containsString(eventDateDimension)));
     assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+    assertTrue(response.get("relativePeriods").exists());
+    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
   }
 
   @Test
@@ -180,5 +187,83 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     assertTrue(GET("/eventReports/" + uid).content().isEmpty());
+  }
+
+  @Test
+  void testEventReportRelativePeriods() {
+    String body =
+        String.format(
+            """
+        {"name": "Name Test",
+        "type":"LINE_LIST",
+        "program":{"id":"%s"},
+        "columns": [{
+          "dimension": "%s",
+          "items": [{"id": "%s"}]}],
+          "filters":[{
+                "items":[{
+                    "name": "THIS_YEAR",
+                    "dimensionItemType": "PERIOD",
+                    "displayShortName": "LAST_12_MONTHS",
+                    "displayName": "LAST 12 MONTHS",
+                    "id": "LAST_12_MONTHS"}],
+                "dimension": "pe"}]}""",
+            mockProgram.getUid(), "eventDate", "2021-07-21_2021-08-01");
+    String uid = assertStatus(CREATED, POST("/eventReports/", body));
+    final JsonObject response = GET("/eventVisualizations/" + uid).content();
+    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testReportRelativePeriods() {
+    String body =
+        """
+            {"name": "Name Test", "relativePeriods": {"last12Months": true}}""";
+    String uid = assertStatus(CREATED, POST("/reports/", body));
+    final JsonObject response = GET("/reports/" + uid).content();
+    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testEventChartRelativePeriods() {
+    String body =
+        String.format(
+            """
+        {"name": "Name Test",
+        "type":"BAR",
+        "program":{"id":"%s"},
+        "rows":[{
+              "dimension": "pe",
+              "items":[{
+                  "id": "LAST_12_MONTHS"}]}]}""",
+            mockProgram.getUid());
+    String uid = assertStatus(CREATED, POST("/eventCharts/", body));
+    final JsonObject response = GET("/eventVisualizations/" + uid).content();
+    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testEventVisualizationRelativePeriods() {
+    String body =
+        String.format(
+            """
+        {"name": "Name Test",
+        "type":"BAR",
+        "program":{"id":"%s"},
+        "rows":[{
+              "dimension": "pe",
+              "items":[{
+                  "id": "LAST_12_MONTHS"}]}]}""",
+            mockProgram.getUid());
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+    final JsonObject response = GET("/eventVisualizations/" + uid).content();
+    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testMapViewRelativePeriods() {
+    assertStatus(OK, POST("/metadata/", WebClient.Body("metadata/map_new.json")));
+    final JsonObject response = GET("/mapViews/zyFOjTfzLws").content();
+    assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
   }
 }
