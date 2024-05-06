@@ -209,7 +209,6 @@ class OwnershipTest extends TrackerTest {
     enrollments.stream().filter(e -> e.getUid().equals("TvctPPhpD8u")).findAny().get();
     trackerImportParams.setUserId(nonSuperUser.getUid());
     trackerImportParams.setImportStrategy(TrackerImportStrategy.DELETE);
-    trackerImportParams.setUserId(nonSuperUser.getUid());
     ImportReport updatedReport = trackerImportService.importTracker(trackerImportParams);
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
@@ -266,11 +265,10 @@ class OwnershipTest extends TrackerTest {
       throws IOException {
     injectSecurityContext(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams trackerImportParams =
-        fromJson("tracker/ownership_te_ok_enrollment_no_access.json")
-            .builder()
-            .userId(nonSuperUser.getUid())
-            .atomicMode(AtomicMode.OBJECT)
-            .build();
+        fromJson("tracker/ownership_te_ok_enrollment_no_access.json");
+    trackerImportParams.setUserId(nonSuperUser.getUid());
+    trackerImportParams.setAtomicMode(AtomicMode.OBJECT);
+
     ImportReport report = trackerImportService.importTracker(trackerImportParams);
     assertEquals(1, report.getStats().getCreated());
     assertEquals(1, report.getStats().getIgnored());
