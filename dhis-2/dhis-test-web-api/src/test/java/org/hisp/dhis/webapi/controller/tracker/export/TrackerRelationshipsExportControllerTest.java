@@ -607,6 +607,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
   void getRelationshipsByTrackedEntityWithAttributes() {
     TrackedEntityInstance to = trackedEntityInstance(orgUnit);
     to.setTrackedEntityAttributeValues(Set.of(attributeValue(tea, to, "12")));
+
     ProgramInstance from = programInstance(to);
     relationship(from, to);
     Relationship relationship = relationship(from, to);
