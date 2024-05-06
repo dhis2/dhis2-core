@@ -314,36 +314,60 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
       getOrganisationUnitsWithMemberCount(
           @RequestParam String memberObject,
           @RequestParam String memberCollection,
+          @RequestParam(required = false) String query,
+          @RequestParam(required = false) Integer level,
+          @RequestParam(required = false) Integer maxLevel,
+          @RequestParam(required = false) Boolean withinUserHierarchy,
+          @RequestParam(required = false) Boolean withinUserSearchHierarchy,
           @RequestParam Map<String, String> rpParameters,
           OrderParams orderParams,
           HttpServletResponse response,
-          @CurrentUser UserDetails currentUser)
+          @CurrentUser User currentUser)
           throws ForbiddenException, BadRequestException {
     return getObjectList(
         rpParameters,
         orderParams,
         response,
-        currentUser,
+        UserDetails.fromUser(currentUser),
         false,
         params -> {
+          boolean standardQuery =
+              (query == null
+                  && level == null
+                  && maxLevel == null
+                  && withinUserHierarchy == null
+                  && withinUserSearchHierarchy == null);
           List<OrganisationUnit> units =
-              getEntityList(
-                  params.getMetadata(),
-                  params.getOptions(),
-                  params.getFilters(),
-                  params.getOrders());
-          Optional<? extends IdentifiableObject> member = manager.find(memberObject);
-          if (member.isPresent()) {
-            for (OrganisationUnit unit : units) {
-              Long count =
-                  organisationUnitService.getOrganisationUnitHierarchyMemberCount(
-                      unit, member.get(), memberCollection);
-
-              unit.setMemberCount((count != null ? count.intValue() : 0));
-            }
-          }
+              standardQuery
+                  ? getEntityList(
+                      params.getMetadata(),
+                      params.getOptions(),
+                      params.getFilters(),
+                      params.getOrders())
+                  : queryOrganisationUnits(
+                      query,
+                      level,
+                      maxLevel,
+                      withinUserHierarchy,
+                      withinUserSearchHierarchy,
+                      currentUser);
+          addMemberCounts(memberObject, memberCollection, units);
           return units;
         });
+  }
+
+  private void addMemberCounts(
+      String memberObject, String memberCollection, List<OrganisationUnit> units) {
+    Optional<? extends IdentifiableObject> member = manager.find(memberObject);
+    if (member.isPresent()) {
+      for (OrganisationUnit unit : units) {
+        Long count =
+            organisationUnitService.getOrganisationUnitHierarchyMemberCount(
+                unit, member.get(), memberCollection);
+
+        unit.setMemberCount((count != null ? count.intValue() : 0));
+      }
+    }
   }
 
   @OpenApi.Param(name = "fields", value = String[].class)
@@ -483,21 +507,36 @@ public class OrganisationUnitController extends AbstractCrudController<Organisat
         response,
         UserDetails.fromUser(currentUser),
         false,
-        parameters -> {
-          OrganisationUnitQueryParams p = new OrganisationUnitQueryParams();
-          p.setQuery(query);
-          p.setLevel(level);
-          p.setMaxLevels(maxLevel);
+        params ->
+            queryOrganisationUnits(
+                query,
+                level,
+                maxLevel,
+                withinUserHierarchy,
+                withinUserSearchHierarchy,
+                currentUser));
+  }
 
-          p.setParents(
-              withinUserHierarchy == Boolean.TRUE
-                  ? currentUser.getOrganisationUnits()
-                  : withinUserSearchHierarchy == Boolean.TRUE
-                      ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
-                      : Set.of());
+  private List<OrganisationUnit> queryOrganisationUnits(
+      String query,
+      Integer level,
+      Integer maxLevel,
+      Boolean withinUserHierarchy,
+      Boolean withinUserSearchHierarchy,
+      User currentUser) {
+    OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+    params.setQuery(query);
+    params.setLevel(level);
+    params.setMaxLevels(maxLevel);
 
-          return organisationUnitService.getOrganisationUnitsByQuery(p);
-        });
+    params.setParents(
+        withinUserHierarchy == Boolean.TRUE
+            ? currentUser.getOrganisationUnits()
+            : withinUserSearchHierarchy == Boolean.TRUE
+                ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
+                : Set.of());
+
+    return organisationUnitService.getOrganisationUnitsByQuery(params);
   }
 
   @GetMapping(
