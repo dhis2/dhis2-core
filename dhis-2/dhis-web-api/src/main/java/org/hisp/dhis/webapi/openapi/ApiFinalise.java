@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -51,6 +52,7 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.openapi.Api.Endpoint;
 import org.hisp.dhis.webapi.openapi.Api.Parameter;
 import org.springframework.http.HttpStatus;
@@ -108,12 +110,12 @@ public class ApiFinalise {
     // 0. validation of the analysis result
     validateParameters();
 
-    // 1. Set and check shared unique names and create the additional schemas for Refs and UIDs
+    // 1. Add input schemas (with shallow object references)
+    addSharedInputSchemas();
+
+    // 2. Set and check shared unique names and create the additional schemas for Refs and UIDs
     nameSharedSchemas();
     nameSharedParameters();
-
-    // 2. Add input schemas (with shallow object references)
-    addInputSchemaVariants();
 
     // 3. Add description texts from markdown files to the Api model
     describeTags();
@@ -162,7 +164,7 @@ public class ApiFinalise {
   }
 
   /*
-   * 1. Set and check shared unique names and create the additional schemas
+   * 2. Set and check shared unique names and create the additional schemas
    * for Refs and UIDs
    */
 
@@ -315,10 +317,10 @@ public class ApiFinalise {
   private static final Pattern VALID_NAME_INFIX = Pattern.compile("^[-_a-zA-Z0-9.]*$");
 
   /*
-  2. add input schema variants
+  1. add input schema variants
    */
 
-  private void addInputSchemaVariants() {
+  private void addSharedInputSchemas() {
     api.getSchemas().values().stream()
         .filter(schema -> !schema.isUniversal())
         .forEach(this::generateInputSchema);
@@ -328,18 +330,52 @@ public class ApiFinalise {
     if (output.isUniversal()) return output;
     // might already be set due to recursive resolution
     if (output.getInput().isPresent()) return output.getInput().getValue();
-    Api.Schema input = Api.Schema.ofObject(output.getSource(), output.getRawType());
+    Class<?> schemaType = output.getRawType();
+    if (output.getType() == Api.Schema.Type.ARRAY) {
+      Api.Schema input = Api.Schema.ofArray(output.getSource(), schemaType);
+      input.getDirection().setValue(Api.Schema.Direction.IN);
+      Api.Schema elementType = output.getElementType();
+      input.withElements(generateInputReferenceSchema(elementType));
+      return input;
+    }
+    Api.Schema input = Api.Schema.ofObject(output.getSource(), schemaType);
     output.getInput().setValue(input);
     if (output.isShared()) {
-      String name = output.getSharedName().getValue() + "_In";
+      String name = output.getSharedName().getValue() + "Params";
+      Map<String, Api.Schema> schemas = api.getComponents().getSchemas();
+      if (schemas.containsKey(name)) name = output.getSharedName().getValue() + "_Params";
       input.getSharedName().setValue(name);
-      api.getComponents().getSchemas().put(name, input);
+      api.getGeneratorSchemas()
+          .computeIfAbsent(Api.Schema.Direction.class, k -> new ConcurrentHashMap<>())
+          .put(schemaType, input);
     }
     input.getDirection().setValue(Api.Schema.Direction.IN);
     output
         .getProperties()
-        .forEach(p -> input.getProperties().add(p.withType(generateInputSchema(p.getType()))));
+        .forEach(
+            p -> input.getProperties().add(p.withType(generateInputReferenceSchema(p.getType()))));
     return input;
+  }
+
+  private Api.Schema generateInputReferenceSchema(Api.Schema type) {
+    return type.isIdentifiable() ? generateIdObject(type) : generateInputSchema(type);
+  }
+
+  private Api.Schema generateIdObject(Api.Schema of) {
+    Class<?> schemaType = of.getRawType();
+    Api.Schema object = Api.Schema.ofObject(of.getSource(), schemaType);
+    Map<Class<?>, Api.Schema> idSchemas = api.getGeneratorSchemas().get(UID.class);
+
+    Api.Schema idType =
+        idSchemas.computeIfAbsent(
+            schemaType,
+            t -> {
+              Api.Schema s = Api.Schema.ofUID(schemaType);
+              s.getSharedName().setValue("UID_" + of.getSharedName().getValue());
+              return s;
+            });
+    object.addProperty(new Api.Property("id", true, idType));
+    return object;
   }
 
   /*

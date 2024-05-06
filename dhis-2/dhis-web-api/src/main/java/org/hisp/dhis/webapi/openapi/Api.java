@@ -484,7 +484,7 @@ public class Api {
     }
 
     public boolean isUniversal() {
-      return direction.orElse(Direction.INOUT) == Direction.INOUT;
+      return !direction.isPresent();
     }
 
     Set<String> getRequiredProperties() {
@@ -494,15 +494,24 @@ public class Api {
           .collect(toSet());
     }
 
+    Schema getElementType() {
+      return getProperties().get(0).getType();
+    }
+
     Api.Schema addProperty(Property property) {
       properties.add(property);
       Schema schema = property.getType();
-      if (direction.getValue() == Direction.INOUT
-          && (!schema.isUniversal()
-              || schema.getType() == Type.OBJECT && schema.isIdentifiable())) {
+      if (!direction.isPresent()
+          && (isNonUniversal(schema)
+              || schema.getType() == Type.ARRAY
+                  && isNonUniversal(schema.getProperties().get(0).getType()))) {
         direction.setValue(Direction.OUT);
       }
       return this;
+    }
+
+    private static boolean isNonUniversal(Schema schema) {
+      return !schema.isUniversal() || schema.getType() == Type.OBJECT && schema.isIdentifiable();
     }
 
     Api.Schema withElements(Schema componentType) {

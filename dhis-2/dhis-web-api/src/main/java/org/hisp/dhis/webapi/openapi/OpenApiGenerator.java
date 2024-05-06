@@ -409,7 +409,7 @@ public class OpenApiGenerator extends JsonGenerator {
       Api.Schema elements =
           schema.getProperties().isEmpty()
               ? api.getSchemas().get(type.getComponentType())
-              : schema.getProperties().get(0).getType();
+              : schema.getElementType();
       addStringMember("type", "array");
       addObjectMember("items", () -> generateSchemaOrRef(elements));
       return;
