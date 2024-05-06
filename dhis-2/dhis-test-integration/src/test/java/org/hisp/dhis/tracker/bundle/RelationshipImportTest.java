@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,47 +54,58 @@ class RelationshipImportTest extends TrackerTest {
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
+  @Autowired protected UserService _userService;
+  private User userA;
 
   @Override
   protected void initTest() throws IOException {
+    userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
-    User userA = userService.getUser("M5zQapPyTZI");
-    assertNoErrors(
-        trackerImportService.importTracker(fromJson("tracker/single_tei.json", userA.getUid())));
-    assertNoErrors(
-        trackerImportService.importTracker(
-            fromJson("tracker/single_enrollment.json", userA.getUid())));
-    assertNoErrors(
-        trackerImportService.importTracker(fromJson("tracker/single_event.json", userA.getUid())));
+    userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = fromJson("tracker/single_tei.json");
+    params.setUser(userA);
+    assertNoErrors(trackerImportService.importTracker(params));
+    params = fromJson("tracker/single_enrollment.json");
+    params.setUser(userA);
+    assertNoErrors(trackerImportService.importTracker(params));
+    params = fromJson("tracker/single_event.json");
+    params.setUser(userA);
+    assertNoErrors(trackerImportService.importTracker(params));
     manager.flush();
   }
 
   @Test
   void successImportingRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
+    userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams params = fromJson("tracker/relationships.json");
+    params.setUser(userA);
+    ImportReport importReport = trackerImportService.importTracker(params);
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
 
   @Test
-  void successUpdateRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
-    trackerImportService.importTracker(trackerImportParams);
-    trackerImportParams = fromJson("tracker/relationshipToUpdate.json");
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    ImportReport importReport = trackerImportService.importTracker(trackerImportParams);
-    assertThat(importReport.getStatus(), is(Status.OK));
-    assertThat(importReport.getStats().getCreated(), is(0));
-    assertThat(importReport.getStats().getIgnored(), is(1));
+  void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
+    userA = userService.getUser("o1HMTIzBGo7");
+    TrackerImportParams params = fromJson("tracker/relationships.json");
+    params.setUser(userA);
+    ImportReport importReport = trackerImportService.importTracker(params);
+
+    assertHasError(importReport, ValidationCode.E4020);
+    assertThat(importReport.getStats().getIgnored(), is(2));
   }
 
   @Test
-  void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
-    ImportReport importReport =
-        trackerImportService.importTracker(fromJson("tracker/relationships.json", "o1HMTIzBGo7"));
-
-    assertHasError(importReport, ValidationCode.E4019);
-    assertThat(importReport.getStats().getIgnored(), is(2));
+  void successUpdateRelationships() throws IOException {
+    TrackerImportParams params = fromJson("tracker/relationships.json");
+    params.setUser(userA);
+    trackerImportService.importTracker(params);
+    params = fromJson("tracker/relationshipToUpdate.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    params.setUser(userA);
+    ImportReport importReport = trackerImportService.importTracker(params);
+    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStats().getCreated(), is(0));
+    assertThat(importReport.getStats().getIgnored(), is(1));
   }
 }
