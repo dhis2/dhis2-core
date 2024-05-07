@@ -56,6 +56,21 @@ class ImpersonateUserControllerTest extends DhisControllerConvenienceTest {
   @Autowired private DhisConfigurationProvider config;
 
   @Test
+  void testImpersonateUserNonExistentShould() {
+    String usernameToImpersonate = "dontexist";
+
+    JsonWebMessage response =
+        POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
+            .content(HttpStatus.FORBIDDEN)
+            .as(JsonWebMessage.class);
+
+    assertEquals("Username not found: dontexist", response.getMessage());
+    assertEquals(404, response.getHttpStatusCode());
+    assertEquals("Not Found", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
+  }
+
+  @Test
   void testImpersonateUserOK() {
     String usernameToImpersonate = "usera";
     createUserWithAuth(usernameToImpersonate, "ALL");
