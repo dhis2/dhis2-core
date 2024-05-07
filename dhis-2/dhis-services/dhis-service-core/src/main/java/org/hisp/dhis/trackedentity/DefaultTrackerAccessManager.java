@@ -51,6 +51,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -139,30 +140,55 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
   }
 
+  /**
+   * Check the data write permissions and ownership of a tracked entity given the programs for which
+   * the user has metadata access to.
+   *
+   * @return No errors if a user has access to at least one program
+   */
   @Override
+  @Transactional(readOnly = true)
   public List<String> canWrite(User user, TrackedEntity trackedEntity) {
-    List<String> errors = new ArrayList<>();
-
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || trackedEntity == null) {
-      return errors;
+      return List.of();
     }
 
-    OrganisationUnit ou = trackedEntity.getOrganisationUnit();
+    return canWrite(user, trackedEntity, programService.getAllPrograms());
+  }
 
-    if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
-      if (!organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
-        errors.add("User has no write access to organisation unit: " + ou.getUid());
-      }
-    }
+  private List<String> canWrite(User user, TrackedEntity trackedEntity, List<Program> programs) {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-    if (!aclService.canDataWrite(user, trackedEntityType)) {
-      errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
+    if (!aclService.canDataRead(user, trackedEntityType)) {
+      return List.of(
+          "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
-    return errors;
+    initializeTrackedEntityOrgUnitParents(trackedEntity);
+
+    List<Program> tetPrograms =
+        programs.stream()
+            .filter(
+                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+            .toList();
+
+    if (tetPrograms.isEmpty()) {
+      return List.of("User has no access to any program");
+    }
+
+    if (tetPrograms.stream().anyMatch(p -> canWrite(user, trackedEntity, p))) {
+      return List.of();
+    } else {
+      return List.of(OWNERSHIP_ACCESS_DENIED);
+    }
+  }
+
+  /** Check Program data write access and Tracked Entity Program Ownership */
+  private boolean canWrite(User user, TrackedEntity trackedEntity, Program program) {
+    return aclService.canDataWrite(user, program)
+        && ownershipAccessManager.hasAccess(user, trackedEntity, program);
   }
 
   @Override
@@ -204,13 +230,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canWrite(
       User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
-    List<String> errors = new ArrayList<>();
-
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || trackedEntity == null) {
-      return errors;
+      return List.of();
     }
 
+    List<String> errors = new ArrayList<>();
     if (!aclService.canDataWrite(user, program)) {
       errors.add("User has no data write access to program: " + program.getUid());
     }
@@ -633,25 +658,22 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<String> canWrite(User user, Relationship relationship) {
-    List<String> errors = new ArrayList<>();
-    RelationshipType relationshipType;
-    RelationshipItem from;
-    RelationshipItem to;
-
     // always allow if user == null (internal process) or user is superuser
     if (user == null || user.isSuper() || relationship == null) {
-      return errors;
+      return List.of();
     }
 
-    relationshipType = relationship.getRelationshipType();
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<String> errors = new ArrayList<>();
 
     if (!aclService.canDataWrite(user, relationshipType)) {
       errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
     }
 
-    from = relationship.getFrom();
-    to = relationship.getTo();
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
 
     errors.addAll(canWrite(user, from.getTrackedEntity()));
     errors.addAll(canUpdate(user, from.getEnrollment(), false));
