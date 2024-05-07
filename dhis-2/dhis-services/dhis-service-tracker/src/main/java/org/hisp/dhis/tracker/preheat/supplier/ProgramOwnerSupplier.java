@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
@@ -58,18 +59,28 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
     final Map<String, TrackedEntityInstance> preheatedTrackedEntities =
         preheat.getTrackedEntities();
     final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments();
+    final Map<String, ProgramStageInstance> preheatedEvents = preheat.getEvents();
     Set<Long> teiIds = new HashSet<>();
     for (Enrollment en : params.getEnrollments()) {
-      TrackedEntityInstance tei = preheatedTrackedEntities.get(en.getTrackedEntity());
-      if (tei != null) {
-        teiIds.add(tei.getId());
+      ProgramInstance programInstance = preheatedEnrollments.get(en.getEnrollment());
+      TrackedEntityInstance te =
+          programInstance == null
+              ? preheatedTrackedEntities.get(en.getTrackedEntity())
+              : programInstance.getEntityInstance();
+
+      if (te != null) {
+        teiIds.add(te.getId());
       }
     }
 
     for (Event ev : params.getEvents()) {
-      ProgramInstance pi = preheatedEnrollments.get(ev.getEnrollment());
-      if (pi != null && pi.getEntityInstance() != null) {
-        teiIds.add(pi.getEntityInstance().getId());
+      ProgramStageInstance programStageInstance = preheatedEvents.get(ev.getEvent());
+      ProgramInstance programInstance =
+          programStageInstance == null
+              ? preheatedEnrollments.get(ev.getEnrollment())
+              : programStageInstance.getProgramInstance();
+      if (programInstance != null && programInstance.getEntityInstance() != null) {
+        teiIds.add(programInstance.getEntityInstance().getId());
       }
     }
 
