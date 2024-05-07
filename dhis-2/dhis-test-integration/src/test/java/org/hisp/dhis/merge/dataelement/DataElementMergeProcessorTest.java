@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AnalyticalObjectStore;
@@ -50,6 +51,9 @@ import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
+import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,13 +61,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class DataElementMergeProcessorTest extends IntegrationTestBase {
 
+  @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
   @Autowired private IdentifiableObjectManager idObjectManager;
   @Autowired private MinMaxDataElementStore minMaxDataElementStore;
-  @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
   @Autowired private MinMaxDataElementService minMaxDataElementService;
-  @Autowired private DataElementService dataElementService;
+  @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
   @Autowired private OrganisationUnitService orgUnitService;
+  @Autowired private SMSCommandStore smsCommandStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -243,8 +248,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
 
     // then
     List<EventVisualization> eventVizSources =
-        idObjectManager.getByUid(
-            EventVisualization.class, List.of(deSource1.getUid(), deSource2.getUid()));
+        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deSource1, deSource2));
     List<EventVisualization> allByDataElement =
         eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
@@ -283,8 +287,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
 
     // then
     List<EventVisualization> eventVizSources =
-        idObjectManager.getByUid(
-            EventVisualization.class, List.of(deSource1.getUid(), deSource2.getUid()));
+        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deSource1, deSource2));
     List<EventVisualization> allByDataElement =
         eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
@@ -296,10 +299,89 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     assertTrue(allDataElements.contains(deTarget));
   }
 
+  // -------------------------------
+  // ---- SMS CODES ----
+  // -------------------------------
+  @Test
+  @DisplayName("SMS Codes are merged as expected, sources not deleted")
+  void smsCodeMergeTest() throws ConflictException {
+    // given
+    // sms codes
+    SMSCode smsCode1 = createSmsCode("code source 1", deSource1);
+    SMSCode smsCode2 = createSmsCode("code source 2", deSource2);
+    SMSCode smsCode3 = createSmsCode("code target 3", deTarget);
+
+    SMSCommand smsCommand = new SMSCommand();
+    smsCommand.setName("CMD 1");
+    smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3));
+
+    smsCommandStore.save(smsCommand);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<SMSCommand> smsCommands =
+        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deSource1, deSource2));
+    List<SMSCommand> allByDataElement =
+        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, smsCommands.size());
+    assertEquals(3, allByDataElement.get(0).getCodes().size());
+    assertEquals(3, allDataElements.size());
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName("SMS Codes are merged as expected, sources are deleted")
+  void smsCodesMergeDeleteSourcesTest() throws ConflictException {
+    SMSCode smsCode1 = createSmsCode("code source 1", deSource1);
+    SMSCode smsCode2 = createSmsCode("code source 2", deSource2);
+    SMSCode smsCode3 = createSmsCode("code target 3", deTarget);
+
+    SMSCommand smsCommand = new SMSCommand();
+    smsCommand.setName("CMD 1");
+    smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3));
+
+    smsCommandStore.save(smsCommand);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<SMSCommand> smsCommands =
+        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deSource1, deSource2));
+    List<SMSCommand> allByDataElement =
+        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, smsCommands.size());
+    assertEquals(3, allByDataElement.get(0).getCodes().size());
+    assertEquals(1, allDataElements.size());
+    assertTrue(allDataElements.contains(deTarget));
+  }
+
   private MergeParams getMergeParams() {
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
     mergeParams.setTarget(UID.of(deTarget.getUid()));
     return mergeParams;
+  }
+
+  private SMSCode createSmsCode(String code, DataElement de) {
+    SMSCode smsCode = new SMSCode();
+    smsCode.setCode(code);
+    smsCode.setDataElement(de);
+    return smsCode;
   }
 }

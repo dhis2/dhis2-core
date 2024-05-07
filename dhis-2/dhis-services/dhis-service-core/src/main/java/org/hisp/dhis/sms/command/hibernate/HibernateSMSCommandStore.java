@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.sms.command.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
@@ -94,5 +96,22 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
     // TODO rename data set property
 
     return query.getSingleResult().intValue();
+  }
+
+  @Override
+  public List<SMSCommand> getSmsCommandsByCodeDataElement(Collection<DataElement> dataElements) {
+    // language=sql
+    String sql =
+        """
+          select scmd.* from smscommands scmd
+          join smscommandcodes scc on scmd.smscommandid = scc.id
+          join smscodes sc on scc.codeid = sc.smscodeid
+          where sc.dataelementid in :dataElements
+          group by scmd.smscommandid;
+        """;
+    return getSession()
+        .createNativeQuery(sql, SMSCommand.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

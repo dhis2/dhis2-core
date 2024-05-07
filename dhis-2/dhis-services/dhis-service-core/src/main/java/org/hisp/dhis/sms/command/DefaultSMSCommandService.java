@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.sms.command;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.NonTransactional;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -64,6 +67,12 @@ public class DefaultSMSCommandService implements SMSCommandService {
   @Transactional(readOnly = true)
   public SMSCommand getSMSCommand(String name) {
     return smsCommandStore.getByName(name);
+  }
+
+  @Override
+  @NonTransactional
+  public List<SMSCommand> getSmsCommandsByCodeDataElement(Collection<DataElement> dataElements) {
+    return smsCommandStore.getSmsCommandsByCodeDataElement(dataElements);
   }
 
   @Override
