@@ -30,8 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,41 +45,57 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
+class TrackerOwnershipControllerTest extends DhisControllerIntegrationTest {
 
-  private String orgUnitA;
+  private String orgUnitAUid;
 
-  private String orgUnitB;
+  private String orgUnitBUid;
 
-  private String teiId;
+  private String teUid;
 
   private String pId;
 
   @BeforeEach
   void setUp() {
-    orgUnitA =
+    orgUnitAUid =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
-    orgUnitB =
+    orgUnitBUid =
         assertStatus(
             HttpStatus.CREATED,
             POST(
                 "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+
+    OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
+    OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
+    User user =
+        createAndAddUser(true, "user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    injectSecurityContextUser(user);
+
     String tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
-    teiId =
-        assertStatus(
-            HttpStatus.OK,
-            POST(
-                "/tracker",
-                "{'trackedEntities':[{'name':'A', 'trackedEntityType':'"
-                    + tetId
-                    + "', 'orgUnit':'"
-                    + orgUnitA
-                    + "'}]}"));
+
+    teUid = CodeGenerator.generateUid();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/tracker?async=false",
+            """
+{
+ "trackedEntities": [
+   {
+     "trackedEntity": "%s",
+     "trackedEntityType": "%s",
+     "orgUnit": "%s"
+   }
+ ]
+}
+"""
+                .formatted(teUid, tetId, orgUnitAUid)));
+
     pId =
         assertStatus(
             HttpStatus.CREATED,
@@ -93,9 +113,9 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         "Ownership transferred",
         PUT(
                 "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}",
-                teiId,
+                teUid,
                 pId,
-                orgUnitA)
+                orgUnitAUid)
             .content(HttpStatus.OK));
   }
 
@@ -108,9 +128,9 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         "Ownership transferred",
         PUT(
                 "/tracker/ownership/transfer?trackedEntity={tei}&program={prog}&ou={ou}",
-                teiId,
+                teUid,
                 pId,
-                orgUnitB)
+                orgUnitBUid)
             .content(HttpStatus.OK));
   }
 
@@ -122,10 +142,10 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         PUT(
                 "/tracker/ownership/transfer?trackedEntity={tei}&"
                     + "trackedEntityInstance={tei}&program={prog}&ou={ou}",
-                teiId,
-                teiId,
+                teUid,
+                teUid,
                 pId,
-                orgUnitA)
+                orgUnitAUid)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -134,7 +154,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
   void shouldFailToUpdateWhenNoTrackedEntityOrTrackedEntityInstanceParametersArePresent() {
     assertEquals(
         "Required request parameter 'trackedEntity' is not present",
-        PUT("/tracker/ownership/transfer?program={prog}&ou={ou}", pId, orgUnitA)
+        PUT("/tracker/ownership/transfer?program={prog}&ou={ou}", pId, orgUnitAUid)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -148,7 +168,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         "Temporary Ownership granted",
         POST(
                 "/tracker/ownership/override?trackedEntityInstance={tei}&program={prog}&reason=42",
-                teiId,
+                teUid,
                 pId)
             .content(HttpStatus.OK));
   }
@@ -160,7 +180,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         200,
         "OK",
         "Temporary Ownership granted",
-        POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teiId, pId)
+        POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teUid, pId)
             .content(HttpStatus.OK));
   }
 
@@ -172,8 +192,8 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         POST(
                 "/tracker/ownership/override?trackedEntity={tei}&"
                     + "trackedEntityInstance={tei}&program={prog}&&reason=42",
-                teiId,
-                teiId,
+                teUid,
+                teUid,
                 pId)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());

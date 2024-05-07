@@ -108,7 +108,7 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
 
     POST(
             "/tracker?async=false",
-                """
+            """
 {
   "trackedEntities": [
     {
