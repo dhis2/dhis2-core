@@ -216,10 +216,6 @@ public class DhisWebApiWebSecurityConfig {
         httpSecuritySecurityContextConfigurer ->
             httpSecuritySecurityContextConfigurer.requireExplicitSave(true));
 
-    //    http.securityContext(securityContext -> securityContext.
-    //        securityContextRepository(new HttpSessionSecurityContextRepository())
-    //    );
-
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(
             authorize -> {
@@ -391,7 +387,7 @@ public class DhisWebApiWebSecurityConfig {
               }
             });
 
-    /// OAUTH/////////
+    /// OIDC /////////
     http.oauth2Login(
             oauth2 ->
                 oauth2
