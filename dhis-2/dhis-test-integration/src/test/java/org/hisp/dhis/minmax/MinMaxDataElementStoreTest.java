@@ -184,10 +184,10 @@ class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
     DataElement deY = createDataElementAndSave('Y');
     DataElement deZ = createDataElementAndSave('Z');
 
-    MinMaxDataElement mmde1 = createMinMaxDataElementAndSave(deW);
-    MinMaxDataElement mmde2 = createMinMaxDataElementAndSave(deX);
-    MinMaxDataElement mmde3 = createMinMaxDataElementAndSave(deY);
-    MinMaxDataElement mmde4 = createMinMaxDataElementAndSave(deZ);
+    createMinMaxDataElementAndSave(deW);
+    createMinMaxDataElementAndSave(deX);
+    createMinMaxDataElementAndSave(deY);
+    createMinMaxDataElementAndSave(deZ);
 
     // when
     List<MinMaxDataElement> allByDataElement =
