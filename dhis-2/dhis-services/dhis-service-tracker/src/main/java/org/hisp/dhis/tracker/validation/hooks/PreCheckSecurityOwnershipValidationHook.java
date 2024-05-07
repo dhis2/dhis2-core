@@ -66,8 +66,10 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -564,6 +566,32 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
       if (!aclService.canDataWrite(user, categoryOption)) {
         reporter.addError(dto, TrackerErrorCode.E1099, user, categoryOption);
       }
+    }
+  }
+
+  private final RelationshipTrackerConverterService relationshipTrackerConverterService;
+
+  @Override
+  public void validateRelationship(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+
+    if (strategy.isDelete()
+        && (!trackerAccessManager
+            .canDelete(bundle.getUser(), bundle.getPreheat().getRelationship(relationship))
+            .isEmpty())) {
+      reporter.addError(
+          relationship, TrackerErrorCode.E4020, bundle.getUser(), relationship.getRelationship());
+    }
+
+    if (strategy.isCreate()
+        && (!trackerAccessManager
+            .canWrite(
+                bundle.getUser(),
+                relationshipTrackerConverterService.from(bundle.getPreheat(), relationship))
+            .isEmpty())) {
+      reporter.addError(
+          relationship, TrackerErrorCode.E4020, bundle.getUser(), relationship.getRelationship());
     }
   }
 }
