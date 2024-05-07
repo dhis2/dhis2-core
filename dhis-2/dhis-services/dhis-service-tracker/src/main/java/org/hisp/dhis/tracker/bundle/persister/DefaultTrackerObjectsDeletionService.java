@@ -99,7 +99,8 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
 
       deleteEvents(trackerBundle);
 
-      TrackedEntityInstance tei = programInstance.getEntityInstance();
+      TrackedEntityInstance tei =
+          teiService.getTrackedEntityInstance(programInstance.getEntityInstance().getId());
       tei.getProgramInstances().remove(programInstance);
       tei.setLastUpdatedByUserInfo(bundle.getUserInfo());
 
