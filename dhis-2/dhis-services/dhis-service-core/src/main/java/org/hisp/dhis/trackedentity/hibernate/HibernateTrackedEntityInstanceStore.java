@@ -853,17 +853,6 @@ public class HibernateTrackedEntityInstanceStore
     return "LEFT JOIN trackedentityprogramowner PO ON "
         + " PO.trackedentityinstanceid = TEI.trackedentityinstanceid"
         + " AND P.programid = PO.programid";
-
-    /*    if (!params.hasProgram() || skipOwnershipCheck(params)) {
-      return "";
-    }
-
-    return new StringBuilder()
-        .append(" INNER JOIN trackedentityprogramowner PO ")
-        .append("ON PO.programid = ")
-        .append(params.getProgram().getId())
-        .append(" AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid ")
-        .toString();*/
   }
 
   /**
