@@ -34,6 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Sorting;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.mapping.MapView;
@@ -71,12 +74,14 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
   private MapView mvC;
 
   @Autowired private IdentifiableObjectManager idObjectManager;
+  @Autowired private DataElementService dataElementService;
 
   @Autowired
   @Qualifier("org.hisp.dhis.mapping.MapViewStore")
   private MapViewStore mapViewStore;
 
   @Autowired private AnalyticalObjectStore<Visualization> visualizationStore;
+  @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
 
   @Override
   public void setUpTest() {
@@ -179,5 +184,45 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
 
     // and the visualization with no indicator ref should not be retrieved
     assertFalse(matchedVisualizations.contains(vizWithNoIndicatorSorting));
+  }
+
+  @Test
+  @DisplayName("retrieving Event Visualizations by DataElement should return the correct results")
+  void retrievingEventVisualizationsByDataElementShouldReturnTheCorrectResults() {
+    // given EventVisualizations with DataElement references
+    DataElement de1 = createDataElementAndSave('1');
+    DataElement de2 = createDataElementAndSave('2');
+    DataElement de3 = createDataElementAndSave('3');
+
+    EventVisualization eventVis1 = createEventVisualization('1', null);
+    eventVis1.setDataElementValueDimension(de1);
+    EventVisualization eventVis2 = createEventVisualization('2', null);
+    eventVis2.setDataElementValueDimension(de2);
+    EventVisualization eventVis3 = createEventVisualization('3', null);
+    eventVis3.setDataElementValueDimension(de3);
+
+    idObjectManager.save(eventVis1);
+    idObjectManager.save(eventVis2);
+    idObjectManager.save(eventVis3);
+
+    // when
+    List<EventVisualization> allByDataElement =
+        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(de1, de2));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    // then
+    assertEquals(2, allByDataElement.size());
+    assertEquals(3, allDataElements.size());
+    assertTrue(
+        allByDataElement.stream()
+            .map(ev -> ev.getDataElementValueDimension().getUid())
+            .toList()
+            .containsAll(List.of(de1.getUid(), de2.getUid())));
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    DataElement de = createDataElement(c);
+    dataElementService.addDataElement(de);
+    return de;
   }
 }
