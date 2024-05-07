@@ -106,37 +106,29 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
             "/trackedEntityAttributes/",
             "{'name':'attrA', 'id':'TEAttr10000','shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}"));
 
-    String teiId =
-        assertStatus(
-            HttpStatus.OK,
-            POST(
-                "/trackedEntityInstances",
-                "{\n"
-                    + "  'trackedEntityType': 'TEType10000',\n"
-                    + "  'program': 'PrZMWi7rBga',\n"
-                    + "  'status': 'ACTIVE',\n"
-                    + "  'orgUnit': '"
-                    + ORG_UNIT_UID
-                    + "',\n"
-                    + "  'enrollmentDate': '2023-06-16',\n"
-                    + "  'incidentDate': '2023-06-16'\n"
-                    + "}"));
-
     POST(
-            "/enrollments",
-            "{\n"
-                + "  'trackedEntityInstance': '"
-                + teiId
-                + "',\n"
-                + "  'program': 'PrZMWi7rBga',\n"
-                + "  'status': 'ACTIVE',\n"
-                + "  'orgUnit': '"
-                + ORG_UNIT_UID
-                + "',\n"
-                + "  'enrollmentDate': '2023-06-16',\n"
-                + "  'incidentDate': '2023-06-16'\n"
-                + "}")
-        .content(HttpStatus.CREATED);
+            "/tracker?async=false",
+                """
+{
+  "trackedEntities": [
+    {
+      "trackedEntityType": "TEType10000",
+      "orgUnit": "%s",
+      "enrollments": [
+        {
+          "program": "PrZMWi7rBga",
+          "orgUnit": "%s",
+          "status": "ACTIVE",
+          "enrolledAt": "2023-06-16",
+          "occurredAt': "2023-06-16"
+        }
+      ]
+    }
+  ]
+}
+"""
+                .formatted(ORG_UNIT_UID, ORG_UNIT_UID))
+        .content(HttpStatus.OK);
 
     POST("/programs/%s/copy".formatted(PROGRAM_UID))
         .content(HttpStatus.CREATED)
