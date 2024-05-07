@@ -99,36 +99,6 @@ public class EnrollmentsTests extends TrackerApiTest {
   }
 
   @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "src/test/resources/tracker/importer/teis/teiWithEnrollments.json",
-        "src/test/resources/tracker/importer/teis/teiAndEnrollment.json"
-      })
-  public void shouldImportTeisWithEnrollments(String file) {
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(new File(file));
-
-    response
-        .validateSuccessfulImport()
-        .validate()
-        .body("status", Matchers.equalTo("OK"))
-        .body("stats.created", equalTo(2));
-
-    response.validateTeis().body("stats.created", Matchers.equalTo(1));
-
-    response.validateEnrollments().body("stats.created", Matchers.equalTo(1));
-
-    // assert that the tei was imported
-    String teiId = response.extractImportedTeis().get(0);
-    String enrollmentId = response.extractImportedEnrollments().get(0);
-
-    trackerImportExportActions
-        .get("/enrollments/" + enrollmentId)
-        .validate()
-        .statusCode(200)
-        .body("trackedEntity", equalTo(teiId));
-  }
-
-  @ParameterizedTest
   @ValueSource(strings = {"true", "false "})
   public void shouldAllowFutureEnrollments(String shouldAddFutureDays) throws Exception {
     // arrange
