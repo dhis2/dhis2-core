@@ -181,6 +181,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
+    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntityInstance te = getTEINoProgramInstances();
     when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
@@ -224,6 +225,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
+    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntityInstance te = getTEIWithDeleteProgramInstances();
     when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
@@ -245,6 +247,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
+    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntityInstance te = getTEIWithProgramInstances();
@@ -266,6 +269,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
+    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntityInstance te = getTEIWithProgramInstances();
     when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
