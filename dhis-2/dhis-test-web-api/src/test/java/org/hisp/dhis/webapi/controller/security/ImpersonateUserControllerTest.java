@@ -36,6 +36,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.session.SessionRegistry;
@@ -72,13 +73,14 @@ class ImpersonateUserControllerTest extends DhisControllerConvenienceTest {
   void testImpersonateUserNonExistent() {
     String usernameToImpersonate = "dontexist";
 
-    JsonImpersonateUserResponse responseB =
+    JsonWebMessage response =
         POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
-            .content(HttpStatus.OK)
-            .as(JsonImpersonateUserResponse.class);
+            .content(HttpStatus.NOT_FOUND)
+            .as(JsonWebMessage.class);
 
-    assertEquals("GENERIC_FAILURE", responseB.getLoginStatus());
-    assertEquals("message", responseB.getMessage());
-    assertEquals(usernameToImpersonate, responseB.getImpersonatedUsername());
+    assertEquals(404, response.getHttpStatusCode());
+    assertEquals("Username not found: dontexist", response.getMessage());
+    assertEquals("Not Found", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
   }
 }

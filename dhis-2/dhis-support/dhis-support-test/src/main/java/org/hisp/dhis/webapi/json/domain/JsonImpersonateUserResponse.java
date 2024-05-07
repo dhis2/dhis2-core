@@ -41,7 +41,7 @@ public interface JsonImpersonateUserResponse extends JsonObject {
   }
 
   default String getImpersonatedUsername() {
-    return getString("impersonatedUsername").string();
+    return getString("username").string();
   }
 
   default String getMessage() {

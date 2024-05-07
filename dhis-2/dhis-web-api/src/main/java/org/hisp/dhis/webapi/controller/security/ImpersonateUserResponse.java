@@ -44,11 +44,7 @@ public class ImpersonateUserResponse {
   @Getter
   public enum STATUS {
     IMPERSONATION_SUCCESS("impersonateSuccess"),
-    IMPERSONATION_EXIT_SUCCESS("exitSuccess"),
-    IP_NOT_ALLOWED("ipNotAllowed"),
-    FEATURE_IS_DISABLED("featureDisabled"),
-    USER_IS_ROOT("userIsRoot"),
-    GENERIC_FAILURE("genericFailure");
+    IMPERSONATION_EXIT_SUCCESS("exitSuccess");
 
     private final String keyName;
     private final String defaultValue;
@@ -60,6 +56,6 @@ public class ImpersonateUserResponse {
   }
 
   @JsonProperty private STATUS status;
-  @JsonProperty private String impersonatedUsername;
+  @JsonProperty private String username;
   @JsonProperty private String message;
 }
