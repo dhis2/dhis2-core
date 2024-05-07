@@ -86,6 +86,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest {
     programInstances = rnd.objects(ProgramInstance.class, 2).collect(Collectors.toList());
     // set the OrgUnit parent to null to avoid recursive errors when mapping
     programInstances.forEach(p -> p.getOrganisationUnit().setParent(null));
+    programInstances.forEach(p -> p.getEntityInstance().getOrganisationUnit().setParent(null));
 
     programWithRegistration = createProgram('A');
     programWithRegistration.setProgramType(WITH_REGISTRATION);

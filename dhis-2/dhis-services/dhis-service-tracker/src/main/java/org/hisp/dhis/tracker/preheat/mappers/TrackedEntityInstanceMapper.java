@@ -76,6 +76,7 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
   @Mapping(target = "name")
   @Mapping(target = "attributeValues")
   @Mapping(target = "user")
+  @Mapping(target = "parent", qualifiedByName = "organisationUnit")
   @Mapping(target = "publicAccess")
   @Mapping(target = "externalAccess")
   @Mapping(target = "userGroupAccesses")

@@ -28,16 +28,20 @@
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4019;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.DELETE;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4020;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.relationship.RelationshipType;
+import java.util.List;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
@@ -58,15 +62,19 @@ class SecurityOwnershipValidatorTest {
 
   @Mock private AclService aclService;
 
+  @Mock private TrackerAccessManager trackerAccessManager;
+
+  @Mock private RelationshipTrackerConverterService converterService;
+
+  private org.hisp.dhis.relationship.Relationship convertedRelationship;
+
   private Reporter reporter;
 
   private Relationship relationship;
 
-  private RelationshipType relationshipType;
-
   @BeforeEach
   public void setUp() {
-    validator = new SecurityOwnershipValidator(aclService);
+    validator = new SecurityOwnershipValidator(trackerAccessManager, converterService);
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
@@ -74,27 +82,53 @@ class SecurityOwnershipValidatorTest {
     reporter = new Reporter(idSchemes);
     relationship = new Relationship();
     relationship.setRelationship("relationshipUid");
-    relationshipType = new RelationshipType();
 
-    when(bundle.getPreheat().getRelationshipType(any())).thenReturn(relationshipType);
+    convertedRelationship = new org.hisp.dhis.relationship.Relationship();
+  }
+
+  @Test
+  void shouldCreateWhenUserHasWriteAccessToRelationship() {
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
-  }
-
-  @Test
-  void shouldFailWhenUserHasNoAccessToRelationshipType() {
-    when(aclService.canDataWrite(bundle.getUser(), relationshipType)).thenReturn(false);
-
-    validator.validate(reporter, bundle, relationship);
-
-    assertHasError(reporter, relationship, E4019);
-  }
-
-  @Test
-  void shouldWorkWhenUserHasAccessToRelationshipType() {
-    when(aclService.canDataWrite(bundle.getUser(), relationshipType)).thenReturn(true);
+    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, relationship);
 
     assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailToCreateWhenUserHasNoWriteAccessToRelationship() {
+    when(bundle.getStrategy(relationship)).thenReturn(CREATE);
+    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
+        .thenReturn(List.of("error"));
+
+    validator.validate(reporter, bundle, relationship);
+
+    assertHasError(reporter, relationship, E4020);
+  }
+
+  @Test
+  void shouldDeleteWhenUserHasWriteAccessToRelationship() {
+    when(bundle.getStrategy(relationship)).thenReturn(DELETE);
+    when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship))).thenReturn(List.of());
+
+    validator.validate(reporter, bundle, relationship);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailToDeleteWhenUserHasNoWriteAccessToRelationship() {
+    when(bundle.getStrategy(relationship)).thenReturn(DELETE);
+    when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship)))
+        .thenReturn(List.of("error"));
+
+    validator.validate(reporter, bundle, relationship);
+
+    assertHasError(reporter, relationship, E4020);
   }
 }
