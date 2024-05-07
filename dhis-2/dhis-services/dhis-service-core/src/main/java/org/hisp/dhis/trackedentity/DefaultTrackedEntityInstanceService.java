@@ -490,7 +490,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       throw new IllegalQueryException("Params cannot be null");
     }
 
-    User user = params.getUser();
+    User user = currentUserService.getCurrentUser();
 
     if (!params.hasTrackedEntityInstances()
         && !params.hasOrganisationUnits()

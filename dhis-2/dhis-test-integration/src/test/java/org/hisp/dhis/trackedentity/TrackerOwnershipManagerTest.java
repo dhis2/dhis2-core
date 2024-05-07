@@ -27,17 +27,35 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.dxf2.events.EnrollmentEventsParams;
+import org.hisp.dhis.dxf2.events.EnrollmentParams;
+import org.hisp.dhis.dxf2.events.EventParams;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
+import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +74,14 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   @Autowired private ProgramService programService;
 
+  @Autowired
+  private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService
+      trackedEntityInstanceService;
+
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Autowired private ProgramInstanceService programInstanceService;
+
   private TrackedEntityInstance entityInstanceA1;
 
   private TrackedEntityInstance entityInstanceB1;
@@ -72,6 +98,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private User userB;
 
+  private User superUser;
+
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
@@ -82,23 +110,53 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
-    entityInstanceA1 = createTrackedEntityInstance(organisationUnitA);
-    entityInstanceB1 = createTrackedEntityInstance(organisationUnitB);
-    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
-    entityInstanceService.addTrackedEntityInstance(entityInstanceB1);
-    programA = createProgram('A');
-    programA.setAccessLevel(AccessLevel.PROTECTED);
-    programService.addProgram(programA);
-    programB = createProgram('B');
-    programB.setAccessLevel(AccessLevel.CLOSED);
-    programService.addProgram(programB);
-
     userA = createUserWithAuth("userA");
     userA.addOrganisationUnit(organisationUnitA);
     userService.updateUser(userA);
     userB = createUserWithAuth("userB");
     userB.addOrganisationUnit(organisationUnitB);
     userService.updateUser(userB);
+    superUser = createAndAddAdminUser();
+    superUser.setOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(superUser);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    Sharing sharing = new Sharing();
+    sharing.setPublicAccess(FULL);
+    sharing.setUserAccesses(Set.of(new UserAccess(userB, FULL)));
+    trackedEntityType.setSharing(sharing);
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+
+    entityInstanceA1 = createTrackedEntityInstance(organisationUnitA);
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceB1 = createTrackedEntityInstance(organisationUnitB);
+    entityInstanceB1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceB1);
+
+    programA = createProgram('A');
+    programA.setAccessLevel(AccessLevel.PROTECTED);
+    programA.setTrackedEntityType(trackedEntityType);
+    programService.addProgram(programA);
+    UserAccess userAccess = new UserAccess(userA.getUid(), FULL);
+    programA.setSharing(new Sharing(FULL, userAccess));
+    programService.updateProgram(programA);
+    programB = createProgram('B');
+    programB.setAccessLevel(AccessLevel.CLOSED);
+    programB.setTrackedEntityType(trackedEntityType);
+    programService.addProgram(programB);
+    programB.setSharing(new Sharing(FULL, userAccess));
+    programService.updateProgram(programB);
+
+    ProgramInstance programInstanceA =
+        new ProgramInstance(programA, entityInstanceA1, organisationUnitA);
+    programInstanceA.setEnrollmentDate(Date.from(Instant.now()));
+    programInstanceService.addProgramInstance(programInstanceA);
+    ProgramInstance programInstanceB =
+        new ProgramInstance(programB, entityInstanceB1, organisationUnitB);
+    programInstanceB.setEnrollmentDate(Date.from(Instant.now()));
+    programInstanceService.addProgramInstance(programInstanceB);
   }
 
   @Test
@@ -177,5 +235,129 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
             userB, entityInstanceA1.getUid(), entityInstanceA1.getOrganisationUnit(), programB));
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenTransferredToAccessibleOrgUnit() {
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+    injectSecurityContext(userB);
+    TrackedEntityInstanceQueryParams params =
+        createOperationParams(
+            userB, null, List.of(programA, programB), entityInstanceA1.getTrackedEntityType());
+
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            params, createInstanceParams(), false, false);
+
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid(), entityInstanceB1.getUid()),
+        trackedEntities.stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldNotFindTrackedEntityWhenTransferredToInaccessibleOrgUnit() {
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+
+    injectSecurityContext(userA);
+    TrackedEntityInstanceQueryParams params =
+        createOperationParams(
+            userA, null, List.of(programA), entityInstanceA1.getTrackedEntityType());
+
+    assertIsEmpty(
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            params, createInstanceParams(), false, false));
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfSuperUser() {
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+    TrackedEntityInstanceQueryParams params =
+        createOperationParams(
+            superUser, null, List.of(programA, programB), entityInstanceA1.getTrackedEntityType());
+
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            params, createInstanceParams(), false, false);
+
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntities.stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldFindTrackedEntityWhenProgramSuppliedAndUserIsOwner() {
+    assignOwnership(entityInstanceA1, programA, organisationUnitA);
+    TrackedEntityInstanceQueryParams params = createOperationParams(userA, programA, null, null);
+
+    injectSecurityContext(userA);
+
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            params, createInstanceParams(), false, false);
+
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntities.stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldNotFindTrackedEntityWhenProgramSuppliedAndUserIsNotOwner() {
+    assignOwnership(entityInstanceA1, programA, organisationUnitA);
+    TrackedEntityInstanceQueryParams params = createOperationParams(userB, programA, null, null);
+
+    injectSecurityContext(userB);
+
+    assertIsEmpty(
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            params, createInstanceParams(), false, false));
+  }
+
+  private void transferOwnership(
+      TrackedEntityInstance trackedEntity, Program program, OrganisationUnit orgUnit) {
+    trackerOwnershipAccessManager.transferOwnership(trackedEntity, program, orgUnit, false, true);
+  }
+
+  private void assignOwnership(
+      TrackedEntityInstance trackedEntity, Program program, OrganisationUnit orgUnit) {
+    trackerOwnershipAccessManager.assignOwnership(trackedEntity, program, orgUnit, false, true);
+  }
+
+  private TrackedEntityInstanceQueryParams createOperationParams(
+      User user, Program program, List<Program> programs, TrackedEntityType trackedEntityType) {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setTrackedEntityType(trackedEntityType);
+    params.setOrganisationUnitMode(ACCESSIBLE);
+    params.setProgram(program);
+    params.setPrograms(programs);
+    params.setUser(user);
+
+    return params;
+  }
+
+  private TrackedEntityInstanceParams createInstanceParams() {
+    EventParams eventParams = new EventParams(false);
+    EnrollmentEventsParams enrollmentEventsParams = new EnrollmentEventsParams(false, eventParams);
+    EnrollmentParams enrollmentParams =
+        new EnrollmentParams(enrollmentEventsParams, false, false, false, false);
+
+    return new TrackedEntityInstanceParams(
+        false,
+        new TrackedEntityInstanceEnrollmentParams(false, enrollmentParams),
+        false,
+        false,
+        false,
+        false);
   }
 }

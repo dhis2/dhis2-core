@@ -959,6 +959,11 @@ public class TrackedEntityInstanceQueryParams {
     return this;
   }
 
+  public TrackedEntityInstanceQueryParams setUser(User user) {
+    this.user = user;
+    return this;
+  }
+
   public List<TrackedEntityType> getTrackedEntityTypes() {
     return trackedEntityTypes;
   }
