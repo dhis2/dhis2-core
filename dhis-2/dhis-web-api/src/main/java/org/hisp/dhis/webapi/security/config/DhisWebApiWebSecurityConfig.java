@@ -372,12 +372,23 @@ public class DhisWebApiWebSecurityConfig {
                   .requestMatchers(new AntPathRequestMatcher("/**"))
                   .authenticated();
             })
+
         /// HTTP BASIC///////////////////////////////////////
         .httpBasic()
         .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
-        /// OAUTH/////////
-        .and()
-        .oauth2Login(
+        .addObjectPostProcessor(
+            new ObjectPostProcessor<BasicAuthenticationFilter>() {
+              @Override
+              public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                // Explicitly set security context repository on http basic, is
+                // NullSecurityContextRepository by default now.
+                filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
+                return filter;
+              }
+            });
+
+    /// OIDC /////////
+    http.oauth2Login(
             oauth2 ->
                 oauth2
                     .tokenEndpoint()
@@ -409,19 +420,7 @@ public class DhisWebApiWebSecurityConfig {
         .enableSessionUrlRewriting(false)
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-        .expiredUrl("/dhis-web-commons-security/logout.action")
-        .and()
-        //////////////////////////////
-        .addObjectPostProcessor(
-            new ObjectPostProcessor<BasicAuthenticationFilter>() {
-              @Override
-              public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                // Explicitly set security context repository on http basic, is
-                // NullSecurityContextRepository by default now.
-                filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
-                return filter;
-              }
-            });
+        .expiredUrl("/dhis-web-commons-security/logout.action");
   }
 
   @Bean
