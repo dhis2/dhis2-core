@@ -25,28 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.hisp.dhis.jsontree.JsonObject;
 
-@Configuration
-public class ConfigProviderConfiguration {
+/**
+ * Web API equivalent of an {@code ImpersonateUserResponse}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public interface JsonImpersonateUserResponse extends JsonObject {
 
-  public static Map<String,String> overrideProperties = new HashMap<>();
+  default String getLoginStatus() {
+    return getString("status").string();
+  }
 
-  @Bean(name = "dhisConfigurationProvider")
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+  default String getImpersonatedUsername() {
+    return getString("impersonatedUsername").string();
+  }
 
-    Properties properties = new Properties();
-    properties.putAll(overrideProperties);
-    provider.addProperties(properties);
-
-    return provider;
+  default String getMessage() {
+    return getString("message").string();
   }
 }
