@@ -421,21 +421,6 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
     }
   }
 
-  private void checkOrgUnitInSearchScope(
-      ValidationErrorReporter reporter,
-      TrackerBundle bundle,
-      TrackerDto dto,
-      OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)) {
-      reporter.addError(dto, E1003, orgUnit, user);
-    }
-  }
-
   private void checkTeiTypeAndTeiProgramAccess(
       ValidationErrorReporter reporter,
       TrackerDto dto,
