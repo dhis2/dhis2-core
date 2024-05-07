@@ -42,6 +42,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -62,6 +63,8 @@ class SecurityOwnershipValidator implements Validator<TrackedEntity> {
   @Nonnull private final AclService aclService;
 
   @Nonnull private final OrganisationUnitService organisationUnitService;
+
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
@@ -87,14 +90,21 @@ class SecurityOwnershipValidator implements Validator<TrackedEntity> {
                 .getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-    // If trackedEntity is newly created, or going to be deleted, capture
-    // scope has to be checked
+    if (strategy.isCreate()) {
+      checkTeTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
+    }
+
     if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
     }
-    // if its to update trackedEntity, search scope has to be checked
-    else {
-      checkOrgUnitInSearchScope(reporter, bundle, trackedEntity, organisationUnit);
+
+    if (!strategy.isCreate()) {
+      TrackedEntityInstance te =
+          bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
+      if (!trackerAccessManager.canWrite(bundle.getUser(), te).isEmpty()) {
+        reporter.addError(
+            trackedEntity, ValidationCode.E1003, bundle.getUser().getUid(), te.getUid());
+      }
     }
 
     if (strategy.isDelete()) {
@@ -106,11 +116,9 @@ class SecurityOwnershipValidator implements Validator<TrackedEntity> {
         reporter.addError(trackedEntity, E1100, user, tei);
       }
     }
-
-    checkTeiTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
   }
 
-  private void checkTeiTypeWriteAccess(
+  private void checkTeTypeWriteAccess(
       Reporter reporter,
       TrackerBundle bundle,
       TrackedEntity trackedEntity,
@@ -139,18 +147,6 @@ class SecurityOwnershipValidator implements Validator<TrackedEntity> {
 
     if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
-  private void checkOrgUnitInSearchScope(
-      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)) {
-      reporter.addError(dto, ValidationCode.E1003, orgUnit, user);
     }
   }
 }
