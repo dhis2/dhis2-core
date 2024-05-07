@@ -33,13 +33,14 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -53,6 +54,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -105,6 +107,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
   private Program program;
 
+  private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
+
   @BeforeEach
   public void setUp() {
     when(bundle.getPreheat()).thenReturn(preheat);
@@ -128,41 +132,26 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
+    TrackedEntityProgramOwnerOrgUnit owner =
+        new TrackedEntityProgramOwnerOrgUnit(TE_ID, PROGRAM_ID, organisationUnit);
+    ownerOrgUnit = Map.of(TE_ID, Map.of(PROGRAM_ID, owner));
+
     validator =
         new SecurityOwnershipValidator(aclService, ownershipAccessManager, organisationUnitService);
   }
 
-  @Test
-  void verifyValidationSuccessForEnrollmentWhenEnrollmentHasNoOrgUnitAssigned() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
+  private void setUpUser(List<String> auths, Set<OrganisationUnit> units) {
+    User u = makeUser("A", auths);
+    u.setOrganisationUnits(units);
+    when(bundle.getUser()).thenReturn(user);
+  }
 
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
+  private void setUpUserWithOrgUnit(List<String> auths) {
+    setUpUser(auths, Set.of(organisationUnit));
+  }
 
-    Enrollment preheatEnrollment = getEnrollment(enrollment.getEnrollment());
-    preheatEnrollment.setOrganisationUnit(null);
-
-    when(preheat.getEnrollment(enrollment.getEnrollment())).thenReturn(preheatEnrollment);
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertIsEmpty(reporter.getErrors());
-    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
-
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertIsEmpty(reporter.getErrors());
-    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
+  private void setUpUserWithOrgUnit() {
+    setUpUserWithOrgUnit(List.of());
   }
 
   @Test
@@ -227,32 +216,12 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    when(ownershipAccessManager.hasAccess(
+            user, enrollment.getTrackedEntity(), organisationUnit, program))
+        .thenReturn(true);
+    setUpUserWithOrgUnit();
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration() {
-    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    String enrollmentUid = CodeGenerator.generateUid();
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -277,6 +246,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    when(ownershipAccessManager.hasAccess(
+            user, enrollment.getTrackedEntity(), organisationUnit, program))
+        .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -303,6 +276,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    when(ownershipAccessManager.hasAccess(
+            user, enrollment.getTrackedEntity(), organisationUnit, program))
+        .thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -327,6 +304,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -353,6 +331,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -377,6 +356,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(aclService.canDataWrite(user, program)).thenReturn(false);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    setUpUserWithOrgUnit();
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -401,6 +382,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    setUpUserWithOrgUnit();
 
     validator.validate(reporter, bundle, enrollment);
 
