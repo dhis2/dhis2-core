@@ -70,8 +70,12 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         assertStatus(
             HttpStatus.OK,
             POST(
-                "/trackedEntityInstances",
-                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + orgUnitA + "'}"));
+                "/tracker",
+                "{'trackedEntities':[{'name':'A', 'trackedEntityType':'"
+                    + tetId
+                    + "', 'orgUnit':'"
+                    + orgUnitA
+                    + "'}]}"));
     pId =
         assertStatus(
             HttpStatus.CREATED,
