@@ -39,7 +39,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
-import org.hisp.dhis.webapi.controller.security.ImpersonateUserResponse.STATUS;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -124,11 +123,11 @@ public class ImpersonateUserController {
 
     } catch (AuthenticationException ex) {
       throw new BadCredentialsException("Error", ex);
-//      log.warn("Failed to switch user", ex);
-//      return ImpersonateUserResponse.builder()
-//          .status(STATUS.GENERIC_FAILURE)
-//          .message(ex.getMessage())
-//          .build();
+      //      log.warn("Failed to switch user", ex);
+      //      return ImpersonateUserResponse.builder()
+      //          .status(STATUS.GENERIC_FAILURE)
+      //          .message(ex.getMessage())
+      //          .build();
     }
   }
 

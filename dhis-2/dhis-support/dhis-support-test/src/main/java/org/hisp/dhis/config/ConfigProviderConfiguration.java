@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ConfigProviderConfiguration {
 
-  public static Map<String,String> overrideProperties = new HashMap<>();
+  public static Map<String, String> overrideProperties = new HashMap<>();
 
   @Bean(name = "dhisConfigurationProvider")
   public DhisConfigurationProvider dhisConfigurationProvider() {
