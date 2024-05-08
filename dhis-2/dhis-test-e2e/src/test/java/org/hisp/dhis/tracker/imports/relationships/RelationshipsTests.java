@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.deprecated.tracker.RelationshipActions;
-import org.hisp.dhis.actions.deprecated.tracker.TrackedEntityInstancesAction;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -54,6 +53,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.tracker.TrackerApiTest;
@@ -65,6 +65,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -79,8 +80,6 @@ public class RelationshipsTests extends TrackerApiTest {
   private List<String> createdRelationships = new ArrayList<>();
 
   private RelationshipTypeActions relationshipTypeActions;
-
-  private TrackedEntityInstancesAction trackedEntityInstancesAction;
 
   private RelationshipActions relationshipActions;
 
@@ -158,7 +157,6 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @BeforeAll
   public void beforeAll() throws Exception {
-    trackedEntityInstancesAction = new TrackedEntityInstancesAction();
     metadataActions = new MetadataActions();
     relationshipTypeActions = new RelationshipTypeActions();
     relationshipActions = new RelationshipActions();
@@ -236,6 +234,43 @@ public class RelationshipsTests extends TrackerApiTest {
         .getRelationship(relationshipId)
         .validate()
         .body("", matchesJSON(originalRelationship.getAsJsonArray("relationships").get(0)));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "src/test/resources/tracker/importer/teis/teisAndRelationship.json",
+        "src/test/resources/tracker/importer/teis/teisWithRelationship.json"
+      })
+  public void shouldImportObjectsWithRelationship(String file) throws Exception {
+    JsonObject jsonObject = new FileReaderUtils().read(new File(file)).get(JsonObject.class);
+
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(jsonObject).validateSuccessfulImport();
+
+    response.validate().body("stats.total", equalTo(3));
+
+    createdRelationships = response.extractImportedRelationships();
+
+    ApiResponse relationshipResponse =
+        trackerImportExportActions.get("/relationships/" + createdRelationships.get(0));
+
+    relationshipResponse
+        .validate()
+        .statusCode(200)
+        .body("from.trackedEntity.trackedEntity", notNullValue())
+        .body("to.trackedEntity.trackedEntity", notNullValue());
+
+    response
+        .extractImportedTeis()
+        .forEach(
+            trackedEntity ->
+                trackerImportExportActions
+                    .getTrackedEntity(
+                        trackedEntity, new QueryParamsBuilder().add("fields=relationships"))
+                    .validate()
+                    .statusCode(200)
+                    .body("relationships.relationship", contains(createdRelationships.get(0))));
   }
 
   @Test
