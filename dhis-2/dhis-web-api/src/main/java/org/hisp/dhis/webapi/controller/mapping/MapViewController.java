@@ -117,7 +117,11 @@ public class MapViewController extends AbstractCrudController<MapView> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<MapView> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<MapView> objects)
       throws QueryParserException {
     List<MapView> entityList;
     Query query =
