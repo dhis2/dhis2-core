@@ -200,8 +200,10 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType("bPJ0FMtcnEh");
     programA.setTrackedEntityType(bPJ0FMtcnEh);
     manager.updateNoAcl(programA);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cZ");
     User user =
-        createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+        createUserWithAuth("user1")
+            .setOrganisationUnits(Sets.newHashSet(orgUnit, organisationUnitA));
     userService.addUser(user);
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-tei.json");
