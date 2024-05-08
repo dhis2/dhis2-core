@@ -155,6 +155,7 @@ public abstract class TrackerTest extends IntegrationTestBase {
     programA.setCategoryCombo(categoryComboA);
     programA.setUid(CodeGenerator.generateUid());
     programA.setCode(RandomStringUtils.randomAlphanumeric(10));
+    programA.setTrackedEntityType(trackedEntityTypeA);
     CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo('A');
     defaultCategoryOptionCombo.setCategoryCombo(categoryComboA);
     defaultCategoryOptionCombo.setUid(DEF_COC_UID);
