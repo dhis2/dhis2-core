@@ -78,7 +78,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
@@ -508,6 +507,7 @@ public class HibernateTrackedEntityInstanceStore
             .append(" FROM trackedentityinstance TEI ")
 
             // INNER JOIN on constraints
+            .append(joinPrograms(params))
             .append(getFromSubQueryJoinAttributeConditions(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
@@ -571,7 +571,23 @@ public class HibernateTrackedEntityInstanceStore
       }
     }
 
-    return "SELECT " + String.join(", ", columns);
+    return "SELECT DISTINCT " + String.join(", ", columns);
+  }
+
+  private String joinPrograms(TrackedEntityInstanceQueryParams params) {
+    StringBuilder trackedEntity = new StringBuilder();
+
+    trackedEntity.append(" INNER JOIN program P ");
+    trackedEntity.append(" ON P.trackedentitytypeid = TEI.trackedentitytypeid ");
+
+    if (!params.hasProgram()) {
+      trackedEntity
+          .append("AND P.programid IN (")
+          .append(getCommaDelimitedString(getIdentifiers(params.getPrograms())))
+          .append(")");
+    }
+
+    return trackedEntity.toString();
   }
 
   /**
@@ -599,26 +615,25 @@ public class HibernateTrackedEntityInstanceStore
       SqlHelper whereAnd, TrackedEntityInstanceQueryParams params) {
     StringBuilder trackedEntity = new StringBuilder();
 
-    if (params.hasTrackedEntityType()) {
-      trackedEntity
-          .append(whereAnd.whereAnd())
-          .append("TEI.trackedentitytypeid = ")
-          .append(params.getTrackedEntityType().getId())
-          .append(SPACE);
-    } else if (!CollectionUtils.isEmpty(params.getTrackedEntityTypes())) {
-      trackedEntity
-          .append(whereAnd.whereAnd())
-          .append("TEI.trackedentitytypeid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getTrackedEntityTypes())))
-          .append(") ");
-    }
-
     if (params.hasTrackedEntityInstances()) {
       trackedEntity
           .append(whereAnd.whereAnd())
           .append("TEI.uid IN (")
           .append(encodeAndQuote(params.getTrackedEntityInstanceUids()))
           .append(") ");
+    }
+
+    if (params.hasTrackedEntityType()) {
+      trackedEntity
+          .append(whereAnd.whereAnd())
+          .append("TEI.trackedentitytypeid = ")
+          .append(params.getTrackedEntityType().getId());
+    } else if (!params.hasProgram()) {
+      trackedEntity
+          .append(whereAnd.whereAnd())
+          .append("TEI.trackedentitytypeid in (")
+          .append(getCommaDelimitedString(getIdentifiers(params.getTrackedEntityTypes())))
+          .append(")");
     }
 
     if (params.hasLastUpdatedDuration()) {
@@ -822,16 +837,22 @@ public class HibernateTrackedEntityInstanceStore
    */
   private String getFromSubQueryJoinProgramOwnerConditions(
       TrackedEntityInstanceQueryParams params) {
-    if (!params.hasProgram() || skipOwnershipCheck(params)) {
+
+    if (skipOwnershipCheck(params)) {
       return "";
     }
 
-    return new StringBuilder()
-        .append(" INNER JOIN trackedentityprogramowner PO ")
-        .append("ON PO.programid = ")
-        .append(params.getProgram().getId())
-        .append(" AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid ")
-        .toString();
+    if (params.hasProgram()) {
+      return " INNER JOIN trackedentityprogramowner PO "
+          + " ON PO.programid = "
+          + params.getProgram().getId()
+          + " AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid "
+          + " AND P.programid = PO.programid";
+    }
+
+    return "LEFT JOIN trackedentityprogramowner PO ON "
+        + " PO.trackedentityinstanceid = TEI.trackedentityinstanceid"
+        + " AND P.programid = PO.programid";
   }
 
   /**
@@ -851,10 +872,7 @@ public class HibernateTrackedEntityInstanceStore
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid = ")
-        .append(
-            params.hasProgram() && !skipOwnershipCheck(params)
-                ? "PO.organisationunitid "
-                : "TEI.organisationunitid ");
+        .append(getOwnerOrgUnit(params));
 
     if (!params.hasOrganisationUnits()) {
       return orgUnits.toString();
@@ -882,6 +900,19 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     return orgUnits.toString();
+  }
+
+  private String getOwnerOrgUnit(TrackedEntityInstanceQueryParams params) {
+
+    if (skipOwnershipCheck(params)) {
+      return "TEI.organisationunitid ";
+    }
+
+    if (params.hasProgram()) {
+      return "PO.organisationunitid ";
+    }
+
+    return "COALESCE(PO.organisationunitid, TEI.organisationunitid) ";
   }
 
   /**

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,6 +41,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -50,6 +52,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +92,10 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
     tet.getTrackedEntityTypeAttributes().add(tetaA);
     tet.getTrackedEntityTypeAttributes().add(tetaB);
     manager.save(tet);
+    Program program = createProgram('a');
+    program.setTrackedEntityType(tet);
+    program.setSharing(Sharing.builder().publicAccess(FULL).build());
+    manager.save(program);
     OrganisationUnit ou = createOrganisationUnit('a');
     manager.save(ou);
     TrackedEntityInstance teiToSync = createTrackedEntityInstance('a', ou, teaA);

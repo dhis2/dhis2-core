@@ -57,6 +57,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
                 "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     String tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+
     teiId =
         assertStatus(
             HttpStatus.OK,

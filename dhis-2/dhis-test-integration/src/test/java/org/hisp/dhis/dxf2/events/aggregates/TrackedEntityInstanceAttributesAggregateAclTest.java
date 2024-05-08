@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -50,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest {
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private ProgramService programService;
 
   private User superUser;
 
@@ -93,6 +95,8 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest {
           this.persistTrackedEntityInstance(Map.of("trackedEntityType", trackedEntityType));
           this.persistTrackedEntityInstance();
           this.persistTrackedEntityInstance();
+          programA.setTrackedEntityType(trackedEntityType);
+          programService.addProgram(programA);
         });
     final TrackedEntityType trackedEntityType =
         trackedEntityTypeService.getTrackedEntityType(tetUid);

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
@@ -50,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -77,12 +79,15 @@ public class TrackedEntityInstanceCriteriaMapper {
 
   private final TrackedEntityAttributeService attributeService;
 
+  private final AclService aclService;
+
   public TrackedEntityInstanceCriteriaMapper(
       CurrentUserService currentUserService,
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
       TrackedEntityAttributeService attributeService,
-      TrackedEntityTypeService trackedEntityTypeService) {
+      TrackedEntityTypeService trackedEntityTypeService,
+      AclService aclService) {
     checkNotNull(currentUserService);
     checkNotNull(organisationUnitService);
     checkNotNull(programService);
@@ -94,6 +99,7 @@ public class TrackedEntityInstanceCriteriaMapper {
     this.programService = programService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
+    this.aclService = aclService;
   }
 
   @Transactional(readOnly = true)
@@ -111,6 +117,7 @@ public class TrackedEntityInstanceCriteriaMapper {
     User user = currentUserService.getCurrentUser();
 
     Program program = validateProgram(criteria);
+    List<Program> programs = getTrackerPrograms(program, user);
 
     Map<String, TrackedEntityAttribute> attributes =
         attributeService.getAllTrackedEntityAttributes().stream()
@@ -161,6 +168,7 @@ public class TrackedEntityInstanceCriteriaMapper {
     params
         .setQuery(getQueryFilter(criteria.getQuery()))
         .setProgram(program)
+        .setPrograms(programs)
         .setProgramStage(validateProgramStage(criteria, program))
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
@@ -270,6 +278,17 @@ public class TrackedEntityInstanceCriteriaMapper {
       throw new IllegalQueryException("Program does not exist: " + criteria.getProgram());
     }
     return program;
+  }
+
+  private List<Program> getTrackerPrograms(Program program, User user) {
+    if (program == null) {
+      return programService.getAllPrograms().stream()
+          .filter(Program::isRegistration)
+          .filter(p -> aclService.canDataRead(user, p))
+          .collect(Collectors.toList());
+    }
+
+    return emptyList();
   }
 
   private ProgramStage validateProgramStage(

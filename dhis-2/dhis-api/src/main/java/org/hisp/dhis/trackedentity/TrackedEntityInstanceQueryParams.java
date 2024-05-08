@@ -112,6 +112,9 @@ public class TrackedEntityInstanceQueryParams {
   /** Program for which instances in the response must be enrolled in. */
   private Program program;
 
+  /** Programs to fetch. */
+  private List<Program> programs = List.of();
+
   /** Status of the tracked entity instance in the given program. */
   private ProgramStatus programStatus;
 
@@ -661,6 +664,15 @@ public class TrackedEntityInstanceQueryParams {
     return this;
   }
 
+  public List<Program> getPrograms() {
+    return programs;
+  }
+
+  public TrackedEntityInstanceQueryParams setPrograms(List<Program> programs) {
+    this.programs = programs;
+    return this;
+  }
+
   public ProgramStage getProgramStage() {
     return programStage;
   }
@@ -944,6 +956,11 @@ public class TrackedEntityInstanceQueryParams {
       AssignedUserSelectionMode mode, User current, Set<String> assignedUsers) {
     this.assignedUserQueryParam = new AssignedUserQueryParam(mode, current, assignedUsers);
     this.user = current;
+    return this;
+  }
+
+  public TrackedEntityInstanceQueryParams setUser(User user) {
+    this.user = user;
     return this;
   }
 

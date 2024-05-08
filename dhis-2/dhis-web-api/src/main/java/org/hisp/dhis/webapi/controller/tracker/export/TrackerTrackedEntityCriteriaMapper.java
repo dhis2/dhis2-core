@@ -62,6 +62,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -110,12 +111,15 @@ public class TrackerTrackedEntityCriteriaMapper {
 
   @Nonnull private final TrackedEntityAttributeService attributeService;
 
+  @Nonnull private AclService aclService;
+
   @Transactional(readOnly = true)
   public TrackedEntityInstanceQueryParams map(TrackerTrackedEntityCriteria criteria)
       throws BadRequestException, ForbiddenException {
     Program program = applyIfNonEmpty(programService::getProgram, criteria.getProgram());
     validateProgram(criteria.getProgram(), program);
     ProgramStage programStage = validateProgramStage(criteria, program);
+    User user = currentUserService.getCurrentUser();
 
     TrackedEntityType trackedEntityType =
         applyIfNonEmpty(
@@ -124,7 +128,6 @@ public class TrackerTrackedEntityCriteriaMapper {
 
     Set<String> assignedUserIds = parseAndFilterUids(criteria.getAssignedUser());
 
-    User user = currentUserService.getCurrentUser();
     Set<String> orgUnitIds = parseUids(criteria.getOrgUnit());
 
     Set<OrganisationUnit> orgUnits = validateOrgUnits(user, orgUnitIds);
