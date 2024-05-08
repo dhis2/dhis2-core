@@ -28,6 +28,9 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1000;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1001;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1003;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
@@ -59,6 +62,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -85,6 +89,8 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
 
   @NonNull private final TrackerOwnershipManager ownershipAccessManager;
 
+  @NonNull private final TrackerAccessManager trackerAccessManager;
+
   @NonNull private final OrganisationUnitService organisationUnitService;
 
   private static final String ORG_UNIT_NO_USER_ASSIGNED =
@@ -102,40 +108,47 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
     TrackedEntityType trackedEntityType =
         strategy.isUpdateOrDelete()
             ? bundle
-                .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
+                .getPreheat()
+                .getTrackedEntity(trackedEntity.getTrackedEntity())
                 .getTrackedEntityType()
             : bundle.getPreheat().getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
     OrganisationUnit organisationUnit =
         strategy.isUpdateOrDelete()
             ? bundle
-                .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
+                .getPreheat()
+                .getTrackedEntity(trackedEntity.getTrackedEntity())
                 .getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-    // If trackedEntity is newly created, or going to be deleted, capture
-    // scope has to be checked
+    if (strategy.isCreate()) {
+      checkTeTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
+    }
+
     if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
     }
-    // if its to update trackedEntity, search scope has to be checked
-    else {
-      checkOrgUnitInSearchScope(reporter, bundle, trackedEntity, organisationUnit);
+
+    if (!strategy.isCreate()) {
+      TrackedEntityInstance te =
+          bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
+      if (!trackerAccessManager.canWrite(bundle.getUser(), te).isEmpty()) {
+        reporter.addError(trackedEntity, E1003, bundle.getUser().getUid(), te.getUid());
+      }
     }
 
     if (strategy.isDelete()) {
-      TrackedEntityInstance tei = bundle.getTrackedEntityInstance(trackedEntity.getTrackedEntity());
+      TrackedEntityInstance tei =
+          bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
       if (tei.getProgramInstances().stream().anyMatch(pi -> !pi.isDeleted())
           && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.getAuthority())) {
         reporter.addError(trackedEntity, E1100, user, tei);
       }
     }
-
-    checkTeiTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
   }
 
-  private void checkTeiTypeWriteAccess(
+  private void checkTeTypeWriteAccess(
       ValidationErrorReporter reporter,
       TrackerBundle bundle,
       TrackedEntity trackedEntity,
@@ -146,7 +159,7 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
     checkNotNull(trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL);
 
     if (!aclService.canDataWrite(user, trackedEntityType)) {
-      reporter.addError(trackedEntity, TrackerErrorCode.E1001, user, trackedEntityType);
+      reporter.addError(trackedEntity, E1001, user, trackedEntityType);
     }
   }
 
@@ -404,22 +417,7 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
     checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
 
     if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
-      reporter.addError(dto, TrackerErrorCode.E1000, user, orgUnit);
-    }
-  }
-
-  private void checkOrgUnitInSearchScope(
-      ValidationErrorReporter reporter,
-      TrackerBundle bundle,
-      TrackerDto dto,
-      OrganisationUnit orgUnit) {
-    User user = bundle.getUser();
-
-    checkNotNull(user, USER_CANT_BE_NULL);
-    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
-
-    if (!organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)) {
-      reporter.addError(dto, TrackerErrorCode.E1003, orgUnit, user);
+      reporter.addError(dto, E1000, user, orgUnit);
     }
   }
 
@@ -519,7 +517,7 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
     } else if (isCreatableInSearchScope
         ? !organisationUnitService.isInUserSearchHierarchyCached(user, eventOrgUnit)
         : !organisationUnitService.isInUserHierarchyCached(user, eventOrgUnit)) {
-      reporter.addError(event, TrackerErrorCode.E1000, user, eventOrgUnit);
+      reporter.addError(event, E1000, user, eventOrgUnit);
     }
   }
 
