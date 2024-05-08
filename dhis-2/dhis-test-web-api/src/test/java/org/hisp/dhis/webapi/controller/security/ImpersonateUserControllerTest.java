@@ -27,33 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import static org.hisp.dhis.config.ConfigProviderConfiguration.overrideProperties;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.ImpersonateUserControllerBaseTest;
 import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ImpersonateUserControllerTest extends DhisControllerConvenienceTest {
-
-  static {
-    overrideProperties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
-  }
-
-  @Autowired SystemSettingManager systemSettingManager;
-  @Autowired private SessionRegistry sessionRegistry;
-
-  @Autowired private DhisConfigurationProvider config;
+@ActiveProfiles({"test-h2", "impersonate-user-test"})
+class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
 
   @Test
   void testImpersonateUserNonExistentShould() {

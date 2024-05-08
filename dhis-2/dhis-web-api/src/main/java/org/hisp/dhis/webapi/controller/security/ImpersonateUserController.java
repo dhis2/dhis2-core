@@ -45,6 +45,7 @@ import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -74,6 +75,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@Conditional(value = UserImpersonationEnabledCondition.class)
 public class ImpersonateUserController {
 
   public static final String ROLE_PREVIOUS_ADMINISTRATOR = "ROLE_PREVIOUS_ADMINISTRATOR";
@@ -176,7 +178,7 @@ public class ImpersonateUserController {
 
     // grant an additional authority that contains the original Authentication object
     // which will be used to 'exit' from the current switched user.
-    Authentication currentAuthentication = getCurrentAuthentication(request);
+    Authentication currentAuthentication = getCurrentAuthentication();
     GrantedAuthority switchAuthority =
         new SwitchUserGrantedAuthority(this.switchAuthorityRole, currentAuthentication);
 
@@ -203,7 +205,7 @@ public class ImpersonateUserController {
     return targetUserRequest;
   }
 
-  private Authentication getCurrentAuthentication(HttpServletRequest request) {
+  private Authentication getCurrentAuthentication() {
     try {
       // SEC-1763. Check first if we are already switched.
       return attemptExitUser();

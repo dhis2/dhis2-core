@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.webapi.controller.security;
 
+import java.util.Properties;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Configuration
-@Profile({"!impersonate-user-test"})
-public class ConfigProviderConfiguration {
+@Profile({"impersonate-user-test"})
+public class TestableImpersonateUserConfiguration {
+
   @Bean(name = "dhisConfigurationProvider")
   public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider();
+    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
+
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
+    provider.addProperties(properties);
+
+    boolean enabled = provider.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
+
+    return provider;
   }
 }
