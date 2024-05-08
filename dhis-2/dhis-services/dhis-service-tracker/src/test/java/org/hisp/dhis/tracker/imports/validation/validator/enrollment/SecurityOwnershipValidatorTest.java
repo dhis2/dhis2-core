@@ -104,6 +104,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
   private Program program;
 
+  private TrackedEntity trackedEntity;
+
   private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
 
   @BeforeEach
@@ -124,6 +126,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
     ProgramStage programStage = createProgramStage('A', program);
     programStage.setUid(PS_ID);
+
+    trackedEntity = new TrackedEntity();
+    trackedEntity.setUid(TE_ID);
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
@@ -163,6 +168,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
@@ -184,6 +190,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     setUpUserWithOrgUnit();
