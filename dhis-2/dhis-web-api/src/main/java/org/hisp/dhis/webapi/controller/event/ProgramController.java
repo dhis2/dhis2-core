@@ -83,7 +83,11 @@ public class ProgramController extends AbstractCrudController<Program> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<Program> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<Program> objects)
       throws QueryParserException {
     boolean userFilter = Boolean.parseBoolean(options.getOptions().get("userFilter"));
 
