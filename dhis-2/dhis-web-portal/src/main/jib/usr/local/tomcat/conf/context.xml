@@ -10,5 +10,5 @@
   <!--
   <Manager pathname="" />
   -->
-  <Resources cacheMaxSize="51200"/>
+  <Resources cacheMaxSize="102400"/>
 </Context>
