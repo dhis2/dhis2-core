@@ -28,16 +28,12 @@
 package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
-import java.util.function.BiPredicate;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.springframework.stereotype.Service;
@@ -51,7 +47,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultDataElementMergeHandler {
 
-  private final DataElementService dataElementService;
   private final MinMaxDataElementService minMaxDataElementService;
   private final EventVisualizationService eventVisualizationService;
   private final SMSCommandService smsCommandService;
@@ -69,29 +64,16 @@ public class DefaultDataElementMergeHandler {
   }
 
   /**
-   * Handle merging of SMS Codes through its parent SMS Command.
+   * Method retrieving {@link SMSCode}s by source {@link DataElement} references. All retrieved
+   * {@link SMSCode}s will have their {@link DataElement} replaced with the target {@link
+   * DataElement}.
    *
-   * @param sources
-   * @param target
+   * @param sources source {@link DataElement}s used to retrieve {@link SMSCode}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     SMSCode}
    */
   public void handleSmsCode(List<DataElement> sources, DataElement target) {
-    List<SMSCommand> smsCommands = smsCommandService.getSmsCommandsByCodeDataElement(sources);
-
-    smsCommands.stream()
-        .flatMap(smsCommand -> smsCommand.getCodes().stream())
-        .filter(smsCode -> codeHasAnyDataElement.test(smsCode, sources))
-        .forEach(smsCode -> smsCode.setDataElement(target));
+    List<SMSCode> smsCodes = smsCommandService.getSmsCodesByDataElement(sources);
+    smsCodes.forEach(c -> c.setDataElement(target));
   }
-
-  public BiPredicate<SMSCode, List<DataElement>> codeHasAnyDataElement =
-      (smsCode, dataElements) -> {
-        DataElement dataElement = smsCode.getDataElement();
-        if (dataElement != null) {
-          return dataElements.stream()
-              .map(BaseIdentifiableObject::getUid)
-              .toList()
-              .contains(dataElement.getUid());
-        }
-        return false;
-      };
 }

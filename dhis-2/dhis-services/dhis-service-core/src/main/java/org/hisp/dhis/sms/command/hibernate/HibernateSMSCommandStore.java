@@ -38,6 +38,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -99,18 +100,16 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
   }
 
   @Override
-  public List<SMSCommand> getSmsCommandsByCodeDataElement(Collection<DataElement> dataElements) {
+  public List<SMSCode> getCodesByDataElement(Collection<DataElement> dataElements) {
     // language=sql
     String sql =
         """
-          select scmd.* from smscommands scmd
-          join smscommandcodes scc on scmd.smscommandid = scc.id
-          join smscodes sc on scc.codeid = sc.smscodeid
-          where sc.dataelementid in :dataElements
-          group by scmd.smscommandid;
+          select * from smscodes s
+          where s.dataelementid in :dataElements
         """;
+
     return getSession()
-        .createNativeQuery(sql, SMSCommand.class)
+        .createNativeQuery(sql, SMSCode.class)
         .setParameter("dataElements", dataElements)
         .list();
   }

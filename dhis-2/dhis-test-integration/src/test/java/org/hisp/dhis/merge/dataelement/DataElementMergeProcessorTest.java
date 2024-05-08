@@ -114,7 +114,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
   // ---- MIN MAX DATA ELEMENTS ----
   // -------------------------------
   @Test
-  @DisplayName("MinMaxDataElements are merged as expected, sources not deleted")
+  @DisplayName(
+      "MinMaxDataElement references for DataElement are replaced as expected, source DataElements are not deleted")
   void minMaxDataElementMergeTest() throws ConflictException {
     // given
     // min max data elements
@@ -149,7 +150,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
   }
 
   @Test
-  @DisplayName("MinMaxDataElements are merged as expected, sources are deleted")
+  @DisplayName(
+      "MinMaxDataElement references for DataElement are replaced as expected, source DataElements are deleted")
   void minMaxDataElementMergeDeleteSourcesTest() throws ConflictException {
     // given
     // min max data elements
@@ -225,7 +227,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
   // ---- EVENT VISUALIZATIONS ----
   // -------------------------------
   @Test
-  @DisplayName("EventVisualizations are merged as expected, sources not deleted")
+  @DisplayName(
+      "EventVisualization references for DataElement are replaced as expected, source DataElements are not ")
   void eventVisualizationMergeTest() throws ConflictException {
     // given
     // event visualizations
@@ -261,7 +264,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
   }
 
   @Test
-  @DisplayName("EventVisualizations are merged as expected, sources are deleted")
+  @DisplayName(
+      "EventVisualization references for DataElement are replaced as expected, source DataElements are deleted")
   void eventVisualizationMergeDeleteSourcesTest() throws ConflictException {
     // given
     // min max data elements
@@ -303,7 +307,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
   // ---- SMS CODES ----
   // -------------------------------
   @Test
-  @DisplayName("SMS Codes are merged as expected, sources not deleted")
+  @DisplayName(
+      "SMS Code references for DataElement are replaced as expected, source DataElements are not deleted")
   void smsCodeMergeTest() throws ConflictException {
     // given
     // sms codes
@@ -324,21 +329,21 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<SMSCommand> smsCommands =
-        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deSource1, deSource2));
-    List<SMSCommand> allByDataElement =
-        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deTarget));
+    List<SMSCode> smsCommands =
+        smsCommandStore.getCodesByDataElement(List.of(deSource1, deSource2));
+    List<SMSCode> allByDataElement = smsCommandStore.getCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, smsCommands.size());
-    assertEquals(3, allByDataElement.get(0).getCodes().size());
+    assertEquals(3, allByDataElement.size());
     assertEquals(3, allDataElements.size());
     assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
 
   @Test
-  @DisplayName("SMS Codes are merged as expected, sources are deleted")
+  @DisplayName(
+      "SMS Code references for DataElement are replaced as expected, source DataElements are deleted")
   void smsCodesMergeDeleteSourcesTest() throws ConflictException {
     SMSCode smsCode1 = createSmsCode("code source 1", deSource1);
     SMSCode smsCode2 = createSmsCode("code source 2", deSource2);
@@ -358,15 +363,14 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<SMSCommand> smsCommands =
-        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deSource1, deSource2));
-    List<SMSCommand> allByDataElement =
-        smsCommandStore.getSmsCommandsByCodeDataElement(List.of(deTarget));
+    List<SMSCode> smsCommands =
+        smsCommandStore.getCodesByDataElement(List.of(deSource1, deSource2));
+    List<SMSCode> allByDataElement = smsCommandStore.getCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, smsCommands.size());
-    assertEquals(3, allByDataElement.get(0).getCodes().size());
+    assertEquals(3, allByDataElement.size());
     assertEquals(1, allDataElements.size());
     assertTrue(allDataElements.contains(deTarget));
   }

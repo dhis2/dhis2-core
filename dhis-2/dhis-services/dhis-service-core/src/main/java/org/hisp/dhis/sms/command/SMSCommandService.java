@@ -60,5 +60,5 @@ public interface SMSCommandService {
 
   SMSCommand getSMSCommand(String name);
 
-  List<SMSCommand> getSmsCommandsByCodeDataElement(Collection<DataElement> dataElements);
+  List<SMSCode> getSmsCodesByDataElement(Collection<DataElement> dataElements);
 }

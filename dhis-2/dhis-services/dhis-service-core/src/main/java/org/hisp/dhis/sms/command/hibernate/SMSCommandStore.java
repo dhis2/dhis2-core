@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 
 public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
@@ -42,5 +43,5 @@ public interface SMSCommandStore extends IdentifiableObjectStore<SMSCommand> {
 
   int countDataSetSmsCommands(DataSet dataSet);
 
-  List<SMSCommand> getSmsCommandsByCodeDataElement(Collection<DataElement> dataElements);
+  List<SMSCode> getCodesByDataElement(Collection<DataElement> dataElements);
 }
