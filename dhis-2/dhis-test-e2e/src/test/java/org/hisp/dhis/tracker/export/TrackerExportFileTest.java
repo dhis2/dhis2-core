@@ -57,7 +57,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
 
   private static String trackedEntity;
   private static String event;
-  private static final String ENROLLMENT = "MNWZ6hnuhSw";
+  private static final String ENROLLMENT = "iqH6ZOxuxcf";
   private static final String PROGRAM = "f1AyMswryyQ";
   private static final String PROGRAM_STAGE = "nlXNK4b7LVr";
   private static final String CATEGORY_OPTION_COMBO = "HllvX50cXC0";
@@ -89,7 +89,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                           "orgUnit": "O6uvpzGd5pu",
                           "program": "f1AyMswryyQ",
                           "trackedEntity": "Kj6vYde4LHZ",
-                          "enrollment": "MNWZ6hnuhSw",
+                          "enrollment": "iqH6ZOxuxcf",
                           "enrolledAt": "2019-08-19T00:00:00.000",
                           "occurredAt": "2019-08-19T00:00:00.000",
                           "status": "ACTIVE",
@@ -98,10 +98,10 @@ public class TrackerExportFileTest extends TrackerApiTest {
                             {
                               "scheduledAt": "2019-08-19T13:59:13.688",
                               "program": "f1AyMswryyQ",
-                              "event": "ZwwuwNp6gVd",
+                              "event": "sG8YkED6Opj",
                               "programStage": "%s",
                               "orgUnit": "O6uvpzGd5pu",
-                              "enrollment": "MNWZ6hnuhSw",
+                              "enrollment": "iqH6ZOxuxcf",
                               "status": "ACTIVE",
                               "occurredAt": "2019-08-01T00:00:00.000",
                               "dataValues": [
@@ -118,7 +118,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
                                    "relationshipType": "gdc6uOvgoji",
                                    "from": {
                                      "event": {
-                                       "event": "ZwwuwNp6gVd"
+                                       "event": "sG8YkED6Opj"
                                      }
                                    },
                                    "to": {
