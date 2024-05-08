@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.ImpersonateUserControllerBaseTest;
 import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
@@ -43,10 +44,27 @@ import org.springframework.test.context.ActiveProfiles;
 class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
 
   @Test
-  void testImpersonateUserOK() {
+  void testImpersonateUserOKAsRoot() {
     String usernameToImpersonate = "usera";
     createUserWithAuth(usernameToImpersonate, "ALL");
 
+    JsonImpersonateUserResponse responseB =
+        POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
+            .content(HttpStatus.OK)
+            .as(JsonImpersonateUserResponse.class);
+
+    assertEquals("IMPERSONATION_SUCCESS", responseB.getLoginStatus());
+    assertEquals(usernameToImpersonate, responseB.getImpersonatedUsername());
+  }
+
+  @Test
+  void testImpersonateUserOKWithAuth() {
+    User userWithAuth = createUserWithAuth("authuser", "F_IMPERSONATE_USER");
+
+    String usernameToImpersonate = "usera";
+    createUserWithAuth(usernameToImpersonate, "SOME_AUTHORITY");
+
+    injectSecurityContextUser(userWithAuth);
     JsonImpersonateUserResponse responseB =
         POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
             .content(HttpStatus.OK)
@@ -68,6 +86,57 @@ class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
     assertEquals(404, response.getHttpStatusCode());
     assertEquals("Username not found: dontexist", response.getMessage());
     assertEquals("Not Found", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
+  }
+
+  @Test
+  void testImpersonateRoot() {
+    String usernameToImpersonate = "admin";
+
+    JsonWebMessage response =
+        POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
+            .content(HttpStatus.FORBIDDEN)
+            .as(JsonWebMessage.class);
+
+    assertEquals(403, response.getHttpStatusCode());
+    assertEquals("Forbidden, reason: User can not impersonate itself", response.getMessage());
+    assertEquals("Forbidden", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
+  }
+
+  @Test
+  void testImpersonateNoAuthority() {
+    User guestUser = createUserWithAuth("guestuser", "NONE");
+    injectSecurityContextUser(guestUser);
+
+    JsonWebMessage response =
+        POST("/auth/impersonate?username=%s".formatted("admin"))
+            .content(HttpStatus.FORBIDDEN)
+            .as(JsonWebMessage.class);
+
+    assertEquals(403, response.getHttpStatusCode());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_IMPERSONATE_USER]",
+        response.getMessage());
+    assertEquals("Forbidden", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
+  }
+
+  @Test
+  void testImpersonateWithAuthorityNotAllowedToBecomeSuperuser() {
+    User userWithAuth = createUserWithAuth("userwithauth", "F_IMPERSONATE_USER");
+    injectSecurityContextUser(userWithAuth);
+
+    JsonWebMessage response =
+        POST("/auth/impersonate?username=%s".formatted("admin"))
+            .content(HttpStatus.FORBIDDEN)
+            .as(JsonWebMessage.class);
+
+    assertEquals(403, response.getHttpStatusCode());
+    assertEquals(
+        "Forbidden, reason: User is not authorized to impersonate super user",
+        response.getMessage());
+    assertEquals("Forbidden", response.getHttpStatus());
     assertEquals("ERROR", response.getStatus());
   }
 }
