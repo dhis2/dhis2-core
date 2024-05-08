@@ -115,7 +115,12 @@ public class EventValidationTests extends TrackerApiTest {
             .extractImportedEvents()
             .get(0);
 
-    eventActions.softDelete(eventId);
+    // Delete Event
+    TrackerApiResponse deleteResponse =
+        trackerImportExportActions.postAndGetJobReport(
+            new EventDataBuilder().setId(eventId).array(),
+            new QueryParamsBuilder().add("importStrategy=DELETE"));
+    deleteResponse.validateSuccessfulImport();
 
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(eventBody);
 
