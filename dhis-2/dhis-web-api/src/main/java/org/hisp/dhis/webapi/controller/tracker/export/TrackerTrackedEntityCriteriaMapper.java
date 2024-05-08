@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
@@ -280,17 +279,6 @@ public class TrackerTrackedEntityCriteriaMapper {
           "Program does not contain the specified programStage: " + programStage);
     }
     return ps;
-  }
-
-  private List<Program> getTrackerPrograms(Program program, User user) {
-    if (program == null) {
-      return programService.getAllPrograms().stream()
-          .filter(Program::isRegistration)
-          .filter(p -> aclService.canDataRead(user, p))
-          .collect(Collectors.toList());
-    }
-
-    return emptyList();
   }
 
   private ProgramStage getProgramStageFromProgram(Program program, String programStage) {

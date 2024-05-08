@@ -28,7 +28,9 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -116,7 +118,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     userB = createUserWithAuth("userB");
     userB.addOrganisationUnit(organisationUnitB);
     userService.updateUser(userB);
-    superUser = createAndAddAdminUser();
+    superUser = createAndAddAdminUser(AUTHORITY_ALL);
     superUser.setOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(superUser);
 
@@ -146,7 +148,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     programB.setAccessLevel(AccessLevel.CLOSED);
     programB.setTrackedEntityType(trackedEntityType);
     programService.addProgram(programB);
-    programB.setSharing(new Sharing(FULL, userAccess));
+    programB.setSharing(new Sharing(DEFAULT, userAccess));
     programService.updateProgram(programB);
 
     ProgramInstance programInstanceA =
@@ -242,8 +244,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     transferOwnership(entityInstanceA1, programA, organisationUnitB);
     injectSecurityContext(userB);
     TrackedEntityInstanceQueryParams params =
-        createOperationParams(
-            userB, null, List.of(programA, programB), entityInstanceA1.getTrackedEntityType());
+        createOperationParams(userB, null, entityInstanceA1.getTrackedEntityType());
 
     List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
         trackedEntityInstanceService.getTrackedEntityInstances(
@@ -264,8 +265,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     injectSecurityContext(userA);
     TrackedEntityInstanceQueryParams params =
-        createOperationParams(
-            userA, null, List.of(programA), entityInstanceA1.getTrackedEntityType());
+        createOperationParams(userA, null, entityInstanceA1.getTrackedEntityType());
 
     assertIsEmpty(
         trackedEntityInstanceService.getTrackedEntityInstances(
@@ -276,9 +276,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfSuperUser() {
     transferOwnership(entityInstanceA1, programA, organisationUnitB);
     TrackedEntityInstanceQueryParams params =
-        createOperationParams(
-            superUser, null, List.of(programA, programB), entityInstanceA1.getTrackedEntityType());
+        createOperationParams(superUser, null, entityInstanceA1.getTrackedEntityType());
 
+    injectSecurityContext(superUser);
     List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
         trackedEntityInstanceService.getTrackedEntityInstances(
             params, createInstanceParams(), false, false);
@@ -295,7 +295,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Test
   void shouldFindTrackedEntityWhenProgramSuppliedAndUserIsOwner() {
     assignOwnership(entityInstanceA1, programA, organisationUnitA);
-    TrackedEntityInstanceQueryParams params = createOperationParams(userA, programA, null, null);
+    TrackedEntityInstanceQueryParams params = createOperationParams(userA, programA, null);
 
     injectSecurityContext(userA);
 
@@ -315,7 +315,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Test
   void shouldNotFindTrackedEntityWhenProgramSuppliedAndUserIsNotOwner() {
     assignOwnership(entityInstanceA1, programA, organisationUnitA);
-    TrackedEntityInstanceQueryParams params = createOperationParams(userB, programA, null, null);
+    TrackedEntityInstanceQueryParams params = createOperationParams(userB, programA, null);
 
     injectSecurityContext(userB);
 
@@ -335,12 +335,11 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   private TrackedEntityInstanceQueryParams createOperationParams(
-      User user, Program program, List<Program> programs, TrackedEntityType trackedEntityType) {
+      User user, Program program, TrackedEntityType trackedEntityType) {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setTrackedEntityType(trackedEntityType);
     params.setOrganisationUnitMode(ACCESSIBLE);
     params.setProgram(program);
-    params.setPrograms(programs);
     params.setUser(user);
 
     return params;
