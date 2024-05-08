@@ -29,9 +29,12 @@ package org.hisp.dhis.predictor.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
@@ -77,5 +80,20 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
     predictor.setPeriodType(periodService.reloadPeriodType(predictor.getPeriodType()));
 
     super.update(predictor);
+  }
+
+  @Override
+  public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
+    // language=sql
+    String sql =
+        """
+          select * from predictor p
+          where p.generatoroutput in :dataElements
+        """;
+
+    return getSession()
+        .createNativeQuery(sql, Predictor.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

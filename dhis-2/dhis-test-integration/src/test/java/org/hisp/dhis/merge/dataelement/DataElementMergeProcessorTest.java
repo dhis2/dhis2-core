@@ -33,42 +33,49 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AnalyticalObjectStore;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationService;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
-import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
-import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DataElementMergeProcessorTest extends IntegrationTestBase {
+class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private DataElementMergeProcessor mergeProcessor;
-  @Autowired private IdentifiableObjectManager idObjectManager;
-  @Autowired private MinMaxDataElementStore minMaxDataElementStore;
   @Autowired private MinMaxDataElementService minMaxDataElementService;
-  @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
+  @Autowired private EventVisualizationService eventVisualizationService;
   @Autowired private OrganisationUnitService orgUnitService;
-  @Autowired private SMSCommandStore smsCommandStore;
+  @Autowired private SMSCommandService smsCommandService;
+  @Autowired private PredictorService predictorService;
+  @Autowired private CategoryService categoryService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -76,25 +83,33 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
   private OrganisationUnit ou1;
   private OrganisationUnit ou2;
   private OrganisationUnit ou3;
+  private OrganisationUnitLevel oul;
   private CategoryOptionCombo coc1;
 
-  @Override
-  public void setUpTest() {
+  @BeforeEach
+  public void setUp() {
     // data elements
     deSource1 = createDataElement('A');
     deSource2 = createDataElement('B');
     deTarget = createDataElement('C');
-    idObjectManager.save(List.of(deSource1, deSource2, deTarget));
+    dataElementService.addDataElement(deSource1);
+    dataElementService.addDataElement(deSource2);
+    dataElementService.addDataElement(deTarget);
 
     // org unit
     ou1 = createOrganisationUnit('A');
     ou2 = createOrganisationUnit('B');
     ou3 = createOrganisationUnit('C');
-    idObjectManager.save(List.of(ou1, ou2, ou3));
+    orgUnitService.addOrganisationUnit(ou1);
+    orgUnitService.addOrganisationUnit(ou2);
+    orgUnitService.addOrganisationUnit(ou3);
+
+    oul = new OrganisationUnitLevel(1, "Level 1");
+    orgUnitService.addOrganisationUnitLevel(oul);
 
     // cat option combo
     coc1 = categoryService.getDefaultCategoryOptionCombo();
-    idObjectManager.save(coc1);
+    categoryService.addCategoryOptionCombo(coc1);
   }
 
   @Test
@@ -118,16 +133,15 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
       "MinMaxDataElement references for DataElement are replaced as expected, source DataElements are not deleted")
   void minMaxDataElementMergeTest() throws ConflictException {
     // given
-    // min max data elements
     MinMaxDataElement minMaxDataElement1 =
         new MinMaxDataElement(deSource1, ou1, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement2 =
         new MinMaxDataElement(deSource2, ou2, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement3 =
         new MinMaxDataElement(deTarget, ou3, coc1, 0, 100, false);
-    minMaxDataElementStore.save(minMaxDataElement1);
-    minMaxDataElementStore.save(minMaxDataElement2);
-    minMaxDataElementStore.save(minMaxDataElement3);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -142,11 +156,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
         minMaxDataElementService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, minMaxSources.size());
-    assertEquals(3, minMaxTarget.size());
-    assertEquals(3, allDataElements.size());
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+    assertMergeCompletedSuccessfully(report, minMaxSources, minMaxTarget, allDataElements);
   }
 
   @Test
@@ -154,16 +164,15 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
       "MinMaxDataElement references for DataElement are replaced as expected, source DataElements are deleted")
   void minMaxDataElementMergeDeleteSourcesTest() throws ConflictException {
     // given
-    // min max data elements
     MinMaxDataElement minMaxDataElement1 =
         new MinMaxDataElement(deSource1, ou1, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement2 =
         new MinMaxDataElement(deSource2, ou2, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement3 =
         new MinMaxDataElement(deTarget, ou3, coc1, 0, 100, false);
-    minMaxDataElementStore.save(minMaxDataElement1);
-    minMaxDataElementStore.save(minMaxDataElement2);
-    minMaxDataElementStore.save(minMaxDataElement3);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -197,9 +206,9 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
         new MinMaxDataElement(deSource2, ou1, coc1, 0, 100, false);
     MinMaxDataElement minMaxDataElement3 =
         new MinMaxDataElement(deTarget, ou1, coc1, 0, 100, false);
-    minMaxDataElementStore.save(minMaxDataElement1);
-    minMaxDataElementStore.save(minMaxDataElement2);
-    minMaxDataElementStore.save(minMaxDataElement3);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement1);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement2);
+    minMaxDataElementService.addMinMaxDataElement(minMaxDataElement3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -239,9 +248,9 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     EventVisualization eventVis3 = createEventVisualization('3', null);
     eventVis3.setDataElementValueDimension(deSource2);
 
-    idObjectManager.save(eventVis1);
-    idObjectManager.save(eventVis2);
-    idObjectManager.save(eventVis3);
+    eventVisualizationService.save(eventVis1);
+    eventVisualizationService.save(eventVis2);
+    eventVisualizationService.save(eventVis3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -251,9 +260,9 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
 
     // then
     List<EventVisualization> eventVizSources =
-        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deSource1, deSource2));
+        eventVisualizationService.getAllByDataElement(List.of(deSource1, deSource2));
     List<EventVisualization> allByDataElement =
-        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deTarget));
+        eventVisualizationService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
@@ -276,9 +285,9 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     EventVisualization eventVis6 = createEventVisualization('6', null);
     eventVis6.setDataElementValueDimension(deSource2);
 
-    idObjectManager.save(eventVis4);
-    idObjectManager.save(eventVis5);
-    idObjectManager.save(eventVis6);
+    eventVisualizationService.save(eventVis4);
+    eventVisualizationService.save(eventVis5);
+    eventVisualizationService.save(eventVis6);
 
     // params
     MergeParams mergeParams = new MergeParams();
@@ -291,9 +300,9 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
 
     // then
     List<EventVisualization> eventVizSources =
-        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deSource1, deSource2));
+        eventVisualizationService.getAllByDataElement(List.of(deSource1, deSource2));
     List<EventVisualization> allByDataElement =
-        eventVisualizationStore.getEventVisualizationsByDataElement(List.of(deTarget));
+        eventVisualizationService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
@@ -320,7 +329,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     smsCommand.setName("CMD 1");
     smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3));
 
-    smsCommandStore.save(smsCommand);
+    smsCommandService.save(smsCommand);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -330,8 +339,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
 
     // then
     List<SMSCode> smsCommands =
-        smsCommandStore.getCodesByDataElement(List.of(deSource1, deSource2));
-    List<SMSCode> allByDataElement = smsCommandStore.getCodesByDataElement(List.of(deTarget));
+        smsCommandService.getSmsCodesByDataElement(List.of(deSource1, deSource2));
+    List<SMSCode> allByDataElement = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
@@ -353,7 +362,7 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     smsCommand.setName("CMD 1");
     smsCommand.setCodes(Set.of(smsCode1, smsCode2, smsCode3));
 
-    smsCommandStore.save(smsCommand);
+    smsCommandService.save(smsCommand);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -364,8 +373,8 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
 
     // then
     List<SMSCode> smsCommands =
-        smsCommandStore.getCodesByDataElement(List.of(deSource1, deSource2));
-    List<SMSCode> allByDataElement = smsCommandStore.getCodesByDataElement(List.of(deTarget));
+        smsCommandService.getSmsCodesByDataElement(List.of(deSource1, deSource2));
+    List<SMSCode> allByDataElement = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
@@ -373,6 +382,92 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     assertEquals(3, allByDataElement.size());
     assertEquals(1, allDataElements.size());
     assertTrue(allDataElements.contains(deTarget));
+  }
+
+  // -------------------------------
+  // ---- Predictors ----
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "Predictor references for DataElement are replaced as expected, source DataElements are not deleted")
+  void predictorMergeTest() throws ConflictException {
+    // given
+    Predictor predictor1 = createPredictor('1', deSource1);
+    Predictor predictor2 = createPredictor('2', deSource2);
+    Predictor predictor3 = createPredictor('3', deTarget);
+
+    predictorService.addPredictor(predictor1);
+    predictorService.addPredictor(predictor2);
+    predictorService.addPredictor(predictor3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Predictor> predictors =
+        predictorService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<Predictor> allByDataElement = predictorService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, predictors.size());
+    assertEquals(3, allByDataElement.size());
+    assertEquals(3, allDataElements.size());
+    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  @Test
+  @DisplayName(
+      "Predictor references for DataElement are replaced as expected, source DataElements are deleted")
+  void predictorMergeDeleteSourcesTest() throws ConflictException {
+    // given
+    Predictor predictor4 = createPredictor('4', deSource2);
+    Predictor predictor5 = createPredictor('5', deSource2);
+    Predictor predictor6 = createPredictor('6', deTarget);
+
+    predictorService.addPredictor(predictor4);
+    predictorService.addPredictor(predictor5);
+    predictorService.addPredictor(predictor6);
+
+    List<Predictor> predictorsSetup =
+        predictorService.getAllByDataElement(List.of(deSource1, deSource2, deTarget));
+    assertEquals(3, predictorsSetup.size());
+
+    // params
+    MergeParams mergeParams = new MergeParams();
+    mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
+    mergeParams.setTarget(UID.of(deTarget.getUid()));
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<Predictor> predictors =
+        predictorService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<Predictor> allByDataElement = predictorService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, predictors.size());
+    assertEquals(3, allByDataElement.size());
+    assertEquals(1, allDataElements.size());
+    assertTrue(allDataElements.contains(deTarget));
+  }
+
+  private void assertMergeCompletedSuccessfully(
+      MergeReport report,
+      Collection<?> sources,
+      Collection<?> target,
+      Collection<DataElement> dataElements) {
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sources.size());
+    assertEquals(3, target.size());
+    assertEquals(3, dataElements.size());
+    assertTrue(dataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
 
   private MergeParams getMergeParams() {
@@ -387,5 +482,19 @@ class DataElementMergeProcessorTest extends IntegrationTestBase {
     smsCode.setCode(code);
     smsCode.setDataElement(de);
     return smsCode;
+  }
+
+  private Predictor createPredictor(char id, DataElement de) {
+    return createPredictor(
+        de,
+        coc1,
+        String.valueOf(id),
+        new Expression(String.valueOf(id), "test" + id),
+        new Expression(String.valueOf(id), "test2" + id),
+        PeriodType.getPeriodType(PeriodTypeEnum.DAILY),
+        oul,
+        0,
+        0,
+        0);
   }
 }

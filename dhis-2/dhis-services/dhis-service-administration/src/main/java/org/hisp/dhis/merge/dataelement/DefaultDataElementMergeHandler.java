@@ -34,6 +34,8 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.springframework.stereotype.Service;
@@ -50,13 +52,32 @@ public class DefaultDataElementMergeHandler {
   private final MinMaxDataElementService minMaxDataElementService;
   private final EventVisualizationService eventVisualizationService;
   private final SMSCommandService smsCommandService;
+  private final PredictorService predictorService;
 
+  /**
+   * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
+   * retrieved {@link MinMaxDataElement}s will have their {@link DataElement} replaced with the
+   * target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link MinMaxDataElement}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     MinMaxDataElement}
+   */
   public void handleMinMaxDataElement(List<DataElement> sources, DataElement target) {
     List<MinMaxDataElement> minMaxDataElements =
         minMaxDataElementService.getAllByDataElement(sources);
     minMaxDataElements.forEach(mmde -> mmde.setDataElement(target));
   }
 
+  /**
+   * Method retrieving {@link EventVisualization}s by source {@link DataElement} references. All
+   * retrieved {@link EventVisualization}s will have their {@link DataElement} replaced with the
+   * target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link EventVisualization}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     EventVisualization}
+   */
   public void handleEventVisualization(List<DataElement> sources, DataElement target) {
     List<EventVisualization> eventVisualizations =
         eventVisualizationService.getAllByDataElement(sources);
@@ -75,5 +96,20 @@ public class DefaultDataElementMergeHandler {
   public void handleSmsCode(List<DataElement> sources, DataElement target) {
     List<SMSCode> smsCodes = smsCommandService.getSmsCodesByDataElement(sources);
     smsCodes.forEach(c -> c.setDataElement(target));
+  }
+
+  /**
+   * Method retrieving {@link org.hisp.dhis.predictor.Predictor}s by source {@link DataElement}
+   * references. All retrieved {@link org.hisp.dhis.predictor.Predictor}s will have their {@link
+   * DataElement} replaced with the target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link
+   *     org.hisp.dhis.predictor.Predictor}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     org.hisp.dhis.predictor.Predictor}
+   */
+  public void handlePredictor(List<DataElement> sources, DataElement target) {
+    List<Predictor> predictors = predictorService.getAllByDataElement(sources);
+    predictors.forEach(p -> p.setOutput(target));
   }
 }

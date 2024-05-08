@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.predictor;
 
+import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Ken Haase
  */
 public interface PredictorStore extends IdentifiableObjectStore<Predictor> {
   String ID = PredictorStore.class.getName();
+
+  List<Predictor> getAllByDataElement(Collection<DataElement> dataElements);
 }

@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.predictor;
 
+import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
 
 /** Created by haase on 6/12/16. */
 public interface PredictorService {
@@ -81,6 +83,8 @@ public interface PredictorService {
    * @return a List of predictors or null if there are no predictors.
    */
   List<Predictor> getAllPredictors();
+
+  List<Predictor> getAllByDataElement(Collection<DataElement> dataElements);
 
   // -------------------------------------------------------------------------
   // Predictor Group
