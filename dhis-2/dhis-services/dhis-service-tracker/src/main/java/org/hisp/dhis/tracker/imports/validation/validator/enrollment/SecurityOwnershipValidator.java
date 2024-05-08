@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -75,16 +76,12 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
             : bundle.getPreheat().getProgram(enrollment.getProgram());
-    String trackedEntity =
+    TrackedEntity trackedEntity =
         bundle.getStrategy(enrollment).isDelete()
-            ? bundle
-                .getPreheat()
-                .getEnrollment(enrollment.getEnrollment())
-                .getTrackedEntity()
-                .getUid()
-            : enrollment.getTrackedEntity();
-    OrganisationUnit ownerOrgUnit =
-        getOwnerOrganisationUnit(preheat, enrollment.getTrackedEntity(), program);
+            ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getTrackedEntity()
+            // TODO If it's create, will the tracked entity be in the database?
+            : bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+    OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
     checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment);
 
@@ -98,15 +95,16 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       }
     }
 
-    checkWriteEnrollmentAccess(reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity);
+    checkWriteEnrollmentAccess(
+        reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teUid, Program program) {
+      TrackerPreheat preheat, TrackedEntity trackedEntity, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(teUid);
+        preheat.getProgramOwner().get(trackedEntity.getUid());
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
-      return null;
+      return trackedEntity.getOrganisationUnit();
     } else {
       return programOwner.get(program.getUid()).getOrganisationUnit();
     }
