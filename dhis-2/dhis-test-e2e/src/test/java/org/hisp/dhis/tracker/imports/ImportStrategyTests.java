@@ -93,7 +93,7 @@ public class ImportStrategyTests extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(body).validateSuccessfulImport();
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
     body.remove("enrollments");
@@ -124,7 +124,7 @@ public class ImportStrategyTests extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(body).validateSuccessfulImport();
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
     String eventId1 = response.extractImportedEvents().get(0);
 
@@ -160,7 +160,7 @@ public class ImportStrategyTests extends TrackerApiTest {
 
     String eventId = response.extractImportedEvents().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
 
     Consumer<JsonObject> deleteAndValidate =
         (payload) -> {

@@ -184,7 +184,7 @@ public class TrackerExportFileTest extends TrackerApiTest {
             .postAndGetJobReport(JsonParser.parseString(payload).getAsJsonObject())
             .validateSuccessfulImport();
 
-    trackedEntity = response.extractImportedTeis().get(0);
+    trackedEntity = response.extractImportedTrackedEntities().get(0);
     event = response.extractImportedEvents().get(0);
   }
 

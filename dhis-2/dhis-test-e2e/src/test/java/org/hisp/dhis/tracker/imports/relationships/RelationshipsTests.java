@@ -168,7 +168,7 @@ public class RelationshipsTests extends TrackerApiTest {
 
     TrackerApiResponse importResponse =
         importTeisWithEnrollmentAndEvent().validateSuccessfulImport();
-    trackedEntities = importResponse.extractImportedTeis();
+    trackedEntities = importResponse.extractImportedTrackedEntities();
     events = importEvents();
   }
 
@@ -262,7 +262,7 @@ public class RelationshipsTests extends TrackerApiTest {
         .body("to.trackedEntity.trackedEntity", notNullValue());
 
     response
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .forEach(
             trackedEntity ->
                 trackerImportExportActions
@@ -368,7 +368,7 @@ public class RelationshipsTests extends TrackerApiTest {
                 new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
             .validateSuccessfulImport();
 
-    List<String> trackedEntities = response.extractImportedTeis();
+    List<String> trackedEntities = response.extractImportedTrackedEntities();
     String relationship = response.extractImportedRelationships().get(0);
 
     JsonObject obj =
