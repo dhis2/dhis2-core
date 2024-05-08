@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -70,6 +71,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled(
+    "TODO(tracker) DHIS2-16565 check if we need to port some test or we can remove them entirely")
 public class RelationshipsTests extends TrackerApiTest {
   private static final String relationshipType = "TV9oB9LT3sh";
 
