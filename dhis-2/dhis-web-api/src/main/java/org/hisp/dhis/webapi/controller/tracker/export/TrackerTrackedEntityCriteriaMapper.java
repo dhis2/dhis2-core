@@ -121,7 +121,6 @@ public class TrackerTrackedEntityCriteriaMapper {
     validateProgram(criteria.getProgram(), program);
     ProgramStage programStage = validateProgramStage(criteria, program);
     User user = currentUserService.getCurrentUser();
-    List<Program> programs = getTrackerPrograms(program, user);
 
     TrackedEntityType trackedEntityType =
         applyIfNonEmpty(
@@ -165,7 +164,6 @@ public class TrackerTrackedEntityCriteriaMapper {
     params
         .setQuery(queryFilter)
         .setProgram(program)
-        .setPrograms(programs)
         .setProgramStage(programStage)
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
