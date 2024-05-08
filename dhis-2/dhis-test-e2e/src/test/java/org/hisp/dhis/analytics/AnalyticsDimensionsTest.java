@@ -64,7 +64,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.matchers.CustomMatchers;
 import org.hisp.dhis.helpers.matchers.Sorted;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -277,7 +276,6 @@ public class AnalyticsDimensionsTest extends ApiTest {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAllProgramAttributes() {
     List<String> programAttributes =
         programActions
@@ -304,7 +302,6 @@ public class AnalyticsDimensionsTest extends ApiTest {
   }
 
   @Test
-  @Disabled
   public void shouldReturnAllDataElements() {
     List<String> dataElements =
         programActions

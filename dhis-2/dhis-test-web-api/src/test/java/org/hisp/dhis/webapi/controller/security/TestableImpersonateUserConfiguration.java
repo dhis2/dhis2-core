@@ -50,8 +50,6 @@ public class TestableImpersonateUserConfiguration {
     properties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
     provider.addProperties(properties);
 
-    boolean enabled = provider.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
-
     return provider;
   }
 }
