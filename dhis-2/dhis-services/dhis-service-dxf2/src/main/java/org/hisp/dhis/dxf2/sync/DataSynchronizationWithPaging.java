@@ -44,10 +44,6 @@ public interface DataSynchronizationWithPaging {
 
     private final int pageSize;
 
-    public PagedDataSynchronisationContext(Date skipChangedBefore, int pageSize) {
-      this(skipChangedBefore, 0, null, pageSize);
-    }
-
     public PagedDataSynchronisationContext(
         Date skipChangedBefore, int objectsToSynchronize, SystemInstance instance, int pageSize) {
       super(skipChangedBefore, objectsToSynchronize, instance);
