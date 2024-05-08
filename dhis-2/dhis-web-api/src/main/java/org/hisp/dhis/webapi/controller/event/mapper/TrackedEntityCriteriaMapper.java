@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
@@ -51,6 +52,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -80,6 +82,8 @@ public class TrackedEntityCriteriaMapper {
 
   private final TrackedEntityAttributeService attributeService;
 
+  private final AclService aclService;
+
   private static final TrackerTrackedEntityCriteriaMapper TRACKER_TRACKED_ENTITY_CRITERIA_MAPPER =
       Mappers.getMapper(TrackerTrackedEntityCriteriaMapper.class);
 
@@ -88,7 +92,8 @@ public class TrackedEntityCriteriaMapper {
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
       TrackedEntityAttributeService attributeService,
-      TrackedEntityTypeService trackedEntityTypeService) {
+      TrackedEntityTypeService trackedEntityTypeService,
+      AclService aclService) {
     checkNotNull(currentUserService);
     checkNotNull(organisationUnitService);
     checkNotNull(programService);
@@ -100,6 +105,7 @@ public class TrackedEntityCriteriaMapper {
     this.programService = programService;
     this.attributeService = attributeService;
     this.trackedEntityTypeService = trackedEntityTypeService;
+    this.aclService = aclService;
   }
 
   @Transactional(readOnly = true)
@@ -117,6 +123,7 @@ public class TrackedEntityCriteriaMapper {
     User user = currentUserService.getCurrentUser();
 
     Program program = validateProgram(criteria);
+    List<Program> programs = getTrackerPrograms(program, user);
 
     Map<String, TrackedEntityAttribute> attributes =
         attributeService.getAllTrackedEntityAttributes().stream()
@@ -169,6 +176,7 @@ public class TrackedEntityCriteriaMapper {
     params
         .setQuery(getQueryFilter(criteria.getQuery()))
         .setProgram(program)
+        .setPrograms(programs)
         .setProgramStage(validateProgramStage(criteria, program))
         .setProgramStatus(criteria.getProgramStatus())
         .setFollowUp(criteria.getFollowUp())
@@ -280,6 +288,17 @@ public class TrackedEntityCriteriaMapper {
       throw new IllegalQueryException("Program does not exist: " + criteria.getProgram());
     }
     return program;
+  }
+
+  private List<Program> getTrackerPrograms(Program program, User user) {
+    if (program == null) {
+      return programService.getAllPrograms().stream()
+          .filter(Program::isRegistration)
+          .filter(p -> aclService.canDataRead(user, p))
+          .collect(Collectors.toList());
+    }
+
+    return emptyList();
   }
 
   private ProgramStage validateProgramStage(

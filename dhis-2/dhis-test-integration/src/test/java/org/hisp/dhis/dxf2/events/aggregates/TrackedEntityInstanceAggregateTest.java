@@ -600,6 +600,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest {
     queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     queryParams.setTrackedEntityType(trackedEntityTypeA);
     queryParams.setIncludeAllAttributes(true);
+    queryParams.setPrograms(List.of(programA));
     TrackedEntityInstanceParams params =
         new TrackedEntityInstanceParams(
             false, TrackedEntityInstanceEnrollmentParams.TRUE, false, false, false, false);

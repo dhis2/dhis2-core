@@ -62,6 +62,19 @@ class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest 
                 "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
     tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+    createProgram('A');
+
+    String programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION', 'trackedEntityType': {"
+                    + "'id': '"
+                    + tetId
+                    + "'}}"));
+    String sharing = "{'public':'rwrw----', 'external': true }";
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/programs/" + programId + "/sharing", sharing));
   }
 
   @Test

@@ -240,6 +240,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest {
           programB.setAccessLevel(AccessLevel.PROTECTED);
           programB.setUid(CodeGenerator.generateUid());
           programB.setCode(RandomStringUtils.randomAlphanumeric(10));
+          programB.setTrackedEntityType(trackedEntityTypeA);
           Set<UserAccess> programBUserAccess = new HashSet<>();
           programBUserAccess.add(new UserAccess(currentUser, AccessStringHelper.FULL));
           programB.setUserAccesses(programBUserAccess);
@@ -252,6 +253,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest {
           programA.setCategoryCombo(categoryComboA);
           programA.setUid(CodeGenerator.generateUid());
           programA.setCode(RandomStringUtils.randomAlphanumeric(10));
+          programA.setTrackedEntityType(trackedEntityTypeA);
           programA.setProgramStages(
               Stream.of(programStageA1, programStageA2)
                   .collect(Collectors.toCollection(HashSet::new)));
