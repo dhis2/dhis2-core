@@ -70,6 +70,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -108,6 +110,8 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
 
   private final AclService aclService;
 
+  private final ProgramService programService;
+
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
@@ -126,6 +130,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       OrganisationUnitService organisationUnitService,
       CurrentUserService currentUserService,
       AclService aclService,
+      ProgramService programService,
       @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
       @Lazy TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
       @Lazy TrackedEntityAttributeValueAuditService attributeValueAuditService) {
@@ -147,6 +152,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
     this.organisationUnitService = organisationUnitService;
     this.currentUserService = currentUserService;
     this.aclService = aclService;
+    this.programService = programService;
     this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
     this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
     this.attributeValueAuditService = attributeValueAuditService;
@@ -167,6 +173,10 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
           attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
       params.addAttributes(QueryItem.getQueryItems(attributes));
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
+    }
+
+    if (params.getProgram() == null) {
+      params.setPrograms(getTrackerPrograms(params.getUser()));
     }
 
     decideAccess(params);
@@ -213,6 +223,10 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
     }
 
     handleSortAttributes(params);
+
+    if (params.getProgram() == null) {
+      params.setPrograms(getTrackerPrograms(params.getUser()));
+    }
 
     decideAccess(params);
 
@@ -898,5 +912,12 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
           new TrackedEntityInstanceAudit(trackedEntityInstance.getUid(), user, auditType);
       trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit(trackedEntityInstanceAudit);
     }
+  }
+
+  private List<Program> getTrackerPrograms(User user) {
+    return programService.getAllPrograms().stream()
+        .filter(Program::isRegistration)
+        .filter(p -> aclService.canDataRead(user, p))
+        .collect(Collectors.toList());
   }
 }

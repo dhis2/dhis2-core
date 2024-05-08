@@ -38,6 +38,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -66,6 +67,8 @@ class DefaultTrackedEntityInstanceServiceTest {
 
   @Mock private AclService aclService;
 
+  @Mock private ProgramService programService;
+
   @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   @Mock private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
@@ -87,6 +90,7 @@ class DefaultTrackedEntityInstanceServiceTest {
             organisationUnitService,
             currentUserService,
             aclService,
+            programService,
             trackerOwnershipAccessManager,
             trackedEntityInstanceAuditService,
             attributeValueAuditService);
