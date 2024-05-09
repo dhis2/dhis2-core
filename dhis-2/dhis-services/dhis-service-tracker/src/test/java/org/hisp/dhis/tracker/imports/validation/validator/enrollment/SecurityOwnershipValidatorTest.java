@@ -177,6 +177,29 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     assertIsEmpty(reporter.getErrors());
   }
 
+  /*  @Test
+  void shouldFailWhenEnrollmentTrackedEntityDoesNotExist() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TE_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .build();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getTrackedEntity(TE_ID)).thenReturn(null);
+    when(bundle.findTrackedEntityByUid(enrollment.getTrackedEntity())).thenReturn(Optional.empty());
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, E1063);
+  }*/
+
   @Test
   void verifyCaptureScopeIsCheckedForEnrollmentCreation() {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
