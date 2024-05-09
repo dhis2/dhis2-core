@@ -31,13 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.deprecated.tracker.EventParams;
-import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,20 +39,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
  */
 @Deprecated(since = "2.41")
 public interface EventService {
-  // -------------------------------------------------------------------------
-  // READ
-  // -------------------------------------------------------------------------
-
-  EventRows getEventRows(EventSearchParams params);
-
-  org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent(Event event, EventParams eventParams);
-
-  org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent(
-      Event event,
-      boolean isSynchronizationQuery,
-      boolean skipOwnershipCheck,
-      EventParams eventParams);
-
   /**
    * Returns the count of anonymous event that are ready for synchronization (lastUpdated >
    * lastSynchronized)
@@ -86,49 +65,6 @@ public interface EventService {
   Events getAnonymousEventsForSync(
       int pageSize, Date skipChangedBefore, Map<String, Set<String>> psdesWithSkipSyncTrue);
 
-  // -------------------------------------------------------------------------
-  // CREATE
-  // -------------------------------------------------------------------------
-
-  ImportSummaries addEvents(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-      ImportOptions importOptions,
-      boolean clearSession);
-
-  // -------------------------------------------------------------------------
-  // UPDATE
-  // -------------------------------------------------------------------------
-
-  /**
-   * Update an existing Program Stage Instance with the data from the Event object
-   *
-   * @param event an Event
-   * @param singleValue if true, skip the Data Value mandatory check validation and allow the client
-   *     to send only Data Values that it wishes to update
-   * @param importOptions the Import Options
-   * @param bulkUpdate TODO this can be removed
-   * @return an {@see ImportSummary} containing the outcome of the operation
-   */
-  ImportSummary updateEvent(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-      boolean singleValue,
-      ImportOptions importOptions,
-      boolean bulkUpdate);
-
-  /**
-   * @param events a List of Events to update
-   * @param importOptions the Import Options
-   * @param singleValue if true, skip the Data Value mandatory check validation and allow the client
-   *     to send only Data Values that it wishes to update
-   * @param clearSession TODO this can be removed
-   * @return an {@see ImportSummary} containing the outcome of the operation
-   */
-  ImportSummaries updateEvents(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-      ImportOptions importOptions,
-      boolean singleValue,
-      boolean clearSession);
-
   /**
    * Updates a last sync timestamp on specified Events
    *
@@ -136,17 +72,4 @@ public interface EventService {
    * @param lastSynchronized The date of last successful sync
    */
   void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized);
-
-  ImportSummaries processEventImport(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-      ImportOptions importOptions,
-      JobConfiguration jobId);
-
-  // -------------------------------------------------------------------------
-  // DELETE
-  // -------------------------------------------------------------------------
-
-  ImportSummary deleteEvent(String uid);
-
-  ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
 }

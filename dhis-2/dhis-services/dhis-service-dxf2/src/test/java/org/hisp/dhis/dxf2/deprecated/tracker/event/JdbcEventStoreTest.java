@@ -27,15 +27,10 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.injectSecurityContext;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -117,26 +111,6 @@ class JdbcEventStoreTest {
 
     injectSecurityContext(UserDetails.fromUser(user));
     when(userService.getUserByUsername(anyString())).thenReturn(user);
-  }
-
-  @Test
-  void verifyEventDataValuesAreProcessedOnceForEachPSI() throws SQLException {
-    EventSearchParams eventSearchParams = new EventSearchParams();
-    eventSearchParams.setOrgUnitSelectionMode(ACCESSIBLE);
-
-    List<EventRow> rows = subject.getEventRows(eventSearchParams);
-    assertThat(rows, hasSize(1));
-    verify(rowSet, times(4)).getString("psi_eventdatavalues");
-  }
-
-  @Test
-  void verifyNullOrganisationUnitsIsHandled() throws SQLException {
-    EventSearchParams eventSearchParams = new EventSearchParams();
-    eventSearchParams.setOrgUnitSelectionMode(ACCESSIBLE);
-
-    List<EventRow> rows = subject.getEventRows(eventSearchParams);
-    assertThat(rows, hasSize(1));
-    verify(rowSet, times(4)).getString("psi_eventdatavalues");
   }
 
   @Test

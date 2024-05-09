@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.User;
 
@@ -59,10 +58,6 @@ public interface EventStore {
 
   List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEvents(
       EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
-
-  List<Map<String, String>> getEventsGrid(EventSearchParams params);
-
-  List<EventRow> getEventRows(EventSearchParams params);
 
   int getEventCount(EventSearchParams params);
 

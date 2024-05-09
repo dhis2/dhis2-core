@@ -78,7 +78,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -97,14 +96,11 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
-import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.EventQuery;
 import org.hisp.dhis.event.EventStatus;
@@ -574,168 +570,6 @@ public class JdbcEventStore implements EventStore {
     }
 
     return events;
-  }
-
-  @Override
-  public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    setAccessiblePrograms(isSuper(currentUser), params);
-
-    final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-
-    String sql = buildGridSql(params, currentUser, mapSqlParameterSource);
-
-    return jdbcTemplate.query(
-        sql,
-        mapSqlParameterSource,
-        rowSet -> {
-          log.debug("Event query SQL: '{}'", sql);
-
-          List<Map<String, String>> list = new ArrayList<>();
-
-          while (rowSet.next()) {
-            final Map<String, String> map = new HashMap<>();
-
-            for (String col : STATIC_EVENT_COLUMNS) {
-              map.put(col, rowSet.getString(col));
-            }
-
-            for (QueryItem item : params.getDataElements()) {
-              map.put(item.getItemId(), rowSet.getString(item.getItemId()));
-            }
-
-            list.add(map);
-          }
-
-          return list;
-        });
-  }
-
-  @Override
-  public List<EventRow> getEventRows(EventSearchParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    setAccessiblePrograms(isSuper(currentUser), params);
-
-    List<EventRow> eventRows = new ArrayList<>();
-
-    final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-
-    String sql = buildSql(params, mapSqlParameterSource, currentUser);
-
-    return jdbcTemplate.query(
-        sql,
-        mapSqlParameterSource,
-        resultSet -> {
-          log.debug("Event query SQL: '{}'", sql);
-
-          EventRow eventRow = new EventRow();
-
-          eventRow.setEvent("not_valid");
-
-          Set<String> notes = new HashSet<>();
-
-          Map<String, List<DataValue>> processedDataValues = new HashMap<>();
-
-          while (resultSet.next()) {
-            if (resultSet.getString("psi_uid") == null) {
-              continue;
-            }
-
-            if (eventRow.getUid() == null
-                || !eventRow.getUid().equals(resultSet.getString("psi_uid"))) {
-              validateIdentifiersPresence(resultSet, params.getIdSchemes(), false);
-
-              eventRow = new EventRow();
-
-              eventRow.setUid(resultSet.getString("psi_uid"));
-
-              eventRow.setEvent(resultSet.getString("psi_uid"));
-              eventRow.setTrackedEntityInstance(resultSet.getString("tei_uid"));
-              eventRow.setTrackedEntityInstanceOrgUnit(resultSet.getString("tei_ou"));
-              eventRow.setTrackedEntityInstanceOrgUnitName(resultSet.getString("tei_ou_name"));
-              eventRow.setTrackedEntityInstanceCreated(resultSet.getString("tei_created"));
-              eventRow.setTrackedEntityInstanceInactive(resultSet.getBoolean("tei_inactive"));
-              eventRow.setDeleted(resultSet.getBoolean("psi_deleted"));
-
-              eventRow.setProgram(resultSet.getString("p_identifier"));
-              eventRow.setProgramStage(resultSet.getString("ps_identifier"));
-              eventRow.setOrgUnit(resultSet.getString("ou_uid"));
-
-              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-
-              if (programType == ProgramType.WITH_REGISTRATION) {
-                eventRow.setEnrollment(resultSet.getString("pi_uid"));
-                eventRow.setFollowup(resultSet.getBoolean("pi_followup"));
-              }
-
-              eventRow.setTrackedEntityInstance(resultSet.getString("tei_uid"));
-              eventRow.setOrgUnitName(resultSet.getString("ou_name"));
-              eventRow.setDueDate(DateUtils.toIso8601NoTz(resultSet.getDate("psi_duedate")));
-              eventRow.setEventDate(
-                  DateUtils.toIso8601NoTz(resultSet.getDate("psi_executiondate")));
-
-              eventRows.add(eventRow);
-            }
-
-            if (resultSet.getString("pav_value") != null && resultSet.getString("ta_uid") != null) {
-              String valueType = resultSet.getString("ta_valuetype");
-
-              Attribute attribute = new Attribute();
-              attribute.setCreated(DateUtils.toIso8601NoTz(resultSet.getDate("pav_created")));
-              attribute.setLastUpdated(
-                  DateUtils.toIso8601NoTz(resultSet.getDate("pav_lastupdated")));
-              attribute.setValue(resultSet.getString("pav_value"));
-              attribute.setDisplayName(resultSet.getString("ta_name"));
-              attribute.setValueType(
-                  valueType != null ? ValueType.valueOf(valueType.toUpperCase()) : null);
-              attribute.setAttribute(resultSet.getString("ta_uid"));
-
-              eventRow.getAttributes().add(attribute);
-            }
-
-            if (!StringUtils.isEmpty(resultSet.getString("psi_eventdatavalues"))
-                && !processedDataValues.containsKey(resultSet.getString("psi_uid"))) {
-              List<DataValue> dataValues = new ArrayList<>();
-              Set<EventDataValue> eventDataValues =
-                  convertEventDataValueJsonIntoSet(resultSet.getString("psi_eventdatavalues"));
-
-              for (EventDataValue dv : eventDataValues) {
-                dataValues.add(convertEventDataValueIntoDtoDataValue(dv));
-              }
-              processedDataValues.put(resultSet.getString("psi_uid"), dataValues);
-            }
-
-            if (resultSet.getString("psinote_value") != null
-                && !notes.contains(resultSet.getString("psinote_id"))) {
-              Note note = new Note();
-              note.setNote(resultSet.getString("psinote_uid"));
-              note.setValue(resultSet.getString("psinote_value"));
-              note.setStoredDate(DateUtils.toIso8601NoTz(resultSet.getDate("psinote_storeddate")));
-              note.setStoredBy(resultSet.getString("psinote_storedby"));
-
-              eventRow.getNotes().add(note);
-              notes.add(resultSet.getString("psinote_id"));
-            }
-          }
-          eventRows.forEach(e -> e.setDataValues(processedDataValues.get(e.getUid())));
-
-          IdSchemes idSchemes = ObjectUtils.firstNonNull(params.getIdSchemes(), new IdSchemes());
-          IdScheme dataElementIdScheme = idSchemes.getDataElementIdScheme();
-
-          if (dataElementIdScheme != IdScheme.ID && dataElementIdScheme != IdScheme.UID) {
-            CachingMap<String, String> dataElementUidToIdentifierCache = new CachingMap<>();
-
-            List<Collection<DataValue>> dataValuesList =
-                eventRows.stream().map(EventRow::getDataValues).collect(Collectors.toList());
-            populateCache(dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache);
-            convertDataValuesIdentifiers(
-                dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache);
-          }
-
-          return eventRows;
-        });
   }
 
   private String getIdSqlBasedOnIdScheme(

@@ -31,9 +31,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +40,6 @@ import org.hisp.dhis.user.UserDetails;
  */
 @Deprecated(since = "2.41")
 public interface TrackedEntityInstanceService {
-  int FLUSH_FREQUENCY = 100;
 
   /**
    * Fetches a List of {@see TrackedEntity} based on the specified parameters. This methods beh
@@ -64,12 +61,6 @@ public interface TrackedEntityInstanceService {
       TrackedEntityQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation);
-
-  TrackedEntityInstance getTrackedEntityInstance(
-      TrackedEntity entityInstance, TrackedEntityInstanceParams params);
-
-  TrackedEntityInstance getTrackedEntityInstance(
-      TrackedEntity entityInstance, TrackedEntityInstanceParams params, UserDetails user);
 
   List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids);
 

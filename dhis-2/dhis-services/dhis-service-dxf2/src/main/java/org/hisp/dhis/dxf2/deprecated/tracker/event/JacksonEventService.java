@@ -29,29 +29,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventImporter;
-import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventManager;
-import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContextLoader;
-import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.note.NoteService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -65,84 +43,10 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.dxf2.events.event.EventService")
 @Scope(value = "prototype", proxyMode = ScopedProxyMode.INTERFACES)
 public class JacksonEventService extends AbstractEventService {
-  protected ObjectMapper jsonMapper;
-
-  protected ObjectMapper xmlMapper;
-
-  public JacksonEventService(
-      EventImporter eventImporter,
-      EventManager eventManager,
-      WorkContextLoader workContextLoader,
-      ProgramService programService,
-      EnrollmentService enrollmentService,
-      EventService eventService,
-      OrganisationUnitService organisationUnitService,
-      TrackedEntityService entityInstanceService,
-      NoteService commentService,
-      EventStore eventStore,
-      Notifier notifier,
-      DbmsManager dbmsManager,
-      IdentifiableObjectManager manager,
-      CategoryService categoryService,
-      FileResourceService fileResourceService,
-      SchemaService schemaService,
-      QueryService queryService,
-      TrackerAccessManager trackerAccessManager,
-      TrackerOwnershipManager trackerOwnershipAccessManager,
-      RelationshipService relationshipService,
-      UserService userService,
-      ObjectMapper jsonMapper,
-      @Qualifier("xmlMapper") ObjectMapper xmlMapper,
-      CacheProvider cacheProvider,
-      EventServiceContextBuilder eventServiceContextBuilder) {
-    checkNotNull(eventImporter);
-    checkNotNull(eventManager);
-    checkNotNull(workContextLoader);
-    checkNotNull(programService);
-    checkNotNull(enrollmentService);
+  public JacksonEventService(EventService eventService, EventStore eventStore) {
     checkNotNull(eventService);
-    checkNotNull(organisationUnitService);
-    checkNotNull(entityInstanceService);
-    checkNotNull(commentService);
     checkNotNull(eventStore);
-    checkNotNull(notifier);
-    checkNotNull(dbmsManager);
-    checkNotNull(manager);
-    checkNotNull(categoryService);
-    checkNotNull(fileResourceService);
-    checkNotNull(schemaService);
-    checkNotNull(queryService);
-    checkNotNull(trackerAccessManager);
-    checkNotNull(trackerOwnershipAccessManager);
-    checkNotNull(userService);
-    checkNotNull(jsonMapper);
-    checkNotNull(xmlMapper);
-    checkNotNull(eventServiceContextBuilder);
-
-    this.eventImporter = eventImporter;
-    this.eventManager = eventManager;
-    this.workContextLoader = workContextLoader;
-    this.programService = programService;
-    this.enrollmentService = enrollmentService;
     this.eventService = eventService;
-    this.organisationUnitService = organisationUnitService;
-    this.entityInstanceService = entityInstanceService;
-    this.commentService = commentService;
     this.eventStore = eventStore;
-    this.notifier = notifier;
-    this.dbmsManager = dbmsManager;
-    this.manager = manager;
-    this.categoryService = categoryService;
-    this.fileResourceService = fileResourceService;
-    this.schemaService = schemaService;
-    this.queryService = queryService;
-    this.trackerAccessManager = trackerAccessManager;
-    this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-    this.relationshipService = relationshipService;
-    this.userService = userService;
-    this.jsonMapper = jsonMapper;
-    this.xmlMapper = xmlMapper;
-    this.dataElementCache = cacheProvider.createDataElementCache();
-    this.eventServiceContextBuilder = eventServiceContextBuilder;
   }
 }
