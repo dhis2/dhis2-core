@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
 /**
@@ -61,11 +60,6 @@ public interface TrackedEntityInstanceService {
       TrackedEntityQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation);
-
-  List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids);
-
-  List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId(
-      List<Long> teiIds, Program program);
 
   void updateTrackedEntityInstancesSyncTimestamp(List<String> entityInstanceUIDs, Date lastSynced);
 }

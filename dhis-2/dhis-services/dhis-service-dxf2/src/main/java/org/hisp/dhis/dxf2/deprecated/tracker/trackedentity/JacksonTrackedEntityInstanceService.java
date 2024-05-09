@@ -29,24 +29,11 @@ package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TrackedEntityInstanceStore;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
@@ -61,57 +48,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService {
 
   public JacksonTrackedEntityInstanceService(
-      TrackedEntityInstanceStore trackedEntityInstanceStore,
       TrackedEntityService teiService,
-      TrackedEntityAttributeService trackedEntityAttributeService,
-      TrackedEntityAttributeValueService trackedEntityAttributeValueService,
-      IdentifiableObjectManager manager,
-      UserService userService,
-      DbmsManager dbmsManager,
-      EnrollmentService programInstanceService,
-      SchemaService schemaService,
-      QueryService queryService,
-      ReservedValueService reservedValueService,
-      TrackerAccessManager trackerAccessManager,
-      FileResourceService fileResourceService,
-      TrackerOwnershipManager trackerOwnershipAccessManager,
       TrackedEntityInstanceAggregate trackedEntityInstanceAggregate,
       TrackedEntityAttributeStore trackedEntityAttributeStore,
       TrackedEntityChangeLogService trackedEntityChangeLogService,
       TrackedEntityTypeService trackedEntityTypeService) {
     checkNotNull(teiService);
-    checkNotNull(trackedEntityAttributeService);
-    checkNotNull(trackedEntityAttributeValueService);
-    checkNotNull(manager);
-    checkNotNull(userService);
-    checkNotNull(dbmsManager);
-    checkNotNull(programInstanceService);
-    checkNotNull(schemaService);
-    checkNotNull(queryService);
-    checkNotNull(reservedValueService);
-    checkNotNull(trackerAccessManager);
-    checkNotNull(fileResourceService);
-    checkNotNull(trackerOwnershipAccessManager);
     checkNotNull(trackedEntityInstanceAggregate);
     checkNotNull(trackedEntityAttributeStore);
     checkNotNull(trackedEntityTypeService);
 
-    this.trackedEntityInstanceStore = trackedEntityInstanceStore;
     this.teiService = teiService;
-    this.trackedEntityAttributeService = trackedEntityAttributeService;
-    this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
-    this.manager = manager;
-    this.userService = userService;
-    this.dbmsManager = dbmsManager;
-    this.programInstanceService = programInstanceService;
-    this.schemaService = schemaService;
-    this.queryService = queryService;
-    this.reservedValueService = reservedValueService;
-    this.trackerAccessManager = trackerAccessManager;
-    this.fileResourceService = fileResourceService;
-    this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
     this.trackedEntityInstanceAggregate = trackedEntityInstanceAggregate;
-    this.trackedEntityAttributeStore = trackedEntityAttributeStore;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
     this.trackedEntityTypeService = trackedEntityTypeService;
   }

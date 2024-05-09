@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -36,31 +35,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TrackedEntityInstanceStore;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -68,45 +52,14 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 public abstract class AbstractTrackedEntityInstanceService implements TrackedEntityInstanceService {
-  protected TrackedEntityInstanceStore trackedEntityInstanceStore;
 
   protected TrackedEntityService teiService;
 
-  protected TrackedEntityAttributeService trackedEntityAttributeService;
-
   protected TrackedEntityTypeService trackedEntityTypeService;
-
-  protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
-
-  protected IdentifiableObjectManager manager;
-
-  protected UserService userService;
-
-  protected DbmsManager dbmsManager;
-
-  protected EnrollmentService programInstanceService;
 
   protected TrackedEntityChangeLogService trackedEntityChangeLogService;
 
-  protected SchemaService schemaService;
-
-  protected QueryService queryService;
-
-  protected ReservedValueService reservedValueService;
-
-  protected TrackerAccessManager trackerAccessManager;
-
-  protected FileResourceService fileResourceService;
-
-  protected TrackerOwnershipManager trackerOwnershipAccessManager;
-
   protected TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
-
-  protected TrackedEntityAttributeStore trackedEntityAttributeStore;
-
-  protected ObjectMapper jsonMapper;
-
-  protected ObjectMapper xmlMapper;
 
   @Override
   @Transactional(readOnly = true)
@@ -169,25 +122,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
       boolean skipSearchScopeValidation) {
     return teiService.getTrackedEntityCount(
         params, skipAccessValidation, skipSearchScopeValidation);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids) {
-    if (uids == null || uids.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid(uids);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId(
-      List<Long> teiIds, Program program) {
-    if (teiIds.isEmpty()) {
-      return Collections.emptyList();
-    }
-    return trackedEntityInstanceStore.getTrackedEntityProgramOwnersUids(teiIds, program.getId());
   }
 
   @Override
