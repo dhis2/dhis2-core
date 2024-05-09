@@ -27,16 +27,10 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.UserDetails;
@@ -49,16 +43,6 @@ import org.hisp.dhis.user.UserDetails;
 @Deprecated(since = "2.41")
 public interface TrackedEntityInstanceService {
   int FLUSH_FREQUENCY = 100;
-
-  // -------------------------------------------------------------------------
-  // READ
-  // -------------------------------------------------------------------------
-
-  List<TrackedEntityInstance> getTrackedEntityInstancesJson(InputStream inputStream)
-      throws IOException;
-
-  List<TrackedEntityInstance> getTrackedEntityInstancesXml(InputStream inputStream)
-      throws IOException;
 
   /**
    * Fetches a List of {@see TrackedEntity} based on the specified parameters. This methods beh
@@ -81,15 +65,6 @@ public interface TrackedEntityInstanceService {
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation);
 
-  TrackedEntityInstance getTrackedEntityInstance(String uid);
-
-  TrackedEntityInstance getTrackedEntityInstance(String uid, TrackedEntityInstanceParams params);
-
-  TrackedEntityInstance getTrackedEntityInstance(
-      String uid, UserDetails currentUser, TrackedEntityInstanceParams params);
-
-  TrackedEntityInstance getTrackedEntityInstance(TrackedEntity entityInstance);
-
   TrackedEntityInstance getTrackedEntityInstance(
       TrackedEntity entityInstance, TrackedEntityInstanceParams params);
 
@@ -101,47 +76,5 @@ public interface TrackedEntityInstanceService {
   List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId(
       List<Long> teiIds, Program program);
 
-  // -------------------------------------------------------------------------
-  // CREATE, UPDATE or DELETE
-  // -------------------------------------------------------------------------
-
-  ImportSummaries mergeOrDeleteTrackedEntityInstances(
-      List<TrackedEntityInstance> trackedEntityInstances,
-      ImportOptions importOptions,
-      JobConfiguration jobId);
-
-  ImportSummaries addTrackedEntityInstances(
-      List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions);
-
-  ImportSummary addTrackedEntityInstance(
-      TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions);
-
-  // -------------------------------------------------------------------------
-  // UPDATE
-  // -------------------------------------------------------------------------
-
-  ImportSummary updateTrackedEntityInstanceXml(
-      String id, String programId, InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummary updateTrackedEntityInstanceJson(
-      String id, String programId, InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummary updateTrackedEntityInstance(
-      TrackedEntityInstance trackedEntityInstance,
-      String programId,
-      ImportOptions importOptions,
-      boolean singleUpdate);
-
   void updateTrackedEntityInstancesSyncTimestamp(List<String> entityInstanceUIDs, Date lastSynced);
-
-  // -------------------------------------------------------------------------
-  // DELETE
-  // -------------------------------------------------------------------------
-
-  ImportSummary deleteTrackedEntityInstance(String uid);
-
-  ImportSummaries deleteTrackedEntityInstances(
-      List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions);
 }

@@ -29,21 +29,11 @@ package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TrackedEntityInstanceStore;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.query.QueryService;
@@ -66,7 +56,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StreamUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -75,7 +64,6 @@ import org.springframework.util.StreamUtils;
 @Scope(value = "prototype", proxyMode = ScopedProxyMode.INTERFACES)
 @Transactional
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService {
-  private final RelationshipTypeService relationshipTypeService;
 
   public JacksonTrackedEntityInstanceService(
       TrackedEntityInstanceStore trackedEntityInstanceStore,
@@ -132,7 +120,6 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this._relationshipService = _relationshipService;
     this.relationshipService = relationshipService;
-    this.relationshipTypeService = relationshipTypeService;
     this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
     this.manager = manager;
     this.userService = userService;
@@ -152,128 +139,5 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     this.notifier = notifier;
     this.jsonMapper = jsonMapper;
     this.xmlMapper = xmlMapper;
-  }
-
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
-
-  @SuppressWarnings("unchecked")
-  private <T> T fromXml(InputStream inputStream, Class<?> clazz) throws IOException {
-    return (T) xmlMapper.readValue(inputStream, clazz);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> T fromXml(String input, Class<?> clazz) throws IOException {
-    return (T) xmlMapper.readValue(input, clazz);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> T fromJson(InputStream inputStream, Class<?> clazz) throws IOException {
-    return (T) jsonMapper.readValue(inputStream, clazz);
-  }
-
-  @SuppressWarnings("unchecked")
-  private <T> T fromJson(String input, Class<?> clazz) throws IOException {
-    return (T) jsonMapper.readValue(input, clazz);
-  }
-
-  // -------------------------------------------------------------------------
-  // CREATE
-  // -------------------------------------------------------------------------
-
-  @Override
-  public List<TrackedEntityInstance> getTrackedEntityInstancesJson(InputStream inputStream)
-      throws IOException {
-    String input = StreamUtils.copyToString(inputStream, Charset.forName("UTF-8"));
-
-    return parseJsonTrackedEntityInstances(input);
-  }
-
-  @Override
-  public List<TrackedEntityInstance> getTrackedEntityInstancesXml(InputStream inputStream)
-      throws IOException {
-    String input = StreamUtils.copyToString(inputStream, Charset.forName("UTF-8"));
-
-    return parseXmlTrackedEntityInstances(input);
-  }
-
-  private List<TrackedEntityInstance> parseJsonTrackedEntityInstances(String input)
-      throws IOException {
-    List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
-
-    JsonNode root = jsonMapper.readTree(input);
-
-    if (root.get("trackedEntityInstances") != null) {
-      TrackedEntityInstances fromJson = fromJson(input, TrackedEntityInstances.class);
-      trackedEntityInstances.addAll(fromJson.getTrackedEntityInstances());
-    } else {
-      TrackedEntityInstance fromJson = fromJson(input, TrackedEntityInstance.class);
-      trackedEntityInstances.add(fromJson);
-    }
-
-    return trackedEntityInstances;
-  }
-
-  private List<TrackedEntityInstance> parseXmlTrackedEntityInstances(String input)
-      throws IOException {
-    List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
-
-    try {
-      TrackedEntityInstances fromXml = fromXml(input, TrackedEntityInstances.class);
-      trackedEntityInstances.addAll(fromXml.getTrackedEntityInstances());
-    } catch (JsonMappingException ex) {
-      TrackedEntityInstance fromXml = fromXml(input, TrackedEntityInstance.class);
-      trackedEntityInstances.add(fromXml);
-    }
-
-    return trackedEntityInstances;
-  }
-
-  // -------------------------------------------------------------------------
-  // UPDATE
-  // -------------------------------------------------------------------------
-
-  @Override
-  public ImportSummary updateTrackedEntityInstanceXml(
-      String id, String programId, InputStream inputStream, ImportOptions importOptions)
-      throws IOException {
-    TrackedEntityInstance trackedEntityInstance = fromXml(inputStream, TrackedEntityInstance.class);
-    return updateTrackedEntityInstance(id, programId, importOptions, trackedEntityInstance);
-  }
-
-  @Override
-  public ImportSummary updateTrackedEntityInstanceJson(
-      String id, String programId, InputStream inputStream, ImportOptions importOptions)
-      throws IOException {
-    TrackedEntityInstance trackedEntityInstance =
-        fromJson(inputStream, TrackedEntityInstance.class);
-    return updateTrackedEntityInstance(id, programId, importOptions, trackedEntityInstance);
-  }
-
-  private ImportSummary updateTrackedEntityInstance(
-      String id,
-      String programId,
-      ImportOptions importOptions,
-      TrackedEntityInstance trackedEntityInstance) {
-    trackedEntityInstance.setTrackedEntityInstance(id);
-    setTeiRelationshipsBidirectionalFlag(trackedEntityInstance);
-    return updateTrackedEntityInstance(
-        trackedEntityInstance, programId, updateImportOptions(importOptions), true);
-  }
-
-  private void setTeiRelationshipsBidirectionalFlag(TrackedEntityInstance trackedEntityInstance) {
-    Optional.ofNullable(trackedEntityInstance)
-        .map(TrackedEntityInstance::getRelationships)
-        .ifPresent(
-            relationships -> relationships.forEach(this::setTeiRelationshipBidirectionalFlag));
-  }
-
-  private void setTeiRelationshipBidirectionalFlag(Relationship relationship) {
-    Optional.of(relationship)
-        .map(Relationship::getRelationshipType)
-        .map(relationshipTypeService::getRelationshipType)
-        .ifPresent(
-            relationshipType -> relationship.setBidirectional(relationshipType.isBidirectional()));
   }
 }

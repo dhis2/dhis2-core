@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
-import static java.util.Collections.emptyMap;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -51,18 +46,12 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVEN
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_STATUS_ID;
 import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams.PAGER_META_KEY;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -71,23 +60,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.SlimPager;
-import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -103,11 +82,9 @@ import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
-import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.note.NoteService;
@@ -118,16 +95,12 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -223,8 +196,6 @@ public abstract class AbstractEventService
   // Caches
   // -------------------------------------------------------------------------
 
-  private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
-
   private final Set<TrackedEntity> trackedEntityInstancesToUpdate = new HashSet<>();
 
   // -------------------------------------------------------------------------
@@ -249,248 +220,9 @@ public abstract class AbstractEventService
     return eventManager.addEvents(events, workContext);
   }
 
-  @Transactional
-  @Override
-  public ImportSummaries addEvents(
-      final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-      ImportOptions importOptions,
-      final JobConfiguration jobConfiguration) {
-    notifier.clear(jobConfiguration).notify(jobConfiguration, "Importing events");
-    importOptions = updateImportOptions(importOptions);
-
-    try {
-      final WorkContext workContext = workContextLoader.load(importOptions, events);
-
-      final ImportSummaries importSummaries = eventManager.addEvents(events, workContext);
-
-      if (jobConfiguration != null) {
-        notifier
-            .notify(jobConfiguration, NotificationLevel.INFO, "Import done", true)
-            .addJobSummary(jobConfiguration, importSummaries, ImportSummaries.class);
-      }
-
-      return importSummaries;
-    } catch (RuntimeException ex) {
-      log.error(DebugUtils.getStackTrace(ex));
-      notifier.notify(jobConfiguration, ERROR, "Process failed: " + ex.getMessage(), true);
-      return new ImportSummaries()
-          .addImportSummary(
-              new ImportSummary(
-                  ImportStatus.ERROR, "The import process failed: " + ex.getMessage()));
-    }
-  }
-
-  @Transactional
-  @Override
-  public ImportSummary addEvent(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-      ImportOptions importOptions,
-      boolean bulkImport) {
-    final WorkContext workContext =
-        workContextLoader.load(importOptions, Collections.singletonList(event));
-
-    return eventManager.addEvent(event, workContext);
-  }
-
   // -------------------------------------------------------------------------
   // READ
   // -------------------------------------------------------------------------
-
-  @Transactional(readOnly = true)
-  @Override
-  public Events getEvents(EventSearchParams params) {
-
-    validate(params);
-
-    if (!params.isPaging() && !params.isSkipPaging()) {
-      params.setDefaultPaging();
-    }
-
-    Events events = new Events();
-    List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> eventList = new ArrayList<>();
-
-    if (params.isSkipPaging()) {
-      events.setEvents(eventStore.getEvents(params, emptyMap()));
-      return events;
-    }
-
-    Pager pager;
-    eventList.addAll(eventStore.getEvents(params, emptyMap()));
-
-    if (params.isTotalPages()) {
-      int count = eventStore.getEventCount(params);
-      pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
-    } else {
-      pager = handleLastPageFlag(params, eventList);
-    }
-
-    events.setPager(pager);
-    events.setEvents(eventList);
-
-    return events;
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param eventList the reference to the list of Event
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(
-      EventSearchParams params, List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> eventList) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(eventList)) {
-      isLastPage = eventList.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        eventList.retainAll(eventList.subList(0, originalPageSize));
-      }
-    }
-
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public Grid getEventsGrid(EventSearchParams params) {
-    validate(params);
-
-    if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
-      throw new IllegalQueryException("Program stage can not be null");
-    }
-
-    if (params.getProgramStage().getProgramStageDataElements() == null) {
-      throw new IllegalQueryException("Program stage should have at least one data element");
-    }
-
-    // ---------------------------------------------------------------------
-    // If includeAllDataElements is set to true, return all data elements.
-    // If no data element is specified, use those set as display in report.
-    // ---------------------------------------------------------------------
-
-    if (params.isIncludeAllDataElements()) {
-      for (ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements()) {
-        QueryItem qi =
-            new QueryItem(
-                pde.getDataElement(),
-                pde.getDataElement().getLegendSet(),
-                pde.getDataElement().getValueType(),
-                pde.getDataElement().getAggregationType(),
-                pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null);
-        params.getDataElements().add(qi);
-      }
-    } else {
-      if (params.getDataElements().isEmpty()) {
-        for (ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements()) {
-          if (pde.getDisplayInReports()) {
-            QueryItem qi =
-                new QueryItem(
-                    pde.getDataElement(),
-                    pde.getDataElement().getLegendSet(),
-                    pde.getDataElement().getValueType(),
-                    pde.getDataElement().getAggregationType(),
-                    pde.getDataElement().hasOptionSet()
-                        ? pde.getDataElement().getOptionSet()
-                        : null);
-            params.getDataElements().add(qi);
-          }
-        }
-      }
-    }
-
-    // ---------------------------------------------------------------------
-    // Grid headers
-    // ---------------------------------------------------------------------
-
-    Grid grid = new ListGrid();
-
-    for (String col : STATIC_EVENT_COLUMNS) {
-      grid.addHeader(new GridHeader(col, col));
-    }
-
-    for (QueryItem item : params.getDataElements()) {
-      grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
-    }
-
-    List<Map<String, String>> events = eventStore.getEventsGrid(params);
-
-    // ---------------------------------------------------------------------
-    // Grid rows
-    // ---------------------------------------------------------------------
-
-    for (Map<String, String> event : events) {
-      grid.addRow();
-
-      for (String col : STATIC_EVENT_COLUMNS) {
-        grid.addValue(event.get(col));
-      }
-
-      for (QueryItem item : params.getDataElements()) {
-        grid.addValue(event.get(item.getItemId()));
-      }
-    }
-
-    Map<String, Object> metaData = new HashMap<>();
-
-    if (params.isPaging()) {
-      final Pager pager;
-
-      if (params.isTotalPages()) {
-        int count = eventStore.getEventCount(params);
-        pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
-      } else {
-        pager = handleLastPageFlag(params, grid);
-      }
-
-      metaData.put(PAGER_META_KEY, pager);
-    }
-
-    grid.setMetaData(metaData);
-
-    return grid;
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link JdbcEventStore#getEventPagingQuery(EventSearchParams)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param grid the populated Grid object
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(final EventSearchParams params, final Grid grid) {
-    final Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    final Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(grid.getRows())) {
-      isLastPage = grid.getRows().size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        grid.getRows().retainAll(grid.getRows().subList(0, originalPageSize));
-      }
-    }
-
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
-  }
 
   @Transactional(readOnly = true)
   @Override
@@ -758,107 +490,6 @@ public abstract class AbstractEventService
         event, workContextLoader.load(localImportOptions, Collections.singletonList(event)));
   }
 
-  /**
-   * @param event
-   * @return
-   * @throws JsonProcessingException
-   */
-  @Transactional
-  @Override
-  public ImportSummary updateEventDataValues(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) throws JsonProcessingException {
-
-    WorkContext context =
-        workContextLoader.load(
-            ImportOptions.getDefaultImportOptions(),
-            Collections.singletonList(
-                event)); // load the event data values merging existing and new values
-
-    Set<EventDataValue> eventDataValues =
-        context.getEventDataValueMap().get(event.getEvent()).stream()
-            .filter(
-                edv ->
-                    event.getDataValues().stream()
-                        .anyMatch(
-                            input ->
-                                input
-                                    .getDataElement()
-                                    .equals(edv.getDataElement()))) // filter only for the required
-            // data elements
-            .collect(Collectors.toSet());
-
-    return eventManager.updateEventDataValues(event, eventDataValues, context);
-  }
-
-  @Transactional
-  @Override
-  public void updateEventForNote(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
-    org.hisp.dhis.program.Event programStageInstance = eventService.getEvent(event.getEvent());
-
-    if (programStageInstance == null) {
-      return;
-    }
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    saveTrackedEntityComment(
-        programStageInstance,
-        event,
-        currentUser,
-        getValidUsername(
-            event.getStoredBy(),
-            null,
-            currentUser != null ? currentUser.getUsername() : "[Unknown]"));
-
-    updateTrackedEntityInstance(programStageInstance, currentUser, false);
-  }
-
-  @Transactional
-  @Override
-  public void updateEventForEventDate(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
-    Event programStageInstance = eventService.getEvent(event.getEvent());
-
-    if (programStageInstance == null) {
-      return;
-    }
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    List<String> errors = trackerAccessManager.canUpdate(currentUser, programStageInstance, false);
-
-    if (!errors.isEmpty()) {
-      return;
-    }
-
-    Date occurreddate = new Date();
-
-    if (event.getEventDate() != null) {
-      occurreddate = DateUtils.parseDate(event.getEventDate());
-    }
-
-    Date eventDate = occurreddate != null ? occurreddate : programStageInstance.getScheduledDate();
-
-    validateAttributeOptionComboDate(programStageInstance.getAttributeOptionCombo(), eventDate);
-
-    if (event.getStatus() == EventStatus.COMPLETED) {
-      programStageInstance.setStatus(EventStatus.COMPLETED);
-    } else {
-      programStageInstance.setStatus(EventStatus.ACTIVE);
-    }
-
-    ImportOptions importOptions = new ImportOptions();
-
-    OrganisationUnit organisationUnit =
-        getOrganisationUnit(importOptions.getIdSchemes(), event.getOrgUnit());
-
-    if (organisationUnit == null) {
-      organisationUnit = programStageInstance.getOrganisationUnit();
-    }
-
-    programStageInstance.setOrganisationUnit(organisationUnit);
-    programStageInstance.setOccurredDate(occurreddate);
-    eventService.updateEvent(programStageInstance);
-  }
-
   @Transactional
   @Override
   public void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized) {
@@ -918,64 +549,6 @@ public abstract class AbstractEventService
     return importSummaries;
   }
 
-  // -------------------------------------------------------------------------
-  // HELPERS
-  // -------------------------------------------------------------------------
-  private void saveTrackedEntityComment(
-      org.hisp.dhis.program.Event programStageInstance,
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-      User user,
-      String storedBy) {
-    for (Note note : event.getNotes()) {
-      String noteUid =
-          CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
-
-      if (!commentService.noteExists(noteUid) && !StringUtils.isEmpty(note.getValue())) {
-        org.hisp.dhis.note.Note comment = new org.hisp.dhis.note.Note();
-        comment.setUid(noteUid);
-        comment.setNoteText(note.getValue());
-        comment.setCreator(getValidUsername(note.getStoredBy(), null, storedBy));
-
-        Date created = DateUtils.parseDate(note.getStoredDate());
-        comment.setCreated(created);
-
-        comment.setLastUpdatedBy(user);
-        comment.setLastUpdated(new Date());
-
-        commentService.addNote(comment);
-
-        programStageInstance.getNotes().add(comment);
-      }
-    }
-  }
-
-  public static String getValidUsername(
-      String userName, ImportConflicts importConflicts, String fallbackUsername) {
-    String validUsername = userName;
-
-    if (StringUtils.isEmpty(validUsername)) {
-      validUsername = User.getSafeUsername(fallbackUsername);
-    } else if (!ValidationUtils.usernameIsValid(userName, false)) {
-      if (importConflicts != null) {
-        importConflicts.addConflict(
-            "Username",
-            validUsername
-                + " is more than "
-                + User.USERNAME_MAX_LENGTH
-                + " characters, using current username instead");
-      }
-
-      validUsername = User.getSafeUsername(fallbackUsername);
-    }
-
-    return validUsername;
-  }
-
-  private OrganisationUnit getOrganisationUnit(IdSchemes idSchemes, String id) {
-    return organisationUnitCache.get(
-        id, () -> manager.getObject(OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id));
-  }
-
   /**
    * Get DataElement by given uid
    *
@@ -987,89 +560,10 @@ public abstract class AbstractEventService
     return dataElementCache.get(key, k -> manager.get(DataElement.class, dataElementUid) != null);
   }
 
-  @Override
-  public void validate(EventSearchParams params) throws IllegalQueryException {
-    String violation = null;
-
-    if (params.hasLastUpdatedDuration()
-        && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate())) {
-      violation =
-          "Last updated from and/or to and last updated duration cannot be specified simultaneously";
-    }
-
-    if (violation == null
-        && params.hasLastUpdatedDuration()
-        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
-      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
-    }
-
-    if (violation != null) {
-      log.warn("Validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
-    }
-  }
-
-  /**
-   * TODO this method duplicates the functionality of AttributeOptionComboDateCheck Remove when
-   * refactoring AbstractEventService
-   */
-  private void validateAttributeOptionComboDate(
-      CategoryOptionCombo attributeOptionCombo, Date date) {
-    if (date == null) {
-      throw new IllegalQueryException("Event date can not be empty");
-    }
-
-    for (CategoryOption option : attributeOptionCombo.getCategoryOptions()) {
-      if (option.getStartDate() != null && date.compareTo(option.getStartDate()) < 0) {
-        throw new IllegalQueryException(
-            "Event date "
-                + toMediumDate(date)
-                + " is before start date "
-                + toMediumDate(option.getStartDate())
-                + " for attributeOption '"
-                + option.getName()
-                + "'");
-      }
-
-      if (option.getEndDate() != null && date.compareTo(option.getEndDate()) > 0) {
-        throw new IllegalQueryException(
-            "Event date "
-                + toMediumDate(date)
-                + " is after end date "
-                + toMediumDate(option.getEndDate())
-                + " for attributeOption '"
-                + option.getName()
-                + "'");
-      }
-    }
-  }
-
   private void updateEntities(User user) {
     UserDetails currentUserDetails = UserDetails.fromUser(user);
     trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei, currentUserDetails));
     trackedEntityInstancesToUpdate.clear();
-  }
-
-  private void updateTrackedEntityInstance(Event event, User user, boolean bulkUpdate) {
-    updateTrackedEntityInstance(Lists.newArrayList(event), user, bulkUpdate);
-  }
-
-  private void updateTrackedEntityInstance(List<Event> events, User user, boolean bulkUpdate) {
-    UserDetails currentUserDetails = UserDetails.fromUser(user);
-    for (org.hisp.dhis.program.Event event : events) {
-      if (event.getEnrollment() != null) {
-        if (!bulkUpdate) {
-          if (event.getEnrollment().getTrackedEntity() != null) {
-            manager.update(event.getEnrollment().getTrackedEntity(), currentUserDetails);
-          }
-        } else {
-          if (event.getEnrollment().getTrackedEntity() != null) {
-            trackedEntityInstancesToUpdate.add(event.getEnrollment().getTrackedEntity());
-          }
-        }
-      }
-    }
   }
 
   protected ImportOptions updateImportOptions(ImportOptions importOptions) {

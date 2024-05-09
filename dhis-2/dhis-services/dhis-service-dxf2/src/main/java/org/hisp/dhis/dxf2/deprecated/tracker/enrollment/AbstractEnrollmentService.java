@@ -28,11 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.enrollment;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,12 +49,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -80,28 +71,20 @@ import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
-import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
-import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -118,7 +101,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -127,10 +109,6 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class AbstractEnrollmentService
     implements org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService {
   private static final String ATTRIBUTE_VALUE = "Attribute.value";
-
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private static final String ATTRIBUTE_ATTRIBUTE = "Attribute.attribute";
 
@@ -185,94 +163,6 @@ public abstract class AbstractEnrollmentService
       new CachingMap<>();
 
   private CachingMap<String, TrackedEntity> trackedEntityInstanceCache = new CachingMap<>();
-
-  // -------------------------------------------------------------------------
-  // READ
-  // -------------------------------------------------------------------------
-
-  @Override
-  public Enrollments getEnrollments(EnrollmentQueryParams params) {
-    Enrollments enrollments = new Enrollments();
-    List<Enrollment> programInstances = new ArrayList<>();
-
-    if (!params.isPaging() && !params.isSkipPaging()) {
-      params.setDefaultPaging();
-    }
-
-    programInstances.addAll(enrollmentService.getEnrollments(params));
-
-    if (!params.isSkipPaging()) {
-      Pager pager;
-
-      if (params.isTotalPages()) {
-        int count = enrollmentService.countEnrollments(params);
-        pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
-      } else {
-        pager = handleLastPageFlag(params, programInstances);
-      }
-
-      enrollments.setPager(pager);
-    }
-
-    enrollments.setEnrollments(getEnrollments(programInstances));
-
-    return enrollments;
-  }
-
-  /**
-   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
-   * conjunction with the method: {@link
-   * HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
-   *
-   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
-   * allow us to evaluate if we are in the last page or not. And this is what his method does,
-   * returning the respective Pager object.
-   *
-   * @param params the request params
-   * @param enrollments the reference to the list of Enrollment
-   * @return the populated SlimPager instance
-   */
-  private Pager handleLastPageFlag(EnrollmentQueryParams params, List<Enrollment> enrollments) {
-    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
-    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
-    boolean isLastPage = false;
-
-    if (isNotEmpty(enrollments)) {
-      isLastPage = enrollments.size() <= originalPageSize;
-      if (!isLastPage) {
-        // Get the same number of elements of the pageSize, forcing
-        // the removal of the last additional element added at querying
-        // time.
-        enrollments.retainAll(enrollments.subList(0, originalPageSize));
-      }
-    }
-
-    return new SlimPager(originalPage, originalPageSize, isLastPage);
-  }
-
-  @Override
-  public List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> getEnrollments(
-      Iterable<Enrollment> programInstances) {
-    List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments =
-        new ArrayList<>();
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    for (Enrollment enrollment : programInstances) {
-      if (enrollment != null
-          && trackerOwnershipAccessManager.hasAccess(
-              currentUser, enrollment.getTrackedEntity(), enrollment.getProgram())) {
-        enrollments.add(getEnrollment(currentUser, enrollment, EnrollmentParams.FALSE, true));
-      }
-    }
-
-    return enrollments;
-  }
-
-  @Override
-  public org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment getEnrollment(
-      String id, EnrollmentParams params) {
-    Enrollment enrollment = enrollmentService.getEnrollment(id);
-    return enrollment != null ? getEnrollment(enrollment, params) : null;
-  }
 
   @Override
   public org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment getEnrollment(
@@ -386,271 +276,6 @@ public abstract class AbstractEnrollmentService
     return enrollment;
   }
 
-  // -------------------------------------------------------------------------
-  // CREATE
-  // -------------------------------------------------------------------------
-
-  @Override
-  public ImportSummaries addEnrollments(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments,
-      ImportOptions importOptions,
-      boolean clearSession) {
-    return addEnrollments(enrollments, importOptions, null, clearSession);
-  }
-
-  @Override
-  public ImportSummaries addEnrollments(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments,
-      ImportOptions importOptions,
-      JobConfiguration jobId) {
-    notifier.clear(jobId).notify(jobId, "Importing enrollments");
-    importOptions = updateImportOptions(importOptions);
-
-    try {
-      ImportSummaries importSummaries = addEnrollments(enrollments, importOptions, true);
-
-      if (jobId != null) {
-        notifier
-            .notify(jobId, NotificationLevel.INFO, "Import done", true)
-            .addJobSummary(jobId, importSummaries, ImportSummaries.class);
-      }
-
-      return importSummaries;
-    } catch (RuntimeException ex) {
-      log.error(DebugUtils.getStackTrace(ex));
-      notifier.notify(jobId, ERROR, "Process failed: " + ex.getMessage(), true);
-      return new ImportSummaries()
-          .addImportSummary(
-              new ImportSummary(
-                  ImportStatus.ERROR, "The import process failed: " + ex.getMessage()));
-    }
-  }
-
-  @Override
-  public ImportSummaries addEnrollments(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments,
-      ImportOptions importOptions,
-      TrackedEntity daoTrackedEntity,
-      boolean clearSession) {
-    importOptions = updateImportOptions(importOptions);
-    ImportSummaries importSummaries = new ImportSummaries();
-
-    List<String> conflictingEnrollmentUids =
-        checkForExistingEnrollmentsIncludingDeleted(enrollments, importSummaries);
-
-    List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> validEnrollments =
-        enrollments.stream()
-            .filter(e -> !conflictingEnrollmentUids.contains(e.getEnrollment()))
-            .collect(toList());
-
-    List<List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment>> partitions =
-        Lists.partition(validEnrollments, FLUSH_FREQUENCY);
-    List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = new ArrayList<>();
-
-    for (List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> _enrollments :
-        partitions) {
-      reloadUser(importOptions);
-      prepareCaches(_enrollments, importOptions.getUser());
-
-      for (org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment : _enrollments) {
-        ImportSummary importSummary =
-            addEnrollment(enrollment, importOptions, daoTrackedEntity, false);
-        importSummaries.addImportSummary(importSummary);
-
-        if (importSummary.isStatus(ImportStatus.SUCCESS)) {
-          List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> enrollmentEvents =
-              enrollment.getEvents();
-          enrollmentEvents.forEach(e -> e.setEnrollment(enrollment.getEnrollment()));
-          events.addAll(enrollmentEvents);
-        }
-      }
-
-      if (clearSession && enrollments.size() >= FLUSH_FREQUENCY) {
-        clearSession();
-      }
-    }
-
-    ImportSummaries eventImportSummaries =
-        eventService.processEventImport(events, importOptions, null);
-    linkEventSummaries(importSummaries, eventImportSummaries, events);
-
-    return importSummaries;
-  }
-
-  private List<String> checkForExistingEnrollmentsIncludingDeleted(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments,
-      ImportSummaries importSummaries) {
-    List<String> foundEnrollments =
-        enrollmentService.getEnrollmentsUidsIncludingDeleted(
-            enrollments.stream()
-                .map(org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment::getEnrollment)
-                .collect(toList()));
-
-    for (String foundEnrollmentUid : foundEnrollments) {
-      ImportSummary is =
-          new ImportSummary(
-                  ImportStatus.ERROR,
-                  "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier")
-              .setReference(foundEnrollmentUid)
-              .incrementIgnored();
-      importSummaries.addImportSummary(is);
-    }
-
-    return foundEnrollments;
-  }
-
-  @Override
-  public ImportSummary addEnrollment(
-      org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment,
-      ImportOptions importOptions) {
-    if (enrollmentService.enrollmentExistsIncludingDeleted(enrollment.getEnrollment())) {
-      return new ImportSummary(
-              ImportStatus.ERROR,
-              "Enrollment " + enrollment.getEnrollment() + " already exists or was deleted earlier")
-          .setReference(enrollment.getEnrollment())
-          .incrementIgnored();
-    }
-
-    return addEnrollment(enrollment, importOptions, null);
-  }
-
-  @Override
-  public ImportSummary addEnrollment(
-      org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment,
-      ImportOptions importOptions,
-      TrackedEntity daoTrackedEntity) {
-    return addEnrollment(enrollment, importOptions, daoTrackedEntity, true);
-  }
-
-  private ImportSummary addEnrollment(
-      org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment,
-      ImportOptions importOptions,
-      TrackedEntity daoTrackedEntity,
-      boolean handleEvents) {
-    importOptions = updateImportOptions(importOptions);
-
-    UserDetails user = UserDetails.fromUser(importOptions.getUser());
-
-    String storedBy =
-        !StringUtils.isEmpty(enrollment.getStoredBy()) && enrollment.getStoredBy().length() < 31
-            ? enrollment.getStoredBy()
-            : (user == null || StringUtils.isEmpty(user.getUsername())
-                ? "system-process"
-                : user.getUsername());
-
-    if (daoTrackedEntity == null) {
-      daoTrackedEntity = getTrackedEntityInstance(enrollment.getTrackedEntityInstance(), user);
-    }
-
-    Program program = getProgram(importOptions.getIdSchemes(), enrollment.getProgram());
-
-    OrganisationUnit organisationUnit =
-        getOrganisationUnit(importOptions.getIdSchemes(), enrollment.getOrgUnit());
-
-    ImportSummary importSummary =
-        validateRequest(program, daoTrackedEntity, enrollment, organisationUnit, importOptions);
-
-    if (importSummary.getStatus() != ImportStatus.SUCCESS) {
-      return importSummary;
-    }
-
-    List<String> errors =
-        trackerAccessManager.canCreate(
-            user, new Enrollment(program, daoTrackedEntity, organisationUnit), false);
-
-    if (!errors.isEmpty()) {
-      return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
-    }
-
-    if (enrollment.getStatus() == null) {
-      enrollment.setStatus(EnrollmentStatus.ACTIVE);
-    }
-
-    ProgramStatus programStatus =
-        enrollment.getStatus() == EnrollmentStatus.ACTIVE
-            ? ProgramStatus.ACTIVE
-            : enrollment.getStatus() == EnrollmentStatus.COMPLETED
-                ? ProgramStatus.COMPLETED
-                : ProgramStatus.CANCELLED;
-
-    org.hisp.dhis.program.Enrollment programInstance =
-        enrollmentService.prepareEnrollment(
-            daoTrackedEntity,
-            program,
-            programStatus,
-            enrollment.getEnrollmentDate(),
-            enrollment.getIncidentDate(),
-            organisationUnit,
-            enrollment.getEnrollment());
-
-    if (programStatus == ProgramStatus.COMPLETED || programStatus == ProgramStatus.CANCELLED) {
-      Date date = enrollment.getCompletedDate();
-
-      if (date == null) {
-        date = new Date();
-      }
-
-      String completedBy = enrollment.getCompletedBy();
-
-      if (completedBy == null && user != null) {
-        completedBy = user.getUsername();
-      }
-
-      programInstance.setCompletedBy(completedBy);
-      programInstance.setCompletedDate(date);
-    }
-
-    UserInfoSnapshot snapshot = UserInfoSnapshot.from(user);
-    programInstance.setCreatedByUserInfo(snapshot);
-    programInstance.setLastUpdatedByUserInfo(snapshot);
-
-    enrollmentService.addEnrollment(programInstance, importOptions.getUser());
-
-    importSummary = validateProgramInstance(program, programInstance, enrollment, importSummary);
-
-    if (importSummary.getStatus() != ImportStatus.SUCCESS) {
-      return importSummary;
-    }
-
-    // -----------------------------------------------------------------
-    // Send enrollment notifications (if any)
-    // -----------------------------------------------------------------
-
-    eventPublisher.publishEvent(
-        new ProgramEnrollmentNotificationEvent(this, programInstance.getId()));
-
-    eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, programInstance.getId()));
-
-    eventPublisher.publishEvent(new TrackerEnrollmentWebHookEvent(this, programInstance.getUid()));
-
-    updateFeatureType(program, enrollment, programInstance);
-    updateAttributeValues(enrollment, importOptions);
-    updateDateFields(enrollment, programInstance);
-    programInstance.setFollowup(enrollment.getFollowup());
-    programInstance.setStoredBy(storedBy);
-
-    enrollmentService.updateEnrollment(programInstance, user);
-    trackerOwnershipAccessManager.assignOwnership(
-        daoTrackedEntity, program, organisationUnit, true, true);
-    saveTrackedEntityComment(programInstance, enrollment, user);
-
-    importSummary.setReference(programInstance.getUid());
-    enrollment.setEnrollment(programInstance.getUid());
-    importSummary.getImportCount().incrementImported();
-
-    if (handleEvents) {
-      importSummary.setEvents(handleEvents(enrollment, programInstance, importOptions));
-    } else {
-      for (org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : enrollment.getEvents()) {
-        event.setEnrollment(enrollment.getEnrollment());
-        event.setProgram(programInstance.getProgram().getUid());
-        event.setTrackedEntityInstance(enrollment.getTrackedEntityInstance());
-      }
-    }
-
-    return importSummary;
-  }
-
   private ImportSummary validateProgramInstance(
       Program program,
       Enrollment programInstance,
@@ -714,95 +339,6 @@ public abstract class AbstractEnrollmentService
       importSummary.incrementIgnored();
 
       return importSummary;
-    }
-
-    return importSummary;
-  }
-
-  private ImportSummary validateRequest(
-      Program program,
-      TrackedEntity entityInstance,
-      org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment,
-      OrganisationUnit organisationUnit,
-      ImportOptions importOptions) {
-    ImportSummary importSummary = new ImportSummary(enrollment.getEnrollment());
-
-    String error =
-        validateProgramForEnrollment(program, enrollment, organisationUnit, importOptions);
-    if (!StringUtils.isEmpty(error)) {
-      importSummary.setStatus(ImportStatus.ERROR);
-      importSummary.setDescription(error);
-      importSummary.incrementIgnored();
-      return importSummary;
-    }
-
-    EnrollmentQueryParams params = new EnrollmentQueryParams();
-    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
-    params.setSkipPaging(true);
-    params.setProgram(program);
-    params.setTrackedEntity(entityInstance);
-
-    // When imported enrollment has status CANCELLED, it is safe to import
-    // it, otherwise do additional checks
-    // We allow import of CANCELLED and COMPLETED enrollments because the
-    // endpoint is used for bulk import and sync purposes as well
-    if (enrollment.getStatus() != EnrollmentStatus.CANCELLED) {
-      List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments =
-          getEnrollments(enrollmentService.getEnrollments(params));
-
-      Set<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> activeEnrollments =
-          enrollments.stream()
-              .filter(e -> e.getStatus() == EnrollmentStatus.ACTIVE)
-              .collect(Collectors.toSet());
-
-      // When an enrollment with status COMPLETED or CANCELLED is being
-      // imported, no check whether there is already some ACTIVE one is
-      // needed
-      if (!activeEnrollments.isEmpty() && enrollment.getStatus() == EnrollmentStatus.ACTIVE) {
-        importSummary.setStatus(ImportStatus.ERROR);
-        importSummary.setDescription(
-            "TrackedEntity "
-                + entityInstance.getUid()
-                + " already has an active enrollment in program "
-                + program.getUid());
-        importSummary.incrementIgnored();
-
-        return importSummary;
-      }
-
-      // The error of enrolling more than once is possible only if the
-      // imported enrollment has a state other than CANCELLED
-      if (program.getOnlyEnrollOnce()) {
-
-        Set<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment>
-            activeOrCompletedEnrollments =
-                enrollments.stream()
-                    .filter(
-                        e ->
-                            e.getStatus() == EnrollmentStatus.ACTIVE
-                                || e.getStatus() == EnrollmentStatus.COMPLETED)
-                    .collect(Collectors.toSet());
-
-        if (!activeOrCompletedEnrollments.isEmpty()) {
-          importSummary.setStatus(ImportStatus.ERROR);
-          importSummary.setDescription(
-              "TrackedEntity "
-                  + entityInstance.getUid()
-                  + " already has an active or completed enrollment in program "
-                  + program.getUid()
-                  + ", and this program only allows enrolling one time");
-          importSummary.incrementIgnored();
-
-          return importSummary;
-        }
-      }
-    }
-
-    checkAttributes(entityInstance, enrollment, importOptions, importSummary);
-
-    if (importSummary.hasConflicts()) {
-      importSummary.setStatus(ImportStatus.ERROR);
-      importSummary.incrementIgnored();
     }
 
     return importSummary;
@@ -877,13 +413,6 @@ public abstract class AbstractEnrollmentService
     linkEventSummaries(importSummaries, eventImportSummaries, events);
 
     return importSummaries;
-  }
-
-  @Override
-  public ImportSummary updateEnrollment(
-      org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment,
-      ImportOptions importOptions) {
-    return updateEnrollment(enrollment, importOptions, true);
   }
 
   private ImportSummary updateEnrollment(
@@ -1016,41 +545,9 @@ public abstract class AbstractEnrollmentService
     return importSummary;
   }
 
-  @Override
-  public ImportSummary updateEnrollmentForNote(
-      org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment) {
-    if (enrollment == null || enrollment.getEnrollment() == null) {
-      return new ImportSummary(ImportStatus.ERROR, "No enrollment or enrollment ID was supplied")
-          .incrementIgnored();
-    }
-
-    ImportSummary importSummary = new ImportSummary(enrollment.getEnrollment());
-
-    Enrollment programInstance = enrollmentService.getEnrollment(enrollment.getEnrollment());
-
-    if (programInstance == null) {
-      return new ImportSummary(ImportStatus.ERROR, "Enrollment ID was not valid.")
-          .incrementIgnored();
-    }
-
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    saveTrackedEntityComment(programInstance, enrollment, currentUser);
-
-    importSummary.setReference(enrollment.getEnrollment());
-    importSummary.getImportCount().incrementUpdated();
-
-    return importSummary;
-  }
-
   // -------------------------------------------------------------------------
   // DELETE
   // -------------------------------------------------------------------------
-
-  @Override
-  @Transactional
-  public ImportSummary deleteEnrollment(String uid) {
-    return deleteEnrollment(uid, null, null);
-  }
 
   private ImportSummary deleteEnrollment(
       String uid,
@@ -1126,27 +623,6 @@ public abstract class AbstractEnrollmentService
     }
 
     return importSummaries;
-  }
-
-  @Override
-  public void cancelEnrollment(String uid) {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
-    enrollmentService.cancelEnrollmentStatus(enrollment);
-    teiService.updateTrackedEntity(enrollment.getTrackedEntity());
-  }
-
-  @Override
-  public void completeEnrollment(String uid) {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
-    enrollmentService.completeEnrollmentStatus(enrollment);
-    teiService.updateTrackedEntity(enrollment.getTrackedEntity());
-  }
-
-  @Override
-  public void incompleteEnrollment(String uid) {
-    Enrollment enrollment = enrollmentService.getEnrollment(uid);
-    enrollmentService.incompleteEnrollmentStatus(enrollment);
-    teiService.updateTrackedEntity(enrollment.getTrackedEntity());
   }
 
   // -------------------------------------------------------------------------

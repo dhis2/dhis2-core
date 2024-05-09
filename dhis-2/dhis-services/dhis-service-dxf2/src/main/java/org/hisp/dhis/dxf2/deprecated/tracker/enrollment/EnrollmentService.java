@@ -27,16 +27,10 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.enrollment;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.EnrollmentParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.EnrollmentQueryParams;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -48,16 +42,6 @@ import org.hisp.dhis.user.UserDetails;
 public interface EnrollmentService {
   int FLUSH_FREQUENCY = 100;
 
-  // -------------------------------------------------------------------------
-  // READ
-  // -------------------------------------------------------------------------
-
-  List<Enrollment> getEnrollmentsJson(InputStream inputStream) throws IOException;
-
-  List<Enrollment> getEnrollmentsXml(InputStream inputStream) throws IOException;
-
-  Enrollment getEnrollment(String id, EnrollmentParams params);
-
   Enrollment getEnrollment(org.hisp.dhis.program.Enrollment enrollment, EnrollmentParams params);
 
   Enrollment getEnrollment(
@@ -66,69 +50,8 @@ public interface EnrollmentService {
       EnrollmentParams params,
       boolean skipOwnershipCheck);
 
-  List<Enrollment> getEnrollments(Iterable<org.hisp.dhis.program.Enrollment> programInstances);
-
-  Enrollments getEnrollments(EnrollmentQueryParams params);
-
-  // -------------------------------------------------------------------------
-  // CREATE
-  // -------------------------------------------------------------------------
-
-  ImportSummaries addEnrollmentList(List<Enrollment> enrollments, ImportOptions importOptions);
-
-  ImportSummaries addEnrollmentsJson(InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummaries addEnrollmentsXml(InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummaries addEnrollments(
-      List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession);
-
-  ImportSummaries addEnrollments(
-      List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId);
-
-  ImportSummaries addEnrollments(
-      List<Enrollment> enrollments,
-      ImportOptions importOptions,
-      TrackedEntity trackedEntity,
-      boolean clearSession);
-
-  // -------------------------------------------------------------------------
-  // UPDATE
-  // -------------------------------------------------------------------------
-
-  ImportSummary updateEnrollmentJson(
-      String id, InputStream inputStream, ImportOptions importOptions) throws IOException;
-
-  ImportSummary updateEnrollmentForNoteJson(String id, InputStream inputStream) throws IOException;
-
-  ImportSummary updateEnrollmentXml(String id, InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummary addEnrollment(Enrollment enrollment, ImportOptions importOptions);
-
-  ImportSummary addEnrollment(
-      Enrollment enrollment, ImportOptions importOptions, TrackedEntity daoTrackedEntity);
-
   ImportSummaries updateEnrollments(
       List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession);
-
-  ImportSummary updateEnrollment(Enrollment enrollment, ImportOptions importOptions);
-
-  ImportSummary updateEnrollmentForNote(Enrollment enrollment);
-
-  void cancelEnrollment(String uid);
-
-  void completeEnrollment(String uid);
-
-  void incompleteEnrollment(String uid);
-
-  // -------------------------------------------------------------------------
-  // DELETE
-  // -------------------------------------------------------------------------
-
-  ImportSummary deleteEnrollment(String uid);
 
   ImportSummaries deleteEnrollments(
       List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession);

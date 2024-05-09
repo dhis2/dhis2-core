@@ -27,20 +27,10 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.relationship;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.RelationshipParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
  * @author Stian Sandvold
@@ -56,62 +46,17 @@ public interface RelationshipService {
   // READ
   // -------------------------------------------------------------------------
 
-  List<Relationship> getRelationshipsByTrackedEntityInstance(
-      TrackedEntity tei,
-      PagingAndSortingCriteriaAdapter criteria,
-      boolean skipAccessValidation,
-      boolean includeDeleted);
-
-  List<Relationship> getRelationshipsByEnrollment(
-      Enrollment enrollment,
-      PagingAndSortingCriteriaAdapter criteria,
-      boolean skipAccessValidation,
-      boolean includeDeleted);
-
-  List<Relationship> getRelationshipsByEvent(
-      Event psi,
-      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-      boolean skipAccessValidation,
-      boolean includeDeleted);
-
   // -------------------------------------------------------------------------
   // CREATE
   // -------------------------------------------------------------------------
-
-  ImportSummaries addRelationshipsJson(InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummaries addRelationshipsXml(InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummaries addRelationships(List<Relationship> relationships, ImportOptions importOptions);
-
-  ImportSummary addRelationship(Relationship relationships, ImportOptions importOptions);
 
   // -------------------------------------------------------------------------
   // UPDATE
   // -------------------------------------------------------------------------
 
-  ImportSummary updateRelationshipXml(
-      String id, InputStream inputStream, ImportOptions importOptions) throws IOException;
-
-  ImportSummary updateRelationshipJson(
-      String id, InputStream inputStream, ImportOptions importOptions) throws IOException;
-
-  ImportSummaries updateRelationships(
-      List<Relationship> relationships, ImportOptions importOptions);
-
-  ImportSummary updateRelationship(Relationship relationship, ImportOptions importOptions);
-
   // -------------------------------------------------------------------------
   // DELETE
   // -------------------------------------------------------------------------
-
-  ImportSummary deleteRelationship(String uid);
-
-  ImportSummaries deleteRelationships(List<Relationship> relationships);
-
-  Optional<Relationship> findRelationshipByUid(String id);
 
   // -------------------------------------------------------------------------
   // HELPER METHODS
@@ -119,7 +64,4 @@ public interface RelationshipService {
 
   Optional<Relationship> findRelationship(
       org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, UserDetails user);
-
-  ImportSummaries processRelationshipList(
-      List<Relationship> relationships, ImportOptions importOptions);
 }

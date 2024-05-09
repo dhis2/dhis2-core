@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.EventParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
@@ -54,11 +50,7 @@ public interface EventService {
   // READ
   // -------------------------------------------------------------------------
 
-  Events getEvents(EventSearchParams params);
-
   EventRows getEventRows(EventSearchParams params);
-
-  Grid getEventsGrid(EventSearchParams params);
 
   org.hisp.dhis.dxf2.deprecated.tracker.event.Event getEvent(Event event, EventParams eventParams);
 
@@ -67,13 +59,6 @@ public interface EventService {
       boolean isSynchronizationQuery,
       boolean skipOwnershipCheck,
       EventParams eventParams);
-
-  // TODO remove these 2 methods and move the logic to the front-end
-  List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEventsXml(InputStream inputStream)
-      throws IOException;
-
-  List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEventsJson(InputStream inputStream)
-      throws IOException;
 
   /**
    * Returns the count of anonymous event that are ready for synchronization (lastUpdated >
@@ -105,26 +90,10 @@ public interface EventService {
   // CREATE
   // -------------------------------------------------------------------------
 
-  ImportSummary addEvent(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-      ImportOptions importOptions,
-      boolean bulkImport);
-
   ImportSummaries addEvents(
       List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
       ImportOptions importOptions,
       boolean clearSession);
-
-  ImportSummaries addEvents(
-      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-      ImportOptions importOptions,
-      JobConfiguration jobId);
-
-  ImportSummaries addEventsXml(InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
-
-  ImportSummaries addEventsJson(InputStream inputStream, ImportOptions importOptions)
-      throws IOException;
 
   // -------------------------------------------------------------------------
   // UPDATE
@@ -160,10 +129,6 @@ public interface EventService {
       boolean singleValue,
       boolean clearSession);
 
-  void updateEventForNote(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event);
-
-  void updateEventForEventDate(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event);
-
   /**
    * Updates a last sync timestamp on specified Events
    *
@@ -184,10 +149,4 @@ public interface EventService {
   ImportSummary deleteEvent(String uid);
 
   ImportSummaries deleteEvents(List<String> uids, boolean clearSession);
-
-  void validate(EventSearchParams params);
-
-  ImportSummary updateEventDataValues(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent)
-      throws JsonProcessingException;
 }
