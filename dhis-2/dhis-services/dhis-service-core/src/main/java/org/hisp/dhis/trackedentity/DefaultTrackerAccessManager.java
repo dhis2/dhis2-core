@@ -100,7 +100,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<Program> tetPrograms =
         programs.stream()
             .filter(
-                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+                p ->
+                    p.isRegistration()
+                        && Objects.equals(
+                            p.getTrackedEntityType().getUid(),
+                            trackedEntity.getTrackedEntityType().getUid()))
             .toList();
 
     if (tetPrograms.isEmpty()) {
@@ -169,7 +173,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<Program> tetPrograms =
         programs.stream()
             .filter(
-                p -> Objects.equals(p.getTrackedEntityType(), trackedEntity.getTrackedEntityType()))
+                p ->
+                    p.isRegistration()
+                        && Objects.equals(
+                            p.getTrackedEntityType().getUid(),
+                            trackedEntity.getTrackedEntityType().getUid()))
             .toList();
 
     if (tetPrograms.isEmpty()) {
