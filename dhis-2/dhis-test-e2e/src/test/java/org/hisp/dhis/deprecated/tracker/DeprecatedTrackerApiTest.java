@@ -29,7 +29,6 @@ package org.hisp.dhis.deprecated.tracker;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.deprecated.tracker.EventActions;
 import org.hisp.dhis.actions.deprecated.tracker.TrackedEntityInstancesAction;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -44,8 +43,6 @@ import org.junit.jupiter.api.Tag;
 @Deprecated(since = "2.41")
 @Tag("category:tracker")
 public class DeprecatedTrackerApiTest extends ApiTest {
-  protected RestApiActions enrollmentActions;
-
   protected EventActions eventActions;
 
   protected TrackedEntityInstancesAction trackedEntityInstancesAction;
@@ -60,6 +57,5 @@ public class DeprecatedTrackerApiTest extends ApiTest {
     loginActions = new LoginActions();
     programActions = new ProgramActions();
     eventActions = new EventActions();
-    enrollmentActions = new RestApiActions("/enrollments");
   }
 }

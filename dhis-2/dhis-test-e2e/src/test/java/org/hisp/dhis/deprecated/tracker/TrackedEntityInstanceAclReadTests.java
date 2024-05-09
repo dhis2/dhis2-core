@@ -63,7 +63,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Stian Sandvold
  */
-@Disabled("TODO(DHIS2-16564) Double check we have equivalent tests for new tracker")
+@Disabled(
+    "TODO(tracker) DHIS2-16565 check if we need to port some test or we can remove them entirely")
 public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest {
   private static final String _DATAREAD = "..r.*";
 
