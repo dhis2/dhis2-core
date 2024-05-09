@@ -27,6 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4020;
+import static org.hisp.dhis.tracker.validation.Users.USER_11;
+import static org.hisp.dhis.tracker.validation.Users.USER_12;
+
+import java.io.IOException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -38,14 +45,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-
-import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4020;
-import static org.hisp.dhis.tracker.validation.Users.USER_11;
-import static org.hisp.dhis.tracker.validation.Users.USER_12;
 
 class RelationshipSecurityImportValidationTest extends TrackerTest {
 
@@ -291,7 +290,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     relationshipType.getSharing().getUsers().remove(USER_12);
     manager.update(relationshipType);
-
+    manager.flush();
+    manager.clear();
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     importReport = trackerImportService.importTracker(params);
 

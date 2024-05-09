@@ -34,13 +34,13 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -80,7 +80,7 @@ class RelationshipImportTest extends TrackerTest {
     TrackerImportParams params = fromJson("tracker/relationships.json");
     params.setUser(userA);
     TrackerImportReport importReport = trackerImportService.importTracker(params);
-    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStatus(), is(TrackerStatus.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
 
@@ -104,7 +104,7 @@ class RelationshipImportTest extends TrackerTest {
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     params.setUser(userA);
     TrackerImportReport importReport = trackerImportService.importTracker(params);
-    assertThat(importReport.getStatus(), is(Status.OK));
+    assertThat(importReport.getStatus(), is(TrackerStatus.OK));
     assertThat(importReport.getStats().getCreated(), is(0));
     assertThat(importReport.getStats().getIgnored(), is(1));
   }
