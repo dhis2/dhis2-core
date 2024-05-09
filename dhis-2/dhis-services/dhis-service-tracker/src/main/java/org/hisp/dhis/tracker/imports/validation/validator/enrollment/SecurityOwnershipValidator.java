@@ -78,9 +78,9 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
             : bundle.getPreheat().getProgram(enrollment.getProgram());
     TrackedEntity trackedEntity =
-        bundle.getStrategy(enrollment).isDelete()
+        bundle.getStrategy(enrollment).isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getTrackedEntity()
-            : getTrackedEntityWhenCreateOrUpdate(bundle, enrollment, reporter);
+            : getTrackedEntityWhenStrategyCreate(bundle, enrollment);
 
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
@@ -100,8 +100,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
   }
 
-  private TrackedEntity getTrackedEntityWhenCreateOrUpdate(
-      TrackerBundle bundle, Enrollment enrollment, Reporter reporter) {
+  private TrackedEntity getTrackedEntityWhenStrategyCreate(
+      TrackerBundle bundle, Enrollment enrollment) {
     TrackedEntity trackedEntity =
         bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
 
@@ -118,10 +118,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
                 return newEntity;
               })
           .get();
-      /*.orElseGet(() -> {
-        reporter.addError(enrollment, E1063, enrollment.getTrackedEntity());
-        return null;
-      });*/
     }
 
     return trackedEntity;
