@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,6 +51,15 @@ public interface TrackerAccessManager {
       TrackedEntityInstance trackedEntityInstance,
       Program program,
       boolean skipOwnershipCheck);
+
+  /**
+   * Check if a user has data access to the supplied program and tracked entity type. Does not
+   * validate user ownership to the TE/program pair.
+   *
+   * @return empty list if access is granted, list with errors otherwise
+   */
+  List<String> canReadProgramAndTrackedEntityType(
+      User user, TrackedEntityInstance trackedEntity, Program program);
 
   List<String> canWrite(
       User user,
@@ -80,6 +90,8 @@ public interface TrackerAccessManager {
   List<String> canRead(User user, Relationship relationship);
 
   List<String> canWrite(User user, Relationship relationship);
+
+  List<String> canDelete(User user, @Nonnull Relationship relationship);
 
   /**
    * Checks the sharing read access to EventDataValue

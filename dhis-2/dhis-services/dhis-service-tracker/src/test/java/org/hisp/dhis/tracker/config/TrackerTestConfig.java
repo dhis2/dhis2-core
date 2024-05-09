@@ -36,6 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,6 +73,11 @@ public class TrackerTestConfig {
   @Bean
   public TrackerAccessManager trackerAccessManager() {
     return mock(TrackerAccessManager.class);
+  }
+
+  @Bean
+  public RelationshipTrackerConverterService relationshipTrackerConverterService() {
+    return mock(RelationshipTrackerConverterService.class);
   }
 
   @Bean

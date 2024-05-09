@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1003;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
@@ -34,6 +36,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1091;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1104;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4020;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -70,9 +73,11 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
@@ -113,6 +118,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
   @Mock private TrackerAccessManager trackerAccessManager;
 
+  @Mock private RelationshipTrackerConverterService converterService;
+
   private User user;
 
   private ValidationErrorReporter reporter;
@@ -124,6 +131,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
   private Program program;
 
   private ProgramStage programStage;
+
+  private Relationship relationship;
+
+  private org.hisp.dhis.relationship.Relationship convertedRelationship;
 
   private TrackerIdSchemeParams idSchemes;
 
@@ -148,9 +159,18 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new ValidationErrorReporter(idSchemes);
 
+    relationship = new Relationship();
+    relationship.setRelationship("relationshipUid");
+
+    convertedRelationship = new org.hisp.dhis.relationship.Relationship();
+
     validatorToTest =
         new PreCheckSecurityOwnershipValidationHook(
-            aclService, ownershipAccessManager, trackerAccessManager, organisationUnitService);
+            aclService,
+            ownershipAccessManager,
+            trackerAccessManager,
+            organisationUnitService,
+            converterService);
   }
 
   @Test
@@ -947,6 +967,56 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
 
     assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void shouldCreateWhenUserHasWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(CREATE);
+    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailToCreateWhenUserHasNoWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(CREATE);
+    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
+        .thenReturn(List.of("error"));
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    hasTrackerError(reporter, E4020, TrackerType.RELATIONSHIP, relationship.getUid());
+  }
+
+  @Test
+  void shouldDeleteWhenUserHasWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(DELETE);
+    when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship))).thenReturn(List.of());
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailToDeleteWhenUserHasNoWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(DELETE);
+    when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship)))
+        .thenReturn(List.of("error"));
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    hasTrackerError(reporter, E4020, TrackerType.RELATIONSHIP, relationship.getUid());
   }
 
   private TrackedEntityInstance getTEINoProgramInstances() {
