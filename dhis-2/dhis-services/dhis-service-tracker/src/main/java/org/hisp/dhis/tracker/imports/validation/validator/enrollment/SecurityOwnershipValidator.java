@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,8 +80,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     TrackedEntity trackedEntity =
         bundle.getStrategy(enrollment).isDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getTrackedEntity()
-            // TODO If it's create, will the tracked entity be in the database?
-            : bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+            : getTrackedEntityWhenCreateOrUpdate(bundle, enrollment, reporter);
+
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
     checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment);
@@ -97,6 +98,33 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
     checkWriteEnrollmentAccess(
         reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
+  }
+
+  private TrackedEntity getTrackedEntityWhenCreateOrUpdate(
+      TrackerBundle bundle, Enrollment enrollment, Reporter reporter) {
+    TrackedEntity trackedEntity =
+        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+
+    if (trackedEntity == null) {
+      Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> te =
+          bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
+
+      return te.map(
+              entity -> {
+                TrackedEntity newEntity = new TrackedEntity();
+                newEntity.setUid(entity.getUid());
+                newEntity.setOrganisationUnit(
+                    bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
+                return newEntity;
+              })
+          .get();
+      /*.orElseGet(() -> {
+        reporter.addError(enrollment, E1063, enrollment.getTrackedEntity());
+        return null;
+      });*/
+    }
+
+    return trackedEntity;
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
