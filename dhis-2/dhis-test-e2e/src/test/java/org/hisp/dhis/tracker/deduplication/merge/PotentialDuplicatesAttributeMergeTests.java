@@ -166,7 +166,7 @@ public class PotentialDuplicatesAttributeMergeTests extends PotentialDuplicatesA
     return trackerImportExportActions
         .postAndGetJobReport(tei.build())
         .validateSuccessfulImport()
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .get(0);
   }
 }

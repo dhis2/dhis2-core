@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.deprecated.tracker.RelationshipActions;
-import org.hisp.dhis.actions.deprecated.tracker.TrackedEntityInstancesAction;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -81,8 +80,6 @@ public class RelationshipsTests extends TrackerApiTest {
   private List<String> createdRelationships = new ArrayList<>();
 
   private RelationshipTypeActions relationshipTypeActions;
-
-  private TrackedEntityInstancesAction trackedEntityInstancesAction;
 
   private RelationshipActions relationshipActions;
 
@@ -160,7 +157,6 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @BeforeAll
   public void beforeAll() throws Exception {
-    trackedEntityInstancesAction = new TrackedEntityInstancesAction();
     metadataActions = new MetadataActions();
     relationshipTypeActions = new RelationshipTypeActions();
     relationshipActions = new RelationshipActions();
@@ -172,7 +168,7 @@ public class RelationshipsTests extends TrackerApiTest {
 
     TrackerApiResponse importResponse =
         importTeisWithEnrollmentAndEvent().validateSuccessfulImport();
-    trackedEntities = importResponse.extractImportedTeis();
+    trackedEntities = importResponse.extractImportedTrackedEntities();
     events = importEvents();
   }
 
@@ -266,11 +262,12 @@ public class RelationshipsTests extends TrackerApiTest {
         .body("to.trackedEntity.trackedEntity", notNullValue());
 
     response
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .forEach(
             trackedEntity ->
-                trackedEntityInstancesAction
-                    .get(trackedEntity, new QueryParamsBuilder().add("fields=relationships"))
+                trackerImportExportActions
+                    .getTrackedEntity(
+                        trackedEntity, new QueryParamsBuilder().add("fields=relationships"))
                     .validate()
                     .statusCode(200)
                     .body("relationships.relationship", contains(createdRelationships.get(0))));
@@ -371,7 +368,7 @@ public class RelationshipsTests extends TrackerApiTest {
                 new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
             .validateSuccessfulImport();
 
-    List<String> trackedEntities = response.extractImportedTeis();
+    List<String> trackedEntities = response.extractImportedTrackedEntities();
     String relationship = response.extractImportedRelationships().get(0);
 
     JsonObject obj =

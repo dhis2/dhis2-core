@@ -227,7 +227,7 @@ public class IdSchemeTests extends TrackerApiTest {
             new TeiDataBuilder()
                 .array(new TestData().getTrackedEntityType(), new TestData().getOrgUnit()))
         .validateSuccessfulImport()
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .get(0);
   }
 }

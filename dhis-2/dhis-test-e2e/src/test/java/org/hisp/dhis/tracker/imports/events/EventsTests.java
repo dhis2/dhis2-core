@@ -198,7 +198,7 @@ class EventsTests extends TrackerApiTest {
             .extractString("programStages.id[0]");
 
     TrackerApiResponse response = importTeiWithEnrollment(program);
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
     JsonObject event =

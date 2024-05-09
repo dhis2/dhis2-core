@@ -84,13 +84,13 @@ public class TeiImportTests extends TrackerApiTest {
 
     response
         .validateSuccessfulImport()
-        .validateTeis()
+        .validateTrackedEntities()
         .body("stats.created", equalTo(1))
         .body("objectReports", notNullValue())
         .body("objectReports[0].errorReports", empty());
 
     // assert that the tei was imported
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
 
     ApiResponse teiResponse = trackerImportExportActions.getTrackedEntity(teiId);
 
@@ -122,7 +122,7 @@ public class TeiImportTests extends TrackerApiTest {
         .body("ENROLLMENT.objectReports", hasSize(1));
 
     // assert that the TEI was imported
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
 
     ApiResponse teiResponse = trackerImportExportActions.getTrackedEntity(teiId);
 
@@ -232,7 +232,7 @@ public class TeiImportTests extends TrackerApiTest {
         trackerImportExportActions
             .postAndGetJobReport(teJson, new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport()
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObjectBuilder trackedEntities =
