@@ -519,6 +519,50 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     assertMergeSuccessfulSourcesDeleted(report, psdeSources, psdeTarget, allDataElements);
   }
 
+  @Test
+  @DisplayName("ProgramStageDataElement DB constraint error when updating")
+  void programStageDEMergeDbConstraint() {
+    // given unique key DB constraint exists (programstageid, dataelementid)
+    // create program stage data elements, all of which have the same stage
+    Program program = createProgram('P');
+    identifiableObjectManager.save(program);
+    ProgramStage stage1 = createProgramStage('S', program);
+    ProgramStage stage2 = createProgramStage('T', program);
+    ProgramStage stage3 = createProgramStage('U', program);
+    identifiableObjectManager.save(stage1);
+    identifiableObjectManager.save(stage2);
+    identifiableObjectManager.save(stage3);
+
+    ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
+    ProgramStageDataElement psde2 = createProgramStageDataElement(stage1, deSource2, 3);
+    ProgramStageDataElement psde3 = createProgramStageDataElement(stage1, deTarget, 4);
+
+    programStageDataElementService.addProgramStageDataElement(psde1);
+    programStageDataElementService.addProgramStageDataElement(psde2);
+    programStageDataElementService.addProgramStageDataElement(psde3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when merge operation encounters DB constraint
+    PersistenceException persistenceException =
+        assertThrows(PersistenceException.class, () -> mergeProcessor.processMerge(mergeParams));
+    assertNotNull(persistenceException.getMessage());
+
+    // then DB constraint is thrown
+    List<String> expectedStrings =
+        List.of(
+            "duplicate key value violates unique constraint",
+            "programstagedataelement_unique_key",
+            "Detail: Key (programstageid, dataelementid)",
+            "already exists");
+
+    assertTrue(
+        expectedStrings.stream()
+            .allMatch(
+                exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
+  }
+
   private void assertMergeSuccessfulSourcesNotDeleted(
       MergeReport report,
       Collection<?> sources,
