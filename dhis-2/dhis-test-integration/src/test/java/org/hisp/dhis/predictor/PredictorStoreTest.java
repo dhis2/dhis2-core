@@ -44,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -375,5 +376,50 @@ class PredictorStoreTest extends TransactionalIntegrationTest {
     predictorStore.save(predictorB);
     predictorStore.save(predictorC);
     assertEquals(3, predictorStore.getCount());
+  }
+
+  @Test
+  @DisplayName("Retrieving predictors by data element returns expected entries")
+  void getIndicatorsWithDenominatorRef() {
+    // given
+    Predictor predictor1 =
+        createPredictor(
+            dataElementA,
+            defaultCombo,
+            "1",
+            expressionA,
+            expressionB,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+    predictorStore.save(predictor1);
+
+    Predictor predictor2 =
+        createPredictor(
+            dataElementA,
+            defaultCombo,
+            "2",
+            expressionB,
+            expressionC,
+            periodType,
+            orgUnitLevel1,
+            1,
+            1,
+            1);
+
+    predictorStore.save(predictor1);
+    predictorStore.save(predictor2);
+
+    predictorStore.save(predictor1);
+    predictorStore.save(predictor2);
+
+    // when
+    List<Predictor> predictors = predictorStore.getAllByDataElement(List.of(dataElementA));
+
+    // then
+    assertEquals(2, predictors.size());
+    assertTrue(predictors.containsAll(List.of(predictor1, predictor2)));
   }
 }
