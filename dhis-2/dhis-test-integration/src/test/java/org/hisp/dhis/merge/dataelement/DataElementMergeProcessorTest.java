@@ -39,6 +39,7 @@ import java.util.Set;
 import javax.persistence.PersistenceException;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -57,6 +58,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -76,6 +81,8 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private SMSCommandService smsCommandService;
   @Autowired private PredictorService predictorService;
   @Autowired private CategoryService categoryService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -430,6 +437,86 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, predictorSources, predictorTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- ProgramStageDataElements --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are not deleted")
+  void programStageDEMergeTest() throws ConflictException {
+    // given
+    Program program = createProgram('P');
+    identifiableObjectManager.save(program);
+    ProgramStage stage1 = createProgramStage('S', program);
+    ProgramStage stage2 = createProgramStage('T', program);
+    ProgramStage stage3 = createProgramStage('U', program);
+    identifiableObjectManager.save(stage1);
+    identifiableObjectManager.save(stage2);
+    identifiableObjectManager.save(stage3);
+
+    ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
+    ProgramStageDataElement psde2 = createProgramStageDataElement(stage2, deSource2, 3);
+    ProgramStageDataElement psde3 = createProgramStageDataElement(stage3, deTarget, 4);
+
+    programStageDataElementService.addProgramStageDataElement(psde1);
+    programStageDataElementService.addProgramStageDataElement(psde2);
+    programStageDataElementService.addProgramStageDataElement(psde3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramStageDataElement> psdeSources =
+        programStageDataElementService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<ProgramStageDataElement> psdeTarget =
+        programStageDataElementService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, psdeSources, psdeTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are deleted")
+  void programStageDEMergeDeleteSourcesTest() throws ConflictException {
+    // given
+    Program program = createProgram('P');
+    identifiableObjectManager.save(program);
+    ProgramStage stage1 = createProgramStage('S', program);
+    ProgramStage stage2 = createProgramStage('T', program);
+    ProgramStage stage3 = createProgramStage('U', program);
+    identifiableObjectManager.save(stage1);
+    identifiableObjectManager.save(stage2);
+    identifiableObjectManager.save(stage3);
+
+    ProgramStageDataElement psde1 = createProgramStageDataElement(stage1, deSource1, 2);
+    ProgramStageDataElement psde2 = createProgramStageDataElement(stage2, deSource2, 3);
+    ProgramStageDataElement psde3 = createProgramStageDataElement(stage3, deTarget, 4);
+
+    programStageDataElementService.addProgramStageDataElement(psde1);
+    programStageDataElementService.addProgramStageDataElement(psde2);
+    programStageDataElementService.addProgramStageDataElement(psde3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramStageDataElement> psdeSources =
+        programStageDataElementService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<ProgramStageDataElement> psdeTarget =
+        programStageDataElementService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, psdeSources, psdeTarget, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

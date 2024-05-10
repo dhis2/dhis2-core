@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,6 +78,21 @@ public class HibernateProgramStageDataElementStore
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  }
+
+  @Override
+  public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
+    // language=sql
+    String sql =
+        """
+          select * from programstagedataelement psde
+          where psde.dataelementid in :dataElements
+        """;
+
+    return getSession()
+        .createNativeQuery(sql, ProgramStageDataElement.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 
   @Override

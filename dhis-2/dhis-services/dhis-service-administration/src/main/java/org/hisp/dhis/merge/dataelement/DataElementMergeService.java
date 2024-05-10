@@ -128,6 +128,7 @@ public class DataElementMergeService implements MergeService {
     handlers =
         ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
             .add(dataElementMergeHandler::handlePredictor)
+            .add(dataElementMergeHandler::handleProgramStageDataElement)
             .add(dataElementMergeHandler::handleMinMaxDataElement)
             .add(dataElementMergeHandler::handleEventVisualization)
             .add(dataElementMergeHandler::handleSmsCode)

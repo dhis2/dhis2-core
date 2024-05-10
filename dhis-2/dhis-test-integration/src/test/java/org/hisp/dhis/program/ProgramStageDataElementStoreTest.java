@@ -33,12 +33,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -141,5 +143,26 @@ class ProgramStageDataElementStoreTest extends TransactionalIntegrationTest {
     programStageDataElementStore.save(stageDataElementA);
     programStageDataElementStore.save(stageDataElementB);
     assertTrue(equals(programStageDataElementStore.getAll(), stageDataElementA, stageDataElementB));
+  }
+
+  @Test
+  @DisplayName("retrieving Program Stage DataElements by data element returns expected entries")
+  void retrievingPSDEByDataElement() {
+    // given
+    programStageDataElementStore.save(stageDataElementA);
+    programStageDataElementStore.save(stageDataElementB);
+
+    // when
+    List<ProgramStageDataElement> allByDataElement =
+        programStageDataElementStore.getAllByDataElement(List.of(dataElementA, dataElementB));
+
+    // then
+    assertEquals(2, allByDataElement.size());
+    assertTrue(allByDataElement.containsAll(List.of(stageDataElementA, stageDataElementB)));
+    assertTrue(
+        allByDataElement.stream()
+            .map(psde -> psde.getDataElement().getUid())
+            .toList()
+            .containsAll(List.of(dataElementA.getUid(), dataElementB.getUid())));
   }
 }
