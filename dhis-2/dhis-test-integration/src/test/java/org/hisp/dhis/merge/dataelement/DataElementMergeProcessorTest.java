@@ -156,7 +156,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         minMaxDataElementService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertMergeCompletedSuccessfully(report, minMaxSources, minMaxTarget, allDataElements);
+    assertMergeSuccessfulSourcesNotDeleted(report, minMaxSources, minMaxTarget, allDataElements);
   }
 
   @Test
@@ -188,11 +188,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         minMaxDataElementService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, minMaxSources.size());
-    assertEquals(3, minMaxTarget.size());
-    assertEquals(1, allDataElements.size());
-    assertTrue(allDataElements.contains(deTarget));
+    assertMergeSuccessfulSourcesDeleted(report, minMaxSources, minMaxTarget, allDataElements);
   }
 
   @Test
@@ -261,15 +257,12 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     // then
     List<EventVisualization> eventVizSources =
         eventVisualizationService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<EventVisualization> allByDataElement =
+    List<EventVisualization> eventVizTarget =
         eventVisualizationService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, eventVizSources.size());
-    assertEquals(3, allByDataElement.size());
-    assertEquals(3, allDataElements.size());
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, eventVizSources, eventVizTarget, allDataElements);
   }
 
   @Test
@@ -301,15 +294,11 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     // then
     List<EventVisualization> eventVizSources =
         eventVisualizationService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<EventVisualization> allByDataElement =
+    List<EventVisualization> eventVizTarget =
         eventVisualizationService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, eventVizSources.size());
-    assertEquals(3, allByDataElement.size());
-    assertEquals(1, allDataElements.size());
-    assertTrue(allDataElements.contains(deTarget));
+    assertMergeSuccessfulSourcesDeleted(report, eventVizSources, eventVizTarget, allDataElements);
   }
 
   // -------------------------------
@@ -338,16 +327,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<SMSCode> smsCommands =
+    List<SMSCode> smsCommandSources =
         smsCommandService.getSmsCodesByDataElement(List.of(deSource1, deSource2));
-    List<SMSCode> allByDataElement = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
+    List<SMSCode> smsCommandTarget = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, smsCommands.size());
-    assertEquals(3, allByDataElement.size());
-    assertEquals(3, allDataElements.size());
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, smsCommandSources, smsCommandTarget, allDataElements);
   }
 
   @Test
@@ -372,16 +358,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<SMSCode> smsCommands =
+    List<SMSCode> smsCommandSources =
         smsCommandService.getSmsCodesByDataElement(List.of(deSource1, deSource2));
-    List<SMSCode> allByDataElement = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
+    List<SMSCode> smsCommandTarget = smsCommandService.getSmsCodesByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, smsCommands.size());
-    assertEquals(3, allByDataElement.size());
-    assertEquals(1, allDataElements.size());
-    assertTrue(allDataElements.contains(deTarget));
+    assertMergeSuccessfulSourcesDeleted(
+        report, smsCommandSources, smsCommandTarget, allDataElements);
   }
 
   // -------------------------------
@@ -407,16 +390,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<Predictor> predictors =
+    List<Predictor> predictorSources =
         predictorService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<Predictor> allByDataElement = predictorService.getAllByDataElement(List.of(deTarget));
+    List<Predictor> predictorTarget = predictorService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, predictors.size());
-    assertEquals(3, allByDataElement.size());
-    assertEquals(3, allDataElements.size());
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+    assertMergeSuccessfulSourcesNotDeleted(
+        report, predictorSources, predictorTarget, allDataElements);
   }
 
   @Test
@@ -424,41 +404,35 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
       "Predictor references for DataElement are replaced as expected, source DataElements are deleted")
   void predictorMergeDeleteSourcesTest() throws ConflictException {
     // given
-    Predictor predictor4 = createPredictor('4', deSource2);
-    Predictor predictor5 = createPredictor('5', deSource2);
-    Predictor predictor6 = createPredictor('6', deTarget);
+    Predictor predictor1 = createPredictor('1', deSource1);
+    Predictor predictor2 = createPredictor('2', deSource2);
+    Predictor predictor3 = createPredictor('3', deTarget);
 
-    predictorService.addPredictor(predictor4);
-    predictorService.addPredictor(predictor5);
-    predictorService.addPredictor(predictor6);
+    predictorService.addPredictor(predictor1);
+    predictorService.addPredictor(predictor2);
+    predictorService.addPredictor(predictor3);
 
     List<Predictor> predictorsSetup =
         predictorService.getAllByDataElement(List.of(deSource1, deSource2, deTarget));
     assertEquals(3, predictorsSetup.size());
 
     // params
-    MergeParams mergeParams = new MergeParams();
-    mergeParams.setSources(UID.of(List.of(deSource1.getUid(), deSource2.getUid())));
-    mergeParams.setTarget(UID.of(deTarget.getUid()));
+    MergeParams mergeParams = getMergeParams();
     mergeParams.setDeleteSources(true);
 
     // when
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<Predictor> predictors =
+    List<Predictor> predictorSources =
         predictorService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<Predictor> allByDataElement = predictorService.getAllByDataElement(List.of(deTarget));
+    List<Predictor> predictorTarget = predictorService.getAllByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, predictors.size());
-    assertEquals(3, allByDataElement.size());
-    assertEquals(1, allDataElements.size());
-    assertTrue(allDataElements.contains(deTarget));
+    assertMergeSuccessfulSourcesDeleted(report, predictorSources, predictorTarget, allDataElements);
   }
 
-  private void assertMergeCompletedSuccessfully(
+  private void assertMergeSuccessfulSourcesNotDeleted(
       MergeReport report,
       Collection<?> sources,
       Collection<?> target,
@@ -468,6 +442,18 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     assertEquals(3, target.size());
     assertEquals(3, dataElements.size());
     assertTrue(dataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
+  }
+
+  private void assertMergeSuccessfulSourcesDeleted(
+      MergeReport report,
+      Collection<?> sources,
+      Collection<?> target,
+      Collection<DataElement> dataElements) {
+    assertFalse(report.hasErrorMessages());
+    assertEquals(0, sources.size());
+    assertEquals(3, target.size());
+    assertEquals(1, dataElements.size());
+    assertTrue(dataElements.contains(deTarget));
   }
 
   private MergeParams getMergeParams() {

@@ -37,6 +37,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -53,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author david mackessy
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataElementMergeService implements MergeService {
@@ -65,6 +67,7 @@ public class DataElementMergeService implements MergeService {
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
+    log.info("Validating DataElement merge request");
     // sources
     Set<UID> sources = new HashSet<>();
     validator.verifySources(params.getSources(), sources, mergeReport, DataElement.class);
@@ -96,11 +99,14 @@ public class DataElementMergeService implements MergeService {
   @Override
   @Transactional
   public MergeReport merge(@Nonnull MergeRequest request, @Nonnull MergeReport mergeReport) {
+    log.info("Performing DataElement merge");
+
     List<DataElement> sources =
         dataElementService.getDataElementsByUid(UID.toValueList(request.getSources()));
     DataElement target = dataElementService.getDataElement(request.getTarget().getValue());
 
     // merge metadata
+    log.info("Handling DataElement reference associations");
     handlers.forEach(h -> h.merge(sources, target));
 
     // handle deletes
@@ -110,6 +116,7 @@ public class DataElementMergeService implements MergeService {
   }
 
   private void handleDeleteSources(List<DataElement> sources, MergeReport mergeReport) {
+    log.info("Deleting source DataElements");
     for (DataElement source : sources) {
       mergeReport.addDeletedSource(source.getUid());
       dataElementService.deleteDataElement(source);
@@ -120,10 +127,10 @@ public class DataElementMergeService implements MergeService {
   private void initMergeHandlers() {
     handlers =
         ImmutableList.<org.hisp.dhis.merge.dataelement.DataElementMergeHandler>builder()
+            .add(dataElementMergeHandler::handlePredictor)
             .add(dataElementMergeHandler::handleMinMaxDataElement)
             .add(dataElementMergeHandler::handleEventVisualization)
             .add(dataElementMergeHandler::handleSmsCode)
-            .add(dataElementMergeHandler::handlePredictor)
             .build();
   }
 }

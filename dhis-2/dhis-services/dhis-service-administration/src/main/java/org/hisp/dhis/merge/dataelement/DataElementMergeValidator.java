@@ -76,13 +76,13 @@ public class DataElementMergeValidator {
    * and an {@link ErrorCode} and can also return the {@link DataElement} property being checked.
    */
   enum DataElementPropertyValidation implements DataElementProperty {
-    VALUE_TYPE_VALIDATION(DataElementPredicate.VALUE_TYPE_MISMATCH, ErrorCode.E1550) {
+    VALUE_TYPE_VALIDATION(DataElementPredicate.VALUE_TYPE_MISMATCH, ErrorCode.E1554) {
       @Override
       public Object getProperty(DataElement de) {
         return de.getValueType();
       }
     },
-    DOMAIN_TYPE_VALIDATION(DataElementPredicate.DOMAIN_TYPE_MISMATCH, ErrorCode.E1551) {
+    DOMAIN_TYPE_VALIDATION(DataElementPredicate.DOMAIN_TYPE_MISMATCH, ErrorCode.E1555) {
       @Override
       public Object getProperty(DataElement de) {
         return de.getDomainType();
