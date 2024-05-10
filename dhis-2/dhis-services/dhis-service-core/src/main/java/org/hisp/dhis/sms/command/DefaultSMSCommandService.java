@@ -69,6 +69,7 @@ public class DefaultSMSCommandService implements SMSCommandService {
     return smsCommandStore.getByName(name);
   }
 
+  @Override
   @NonTransactional
   public List<SMSCode> getSmsCodesByDataElement(Collection<DataElement> dataElements) {
     return smsCommandStore.getCodesByDataElement(dataElements);
