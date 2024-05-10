@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,11 +76,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
             : bundle.getPreheat().getProgram(enrollment.getProgram());
-    TrackedEntity trackedEntity =
-        bundle.getStrategy(enrollment).isUpdateOrDelete()
-            ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getTrackedEntity()
-            : getTrackedEntityWhenStrategyCreate(bundle, enrollment);
-
+    TrackedEntity trackedEntity = getTrackedEntity(bundle, enrollment);
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
     checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment);
@@ -100,27 +95,32 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
   }
 
+  private TrackedEntity getTrackedEntity(TrackerBundle bundle, Enrollment enrollment) {
+    return bundle.getStrategy(enrollment).isUpdateOrDelete()
+        ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getTrackedEntity()
+        : getTrackedEntityWhenStrategyCreate(bundle, enrollment);
+  }
+
   private TrackedEntity getTrackedEntityWhenStrategyCreate(
       TrackerBundle bundle, Enrollment enrollment) {
     TrackedEntity trackedEntity =
         bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
 
-    if (trackedEntity == null) {
-      Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> te =
-          bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
-
-      return te.map(
-              entity -> {
-                TrackedEntity newEntity = new TrackedEntity();
-                newEntity.setUid(entity.getUid());
-                newEntity.setOrganisationUnit(
-                    bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
-                return newEntity;
-              })
-          .get();
+    if (trackedEntity != null) {
+      return trackedEntity;
     }
 
-    return trackedEntity;
+    return bundle
+        .findTrackedEntityByUid(enrollment.getTrackedEntity())
+        .map(
+            entity -> {
+              TrackedEntity newEntity = new TrackedEntity();
+              newEntity.setUid(entity.getUid());
+              newEntity.setOrganisationUnit(
+                  bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
+              return newEntity;
+            })
+        .get();
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
