@@ -292,7 +292,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
     trackerObjects = fromJson("tracker/validations/enrollments_te_enrollments-data_2.json");
     TrackerImportParams trackerImportParams = new TrackerImportParams();
-    trackerImportParams.setUserId(USER_10);
+    trackerImportParams.setUserId(USER_8);
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
     assertNoErrors(importReport);
