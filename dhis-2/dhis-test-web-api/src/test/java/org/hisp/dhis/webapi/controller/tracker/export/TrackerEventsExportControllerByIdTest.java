@@ -102,18 +102,19 @@ class TrackerEventsExportControllerByIdTest extends DhisControllerConvenienceTes
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
+    trackedEntityType = trackedEntityTypeAccessible();
+
     program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
     program.getSharing().setOwner(owner);
     program.getSharing().addUserAccess(userAccess());
+    program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
 
     programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
     programStage.getSharing().addUserAccess(userAccess());
     manager.save(programStage, false);
-
-    trackedEntityType = trackedEntityTypeAccessible();
   }
 
   @Test
