@@ -70,7 +70,7 @@ updates:
       - dependency-name: "net.sf.jasperreports:jasperreports-fonts" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 6.20.1" 
- - package-ecosystem: "maven"
+  - package-ecosystem: "maven"
     directory: "/dhis-2/dhis-test-e2e"
     schedule:
       interval: "daily"
