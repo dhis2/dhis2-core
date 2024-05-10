@@ -135,11 +135,11 @@ public class TeiImportTests extends TrackerApiTest {
         new FileReaderUtils()
             .readJsonAndGenerateData(
                 new File(
-                    "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+                    "src/test/resources/tracker/importer/teis/tesWithEnrollmentsEventsAndRelationships.json"));
 
     JsonObject teiToTeiRelationship =
         new RelationshipDataBuilder()
-            .buildTrackedEntityRelationship("Kj6vYde4LHh", "Nav6inZRw1u", "xLmPUYJX8Ks");
+            .buildTrackedEntityRelationship("v4LGvFNxdYH", "bXanyK15d68", "xLmPUYJX8Ks");
 
     JsonObjectBuilder.jsonObject(teiPayload).addArray("relationships", teiToTeiRelationship);
 
