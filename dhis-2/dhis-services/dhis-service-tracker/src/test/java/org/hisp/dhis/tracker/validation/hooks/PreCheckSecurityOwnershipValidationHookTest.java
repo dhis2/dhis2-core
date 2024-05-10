@@ -382,6 +382,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(TEI_ID);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntityInstance);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
@@ -403,6 +406,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(TEI_ID);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntityInstance);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);

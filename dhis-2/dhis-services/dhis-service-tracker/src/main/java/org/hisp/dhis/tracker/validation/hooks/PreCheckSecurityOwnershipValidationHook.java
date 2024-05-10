@@ -161,16 +161,8 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
         strategy.isUpdateOrDelete()
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
             : bundle.getPreheat().getProgram(enrollment.getProgram());
-    String trackedEntity =
-        bundle.getStrategy(enrollment).isDelete()
-            ? bundle
-                .getPreheat()
-                .getEnrollment(enrollment.getEnrollment())
-                .getEntityInstance()
-                .getUid()
-            : enrollment.getTrackedEntity();
-    OrganisationUnit ownerOrgUnit =
-        getOwnerOrganisationUnit(preheat, enrollment.getTrackedEntity(), program);
+    TrackedEntityInstance trackedEntity = getTrackedEntity(bundle, enrollment);
+    OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
 
     checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment);
 
@@ -184,7 +176,47 @@ public class PreCheckSecurityOwnershipValidationHook implements TrackerValidatio
       }
     }
 
-    checkWriteEnrollmentAccess(reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity);
+    checkWriteEnrollmentAccess(
+        reporter, bundle, enrollment, program, ownerOrgUnit, trackedEntity.getUid());
+  }
+
+  private TrackedEntityInstance getTrackedEntity(TrackerBundle bundle, Enrollment enrollment) {
+    return bundle.getStrategy(enrollment).isUpdateOrDelete()
+        ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getEntityInstance()
+        : getTrackedEntityWhenStrategyCreate(bundle, enrollment);
+  }
+
+  private TrackedEntityInstance getTrackedEntityWhenStrategyCreate(
+      TrackerBundle bundle, Enrollment enrollment) {
+    TrackedEntityInstance trackedEntity =
+        bundle.getPreheat().getTrackedEntity(enrollment.getTrackedEntity());
+
+    if (trackedEntity != null) {
+      return trackedEntity;
+    }
+
+    return bundle
+        .getTrackedEntity(enrollment.getTrackedEntity())
+        .map(
+            entity -> {
+              TrackedEntityInstance newEntity = new TrackedEntityInstance();
+              newEntity.setUid(entity.getUid());
+              newEntity.setOrganisationUnit(
+                  bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
+              return newEntity;
+            })
+        .get();
+  }
+
+  private OrganisationUnit getOwnerOrganisationUnit(
+      TrackerPreheat preheat, TrackedEntityInstance trackedEntity, Program program) {
+    Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
+        preheat.getProgramOwner().get(trackedEntity.getUid());
+    if (programOwner == null || programOwner.get(program.getUid()) == null) {
+      return trackedEntity.getOrganisationUnit();
+    } else {
+      return programOwner.get(program.getUid()).getOrganisationUnit();
+    }
   }
 
   private boolean programInstanceHasEvents(TrackerPreheat preheat, String programInstanceUid) {
