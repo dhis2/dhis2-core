@@ -25,35 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.controller.security;
 
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
+public class UserImpersonationEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
-  public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser == null) {
-      throw new InsufficientAuthenticationException("User is not authenticated");
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (SystemUtils.isUserImpersonationInTest(context.getEnvironment().getActiveProfiles())) {
+      return true;
     }
-
-    if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
-      throw new InsufficientAuthenticationException("User can not impersonate itself");
+    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
+      return false;
     }
+    return getConfiguration().isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
+  }
 
-    boolean userToImpersonateIsSuper =
-        userToImpersonate.getAuthorities().stream()
-            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ALL"));
-
-    if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
-      throw new InsufficientAuthenticationException(
-          "User is not authorized to impersonate super user");
-    }
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
   }
 }

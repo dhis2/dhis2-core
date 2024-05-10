@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.controller.security;
 
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
-  @Override
-  public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser == null) {
-      throw new InsufficientAuthenticationException("User is not authenticated");
-    }
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Builder
+public class ImpersonateUserResponse {
+  @Getter
+  public enum STATUS {
+    IMPERSONATION_SUCCESS("impersonateSuccess"),
+    IMPERSONATION_EXIT_SUCCESS("exitSuccess");
 
-    if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
-      throw new InsufficientAuthenticationException("User can not impersonate itself");
-    }
+    private final String keyName;
+    private final String defaultValue;
 
-    boolean userToImpersonateIsSuper =
-        userToImpersonate.getAuthorities().stream()
-            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ALL"));
-
-    if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
-      throw new InsufficientAuthenticationException(
-          "User is not authorized to impersonate super user");
+    STATUS(String keyName) {
+      this.keyName = keyName;
+      this.defaultValue = null;
     }
   }
+
+  @JsonProperty private STATUS status;
+  @JsonProperty private String username;
+  @JsonProperty private String message;
 }

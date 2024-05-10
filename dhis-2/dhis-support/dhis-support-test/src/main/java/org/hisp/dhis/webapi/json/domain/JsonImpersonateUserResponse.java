@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
+ * Web API equivalent of an {@code ImpersonateUserResponse}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
-  @Override
-  public void check(org.springframework.security.core.userdetails.UserDetails userToImpersonate) {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    if (currentUser == null) {
-      throw new InsufficientAuthenticationException("User is not authenticated");
-    }
+public interface JsonImpersonateUserResponse extends JsonObject {
 
-    if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
-      throw new InsufficientAuthenticationException("User can not impersonate itself");
-    }
+  default String getLoginStatus() {
+    return getString("status").string();
+  }
 
-    boolean userToImpersonateIsSuper =
-        userToImpersonate.getAuthorities().stream()
-            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ALL"));
+  default String getImpersonatedUsername() {
+    return getString("username").string();
+  }
 
-    if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
-      throw new InsufficientAuthenticationException(
-          "User is not authorized to impersonate super user");
-    }
+  default String getMessage() {
+    return getString("message").string();
   }
 }
