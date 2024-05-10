@@ -358,7 +358,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
     return List.of(
         Enrollment.builder()
-            .program(MetadataIdentifier.ofUid(programA.getUid()))
+            .program(MetadataIdentifier.ofUid(program.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnit.getUid()))
             .trackedEntity(trackedEntity.getUid())
             .status(EnrollmentStatus.ACTIVE)
