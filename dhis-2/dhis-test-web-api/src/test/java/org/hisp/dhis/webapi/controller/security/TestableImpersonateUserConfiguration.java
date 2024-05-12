@@ -25,45 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.switchuser;
+package org.hisp.dhis.webapi.controller.security;
 
-import java.io.IOException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import lombok.RequiredArgsConstructor;
+import java.util.Properties;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@RequiredArgsConstructor
-public class DhisSwitchUserFilter extends SwitchUserFilter {
-  private final DhisConfigurationProvider config;
+@Configuration
+@Profile({"impersonate-user-test"})
+public class TestableImpersonateUserConfiguration {
 
-  @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
-    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
-    if (enabled && isAllowListedIp(request.getRemoteAddr())) {
-      super.doFilter(request, response, chain);
-      return;
-    }
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    H2DhisConfigurationProvider provider = new H2DhisConfigurationProvider();
 
-    chain.doFilter(request, response);
-  }
+    Properties properties = new Properties();
+    properties.put(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED.getKey(), "true");
+    provider.addProperties(properties);
 
-  private boolean isAllowListedIp(String remoteAddr) {
-    String property = config.getProperty(ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS);
-    for (String ip : property.split(",")) {
-      if (ip.trim().equalsIgnoreCase(remoteAddr)) {
-        return true;
-      }
-    }
-
-    return false;
+    return provider;
   }
 }
