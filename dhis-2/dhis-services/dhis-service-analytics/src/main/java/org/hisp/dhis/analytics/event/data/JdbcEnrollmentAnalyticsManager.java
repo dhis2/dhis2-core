@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -56,6 +57,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -640,6 +642,20 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   protected String getColumn(QueryItem item) {
     return getColumn(item, "");
+  }
+
+  /**
+   * Is a category dimension an attribute category (rather than a disaggregation category)?
+   * Attribute categories are not included in enrollment tables, so category user dimension
+   * restrictions (which use attribute categories) do not apply.
+   */
+  private boolean isAttributeCategory(DimensionalObject categoryDim) {
+    return ((CategoryOption) categoryDim.getItems().get(0))
+            .getCategories()
+            .iterator()
+            .next()
+            .getDataDimensionType()
+        == ATTRIBUTE;
   }
 
   private static String getExecutionDateFilter(Date startDate, Date endDate) {
