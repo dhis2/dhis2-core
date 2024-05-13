@@ -66,7 +66,7 @@ class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
   @Test
   void testImpersonateUserOKAndExit() {
     String usernameToImpersonate = "usera";
-    createUserWithAuth(usernameToImpersonate, "ALL");
+    createUserWithAuth(usernameToImpersonate, "NONE");
 
     JsonImpersonateUserResponse response =
         POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))

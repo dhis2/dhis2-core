@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
+import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,8 +85,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Conditional(value = UserImpersonationEnabledCondition.class)
 public class ImpersonateUserController {
 
-  public static final String ROLE_PREVIOUS_ADMINISTRATOR = "ROLE_PREVIOUS_ADMINISTRATOR";
-
   private final DhisConfigurationProvider config;
   private final UserDetailsService userDetailsService;
   private final ApplicationEventPublisher eventPublisher;
@@ -139,7 +138,7 @@ public class ImpersonateUserController {
     }
   }
 
-  @RequiresAuthority(anyOf = F_IMPERSONATE_USER)
+  @RequiresAuthority(anyOf = {F_IMPERSONATE_USER})
   @PostMapping("/impersonateExit")
   public ImpersonateUserResponse impersonateExit(
       HttpServletRequest request, HttpServletResponse response) throws ForbiddenException {
@@ -188,7 +187,8 @@ public class ImpersonateUserController {
     // which will be used to 'exit' from the current switched user.
     Authentication currentAuthentication = getCurrentAuthentication();
     GrantedAuthority switchAuthority =
-        new SwitchUserGrantedAuthority(ROLE_PREVIOUS_ADMINISTRATOR, currentAuthentication);
+        new SwitchUserGrantedAuthority(
+            F_PREVIOUS_IMPERSONATOR_AUTHORITY.name(), currentAuthentication);
 
     // add the new switch user authority
     List<GrantedAuthority> newAuths = new ArrayList<>(targetUser.getAuthorities());
