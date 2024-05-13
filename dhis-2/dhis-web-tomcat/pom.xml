@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -23,8 +25,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-apps</artifactId>
-      <!-- Only depend on the POM dhis-web-apps artifact, since we manually include the sources in the dependency plugin, but this does not alone enforce dependency -->
-      <type>pom</type>
+      <type>war</type>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -176,8 +177,11 @@
           </container>
           <pluginExtensions>
             <pluginExtension>
-              <implementation>com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension</implementation>
-              <configuration implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
+              <implementation>
+                com.google.cloud.tools.jib.maven.extension.ownership.JibOwnershipExtension
+              </implementation>
+              <configuration
+                implementation="com.google.cloud.tools.jib.maven.extension.ownership.Configuration">
                 <!-- Jib will create /opt/dhis2 owned by root by default.
                 DHIS2_HOME needs to be writeable by the process running Tomcat -->
                 <rules>
@@ -224,6 +228,12 @@
           <layers>
             <enabled>false</enabled>
           </layers>
+          <excludes>
+            <exclude>
+              <groupId>org.hisp.dhis</groupId>
+              <artifactId>dhis-web-apps</artifactId>
+            </exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
