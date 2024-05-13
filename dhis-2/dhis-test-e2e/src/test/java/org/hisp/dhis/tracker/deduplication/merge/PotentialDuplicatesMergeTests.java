@@ -55,7 +55,7 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
   @Test
   public void shouldUpdateLastUpdatedInfo() {
     String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
-    String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTeis().get(0);
+    String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTrackedEntities().get(0);
 
     String potentialDuplicate =
         potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");

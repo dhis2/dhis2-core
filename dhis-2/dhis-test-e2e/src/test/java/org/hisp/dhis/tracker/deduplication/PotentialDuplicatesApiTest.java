@@ -81,13 +81,19 @@ public class PotentialDuplicatesApiTest extends TrackerApiTest {
     JsonObject object =
         new TeiDataBuilder().array(Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0]);
 
-    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+    return trackerImportExportActions
+        .postAndGetJobReport(object)
+        .extractImportedTrackedEntities()
+        .get(0);
   }
 
   protected String createTei(String teiType) {
     JsonObject object = new TeiDataBuilder().array(teiType, Constants.ORG_UNIT_IDS[0]);
 
-    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+    return trackerImportExportActions
+        .postAndGetJobReport(object)
+        .extractImportedTrackedEntities()
+        .get(0);
   }
 
   protected TrackerApiResponse createTeiWithEnrollmentsAndEvents() {

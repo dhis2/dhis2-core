@@ -152,6 +152,26 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given string neither null, a length of zero nor whitespace only.
+   *
+   * @param actual the string.
+   */
+  public static void assertNotBlank(String actual) {
+    assertNotNull(actual);
+    assertTrue(!actual.isBlank());
+  }
+
+  /**
+   * Asserts that the given string neither null or a length of zero.
+   *
+   * @param actual the string.
+   */
+  public static void assertNotEmpty(String actual) {
+    assertNotNull(actual);
+    assertTrue(!actual.isEmpty());
+  }
+
+  /**
    * Asserts that the given character sequence is contained within the actual string.
    *
    * @param expected expected character sequence to be contained within the actual string

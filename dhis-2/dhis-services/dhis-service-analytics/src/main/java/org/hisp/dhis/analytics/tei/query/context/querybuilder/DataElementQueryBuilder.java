@@ -37,8 +37,10 @@ import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 import static org.hisp.dhis.system.grid.ListGrid.EXISTS;
 import static org.hisp.dhis.system.grid.ListGrid.HAS_VALUE;
+import static org.hisp.dhis.system.grid.ListGrid.LEGEND;
 import static org.hisp.dhis.system.grid.ListGrid.STATUS;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,18 +101,18 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
     RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
     // Select fields are the union of headers, dimensions and sorting params
-    List<DimensionIdentifier<DimensionParam>> dimensions =
-        streamDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams).toList();
+    GroupedDimensions groupedDimensions =
+        getGroupedDimensions(acceptedHeaders, acceptedDimensions, acceptedSortingParams);
 
     Stream.of(
             // Fields holding the value of data elements
-            getValueFields(dimensions),
+            getValueFields(groupedDimensions),
             // Fields holding the "exists" flag of the stages
-            getExistsFields(dimensions),
+            getExistsFields(groupedDimensions),
             // Fields holding the status of the stages (SCHEDULED, COMPLETE, etc)
-            getStatusFields(dimensions),
+            getStatusFields(groupedDimensions),
             // Fields holding the "hasValue" flag of the data elements
-            getHasValueFields(dimensions))
+            getHasValueFields(groupedDimensions))
         .flatMap(Function.identity())
         .forEach(builder::selectField);
 
@@ -139,62 +141,65 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
   /**
    * Returns the fields holding the "hasValue" flag of the data elements.
    *
-   * @param dimensions the list of dimensions.
+   * @param groupedDimensions the groupedDimensions.
    * @return the stream of fields holding the "hasValue" flag of the data elements.
    */
-  private Stream<Field> getHasValueFields(List<DimensionIdentifier<DimensionParam>> dimensions) {
-    return dimensions.stream()
+  private Stream<Field> getHasValueFields(GroupedDimensions groupedDimensions) {
+    return groupedDimensions
+        .streamOfFirstDimensionInEachGroup()
         .map(
-            dimensionIdentifier -> {
-              String prefix = dimensionIdentifier.getPrefix();
-              return ofUnquoted(
-                  EMPTY,
-                  () ->
-                      doubleQuote(prefix)
-                          + ".eventdatavalues :: jsonb ?? '"
-                          + dimensionIdentifier.getDimension().getUid()
-                          + "'",
-                  dimensionIdentifier + HAS_VALUE);
-            });
+            dimensionIdentifier ->
+                ofUnquoted(
+                    EMPTY,
+                    () ->
+                        doubleQuote(dimensionIdentifier.getPrefix())
+                            + ".eventdatavalues :: jsonb ?? '"
+                            + dimensionIdentifier.getDimension().getUid()
+                            + "'",
+                    dimensionIdentifier + HAS_VALUE));
   }
 
   /**
    * Returns the fields holding the status of the stages.
    *
-   * @param dimensions the list of dimensions.
+   * @param groupedDimensions the groupedDimensions.
    * @return the stream of fields holding the status of the stages.
    */
-  private Stream<Field> getStatusFields(List<DimensionIdentifier<DimensionParam>> dimensions) {
-    return dimensions.stream()
+  private Stream<Field> getStatusFields(GroupedDimensions groupedDimensions) {
+    return groupedDimensions
+        .streamOfFirstDimensionInEachGroup()
         .map(
-            dimId ->
+            dimensionIdentifier ->
                 ofUnquoted(
                     EMPTY,
-                    () -> doubleQuote(dimId.getPrefix()) + STATUS,
-                    dimId.toString() + STATUS));
+                    () -> doubleQuote(dimensionIdentifier.getPrefix()) + STATUS,
+                    dimensionIdentifier.toString() + STATUS));
   }
 
   /**
    * Returns the fields holding the "exists" flag of the stages.
    *
-   * @param dimensions the list of dimensions.
+   * @param groupedDimensions the groupedDimensions.
    * @return the stream of fields holding the "exists" flag of the stages.
    */
-  private Stream<Field> getExistsFields(List<DimensionIdentifier<DimensionParam>> dimensions) {
-    return dimensions.stream()
+  private Stream<Field> getExistsFields(GroupedDimensions groupedDimensions) {
+    return groupedDimensions
+        .streamOfFirstDimensionInEachGroup()
         .map(dim -> ofUnquoted(EMPTY, StageExistsRenderable.of(dim), dim.getKey() + EXISTS));
   }
 
   /**
    * Returns the fields holding the value of data elements.
    *
-   * @param dimensions the list of dimensions.
+   * @param groupedDimensions the list of groupedDimensions.
    * @return the stream of fields holding the value of data elements.
    */
   @Nonnull
-  private static Stream<Field> getValueFields(
-      List<DimensionIdentifier<DimensionParam>> dimensions) {
-    return dimensions.stream().map(DataElementQueryBuilder::toField);
+  private static Stream<Field> getValueFields(GroupedDimensions groupedDimensions) {
+    return groupedDimensions.getGroupsByKey().stream()
+        .map(DimensionGroup::dimensions)
+        .flatMap(Collection::stream)
+        .map(DataElementQueryBuilder::toField);
   }
 
   /**
@@ -204,8 +209,12 @@ public class DataElementQueryBuilder implements SqlQueryBuilder {
    * @return the field.
    */
   private static Field toField(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    String alias = dimensionIdentifier.getKey();
+    if (dimensionIdentifier.hasLegendSet()) {
+      alias += LEGEND;
+    }
     Renderable renderableDataValue = getRenderableDataValue(dimensionIdentifier);
-    return ofUnquoted(EMPTY, renderableDataValue, dimensionIdentifier.toString());
+    return ofUnquoted(EMPTY, renderableDataValue, alias);
   }
 
   /**

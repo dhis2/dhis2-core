@@ -175,7 +175,11 @@ public class MessageConversationController
   @Override
   @SuppressWarnings("unchecked")
   protected List<org.hisp.dhis.message.MessageConversation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<org.hisp.dhis.message.MessageConversation> objects)
       throws QueryParserException {
     List<org.hisp.dhis.message.MessageConversation> messageConversations;
 

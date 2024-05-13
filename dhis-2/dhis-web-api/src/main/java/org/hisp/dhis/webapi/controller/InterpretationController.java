@@ -98,7 +98,11 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @Override
   @SuppressWarnings("unchecked")
   protected List<Interpretation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<Interpretation> objects)
       throws QueryParserException {
     // If custom filter (mentions:in:[username]) in filters -> Remove from
     // filters
