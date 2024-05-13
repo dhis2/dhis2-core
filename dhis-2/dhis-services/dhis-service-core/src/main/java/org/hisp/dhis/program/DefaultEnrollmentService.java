@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
@@ -148,21 +147,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> getEnrollmentsUidsIncludingDeleted(List<String> uids) {
-    return enrollmentStore.getUidsIncludingDeleted(uids);
-  }
-
-  @Override
   @Transactional
   public void updateEnrollment(Enrollment enrollment) {
     enrollmentStore.update(enrollment);
-  }
-
-  @Override
-  @Transactional
-  public void updateEnrollment(Enrollment enrollment, UserDetails user) {
-    enrollmentStore.update(enrollment, user);
   }
 
   // TODO consider security
@@ -192,34 +179,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
     }
 
     return enrollmentStore.getEnrollments(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countEnrollments(EnrollmentQueryParams params) {
-    decideAccess(params);
-    validate(params);
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    if (currentUser != null
-        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrganisationUnits(currentUser.getTeiSearchOrganisationUnitsWithFallback());
-      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>();
-      organisationUnits.addAll(params.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      params.setOrganisationUnits(organisationUnits);
-    }
-
-    params.setSkipPaging(true);
-
-    return enrollmentStore.countEnrollments(params);
   }
 
   @Override

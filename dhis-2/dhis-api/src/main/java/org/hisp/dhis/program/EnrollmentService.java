@@ -34,7 +34,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Abyot Asalefew
@@ -79,14 +78,6 @@ public interface EnrollmentService {
   void updateEnrollment(Enrollment enrollment);
 
   /**
-   * Updates an {@link Enrollment}.
-   *
-   * @param enrollment the Enrollment to update.
-   * @param user the current user.
-   */
-  void updateEnrollment(Enrollment enrollment, UserDetails user);
-
-  /**
    * Returns a {@link Enrollment}.
    *
    * @param id the id of the Enrollment to return.
@@ -127,28 +118,12 @@ public interface EnrollmentService {
   boolean enrollmentExistsIncludingDeleted(String uid);
 
   /**
-   * Returns UIDs of existing Enrollments (including deleted) from the provided UIDs
-   *
-   * @param uids Event UIDs to check
-   * @return Set containing UIDs of existing PSIs (including deleted)
-   */
-  List<String> getEnrollmentsUidsIncludingDeleted(List<String> uids);
-
-  /**
    * Returns a list with Enrollment values based on the given EnrollmentQueryParams.
    *
    * @param params the EnrollmentQueryParams.
    * @return List of enrollments matching the params
    */
   List<Enrollment> getEnrollments(EnrollmentQueryParams params);
-
-  /**
-   * Returns the number of Enrollment matches based on the given EnrollmentQueryParams.
-   *
-   * @param params the EnrollmentQueryParams.
-   * @return Number of enrollments matching the params
-   */
-  int countEnrollments(EnrollmentQueryParams params);
 
   /**
    * Decides whether current user is authorized to perform the given query. IllegalQueryException is

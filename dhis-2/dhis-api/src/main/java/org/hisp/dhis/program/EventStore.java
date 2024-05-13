@@ -82,14 +82,6 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
   boolean existsIncludingDeleted(String uid);
 
   /**
-   * Returns UIDs of existing events (including deleted) from the provided UIDs.
-   *
-   * @param uids event UIDs to check
-   * @return List containing UIDs of existing events (including deleted)
-   */
-  List<String> getUidsIncludingDeleted(List<String> uids);
-
-  /**
    * Fetches Event matching the given list of UIDs
    *
    * @param uids a List of UID
@@ -107,12 +99,4 @@ public interface EventStore extends IdentifiableObjectStore<Event> {
    */
   List<Event> getWithScheduledNotifications(
       ProgramNotificationTemplate template, Date notificationDate);
-
-  /**
-   * Set lastSynchronized timestamp to provided timestamp for provided events.
-   *
-   * @param eventUids UIDs of events where the lastSynchronized flag should be updated
-   * @param lastSynchronized The date of last successful sync
-   */
-  void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized);
 }

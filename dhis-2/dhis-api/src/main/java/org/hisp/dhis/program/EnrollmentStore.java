@@ -41,14 +41,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
 
   /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  int countEnrollments(EnrollmentQueryParams params);
-
-  /**
    * Get all enrollments by enrollment query params.
    *
    * @param params EnrollmentQueryParams to use
@@ -104,14 +96,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   boolean existsIncludingDeleted(String uid);
 
   /**
-   * Returns UIDs of existing enrollments (including deleted) from the provided UIDs
-   *
-   * @param uids enrollment UIDs to check
-   * @return List containing UIDs of existing enrollments (including deleted)
-   */
-  List<String> getUidsIncludingDeleted(List<String> uids);
-
-  /**
    * Fetches enrollments matching the given list of UIDs
    *
    * @param uids a List of UID
@@ -137,17 +121,6 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @return List of all enrollments that are linked to programs
    */
   List<Enrollment> getByPrograms(List<Program> programs);
-
-  /**
-   * Return all enrollment by type.
-   *
-   * <p>Warning: this is meant to be used for WITHOUT_REGISTRATION programs only, be careful if you
-   * need it for other uses.
-   *
-   * @param type ProgramType to fetch by
-   * @return List of all enrollments that matches the wanted type
-   */
-  List<Enrollment> getByType(ProgramType type);
 
   /**
    * Hard deletes a {@link Enrollment}.

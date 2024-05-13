@@ -211,13 +211,6 @@ public class EnrollmentQueryParams {
     return (getPageWithDefault() - 1) * getPageSizeWithDefault();
   }
 
-  /** Sets paging properties to default values. */
-  public void setDefaultPaging() {
-    this.page = DEFAULT_PAGE;
-    this.pageSize = DEFAULT_PAGE_SIZE;
-    this.skipPaging = false;
-  }
-
   public boolean isSorting() {
     return !CollectionUtils.emptyIfNull(order).isEmpty();
   }
