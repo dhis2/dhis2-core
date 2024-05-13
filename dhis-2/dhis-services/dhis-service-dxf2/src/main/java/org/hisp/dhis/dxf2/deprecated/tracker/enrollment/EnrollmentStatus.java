@@ -59,19 +59,6 @@ public enum EnrollmentStatus {
     return programStatus;
   }
 
-  public static EnrollmentStatus fromProgramStatus(ProgramStatus programStatus) {
-    switch (programStatus) {
-      case ACTIVE:
-        return ACTIVE;
-      case CANCELLED:
-        return CANCELLED;
-      case COMPLETED:
-        return COMPLETED;
-    }
-
-    throw new IllegalArgumentException("Enum value not found: " + programStatus);
-  }
-
   public static EnrollmentStatus fromStatusString(String status) {
     switch (status) {
       case "ACTIVE":

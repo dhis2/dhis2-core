@@ -28,8 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.User;
 
@@ -55,11 +53,6 @@ public interface EventStore {
    * @return a list of saved program stage instances
    */
   List<Event> updateEvents(List<Event> events);
-
-  List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEvents(
-      EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue);
-
-  int getEventCount(EventSearchParams params);
 
   /**
    * Delete list of given events to be removed. This operation also remove comments connected to

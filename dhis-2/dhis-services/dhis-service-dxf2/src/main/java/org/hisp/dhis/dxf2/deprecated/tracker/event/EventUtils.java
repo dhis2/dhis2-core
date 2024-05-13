@@ -31,7 +31,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -173,17 +172,5 @@ public class EventUtils {
     jsonbObj.setType("json");
     jsonbObj.setValue(mapper.writeValueAsString(userInfo));
     return jsonbObj;
-  }
-
-  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
-    try {
-      if (StringUtils.isNotEmpty(userInfoAsString)) {
-        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
-      }
-      return null;
-    } catch (IOException e) {
-      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
-      throw new IllegalArgumentException(e);
-    }
   }
 }

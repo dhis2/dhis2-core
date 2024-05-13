@@ -35,16 +35,8 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
  */
 public class UnrecoverableImportException extends RuntimeException {
 
-  public UnrecoverableImportException() {
-    super();
-  }
-
   public UnrecoverableImportException(String message) {
     super(message);
-  }
-
-  public UnrecoverableImportException(String message, Throwable cause) {
-    super(message, cause);
   }
 
   public UnrecoverableImportException(Throwable cause) {
