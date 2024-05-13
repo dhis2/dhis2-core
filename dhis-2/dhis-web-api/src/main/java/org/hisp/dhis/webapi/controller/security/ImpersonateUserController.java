@@ -70,6 +70,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controller for impersonating users. Most of the code is copied from
+ * org.springframework.security.web.authentication.switchuser.SwitchUserFilter
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @OpenApi.Tags({"user", "login"})
 @RestController
 @RequestMapping("/api/auth")
@@ -84,15 +90,15 @@ public class ImpersonateUserController {
   private final UserDetailsService userDetailsService;
   private final ApplicationEventPublisher eventPublisher;
 
-  private UserDetailsChecker userDetailsChecker = new ImpersonatingUserDetailsChecker();
-  private SecurityContextHolderStrategy securityContextHolderStrategy =
-      SecurityContextHolder.getContextHolderStrategy();
-  private SwitchUserAuthorityChanger switchUserAuthorityChanger;
-  private String switchAuthorityRole = ROLE_PREVIOUS_ADMINISTRATOR;
-  private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
+  private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
       new WebAuthenticationDetailsSource();
-  private SecurityContextRepository securityContextRepository =
+  private final UserDetailsChecker userDetailsChecker = new ImpersonatingUserDetailsChecker();
+  private final SecurityContextHolderStrategy securityContextHolderStrategy =
+      SecurityContextHolder.getContextHolderStrategy();
+  private final SecurityContextRepository securityContextRepository =
       new HttpSessionSecurityContextRepository();
+
+  private SwitchUserAuthorityChanger switchUserAuthorityChanger;
 
   @RequiresAuthority(anyOf = F_IMPERSONATE_USER)
   @PostMapping("/impersonate")
@@ -100,14 +106,7 @@ public class ImpersonateUserController {
       HttpServletRequest request, HttpServletResponse response, @RequestParam String username)
       throws ForbiddenException, NotFoundException {
 
-    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
-    if (!enabled) {
-      throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
-    }
-
-    if (!hasAllowListedIp(request.getRemoteAddr())) {
-      throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
-    }
+    validateReq(request);
 
     try {
       Authentication targetUser = attemptSwitchUser(request, username);
@@ -130,12 +129,23 @@ public class ImpersonateUserController {
     }
   }
 
+  private void validateReq(HttpServletRequest request) throws ForbiddenException {
+    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
+    if (!enabled) {
+      throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
+    }
+    if (!hasAllowListedIp(request.getRemoteAddr())) {
+      throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
+    }
+  }
+
   @RequiresAuthority(anyOf = F_IMPERSONATE_USER)
   @PostMapping("/impersonateExit")
   public ImpersonateUserResponse impersonateExit(
-      HttpServletRequest request, HttpServletResponse response) {
+      HttpServletRequest request, HttpServletResponse response) throws ForbiddenException {
 
-    // get the original authentication object (if exists)
+    validateReq(request);
+
     Authentication originalUser = attemptExitUser();
 
     // update the current context back to the original user
@@ -158,10 +168,8 @@ public class ImpersonateUserController {
     UserDetails targetUser = this.userDetailsService.loadUserByUsername(username);
     this.userDetailsChecker.check(targetUser);
 
-    // OK, create the switch user token
     targetUserRequest = createSwitchUserToken(request, targetUser);
 
-    // publish event
     if (this.eventPublisher != null) {
       this.eventPublisher.publishEvent(
           new AuthenticationSwitchUserEvent(
@@ -180,19 +188,10 @@ public class ImpersonateUserController {
     // which will be used to 'exit' from the current switched user.
     Authentication currentAuthentication = getCurrentAuthentication();
     GrantedAuthority switchAuthority =
-        new SwitchUserGrantedAuthority(this.switchAuthorityRole, currentAuthentication);
-
-    // get the original authorities
-    Collection<? extends GrantedAuthority> orig = targetUser.getAuthorities();
-    // Allow subclasses to change the authorities to be granted
-    if (this.switchUserAuthorityChanger != null) {
-      orig =
-          this.switchUserAuthorityChanger.modifyGrantedAuthorities(
-              targetUser, currentAuthentication, orig);
-    }
+        new SwitchUserGrantedAuthority(ROLE_PREVIOUS_ADMINISTRATOR, currentAuthentication);
 
     // add the new switch user authority
-    List<GrantedAuthority> newAuths = new ArrayList<>(orig);
+    List<GrantedAuthority> newAuths = new ArrayList<>(targetUser.getAuthorities());
     newAuths.add(switchAuthority);
 
     // create the new authentication token

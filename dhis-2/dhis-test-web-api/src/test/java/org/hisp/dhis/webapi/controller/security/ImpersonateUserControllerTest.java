@@ -33,6 +33,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.ImpersonateUserControllerBaseTest;
 import org.hisp.dhis.webapi.json.domain.JsonImpersonateUserResponse;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -48,13 +49,43 @@ class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
     String usernameToImpersonate = "usera";
     createUserWithAuth(usernameToImpersonate, "ALL");
 
-    JsonImpersonateUserResponse responseB =
+    JsonImpersonateUserResponse response =
         POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
             .content(HttpStatus.OK)
             .as(JsonImpersonateUserResponse.class);
 
-    assertEquals("IMPERSONATION_SUCCESS", responseB.getLoginStatus());
-    assertEquals(usernameToImpersonate, responseB.getImpersonatedUsername());
+    assertEquals("IMPERSONATION_SUCCESS", response.getLoginStatus());
+    assertEquals(usernameToImpersonate, response.getImpersonatedUsername());
+
+    JsonUser me = GET("/me?fields=username").content(HttpStatus.OK).as(JsonUser.class);
+
+    String username = me.getUsername();
+    assertEquals(usernameToImpersonate, username);
+  }
+
+  @Test
+  void testImpersonateUserOKAndExit() {
+    String usernameToImpersonate = "usera";
+    createUserWithAuth(usernameToImpersonate, "ALL");
+
+    JsonImpersonateUserResponse response =
+        POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
+            .content(HttpStatus.OK)
+            .as(JsonImpersonateUserResponse.class);
+
+    assertEquals("IMPERSONATION_SUCCESS", response.getLoginStatus());
+    assertEquals(usernameToImpersonate, response.getImpersonatedUsername());
+
+    JsonUser me = GET("/me?fields=username").content(HttpStatus.OK).as(JsonUser.class);
+
+    String username = me.getUsername();
+    assertEquals(usernameToImpersonate, username);
+
+    JsonImpersonateUserResponse responseExit =
+        POST("/auth/impersonateExit").content(HttpStatus.OK).as(JsonImpersonateUserResponse.class);
+
+    assertEquals("IMPERSONATION_EXIT_SUCCESS", responseExit.getLoginStatus());
+    assertEquals("admin", responseExit.getImpersonatedUsername());
   }
 
   @Test
