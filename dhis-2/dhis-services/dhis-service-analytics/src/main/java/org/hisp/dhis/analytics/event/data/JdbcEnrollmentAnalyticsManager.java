@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getCoalesce;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -56,6 +57,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -341,17 +343,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
-    // Organisation unit group sets
+    // Categories (enrollments don't have attribute categories)
     // ---------------------------------------------------------------------
 
     List<DimensionalObject> dynamicDimensions =
         params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.CATEGORY));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      String col = quoteAlias(dim.getDimensionName());
+      if (!isAttributeCategory(dim)) {
+        String col = quoteAlias(dim.getDimensionName());
 
-      sql += "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+        sql +=
+            "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+      }
     }
+
+    // ---------------------------------------------------------------------
+    // Organisation unit group sets
+    // ---------------------------------------------------------------------
 
     dynamicDimensions =
         params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.ORGANISATION_UNIT_GROUP_SET));
