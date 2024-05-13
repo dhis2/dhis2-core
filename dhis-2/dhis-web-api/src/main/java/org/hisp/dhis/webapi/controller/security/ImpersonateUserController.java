@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
+import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserDetailsImpl;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Conditional;
@@ -78,8 +80,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Conditional(value = UserImpersonationEnabledCondition.class)
 public class ImpersonateUserController {
 
-  public static final String ROLE_PREVIOUS_ADMINISTRATOR = "ROLE_PREVIOUS_ADMINISTRATOR";
-
   private final DhisConfigurationProvider config;
   private final UserDetailsService userDetailsService;
   private final ApplicationEventPublisher eventPublisher;
@@ -88,7 +88,6 @@ public class ImpersonateUserController {
   private SecurityContextHolderStrategy securityContextHolderStrategy =
       SecurityContextHolder.getContextHolderStrategy();
   private SwitchUserAuthorityChanger switchUserAuthorityChanger;
-  private String switchAuthorityRole = ROLE_PREVIOUS_ADMINISTRATOR;
   private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
       new WebAuthenticationDetailsSource();
   private SecurityContextRepository securityContextRepository =
@@ -102,7 +101,8 @@ public class ImpersonateUserController {
       @CurrentUser UserDetails userDetails)
       throws ForbiddenException, NotFoundException {
 
-    validateRequest(request, userDetails);
+    validateReq(request, userDetails);
+    validateImpersonateAuthority(userDetails);
 
     try {
       Authentication targetUser = attemptSwitchUser(request, username);
@@ -125,16 +125,35 @@ public class ImpersonateUserController {
     }
   }
 
-  private void validateRequest(HttpServletRequest request, UserDetails userDetails)
+  private static void validateImpersonateAuthority(UserDetails userDetails)
+      throws ForbiddenException {
+    if (userDetails.isSuper()
+        || userDetails.getAllAuthorities().contains(F_IMPERSONATE_USER.name())) {
+      return;
+    }
+    throw new ForbiddenException("Forbidden, requires authority [F_IMPERSONATE_USER]");
+  }
+
+  private static void validateImpersonateExitAuthority(UserDetails userDetails)
+      throws ForbiddenException {
+    if (userDetails.isSuper()) {
+      return;
+    }
+    Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+    for (GrantedAuthority authority : authorities) {
+      if (authority.getAuthority().equals(F_IMPERSONATE_USER.name())
+          || authority.getAuthority().equals(F_PREVIOUS_IMPERSONATOR_AUTHORITY.name())) {
+        return;
+      }
+    }
+    throw new ForbiddenException("Forbidden, requires authority [F_IMPERSONATE_USER]");
+  }
+
+  private void validateReq(HttpServletRequest request, UserDetails userDetails)
       throws ForbiddenException {
     boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
     if (!enabled) {
       throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
-    }
-
-    if (!userDetails.isSuper()
-        && !userDetails.getAllAuthorities().contains(F_IMPERSONATE_USER.name())) {
-      throw new ForbiddenException("Forbidden, requires authority [F_IMPERSONATE_USER]");
     }
 
     if (!hasAllowListedIp(request.getRemoteAddr())) {
@@ -149,7 +168,8 @@ public class ImpersonateUserController {
       @CurrentUser UserDetails userDetails)
       throws ForbiddenException {
 
-    validateRequest(request, userDetails);
+    validateReq(request, userDetails);
+    validateImpersonateExitAuthority(userDetails);
 
     // get the original authentication object (if exists)
     Authentication originalUser = attemptExitUser();
@@ -197,26 +217,23 @@ public class ImpersonateUserController {
     // grant an additional authority that contains the original Authentication object
     // which will be used to 'exit' from the current switched user.
     Authentication currentAuthentication = getCurrentAuthentication();
+
     GrantedAuthority switchAuthority =
-        new SwitchUserGrantedAuthority(this.switchAuthorityRole, currentAuthentication);
+        new SwitchUserGrantedAuthority(
+            F_PREVIOUS_IMPERSONATOR_AUTHORITY.name(), currentAuthentication);
 
     // get the original authorities
     Collection<? extends GrantedAuthority> orig = targetUser.getAuthorities();
-    // Allow subclasses to change the authorities to be granted
-    if (this.switchUserAuthorityChanger != null) {
-      orig =
-          this.switchUserAuthorityChanger.modifyGrantedAuthorities(
-              targetUser, currentAuthentication, orig);
-    }
 
     // add the new switch user authority
     List<GrantedAuthority> newAuths = new ArrayList<>(orig);
     newAuths.add(switchAuthority);
 
+    UserDetailsImpl userDetails = (UserDetailsImpl) targetUser;
+    userDetails.getAuthorities().add(switchAuthority);
+
     // create the new authentication token
-    targetUserRequest =
-        UsernamePasswordAuthenticationToken.authenticated(
-            targetUser, targetUser.getPassword(), newAuths);
+    targetUserRequest = UsernamePasswordAuthenticationToken.authenticated(targetUser, "", newAuths);
 
     targetUserRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
 
