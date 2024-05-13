@@ -359,8 +359,6 @@ public class DhisWebApiWebSecurityConfig {
 
                   .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
                   .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/impersonate"))
-                  .hasAnyAuthority("ALL", "F_IMPERSONATE_USER")
 
                   ///////////////////////////////////////////////////////////////////////////////////////////////
 
