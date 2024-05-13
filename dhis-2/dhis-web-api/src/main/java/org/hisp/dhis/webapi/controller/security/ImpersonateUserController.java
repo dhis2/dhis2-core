@@ -138,7 +138,7 @@ public class ImpersonateUserController {
     }
   }
 
-  @RequiresAuthority(anyOf = {F_IMPERSONATE_USER})
+  @RequiresAuthority(anyOf = {F_IMPERSONATE_USER, F_PREVIOUS_IMPERSONATOR_AUTHORITY})
   @PostMapping("/impersonateExit")
   public ImpersonateUserResponse impersonateExit(
       HttpServletRequest request, HttpServletResponse response) throws ForbiddenException {
