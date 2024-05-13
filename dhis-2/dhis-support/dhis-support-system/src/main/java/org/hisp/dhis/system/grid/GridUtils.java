@@ -349,7 +349,7 @@ public class GridUtils {
       for (Object column : columns) {
         if (column != null && Number.class.isAssignableFrom(column.getClass())) {
           Cell cell = xlsRow.createCell(columnIndex++, CellType.NUMERIC);
-          if (column instanceof Integer || column instanceof Long || column instanceof BigInteger) {
+          if (isIntegerType(column)) {
             cell.setCellStyle(numberCellStyleForIntegerTypes);
           } else {
             cell.setCellStyle(numberCellStyle);
@@ -364,6 +364,19 @@ public class GridUtils {
 
       rowNumber++;
     }
+  }
+
+  /**
+   * determines if the given column is of integer type or not
+   *
+   * @param column the column to check
+   * @return true if the column is of integer type, false otherwise
+   */
+  private static boolean isIntegerType(Object column) {
+    return column instanceof Integer
+        || column instanceof Long
+        || column instanceof Short
+        || column instanceof BigInteger;
   }
 
   /**
