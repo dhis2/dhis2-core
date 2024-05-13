@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import java.util.Collection;
+import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -50,4 +52,21 @@ public class HibernateProgramStageSectionStore
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, ProgramStageSection.class, aclService, true);
   }
+
+  //  @Override
+  //  public List<ProgramStageSection> getAllByDataElement(Collection<Long> dataElements) {
+  //    // language=sql
+  //    String sql =
+  //        """
+  //            select pss.* from programstagesection pss
+  //            join programstagesection_dataelements pssde on pss.programstagesectionid =
+  // pssde.programstagesectionid
+  //            where pssde.dataelementid in :dataElements
+  //          """;
+  //
+  //    return getSession()
+  //        .createNativeQuery(sql, ProgramStageSection.class)
+  //        .setParameter("dataElements", dataElements)
+  //        .list();
+  //  }
 }

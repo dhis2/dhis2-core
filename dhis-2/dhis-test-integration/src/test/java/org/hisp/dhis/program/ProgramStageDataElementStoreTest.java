@@ -153,14 +153,14 @@ class ProgramStageDataElementStoreTest extends TransactionalIntegrationTest {
     programStageDataElementStore.save(stageDataElementB);
 
     // when
-    List<ProgramStageDataElement> allByDataElement =
+    List<ProgramStageDataElement> psdes =
         programStageDataElementStore.getAllByDataElement(List.of(dataElementA, dataElementB));
 
     // then
-    assertEquals(2, allByDataElement.size());
-    assertTrue(allByDataElement.containsAll(List.of(stageDataElementA, stageDataElementB)));
+    assertEquals(2, psdes.size());
+    assertTrue(psdes.containsAll(List.of(stageDataElementA, stageDataElementB)));
     assertTrue(
-        allByDataElement.stream()
+        psdes.stream()
             .map(psde -> psde.getDataElement().getUid())
             .toList()
             .containsAll(List.of(dataElementA.getUid(), dataElementB.getUid())));

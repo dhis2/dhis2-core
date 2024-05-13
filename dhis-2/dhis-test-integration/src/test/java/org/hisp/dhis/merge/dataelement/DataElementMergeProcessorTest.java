@@ -62,6 +62,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -82,6 +84,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private PredictorService predictorService;
   @Autowired private CategoryService categoryService;
   @Autowired private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageSectionService programStageSectionService;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   private DataElement deSource1;
@@ -561,6 +564,78 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         expectedStrings.stream()
             .allMatch(
                 exp -> persistenceException.getCause().getCause().getMessage().contains(exp)));
+  }
+
+  // -------------------------------
+  // -- ProgramStageSections --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are not deleted")
+  void programStageSectionMergeTest() throws ConflictException {
+    // given
+    ProgramStageSection pss1 = createProgramStageSection('a', 1);
+    pss1.setDataElements(List.of(deSource1));
+    ProgramStageSection pss2 = createProgramStageSection('b', 2);
+    DataElement deNonSource = createDataElement('F');
+    dataElementService.addDataElement(deNonSource);
+    pss1.setDataElements(List.of(deSource2, deNonSource));
+    ProgramStageSection pss3 = createProgramStageSection('c', 3);
+    pss1.setDataElements(List.of(deTarget));
+
+    programStageSectionService.saveProgramStageSection(pss1);
+    programStageSectionService.saveProgramStageSection(pss2);
+    programStageSectionService.saveProgramStageSection(pss3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramStageSection> pssSources =
+        programStageSectionService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<ProgramStageSection> pssTarget =
+        programStageSectionService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, pssSources, pssTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are deleted")
+  void programStageSectionMergeDeleteSourcesTest() throws ConflictException {
+    // given
+    ProgramStageSection pss1 = createProgramStageSection('d', 1);
+    pss1.setDataElements(List.of(deSource1));
+    ProgramStageSection pss2 = createProgramStageSection('e', 2);
+    DataElement deNonSource = createDataElement('G');
+    dataElementService.addDataElement(deNonSource);
+    pss1.setDataElements(List.of(deSource2, deNonSource));
+    ProgramStageSection pss3 = createProgramStageSection('F', 3);
+    pss1.setDataElements(List.of(deTarget));
+
+    programStageSectionService.saveProgramStageSection(pss1);
+    programStageSectionService.saveProgramStageSection(pss2);
+    programStageSectionService.saveProgramStageSection(pss3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramStageSection> pssSources =
+        programStageSectionService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<ProgramStageSection> pssTarget =
+        programStageSectionService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, pssSources, pssTarget, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

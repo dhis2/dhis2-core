@@ -111,7 +111,7 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateMismatches(
+        validator.validateProperties(
             target,
             List.of(source1, source2, source3),
             VALUE_TYPE_VALIDATION,
@@ -134,7 +134,7 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateMismatches(
+        validator.validateProperties(
             target,
             List.of(source1, source2, source3),
             VALUE_TYPE_VALIDATION,
@@ -161,7 +161,7 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateMismatches(
+        validator.validateProperties(
             target,
             List.of(source1, source2, source3),
             VALUE_TYPE_VALIDATION,
@@ -192,7 +192,7 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateMismatches(
+        validator.validateProperties(
             target,
             List.of(source1, source2, source3),
             DOMAIN_TYPE_VALIDATION,
@@ -219,7 +219,7 @@ class DataElementMergeValidatorTest extends DhisConvenienceTest {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateMismatches(
+        validator.validateProperties(
             target,
             List.of(source1, source2, source3),
             DOMAIN_TYPE_VALIDATION,

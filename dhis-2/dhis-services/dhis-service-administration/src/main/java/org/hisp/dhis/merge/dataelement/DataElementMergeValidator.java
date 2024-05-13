@@ -40,10 +40,10 @@ import org.springframework.stereotype.Component;
 public class DataElementMergeValidator {
 
   /**
-   * Validation method that checks for any mismatches between source {@link DataElement} property
-   * values and target {@link DataElement} property values, using a {@link
-   * DataElementPropertyValidation}. If there are any mismatches then an error is added to the
-   * {@link MergeReport}. Any error will provide the details of the mismatches, if any found.
+   * Method that performs property validations between source {@link DataElement} property values
+   * and target {@link DataElement} property values, using a {@link DataElementPropertyValidation}.
+   * If there are any validation failures then an error is added to the {@link MergeReport}. Any
+   * error will provide the details of the validation failures, if any found.
    *
    * @param target target {@link DataElement}
    * @param sources source {@link DataElement}s
@@ -51,7 +51,7 @@ public class DataElementMergeValidator {
    * @param report {@link MergeReport}
    * @return report
    */
-  public MergeReport validateMismatches(
+  public MergeReport validateProperties(
       @Nonnull DataElement target,
       @Nonnull List<DataElement> sources,
       DataElementPropertyValidation propertyValidation,
@@ -78,13 +78,13 @@ public class DataElementMergeValidator {
   enum DataElementPropertyValidation implements DataElementProperty {
     VALUE_TYPE_VALIDATION(DataElementPredicate.VALUE_TYPE_MISMATCH, ErrorCode.E1554) {
       @Override
-      public Object getProperty(DataElement de) {
+      public Object getProperty(@Nonnull DataElement de) {
         return de.getValueType();
       }
     },
     DOMAIN_TYPE_VALIDATION(DataElementPredicate.DOMAIN_TYPE_MISMATCH, ErrorCode.E1555) {
       @Override
-      public Object getProperty(DataElement de) {
+      public Object getProperty(@Nonnull DataElement de) {
         return de.getDomainType();
       }
     };
@@ -100,7 +100,7 @@ public class DataElementMergeValidator {
 
   @FunctionalInterface
   public interface DataElementProperty {
-    Object getProperty(DataElement de);
+    Object getProperty(@Nonnull DataElement de);
   }
 
   /** Enum of {@link DataElement} {@link BiPredicate}s */

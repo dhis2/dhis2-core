@@ -28,16 +28,21 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +61,11 @@ class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private ProgramStageService programStageService;
 
+  @Autowired private ProgramStageSectionService programStageSectionService;
+
   @Autowired private ProgramStageDataElementService programStageDataElementService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private OrganisationUnit organisationUnit;
 
@@ -112,5 +121,78 @@ class ProgramStageSectionStoreTest extends SingleSetupIntegrationTestBase {
     programStageSectionStore.save(sectionA);
     long idA = sectionA.getId();
     assertEquals(sectionA, programStageSectionStore.get(idA));
+  }
+
+  @Test
+  @DisplayName("retrieving program stage sections by data element returns expected entries")
+  void getProgramStageSectionsByDataElement() {
+    // given
+    // public static Program createProgram(
+    //      char uniqueCharacter,
+    //      Set<ProgramStage> programStages,
+    //      Set<TrackedEntityAttribute> attributes,
+    //      Set<OrganisationUnit> organisationUnits,
+    //      CategoryCombo categoryCombo)
+    CategoryCombo cc = createCategoryCombo('j');
+    manager.save(cc);
+    Program program = createProgram('k', null, null, null, cc);
+    programService.addProgram(program);
+    ProgramStage stage = createProgramStage('S', program);
+    program.setProgramStages(Set.of(stage));
+    programStageService.saveProgramStage(stage);
+    programService.updateProgram(program);
+
+    DataElement de1 = createDataElementAndSave('q');
+    DataElement de2 = createDataElementAndSave('r');
+    DataElement de3 = createDataElementAndSave('s');
+    DataElement de4 = createDataElementAndSave('t');
+
+    //    sectionA.getDataElements().addAll(dataElements);
+    //    sectionB.getDataElements().add(de3);
+    //
+    createProgramStageSectionAndSave('a', 1, stage, de1, de2);
+    createProgramStageSectionAndSave('b', 2, stage, de3);
+    createProgramStageSectionAndSave('c', 3, stage, de4);
+
+    //    createProgramStageSectionAndSave('a', 1, de1, de2);
+    //    createProgramStageSectionAndSave('b', 2, de3);
+    //    createProgramStageSectionAndSave('c', 3, de4);
+
+    // when
+    List<ProgramStageSection> programStageSections =
+        programStageSectionStore.getByDataElement(List.of(de1, de2, de3));
+
+    // then
+    assertEquals(2, programStageSections.size());
+    assertTrue(
+        programStageSections.stream()
+            .flatMap(pss -> pss.getDataElements().stream())
+            .toList()
+            .containsAll(dataElements));
+  }
+
+  private void createProgramStageSectionAndSave(
+      char c, int order, ProgramStage stage, DataElement... des) {
+    ProgramStageSection pss = createProgramStageSection(c, order);
+    pss.getDataElements().addAll(Arrays.asList(des));
+    stage.getProgramStageSections().add(pss);
+    pss.setProgramStage(stage);
+    programStageService.saveProgramStage(stage);
+    programStageSectionService.saveProgramStageSection(pss);
+  }
+
+  //  private void createProgramStageSectionAndSave(char c, int order, DataElement... des) {
+  //    ProgramStageSection pss = createProgramStageSection(c, order, des);
+  //    programStageSectionService.saveProgramStageSection(pss);
+  //    return pss;
+  //  }
+
+  private DataElement createDataElementAndSave(char c) {
+    CategoryCombo cc = createCategoryCombo('z');
+    manager.save(cc);
+
+    DataElement de = createDataElement(c, cc);
+    dataElementService.addDataElement(de);
+    return de;
   }
 }

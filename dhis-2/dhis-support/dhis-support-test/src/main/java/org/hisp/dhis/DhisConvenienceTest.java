@@ -1925,6 +1925,16 @@ public abstract class DhisConvenienceTest {
     return section;
   }
 
+  //  public static ProgramStageSection createProgramStageSection(
+  //      char uniqueCharacter, Integer sortOrder, DataElement... des) {
+  //    ProgramStageSection section =
+  //        new ProgramStageSection("ProgramStageSection" + uniqueCharacter, List.of(des),
+  // sortOrder);
+  //    section.setAutoFields();
+  //
+  //    return section;
+  //  }
+
   public static RelationshipType createMalariaCaseLinkedToPersonRelationshipType(
       char uniqueCharacter, Program program, TrackedEntityType trackedEntityType) {
     RelationshipConstraint eventConstraint = new RelationshipConstraint();

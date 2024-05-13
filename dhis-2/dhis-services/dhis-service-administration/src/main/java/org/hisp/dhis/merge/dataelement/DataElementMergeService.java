@@ -86,12 +86,12 @@ public class DataElementMergeService implements MergeService {
             request.getSources().stream().map(UID::getValue).toList());
 
     MergeReport report =
-        dataElementMergeValidator.validateMismatches(
+        dataElementMergeValidator.validateProperties(
             deTarget, deSources, VALUE_TYPE_VALIDATION, mergeReport);
 
     if (report.hasErrorMessages()) return request;
 
-    dataElementMergeValidator.validateMismatches(
+    dataElementMergeValidator.validateProperties(
         deTarget, deSources, DOMAIN_TYPE_VALIDATION, mergeReport);
     return request;
   }
