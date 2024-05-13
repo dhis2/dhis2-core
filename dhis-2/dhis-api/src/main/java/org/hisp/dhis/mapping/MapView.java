@@ -313,17 +313,6 @@ public class MapView extends BaseAnalyticalObject
     return LAYER_EVENT.equals(layer);
   }
 
-  @Override
-  public String getName() {
-    if (!dataDimensionItems.isEmpty()
-        && dataDimensionItems.get(0) != null
-        && dataDimensionItems.get(0).getDimensionalItemObject() != null) {
-      return dataDimensionItems.get(0).getDimensionalItemObject().getName();
-    }
-
-    return uid;
-  }
-
   // -------------------------------------------------------------------------
   // EventAnalyticalObject
   // -------------------------------------------------------------------------

@@ -8,7 +8,7 @@ Read the contribution [guidelines](https://developers.dhis2.org/community/contri
 
 You'll need the following software to run DHIS2 on your machine:
 
-- Java 8
+- Java 17
 - Maven
 - Tomcat
 

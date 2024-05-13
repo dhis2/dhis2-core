@@ -91,14 +91,12 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
-    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
     dispatcher.setAsyncSupported(true);
     dispatcher.setLoadOnStartup(1);
-    dispatcher.addMapping("/api/*");
-
-    context.addServlet("RedirectRootServlet", RedirectRootServlet.class).addMapping("");
+    dispatcher.addMapping("/*");
 
     context
         .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
@@ -132,11 +130,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
-
-    context
-        .addFilter(
-            "SwitchUserProcessingFilter", new DelegatingFilterProxy("switchUserProcessingFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
   }
 }

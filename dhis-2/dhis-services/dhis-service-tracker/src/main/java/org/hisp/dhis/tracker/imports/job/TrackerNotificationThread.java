@@ -31,8 +31,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -56,7 +54,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
 
   private final IdentifiableObjectManager manager;
 
-  private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper;
+  private final Map<SideEffectTrigger, Consumer<Long>> serviceMapper;
 
   public TrackerNotificationThread(
       ProgramNotificationService programNotificationService,
@@ -66,8 +64,11 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
     this.manager = manager;
     this.serviceMapper =
         Map.of(
-            Enrollment.class, programNotificationService::sendEnrollmentNotifications,
-            Event.class, programNotificationService::sendEventCompletionNotifications);
+            SideEffectTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
+            SideEffectTrigger.EVENT_COMPLETION,
+                programNotificationService::sendEventCompletionNotifications,
+            SideEffectTrigger.ENROLLMENT_COMPLETION,
+                programNotificationService::sendEnrollmentCompletionNotifications);
   }
 
   @Override
@@ -76,11 +77,13 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       return;
     }
 
-    if (serviceMapper.containsKey(sideEffectDataBundle.getKlass())) {
-      BaseIdentifiableObject object =
-          manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
-      if (object != null) {
-        serviceMapper.get(sideEffectDataBundle.getKlass()).accept(object.getId());
+    for (SideEffectTrigger trigger : sideEffectDataBundle.getTriggers()) {
+      if (serviceMapper.containsKey(trigger)) {
+        BaseIdentifiableObject object =
+            manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
+        if (object != null) {
+          serviceMapper.get(trigger).accept(object.getId());
+        }
       }
     }
 

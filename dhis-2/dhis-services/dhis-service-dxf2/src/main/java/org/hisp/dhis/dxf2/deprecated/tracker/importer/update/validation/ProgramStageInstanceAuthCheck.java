@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.update.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import static org.hisp.dhis.event.EventStatus.COMPLETED;
+import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
 
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -52,7 +53,7 @@ public class ProgramStageInstanceAuthCheck implements Checker {
         && programStageInstance.getStatus() == COMPLETED) {
       final User user = ctx.getImportOptions().getUser();
 
-      if (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT")) {
+      if (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT)) {
         return error("User is not authorized to uncomplete events");
       }
     }

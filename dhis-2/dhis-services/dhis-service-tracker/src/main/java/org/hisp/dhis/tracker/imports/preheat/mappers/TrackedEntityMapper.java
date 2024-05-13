@@ -63,6 +63,6 @@ public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity> {
   @Mapping(target = "name")
   @Mapping(target = "attributeValues")
   @Mapping(target = "user")
-  @Mapping(target = "parent")
+  @Mapping(target = "parent", qualifiedByName = "organisationUnit")
   OrganisationUnit map(OrganisationUnit organisationUnit);
 }

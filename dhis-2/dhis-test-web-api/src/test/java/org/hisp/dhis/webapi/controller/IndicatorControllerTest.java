@@ -110,6 +110,8 @@ class IndicatorControllerTest extends DhisControllerConvenienceTest {
             .content(HttpStatus.FORBIDDEN);
     assertEquals("Forbidden", mergeResponse.getString("httpStatus").string());
     assertEquals("ERROR", mergeResponse.getString("status").string());
-    assertEquals("Access is denied", mergeResponse.getString("message").string());
+    assertEquals(
+        "Access is denied, requires one Authority from [F_INDICATOR_MERGE]",
+        mergeResponse.getString("message").string());
   }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,9 +64,6 @@ public interface TrackerAccessManager {
   List<String> canReadProgramAndTrackedEntityType(
       UserDetails user, TrackedEntity trackedEntity, Program program);
 
-  List<String> canWrite(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
-
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
   List<String> canCreate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
@@ -85,6 +83,8 @@ public interface TrackerAccessManager {
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canWrite(UserDetails user, Relationship relationship);
+
+  List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
 
   /**
    * Checks the sharing read access to EventDataValue

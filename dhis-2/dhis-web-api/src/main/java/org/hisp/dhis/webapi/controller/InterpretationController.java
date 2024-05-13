@@ -89,7 +89,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = InterpretationSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/interpretations")
 public class InterpretationController extends AbstractCrudController<Interpretation> {
   @Autowired private InterpretationService interpretationService;
 
@@ -98,7 +98,11 @@ public class InterpretationController extends AbstractCrudController<Interpretat
   @Override
   @SuppressWarnings("unchecked")
   protected List<Interpretation> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<Interpretation> objects)
       throws QueryParserException {
     // If custom filter (mentions:in:[username]) in filters -> Remove from
     // filters

@@ -72,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("system")
 @Controller
-@RequestMapping(value = SqlViewSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/sqlViews")
 @RequiredArgsConstructor
 public class SqlViewController extends AbstractCrudController<SqlView> {
   private final SqlViewService sqlViewService;

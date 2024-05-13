@@ -48,7 +48,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -66,7 +65,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @OpenApi.Ignore
 @Deprecated
 @Controller
-@RequestMapping(value = EventReportSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/eventReports")
 public class EventReportController extends AbstractCrudController<EventReport> {
   @Autowired private DimensionService dimensionService;
 
