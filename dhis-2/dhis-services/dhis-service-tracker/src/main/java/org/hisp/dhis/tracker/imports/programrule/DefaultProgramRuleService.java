@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 class DefaultProgramRuleService implements ProgramRuleService {
-  @Qualifier("serviceTrackerRuleEngine")
-  private final ProgramRuleEngine programRuleEngine;
+  private final ProgramRuleEngine defaultProgramRuleEngine;
 
   private final RuleEngineConverterService<
           org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
@@ -114,7 +112,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               Enrollment enrollment =
                   enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
 
-              return programRuleEngine
+              return defaultProgramRuleEngine
                   .evaluateEnrollmentAndEvents(
                       enrollment,
                       getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
@@ -136,7 +134,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return enrollments.stream()
         .flatMap(
             enrollment ->
-                programRuleEngine
+                defaultProgramRuleEngine
                     .evaluateEnrollmentAndEvents(
                         enrollment,
                         getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
@@ -162,7 +160,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               List<Event> events =
                   eventTrackerConverterService.fromForRuleEngine(preheat, entry.getValue());
 
-              return programRuleEngine
+              return defaultProgramRuleEngine
                   .evaluateProgramEvents(new HashSet<>(events), entry.getKey())
                   .stream();
             })

@@ -109,7 +109,6 @@ import org.springframework.transaction.annotation.Transactional;
   org.hisp.dhis.support.config.ServiceConfig.class,
   org.hisp.dhis.validation.config.ServiceConfig.class,
   org.hisp.dhis.validation.config.StoreConfig.class,
-  org.hisp.dhis.programrule.config.ProgramRuleConfig.class,
   org.hisp.dhis.reporting.config.StoreConfig.class,
   org.hisp.dhis.analytics.config.ServiceConfig.class,
   JacksonObjectMapperConfig.class,

@@ -239,13 +239,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   }
 
   @Override
-  public List<RuleEvent> toMappedRuleEvents(Set<Event> events, Event eventToEvaluate) {
-    return events.stream()
-        .filter(Objects::nonNull)
-        .filter(
-            event -> !(eventToEvaluate != null && event.getUid().equals(eventToEvaluate.getUid())))
-        .map(this::toMappedRuleEvent)
-        .toList();
+  public List<RuleEvent> toMappedRuleEvents(Set<Event> events) {
+    return events.stream().filter(Objects::nonNull).map(this::toMappedRuleEvent).toList();
   }
 
   @Override
