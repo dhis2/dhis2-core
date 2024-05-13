@@ -650,7 +650,7 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
 
   @Test
   void testEnrollmentWithCategoryDimensionRestriction() {
-    injectSecurityContextUser(userA);
+    injectSecurityContext(userA);
     EventQueryParams params = getEnrollmentQueryBuilderA().build();
     Grid grid = enrollmentTarget.getEnrollments(params);
 
