@@ -63,7 +63,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
-import org.springframework.security.web.authentication.switchuser.SwitchUserAuthorityChanger;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
@@ -87,7 +86,6 @@ public class ImpersonateUserController {
   private UserDetailsChecker userDetailsChecker = new ImpersonatingUserDetailsChecker();
   private SecurityContextHolderStrategy securityContextHolderStrategy =
       SecurityContextHolder.getContextHolderStrategy();
-  private SwitchUserAuthorityChanger switchUserAuthorityChanger;
   private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource =
       new WebAuthenticationDetailsSource();
   private SecurityContextRepository securityContextRepository =
@@ -101,7 +99,7 @@ public class ImpersonateUserController {
       @CurrentUser UserDetails userDetails)
       throws ForbiddenException, NotFoundException {
 
-    validateReq(request, userDetails);
+    validateRequest(request);
     validateImpersonateAuthority(userDetails);
 
     try {
@@ -146,11 +144,11 @@ public class ImpersonateUserController {
         return;
       }
     }
-    throw new ForbiddenException("Forbidden, requires authority [F_IMPERSONATE_USER]");
+    throw new ForbiddenException(
+        "Forbidden, requires authority [F_IMPERSONATE_USER] or [F_PREVIOUS_IMPERSONATOR_AUTHORITY]");
   }
 
-  private void validateReq(HttpServletRequest request, UserDetails userDetails)
-      throws ForbiddenException {
+  private void validateRequest(HttpServletRequest request) throws ForbiddenException {
     boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
     if (!enabled) {
       throw new ForbiddenException("Forbidden, user not allowed to impersonate user");
@@ -168,7 +166,7 @@ public class ImpersonateUserController {
       @CurrentUser UserDetails userDetails)
       throws ForbiddenException {
 
-    validateReq(request, userDetails);
+    validateRequest(request);
     validateImpersonateExitAuthority(userDetails);
 
     // get the original authentication object (if exists)
