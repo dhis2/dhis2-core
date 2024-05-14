@@ -45,7 +45,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private final ProgramRuleEngine defaultProgramRuleEngine;
+  private final ProgramRuleEngine programRuleEngine;
 
   private final ProgramService programService;
 
@@ -53,7 +53,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
   public RuleValidationResult getDescription(String condition, String programId) {
     Program program = programService.getProgram(programId);
 
-    return defaultProgramRuleEngine.getDescription(condition, program);
+    return programRuleEngine.getDescription(condition, program);
   }
 
   @Override
@@ -61,6 +61,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
       String dataExpression, String programId) {
     Program program = programService.getProgram(programId);
 
-    return defaultProgramRuleEngine.getDataExpressionDescription(dataExpression, program);
+    return programRuleEngine.getDataExpressionDescription(dataExpression, program);
   }
 }

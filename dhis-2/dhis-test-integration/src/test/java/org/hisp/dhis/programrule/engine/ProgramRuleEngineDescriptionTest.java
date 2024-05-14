@@ -126,7 +126,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
 
   private ProgramRuleVariable programRuleVariableCalculatedValue2;
 
-  @Autowired private ProgramRuleEngine defaultProgramRuleEngineNew;
+  @Autowired private ProgramRuleEngine programRuleEngine;
 
   @Autowired private DataElementService dataElementService;
 
@@ -323,49 +323,47 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase {
   @Test
   void testDataFieldExpressionDescription() {
     RuleValidationResult result =
-        defaultProgramRuleEngineNew.getDataExpressionDescription("1 + 2 +", program);
+        programRuleEngine.getDataExpressionDescription("1 + 2 +", program);
     assertNotNull(result);
     assertFalse(result.getValid());
     assertInstanceOf(RuleEngineValidationException.class, result.getException());
     result =
-        defaultProgramRuleEngineNew.getDataExpressionDescription(
+        programRuleEngine.getDataExpressionDescription(
             "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", program);
     assertNotNull(result);
     assertFalse(result.getValid());
     assertInstanceOf(RuleEngineValidationException.class, result.getException());
-    result =
-        defaultProgramRuleEngineNew.getDataExpressionDescription(
-            conditionWithD2DaysBetween, program);
+    result = programRuleEngine.getDataExpressionDescription(conditionWithD2DaysBetween, program);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("d2:daysBetween(Completed date,Current date) > 0", result.getDescription());
     result =
-        defaultProgramRuleEngineNew.getDataExpressionDescription(
+        programRuleEngine.getDataExpressionDescription(
             programRuleNumericDE.getCondition(), program);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("DataElementE == 14", result.getDescription());
     result =
-        defaultProgramRuleEngineNew.getDataExpressionDescription(
+        programRuleEngine.getDataExpressionDescription(
             programRuleNumericAtt.getCondition(), program);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("AttributeB == 12 || d2:hasValue(Current date)", result.getDescription());
-    result = defaultProgramRuleEngineNew.getDataExpressionDescription("'2020-12-12'", program);
+    result = programRuleEngine.getDataExpressionDescription("'2020-12-12'", program);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("'2020-12-12'", result.getDescription());
-    result = defaultProgramRuleEngineNew.getDataExpressionDescription("1 + 1", program);
+    result = programRuleEngine.getDataExpressionDescription("1 + 1", program);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("1 + 1", result.getDescription());
-    result = defaultProgramRuleEngineNew.getDataExpressionDescription("'sample text'", program);
+    result = programRuleEngine.getDataExpressionDescription("'sample text'", program);
     assertNotNull(result);
     assertTrue(result.getValid());
     assertEquals("'sample text'", result.getDescription());
   }
 
   private RuleValidationResult validateRuleCondition(String condition, Program program) {
-    return defaultProgramRuleEngineNew.getDescription(condition, program);
+    return programRuleEngine.getDescription(condition, program);
   }
 }

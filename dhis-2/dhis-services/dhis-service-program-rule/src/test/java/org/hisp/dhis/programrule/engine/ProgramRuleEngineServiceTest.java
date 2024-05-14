@@ -50,7 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
-  @Mock private DefaultProgramRuleEngine defaultProgramRuleEngine;
+  @Mock private DefaultProgramRuleEngine programRuleEngine;
 
   @Mock private ProgramService programService;
 
@@ -71,7 +71,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
   @Test
   void testGetDescription() {
     when(programService.getProgram(anyString())).thenReturn(program);
-    when(defaultProgramRuleEngine.getDescription(programRuleA.getCondition(), program))
+    when(programRuleEngine.getDescription(programRuleA.getCondition(), program))
         .thenReturn(RuleValidationResult.valid("Description"));
 
     RuleValidationResult description =

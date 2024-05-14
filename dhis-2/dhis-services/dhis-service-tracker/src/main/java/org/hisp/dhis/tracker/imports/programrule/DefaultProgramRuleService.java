@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 class DefaultProgramRuleService implements ProgramRuleService {
-  private final ProgramRuleEngine defaultProgramRuleEngine;
+  private final ProgramRuleEngine programRuleEngine;
 
   private final RuleEngineConverterService<
           org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
@@ -112,7 +112,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               Enrollment enrollment =
                   enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
 
-              return defaultProgramRuleEngine
+              return programRuleEngine
                   .evaluateEnrollmentAndEvents(
                       enrollment,
                       getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
@@ -134,7 +134,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return enrollments.stream()
         .flatMap(
             enrollment ->
-                defaultProgramRuleEngine
+                programRuleEngine
                     .evaluateEnrollmentAndEvents(
                         enrollment,
                         getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
@@ -160,7 +160,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               List<Event> events =
                   eventTrackerConverterService.fromForRuleEngine(preheat, entry.getValue());
 
-              return defaultProgramRuleEngine
+              return programRuleEngine
                   .evaluateProgramEvents(new HashSet<>(events), entry.getKey())
                   .stream();
             })
