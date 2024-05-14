@@ -25,65 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.synch;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.springframework.http.HttpStatus;
+package org.hisp.dhis.dxf2.sync;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "availabilityStatus", namespace = DxfNamespaces.DXF_2_0)
-public class AvailabilityStatus {
-  private boolean available;
+public class SystemInstance {
+  private String url;
 
-  private String message;
+  private String username;
 
-  private HttpStatus httpStatus;
+  private String password;
 
-  protected AvailabilityStatus() {}
+  protected SystemInstance() {}
 
-  public AvailabilityStatus(boolean available, String message, HttpStatus httpStatus) {
-    this.available = available;
-    this.message = message;
-    this.httpStatus = httpStatus;
+  public SystemInstance(String url, String username, String password) {
+    this.url = url;
+    this.username = username;
+    this.password = password;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public boolean isAvailable() {
-    return available;
+  public String getUrl() {
+    return url;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getMessage() {
-    return message;
+  public void setUrl(String url) {
+    this.url = url;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getStatusCode() {
-    return httpStatus != null ? httpStatus.value() : null;
+  public String getUsername() {
+    return username;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getStatusPhrase() {
-    return httpStatus != null ? httpStatus.getReasonPhrase() : null;
+  public void setUsername(String username) {
+    this.username = username;
   }
 
-  @Override
-  public String toString() {
-    return "[Available: "
-        + available
-        + ", message: "
-        + message
-        + ", HTTP status: "
-        + httpStatus
-        + "]";
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
   }
 }

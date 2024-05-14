@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.synch;
+package org.hisp.dhis.dxf2.sync;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -46,8 +46,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataObjects;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.sync.SyncEndpoint;
-import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.schema.SchemaService;
@@ -65,7 +63,7 @@ import org.springframework.web.client.RestTemplate;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component("org.hisp.dhis.dxf2.synch.SynchronizationManager")
+@Component("org.hisp.dhis.dxf2.sync.SynchronizationManager")
 @RequiredArgsConstructor
 public class DefaultSynchronizationManager implements SynchronizationManager {
   private static final String HEADER_AUTHORIZATION = "Authorization";
