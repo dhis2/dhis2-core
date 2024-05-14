@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.security.Authorities.F_IMPERSONATE_USER;
+import static org.hisp.dhis.security.Authorities.F_PREVIOUS_IMPERSONATOR_AUTHORITY;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,10 +40,12 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Conditional;
@@ -83,8 +86,6 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Conditional(value = UserImpersonationEnabledCondition.class)
 public class ImpersonateUserController {
-
-  public static final String ROLE_PREVIOUS_ADMINISTRATOR = "ROLE_PREVIOUS_ADMINISTRATOR";
 
   private final DhisConfigurationProvider config;
   private final UserDetailsService userDetailsService;
@@ -139,14 +140,23 @@ public class ImpersonateUserController {
     }
   }
 
-  @RequiresAuthority(anyOf = F_IMPERSONATE_USER)
+  @RequiresAuthority(anyOf = {F_IMPERSONATE_USER, F_PREVIOUS_IMPERSONATOR_AUTHORITY})
   @PostMapping("/impersonateExit")
   public ImpersonateUserResponse impersonateExit(
-      HttpServletRequest request, HttpServletResponse response) throws ForbiddenException {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      @CurrentUser org.hisp.dhis.user.UserDetails userDetails)
+      throws ForbiddenException, BadRequestException {
 
     validateReq(request);
 
-    Authentication originalUser = attemptExitUser();
+    Authentication originalUser = null;
+    try {
+      originalUser = attemptExitUser();
+    } catch (AuthenticationCredentialsNotFoundException e) {
+      throw new BadRequestException(
+          "User not impersonating anyone, user: %s".formatted(userDetails.getUsername()));
+    }
 
     // update the current context back to the original user
     SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
@@ -188,7 +198,8 @@ public class ImpersonateUserController {
     // which will be used to 'exit' from the current switched user.
     Authentication currentAuthentication = getCurrentAuthentication();
     GrantedAuthority switchAuthority =
-        new SwitchUserGrantedAuthority(ROLE_PREVIOUS_ADMINISTRATOR, currentAuthentication);
+        new SwitchUserGrantedAuthority(
+            F_PREVIOUS_IMPERSONATOR_AUTHORITY.name(), currentAuthentication);
 
     // add the new switch user authority
     List<GrantedAuthority> newAuths = new ArrayList<>(targetUser.getAuthorities());

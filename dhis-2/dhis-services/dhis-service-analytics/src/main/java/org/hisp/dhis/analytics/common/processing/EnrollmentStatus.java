@@ -25,28 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.preprocess;
+package org.hisp.dhis.analytics.common.processing;
 
-import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.preprocess.UserInfoUpdatePreProcessor;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.UserInfoSnapshot;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.program.ProgramStatus;
 
-@Component
-public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor {
+/**
+ * FIXME we should probably remove this, and replace it with program status
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
+ */
+@Deprecated(since = "2.41")
+public enum EnrollmentStatus {
+  ACTIVE(0, ProgramStatus.ACTIVE),
+  COMPLETED(1, ProgramStatus.COMPLETED),
+  CANCELLED(2, ProgramStatus.CANCELLED);
 
-  @Override
-  protected void updateDataValueUserInfo(
-      Event unused, EventDataValue dataValue, UserInfoSnapshot userInfo) {
-    super.updateDataValueUserInfo(null, dataValue, userInfo);
-    dataValue.setCreatedByUserInfo(userInfo);
+  private final int value;
+
+  private final ProgramStatus programStatus;
+
+  EnrollmentStatus(int value, ProgramStatus programStatus) {
+    this.value = value;
+    this.programStatus = programStatus;
   }
 
-  @Override
-  protected void updateEventUserInfo(
-      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, UserInfoSnapshot eventUserInfo) {
-    super.updateEventUserInfo(event, eventUserInfo);
-    event.setCreatedByUserInfo(eventUserInfo);
+  public int getValue() {
+    return value;
+  }
+
+  public ProgramStatus getProgramStatus() {
+    return programStatus;
+  }
+
+  public static EnrollmentStatus fromStatusString(String status) {
+    switch (status) {
+      case "ACTIVE":
+        return ACTIVE;
+      case "CANCELLED":
+        return CANCELLED;
+      case "COMPLETED":
+        return COMPLETED;
+      default:
+        // Do nothing and fail
+    }
+    throw new IllegalArgumentException("Enum value not found for string: " + status);
   }
 }

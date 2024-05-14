@@ -66,7 +66,7 @@ class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
   @Test
   void testImpersonateUserOKAndExit() {
     String usernameToImpersonate = "usera";
-    createUserWithAuth(usernameToImpersonate, "ALL");
+    createUserWithAuth(usernameToImpersonate, "NONE");
 
     JsonImpersonateUserResponse response =
         POST("/auth/impersonate?username=%s".formatted(usernameToImpersonate))
@@ -86,6 +86,17 @@ class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
 
     assertEquals("IMPERSONATION_EXIT_SUCCESS", responseExit.getLoginStatus());
     assertEquals("admin", responseExit.getImpersonatedUsername());
+  }
+
+  @Test
+  void testImpersonateExitNotImpersonating() {
+    JsonWebMessage response =
+        POST("/auth/impersonateExit").content(HttpStatus.BAD_REQUEST).as(JsonWebMessage.class);
+
+    assertEquals(400, response.getHttpStatusCode());
+    assertEquals("User not impersonating anyone, user: admin", response.getMessage());
+    assertEquals("Bad Request", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
   }
 
   @Test
