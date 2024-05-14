@@ -157,6 +157,9 @@
           <archive>
             <compress>${useWarCompression}</compress>
           </archive>
+          <packagingExcludes>
+            dhis-web-*/**
+          </packagingExcludes>
         </configuration>
       </plugin>
 
@@ -245,6 +248,8 @@
           </execution>
         </executions>
       </plugin>
+
+
     </plugins>
 
   </build>
