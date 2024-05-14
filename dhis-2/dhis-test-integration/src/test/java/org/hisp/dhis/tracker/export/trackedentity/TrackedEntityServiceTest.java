@@ -36,6 +36,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
+import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams.FALSE;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -1356,8 +1357,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityWithRelationshipsTei2Tei()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params =
-        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.FALSE, false, false);
+    TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -1382,10 +1382,41 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotReturnTrackedEntityRelationshipWhenToItemNotAccessible()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(superuser);
+    OrganisationUnit orgUnitD = createOrganisationUnit('D');
+    manager.save(orgUnitD);
+    programB.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.update(programB);
+    programC.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.update(programC);
+    trackerOwnershipManager.assignOwnership(trackedEntityA, programA, orgUnitD, true, true);
+    TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitB.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of(trackedEntityB.getUid()))
+            .trackedEntityParams(params)
+            .user(user)
+            .build();
+
+    injectSecurityContextUser(user);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    Optional<RelationshipItem> relOpt =
+        trackedEntity.getRelationshipItems().stream()
+            .filter(i -> i.getRelationship().getUid().equals(relationshipA.getUid()))
+            .findFirst();
+    assertTrue(relOpt.isEmpty());
+  }
+
+  @Test
   void returnTrackedEntityRelationshipsWithTei2Enrollment()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params =
-        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.FALSE, false, false);
+    TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))

@@ -248,12 +248,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    *
    * @return the TE object if found and accessible by the current user
    * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE registration org unit not in user's scope or not enough
-   *     sharing access
    */
   private TrackedEntity getTrackedEntity(
-      String uid, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException, ForbiddenException {
+      String uid, TrackedEntityParams params, boolean includeDeleted) throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
     addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
     if (trackedEntity == null) {
@@ -263,7 +260,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
     if (!errors.isEmpty()) {
-      throw new ForbiddenException(errors.toString());
+      return null;
     }
 
     return mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted);
@@ -432,11 +429,15 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         // this is just mapping the TE
         result.setTrackedEntity(trackedEntity);
       } else {
-        result.setTrackedEntity(
+        TrackedEntity relationshipTE =
             getTrackedEntity(
                 item.getTrackedEntity().getUid(),
                 TrackedEntityParams.TRUE.withIncludeRelationships(false),
-                includeDeleted));
+                includeDeleted);
+        if (relationshipTE == null) {
+          return null;
+        }
+        result.setTrackedEntity(relationshipTE);
       }
     } else if (item.getEnrollment() != null) {
       result.setEnrollment(
@@ -544,7 +545,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     Set<RelationshipItem> result = new HashSet<>();
 
     for (RelationshipItem item : trackedEntity.getRelationshipItems()) {
-      result.add(mapRelationshipItem(item, trackedEntity, trackedEntity, includeDeleted));
+      RelationshipItem relationshipItem =
+          mapRelationshipItem(item, trackedEntity, trackedEntity, includeDeleted);
+      if (relationshipItem != null) {
+        result.add(relationshipItem);
+      }
     }
 
     trackedEntity.setRelationshipItems(result);
@@ -582,9 +587,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws ForbiddenException, NotFoundException {
     Relationship rel = item.getRelationship();
     RelationshipItem from = withNestedEntity(trackedEntity, rel.getFrom(), includeDeleted);
+    RelationshipItem to = withNestedEntity(trackedEntity, rel.getTo(), includeDeleted);
+    if (from == null || to == null) {
+      return null;
+    }
     from.setRelationship(rel);
     rel.setFrom(from);
-    RelationshipItem to = withNestedEntity(trackedEntity, rel.getTo(), includeDeleted);
     to.setRelationship(rel);
     rel.setTo(to);
 
