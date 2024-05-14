@@ -139,6 +139,7 @@ public @interface OpenApi {
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {
+
     enum Group {
       QUERY,
       MANAGE,
@@ -146,21 +147,47 @@ public @interface OpenApi {
     }
 
     /**
+     * Alternative to {@link #domain()} for a "manual" override. Takes precedence when non-empty.
+     *
      * @return name of the target document (no file extension)
      */
-    String name();
+    String name() default "";
 
-    Class<?> namespace() default EntityType.class;
+    /**
+     * Each domain becomes a separate OpenAPI document. The name used for the document is the shared
+     * named of the domain class. That is the {@link Class#getSimpleName()} unless the class is
+     * annotated and named via {@link Shared}.
+     *
+     * @return the class that represents the domain for the annotated controller {@link Class} or
+     *     endpoint {@link java.lang.reflect.Method}.
+     */
+    Class<?> domain() default EntityType.class;
 
+    /**
+     * Groups become "sections" within a OpenAPI document. This is done by adding a tag to the
+     * annotated endpoint(s).
+     *
+     * @return type of group used
+     */
     Group group() default Group.MISC;
 
+    /**
+     * Optional. Description for the tag representing this {@link #group()}
+     *
+     * @return a tag description markdown
+     */
     String description() default "";
 
+    /**
+     * Optional. A link URL for the tag representing this {@link #group()}.
+     *
+     * @return a tag external docs link URL
+     */
     String externalDocs() default "";
 
     /**
      * @return The HTTP method names that are automatically assigned to this group when annotated on
-     *     type level (unless they are explicitly assigned to another group using aa method level
+     *     type level (unless they are explicitly assigned to another group using a method level
      *     annotation)
      */
     String[] methods() default {};

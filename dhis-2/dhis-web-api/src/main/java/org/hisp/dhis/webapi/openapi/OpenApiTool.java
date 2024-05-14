@@ -42,6 +42,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 
@@ -126,29 +128,50 @@ public class OpenApiTool implements ToolProvider {
                   OpenApiGenerator.generateYaml(api, JsonGenerator.Format.PRETTY_PRINT, config);
       return generateDocument(filename, out, err, scope, generator);
     }
-    AtomicInteger errorCode = generateGroupedDocuments(filename, out, err, scope);
+    AtomicInteger errorCode = generateDocumentsFromDocumentAnnotation(filename, out, err, scope);
     return errorCode.get() < 0 ? -1 : 0;
   }
 
-  private AtomicInteger generateGroupedDocuments(
+  private AtomicInteger generateDocumentsFromDocumentAnnotation(
       String to, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
+    Map<String, Set<Class<?>>> byDoc = new TreeMap<>();
+    scope.controllers().stream()
+        .filter(cls -> !cls.isAnnotationPresent(OpenApi.Ignore.class))
+        .forEach(
+            cls -> byDoc.computeIfAbsent(getDocumentName(cls), key -> new HashSet<>()).add(cls));
+    return generateDocumentsFromGroups(to, out, err, scope, byDoc);
+  }
+
+  private AtomicInteger generateDocumentsFromTagAnnotation(
+      String to, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
+    Map<String, Set<Class<?>>> byTag = new TreeMap<>();
+    scope.controllers().stream()
+        .filter(cls -> !cls.isAnnotationPresent(OpenApi.Ignore.class))
+        .forEach(cls -> byTag.computeIfAbsent(getMainTag(cls), key -> new HashSet<>()).add(cls));
+    return generateDocumentsFromGroups(to, out, err, scope, byTag);
+  }
+
+  private AtomicInteger generateDocumentsFromGroups(
+      String to,
+      PrintWriter out,
+      PrintWriter err,
+      ApiAnalyse.Scope scope,
+      Map<String, Set<Class<?>>> groups) {
+
     String dir =
         to.endsWith("/")
             ? to.substring(0, to.length() - 1)
             : to.replace(".json", "").replace(".yaml", "");
     String fileExtension = to.endsWith(".yaml") ? ".yaml" : ".json";
+
     AtomicInteger errorCode = new AtomicInteger(0);
-    Map<String, Set<Class<?>>> byTag = new TreeMap<>();
-    scope.controllers().stream()
-        .filter(cls -> !cls.isAnnotationPresent(OpenApi.Ignore.class))
-        .forEach(cls -> byTag.computeIfAbsent(getMainTag(cls), key -> new HashSet<>()).add(cls));
     BiFunction<Api, OpenApiGenerator.Info, String> generator =
-        to.endsWith(".yaml")
+        fileExtension.equals(".yaml")
             ? (api, config) ->
                 OpenApiGenerator.generateYaml(api, JsonGenerator.Format.PRETTY_PRINT, config)
             : (api, config) ->
                 OpenApiGenerator.generateJson(api, JsonGenerator.Format.PRETTY_PRINT, config);
-    byTag.forEach(
+    groups.forEach(
         (tag, classes) -> {
           String filename = dir + "/openapi-" + tag + fileExtension;
           errorCode.addAndGet(
@@ -184,9 +207,12 @@ public class OpenApiTool implements ToolProvider {
           OpenApiGenerator.Info.DEFAULT.toBuilder().title("DHIS2 API - " + title).build();
       String doc = generator.apply(api, info);
       Path output = Files.writeString(file, doc);
+      int controllers = api.getControllers().size();
+      int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();
+      int schemas = api.getComponents().getSchemas().size();
       out.printf(
-          "  %-30s [%3d controllers, %3d schemas]%n",
-          output.getFileName(), api.getControllers().size(), api.getSchemas().size());
+          "  %-40s [%3d controllers, %3d endpoints, %3d schemas]%n",
+          output.getFileName(), controllers, endpoints, schemas);
     } catch (Exception ex) {
       ex.printStackTrace(err);
       return -1;
@@ -194,10 +220,31 @@ public class OpenApiTool implements ToolProvider {
     return 0;
   }
 
-  private static String getMainTag(Class<?> cls) {
-    return cls.isAnnotationPresent(OpenApi.Tags.class)
-        ? cls.getAnnotation(OpenApi.Tags.class).value()[0]
-        : "misc";
+  private static String getDocumentName(Class<?> controller) {
+    if (controller.isAnnotationPresent(OpenApi.Document.class)) {
+      OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
+      if (!doc.name().isEmpty()) return doc.name();
+      if (doc.domain() != OpenApi.EntityType.class) return getTypeName(doc.domain());
+    }
+    return getTypeName(OpenApiAnnotations.getEntityType(controller));
+  }
+
+  @Nonnull
+  private static String getTypeName(@CheckForNull Class<?> type) {
+    if (type == null) return "Misc";
+    if (type.isAnnotationPresent(OpenApi.Shared.class)) {
+      OpenApi.Shared shared = type.getAnnotation(OpenApi.Shared.class);
+      if (!shared.name().isEmpty()) return shared.name();
+      if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
+        return shared.pattern().getTemplate().formatted(type.getSimpleName());
+    }
+    return type.getSimpleName();
+  }
+
+  private static String getMainTag(Class<?> controller) {
+    return controller.isAnnotationPresent(OpenApi.Tags.class)
+        ? controller.getAnnotation(OpenApi.Tags.class).value()[0]
+        : "Misc";
   }
 
   private static String toClassName(Path f) {

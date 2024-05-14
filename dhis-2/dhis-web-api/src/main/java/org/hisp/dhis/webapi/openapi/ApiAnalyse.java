@@ -35,10 +35,12 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.webapi.openapi.DirectType.isDirectType;
+import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.getAnnotated;
+import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.getAnnotations;
+import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.whenAnnotated;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
@@ -56,10 +58,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -160,15 +158,7 @@ final class ApiAnalyse {
             RequestMapping::name,
             n -> !n.isEmpty(),
             () -> source.getSimpleName().replace("Controller", ""));
-    Class<?> entityClass =
-        source.isAnnotationPresent(OpenApi.EntityType.class)
-            ? source.getAnnotation(OpenApi.EntityType.class).value()
-            : null;
-    if (entityClass == OpenApi.EntityType.class) {
-      entityClass =
-          (Class<?>)
-              (((ParameterizedType) source.getGenericSuperclass()).getActualTypeArguments()[0]);
-    }
+    Class<?> entityClass = OpenApiAnnotations.getEntityType(source);
     Api.Controller controller = new Api.Controller(api, source, entityClass, name);
     whenAnnotated(
         source, RequestMapping.class, a -> controller.getPaths().addAll(List.of(a.value())));
@@ -192,13 +182,7 @@ final class ApiAnalyse {
   private static Api.Endpoint analyseEndpoint(Api.Controller controller, EndpointMapping mapping) {
     Method source = mapping.source();
     String name = mapping.name().isEmpty() ? source.getName() : mapping.name();
-    Class<?> entityClass =
-        getAnnotated(
-            source,
-            OpenApi.EntityType.class,
-            OpenApi.EntityType::value,
-            c -> c != OpenApi.EntityType.class,
-            controller::getEntityClass);
+    Class<?> entityClass = OpenApiAnnotations.getEntityType(source, controller.getSource());
 
     // request media types
     Set<MediaType> consumes =
@@ -964,30 +948,4 @@ final class ApiAnalyse {
 
   record ParameterDetails(
       Api.Parameter.In in, String name, boolean required, String defaultValue) {}
-
-  /*
-   * Helpers for working with annotations
-   */
-
-  private static <A extends Annotation> Stream<A> getAnnotations(Method on, Class<A> type) {
-    return stream(ConsistentAnnotatedElement.of(on).getAnnotationsByType(type));
-  }
-
-  private static <A extends Annotation, T extends AnnotatedElement> void whenAnnotated(
-      T on, Class<A> type, Consumer<A> whenPresent) {
-    AnnotatedElement target = ConsistentAnnotatedElement.of(on);
-    if (target.isAnnotationPresent(type)) {
-      whenPresent.accept(target.getAnnotation(type));
-    }
-  }
-
-  private static <A extends Annotation, B, T extends AnnotatedElement> B getAnnotated(
-      T on, Class<A> type, Function<A, B> whenPresent, Predicate<B> test, Supplier<B> otherwise) {
-    AnnotatedElement target = ConsistentAnnotatedElement.of(on);
-    if (!target.isAnnotationPresent(type)) {
-      return otherwise.get();
-    }
-    B value = whenPresent.apply(target.getAnnotation(type));
-    return test.test(value) ? value : otherwise.get();
-  }
 }
