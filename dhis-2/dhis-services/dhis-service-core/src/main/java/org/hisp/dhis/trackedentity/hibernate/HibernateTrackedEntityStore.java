@@ -389,7 +389,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    */
   private String getCountQuery(TrackedEntityQueryParams params) {
     return new StringBuilder()
-        .append(getQueryCountSelect(params))
+        .append(getQueryCountSelect())
         .append(getQuerySelect(params))
         .append("FROM ")
         .append(getFromSubQuery(params, true, true))
@@ -408,7 +408,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    */
   private String getCountQueryWithMaxTeiLimit(TrackedEntityQueryParams params) {
     return new StringBuilder()
-        .append(getQueryCountSelect(params))
+        .append(getQueryCountSelect())
         .append(getQuerySelect(params))
         .append("FROM ")
         .append(getFromSubQuery(params, true, true))
@@ -461,10 +461,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   /**
    * Generates the projection of the main query when doing a count query.
    *
-   * @param params
    * @return an SQL projection
    */
-  private String getQueryCountSelect(TrackedEntityQueryParams params) {
+  private String getQueryCountSelect() {
     return "SELECT count(instance) FROM ( ";
   }
 
