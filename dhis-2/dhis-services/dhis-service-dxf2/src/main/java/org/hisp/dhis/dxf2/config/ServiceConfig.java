@@ -116,16 +116,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationHooksCheck;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.action.validation.AlwaysValidProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.AssignProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.BaseProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.HideProgramStageProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.HideSectionProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.NotificationProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.ShowHideOptionGroupProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -153,20 +143,15 @@ public class ServiceConfig {
 
   private final Map<Class<? extends Processor>, Processor> processorsByClass;
 
-  private final Map<Class<? extends ProgramRuleActionValidator>, ProgramRuleActionValidator>
-      programRuleActionValidatorsByClass;
-
   private final Map<EventProcessorPhase, List<Processor>> processorsByPhase;
 
   public ServiceConfig(
       Collection<Checker> checkers,
       Collection<ValidationCheck> validationChecks,
-      Collection<Processor> processors,
-      Collection<ProgramRuleActionValidator> programRuleActionValidators) {
+      Collection<Processor> processors) {
     checkersByClass = byClass(checkers);
     validationCheckByClass = byClass(validationChecks);
     processorsByClass = byClass(processors);
-    programRuleActionValidatorsByClass = byClass(programRuleActionValidators);
     processorsByPhase = getProcessorsByPhase();
   }
 
@@ -318,11 +303,6 @@ public class ServiceConfig {
     return getByClass(processorsByClass, processorClass);
   }
 
-  private ProgramRuleActionValidator getProgramRuleActionValidatorByClass(
-      Class<? extends ProgramRuleActionValidator> programRuleActionValidatorClass) {
-    return getByClass(programRuleActionValidatorsByClass, programRuleActionValidatorClass);
-  }
-
   private <T> T getByClass(
       Map<Class<? extends T>, ? extends T> tByClass, Class<? extends T> clazz) {
     return Optional.ofNullable(tByClass.get(clazz))
@@ -390,64 +370,5 @@ public class ServiceConfig {
                 getProcessorByClass(EventFileResourcePostProcessor.class)),
         DELETE_PRE, List.of(),
         DELETE_POST, newArrayList(getProcessorByClass(EventDeleteAuditPostProcessor.class)));
-  }
-
-  @Bean
-  public Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap() {
-    return ImmutableMap.<ProgramRuleActionType, ProgramRuleActionValidator>builder()
-        .put(
-            ProgramRuleActionType.SENDMESSAGE,
-            getProgramRuleActionValidatorByClass(NotificationProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.SCHEDULEMESSAGE,
-            getProgramRuleActionValidatorByClass(NotificationProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.SHOWOPTIONGROUP,
-            getProgramRuleActionValidatorByClass(
-                ShowHideOptionGroupProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.HIDEOPTIONGROUP,
-            getProgramRuleActionValidatorByClass(
-                ShowHideOptionGroupProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.DISPLAYTEXT,
-            getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.DISPLAYKEYVALUEPAIR,
-            getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.ASSIGN,
-            getProgramRuleActionValidatorByClass(AssignProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.HIDEFIELD,
-            getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.CREATEEVENT,
-            getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.WARNINGONCOMPLETE,
-            getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.ERRORONCOMPLETE,
-            getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.SHOWWARNING,
-            getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.SHOWERROR,
-            getProgramRuleActionValidatorByClass(AlwaysValidProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.SETMANDATORYFIELD,
-            getProgramRuleActionValidatorByClass(BaseProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.HIDEOPTION,
-            getProgramRuleActionValidatorByClass(HideOptionProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.HIDESECTION,
-            getProgramRuleActionValidatorByClass(HideSectionProgramRuleActionValidator.class))
-        .put(
-            ProgramRuleActionType.HIDEPROGRAMSTAGE,
-            getProgramRuleActionValidatorByClass(HideProgramStageProgramRuleActionValidator.class))
-        .build();
   }
 }
