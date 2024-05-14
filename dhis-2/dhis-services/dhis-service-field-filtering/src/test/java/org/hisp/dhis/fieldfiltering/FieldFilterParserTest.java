@@ -27,18 +27,21 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen
  */
 class FieldFilterParserTest {
+
   @Test
   void testDepth0Filters() {
     List<FieldPath> fieldPaths = FieldFilterParser.parse("id, name,    abc");
@@ -294,6 +297,18 @@ class FieldFilterParserTest {
     assertFieldPathContains(fieldPaths, "code");
   }
 
+  @Test
+  void testMixedBlockWithTransformation() {
+    List<FieldPath> fieldPaths =
+        FieldFilterParser.parse("id,categoryCombo[categoryOptionCombos~size],displayName");
+
+    assertEquals(4, fieldPaths.size());
+    assertFieldPathContains(fieldPaths, "id");
+    assertFieldPathContains(fieldPaths, "categoryCombo");
+    assertFieldPathContains(fieldPaths, "categoryCombo.categoryOptionCombos");
+    assertFieldPathContains(fieldPaths, "displayName");
+  }
+
   private void assertFieldPathContains(
       List<FieldPath> fieldPaths, String expected, boolean isTransformer) {
     boolean condition = false;
@@ -308,15 +323,9 @@ class FieldFilterParserTest {
   }
 
   private void assertFieldPathContains(List<FieldPath> fieldPaths, String expected) {
-    boolean condition = false;
-    for (FieldPath fieldPath : fieldPaths) {
-      String path = fieldPath.toFullPath();
-      if (path.equals(expected)) {
-        condition = true;
-        break;
-      }
-    }
-    assertTrue(condition);
+    Set<String> actual =
+        fieldPaths.stream().map(FieldPath::toFullPath).collect(toUnmodifiableSet());
+    assertTrue(actual.contains(expected), () -> actual + " does not contain " + expected);
   }
 
   private FieldPath getFieldPath(List<FieldPath> fieldPaths, String path) {
