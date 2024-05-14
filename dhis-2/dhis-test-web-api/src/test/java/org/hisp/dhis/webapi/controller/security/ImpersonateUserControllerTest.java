@@ -89,6 +89,17 @@ class ImpersonateUserControllerTest extends ImpersonateUserControllerBaseTest {
   }
 
   @Test
+  void testImpersonateExitNotImpersonating() {
+    JsonWebMessage response =
+        POST("/auth/impersonateExit").content(HttpStatus.BAD_REQUEST).as(JsonWebMessage.class);
+
+    assertEquals(400, response.getHttpStatusCode());
+    assertEquals("User not impersonating anyone, user: admin", response.getMessage());
+    assertEquals("Bad Request", response.getHttpStatus());
+    assertEquals("ERROR", response.getStatus());
+  }
+
+  @Test
   void testImpersonateUserOKWithAuth() {
     User userWithAuth = createUserWithAuth("authuser", "F_IMPERSONATE_USER");
 
