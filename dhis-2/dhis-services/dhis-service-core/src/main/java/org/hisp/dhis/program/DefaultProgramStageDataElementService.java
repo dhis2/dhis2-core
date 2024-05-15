@@ -29,8 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.dataelement.DataElement;
@@ -83,13 +81,6 @@ public class DefaultProgramStageDataElementService implements ProgramStageDataEl
   @Transactional
   public void updateProgramStageDataElement(ProgramStageDataElement programStageDataElement) {
     programStageDataElementStore.update(programStageDataElement);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue() {
-    return programStageDataElementStore
-        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
   }
 
   @Override

@@ -67,12 +67,6 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
 
   private String href;
 
-  private ImportSummaries relationships;
-
-  private ImportSummaries enrollments;
-
-  private ImportSummaries events;
-
   public ImportSummary() {}
 
   public ImportSummary(String reference) {
@@ -226,38 +220,6 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
   public ImportSummary setHref(String href) {
     this.href = href;
     return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ImportSummaries getRelationships() {
-    return relationships;
-  }
-
-  public ImportSummary setRelationships(ImportSummaries relationships) {
-    this.relationships = relationships;
-    return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ImportSummaries getEnrollments() {
-    return enrollments;
-  }
-
-  public ImportSummary setEnrollments(ImportSummaries enrollments) {
-    this.enrollments = enrollments;
-    return this;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ImportSummaries getEvents() {
-    return events;
-  }
-
-  public void setEvents(ImportSummaries events) {
-    this.events = events;
   }
 
   public ImportSummary incrementImported() {
