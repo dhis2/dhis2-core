@@ -25,38 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.analytics.common.processing;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Optional;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.program.ProgramStatus;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
+ * FIXME we should probably remove this, and replace it with program status
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Getter
-@Setter
-public class MetadataSyncJobParameters implements JobParameters {
-  @JsonProperty private int dataValuesPageSize = 10000;
+@Deprecated(since = "2.41")
+public enum EnrollmentStatus {
+  ACTIVE(0, ProgramStatus.ACTIVE),
+  COMPLETED(1, ProgramStatus.COMPLETED),
+  CANCELLED(2, ProgramStatus.CANCELLED);
 
-  @Override
-  public Optional<ErrorReport> validate() {
-    if (dataValuesPageSize < DataSynchronizationJobParameters.PAGE_SIZE_MIN
-        || dataValuesPageSize > DataSynchronizationJobParameters.PAGE_SIZE_MAX) {
-      return Optional.of(
-          new ErrorReport(
-              this.getClass(),
-              ErrorCode.E4008,
-              "dataValuesPageSize",
-              DataSynchronizationJobParameters.PAGE_SIZE_MIN,
-              DataSynchronizationJobParameters.PAGE_SIZE_MAX,
-              dataValuesPageSize));
+  private final int value;
+
+  private final ProgramStatus programStatus;
+
+  EnrollmentStatus(int value, ProgramStatus programStatus) {
+    this.value = value;
+    this.programStatus = programStatus;
+  }
+
+  public int getValue() {
+    return value;
+  }
+
+  public ProgramStatus getProgramStatus() {
+    return programStatus;
+  }
+
+  public static EnrollmentStatus fromStatusString(String status) {
+    switch (status) {
+      case "ACTIVE":
+        return ACTIVE;
+      case "CANCELLED":
+        return CANCELLED;
+      case "COMPLETED":
+        return COMPLETED;
+      default:
+        // Do nothing and fail
     }
-
-    return Optional.empty();
+    throw new IllegalArgumentException("Enum value not found for string: " + status);
   }
 }

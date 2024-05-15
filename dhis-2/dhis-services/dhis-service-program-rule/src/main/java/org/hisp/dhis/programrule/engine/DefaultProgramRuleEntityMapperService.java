@@ -228,9 +228,13 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
+        LocalDateTime.Formats.INSTANCE
+            .getISO()
+            .parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
             .getDate(),
-        LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
+        LocalDateTime.Formats.INSTANCE
+            .getISO()
+            .parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
             .getDate(),
         RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
         orgUnit,
@@ -239,13 +243,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   }
 
   @Override
-  public List<RuleEvent> toMappedRuleEvents(Set<Event> events, Event eventToEvaluate) {
-    return events.stream()
-        .filter(Objects::nonNull)
-        .filter(
-            event -> !(eventToEvaluate != null && event.getUid().equals(eventToEvaluate.getUid())))
-        .map(this::toMappedRuleEvent)
-        .toList();
+  public List<RuleEvent> toMappedRuleEvents(Set<Event> events) {
+    return events.stream().filter(Objects::nonNull).map(this::toMappedRuleEvent).toList();
   }
 
   @Override
@@ -267,13 +266,15 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
         eventToEvaluate.getScheduledDate() == null
             ? null
-            : LocalDateTime.Companion.parse(
-                    DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
+            : LocalDateTime.Formats.INSTANCE
+                .getISO()
+                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
                 .getDate(),
         eventToEvaluate.getCompletedDate() == null
             ? null
-            : LocalDateTime.Companion.parse(
-                    DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
+            : LocalDateTime.Formats.INSTANCE
+                .getISO()
+                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
                 .getDate(),
         orgUnit,
         orgUnitCode,

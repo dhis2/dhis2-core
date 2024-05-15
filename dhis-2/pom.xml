@@ -99,7 +99,7 @@
 
     <!-- DHIS2 Rule Engine -->
     <dhis2-rule-engine.version>3.0.0</dhis2-rule-engine.version>
-    <kotlinx-datetime.version>0.5.0</kotlinx-datetime.version>
+    <kotlinx-datetime.version>0.6.0</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.4</dhis-hisp-quick.version>
@@ -112,7 +112,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>9.39</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>9.39.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -128,7 +128,7 @@
     <lettuce.version>6.3.2.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>10.12.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>10.13.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -162,7 +162,8 @@
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
-    <jfreechart.version>1.5.4</jfreechart.version>
+    <jfreechart.version>1.0.19</jfreechart.version>
+    <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.5</poi.version>
@@ -226,7 +227,6 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <hamcrest-date.version>2.0.8</hamcrest-date.version>
     <testcontainers.version>1.19.8</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.1</awaitility.version>
@@ -1197,6 +1197,11 @@
       </dependency>
       <dependency>
         <groupId>org.jfree</groupId>
+        <artifactId>jcommon</artifactId>
+        <version>${jfreechart-common.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
         <version>${jfreechart.version}</version>
         <exclusions>
@@ -1637,12 +1642,6 @@
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>
         <version>${hamcrest.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.exparity</groupId>
-        <artifactId>hamcrest-date</artifactId>
-        <version>${hamcrest-date.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
