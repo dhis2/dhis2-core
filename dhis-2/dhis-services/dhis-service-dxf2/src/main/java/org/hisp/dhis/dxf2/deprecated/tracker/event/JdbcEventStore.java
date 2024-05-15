@@ -364,7 +364,7 @@ public class JdbcEventStore implements EventStore {
       EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = new ArrayList<>();
     List<Long> relationshipIds = new ArrayList<>();
@@ -580,7 +580,7 @@ public class JdbcEventStore implements EventStore {
   public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
@@ -616,7 +616,7 @@ public class JdbcEventStore implements EventStore {
   public List<EventRow> getEventRows(EventSearchParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     List<EventRow> eventRows = new ArrayList<>();
 
@@ -824,7 +824,7 @@ public class JdbcEventStore implements EventStore {
   public int getEventCount(EventSearchParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
-    setAccessiblePrograms(currentUser.isSuper(), params);
+    setAccessiblePrograms(isSuper(currentUser), params);
 
     String sql;
 
@@ -1841,7 +1841,7 @@ public class JdbcEventStore implements EventStore {
         + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
   }
 
-  private boolean isSuper(User user) {
+  private boolean isSuper(UserDetails user) {
     return user == null || user.isSuper();
   }
 
