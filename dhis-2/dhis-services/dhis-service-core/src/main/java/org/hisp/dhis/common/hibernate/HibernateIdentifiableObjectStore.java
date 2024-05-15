@@ -53,7 +53,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -717,19 +716,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     JpaQueryParameters<T> jpaQueryParameters =
         new JpaQueryParameters<T>()
             .addPredicate(root -> builder.equal(root.get("dataDimension"), dataDimension))
-            .addPredicates(getSharingPredicates(builder));
-
-    return getList(builder, jpaQueryParameters);
-  }
-
-  @Nonnull
-  @Override
-  public List<T> getByDataElement(Collection<DataElement> dataElements) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<T> jpaQueryParameters =
-        new JpaQueryParameters<T>()
-            .addPredicate(root -> builder.equal(root.get("dataElements"), dataElements))
             .addPredicates(getSharingPredicates(builder));
 
     return getList(builder, jpaQueryParameters);

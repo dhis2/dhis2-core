@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -53,20 +54,20 @@ public class HibernateProgramStageSectionStore
     super(entityManager, jdbcTemplate, publisher, ProgramStageSection.class, aclService, true);
   }
 
-  //  @Override
-  //  public List<ProgramStageSection> getAllByDataElement(Collection<Long> dataElements) {
-  //    // language=sql
-  //    String sql =
-  //        """
-  //            select pss.* from programstagesection pss
-  //            join programstagesection_dataelements pssde on pss.programstagesectionid =
-  // pssde.programstagesectionid
-  //            where pssde.dataelementid in :dataElements
-  //          """;
-  //
-  //    return getSession()
-  //        .createNativeQuery(sql, ProgramStageSection.class)
-  //        .setParameter("dataElements", dataElements)
-  //        .list();
-  //  }
+  @Override
+  public List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements) {
+    // language=sql
+    String sql =
+        """
+          select pss.* from programstagesection pss
+          join programstagesection_dataelements pssde on pss.programstagesectionid = pssde.programstagesectionid
+          where pssde.dataelementid in :dataElements
+          group by pss.programstagesectionid
+        """;
+
+    return getSession()
+        .createNativeQuery(sql, ProgramStageSection.class)
+        .setParameter("dataElements", dataElements)
+        .list();
+  }
 }

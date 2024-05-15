@@ -34,7 +34,6 @@ import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -431,7 +430,4 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
    * @return TRUE if objects exist. FALSE otherwise.
    */
   boolean existsByUser(@Nonnull User user, final Set<String> checkProperties);
-
-  @Nonnull
-  List<T> getByDataElement(Collection<DataElement> dataElements);
 }

@@ -81,6 +81,6 @@ public class DefaultProgramStageSectionService implements ProgramStageSectionSer
   @Override
   @NonTransactional
   public List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements) {
-    return programStageSectionStore.getByDataElement(dataElements);
+    return programStageSectionStore.getAllByDataElement(dataElements);
   }
 }

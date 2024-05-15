@@ -575,13 +575,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   void programStageSectionMergeTest() throws ConflictException {
     // given
     ProgramStageSection pss1 = createProgramStageSection('a', 1);
-    pss1.setDataElements(List.of(deSource1));
+    pss1.getDataElements().add(deSource1);
     ProgramStageSection pss2 = createProgramStageSection('b', 2);
-    DataElement deNonSource = createDataElement('F');
-    dataElementService.addDataElement(deNonSource);
-    pss1.setDataElements(List.of(deSource2, deNonSource));
+    //    DataElement deNonSource = createDataElement('F');
+    //    dataElementService.addDataElement(deNonSource);
+    pss2.getDataElements().add(deSource2);
     ProgramStageSection pss3 = createProgramStageSection('c', 3);
-    pss1.setDataElements(List.of(deTarget));
+    pss3.getDataElements().add(deTarget);
 
     programStageSectionService.saveProgramStageSection(pss1);
     programStageSectionService.saveProgramStageSection(pss2);
@@ -605,17 +605,15 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
   @Test
   @DisplayName(
-      "ProgramStageDataElement references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are deleted")
   void programStageSectionMergeDeleteSourcesTest() throws ConflictException {
     // given
     ProgramStageSection pss1 = createProgramStageSection('d', 1);
-    pss1.setDataElements(List.of(deSource1));
+    pss1.getDataElements().add(deSource1);
     ProgramStageSection pss2 = createProgramStageSection('e', 2);
-    DataElement deNonSource = createDataElement('G');
-    dataElementService.addDataElement(deNonSource);
-    pss1.setDataElements(List.of(deSource2, deNonSource));
+    pss2.getDataElements().add(deSource2);
     ProgramStageSection pss3 = createProgramStageSection('F', 3);
-    pss1.setDataElements(List.of(deTarget));
+    pss3.getDataElements().add(deTarget);
 
     programStageSectionService.saveProgramStageSection(pss1);
     programStageSectionService.saveProgramStageSection(pss2);
