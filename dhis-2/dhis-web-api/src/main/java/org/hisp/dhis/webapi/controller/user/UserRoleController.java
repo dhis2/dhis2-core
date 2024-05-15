@@ -63,9 +63,13 @@ public class UserRoleController extends AbstractCrudController<UserRole> {
 
   @Override
   protected List<UserRole> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<UserRole> objects)
       throws BadRequestException {
-    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders);
+    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders, objects);
 
     if (options.getOptions().containsKey("canIssue")
         && Boolean.parseBoolean(options.getOptions().get("canIssue"))) {

@@ -74,7 +74,11 @@ public class ValidationRuleController extends AbstractCrudController<ValidationR
 
   @Override
   protected List<ValidationRule> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<ValidationRule> objects)
       throws BadRequestException {
     if (options.contains("dataSet")) {
       DataSet ds = dataSetService.getDataSet(options.get("dataSet"));
@@ -86,7 +90,7 @@ public class ValidationRuleController extends AbstractCrudController<ValidationR
       return Lists.newArrayList(validationRuleService.getValidationRulesForDataSet(ds));
     }
 
-    return super.getEntityList(metadata, options, filters, orders);
+    return super.getEntityList(metadata, options, filters, orders, objects);
   }
 
   @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)

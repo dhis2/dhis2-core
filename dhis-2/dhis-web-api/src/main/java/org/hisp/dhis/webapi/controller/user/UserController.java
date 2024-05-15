@@ -61,6 +61,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
@@ -159,7 +160,11 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<User> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<User> objects)
       throws QueryParserException {
     UserQueryParams params = makeUserQueryParams(options);
 
@@ -656,6 +661,11 @@ public class UserController extends AbstractCrudController<User> {
     }
 
     return importReport;
+  }
+
+  @Override
+  protected void postUpdateItems(User entity, IdentifiableObjects items) {
+    aclService.invalidateCurrentUserGroupInfoCache();
   }
 
   protected void updateUserGroups(String userUid, User parsed, User currentUser) {
