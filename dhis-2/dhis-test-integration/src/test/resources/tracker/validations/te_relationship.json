@@ -49,65 +49,14 @@
       "enrollments": []
     },
     {
-      "trackedEntity": "VVVKj6vYdes",
+      "trackedEntity": "KKKKj6vYdes",
       "trackedEntityType": {
         "idScheme": "UID",
         "identifier": "XXXbPJ0FMtc"
       },
       "orgUnit": {
         "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [],
-      "enrollments": []
-    },
-    {
-      "trackedEntity": "KKKKj6vYdes",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [],
-      "enrollments": []
-    },
-    {
-      "trackedEntity": "OOOOj6vYdes",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false,
-      "relationships": [],
-      "attributes": [],
-      "enrollments": []
-    },
-    {
-      "trackedEntity": "YYYYj6vYdes",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "bPJ0FMtcnEh"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "QfUVllTs6cS"
+        "identifier": "QfUVllTs6cW"
       },
       "inactive": false,
       "deleted": false,
