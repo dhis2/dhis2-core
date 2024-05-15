@@ -144,12 +144,6 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.getSharing().addUserAccess(userAccess1);
     manager.save(trackedEntityType, false);
-    TrackedEntity maleA = createTrackedEntity(organisationUnitA);
-    maleA.setTrackedEntityType(trackedEntityType);
-    maleA.getSharing().addUserAccess(userAccess1);
-    maleA.setCreatedBy(currentUser);
-    manager.save(maleA, false);
-    trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance(maleA);
     DataElement dataElementA = createDataElement('A');
     dataElementA.setValueType(ValueType.INTEGER);
     dataElementA.getSharing().addUserAccess(userAccess1);
@@ -169,6 +163,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
     programA.getSharing().addUserAccess(userAccess1);
+    programA.setTrackedEntityType(trackedEntityType);
     manager.save(programA, false);
     // Create a compulsory PSDE
     ProgramStageDataElement programStageDataElementA = new ProgramStageDataElement();
@@ -201,6 +196,14 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest {
     programA.getProgramStages().add(programStageA);
     manager.update(programStageA);
     manager.update(programA);
+
+    TrackedEntity maleA = createTrackedEntity(organisationUnitA);
+    maleA.setTrackedEntityType(trackedEntityType);
+    maleA.getSharing().addUserAccess(userAccess1);
+    maleA.setCreatedBy(currentUser);
+    manager.save(maleA, false);
+    trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance(maleA);
+
     Enrollment enrollment = new Enrollment();
     enrollment.setProgram(programA);
     enrollment.setOccurredDate(new Date());
