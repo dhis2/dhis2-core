@@ -1734,7 +1734,7 @@ public class JdbcEventStore implements EventStore {
             + " where psi.attributeoptioncomboid = coc.categoryoptioncomboid"
             + " group by coc.categoryoptioncomboid ";
 
-    if (!user.isSuper()) {
+    if (!isSuper(user)) {
       joinCondition =
           joinCondition
               + " having bool_and(case when "
