@@ -180,6 +180,10 @@
       <artifactId>spring-retry</artifactId>
     </dependency>
     <dependency>
+      <groupId>net.postgis</groupId>
+      <artifactId>postgis-jdbc</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
@@ -192,6 +196,10 @@
     <dependency>
       <groupId>de.grundid.opendatalab</groupId>
       <artifactId>geojson-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-main</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
