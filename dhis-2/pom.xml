@@ -150,7 +150,8 @@
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
-    <jfreechart.version>1.5.4</jfreechart.version>
+    <jfreechart.version>1.0.19</jfreechart.version>
+    <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.5</poi.version>
@@ -1165,6 +1166,11 @@
         <groupId>net.sf.jasperreports</groupId>
         <artifactId>jasperreports-fonts</artifactId>
         <version>${jasperreports.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jfree</groupId>
+        <artifactId>jcommon</artifactId>
+        <version>${jfreechart-common.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jfree</groupId>
