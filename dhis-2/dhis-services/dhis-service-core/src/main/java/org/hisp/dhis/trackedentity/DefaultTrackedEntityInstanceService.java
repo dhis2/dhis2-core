@@ -177,7 +177,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
     }
 
-    if (params.getProgram() == null) {
+    if (!params.hasProgram()) {
       params.setPrograms(getTrackerPrograms(params.getUser()));
     }
 
@@ -231,7 +231,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
 
     handleSortAttributes(params);
 
-    if (params.getProgram() == null) {
+    if (!params.hasProgram()) {
       params.setPrograms(getTrackerPrograms(params.getUser()));
     }
 
@@ -291,6 +291,11 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       TrackedEntityInstanceQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation) {
+
+    if (!params.hasProgram()) {
+      params.setPrograms(getTrackerPrograms(params.getUser()));
+    }
+
     decideAccess(params);
 
     if (!skipAccessValidation) {
@@ -315,6 +320,10 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
   @Override
   @Transactional(readOnly = true)
   public Grid getTrackedEntityInstancesGrid(TrackedEntityInstanceQueryParams params) {
+    if (!params.hasProgram()) {
+      params.setPrograms(getTrackerPrograms(params.getUser()));
+    }
+
     decideAccess(params);
     validate(params);
     validateSearchScope(params, true);
