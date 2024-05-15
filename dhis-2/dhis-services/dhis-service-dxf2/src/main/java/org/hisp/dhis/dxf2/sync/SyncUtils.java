@@ -64,8 +64,6 @@ import org.springframework.web.client.RestTemplate;
 public class SyncUtils {
   static final String HEADER_AUTHORIZATION = "Authorization";
 
-  static final String IMPORT_STRATEGY_SYNC_SUFFIX = "?strategy=SYNC";
-
   private static final String PING_PATH = "/api/system/ping";
 
   private SyncUtils() {}
@@ -166,8 +164,6 @@ public class SyncUtils {
   /**
    * Analyzes results in ImportSummaries. Returns true if everything is OK, false otherwise.
    *
-   * <p>THIS METHOD USES RECURSION!!!
-   *
    * @param summaries ImportSummaries that should be analyzed
    * @param originalTopSummaries The top level ImportSummaries. Used only for logging purposes.
    * @param endpoint Specifies against which endpoint the request was run
@@ -179,24 +175,6 @@ public class SyncUtils {
       for (ImportSummary summary : summaries.getImportSummaries()) {
         if (!checkSummaryStatus(summary, summaries, originalTopSummaries, endpoint)) {
           return false;
-        }
-
-        // I need recursively check for errors on lower levels of the
-        // graph
-        if (endpoint == SyncEndpoint.TRACKED_ENTITY_INSTANCES) {
-          // Uses recursion. Correct value of endpoint argument is
-          // critical here.
-          if (!analyzeResultsInImportSummaries(
-              summary.getEnrollments(), originalTopSummaries, SyncEndpoint.ENROLLMENTS)) {
-            return false;
-          }
-        } else if (endpoint == SyncEndpoint.ENROLLMENTS) {
-          // Uses recursion. Correct value of endpoint argument is
-          // critical here.
-          if (!analyzeResultsInImportSummaries(
-              summary.getEvents(), originalTopSummaries, SyncEndpoint.EVENTS)) {
-            return false;
-          }
         }
       }
     }
@@ -314,10 +292,10 @@ public class SyncUtils {
 
     HttpEntity<String> request = getBasicAuthRequestEntity(username, password);
 
-    ResponseEntity<String> response = null;
-    HttpStatus sc = null;
+    ResponseEntity<String> response;
+    HttpStatus sc;
     String st = null;
-    AvailabilityStatus status = null;
+    AvailabilityStatus status;
 
     try {
       response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
@@ -420,13 +398,5 @@ public class SyncUtils {
     String syncUrl = settings.getStringSetting(SettingKey.REMOTE_INSTANCE_URL) + endpoint.getPath();
 
     return new SystemInstance(syncUrl, username, password);
-  }
-
-  static SystemInstance getRemoteInstanceWithSyncImportStrategy(
-      SystemSettingManager settings, SyncEndpoint syncEndpoint) {
-    SystemInstance systemInstance = getRemoteInstance(settings, syncEndpoint);
-    systemInstance.setUrl(systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX);
-
-    return systemInstance;
   }
 }

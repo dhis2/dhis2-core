@@ -67,6 +67,15 @@ updates:
       - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 6.20.1"
+      - dependency-name: "net.sf.jasperreports:jasperreports-fonts" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
+      - dependency-name: "org.jfree:jfreechart" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.20"
+      - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.24"
   - package-ecosystem: "maven"
     directory: "/dhis-2/dhis-test-e2e"
     schedule:
@@ -150,6 +159,15 @@ updates:
       - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 6.20.1"
+      - dependency-name: "net.sf.jasperreports:jasperreports-fonts" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
+      - dependency-name: "org.jfree:jfreechart" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.20"
+      - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.24"
   - package-ecosystem: "maven"
     directory: "/dhis-2/dhis-test-e2e"
     schedule:
@@ -237,6 +255,15 @@ updates:
       - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 6.20.1"
+      - dependency-name: "net.sf.jasperreports:jasperreports-fonts" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
+      - dependency-name: "org.jfree:jfreechart" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.20"
+      - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.24"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -313,6 +340,15 @@ updates:
       - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 6.20.1"
+      - dependency-name: "net.sf.jasperreports:jasperreports-fonts" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
+      - dependency-name: "org.jfree:jfreechart" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.20"
+      - dependency-name: "org.jfree:jcommon" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 1.0.24"
     target-branch: "2.39"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
   # 2.38
@@ -389,6 +425,9 @@ updates:
         versions:
           - ">= 2.0"
       - dependency-name: "net.sf.jasperreports:jasperreports" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
+        versions:
+          - ">= 6.20.1"
+      - dependency-name: "net.sf.jasperreports:jasperreports-fonts" # will update in https://dhis2.atlassian.net/browse/DHIS2-16796
         versions:
           - ">= 6.20.1"
     target-branch: "2.38"

@@ -41,38 +41,10 @@ import org.hisp.dhis.scheduling.JobParameters;
 @Getter
 @Setter
 public class MetadataSyncJobParameters implements JobParameters {
-  @JsonProperty private int trackerProgramPageSize = 20;
-
-  @JsonProperty private int eventProgramPageSize = 60;
-
   @JsonProperty private int dataValuesPageSize = 10000;
 
   @Override
   public Optional<ErrorReport> validate() {
-    if (trackerProgramPageSize < TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN
-        || trackerProgramPageSize > TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX) {
-      return Optional.of(
-          new ErrorReport(
-              this.getClass(),
-              ErrorCode.E4008,
-              "trackerProgramPageSize",
-              TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
-              TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
-              trackerProgramPageSize));
-    }
-
-    if (eventProgramPageSize < EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN
-        || eventProgramPageSize > EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX) {
-      return Optional.of(
-          new ErrorReport(
-              this.getClass(),
-              ErrorCode.E4008,
-              "eventProgramPageSize",
-              EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
-              EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
-              eventProgramPageSize));
-    }
-
     if (dataValuesPageSize < DataSynchronizationJobParameters.PAGE_SIZE_MIN
         || dataValuesPageSize > DataSynchronizationJobParameters.PAGE_SIZE_MAX) {
       return Optional.of(

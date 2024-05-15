@@ -61,11 +61,11 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
   public void shouldNotBeMergedWhenBothTeisEnrolledInSameProgram() {
     String teiA =
         createTeiWithEnrollmentsAndEvents(Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr")
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
     String teiB =
         createTeiWithEnrollmentsAndEvents(Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr")
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     String potentialDuplicate =
@@ -85,12 +85,12 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
   public void shouldBeManuallyMerged() {
     String teiA =
         createTeiWithEnrollmentsAndEvents(TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID)
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     TrackerApiResponse teiBResponse =
         createTeiWithEnrollmentsAndEvents(Constants.ANOTHER_TRACKER_PROGRAM_ID, "PaOOjwLVW2X");
-    String teiB = teiBResponse.extractImportedTeis().get(0);
+    String teiB = teiBResponse.extractImportedTrackedEntities().get(0);
     String enrollmentToMerge = teiBResponse.extractImportedEnrollments().get(0);
 
     String potentialDuplicate =
@@ -120,7 +120,7 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
     // arrange
     TrackerApiResponse originalTeiResponse =
         createTeiWithEnrollmentsAndEvents(Constants.ANOTHER_TRACKER_PROGRAM_ID, "PaOOjwLVW2X");
-    String teiA = originalTeiResponse.extractImportedTeis().get(0);
+    String teiA = originalTeiResponse.extractImportedTrackedEntities().get(0);
     String enrollmentA = originalTeiResponse.extractImportedEnrollments().get(0);
 
     TrackerApiResponse duplicateTeiResponse =
@@ -130,7 +130,7 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
                         "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
                 .get());
 
-    String teiB = duplicateTeiResponse.extractImportedTeis().get(0);
+    String teiB = duplicateTeiResponse.extractImportedTrackedEntities().get(0);
     String enrollmentB = duplicateTeiResponse.extractImportedEnrollments().get(0);
 
     String potentialDuplicate =
@@ -182,7 +182,7 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
                         TRACKER_PROGRAM_STAGE_ID))
             .validateSuccessfulImport();
 
-    String teiA = imported.extractImportedTeis().get(0);
+    String teiA = imported.extractImportedTrackedEntities().get(0);
     String enrollment = imported.extractImportedEnrollments().get(0);
     assertThat(enrollment, notNullValue());
 
@@ -220,6 +220,9 @@ public class PotentialDuplicatesEnrollmentsTests extends PotentialDuplicatesApiT
   private String createTeiWithoutEnrollment(String ouId) {
     JsonObject object = new TeiDataBuilder().array(Constants.TRACKED_ENTITY_TYPE, ouId);
 
-    return trackerImportExportActions.postAndGetJobReport(object).extractImportedTeis().get(0);
+    return trackerImportExportActions
+        .postAndGetJobReport(object)
+        .extractImportedTrackedEntities()
+        .get(0);
   }
 }

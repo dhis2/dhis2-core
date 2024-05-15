@@ -161,7 +161,11 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @SuppressWarnings("unchecked")
   protected List<User> getEntityList(
-      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      WebMetadata metadata,
+      WebOptions options,
+      List<String> filters,
+      List<Order> orders,
+      List<User> objects)
       throws QueryParserException {
     UserQueryParams params = makeUserQueryParams(options);
 

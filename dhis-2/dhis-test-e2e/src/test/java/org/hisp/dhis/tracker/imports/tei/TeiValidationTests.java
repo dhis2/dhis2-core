@@ -135,7 +135,7 @@ public class TeiValidationTests extends TrackerApiTest {
         trackerImportExportActions.postAndGetJobReport(
             object, new QueryParamsBuilder().add("async=false"));
 
-    String teiId = response.validateSuccessfulImport().extractImportedTeis().get(0);
+    String teiId = response.validateSuccessfulImport().extractImportedTrackedEntities().get(0);
 
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
@@ -173,7 +173,7 @@ public class TeiValidationTests extends TrackerApiTest {
         trackerImportExportActions
             .postAndGetJobReport(payload, new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport()
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObjectBuilder.jsonObject(payload)
@@ -244,7 +244,7 @@ public class TeiValidationTests extends TrackerApiTest {
 
     response.validateSuccessfulImport();
 
-    String teiId = response.extractImportedTeis().get(0);
+    String teiId = response.extractImportedTrackedEntities().get(0);
     JsonObject trackedEntitiesToDelete = new TeiDataBuilder().setId(teiId).array();
 
     // delete TEI

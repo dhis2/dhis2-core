@@ -35,7 +35,6 @@ import com.google.gson.JsonObject;
 import java.util.Arrays;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.deprecated.tracker.RelationshipActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
@@ -134,7 +133,7 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
         .statusCode(200)
         .body("relationships", hasSize(0));
 
-    new RelationshipActions().get(relationship).validateStatus(404);
+    trackerImportExportActions.getRelationship(relationship).validateStatus(404);
   }
 
   @Test
