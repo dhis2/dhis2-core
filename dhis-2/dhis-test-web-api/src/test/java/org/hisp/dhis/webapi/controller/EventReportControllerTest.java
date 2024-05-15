@@ -35,6 +35,7 @@ import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.HttpStatus.OK;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -260,5 +261,19 @@ class EventReportControllerTest extends DhisControllerConvenienceTest {
     assertStatus(OK, POST("/metadata/", WebClient.Body("metadata/map_new.json")));
     final JsonObject response = GET("/mapViews/zyFOjTfzLws").content();
     assertTrue(response.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testReportPdf() {
+    String body =
+        """
+            {"name": "Name Test", "relativePeriods": {"last12Months": true},
+            "designContent": "<?xml version=\\"1.0\\" encoding=\\"UTF-8\\"?>\\n<jasperReport xmlns=\\"http://jasperreports.sourceforge.net/jasperreports\\" xmlns:xsi=\\"http://www.w3.org/2001/XMLSchema-instance\\" xsi:schemaLocation=\\"http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd\\" name=\\"dpt\\" pageWidth=\\"595\\" pageHeight=\\"842\\" columnWidth=\\"555\\" leftMargin=\\"20\\" rightMargin=\\"20\\" topMargin=\\"20\\" bottomMargin=\\"20\\"></jasperReport>"
+            }""";
+    String uid = assertStatus(CREATED, POST("/reports/", body));
+    assertFalse(
+        GET("/reports/" + uid + "/data.pdf?t=1715330660314&ou=ImspTQPwCqd&pe=2023&date=2023-01-01")
+            .content("application/pdf")
+            .isEmpty());
   }
 }
