@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,15 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hamcrest.Matchers;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -266,28 +260,5 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     enrollmentStore.save(enrollmentB);
     enrollmentStore.delete(enrollmentA);
     assertEquals(1, enrollmentStore.getAll().size());
-  }
-
-  @Test
-  void testGetByProgramAndTrackedEntity() {
-    // Create a second enrollment with identical Program and TEI as
-    // enrollmentA.
-    // This should really never happen in production
-    // Doing it here to test that the query can return both instances
-    Enrollment enrollmentZ =
-        new Enrollment(enrollmentDate, incidentDate, entityInstanceA, programA);
-    enrollmentZ.setUid("UID-Z");
-    enrollmentStore.save(enrollmentA);
-    enrollmentStore.save(enrollmentZ);
-    List<Pair<Program, TrackedEntity>> programTeiPair = new ArrayList<>();
-    Pair<Program, TrackedEntity> pair1 = Pair.of(programA, entityInstanceA);
-    programTeiPair.add(pair1);
-    final List<Enrollment> enrollments =
-        enrollmentStore.getByProgramAndTrackedEntity(programTeiPair, ProgramStatus.ACTIVE);
-    assertEquals(2, enrollments.size());
-    assertThat(
-        enrollments,
-        containsInAnyOrder(
-            Matchers.hasProperty("uid", is("UID-Z")), Matchers.hasProperty("uid", is("UID-A"))));
   }
 }

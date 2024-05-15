@@ -51,13 +51,6 @@ public interface EventService {
   void deleteEvent(Event event);
 
   /**
-   * Updates an {@link Event}.
-   *
-   * @param event the Event to update.
-   */
-  void updateEvent(Event event);
-
-  /**
    * Checks whether an {@link Event} with the given identifier exists. Doesn't take into account the
    * deleted values.
    *
