@@ -45,7 +45,6 @@ import java.util.List;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -133,10 +132,6 @@ class ProgramObjectBundleHookTest {
 
   @Test
   void verifyProgramFailsValidation() {
-    EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
-    enrollmentQueryParams.setProgram(programA);
-    enrollmentQueryParams.setProgramStatus(ProgramStatus.ACTIVE);
-
     when(enrollmentService.getEnrollments(programA, ProgramStatus.ACTIVE))
         .thenReturn(Lists.newArrayList(new Enrollment(), new Enrollment()));
 

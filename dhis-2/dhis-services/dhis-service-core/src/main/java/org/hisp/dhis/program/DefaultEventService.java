@@ -98,13 +98,6 @@ public class DefaultEventService implements EventService {
   }
 
   @Override
-  @Transactional
-  public void updateEvent(Event event) {
-    event.setAutoFields();
-    eventStore.update(event);
-  }
-
-  @Override
   @Transactional(readOnly = true)
   public boolean eventExists(String uid) {
     return eventStore.exists(uid);

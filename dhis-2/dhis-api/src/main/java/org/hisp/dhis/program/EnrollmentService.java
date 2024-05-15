@@ -30,10 +30,8 @@ package org.hisp.dhis.program;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Abyot Asalefew
@@ -46,15 +44,6 @@ public interface EnrollmentService {
    * @return A generated unique id of the added {@link Enrollment}.
    */
   long addEnrollment(Enrollment enrollment);
-
-  /**
-   * Adds an {@link Enrollment}
-   *
-   * @param enrollment The to Enrollment add.
-   * @param user the current user.
-   * @return A generated unique id of the added {@link Enrollment}.
-   */
-  long addEnrollment(Enrollment enrollment, User user);
 
   /**
    * Soft deletes a {@link Enrollment}.
@@ -116,31 +105,6 @@ public interface EnrollmentService {
    * @return true/false depending on result
    */
   boolean enrollmentExistsIncludingDeleted(String uid);
-
-  /**
-   * Returns a list with Enrollment values based on the given EnrollmentQueryParams.
-   *
-   * @param params the EnrollmentQueryParams.
-   * @return List of enrollments matching the params
-   */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
-
-  /**
-   * Decides whether current user is authorized to perform the given query. IllegalQueryException is
-   * thrown if not.
-   *
-   * @param params the EnrollmentQueryParams.
-   */
-  void decideAccess(EnrollmentQueryParams params);
-
-  /**
-   * Validates the given EnrollmentQueryParams. The params is considered valid if no exception are
-   * thrown and the method returns normally.
-   *
-   * @param params the EnrollmentQueryParams.
-   * @throws IllegalQueryException if the given params is invalid.
-   */
-  void validate(EnrollmentQueryParams params) throws IllegalQueryException;
 
   /**
    * Retrieve Enrollments on a program
@@ -207,29 +171,6 @@ public interface EnrollmentService {
       Date enrollmentDate,
       Date incidentDate,
       OrganisationUnit orgunit);
-
-  /**
-   * Complete a enrollment. Besides, program template messages will be send if it was defined to
-   * send when to complete this program
-   *
-   * @param enrollment Enrollment
-   */
-  void completeEnrollmentStatus(Enrollment enrollment);
-
-  /**
-   * Set status as skipped for overdue events; Remove scheduled events
-   *
-   * @param enrollment Enrollment
-   */
-  void cancelEnrollmentStatus(Enrollment enrollment);
-
-  /**
-   * Incomplete a enrollment. This is is possible only if there is no other enrollment with active
-   * status.
-   *
-   * @param enrollment Enrollment
-   */
-  void incompleteEnrollmentStatus(Enrollment enrollment);
 
   /**
    * Prepare a Enrollment for storing

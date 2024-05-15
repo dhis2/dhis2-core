@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -39,14 +38,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
  */
 public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   String ID = EnrollmentStore.class.getName();
-
-  /**
-   * Get all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Enrollments matching params
-   */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
 
   /**
    * Retrieve enrollments on a program
@@ -60,8 +51,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * Retrieve enrollments on a program by status
    *
    * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
+   * @param status Status of program, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
    * @return Enrollment list
    */
   List<Enrollment> get(Program program, ProgramStatus status);
@@ -69,13 +59,12 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
   /**
    * Retrieve enrollments on a TrackedEntity with a status by a program
    *
-   * @param entityInstance TrackedEntity
+   * @param trackedEntity TrackedEntity
    * @param program Program
-   * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
-   *     STATUS_CANCELLED
+   * @param status Status of program, include STATUS_ACTIVE, STATUS_COMPLETED and STATUS_CANCELLED
    * @return Enrollment list
    */
-  List<Enrollment> get(TrackedEntity entityInstance, Program program, ProgramStatus status);
+  List<Enrollment> get(TrackedEntity trackedEntity, Program program, ProgramStatus status);
 
   /**
    * Checks for the existence of an enrollment by UID, Deleted enrollments are not taken into
@@ -128,25 +117,4 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    * @param enrollment the enrollment to delete.
    */
   void hardDelete(Enrollment enrollment);
-
-  /**
-   * Executes a query to fetch all {@see Enrollment} matching the Program/TrackedEntity list.
-   *
-   * <p>Resulting SQL query:
-   *
-   * <pre>{@code
-   * select enrollmentid, programid, trackedentityid
-   *     from enrollment
-   *     where (programid = 726 and trackedentityid = 19 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityid = 18 and status = 'ACTIVE')
-   *        or (programid = 726 and trackedentityid = 17 and status = 'ACTIVE')
-   * }</pre>
-   *
-   * @param programTePair a List of Pair, where the left side is a {@see Program} and the right side
-   *     is a {@see TrackedEntity}
-   * @param programStatus filter on the status of all the Program
-   * @return a List of {@see Enrollment}
-   */
-  List<Enrollment> getByProgramAndTrackedEntity(
-      List<Pair<Program, TrackedEntity>> programTePair, ProgramStatus programStatus);
 }

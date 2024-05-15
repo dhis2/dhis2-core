@@ -30,7 +30,6 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -43,13 +42,11 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -73,30 +70,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Event.class, aclService, false);
-  }
-
-  @Override
-  public List<Event> get(Collection<Enrollment> enrollments, EventStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("status"), status))
-            .addPredicate(root -> root.get("enrollment").in(enrollments)));
-  }
-
-  @Override
-  public List<Event> get(TrackedEntity trackedEntity, EventStatus status) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("status"), status))
-            .addPredicate(
-                root ->
-                    builder.equal(root.join("enrollment").get("trackedEntity"), trackedEntity)));
   }
 
   @Override

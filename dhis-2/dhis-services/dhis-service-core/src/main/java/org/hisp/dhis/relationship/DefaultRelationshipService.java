@@ -66,12 +66,6 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean relationshipExists(String uid) {
-    return relationshipStore.getByUid(uid) != null;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public boolean relationshipExistsIncludingDeleted(String uid) {
     return relationshipStore.existsIncludingDeleted(uid);
   }
@@ -84,12 +78,6 @@ public class DefaultRelationshipService implements RelationshipService {
     relationshipStore.save(relationship);
 
     return relationship.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateRelationship(Relationship relationship) {
-    relationshipStore.update(relationship);
   }
 
   @Override
