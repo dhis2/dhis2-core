@@ -148,11 +148,11 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
   private CommonQueryRequest computeEnrollmentStatus(CommonQueryRequest commonQueryRequest) {
     if (commonQueryRequest.hasProgramStatus() || commonQueryRequest.hasEnrollmentStatus()) {
       // merging programStatus and enrollmentStatus into a single set
-      Set<String> programStatuses = new LinkedHashSet<>();
-      programStatuses.addAll(commonQueryRequest.getProgramStatus());
-      programStatuses.addAll(commonQueryRequest.getEnrollmentStatus());
+      Set<String> enrollmentStatuses = new LinkedHashSet<>();
+      enrollmentStatuses.addAll(commonQueryRequest.getProgramStatus());
+      enrollmentStatuses.addAll(commonQueryRequest.getEnrollmentStatus());
 
-      commonQueryRequest.getDimension().addAll(programStatusAsDimension(programStatuses));
+      commonQueryRequest.getDimension().addAll(programStatusAsDimension(enrollmentStatuses));
     }
     return commonQueryRequest;
   }
