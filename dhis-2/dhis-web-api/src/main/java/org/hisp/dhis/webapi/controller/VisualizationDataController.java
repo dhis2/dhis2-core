@@ -66,7 +66,7 @@ import org.hisp.dhis.visualization.VisualizationGridService;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.jfree.chart.ChartUtils;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -247,7 +247,7 @@ public class VisualizationDataController {
           filename,
           attachment);
 
-      ChartUtils.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
+      ChartUtilities.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
     } else {
       response.setContentType(CONTENT_TYPE_JSON);
       renderService.toJson(response.getOutputStream(), getVisualizationGrid(uid, ou, date));
@@ -287,7 +287,7 @@ public class VisualizationDataController {
         "chart.png",
         attachment);
 
-    ChartUtils.writeChartAsPNG(response.getOutputStream(), chart, width, height);
+    ChartUtilities.writeChartAsPNG(response.getOutputStream(), chart, width, height);
   }
 
   @GetMapping(value = {"/visualizations/history/data", "/visualizations/history/data.png"})
@@ -348,7 +348,7 @@ public class VisualizationDataController {
             13,
             i18nManager.getI18nFormat());
 
-    ChartUtils.writeChartAsPNG(response.getOutputStream(), chart, width, height);
+    ChartUtilities.writeChartAsPNG(response.getOutputStream(), chart, width, height);
   }
 
   /**
