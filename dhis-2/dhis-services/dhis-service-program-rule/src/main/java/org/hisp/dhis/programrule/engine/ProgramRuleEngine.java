@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,152 +27,22 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.rules.api.RuleEngine;
-import org.hisp.dhis.rules.api.RuleEngineContext;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
-/**
- * @author Zubair Asghar
- */
-@Slf4j
-@RequiredArgsConstructor
-public class ProgramRuleEngine {
-  private static final String ERROR = "Program cannot be null";
-
-  private final ProgramRuleEntityMapperService programRuleEntityMapperService;
-
-  private final ProgramRuleVariableService programRuleVariableService;
-
-  private final ConstantService constantService;
-
-  private final ImplementableRuleService implementableRuleService;
-
-  private final SupplementaryDataProvider supplementaryDataProvider;
-
-  private final RuleEngine ruleEngine;
-
-  @Deprecated(forRemoval = true, since = "2.41")
-  public List<RuleEffect> evaluateEvent(
-      Enrollment enrollment, Set<Event> events, List<ProgramRule> rules) {
-    return evaluateProgramRules(
-        enrollment,
-        null,
-        enrollment.getProgram(),
-        Collections.emptyList(),
-        getRuleEvents(events, null),
-        rules);
-  }
-
-  @Deprecated(forRemoval = true, since = "2.41")
-  public List<RuleEffect> evaluateEvent(
-      Enrollment enrollment, Event event, Set<Event> events, List<ProgramRule> rules) {
-    return evaluateProgramRules(
-        enrollment,
-        event,
-        enrollment.getProgram(),
-        Collections.emptyList(),
-        getRuleEvents(events, event),
-        rules);
-  }
-
-  @Deprecated(forRemoval = true, since = "2.41")
-  public List<RuleEffect> evaluateProgramEvent(
-      Event event, Program program, List<ProgramRule> rules) {
-    return evaluateProgramRules(
-        null, null, program, List.of(), getRuleEvents(Set.of(event), null), rules);
-  }
-
-  public List<RuleEffects> evaluateEnrollmentAndEvents(
+public interface ProgramRuleEngine {
+  List<RuleEffects> evaluateEnrollmentAndEvents(
       Enrollment enrollment,
       Set<Event> events,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    List<ProgramRule> rules =
-        getProgramRules(
-            enrollment.getProgram(),
-            events.stream().map(Event::getProgramStage).distinct().toList());
-    return evaluateProgramRulesForMultipleTrackerObjects(
-        getRuleEnrollment(enrollment, trackedEntityAttributeValues),
-        enrollment.getProgram(),
-        getRuleEvents(events, null),
-        rules);
-  }
+      List<TrackedEntityAttributeValue> trackedEntityAttributeValues);
 
-  public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
-    List<ProgramRule> rules = getProgramRules(program);
-    return evaluateProgramRulesForMultipleTrackerObjects(
-        null, program, getRuleEvents(events, null), rules);
-  }
-
-  private List<RuleEffect> evaluateProgramRules(
-      Enrollment enrollment,
-      Event event,
-      Program program,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
-      List<RuleEvent> ruleEvents,
-      List<ProgramRule> rules) {
-
-    try {
-      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
-
-      return getRuleEngineEvaluation(
-          ruleEngineContext, enrollment, event, ruleEvents, trackedEntityAttributeValues);
-    } catch (Exception e) {
-      log.error(DebugUtils.getStackTrace(e));
-      return Collections.emptyList();
-    }
-  }
-
-  private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
-      RuleEnrollment ruleEnrollment,
-      Program program,
-      List<RuleEvent> ruleEvents,
-      List<ProgramRule> rules) {
-    try {
-      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
-      return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
-    } catch (Exception e) {
-      log.error(DebugUtils.getStackTrace(e));
-      return Collections.emptyList();
-    }
-  }
-
-  public List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
-    if (programStage.isEmpty()) {
-      return implementableRuleService.getProgramRules(program, null);
-    }
-
-    Set<ProgramRule> programRules =
-        programStage.stream()
-            .flatMap(ps -> implementableRuleService.getProgramRules(program, ps.getUid()).stream())
-            .collect(Collectors.toSet());
-
-    return List.copyOf(programRules);
-  }
-
-  public List<ProgramRule> getProgramRules(Program program) {
-    return implementableRuleService.getProgramRules(program, null);
-  }
+  List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program);
 
   /**
    * To getDescription rule condition in order to fetch its description
@@ -181,17 +51,7 @@ public class ProgramRuleEngine {
    * @param program {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  public RuleValidationResult getDescription(String condition, Program program) {
-    if (program == null) {
-      log.error(ERROR);
-      return RuleValidationResult.invalid(ERROR);
-    }
-
-    return ruleEngine.validate(
-        condition,
-        programRuleEntityMapperService.getItemStore(
-            programRuleVariableService.getProgramRuleVariable(program)));
-  }
+  RuleValidationResult getDescription(String condition, Program program);
 
   /**
    * To get description for program rule action data field.
@@ -200,68 +60,5 @@ public class ProgramRuleEngine {
    * @param program {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  public RuleValidationResult getDataExpressionDescription(String dataExpression, Program program) {
-    if (program == null) {
-      log.error(ERROR);
-      return RuleValidationResult.invalid(ERROR);
-    }
-
-    return ruleEngine.validateDataFieldExpression(
-        dataExpression,
-        programRuleEntityMapperService.getItemStore(
-            programRuleVariableService.getProgramRuleVariable(program)));
-  }
-
-  private RuleEngineContext getRuleEngineContext(Program program, List<ProgramRule> programRules) {
-    List<ProgramRuleVariable> programRuleVariables =
-        programRuleVariableService.getProgramRuleVariable(program);
-
-    Map<String, String> constantMap =
-        constantService.getConstantMap().entrySet().stream()
-            .collect(
-                Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
-
-    Map<String, List<String>> supplementaryData =
-        supplementaryDataProvider.getSupplementaryData(programRules);
-
-    return new RuleEngineContext(
-        programRuleEntityMapperService.toMappedProgramRules(programRules),
-        programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
-        supplementaryData,
-        constantMap);
-  }
-
-  private RuleEvent getRuleEvent(Event event) {
-    return programRuleEntityMapperService.toMappedRuleEvent(event);
-  }
-
-  private List<RuleEvent> getRuleEvents(Set<Event> events, Event event) {
-    return programRuleEntityMapperService.toMappedRuleEvents(events, event);
-  }
-
-  private RuleEnrollment getRuleEnrollment(
-      Enrollment enrollment, List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    return programRuleEntityMapperService.toMappedRuleEnrollment(
-        enrollment, trackedEntityAttributeValues);
-  }
-
-  private List<RuleEffect> getRuleEngineEvaluation(
-      RuleEngineContext ruleEngineContext,
-      Enrollment enrollment,
-      Event event,
-      List<RuleEvent> ruleEvents,
-      List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    if (event == null) {
-      return ruleEngine.evaluate(
-          getRuleEnrollment(enrollment, trackedEntityAttributeValues),
-          ruleEvents,
-          ruleEngineContext);
-    } else {
-      return ruleEngine.evaluate(
-          getRuleEvent(event),
-          getRuleEnrollment(enrollment, trackedEntityAttributeValues),
-          ruleEvents,
-          ruleEngineContext);
-    }
-  }
+  RuleValidationResult getDataExpressionDescription(String dataExpression, Program program);
 }
