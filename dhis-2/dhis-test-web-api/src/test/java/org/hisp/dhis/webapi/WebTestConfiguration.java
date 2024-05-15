@@ -106,6 +106,7 @@ import org.springframework.transaction.annotation.Transactional;
   org.hisp.dhis.setting.config.ServiceConfig.class,
   org.hisp.dhis.external.config.ServiceConfig.class,
   org.hisp.dhis.dxf2.config.ServiceConfig.class,
+  org.hisp.dhis.programrule.config.ServiceConfig.class,
   org.hisp.dhis.support.config.ServiceConfig.class,
   org.hisp.dhis.validation.config.ServiceConfig.class,
   org.hisp.dhis.validation.config.StoreConfig.class,
