@@ -362,7 +362,7 @@ public class ApiFinalise {
   }
 
   private Api.Schema generateIdObject(Api.Schema of) {
-    Class<?> schemaType = of.getRawType();
+    Class<?> schemaType = of.getIdentifiableAs();
     Api.Schema object = Api.Schema.ofObject(of.getSource(), schemaType);
     Map<Class<?>, Api.Schema> idSchemas = api.getGeneratorSchemas().get(UID.class);
 

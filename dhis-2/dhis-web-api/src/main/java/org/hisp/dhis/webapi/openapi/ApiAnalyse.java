@@ -103,9 +103,47 @@ final class ApiAnalyse {
    *
    * @param controllers controllers all potential controllers
    * @param paths filter based on resource path (empty includes all)
-   * @param tags filter based on tags (empty includes all)
+   * @param domains filter based on {@link OpenApi.Document#domain()} (empty includes all)
    */
-  record Scope(Set<Class<?>> controllers, Set<String> paths, Set<String> tags) {}
+  record Scope(Set<Class<?>> controllers, Set<String> paths, Set<String> domains) {
+
+    boolean includes(Class<?> controller) {
+      if (!isControllerType(controller)) return false;
+      if (!controllers.contains(controller)) return false;
+      if (paths.isEmpty() && domains.isEmpty()) return true;
+      if (!paths.isEmpty() && paths(controller).noneMatch(paths::contains)) return false;
+      Class<?> domain = domain(controller);
+      return domains.isEmpty()
+          || domains.contains(domain.getName())
+          || domains.contains(domain.getSimpleName());
+    }
+
+    private static boolean isControllerType(Class<?> source) {
+      return (source.isAnnotationPresent(RestController.class)
+              || source.isAnnotationPresent(Controller.class))
+          && !source.isAnnotationPresent(OpenApi.Ignore.class);
+    }
+
+    private static Stream<String> paths(Class<?> controller) {
+      RequestMapping a = controller.getAnnotation(RequestMapping.class);
+      return a == null
+          ? Stream.empty()
+          : stream(firstNonEmpty(a.value(), a.path()))
+              .map(path -> path.startsWith("/api/") ? path.substring(4) : path);
+    }
+
+    private static Class<?> domain(Class<?> controller) {
+      OpenApi.Document doc = controller.getAnnotation(OpenApi.Document.class);
+      Class<?> domain = OpenApi.EntityType.class;
+      if (doc != null) {
+        domain = doc.domain();
+      }
+      if (domain == OpenApi.EntityType.class) {
+        domain = OpenApiAnnotations.getEntityType(controller);
+      }
+      return domain == null ? Object.class : domain;
+    }
+  }
 
   private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
 
@@ -132,21 +170,9 @@ final class ApiAnalyse {
    */
   public static Api analyseApi(Scope scope) {
     Api api = new Api();
-    Stream<Class<?>> inScope = scope.controllers.stream().filter(ApiAnalyse::isControllerType);
-    Set<String> paths = scope.paths;
-    if (paths != null && !paths.isEmpty()) {
-      inScope = inScope.filter(c -> isRootPath(c, paths));
-    }
-    Set<String> tags = scope.tags;
-    if (tags != null && !tags.isEmpty()) {
-      inScope =
-          inScope.filter(
-              c ->
-                  c.isAnnotationPresent(OpenApi.Tags.class)
-                      && Stream.of(c.getAnnotation(OpenApi.Tags.class).value())
-                          .anyMatch(tags::contains));
-    }
-    inScope.forEach(source -> api.getControllers().add(analyseController(api, source)));
+    scope.controllers.stream()
+        .filter(scope::includes)
+        .forEach(source -> api.getControllers().add(analyseController(api, source)));
     return api;
   }
 
@@ -735,12 +761,6 @@ final class ApiAnalyse {
     return type;
   }
 
-  private static boolean isControllerType(Class<?> source) {
-    return (source.isAnnotationPresent(RestController.class)
-            || source.isAnnotationPresent(Controller.class))
-        && !source.isAnnotationPresent(OpenApi.Ignore.class);
-  }
-
   /**
    * @return is this a parameter objects with properties which are parameters?
    */
@@ -756,11 +776,6 @@ final class ApiAnalyse {
         || source.isAnnotationPresent(OpenApi.Ignore.class)
         || !(source.getParameterizedType() instanceof Class)) return false;
     return stream(type.getDeclaredConstructors()).anyMatch(c -> c.getParameterCount() == 0);
-  }
-
-  private static boolean isRootPath(Class<?> controller, Set<String> included) {
-    RequestMapping a = controller.getAnnotation(RequestMapping.class);
-    return a != null && stream(firstNonEmpty(a.value(), a.path())).anyMatch(included::contains);
   }
 
   private static EndpointMapping getMapping(Method source) {

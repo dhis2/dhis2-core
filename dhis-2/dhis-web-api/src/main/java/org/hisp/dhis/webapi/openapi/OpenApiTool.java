@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.webapi.openapi.JsonGenerator.Format.PRETTY_PRINT;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -39,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.spi.ToolProvider;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -53,9 +53,18 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
  * <p>The application is also provided as {@link ToolProvider} to be more accessible in CI build
  * chains.
  *
+ * <p>Options:
+ *
+ * <pre>
+ *     [--group]
+ *     [--print]
+ *     [--scope domain...]
+ * </pre>
+ *
  * @author Jan Bernitt
  */
 public class OpenApiTool implements ToolProvider {
+
   public static void main(String[] args) {
     int errorCode = new OpenApiTool().run(System.out, System.err, args);
     if (errorCode != 0) System.exit(errorCode);
@@ -74,31 +83,14 @@ public class OpenApiTool implements ToolProvider {
       out.println("  generate multiple files where controllers are grouped by tag");
       return -1;
     }
-    String root =
-        AbstractCrudController.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-    Set<Class<?>> classes;
-    try (Stream<Path> files = Files.walk(Path.of(root))) {
-      classes =
-          files
-              .filter(f -> f.getFileName().toString().endsWith("Controller.class"))
-              .map(OpenApiTool::toClassName)
-              .map(OpenApiTool::toClass)
-              .filter(
-                  c ->
-                      !Modifier.isAbstract(c.getModifiers())
-                          && !c.isMemberClass()
-                          && !c.isLocalClass())
-              .collect(toSet());
-    } catch (IOException ex) {
-      ex.printStackTrace(err);
-      return -1;
-    }
-    if (classes.isEmpty()) {
+    Set<Class<?>> controllers = findControllerClasses(err);
+    if (controllers == null) return -1;
+    if (controllers.isEmpty()) {
       err.println("Controller classes need to be compiled first");
       return -1;
     }
     Set<String> paths = new HashSet<>();
-    Set<String> tags = new HashSet<>();
+    Set<String> domains = new HashSet<>();
     boolean group = false;
     for (int i = 0; i < args.length - 1; i++) {
       String arg = args[i];
@@ -113,42 +105,46 @@ public class OpenApiTool implements ToolProvider {
       } else if (arg.startsWith("/")) {
         paths.add(arg);
       } else {
-        tags.add(arg);
+        domains.add(arg);
       }
     }
     out.println("Generated Documents");
     String filename = args[args.length - 1];
-    ApiAnalyse.Scope scope = new ApiAnalyse.Scope(classes, paths, tags);
+    ApiAnalyse.Scope scope = new ApiAnalyse.Scope(controllers, paths, domains);
     if (!group) {
-      BiFunction<Api, OpenApiGenerator.Info, String> generator =
-          filename.endsWith(".json")
-              ? (api, config) ->
-                  OpenApiGenerator.generateJson(api, JsonGenerator.Format.PRETTY_PRINT, config)
-              : (api, config) ->
-                  OpenApiGenerator.generateYaml(api, JsonGenerator.Format.PRETTY_PRINT, config);
-      return generateDocument(filename, out, err, scope, generator);
+      return generateDocument(filename, out, err, scope);
     }
     AtomicInteger errorCode = generateDocumentsFromDocumentAnnotation(filename, out, err, scope);
     return errorCode.get() < 0 ? -1 : 0;
+  }
+
+  @CheckForNull
+  private static Set<Class<?>> findControllerClasses(PrintWriter err) {
+    String root =
+        AbstractCrudController.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    try (Stream<Path> files = Files.walk(Path.of(root))) {
+      return files
+          .filter(f -> f.getFileName().toString().endsWith("Controller.class"))
+          .map(OpenApiTool::toClassName)
+          .map(OpenApiTool::toClass)
+          .filter(
+              c ->
+                  !Modifier.isAbstract(c.getModifiers()) && !c.isMemberClass() && !c.isLocalClass())
+          .collect(toSet());
+    } catch (IOException ex) {
+      ex.printStackTrace(err);
+      return null;
+    }
   }
 
   private AtomicInteger generateDocumentsFromDocumentAnnotation(
       String to, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
     Map<String, Set<Class<?>>> byDoc = new TreeMap<>();
     scope.controllers().stream()
-        .filter(cls -> !cls.isAnnotationPresent(OpenApi.Ignore.class))
+        .filter(scope::includes)
         .forEach(
             cls -> byDoc.computeIfAbsent(getDocumentName(cls), key -> new HashSet<>()).add(cls));
     return generateDocumentsFromGroups(to, out, err, scope, byDoc);
-  }
-
-  private AtomicInteger generateDocumentsFromTagAnnotation(
-      String to, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
-    Map<String, Set<Class<?>>> byTag = new TreeMap<>();
-    scope.controllers().stream()
-        .filter(cls -> !cls.isAnnotationPresent(OpenApi.Ignore.class))
-        .forEach(cls -> byTag.computeIfAbsent(getMainTag(cls), key -> new HashSet<>()).add(cls));
-    return generateDocumentsFromGroups(to, out, err, scope, byTag);
   }
 
   private AtomicInteger generateDocumentsFromGroups(
@@ -165,37 +161,29 @@ public class OpenApiTool implements ToolProvider {
     String fileExtension = to.endsWith(".yaml") ? ".yaml" : ".json";
 
     AtomicInteger errorCode = new AtomicInteger(0);
-    BiFunction<Api, OpenApiGenerator.Info, String> generator =
-        fileExtension.equals(".yaml")
-            ? (api, config) ->
-                OpenApiGenerator.generateYaml(api, JsonGenerator.Format.PRETTY_PRINT, config)
-            : (api, config) ->
-                OpenApiGenerator.generateJson(api, JsonGenerator.Format.PRETTY_PRINT, config);
     groups.forEach(
-        (tag, classes) -> {
-          String filename = dir + "/openapi-" + tag + fileExtension;
+        (name, classes) -> {
+          String filename = dir + "/openapi-" + name + fileExtension;
           errorCode.addAndGet(
               generateDocument(
                   filename,
                   out,
                   err,
-                  new ApiAnalyse.Scope(classes, scope.paths(), scope.tags()),
-                  generator));
+                  new ApiAnalyse.Scope(classes, scope.paths(), scope.domains())));
         });
     return errorCode;
   }
 
   private Integer generateDocument(
-      String filename,
-      PrintWriter out,
-      PrintWriter err,
-      ApiAnalyse.Scope scope,
-      BiFunction<Api, OpenApiGenerator.Info, String> generator) {
+      String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
     try {
       Api api = ApiAnalyse.analyseApi(scope);
 
       ApiFinalise.finaliseApi(
           api, ApiFinalise.Configuration.builder().failOnNameClash(true).build());
+
+      OpenApiComponentsRefs.print(api, out);
+
       Path file = Path.of(filename);
       String title =
           file.getFileName()
@@ -205,7 +193,10 @@ public class OpenApiTool implements ToolProvider {
               .replace(".json", "");
       OpenApiGenerator.Info info =
           OpenApiGenerator.Info.DEFAULT.toBuilder().title("DHIS2 API - " + title).build();
-      String doc = generator.apply(api, info);
+      String doc =
+          filename.endsWith(".json")
+              ? OpenApiGenerator.generateJson(api, PRETTY_PRINT, info)
+              : OpenApiGenerator.generateYaml(api, PRETTY_PRINT, info);
       Path output = Files.writeString(file, doc);
       int controllers = api.getControllers().size();
       int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();

@@ -122,6 +122,21 @@ public @interface OpenApi {
   }
 
   /**
+   * Used to annotate data types that are not {@link IdentifiableObject}s but that represent a one
+   * (e.g. a projection of an {@link IdentifiableObject} or DTO used in the API).
+   */
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.TYPE)
+  @interface Identifiable {
+    /**
+     * @return the original {@link IdentifiableObject} type the annotated type represents, e.g. a
+     *     UserDTO would refer to User
+     */
+    Class<? extends IdentifiableObject> as();
+  }
+
+  /**
    * When annotated on type level the tags are added to all endpoints of the controller.
    *
    * <p>When annotated on method level the tags are added to the annotated endpoint (operation).

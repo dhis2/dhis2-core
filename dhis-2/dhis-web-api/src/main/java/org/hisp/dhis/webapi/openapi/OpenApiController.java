@@ -47,7 +47,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = OpenApi.class)
 @RestController
 @RequestMapping("/api")
 @AllArgsConstructor
@@ -98,7 +98,7 @@ public class OpenApiController {
   @GetMapping(value = "/openapi/openapi.yaml", produces = APPLICATION_X_YAML)
   public void getOpenApiYaml(
       @RequestParam(required = false) Set<String> path,
-      @RequestParam(required = false) Set<String> tag,
+      @RequestParam(required = false) Set<String> domain,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
       @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
@@ -107,7 +107,7 @@ public class OpenApiController {
         request,
         response,
         path,
-        tag,
+        domain,
         failOnNameClash,
         failOnInconsistency,
         APPLICATION_X_YAML,
@@ -156,7 +156,7 @@ public class OpenApiController {
   @GetMapping(value = "/openapi/openapi.json", produces = APPLICATION_JSON_VALUE)
   public void getOpenApiJson(
       @RequestParam(required = false) Set<String> path,
-      @RequestParam(required = false) Set<String> tag,
+      @RequestParam(required = false) Set<String> domain,
       @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
       @RequestParam(required = false, defaultValue = "false") boolean failOnInconsistency,
       HttpServletRequest request,
@@ -165,7 +165,7 @@ public class OpenApiController {
         request,
         response,
         path,
-        tag,
+        domain,
         failOnNameClash,
         failOnInconsistency,
         APPLICATION_JSON_VALUE,
@@ -176,12 +176,13 @@ public class OpenApiController {
       HttpServletRequest request,
       HttpServletResponse response,
       Set<String> paths,
-      Set<String> tags,
+      Set<String> domains,
       boolean failOnNameClash,
       boolean failOnInconsistency,
       String contentType,
       BiFunction<Api, String, String> writer) {
-    Api api = ApiAnalyse.analyseApi(new ApiAnalyse.Scope(getAllControllerClasses(), paths, tags));
+    Api api =
+        ApiAnalyse.analyseApi(new ApiAnalyse.Scope(getAllControllerClasses(), paths, domains));
 
     ApiFinalise.finaliseApi(
         api,

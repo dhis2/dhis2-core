@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -300,6 +301,7 @@ public class DataApproval implements Serializable {
     this.lastUpdated = lastUpdated;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)

@@ -55,7 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Tags({"user", "query"})
+@OpenApi.Document(domain = User.class)
 @RestController
 @RequestMapping("/api/userLookup")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

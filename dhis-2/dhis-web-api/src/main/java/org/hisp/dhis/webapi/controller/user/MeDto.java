@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
@@ -51,6 +52,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 @Getter
 @Setter
+@OpenApi.Identifiable(as = User.class)
 public class MeDto {
   public MeDto(
       User user,

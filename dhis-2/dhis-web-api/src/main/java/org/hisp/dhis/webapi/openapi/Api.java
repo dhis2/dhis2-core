@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -371,18 +372,18 @@ public class Api {
   public static class Schema {
 
     public static Schema ofUnsupported(java.lang.reflect.Type source) {
-      return new Schema(Type.UNSUPPORTED, source, Object.class, false);
+      return new Schema(Type.UNSUPPORTED, source, Object.class, null);
     }
 
     public static Schema ofUID(Class<?> of) {
-      return new Schema(Type.UID, of, of, false);
+      return new Schema(Type.UID, of, of, null);
     }
 
     public static Schema ofOneOf(List<Class<?>> types, Function<Class<?>, Schema> toSchema) {
       if (types.size() == 1) {
         return toSchema.apply(types.get(0));
       }
-      Schema oneOf = new Schema(Type.ONE_OF, Object.class, Object.class, false);
+      Schema oneOf = new Schema(Type.ONE_OF, Object.class, Object.class, null);
       types.forEach(
           type ->
               oneOf.addProperty(
@@ -391,7 +392,7 @@ public class Api {
     }
 
     public static Schema ofEnum(Class<?> source, Class<?> of, List<String> values) {
-      Schema schema = new Schema(Type.ENUM, source, of, false);
+      Schema schema = new Schema(Type.ENUM, source, of, null);
       schema.getValues().addAll(values);
       return schema;
     }
@@ -401,7 +402,7 @@ public class Api {
     }
 
     public static Schema ofObject(java.lang.reflect.Type source, Class<?> rawType) {
-      return new Schema(Type.OBJECT, source, rawType, isIdentifiable(rawType));
+      return new Schema(Type.OBJECT, source, rawType, identifiableAs(rawType));
     }
 
     public static Schema ofArray(Class<?> type) {
@@ -409,17 +410,20 @@ public class Api {
     }
 
     public static Schema ofArray(java.lang.reflect.Type source, Class<?> rawType) {
-      return new Schema(Type.ARRAY, source, rawType, false);
+      return new Schema(Type.ARRAY, source, rawType, null);
     }
 
     public static Schema ofSimple(Class<?> type) {
-      return new Schema(Type.SIMPLE, type, type, false);
+      return new Schema(Type.SIMPLE, type, type, null);
     }
 
-    private static boolean isIdentifiable(Class<?> type) {
-      return IdentifiableObject.class.isAssignableFrom(type)
-          && type != Period.class
-          && !EmbeddedObject.class.isAssignableFrom(type);
+    @SuppressWarnings("unchecked")
+    private static Class<? extends IdentifiableObject> identifiableAs(Class<?> type) {
+      if (type == Period.class || EmbeddedObject.class.isAssignableFrom(type)) return null;
+      if (type.isAnnotationPresent(OpenApi.Identifiable.class))
+        return type.getAnnotation(OpenApi.Identifiable.class).as();
+      if (!IdentifiableObject.class.isAssignableFrom(type)) return null;
+      return (Class<? extends IdentifiableObject>) type;
     }
 
     public enum Type {
@@ -438,11 +442,7 @@ public class Api {
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
 
-    /**
-     * True for object schemas that have an identifier that can reference to a persisted object
-     * value.
-     */
-    boolean identifiable;
+    @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifiableAs;
 
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();
@@ -485,6 +485,14 @@ public class Api {
 
     public boolean isUniversal() {
       return !direction.isPresent();
+    }
+
+    /**
+     * True for object schemas that have an identifier that can reference to a persisted object
+     * value.
+     */
+    public boolean isIdentifiable() {
+      return identifiableAs != null;
     }
 
     Set<String> getRequiredProperties() {

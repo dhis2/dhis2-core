@@ -88,8 +88,8 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testGetOpenApiDocument_TagFilter() {
-    JsonObject doc = GET("/openapi/openapi.json?tag=user").content();
+  void testGetOpenApiDocument_DomainFilter() {
+    JsonObject doc = GET("/openapi/openapi.json?domain=User").content();
     assertTrue(doc.isObject());
     assertTrue(
         doc.getObject("paths")
