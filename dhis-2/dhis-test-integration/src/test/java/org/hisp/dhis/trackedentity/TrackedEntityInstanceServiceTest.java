@@ -296,32 +296,17 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
 
   @Test
   void testTrackedEntityAttributeFilter() {
-    injectSecurityContext(superUser);
-    trackedEntityAttribute.setDisplayInListNoProgram(true);
-    attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-
-    User user =
-        createAndAddUser(
-            false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContext(user);
-
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
-
-    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-
-    trackedEntityAttributeValue.setAttribute(trackedEntityAttribute);
-    trackedEntityAttributeValue.setEntityInstance(entityInstanceA1);
-    trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
-
-    attributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
-
-    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-    params.setOrganisationUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
+    TrackedEntityInstanceQueryParams params = getTrackedEntityInstanceParams();
     params.setPrograms(List.of(program));
+
+    Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
+
+    assertEquals(1, grid.getHeight());
+  }
+
+  @Test
+  void testTrackedEntityAttributeFilterWhenProgramNotProvided() {
+    TrackedEntityInstanceQueryParams params = getTrackedEntityInstanceParams();
 
     Grid grid = entityInstanceService.getTrackedEntityInstancesGrid(params);
 
@@ -882,6 +867,17 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldCountOneEntityWhenOnePresentAndNoProgramProvided() {
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+
+    int counter = entityInstanceService.getTrackedEntityInstanceCount(params, true, true);
+
+    assertEquals(1, counter);
+  }
+
+  @Test
   void shouldCountZeroEntitiesWhenNonePresent() {
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
     params.setPrograms(List.of(program));
@@ -989,6 +985,36 @@ class TrackedEntityInstanceServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceD1.getId()),
         trackedEntities);
+  }
+
+  private TrackedEntityInstanceQueryParams getTrackedEntityInstanceParams() {
+    injectSecurityContext(superUser);
+    trackedEntityAttribute.setDisplayInListNoProgram(true);
+    attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
+
+    User user =
+        createAndAddUser(
+            false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
+    injectSecurityContext(user);
+
+    entityInstanceA1.setTrackedEntityType(trackedEntityType);
+    entityInstanceService.addTrackedEntityInstance(entityInstanceA1);
+
+    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+
+    trackedEntityAttributeValue.setAttribute(trackedEntityAttribute);
+    trackedEntityAttributeValue.setEntityInstance(entityInstanceA1);
+    trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
+
+    attributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnits(Set.of(organisationUnit));
+    params.setTrackedEntityType(trackedEntityType);
+
+    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
+
+    return params;
   }
 
   private void initializeEntityInstance(TrackedEntityInstance entityInstance) {
