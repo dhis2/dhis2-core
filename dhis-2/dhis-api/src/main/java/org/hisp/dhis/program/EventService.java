@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -59,14 +58,6 @@ public interface EventService {
   void updateEvent(Event event);
 
   /**
-   * Updates a last sync timestamp on specified events
-   *
-   * @param eventUids UIDs of events where the lastSynchronized flag should be updated
-   * @param lastSynchronized The date of last successful sync
-   */
-  void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized);
-
-  /**
    * Checks whether an {@link Event} with the given identifier exists. Doesn't take into account the
    * deleted values.
    *
@@ -81,14 +72,6 @@ public interface EventService {
    * @param uid the identifier.
    */
   boolean eventExistsIncludingDeleted(String uid);
-
-  /**
-   * Returns UIDs of existing events (including deleted) from the provided UIDs
-   *
-   * @param uids event UIDs to check
-   * @return Set containing UIDs of existing events (including deleted)
-   */
-  List<String> getEventUidsIncludingDeleted(List<String> uids);
 
   /**
    * Returns an {@link Event}.

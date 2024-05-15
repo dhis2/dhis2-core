@@ -139,22 +139,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
   }
 
   @Override
-  public List<String> getUidsIncludingDeleted(List<String> uids) {
-    final String hql = "select ev.uid " + EVENT_HQL_BY_UIDS;
-    List<String> resultUids = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        resultUids.addAll(
-            getSession().createQuery(hql, String.class).setParameter("uids", uidsPartition).list());
-      }
-    }
-
-    return resultUids;
-  }
-
-  @Override
   public List<Event> getIncludingDeleted(List<String> uids) {
     List<Event> events = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
@@ -170,16 +154,6 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     }
 
     return events;
-  }
-
-  @Override
-  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
-    String hql = "update Event set lastSynchronized = :lastSynchronized WHERE uid in :events";
-
-    getQuery(hql)
-        .setParameter("lastSynchronized", lastSynchronized)
-        .setParameter("events", eventUids)
-        .executeUpdate();
   }
 
   @Override

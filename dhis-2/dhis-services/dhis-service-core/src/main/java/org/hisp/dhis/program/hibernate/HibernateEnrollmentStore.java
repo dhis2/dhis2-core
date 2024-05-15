@@ -65,7 +65,6 @@ import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -96,21 +95,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, Enrollment.class, aclService, true);
-  }
-
-  @Override
-  public int countEnrollments(EnrollmentQueryParams params) {
-    String hql = buildCountEnrollmentHql(params);
-
-    Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().intValue();
-  }
-
-  private String buildCountEnrollmentHql(EnrollmentQueryParams params) {
-    return buildEnrollmentHql(params)
-        .getQuery()
-        .replaceFirst("from Enrollment en", "select count(distinct uid) from Enrollment en");
   }
 
   @Override
@@ -308,22 +292,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<String> getUidsIncludingDeleted(List<String> uids) {
-    String hql = "select en.uid " + PI_HQL_BY_UIDS;
-    List<String> resultUids = new ArrayList<>();
-    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
-
-    for (List<String> uidsPartition : uidsPartitions) {
-      if (!uidsPartition.isEmpty()) {
-        resultUids.addAll(
-            getSession().createQuery(hql, String.class).setParameter("uids", uidsPartition).list());
-      }
-    }
-
-    return resultUids;
-  }
-
-  @Override
   public List<Enrollment> getIncludingDeleted(List<String> uids) {
     List<Enrollment> enrollments = new ArrayList<>();
     List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
@@ -382,16 +350,6 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     return getList(
         builder,
         newJpaParameters().addPredicate(root -> builder.in(root.get("program")).value(programs)));
-  }
-
-  @Override
-  public List<Enrollment> getByType(ProgramType type) {
-    String hql = "select en from Enrollment pi join fetch pi.program p where p.programType = :type";
-
-    Query<Enrollment> query = getQuery(hql);
-    query.setParameter("type", type);
-
-    return query.list();
   }
 
   @Override
