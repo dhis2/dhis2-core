@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
@@ -121,6 +122,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   }
 
   @Override
+  @NonTransactional
   public List<MinMaxDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
     return minMaxDataElementStore.getAllByDataElement(dataElements);
   }

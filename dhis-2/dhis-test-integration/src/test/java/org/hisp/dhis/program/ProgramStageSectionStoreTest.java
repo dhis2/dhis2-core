@@ -61,8 +61,6 @@ class ProgramStageSectionStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private ProgramStageService programStageService;
 
-  @Autowired private ProgramStageSectionService programStageSectionService;
-
   @Autowired private ProgramStageDataElementService programStageDataElementService;
 
   @Autowired private IdentifiableObjectManager manager;
