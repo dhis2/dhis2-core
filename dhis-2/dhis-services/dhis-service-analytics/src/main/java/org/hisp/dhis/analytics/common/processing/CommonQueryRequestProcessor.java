@@ -55,6 +55,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
@@ -70,7 +71,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
   private static final Predicate<String> IS_EVENT_STATUS =
       s -> find(() -> EventStatus.valueOf(s)).isPresent();
   private static final Predicate<String> IS_ENROLLMENT_STATUS =
-      s -> find(() -> EnrollmentStatus.valueOf(s)).isPresent();
+      s -> find(() -> ProgramStatus.valueOf(s)).isPresent();
 
   /**
    * Tries to get a value from the given supplier, and returns an Optional with the value if
@@ -147,11 +148,11 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
   private CommonQueryRequest computeEnrollmentStatus(CommonQueryRequest commonQueryRequest) {
     if (commonQueryRequest.hasProgramStatus() || commonQueryRequest.hasEnrollmentStatus()) {
       // merging programStatus and enrollmentStatus into a single set
-      Set<String> enrollmentStatuses = new LinkedHashSet<>();
-      enrollmentStatuses.addAll(commonQueryRequest.getProgramStatus());
-      enrollmentStatuses.addAll(commonQueryRequest.getEnrollmentStatus());
+      Set<String> programStatuses = new LinkedHashSet<>();
+      programStatuses.addAll(commonQueryRequest.getProgramStatus());
+      programStatuses.addAll(commonQueryRequest.getEnrollmentStatus());
 
-      commonQueryRequest.getDimension().addAll(enrollmentStatusAsDimension(enrollmentStatuses));
+      commonQueryRequest.getDimension().addAll(programStatusAsDimension(programStatuses));
     }
     return commonQueryRequest;
   }
@@ -206,16 +207,14 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
         .collect(Collectors.toList());
   }
 
-  private List<String> enrollmentStatusAsDimension(Set<String> enrollmentStatuses) {
-    // builds a map of [program] with a list of program (enrollment) statuses
-    Map<String, List<EnrollmentStatus>> statusesByProgram =
-        enrollmentStatuses.stream()
-            .map(
-                enrollmentStatus ->
-                    splitAndValidate(enrollmentStatus, IS_ENROLLMENT_STATUS, 2, E7140))
+  private List<String> programStatusAsDimension(Set<String> programStatuses) {
+    // Builds a map of [program] with a list of program statuses.
+    Map<String, List<ProgramStatus>> statusesByProgram =
+        programStatuses.stream()
+            .map(programStatus -> splitAndValidate(programStatus, IS_ENROLLMENT_STATUS, 2, E7140))
             .map(
                 parts ->
-                    Pair.of(parts[0], find(() -> EnrollmentStatus.valueOf(parts[1])).orElse(null)))
+                    Pair.of(parts[0], find(() -> ProgramStatus.valueOf(parts[1])).orElse(null)))
             .collect(groupingBy(Pair::getLeft, mapping(Pair::getRight, Collectors.toList())));
 
     return statusesByProgram.keySet().stream()
@@ -227,7 +226,7 @@ public class CommonQueryRequestProcessor implements Processor<CommonQueryRequest
                     + DIMENSION_NAME_SEP
                     + statusesByProgram.get(program).stream()
                         .filter(Objects::nonNull)
-                        .map(EnrollmentStatus::name)
+                        .map(ProgramStatus::name)
                         .collect(Collectors.joining(";")))
         .collect(Collectors.toList());
   }
