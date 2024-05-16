@@ -171,9 +171,9 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
 
-    String docroot =
-        "/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/";
-    documentRoot.setDirectory(new File(docroot));
+    //    String docroot =
+    //        "/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/";
+    //    documentRoot.setDirectory(new File(docroot));
 
     String appBase = ".";
     Tomcat tomcat = new Tomcat();
@@ -191,10 +191,10 @@ public class Main {
     Host host = tomcat.getHost();
     host.setAutoDeploy(false);
 
-    File documentRoot = getValidDocumentRoot();
-    if (documentRoot == null) {
-      throw new Exception("Document root is not valid");
-    }
+    //    File documentRoot = getValidDocumentRoot();
+    //    if (documentRoot == null) {
+    //      throw new Exception("Document root is not valid");
+    //    }
 
     TomcatEmbeddedContext context = new TomcatEmbeddedContext();
     TomcatStarter starter = new TomcatStarter();

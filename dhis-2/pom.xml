@@ -264,11 +264,6 @@
       <!--DHIS -->
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-web-portal</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-web-apps</artifactId>
         <version>${project.version}</version>
         <type>war</type>
