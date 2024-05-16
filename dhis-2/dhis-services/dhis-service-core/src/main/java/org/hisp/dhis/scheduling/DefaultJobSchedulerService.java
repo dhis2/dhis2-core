@@ -39,6 +39,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
@@ -96,6 +97,18 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       if (job.getJobType().isUsingContinuousExecution()) {
         jobRunner.runIfDue(job);
       }
+    }
+  }
+
+  @Override
+  @Transactional
+  public void revertNow(@Nonnull UID jobId) throws ConflictException, NotFoundException {
+    if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
+      JobConfiguration job = jobConfigurationStore.getByUid(jobId.getValue());
+      if (job == null) throw new NotFoundException(JobConfiguration.class, jobId.getValue());
+      if (job.getJobStatus() != JobStatus.RUNNING)
+        throw new ConflictException("Job is not running");
+      throw new ConflictException("Failed to transition job from RUNNING state");
     }
   }
 
