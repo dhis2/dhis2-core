@@ -149,7 +149,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build()
               .withName("occurreddate")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("psi.occurrentdate"),
+              .withSelectExpression("psi.occurreddate"),
           AnalyticsTableColumn.builder()
               .build()
               .withName("scheduleddate")
@@ -159,7 +159,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build()
               .withName("completeddate")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("psi.completeteddate"),
+              .withSelectExpression("psi.completeddate"),
           /*
            * DHIS2-14981: Use the client-side timestamp if available, otherwise
            * the server-side timestamp. Applies to both created and lastupdated.
@@ -238,7 +238,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
           AnalyticsTableColumn.builder()
               .build()
               .withName("psigeometry")
-              .withDataType(VARCHAR_50)
+              .withDataType(GEOMETRY)
               .withSelectExpression("psi.geometry")
               .withIndexType(IndexType.GIST),
           // TODO latitude and longitude deprecated in 2.30, remove in 2.33
@@ -298,7 +298,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               .build()
               .withName("enrollmentou")
               .withDataType(CHARACTER_11)
-              .withNullable(NOT_NULL));
+              .withNullable(NOT_NULL)
+              .withSelectExpression("coalesce(enrollmentou.uid,ou.uid)"));
 
   public JdbcEventAnalyticsTableManager(
       IdentifiableObjectManager idObjectManager,

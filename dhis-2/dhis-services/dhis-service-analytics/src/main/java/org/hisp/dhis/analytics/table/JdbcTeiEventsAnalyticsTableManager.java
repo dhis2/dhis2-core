@@ -171,7 +171,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
               .build()
               .withName("psigeometry")
               .withDataType(GEOMETRY)
-              .withSelectExpression("psi.psigeometry")
+              .withSelectExpression("psi.geometry")
               .withIndexType(IndexType.GIST),
           AnalyticsTableColumn.builder()
               .build()
@@ -179,12 +179,6 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
               .withDataType(DOUBLE)
               .withSelectExpression(
                   "case when 'POINT' = GeometryType(psi.geometry) then ST_X(psi.geometry) end"),
-          AnalyticsTableColumn.builder()
-              .build()
-              .withName("psilatitude")
-              .withDataType(DOUBLE)
-              .withSelectExpression(
-                  "case when 'POINT' = GeometryType(psi.geometry) then ST_Y(psi.geometry) end"),
           AnalyticsTableColumn.builder()
               .build()
               .withName("psilatitude")

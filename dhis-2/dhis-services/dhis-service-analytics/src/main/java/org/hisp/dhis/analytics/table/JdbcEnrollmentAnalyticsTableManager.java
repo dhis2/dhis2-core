@@ -318,13 +318,13 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
               .build()
               .withName("tei")
               .withDataType(CHARACTER_11)
-              .withSelectExpression("tei.uid)"));
+              .withSelectExpression("tei.uid"));
       columns.add(
           AnalyticsTableColumn.builder()
               .build()
               .withName("teigeometry")
               .withDataType(GEOMETRY)
-              .withSelectExpression("tei.geometry)"));
+              .withSelectExpression("tei.geometry"));
     }
 
     return filterDimensionColumns(columns);
