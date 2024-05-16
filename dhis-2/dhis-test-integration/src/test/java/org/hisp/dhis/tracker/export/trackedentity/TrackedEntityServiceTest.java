@@ -1382,25 +1382,39 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotReturnTrackedEntityRelationshipWhenFromItemNotAccessible()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(superuser);
+    OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
+    manager.save(inaccessibleOrgUnit);
+    makeProgramMetadataInaccessible(programB);
+    makeProgramMetadataInaccessible(programC);
+    trackerOwnershipManager.assignOwnership(
+        trackedEntityA, programA, inaccessibleOrgUnit, true, true);
+    TrackedEntityOperationParams operationParams = createOperationParams(orgUnitB, trackedEntityB);
+
+    injectSecurityContextUser(user);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    Optional<RelationshipItem> relOpt =
+        trackedEntity.getRelationshipItems().stream()
+            .filter(i -> i.getRelationship().getUid().equals(relationshipA.getUid()))
+            .findFirst();
+    assertTrue(relOpt.isEmpty());
+  }
+
+  @Test
   void shouldNotReturnTrackedEntityRelationshipWhenToItemNotAccessible()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(superuser);
-    OrganisationUnit orgUnitD = createOrganisationUnit('D');
-    manager.save(orgUnitD);
-    programB.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.update(programB);
-    programC.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.update(programC);
-    trackerOwnershipManager.assignOwnership(trackedEntityA, programA, orgUnitD, true, true);
-    TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnitB.getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityUids(Set.of(trackedEntityB.getUid()))
-            .trackedEntityParams(params)
-            .user(user)
-            .build();
+    OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
+    manager.save(inaccessibleOrgUnit);
+    makeProgramMetadataInaccessible(programB);
+    makeProgramMetadataInaccessible(programC);
+    trackerOwnershipManager.assignOwnership(
+        trackedEntityB, programA, inaccessibleOrgUnit, true, true);
+    TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
 
     injectSecurityContextUser(user);
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1824,5 +1838,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private void makeProgramMetadataInaccessible(Program program) {
     program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(program);
+  }
+
+  private TrackedEntityOperationParams createOperationParams(
+      OrganisationUnit orgUnit, TrackedEntity trackedEntity) {
+    return TrackedEntityOperationParams.builder()
+        .organisationUnits(Set.of(orgUnit.getUid()))
+        .orgUnitMode(SELECTED)
+        .trackedEntityUids(Set.of(trackedEntity.getUid()))
+        .trackedEntityParams(new TrackedEntityParams(true, FALSE, false, false))
+        .user(user)
+        .build();
   }
 }
