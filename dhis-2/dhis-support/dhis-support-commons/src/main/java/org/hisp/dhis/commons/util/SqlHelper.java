@@ -33,7 +33,7 @@ package org.hisp.dhis.commons.util;
  * @author Lars Helge Overland
  */
 public class SqlHelper {
-  private boolean includeSpaces = false;
+  private final boolean includeSpaces;
 
   private boolean whereInvoked = false;
 
@@ -47,8 +47,16 @@ public class SqlHelper {
 
   private boolean andInvoked = false;
 
-  public SqlHelper() {}
+  /** Constructor. */
+  public SqlHelper() {
+    this.includeSpaces = false;
+  }
 
+  /**
+   * Constructor.
+   *
+   * @param includeSpaces whether to prepend and append spaces.
+   */
   public SqlHelper(boolean includeSpaces) {
     this.includeSpaces = includeSpaces;
   }
@@ -60,10 +68,8 @@ public class SqlHelper {
    */
   public String whereAnd() {
     String str = whereInvoked ? "and" : "where";
-
     whereInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -73,10 +79,8 @@ public class SqlHelper {
    */
   public String havingAnd() {
     String str = havingInvoked ? "and" : "having";
-
     havingInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -86,10 +90,8 @@ public class SqlHelper {
    */
   public String and() {
     String str = andInvoked ? "and" : "";
-
     andInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -99,10 +101,8 @@ public class SqlHelper {
    */
   public String or() {
     String str = orInvoked ? "or" : "";
-
     orInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -112,10 +112,8 @@ public class SqlHelper {
    */
   public String betweenAnd() {
     String str = betweenInvoked ? "and" : "between";
-
     betweenInvoked = true;
-
-    return includeSpaces ? " " + str + " " : str;
+    return padded(str);
   }
 
   /**
@@ -125,9 +123,18 @@ public class SqlHelper {
    */
   public String andOr() {
     final String str = andOrInvoked ? "or" : "and";
-
     andOrInvoked = true;
+    return padded(str);
+  }
 
+  /**
+   * Adds a space to the beginning and end of the given string if the include spaces parameter is
+   * true.
+   *
+   * @param str the string to pad.
+   * @return a string.
+   */
+  private String padded(String str) {
     return includeSpaces ? " " + str + " " : str;
   }
 }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,24 +51,5 @@ public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwner
   @Transactional
   public void addProgramTempOwnershipAudit(ProgramTempOwnershipAudit programTempOwnershipAudit) {
     programTempOwnershipAuditStore.addProgramTempOwnershipAudit(programTempOwnershipAudit);
-  }
-
-  @Override
-  @Transactional
-  public void deleteProgramTempOwnershipAudit(Program program) {
-    programTempOwnershipAuditStore.deleteProgramTempOwnershipAudit(program);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits(
-      ProgramTempOwnershipAuditQueryParams params) {
-    return programTempOwnershipAuditStore.getProgramTempOwnershipAudits(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int getProgramTempOwnershipAuditsCount(ProgramTempOwnershipAuditQueryParams params) {
-    return programTempOwnershipAuditStore.getProgramTempOwnershipAuditsCount(params);
   }
 }

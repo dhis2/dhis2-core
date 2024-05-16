@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -39,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.note.NoteService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,7 +46,6 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -265,75 +262,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testGetEnrollmentsByOuProgram() {
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentC);
-    enrollmentService.addEnrollment(enrollmentD);
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
-            new EnrollmentQueryParams()
-                .setProgram(programA)
-                .setOrganisationUnits(Sets.newHashSet(organisationUnitA))
-                .setOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED));
-    assertEquals(1, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-  }
-
-  @Test
-  void shouldGetEnrollmentsInCaptureScopeIfOrgUnitModeCapture() {
-    enrollmentService.addEnrollment(enrollmentA);
-    enrollmentService.addEnrollment(enrollmentC);
-    enrollmentService.addEnrollment(enrollmentD);
-
-    List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
-            new EnrollmentQueryParams()
-                .setCurrentUserDetails(UserDetails.fromUser(user))
-                .setOrganisationUnitMode(CAPTURE));
-
-    assertEquals(2, enrollments.size());
-    assertTrue(enrollments.contains(enrollmentA));
-    assertTrue(enrollments.contains(enrollmentC));
-  }
-
-  @Test
   void testEnrollTrackedEntity() {
     Enrollment enrollment =
         enrollmentService.enrollTrackedEntity(
             entityInstanceA, programB, enrollmentDate, incidentDate, organisationUnitA);
     assertNotNull(enrollmentService.getEnrollment(enrollment.getId()));
-  }
-
-  @Test
-  void testCompleteEnrollmentStatus() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idD = enrollmentService.addEnrollment(enrollmentD);
-    enrollmentService.completeEnrollmentStatus(enrollmentA);
-    enrollmentService.completeEnrollmentStatus(enrollmentD);
-    assertEquals(ProgramStatus.COMPLETED, enrollmentService.getEnrollment(idA).getStatus());
-    assertEquals(ProgramStatus.COMPLETED, enrollmentService.getEnrollment(idD).getStatus());
-  }
-
-  @Test
-  void testIncompleteEnrollmentStatus() {
-    enrollmentA.setStatus(ProgramStatus.COMPLETED);
-    enrollmentD.setStatus(ProgramStatus.COMPLETED);
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idD = enrollmentService.addEnrollment(enrollmentD);
-    enrollmentService.incompleteEnrollmentStatus(enrollmentA);
-    enrollmentService.incompleteEnrollmentStatus(enrollmentD);
-    assertEquals(ProgramStatus.ACTIVE, enrollmentService.getEnrollment(idA).getStatus());
-    assertEquals(ProgramStatus.ACTIVE, enrollmentService.getEnrollment(idD).getStatus());
-  }
-
-  @Test
-  void testCancelEnrollmentStatus() {
-    long idA = enrollmentService.addEnrollment(enrollmentA);
-    long idD = enrollmentService.addEnrollment(enrollmentD);
-    enrollmentService.cancelEnrollmentStatus(enrollmentA);
-    enrollmentService.cancelEnrollmentStatus(enrollmentD);
-    assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idA).getStatus());
-    assertEquals(ProgramStatus.CANCELLED, enrollmentService.getEnrollment(idD).getStatus());
   }
 
   @Test

@@ -62,6 +62,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.tei.query.context.TeiHeaderProvider;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
@@ -81,6 +82,8 @@ public class DimensionParam implements UidObject {
 
   private final DimensionParamType type;
 
+  private final IdScheme idScheme;
+
   @Builder.Default private final List<DimensionParamItem> items = new ArrayList<>();
 
   /**
@@ -98,6 +101,7 @@ public class DimensionParam implements UidObject {
   public static DimensionParam ofObject(
       Object dimensionalObjectOrQueryItem,
       DimensionParamType dimensionParamType,
+      IdScheme idScheme,
       List<String> items) {
     Objects.requireNonNull(dimensionalObjectOrQueryItem);
     Objects.requireNonNull(dimensionParamType);
@@ -109,7 +113,8 @@ public class DimensionParam implements UidObject {
     DimensionParamBuilder builder =
         DimensionParam.builder()
             .type(dimensionParamType)
-            .items(DimensionParamItem.ofStrings(items));
+            .items(DimensionParamItem.ofStrings(items))
+            .idScheme(idScheme);
 
     if (dimensionalObjectOrQueryItem instanceof DimensionalObject) {
       return builder.dimensionalObject((DimensionalObject) dimensionalObjectOrQueryItem).build();

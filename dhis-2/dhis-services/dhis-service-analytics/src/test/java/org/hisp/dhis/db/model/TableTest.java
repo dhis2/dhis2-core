@@ -74,6 +74,29 @@ class TableTest {
   }
 
   @Test
+  void getFirstColumn() {
+    Table table = new Table("analytics", List.of(colA, colB), List.of());
+
+    assertEquals(colA, table.getFirstColumn());
+  }
+
+  @Test
+  void testHasPrimaryKey() {
+    Table tableA = new Table("analytics", List.of(colA, colB), List.of("dx"));
+    Table tableB = new Table("analytics", List.of(colA, colB), List.of());
+
+    assertTrue(tableA.hasPrimaryKey());
+    assertFalse(tableB.hasPrimaryKey());
+  }
+
+  @Test
+  void testGetFirstPrimaryKey() {
+    Table table = new Table("analytics", List.of(colA, colB), List.of("dx", "value"));
+
+    assertEquals("dx", table.getFirstPrimaryKey());
+  }
+
+  @Test
   void testSuccessfulValidation() {
     List<Column> columns = List.of(colA);
     List<String> primaryKey = List.of();

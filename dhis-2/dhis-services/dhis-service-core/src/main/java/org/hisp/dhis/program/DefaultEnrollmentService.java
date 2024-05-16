@@ -27,35 +27,21 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,13 +75,6 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Transactional
   public long addEnrollment(Enrollment enrollment) {
     enrollmentStore.save(enrollment);
-    return enrollment.getId();
-  }
-
-  @Override
-  @Transactional
-  public long addEnrollment(Enrollment enrollment, User user) {
-    enrollmentStore.save(enrollment, user);
     return enrollment.getId();
   }
 
@@ -148,174 +127,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> getEnrollmentsUidsIncludingDeleted(List<String> uids) {
-    return enrollmentStore.getUidsIncludingDeleted(uids);
-  }
-
-  @Override
   @Transactional
   public void updateEnrollment(Enrollment enrollment) {
     enrollmentStore.update(enrollment);
-  }
-
-  @Override
-  @Transactional
-  public void updateEnrollment(Enrollment enrollment, User user) {
-    enrollmentStore.update(enrollment, UserDetails.fromUser(user));
-  }
-
-  // TODO consider security
-  @Override
-  @Transactional(readOnly = true)
-  public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
-    decideAccess(params);
-    validate(params);
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    if (currentUser != null
-        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrganisationUnits(currentUser.getTeiSearchOrganisationUnitsWithFallback());
-      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (currentUser != null && params.isOrganisationUnitMode(CAPTURE)) {
-      params.setOrganisationUnits(currentUser.getOrganisationUnits());
-      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      params.setOrganisationUnits(organisationUnits);
-    }
-
-    return enrollmentStore.getEnrollments(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public int countEnrollments(EnrollmentQueryParams params) {
-    decideAccess(params);
-    validate(params);
-
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    if (currentUser != null
-        && params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrganisationUnits(currentUser.getTeiSearchOrganisationUnitsWithFallback());
-      params.setOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(CHILDREN)) {
-      Set<OrganisationUnit> organisationUnits = new HashSet<>();
-      organisationUnits.addAll(params.getOrganisationUnits());
-
-      for (OrganisationUnit organisationUnit : params.getOrganisationUnits()) {
-        organisationUnits.addAll(organisationUnit.getChildren());
-      }
-
-      params.setOrganisationUnits(organisationUnits);
-    }
-
-    params.setSkipPaging(true);
-
-    return enrollmentStore.countEnrollments(params);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public void decideAccess(EnrollmentQueryParams params) {
-    if (params.hasProgram()) {
-      if (!aclService.canDataRead(params.getCurrentUserDetails(), params.getProgram())) {
-        throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program: "
-                + params.getProgram().getUid());
-      }
-
-      if (params.getProgram().getTrackedEntityType() != null
-          && !aclService.canDataRead(
-              params.getCurrentUserDetails(), params.getProgram().getTrackedEntityType())) {
-        throw new IllegalQueryException(
-            "Current user is not authorized to read data from selected program's tracked entity type:  "
-                + params.getProgram().getTrackedEntityType().getUid());
-      }
-    }
-
-    if (params.hasTrackedEntityType()
-        && !aclService.canDataRead(params.getCurrentUserDetails(), params.getTrackedEntityType())) {
-      throw new IllegalQueryException(
-          "Current user is not authorized to read data from selected tracked entity type:  "
-              + params.getTrackedEntityType().getUid());
-    }
-  }
-
-  @Override
-  public void validate(EnrollmentQueryParams params) throws IllegalQueryException {
-    String violation = null;
-
-    if (params == null) {
-      throw new IllegalQueryException("Params cannot be null");
-    }
-
-    String username =
-        params.getCurrentUserDetails() != null
-            ? params.getCurrentUserDetails().getUsername()
-            : null;
-
-    User user = userService.getUserByUsername(username);
-
-    if (!params.hasOrganisationUnits()
-        && !(params.isOrganisationUnitMode(ALL)
-            || params.isOrganisationUnitMode(ACCESSIBLE)
-            || params.isOrganisationUnitMode(CAPTURE))) {
-      violation = "At least one organisation unit must be specified";
-    }
-
-    if (params.isOrganisationUnitMode(ACCESSIBLE)
-        && (user == null || !user.hasDataViewOrganisationUnitWithFallback())) {
-      violation =
-          "Current user must be associated with at least one organisation unit when selection mode is ACCESSIBLE";
-    }
-
-    if (params.isOrganisationUnitMode(CAPTURE) && (user == null || !user.hasOrganisationUnit())) {
-      violation =
-          "Current user must be associated with at least one organisation unit when selection mode is CAPTURE";
-    }
-
-    if (params.hasProgram() && params.hasTrackedEntityType()) {
-      violation = "Program and tracked entity cannot be specified simultaneously";
-    }
-
-    if (params.hasProgramStatus() && !params.hasProgram()) {
-      violation = "Program must be defined when program status is defined";
-    }
-
-    if (params.hasFollowUp() && !params.hasProgram()) {
-      violation = "Program must be defined when follow up status is defined";
-    }
-
-    if (params.hasProgramStartDate() && !params.hasProgram()) {
-      violation = "Program must be defined when program start date is specified";
-    }
-
-    if (params.hasProgramEndDate() && !params.hasProgram()) {
-      violation = "Program must be defined when program end date is specified";
-    }
-
-    if (params.hasLastUpdated() && params.hasLastUpdatedDuration()) {
-      violation = "Last updated and last updated duration cannot be specified simultaneously";
-    }
-
-    if (params.hasLastUpdatedDuration()
-        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
-      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
-    }
-
-    if (violation != null) {
-      log.warn("Validation failed: " + violation);
-
-      throw new IllegalQueryException(violation);
-    }
   }
 
   @Override
@@ -440,78 +254,5 @@ public class DefaultEnrollmentService implements EnrollmentService {
     trackedEntityService.updateTrackedEntity(trackedEntity);
 
     return enrollment;
-  }
-
-  @Override
-  @Transactional
-  public void completeEnrollmentStatus(Enrollment enrollment) {
-    // -----------------------------------------------------------------
-    // Update enrollment
-    // -----------------------------------------------------------------
-
-    enrollment.setStatus(ProgramStatus.COMPLETED);
-    updateEnrollment(enrollment);
-
-    // ---------------------------------------------------------------------
-    // Send sms-message after program completion
-    // ---------------------------------------------------------------------
-
-    eventPublisher.publishEvent(
-        new ProgramEnrollmentCompletionNotificationEvent(this, enrollment.getId()));
-
-    eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, enrollment.getId()));
-  }
-
-  @Override
-  @Transactional
-  public void cancelEnrollmentStatus(Enrollment enrollment) {
-    // ---------------------------------------------------------------------
-    // Set status of the enrollment
-    // ---------------------------------------------------------------------
-    enrollment.setStatus(ProgramStatus.CANCELLED);
-    updateEnrollment(enrollment);
-
-    // ---------------------------------------------------------------------
-    // Set statuses of the event
-    // ---------------------------------------------------------------------
-
-    for (Event event : enrollment.getEvents()) {
-      if (event.getOccurredDate() == null) {
-        // -------------------------------------------------------------
-        // Set status as skipped for overdue events, or delete
-        // -------------------------------------------------------------
-
-        if (event.getScheduledDate().before(enrollment.getCompletedDate())) {
-          event.setStatus(EventStatus.SKIPPED);
-          eventStore.update(event);
-        } else {
-          eventStore.delete(event);
-        }
-      }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void incompleteEnrollmentStatus(Enrollment enrollment) {
-    Program program = enrollment.getProgram();
-
-    TrackedEntity te = enrollment.getTrackedEntity();
-
-    if (getEnrollments(te, program, ProgramStatus.ACTIVE).size() > 0) {
-      log.warn("Program has another active enrollment going on. Not possible to incomplete");
-
-      throw new IllegalQueryException(
-          "Program has another active enrollment going on. Not possible to incomplete");
-    }
-
-    // -----------------------------------------------------------------
-    // Update enrollment
-    // -----------------------------------------------------------------
-
-    enrollment.setStatus(ProgramStatus.ACTIVE);
-    enrollment.setCompletedDate(null);
-
-    updateEnrollment(enrollment);
   }
 }

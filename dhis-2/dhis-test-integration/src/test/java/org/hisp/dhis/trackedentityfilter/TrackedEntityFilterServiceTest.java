@@ -182,7 +182,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase {
   @Test
   void testValidateOrderParamsInTeiFilter() {
     TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter('A', programA);
-    trackedEntityFilterA.getEntityQueryCriteria().setOrder("aaa:asc,created:desc");
+    trackedEntityFilterA.getEntityQueryCriteria().setOrder("aaa:asc,createdAt:desc");
     List<String> errors = trackedEntityFilterService.validate(trackedEntityFilterA);
     assertEquals(1, errors.size());
     assertEquals(errors.get(0), "Invalid order property: aaa");

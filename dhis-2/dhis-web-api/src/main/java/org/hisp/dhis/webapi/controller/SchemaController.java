@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags("system")
 @RestController
-@RequestMapping("/schemas")
+@RequestMapping("/api/schemas")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class SchemaController {

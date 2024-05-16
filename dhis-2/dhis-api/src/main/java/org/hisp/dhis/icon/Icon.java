@@ -38,6 +38,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.fileresource.FileResource;
@@ -46,6 +47,7 @@ import org.hisp.dhis.user.User;
 /** Custom icons are uploaded by users and can be modified and deleted. */
 @Getter
 @Setter
+@Accessors(chain = true)
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "Icon", namespace = DxfNamespaces.DXF_2_0)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -95,5 +97,9 @@ public class Icon implements Serializable {
     }
 
     setLastUpdated(date);
+
+    if (keywords == null) {
+      keywords = Set.of();
+    }
   }
 }

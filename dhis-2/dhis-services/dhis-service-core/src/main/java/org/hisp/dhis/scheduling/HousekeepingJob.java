@@ -30,8 +30,10 @@ package org.hisp.dhis.scheduling;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.icon.AddIconRequest;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.IconService;
 import org.springframework.stereotype.Component;
@@ -72,9 +74,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Auto spawn default jobs when missing", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d default jobs were created"::formatted, //
-        jobConfigurationService::createDefaultJobs);
+        0, "%d default jobs were created"::formatted, jobConfigurationService::createDefaultJobs);
 
     progress.startingStage("Update statue to DISABLED for non enabled jobs", SKIP_STAGE);
     progress.runStage(
@@ -84,9 +84,7 @@ public class HousekeepingJob implements Job {
 
     progress.startingStage("Cleanup finished ONCE_ASAP jobs", SKIP_STAGE);
     progress.runStage(
-        0,
-        "%d jobs were deleted"::formatted, //
-        () -> jobConfigurationService.deleteFinishedJobs(-1));
+        0, "%d jobs were deleted"::formatted, () -> jobConfigurationService.deleteFinishedJobs(-1));
 
     progress.startingStage("Reschedule stale jobs", SKIP_STAGE);
     progress.runStage(
@@ -94,10 +92,31 @@ public class HousekeepingJob implements Job {
         "%d jobs were rescheduled"::formatted,
         () -> jobConfigurationService.rescheduleStaleJobs(-1));
 
-    progress.startingStage("Insert default icons", SKIP_ITEM);
-    progress.runStage(
-        Stream.of(DefaultIcon.values()), DefaultIcon::getKey, iconService::createDefaultIcon);
+    progress.startingStage("Deleting orphan default icons", SKIP_STAGE);
+    progress.runStage(0, "%d icons were deleted"::formatted, iconService::deleteOrphanDefaultIcons);
+
+    progress.startingStage("Finding missing default icons", SKIP_STAGE);
+    Map<DefaultIcon, List<AddIconRequest>> missing =
+        progress.runStage(Map.of(), iconService::findNonExistingDefaultIcons);
+    progress.startingStage("Insert default icons", missing.size(), SKIP_ITEM);
+    progress.runStage(missing.entrySet(), e -> e.getKey().getKeyPrefix(), this::createDefaultIcon);
 
     progress.completedProcess(null);
+  }
+
+  private void createDefaultIcon(Map.Entry<DefaultIcon, List<AddIconRequest>> icons) {
+    icons.getValue().forEach(request -> createDefaultIcon(request, icons.getKey()));
+  }
+
+  private void createDefaultIcon(AddIconRequest request, DefaultIcon origin) {
+    try {
+      // note that these are split in two to have independent TX boundaries
+      // for file resource creation and icon creation
+      // to make sure the file upload is complete before creating the icon
+      String fileResourceId = iconService.addDefaultIconImage(request.getKey(), origin);
+      iconService.addIcon(request.toBuilder().fileResourceId(fileResourceId).build(), origin);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
   }
 }

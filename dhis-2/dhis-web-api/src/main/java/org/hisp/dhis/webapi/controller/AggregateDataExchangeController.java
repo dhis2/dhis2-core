@@ -39,7 +39,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -58,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = AggregateDataExchangeSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/aggregateDataExchanges")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AggregateDataExchangeController extends AbstractCrudController<AggregateDataExchange> {
   private final AggregateDataExchangeService service;

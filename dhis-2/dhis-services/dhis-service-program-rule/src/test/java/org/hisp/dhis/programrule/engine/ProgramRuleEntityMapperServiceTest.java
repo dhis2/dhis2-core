@@ -72,6 +72,7 @@ import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleEventStatus;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
@@ -219,17 +220,8 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void testMappedRuleEventsWithFilter() {
-    List<RuleEvent> ruleEvents =
-        subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), eventB);
-
-    assertEquals(1, ruleEvents.size());
-    assertEquals(expectedRuleEvent, ruleEvents.get(0));
-  }
-
-  @Test
   void testMappedRuleEvents() {
-    List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB), null);
+    List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(Sets.newHashSet(eventA, eventB));
 
     assertEquals(2, ruleEvents.size());
   }
@@ -448,9 +440,9 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
             eventA.getUid(),
             programStage.getUid(),
             programStage.getName(),
-            RuleEvent.Status.valueOf(eventA.getStatus().name()),
+            RuleEventStatus.valueOf(eventA.getStatus().name()),
             Instant.Companion.fromEpochMilliseconds(now.getTime()),
-            LocalDateTime.Companion.parse(DateUtils.toIso8601NoTz(now)).getDate(),
+            LocalDateTime.Formats.INSTANCE.getISO().parse(DateUtils.toIso8601NoTz(now)).getDate(),
             null,
             organisationUnit.getUid(),
             organisationUnit.getCode(),

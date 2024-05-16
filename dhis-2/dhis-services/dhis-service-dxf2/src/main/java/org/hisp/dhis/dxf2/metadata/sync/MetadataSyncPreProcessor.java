@@ -39,10 +39,8 @@ import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.dxf2.sync.EventSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
-import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -67,10 +65,6 @@ public class MetadataSyncPreProcessor {
 
   private final MetadataVersionDelegate metadataVersionDelegate;
 
-  private final TrackerSynchronization trackerSync;
-
-  private final EventSynchronization eventSync;
-
   private final DataValueSynchronization dataValueSync;
 
   private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
@@ -88,28 +82,6 @@ public class MetadataSyncPreProcessor {
 
     if (result.status == SynchronizationStatus.FAILURE) {
       context.updateRetryContext(MetadataSyncJob.DATA_PUSH_SUMMARY, result.message, null, null);
-      throw new MetadataSyncServiceException(result.message);
-    }
-  }
-
-  public void handleTrackerProgramsDataPush(
-      MetadataRetryContext context, MetadataSyncJobParameters syncParams, JobProgress progress) {
-    SynchronizationResult result =
-        trackerSync.synchronizeData(syncParams.getTrackerProgramPageSize(), progress);
-
-    if (result.status == SynchronizationStatus.FAILURE) {
-      context.updateRetryContext(MetadataSyncJob.TRACKER_PUSH_SUMMARY, result.message, null, null);
-      throw new MetadataSyncServiceException(result.message);
-    }
-  }
-
-  public void handleEventProgramsDataPush(
-      MetadataRetryContext context, MetadataSyncJobParameters syncParams, JobProgress progress) {
-    SynchronizationResult result =
-        eventSync.synchronizeData(syncParams.getEventProgramPageSize(), progress);
-
-    if (result.status == SynchronizationStatus.FAILURE) {
-      context.updateRetryContext(MetadataSyncJob.EVENT_PUSH_SUMMARY, result.message, null, null);
       throw new MetadataSyncServiceException(result.message);
     }
   }

@@ -55,6 +55,7 @@ import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -62,6 +63,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Stian Sandvold
  */
+@Disabled(
+    "TODO(tracker) DHIS2-16565 check if we need to port some test or we can remove them entirely")
 public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest {
   private static final String _DATAREAD = "..r.*";
 
@@ -175,10 +178,6 @@ public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest 
                   JsonObject object = element.getAsJsonObject();
 
                   final Sharing sharing = new Sharing(object);
-
-                  if (sharing == null) {
-                    continue;
-                  }
 
                   if (hasPublicAccess(sharing, _DATAREAD)
                       || hasUserAccess(user, sharing, _DATAREAD)

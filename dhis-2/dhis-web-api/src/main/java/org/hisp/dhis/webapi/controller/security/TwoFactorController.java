@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -69,7 +69,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags({"user", "login"})
 @RestController
-@RequestMapping(value = "/2fa")
+@RequestMapping("/api/2fa")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class TwoFactorController {
@@ -96,7 +96,7 @@ public class TwoFactorController {
     return Map.of("url", "url");
   }
 
-  @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM)
+  @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
       throws IOException, WebMessageException {

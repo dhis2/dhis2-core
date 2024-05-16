@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.P_
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlParameterManager;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -77,16 +78,21 @@ class SqlQueryHelper {
       TrackedEntityType trackedEntityType,
       SqlParameterManager sqlParameterManager) {
     int offset = programStage.getOffsetWithDefault();
+    String orderByDirection = offset > 0 ? "asc" : "desc";
 
     return "select innermost_evt.*"
         + " from (select *,"
-        + " row_number() over (partition by programinstanceuid order by occurreddate, created "
-        + (offset > 0 ? "asc" : "desc")
+        + " row_number() over (partition by programinstanceuid order by occurreddate "
+        + orderByDirection
+        + ", created "
+        + orderByDirection
         + " ) as rn"
         + " from "
         + ANALYTICS_TEI_EVT
         + trackedEntityType.getUid().toLowerCase()
-        + " where "
+        + " where status != '"
+        + EventStatus.SCHEDULE
+        + "' and "
         + P_UID
         + " = "
         + sqlParameterManager.bindParamAndGetIndex(program.getElement().getUid())

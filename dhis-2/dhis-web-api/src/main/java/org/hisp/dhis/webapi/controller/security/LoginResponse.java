@@ -62,6 +62,4 @@ public class LoginResponse {
 
   @JsonProperty private STATUS loginStatus;
   @JsonProperty private String redirectUrl;
-  @JsonProperty private String loginMessage;
-  @JsonProperty private String twoFactorQRCode;
 }

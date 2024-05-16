@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.indicator;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+import static org.hisp.dhis.security.Authorities.F_INDICATOR_MERGE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.RequiredArgsConstructor;
@@ -48,10 +49,9 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeProcessor;
 import org.hisp.dhis.merge.MergeType;
-import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping(value = IndicatorSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/indicators")
 public class IndicatorController extends AbstractCrudController<Indicator> {
   private final ExpressionService expressionService;
 
@@ -99,7 +99,7 @@ public class IndicatorController extends AbstractCrudController<Indicator> {
   }
 
   @ResponseStatus(HttpStatus.OK)
-  @PreAuthorize("hasRole('ALL') or hasRole('F_INDICATOR_MERGE')")
+  @RequiresAuthority(anyOf = F_INDICATOR_MERGE)
   @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody WebMessage mergeIndicators(@RequestBody MergeParams params)
       throws ConflictException {

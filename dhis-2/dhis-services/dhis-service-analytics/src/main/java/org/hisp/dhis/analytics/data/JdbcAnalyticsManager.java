@@ -323,7 +323,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     builder.append(getGroupByClause(params));
 
-    if (params.hasMeasureCriteria() && params.isDataType(DataType.NUMERIC)) {
+    if (params.hasMeasureCriteria()
+        && params.isDataType(DataType.NUMERIC)
+        && !params.hasReportingRates()) {
+      /* Reporting rates applies the measure criteria after the rates calculation phase. It cannot be done at this stage. */
       builder.append(getMeasureCriteriaSql(params));
     }
 
@@ -606,7 +609,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     }
 
     if (params.isTimely()) {
-      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " is true ");
+      sql.append(sqlHelper.whereAnd() + " " + quoteAlias("timely") + " = true ");
     }
 
     // ---------------------------------------------------------------------

@@ -49,6 +49,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -58,7 +59,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Slf4j
 class AuthTest {
-  private static final String POSTGRES_POSTGIS_VERSION = "10-2.5-alpine";
+  private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
   private static final DockerImageName POSTGIS_IMAGE_NAME =
       DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
   private static final String POSTGRES_DATABASE_NAME = "dhis";
@@ -176,7 +177,60 @@ class AuthTest {
 
     assertNotNull(getResponse);
     assertNotNull(getResponse.getBody());
-    JsonNode meDto = getResponse.getBody();
-    log.info("MeDto: " + meDto);
+  }
+
+  @Test
+  void testLoginFailure() {
+    RestTemplate restTemplate = new RestTemplate();
+
+    HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
+
+    LoginRequest loginRequest =
+        LoginRequest.builder().username("admin").password("wrongpassword").build();
+    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, headersBuilder.build());
+
+    try {
+      restTemplate.postForEntity(
+          "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+    } catch (HttpClientErrorException e) {
+      assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+    }
+  }
+
+  @Test
+  void testRedirectWithQueryParam() {
+    testRedirectUrl("/api/users?fields=id,name,displayName");
+  }
+
+  @Test
+  void testRedirectWithoutQueryParam() {
+    testRedirectUrl("/api/users");
+  }
+
+  private static void testRedirectUrl(String url) {
+    RestTemplate restTemplate = new RestTemplate();
+
+    ResponseEntity<LoginResponse> firstResponse =
+        restTemplate.postForEntity("http://localhost:9090" + url, null, LoginResponse.class);
+    HttpHeaders headersFirstResponse = firstResponse.getHeaders();
+    String firstCookie = headersFirstResponse.get(HttpHeaders.SET_COOKIE).get(0);
+
+    HttpHeaders getHeaders = new HttpHeaders();
+    getHeaders.set("Cookie", firstCookie);
+    LoginRequest loginRequest =
+        LoginRequest.builder().username("admin").password("district").build();
+    HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
+
+    ResponseEntity<LoginResponse> loginResponse =
+        restTemplate.postForEntity(
+            "http://localhost:9090/api/auth/login", requestEntity, LoginResponse.class);
+
+    assertNotNull(loginResponse);
+    assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
+    LoginResponse body = loginResponse.getBody();
+    assertNotNull(body);
+    assertEquals(LoginResponse.STATUS.SUCCESS, body.getLoginStatus());
+
+    assertEquals(url, body.getRedirectUrl());
   }
 }

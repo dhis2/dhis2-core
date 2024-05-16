@@ -70,7 +70,7 @@ public class TrackerApiTest extends ApiTest {
     JsonObject teiBody =
         new FileReaderUtils()
             .readJsonAndGenerateData(
-                new File("src/test/resources/tracker/importer/teis/teiAndEnrollment.json"));
+                new File("src/test/resources/tracker/importer/teis/teiWithEnrollments.json"));
 
     return trackerImportExportActions
         .postAndGetJobReport(teiBody)
@@ -87,7 +87,7 @@ public class TrackerApiTest extends ApiTest {
     return trackerImportExportActions
         .postAndGetJobReport(teiBody)
         .validateSuccessfulImport()
-        .extractImportedTeis()
+        .extractImportedTrackedEntities()
         .get(0);
   }
 

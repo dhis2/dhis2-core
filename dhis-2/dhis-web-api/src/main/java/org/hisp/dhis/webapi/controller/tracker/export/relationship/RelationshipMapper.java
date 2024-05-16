@@ -32,21 +32,26 @@ import static java.util.Map.entry;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
+import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(uses = {RelationshipItemMapper.class, InstantMapper.class})
-public interface RelationshipMapper
-    extends ViewMapper<org.hisp.dhis.relationship.Relationship, Relationship> {
+public abstract class RelationshipMapper
+    implements ViewMapper<org.hisp.dhis.relationship.Relationship, Relationship> {
 
   /**
    * Relationships can be ordered by given fields which correspond to fields on {@link
    * org.hisp.dhis.relationship.Relationship}.
    */
-  Map<String, String> ORDERABLE_FIELDS =
+  static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(entry("createdAt", "created"), entry("createdAtClient", "createdAtClient"));
 
   @Mapping(target = "relationship", source = "uid")
@@ -57,14 +62,14 @@ public interface RelationshipMapper
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Override
-  Relationship from(org.hisp.dhis.relationship.Relationship relationship);
+  public abstract Relationship from(org.hisp.dhis.relationship.Relationship relationship);
 
   /**
    * Maps {@code Set}'s of {@link org.hisp.dhis.relationship.RelationshipItem}'s to {@link
    * org.hisp.dhis.relationship.Relationship} which is then mapped by {@link
    * #from(org.hisp.dhis.relationship.Relationship)}.
    */
-  default Set<org.hisp.dhis.relationship.Relationship> map(
+  public Set<org.hisp.dhis.relationship.Relationship> map(
       Set<org.hisp.dhis.relationship.RelationshipItem> relationshipItems) {
     if (relationshipItems == null) {
       return Set.of();
@@ -73,5 +78,77 @@ public interface RelationshipMapper
     return relationshipItems.stream()
         .map(org.hisp.dhis.relationship.RelationshipItem::getRelationship)
         .collect(Collectors.toSet());
+  }
+
+  @AfterMapping
+  protected Relationship afterMapping(
+      @MappingTarget Relationship.RelationshipBuilder builder,
+      org.hisp.dhis.relationship.Relationship relationshipDb) {
+    Relationship relationship = builder.build();
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+
+    RelationshipType relationshipType = relationshipDb.getRelationshipType();
+
+    RelationshipConstraint fromConstraint = relationshipType.getFromConstraint();
+    RelationshipConstraint toConstraint = relationshipType.getToConstraint();
+
+    return builder
+        .from(withConstraints(from, fromConstraint))
+        .to(withConstraints(to, toConstraint))
+        .build();
+  }
+
+  private RelationshipItem withConstraints(
+      RelationshipItem item, RelationshipConstraint constraint) {
+
+    // nothing to check
+    if (item == null || constraint == null || constraint.getTrackerDataView() == null) {
+      return item;
+    }
+
+    if (item.getTrackedEntity() != null) {
+      item.getTrackedEntity()
+          .setAttributes(
+              item.getTrackedEntity().getAttributes().stream()
+                  .filter(
+                      a ->
+                          constraint
+                              .getTrackerDataView()
+                              .getAttributes()
+                              .contains(a.getAttribute()))
+                  .toList());
+      return item;
+    }
+
+    if (item.getEnrollment() != null) {
+      item.getEnrollment()
+          .setAttributes(
+              item.getEnrollment().getAttributes().stream()
+                  .filter(
+                      a ->
+                          constraint
+                              .getTrackerDataView()
+                              .getAttributes()
+                              .contains(a.getAttribute()))
+                  .toList());
+      return item;
+    }
+
+    if (item.getEvent() != null) {
+      item.getEvent()
+          .setDataValues(
+              item.getEvent().getDataValues().stream()
+                  .filter(
+                      d ->
+                          constraint
+                              .getTrackerDataView()
+                              .getDataElements()
+                              .contains(d.getDataElement()))
+                  .collect(Collectors.toSet()));
+      return item;
+    }
+
+    return item;
   }
 }

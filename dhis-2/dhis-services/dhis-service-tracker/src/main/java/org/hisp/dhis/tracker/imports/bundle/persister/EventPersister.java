@@ -30,9 +30,11 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -56,6 +58,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
+import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -105,6 +108,20 @@ public class EventPersister
 
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(TrackerBundle bundle, Event event) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<SideEffectTrigger> triggers = new ArrayList<>();
+
+    if (isNew(preheat, event.getUid())) {
+      if (event.isCompleted()) {
+        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+      }
+    } else {
+      Event existingEvent = preheat.getEvent(event.getUid());
+      if (existingEvent.getStatus() != event.getStatus() && event.isCompleted()) {
+        triggers.add(SideEffectTrigger.EVENT_COMPLETION);
+      }
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
@@ -114,6 +131,7 @@ public class EventPersister
         .accessedBy(bundle.getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
+        .triggers(triggers)
         .build();
   }
 

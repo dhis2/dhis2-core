@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -67,6 +68,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled(
+    "TODO(tracker) DHIS2-16565 check if we need to port some test or we can remove them entirely")
 public class EventExportTests extends DeprecatedTrackerApiTest {
   private final String withoutRegistrationProgram = Constants.EVENT_PROGRAM_ID;
 

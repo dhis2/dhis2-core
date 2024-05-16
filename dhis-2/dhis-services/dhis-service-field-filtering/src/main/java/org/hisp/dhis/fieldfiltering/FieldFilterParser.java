@@ -119,7 +119,9 @@ public class FieldFilterParser {
           } else if ((insideParameters && isParameterEnd(token))) {
             transformerParameters.add(transformerNameBuilder.toString());
             break;
-          } else if (isFieldSeparator(token) || (token.equals("[") && !insideParameters)) {
+          } else if (isFieldSeparator(token)
+              || (token.equals("]") && !insideParameters)
+              || (token.equals("[") && !insideParameters)) {
             idx--;
             break;
           }

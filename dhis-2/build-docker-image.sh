@@ -5,7 +5,7 @@ set -euo pipefail
 IMAGE_REPOSITORY=${IMAGE_REPOSITORY:-'dhis2/core'}
 IMAGE_APP_ROOT=${IMAGE_APP_ROOT:-'/usr/local/tomcat/webapps/ROOT'}
 IMAGE_USER=${IMAGE_USER:-'65534'}
-WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web/dhis-web-portal/target/dhis.war'}
+WAR_PATH=${WAR_PATH:-'dhis-2/dhis-web-portal/target/dhis.war'}
 UNARCHIVED_WAR_DIR=${UNARCHIVED_WAR_DIR:-'dhis2-war'}
 JIB_BUILD_FILE=${JIB_BUILD_FILE:-'jib.yaml'}
 

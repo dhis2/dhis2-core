@@ -37,7 +37,7 @@ import java.util.Calendar;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetailsImpl;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisAuthenticationApiTest;
 import org.hisp.dhis.webapi.json.domain.JsonLoginResponse;
@@ -65,7 +65,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
             .as(JsonLoginResponse.class);
 
     assertEquals("SUCCESS", response.getLoginStatus());
-    assertEquals("/dhis-web-dashboard", response.getRedirectUrl());
+    assertEquals("/dhis-web-dashboard/", response.getRedirectUrl());
   }
 
   @Test
@@ -91,7 +91,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     injectSecurityContextUser(userA);
 
     mvc.perform(
-            get("/2fa/qrCode")
+            get("/api/2fa/qrCode")
                 .header("Authorization", "Basic dXNlcmE6ZGlzdHJpY3Q=")
                 .contentType("application/octet-stream")
                 .accept("application/octet-stream"))
@@ -210,7 +210,7 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
     assertNotNull(response);
 
     assertEquals(1, sessionRegistry.getAllPrincipals().size());
-    UserDetailsImpl actual = (UserDetailsImpl) sessionRegistry.getAllPrincipals().get(0);
+    UserDetails actual = (UserDetails) sessionRegistry.getAllPrincipals().get(0);
 
     assertNotNull(actual);
     assertEquals("admin", actual.getUsername());
@@ -228,6 +228,6 @@ class AuthenticationControllerTest extends DhisAuthenticationApiTest {
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
     assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
-    assertEquals("/dhis-web-dashboard", ok2FaCodeResponse.getRedirectUrl());
+    assertEquals("/dhis-web-dashboard/", ok2FaCodeResponse.getRedirectUrl());
   }
 }

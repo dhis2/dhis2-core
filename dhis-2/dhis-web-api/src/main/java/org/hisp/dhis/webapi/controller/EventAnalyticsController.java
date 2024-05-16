@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -60,6 +61,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -70,10 +72,10 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.EventAnalyticsPrefixStrategy;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -84,8 +86,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
+@RequestMapping("/api/analytics/events")
 public class EventAnalyticsController {
-  private static final String RESOURCE_PATH = "/analytics/events";
 
   private static final String EXPLAIN_PATH = "/explain";
 
@@ -109,9 +111,9 @@ public class EventAnalyticsController {
   // Aggregate
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
-      value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH,
+      value = "/aggregate/{program}/explain",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
       @PathVariable String program,
@@ -137,7 +139,7 @@ public class EventAnalyticsController {
   }
 
   @GetMapping(
-      value = RESOURCE_PATH + "/aggregate/{program}",
+      value = "/aggregate/{program}",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getAggregateJson( // JSON, JSONP
       @PathVariable String program,
@@ -153,7 +155,7 @@ public class EventAnalyticsController {
         params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.xml")
+  @GetMapping(value = "/aggregate/{program}.xml")
   public void getAggregateXml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -166,7 +168,7 @@ public class EventAnalyticsController {
         response.getOutputStream());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.xls")
+  @GetMapping(value = "/aggregate/{program}.xls")
   public void getAggregateXls(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -179,7 +181,7 @@ public class EventAnalyticsController {
         response.getOutputStream());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.csv")
+  @GetMapping(value = "/aggregate/{program}.csv")
   public void getAggregateCsv(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -192,7 +194,7 @@ public class EventAnalyticsController {
         response.getWriter());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.html")
+  @GetMapping(value = "/aggregate/{program}.html")
   public void getAggregateHtml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -205,7 +207,7 @@ public class EventAnalyticsController {
         response.getWriter());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.html+css")
+  @GetMapping(value = "/aggregate/{program}.html+css")
   public void getAggregateHtmlCss(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -220,7 +222,7 @@ public class EventAnalyticsController {
 
   @ResponseBody
   @GetMapping(
-      value = RESOURCE_PATH + "/aggregate/dimensions",
+      value = "/aggregate/dimensions",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
       @RequestParam String programStageId,
@@ -245,7 +247,7 @@ public class EventAnalyticsController {
   // -------------------------------------------------------------------------
 
   @GetMapping(
-      value = RESOURCE_PATH + "/count/{program}",
+      value = "/count/{program}",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Rectangle getCountJson( // JSON, JSONP
       @PathVariable String program,
@@ -264,7 +266,7 @@ public class EventAnalyticsController {
   // -------------------------------------------------------------------------
 
   @GetMapping(
-      value = RESOURCE_PATH + "/cluster/{program}",
+      value = "/cluster/{program}",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getClusterJson( // JSON, JSONP
       @PathVariable String program,
@@ -292,9 +294,9 @@ public class EventAnalyticsController {
   // Query
   // -------------------------------------------------------------------------
 
-  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @RequiresAuthority(anyOf = F_PERFORM_ANALYTICS_EXPLAIN)
   @GetMapping(
-      value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH,
+      value = "/query/{program}" + EXPLAIN_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
       @PathVariable String program,
@@ -315,7 +317,7 @@ public class EventAnalyticsController {
   }
 
   @GetMapping(
-      value = RESOURCE_PATH + "/query/{program}",
+      value = "/query/{program}",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getQueryJson( // JSON, JSONP
       @PathVariable String program,
@@ -329,7 +331,7 @@ public class EventAnalyticsController {
     return analyticsService.getEvents(params);
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/query/{program}.xml")
+  @GetMapping(value = "/query/{program}.xml")
   public void getQueryXml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -348,7 +350,7 @@ public class EventAnalyticsController {
         response.getOutputStream());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/query/{program}.xls")
+  @GetMapping(value = "/query/{program}.xls")
   public void getQueryXls(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -367,7 +369,7 @@ public class EventAnalyticsController {
         response.getOutputStream());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/query/{program}.csv")
+  @GetMapping(value = "/query/{program}.csv")
   public void getQueryCsv(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -386,7 +388,7 @@ public class EventAnalyticsController {
         response.getWriter());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/query/{program}.html")
+  @GetMapping(value = "/query/{program}.html")
   public void getQueryHtml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -405,7 +407,7 @@ public class EventAnalyticsController {
         response.getWriter());
   }
 
-  @GetMapping(value = RESOURCE_PATH + "/query/{program}.html+css")
+  @GetMapping(value = "/query/{program}.html+css")
   public void getQueryHtmlCss(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
@@ -426,7 +428,7 @@ public class EventAnalyticsController {
 
   @ResponseBody
   @GetMapping(
-      value = RESOURCE_PATH + "/query/dimensions",
+      value = "/query/dimensions",
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
       @RequestParam(required = false) String programId,

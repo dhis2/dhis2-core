@@ -41,7 +41,6 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
 import org.hisp.dhis.sharing.CascadeSharingService;
@@ -62,7 +61,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags("ui")
 @Controller
-@RequestMapping(value = DashboardSchemaDescriptor.API_ENDPOINT)
+@RequestMapping("/api/dashboards")
 public class DashboardController extends AbstractCrudController<Dashboard> {
   @Autowired private DashboardService dashboardService;
 

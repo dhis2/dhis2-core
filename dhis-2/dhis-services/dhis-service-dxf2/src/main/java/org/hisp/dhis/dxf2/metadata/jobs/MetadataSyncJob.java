@@ -67,10 +67,6 @@ public class MetadataSyncJob implements Job {
 
   public static final String DATA_PUSH_SUMMARY = "dataPushSummary";
 
-  public static final String EVENT_PUSH_SUMMARY = "eventPushSummary";
-
-  public static final String TRACKER_PUSH_SUMMARY = "trackerPushSummary";
-
   public static final String GET_METADATAVERSION = "getMetadataVersion";
 
   public static final String GET_METADATAVERSIONSLIST = "getMetadataVersionsList";
@@ -80,12 +76,7 @@ public class MetadataSyncJob implements Job {
   public static final String METADATA_SYNC_REPORT = "metadataSyncReport";
 
   public static final String[] keys = {
-    DATA_PUSH_SUMMARY,
-    EVENT_PUSH_SUMMARY,
-    GET_METADATAVERSION,
-    GET_METADATAVERSIONSLIST,
-    METADATA_SYNC,
-    VERSION_KEY
+    DATA_PUSH_SUMMARY, GET_METADATAVERSION, GET_METADATAVERSIONSLIST, METADATA_SYNC, VERSION_KEY
   };
 
   private final SystemSettingManager systemSettingManager;
@@ -136,9 +127,7 @@ public class MetadataSyncJob implements Job {
       throws MetadataSyncServiceException, DhisVersionMismatchException {
     metadataSyncPreProcessor.setUp(context, progress);
     metadataSyncPreProcessor.handleDataValuePush(context, params, progress);
-    metadataSyncPreProcessor.handleEventProgramsDataPush(context, params, progress);
     metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush(context, progress);
-    metadataSyncPreProcessor.handleTrackerProgramsDataPush(context, params, progress);
 
     MetadataVersion version =
         metadataSyncPreProcessor.handleCurrentMetadataVersion(context, progress);
@@ -160,7 +149,7 @@ public class MetadataSyncJob implements Job {
         MetadataSyncParams syncParams =
             new MetadataSyncParams(new MetadataImportParams(), dataVersion);
         boolean isSyncRequired = metadataSyncService.isSyncRequired(syncParams);
-        MetadataSyncSummary metadataSyncSummary = null;
+        MetadataSyncSummary metadataSyncSummary;
 
         if (isSyncRequired) {
           metadataSyncSummary = handleMetadataSync(context, dataVersion, progress);

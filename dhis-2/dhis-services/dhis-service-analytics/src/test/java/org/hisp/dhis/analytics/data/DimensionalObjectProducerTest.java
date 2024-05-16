@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -92,8 +91,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserDetailsImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -114,8 +113,6 @@ class DimensionalObjectProducerTest {
   @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private DimensionService dimensionService;
-
-  @Mock private AnalyticsSecurityManager securityManager;
 
   @Mock private SystemSettingManager systemSettingManager;
 
@@ -436,11 +433,7 @@ class DimensionalObjectProducerTest {
     List<String> items = List.of("ALL_ITEMS");
     category.setCategoryOptions(List.of(new CategoryOption()));
 
-    UserDetailsImpl currentUserDetails = new UserDetailsImpl();
-    currentUserDetails.setAllAuthorities(Set.of("ALL"));
-    currentUserDetails.setUsername("admin");
-    currentUserDetails.setSuper(true);
-    injectSecurityContext(currentUserDetails);
+    injectSecurityContext(new SystemUser());
 
     // when
     when(idObjectManager.get(DYNAMIC_DIM_CLASSES, UID, categoryUid)).thenReturn(category);

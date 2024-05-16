@@ -49,11 +49,14 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled(
+    "TODO(tracker) DHIS2-16565 check if we need to port some test or we can remove them entirely")
 public class UserAssignmentFilterTests extends DeprecatedTrackerApiTest {
   private MetadataActions metadataActions;
 

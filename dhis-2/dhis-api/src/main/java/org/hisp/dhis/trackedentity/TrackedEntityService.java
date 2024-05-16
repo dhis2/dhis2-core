@@ -30,10 +30,8 @@ package org.hisp.dhis.trackedentity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.User;
 
 /**
  * This interface is responsible for retrieving tracked entities (TE). The query methods accepts a
@@ -65,7 +63,7 @@ import org.hisp.dhis.user.User;
  * params.addAttribute( new QueryItem( gender, QueryOperator.EQ, "Male", false ) );
  * params.addAttribute( new QueryItem( age, QueryOperator.LT, "5", true ) );
  * params.addFilter( new QueryItem( weight, QueryOperator.GT, "2500", true ) );
- * params.addOrganistionUnit( unit );
+ * params.addOrganisationUnit( unit );
  *
  * Grid instances = teService.getTrackedEntityGrid( params );
  *
@@ -85,21 +83,7 @@ import org.hisp.dhis.user.User;
 public interface TrackedEntityService {
   String ID = TrackedEntityService.class.getName();
 
-  int ERROR_NONE = 0;
-
-  int ERROR_DUPLICATE_IDENTIFIER = 1;
-
-  int ERROR_ENROLLMENT = 2;
-
   String SEPARATOR = "_";
-
-  /**
-   * Returns a grid with tracked entity values based on the given TrackedEntityQueryParams.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @return a grid.
-   */
-  Grid getTrackedEntitiesGrid(TrackedEntityQueryParams params);
 
   /**
    * Returns a list with tracked entity values based on the given TrackedEntityQueryParams.
@@ -130,19 +114,6 @@ public interface TrackedEntityService {
       boolean skipSearchScopeValidation);
 
   /**
-   * Return the count of the Tracked entity that meet the criteria specified in params
-   *
-   * @param params Parameteres that specify searching criteria
-   * @param skipAccessValidation If true, the access validation is skipped
-   * @param skipSearchScopeValidation If true, the search scope validation is skipped
-   * @return the count of the tracked entities that meet the criteria specified in params
-   */
-  int getTrackedEntityCount(
-      TrackedEntityQueryParams params,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
-
-  /**
    * Decides whether current user is authorized to perform the given query. IllegalQueryException is
    * thrown if not.
    *
@@ -155,11 +126,9 @@ public interface TrackedEntityService {
    * exception are thrown and the method returns normally.
    *
    * @param params the TrackedEntityQueryParams.
-   * @param isGridSearch specifies whether search is made for a Grid response
    * @throws IllegalQueryException if the given params is invalid.
    */
-  void validateSearchScope(TrackedEntityQueryParams params, boolean isGridSearch)
-      throws IllegalQueryException;
+  void validateSearchScope(TrackedEntityQueryParams params) throws IllegalQueryException;
 
   /**
    * Validates the given TrackedEntityQueryParams. The params is considered valid if no exception
@@ -173,7 +142,7 @@ public interface TrackedEntityService {
   /**
    * Adds an {@link TrackedEntity}
    *
-   * @param trackedEntity The to TrackedEntity add.
+   * @param trackedEntity The TrackedEntity to add.
    * @return A generated unique id of the added {@link TrackedEntity}.
    */
   long addTrackedEntity(TrackedEntity trackedEntity);
@@ -192,22 +161,7 @@ public interface TrackedEntityService {
    */
   void updateTrackedEntity(TrackedEntity trackedEntity);
 
-  void updateTrackedEntity(TrackedEntity trackedEntity, User user);
-
-  /**
-   * Updates a last sync timestamp on specified TrackedEntity
-   *
-   * @param trackedEntityUIDs UIDs of tracked entities where the lastSynchronized flag should be
-   *     updated
-   * @param lastSynchronized The date of last successful sync
-   */
-  void updateTrackedEntitySyncTimestamp(List<String> trackedEntityUIDs, Date lastSynchronized);
-
-  /**
-   * @param trackedEntityUIDs
-   * @param lastUpdated
-   * @param userInfoSnapshot
-   */
+  /** */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 
@@ -228,15 +182,6 @@ public interface TrackedEntityService {
   TrackedEntity getTrackedEntity(String uid);
 
   /**
-   * Returns the {@link TrackedEntity} with the given UID.
-   *
-   * @param uid the UID.
-   * @param user User
-   * @return the TrackedEntity with the given UID, or null if no match.
-   */
-  TrackedEntity getTrackedEntity(String uid, User user);
-
-  /**
    * Checks for the existence of a TE by UID. Deleted values are not taken into account.
    *
    * @param uid Event UID to check for
@@ -253,14 +198,6 @@ public interface TrackedEntityService {
   boolean trackedEntityExistsIncludingDeleted(String uid);
 
   /**
-   * Returns UIDs of existing tracked entities (including deleted) from the provided UIDs
-   *
-   * @param uids TE UIDs to check
-   * @return Set containing UIDs of existing TEIs (including deleted)
-   */
-  List<String> getTrackedEntitiesUidsIncludingDeleted(List<String> uids);
-
-  /**
    * Register a new trackedEntity
    *
    * @param trackedEntity TrackedEntity
@@ -269,6 +206,4 @@ public interface TrackedEntityService {
    */
   long createTrackedEntity(
       TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues);
-
-  List<TrackedEntity> getTrackedEntitiesByUid(List<String> uids, User user);
 }
