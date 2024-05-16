@@ -2043,6 +2043,8 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>net.postgis:postgis-jdbc</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.flywaydb:flyway-database-postgresql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
