@@ -244,9 +244,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   /**
-   * Gets a tracked entity based on the TE registration org unit
+   * Gets a tracked entity based on the TE registration org unit This method is meant to be used
+   * when fetching relationship items only, because it won't throw an exception if the TE is not
+   * accessible.
    *
-   * @return the TE object if found and accessible by the current user
+   * @return the TE object if found and accessible by the current user or null otherwise
    * @throws NotFoundException if uid does not exist
    */
   private TrackedEntity getTrackedEntity(
