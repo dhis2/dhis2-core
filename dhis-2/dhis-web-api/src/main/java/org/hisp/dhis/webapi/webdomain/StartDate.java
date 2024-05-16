@@ -31,11 +31,14 @@ import java.util.Date;
 import lombok.RequiredArgsConstructor;
 
 /**
- * StartDate represents a lower limit date used to filter results in search APIs. StartDate accepts
- * date and time to be defined. If no time is defined, then the time at the beginning of the day is
- * used by default. This behavior, combined with {@link EndDate}, allows to correctly implement an
- * interval search including start and end dates. startDate=2020-10-10&endDate=2020-10-12 will
- * include anything between 2020-10-10T00:00:00.000 and 2020-10-12T23:59:59.999
+ * StartDate represents a lower limit date used to filter results in search APIs.
+ *
+ * <p>StartDate accepts date and time to be defined. If no time is defined, then the time at the
+ * beginning of the day is used by default.
+ *
+ * <p>This behavior, combined with {@link EndDate}, allows to correctly implement an interval search
+ * including start and end dates. startDate=2020-10-10&endDate=2020-10-12 will include anything
+ * between 2020-10-10T00:00:00.000 and 2020-10-12T23:59:59.999.
  */
 @RequiredArgsConstructor
 public class StartDate {
