@@ -85,12 +85,12 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
               .build()
               .withName("ouopeningdate")
               .withDataType(DATE)
-              .withSelectExpression("ao.ouopeningdate"),
+              .withSelectExpression("ou.openingdate"),
           AnalyticsTableColumn.builder()
               .build()
               .withName("oucloseddate")
               .withDataType(DATE)
-              .withSelectExpression("ao.oucloseddate"),
+              .withSelectExpression("ou.closeddate"),
           AnalyticsTableColumn.builder()
               .build()
               .withName("costartdate")

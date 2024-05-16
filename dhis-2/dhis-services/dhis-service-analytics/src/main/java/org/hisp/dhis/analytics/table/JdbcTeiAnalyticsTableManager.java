@@ -122,7 +122,7 @@ public class JdbcTeiAnalyticsTableManager extends AbstractJdbcTableManager {
           AnalyticsTableColumn.builder()
               .build()
               .withName("inactive")
-              .withDataType(TIMESTAMP)
+              .withDataType(BOOLEAN)
               .withSelectExpression("tei.inactive"),
           AnalyticsTableColumn.builder()
               .build()

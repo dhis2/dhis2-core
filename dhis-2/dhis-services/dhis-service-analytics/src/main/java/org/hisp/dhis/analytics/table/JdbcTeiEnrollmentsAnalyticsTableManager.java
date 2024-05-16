@@ -40,6 +40,7 @@ import static org.hisp.dhis.db.model.DataType.GEOMETRY;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.DataType.VARCHAR_255;
+import static org.hisp.dhis.db.model.DataType.VARCHAR_50;
 import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -114,7 +115,7 @@ public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableMa
           AnalyticsTableColumn.builder()
               .build()
               .withName("enrollmentstatus")
-              .withDataType(TIMESTAMP)
+              .withDataType(VARCHAR_50)
               .withSelectExpression("pi.status"),
           AnalyticsTableColumn.builder()
               .build()
