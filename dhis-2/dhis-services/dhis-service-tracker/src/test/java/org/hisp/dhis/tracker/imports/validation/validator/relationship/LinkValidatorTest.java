@@ -114,19 +114,7 @@ class LinkValidatorTest {
     return relType;
   }
 
-  private RelationshipItem trackedEntityRelationshipItem() {
-    return RelationshipItem.builder().trackedEntity(trackedEntity()).build();
-  }
-
   private RelationshipItem trackedEntityRelationshipItem(String trackedEntityUid) {
     return RelationshipItem.builder().trackedEntity(trackedEntityUid).build();
-  }
-
-  private String trackedEntity() {
-    return CodeGenerator.generateUid();
-  }
-
-  private String enrollment() {
-    return CodeGenerator.generateUid();
   }
 }

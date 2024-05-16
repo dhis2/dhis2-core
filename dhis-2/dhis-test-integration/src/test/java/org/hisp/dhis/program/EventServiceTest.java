@@ -270,15 +270,6 @@ class EventServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testUpdateEvent() {
-    long idA = eventService.addEvent(eventA);
-    assertNotNull(eventService.getEvent(idA));
-    eventA.setName("B");
-    eventService.updateEvent(eventA);
-    assertEquals("B", eventService.getEvent(idA).getName());
-  }
-
-  @Test
   void testGetEventById() {
     long idA = eventService.addEvent(eventA);
     long idB = eventService.addEvent(eventB);

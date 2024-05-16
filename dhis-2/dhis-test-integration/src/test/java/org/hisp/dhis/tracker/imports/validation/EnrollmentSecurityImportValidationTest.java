@@ -295,7 +295,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void shouldFailWhenTeNotEnrolledAndUserHasNoAccessToTeRegisteringOrgUnit() throws IOException {
+  void shouldFailWhenTeNotEnrolledAndUserHasNoAccessToTeRegisteringOrgUnit() {
     clearSecurityContext();
     setup();
     TrackedEntity trackedEntityB = createTrackedEntity(trackedEntityType, organisationUnitB);
