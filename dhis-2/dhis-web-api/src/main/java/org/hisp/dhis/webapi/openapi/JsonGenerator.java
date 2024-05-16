@@ -48,7 +48,7 @@ import lombok.Value;
 public class JsonGenerator {
   @Value
   @Builder(toBuilder = true)
-  static class Format {
+  public static class Format {
     public static final Format PRETTY_PRINT = new Format(true, true, true, true, true, "  ");
 
     public static final Format SMALL = new Format(false, false, false, false, false, "");
@@ -67,7 +67,7 @@ public class JsonGenerator {
 
   @Value
   @Builder(toBuilder = true)
-  static class Language {
+  public static class Language {
 
     public static final Language JSON =
         new Language(

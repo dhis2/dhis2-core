@@ -71,7 +71,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags({"user", "management"})
+@OpenApi.Document(domain = User.class)
 @RestController
 @RequestMapping("/api/userSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

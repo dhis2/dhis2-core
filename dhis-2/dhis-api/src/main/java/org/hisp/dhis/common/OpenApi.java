@@ -158,6 +158,7 @@ public @interface OpenApi {
     enum Group {
       QUERY,
       MANAGE,
+      CONFIG,
       MISC
     }
 
@@ -434,6 +435,11 @@ public @interface OpenApi {
      * @return naming pattern used to create a name based on the simple class name.
      */
     Pattern pattern() default Pattern.DEFAULT;
+
+    /**
+     * @return just for documentation purposes to indicate why the manual adjustment was made
+     */
+    String reason() default "";
   }
 
   @Target({ElementType.TYPE_USE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})

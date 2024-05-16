@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -159,6 +160,10 @@ public class Api {
 
     T orElse(T defaultValue) {
       return value != null ? value : defaultValue;
+    }
+
+    public Stream<T> stream() {
+      return isPresent() ? Stream.of(value) : Stream.empty();
     }
   }
 

@@ -85,13 +85,6 @@ public class ApiFinalise {
      * <p>For example, a field/parameter with a default value is marked as required.
      */
     boolean failOnInconsistency;
-
-    // tags
-    // endpoints
-    // parameters
-    // request bodies
-    // responses
-    String missingDescription;
   }
 
   Api api;
@@ -321,6 +314,9 @@ public class ApiFinalise {
    */
 
   private void addSharedInputSchemas() {
+    // note this potentially "over-generates" input schemas that are not used anywhere
+    // these are removed later again in the generation based on what schemas have
+    // actually been referenced when rendering the paths part of the document
     api.getSchemas().values().stream()
         .filter(schema -> !schema.isUniversal())
         .forEach(this::generateInputSchema);
@@ -370,9 +366,9 @@ public class ApiFinalise {
         idSchemas.computeIfAbsent(
             schemaType,
             t -> {
-              Api.Schema s = Api.Schema.ofUID(schemaType);
-              s.getSharedName().setValue("UID_" + of.getSharedName().getValue());
-              return s;
+              Api.Schema id = Api.Schema.ofUID(schemaType);
+              id.getSharedName().setValue("UID_" + of.getSharedName().getValue());
+              return id;
             });
     object.addProperty(new Api.Property("id", true, idType));
     return object;

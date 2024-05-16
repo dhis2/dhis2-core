@@ -152,19 +152,17 @@ class OpenApiComponentsRefs {
     String name = schema.getSharedName().getValue();
     SchemaRefs refs = new SchemaRefs(name, schema, new HashSet<>(), new ArrayList<>());
     refs.to.add(name); // add self to prevent cyclic endless loop
-    schema.getProperties().stream()
-        .filter(p -> p.getType().isShared())
-        .forEach(p -> addReferences(p.getType(), refs.to));
+    schema.getProperties().forEach(p -> addReferences(p.getType(), refs.to));
     refs.to.remove(name); // remove self
     return refs;
   }
 
   private static void addReferences(Api.Schema referenced, Set<String> to) {
     String name = referenced.getSharedName().getValue();
-    if (to.contains(name)) return; // been there, done that
-    to.add(name);
-    referenced.getProperties().stream()
-        .filter(p -> p.getType().isShared())
-        .forEach(p -> addReferences(p.getType(), to));
+    if (name != null) {
+      if (to.contains(name)) return; // been there, done that
+      to.add(name);
+    }
+    referenced.getProperties().forEach(p -> addReferences(p.getType(), to));
   }
 }

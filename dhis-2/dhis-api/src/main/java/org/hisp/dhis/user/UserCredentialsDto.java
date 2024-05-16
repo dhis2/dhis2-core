@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.sharing.Sharing;
 
+// FIXME this is a read-only object
 @Data
 @JacksonXmlRootElement(localName = "userCredentialsDto", namespace = DxfNamespaces.DXF_2_0)
 public class UserCredentialsDto {

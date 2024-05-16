@@ -33,6 +33,8 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
+import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.IN;
+import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.OUT;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,6 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.webapi.openapi.Api.Schema.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -72,7 +75,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class OpenApiGenerator extends JsonGenerator {
   @Value
   @Builder(toBuilder = true)
-  static class Info {
+  public static class Info {
     public static final Info DEFAULT =
         Info.builder()
             .title("DHIS2 API")
@@ -134,6 +137,12 @@ public class OpenApiGenerator extends JsonGenerator {
   private final Api api;
   private final Info info;
   private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
+
+  /**
+   * Accumulates the schema references used during generation of the OpenAPI {@code paths} part.
+   * This is later used to ensure no schema is added to the output that isn't actually referenced.
+   */
+  private final Set<String> pathSchemaRefs = new HashSet<>();
 
   private OpenApiGenerator(
       Api api, Format format, Language language, Info info, StringBuilder out) {
@@ -265,7 +274,8 @@ public class OpenApiGenerator extends JsonGenerator {
           addTrueMember("required", parameter.isRequired());
           addTrueMember("deprecated", parameter.getDeprecated());
           String defaultValue = parameter.getDefaultValue().orElse(null);
-          addObjectMember("schema", () -> generateSchemaOrRef(parameter.getType(), defaultValue));
+          addObjectMember(
+              "schema", () -> generateSchemaOrRef(parameter.getType(), IN, defaultValue));
         });
   }
 
@@ -281,14 +291,16 @@ public class OpenApiGenerator extends JsonGenerator {
                     (key, value) ->
                         addObjectMember(
                             key.toString(),
-                            () -> addObjectMember("schema", () -> generateSchemaOrRef(value)))));
+                            () ->
+                                addObjectMember("schema", () -> generateSchemaOrRef(value, IN)))));
   }
 
   private void generateResponse(Api.Response response) {
     addObjectMember(
         String.valueOf(response.getStatus().value()),
         () -> {
-          addStringMultilineMember("description", response.getDescription().orElse(NO_DESCRIPTION));
+          // note: for a response the description is required, therefore the default is ?
+          addStringMultilineMember("description", response.getDescription().orElse("?"));
           addObjectMember(
               "headers",
               response.getHeaders().values(),
@@ -297,7 +309,7 @@ public class OpenApiGenerator extends JsonGenerator {
                       header.getName(),
                       () -> {
                         addStringMultilineMember("description", header.getDescription());
-                        addObjectMember("schema", () -> generateSchema(header.getType()));
+                        addObjectMember("schema", () -> generateSchema(header.getType(), OUT));
                       }));
           boolean hasContent =
               !response.getContent().isEmpty() && response.getStatus() != HttpStatus.NO_CONTENT;
@@ -312,7 +324,8 @@ public class OpenApiGenerator extends JsonGenerator {
                               addObjectMember(
                                   produces.toString(),
                                   () ->
-                                      addObjectMember("schema", () -> generateSchemaOrRef(body)))));
+                                      addObjectMember(
+                                          "schema", () -> generateSchemaOrRef(body, OUT)))));
         });
   }
 
@@ -326,29 +339,39 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void generateSharedSchemas() {
-    api.getComponents()
-        .getSchemas()
-        .forEach((name, schema) -> addObjectMember(name, () -> generateSchema(schema)));
-  }
+    // remove schemas that are not referenced by any of the schemas used so far
+    retainUsedSchemasOnly();
 
-  private void generateSchemaOrRef(Api.Schema schema) {
-    generateSchemaOrRef(schema, null);
-  }
-
-  private void generateSchemaOrRef(Api.Schema schema, String defaultValue) {
-    if (schema == null) return;
-    if (schema.getSharedName().isPresent()) {
-      addStringMember("$ref", "#/components/schemas/" + schema.getSharedName().getValue());
-    } else {
-      generateSchema(schema, defaultValue);
+    // now only the actually used schemas remain in component/schemas
+    for (Map.Entry<String, Api.Schema> e : api.getComponents().getSchemas().entrySet()) {
+      String name = e.getKey();
+      Api.Schema schema = e.getValue();
+      addObjectMember(name, () -> generateSchema(schema, schema.getDirection().orElse(OUT)));
     }
   }
 
-  private void generateSchema(Api.Schema schema) {
-    generateSchema(schema, null);
+  private void generateSchemaOrRef(Api.Schema schema, Direction direction) {
+    generateSchemaOrRef(schema, direction, null);
   }
 
-  private void generateSchema(Api.Schema schema, String defaultValue) {
+  private void generateSchemaOrRef(Api.Schema schema, Direction direction, String defaultValue) {
+    if (schema == null) return;
+    if (direction == IN) schema = schema.getInput().orElse(schema);
+    if (schema.getSharedName().isPresent()) {
+      String name = schema.getSharedName().getValue();
+      pathSchemaRefs.add(name);
+      addStringMember("$ref", "#/components/schemas/" + name);
+    } else {
+      generateSchema(schema, direction, defaultValue);
+    }
+  }
+
+  private void generateSchema(Api.Schema schema, Direction direction) {
+    generateSchema(schema, direction, null);
+  }
+
+  private void generateSchema(Api.Schema schema, Direction direction, String defaultValue) {
+    if (direction == IN) schema = schema.getInput().orElse(schema);
     Class<?> type = schema.getRawType();
     DirectType directType = DirectType.of(type);
     if (directType != null) {
@@ -366,13 +389,6 @@ public class OpenApiGenerator extends JsonGenerator {
       return;
     }
     Api.Schema.Type schemaType = schema.getType();
-    // FIXME
-    /*
-    if (schemaType == Api.Schema.Type.REF) {
-      generateRefTypeSchema(schema);
-      return;
-    }
-    */
     if (schemaType == Api.Schema.Type.UID) {
       generateUidSchema(schema);
       return;
@@ -389,7 +405,8 @@ public class OpenApiGenerator extends JsonGenerator {
       addArrayMember(
           "oneOf",
           schema.getProperties(),
-          property -> addObjectMember(null, () -> generateSchemaOrRef(property.getType())));
+          property ->
+              addObjectMember(null, () -> generateSchemaOrRef(property.getType(), direction)));
       return;
     }
     if (schemaType == Api.Schema.Type.ENUM) {
@@ -411,17 +428,18 @@ public class OpenApiGenerator extends JsonGenerator {
               ? api.getSchemas().get(type.getComponentType())
               : schema.getElementType();
       addStringMember("type", "array");
-      addObjectMember("items", () -> generateSchemaOrRef(elements));
+      addObjectMember("items", () -> generateSchemaOrRef(elements, direction));
       return;
     }
     // best guess: it is an object type
     addStringMember("type", "object");
     if (!schema.getProperties().isEmpty()) {
       if (Map.class.isAssignableFrom(type)) {
+        Api.Property key = schema.getProperties().get(0);
+        Api.Property value = schema.getProperties().get(1);
         addObjectMember(
-            "additionalProperties",
-            () -> generateSchemaOrRef(schema.getProperties().get(1).getType()));
-        if (schema.getProperties().get(0).getType().getRawType() != String.class)
+            "additionalProperties", () -> generateSchemaOrRef(value.getType(), direction));
+        if (key.getType().getRawType() != String.class)
           addStringMultilineMember(
               "description", "keys are " + schema.getProperties().get(0).getType().getRawType());
         return;
@@ -435,7 +453,7 @@ public class OpenApiGenerator extends JsonGenerator {
               addObjectMember(
                   property.getName(),
                   () -> {
-                    generateSchemaOrRef(property.getType());
+                    generateSchemaOrRef(property.getType(), direction);
                     addStringMember(
                         "description", property.getDescription().orElse(NO_DESCRIPTION));
                   }));
@@ -553,5 +571,41 @@ public class OpenApiGenerator extends JsonGenerator {
       offset += 13;
     }
     return uid.toString();
+  }
+
+  /**
+   * When this is called the schemas directly referenced by and of the endpoints rendered in the
+   * {@code paths} part of the document have been collected in {@link #pathSchemaRefs}. Now we add
+   * all the named schemas which are referenced by these schemas to the set and then remove all
+   * named schemas that are not referenced as they are not needed in the document.
+   */
+  private void retainUsedSchemasOnly() {
+    // this needs a different set to pathSchemaRefs since we have not yet expanded those collected
+    // in that set
+    Set<String> expanded = new HashSet<>();
+    // needs a copy as we modify the iterated collection in the forEach
+    Set.copyOf(pathSchemaRefs).forEach(name -> addPathSchemaRefs(name, expanded));
+    // now remove those schemas that are not referenced
+    api.getComponents().getSchemas().keySet().removeIf(name -> !pathSchemaRefs.contains(name));
+  }
+
+  private void addPathSchemaRefs(String name, Set<String> expanded) {
+    if (expanded.contains(name)) return; // done that
+    pathSchemaRefs.add(name);
+    expanded.add(name);
+    api.getComponents()
+        .getSchemas()
+        .get(name)
+        .getProperties()
+        .forEach(p -> addPathSchemaRefs(p.getType(), expanded));
+  }
+
+  private void addPathSchemaRefs(Api.Schema schema, Set<String> expanded) {
+    if (schema.isShared()) {
+      String name = schema.getSharedName().getValue();
+      addPathSchemaRefs(name, expanded);
+      if (expanded.contains(name)) return;
+    }
+    schema.getProperties().forEach(p -> addPathSchemaRefs(p.getType(), expanded));
   }
 }
