@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.util.ContextUtils;
-import org.jfree.chart.ChartUtils;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 
 /**
@@ -141,7 +141,7 @@ public class ChartResult implements Result {
     ContextUtils.configureResponse(response, ContextUtils.CONTENT_TYPE_PNG, true, filename, false);
 
     OutputStream os = response.getOutputStream();
-    ChartUtils.writeChartAsPNG(os, chart, width, height);
+    ChartUtilities.writeChartAsPNG(os, chart, width, height);
     os.flush();
   }
 }

@@ -37,7 +37,6 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABL
 import static org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor.API_ENDPOINT;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
-import static org.jfree.chart.ChartUtils.writeChartAsPNG;
 
 import java.io.IOException;
 import java.util.Date;
@@ -63,6 +62,7 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -126,7 +126,7 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
     contextUtils.configureResponse(
         response, CONTENT_TYPE_PNG, RESPECT_SYSTEM_SETTING, filename, attachment);
 
-    writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
+    ChartUtilities.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
   }
 
   @Override
