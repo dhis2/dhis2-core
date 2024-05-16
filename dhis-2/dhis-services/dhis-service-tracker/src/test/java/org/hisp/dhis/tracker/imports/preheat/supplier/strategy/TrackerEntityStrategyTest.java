@@ -70,10 +70,4 @@ class TrackerEntityStrategyTest {
     Mockito.verify(trackedEntityStore).getIncludingDeleted(uids);
     Mockito.verify(preheat).putTrackedEntities(dbTrackedEntities);
   }
-
-  private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities() {
-    return List.of(
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity("TEIA").build(),
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity("TEIB").build());
-  }
 }

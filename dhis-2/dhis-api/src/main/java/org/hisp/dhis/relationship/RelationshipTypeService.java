@@ -49,13 +49,6 @@ public interface RelationshipTypeService {
   void deleteRelationshipType(RelationshipType relationshipType);
 
   /**
-   * Updates an {@link RelationshipType}.
-   *
-   * @param relationshipType the RelationshipType to update.
-   */
-  void updateRelationshipType(RelationshipType relationshipType);
-
-  /**
    * Returns a {@link RelationshipType}.
    *
    * @param id the id of the RelationshipType to return.

@@ -27,19 +27,14 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -420,59 +415,5 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest {
                     atA, QueryOperator.EW, "em", ValueType.TEXT, AggregationType.NONE, null));
     trackedEntitites = teiStore.getTrackedEntities(params);
     assertEquals(0, trackedEntitites.size());
-  }
-
-  @Test
-  void testPotentialDuplicateInGridQuery() {
-    TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeA);
-    teiA.setTrackedEntityType(trackedEntityTypeA);
-    teiA.setPotentialDuplicate(true);
-    teiStore.save(teiA);
-    teiB.setTrackedEntityType(trackedEntityTypeA);
-    teiB.setPotentialDuplicate(true);
-    teiStore.save(teiB);
-    teiC.setTrackedEntityType(trackedEntityTypeA);
-    teiStore.save(teiC);
-    teiD.setTrackedEntityType(trackedEntityTypeA);
-    teiStore.save(teiD);
-    dbmsManager.flushSession();
-    // Get all
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setTrackedEntityType(trackedEntityTypeA);
-    List<Map<String, String>> trackedEntitites = teiStore.getTrackedEntitiesGrid(params);
-    assertEquals(4, trackedEntitites.size());
-    trackedEntitites.forEach(
-        teiMap -> {
-          if (teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_ID).equals(teiA.getUid())
-              || teiMap.get(TrackedEntityQueryParams.TRACKED_ENTITY_ID).equals(teiB.getUid())) {
-            assertTrue(
-                Boolean.parseBoolean(teiMap.get(TrackedEntityQueryParams.POTENTIAL_DUPLICATE)));
-          } else {
-            assertFalse(
-                Boolean.parseBoolean(teiMap.get(TrackedEntityQueryParams.POTENTIAL_DUPLICATE)));
-          }
-        });
-  }
-
-  @Test
-  void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName() {
-    TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeA);
-    teiA.setTrackedEntityType(trackedEntityTypeA);
-    teiStore.save(teiA);
-    attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(atC, teiA, ouC.getUid()));
-    enrollmentService.enrollTrackedEntity(teiA, prA, new Date(), new Date(), ouA);
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setTrackedEntityType(trackedEntityTypeA);
-    params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
-    QueryItem queryItem = new QueryItem(atC);
-    queryItem.setValueType(atC.getValueType());
-    params.setAttributes(Collections.singletonList(queryItem));
-    List<Map<String, String>> grid = teiStore.getTrackedEntitiesGrid(params);
-    assertThat(grid, hasSize(1));
-    assertThat(grid.get(0).keySet(), hasSize(9));
-    assertThat(grid.get(0).get(atC.getUid()), is("OrganisationUnitC"));
   }
 }
