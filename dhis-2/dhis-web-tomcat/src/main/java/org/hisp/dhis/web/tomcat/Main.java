@@ -171,10 +171,6 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
 
-    //    String docroot =
-    //        "/home/netroms/develop/dhis2/WORKDIR/dhis2-core/dhis-2/dhis-web-portal/target/";
-    //    documentRoot.setDirectory(new File(docroot));
-
     String appBase = ".";
     Tomcat tomcat = new Tomcat();
     tomcat.setBaseDir(createTempDir());
