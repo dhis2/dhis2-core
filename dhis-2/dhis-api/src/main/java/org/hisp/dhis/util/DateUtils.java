@@ -683,9 +683,14 @@ public class DateUtils {
    * @return a date.
    */
   public static Date parseDateEndOfTheDay(String dateString) {
+    if (StringUtils.isEmpty(dateString)) {
+      return null;
+    }
+
     try {
-      DateTime dateTime = ONLY_DATE_FORMATTER.parseDateTime(dateString);
-      return dateTime.withMillisOfDay(dateTime.millisOfDay().getMaximumValue()).toDate();
+      Date date = safeParseDateTime(dateString, ONLY_DATE_FORMATTER);
+      org.joda.time.LocalDateTime localDateTime = org.joda.time.LocalDateTime.fromDateFields(date);
+      return localDateTime.withMillisOfDay(localDateTime.millisOfDay().getMaximumValue()).toDate();
     } catch (IllegalInstantException e) {
       // dateString has time defined
     }

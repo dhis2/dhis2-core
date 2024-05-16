@@ -31,7 +31,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Date;
 import lombok.Data;
@@ -64,47 +63,42 @@ class DatesBindingTest {
   @Test
   void shouldReturnADateAtTheEndOfTheDayWhenAnEndDateIsPassedWithoutTime() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/enddate").param("endDate", "2001-06-17"))
-        .andExpect(status().isOk())
+        .perform(get(ENDPOINT).param("endDate", "2001-06-17"))
+        .andExpect(content().string(containsString("OK")))
         .andExpect(content().string(containsString("2001-06-17T23:59:59.999")));
   }
 
   @Test
   void shouldReturnADateWithTimeWhenAnEndDateIsPassedWithTime() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/enddate").param("endDate", "2001-06-17T16:45:34"))
-        .andExpect(status().isOk())
+        .perform(get(ENDPOINT).param("endDate", "2001-06-17T16:45:34"))
+        .andExpect(content().string(containsString("OK")))
         .andExpect(content().string(containsString("2001-06-17T16:45:34")));
   }
 
   @Test
   void shouldReturnADateAtTheStartOfTheDayWhenAnStartDateIsPassedWithoutTime() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/startdate").param("startDate", "2001-06-17"))
-        .andExpect(status().isOk())
+        .perform(get(ENDPOINT).param("startDate", "2001-06-17"))
+        .andExpect(content().string(containsString("OK")))
         .andExpect(content().string(containsString("2001-06-17T00:00:00.000")));
   }
 
   @Test
   void shouldReturnADateWithTimeWhenAnStartDateIsPassedWithTime() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT + "/startdate").param("startDate", "2001-06-17T16:45:34"))
-        .andExpect(status().isOk())
+        .perform(get(ENDPOINT).param("startDate", "2001-06-17T16:45:34"))
+        .andExpect(content().string(containsString("OK")))
         .andExpect(content().string(containsString("2001-06-17T16:45:34")));
   }
 
   @Controller
   private class BindingController extends CrudControllerAdvice {
-    @GetMapping(value = ENDPOINT + "/enddate")
-    public @ResponseBody WebMessage getValue(Criteria criteria) {
-      Date date = EndDate.getDate(criteria.getEndDate());
-      return ok(DateUtils.toIso8601NoTz(date));
-    }
-
-    @GetMapping(value = ENDPOINT + "/startdate")
+    @GetMapping(value = ENDPOINT)
     public @ResponseBody WebMessage getDefault(Criteria criteria) {
-      Date date = StartDate.getDate(criteria.getStartDate());
-      return ok(DateUtils.toIso8601NoTz(date));
+      Date startDate = StartDate.getDate(criteria.getStartDate());
+      Date endDate = EndDate.getDate(criteria.getEndDate());
+      return ok(DateUtils.toIso8601NoTz(startDate) + " - " + DateUtils.toIso8601NoTz(endDate));
     }
   }
 
