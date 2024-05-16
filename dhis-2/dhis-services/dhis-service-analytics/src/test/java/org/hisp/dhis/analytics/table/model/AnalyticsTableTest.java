@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.DIMENSION;
 import static org.hisp.dhis.analytics.table.model.AnalyticsValueType.FACT;
+import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -40,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -55,9 +55,21 @@ import org.junit.jupiter.api.Test;
 class AnalyticsTableTest {
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
-          new AnalyticsTableColumn("id", DataType.BIGINT, "id"),
-          new AnalyticsTableColumn("data", DataType.CHARACTER_11, "data"),
-          new AnalyticsTableColumn("value", DataType.DOUBLE, "value"));
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("id")
+              .withDataType(BIGINT)
+              .withSelectExpression("id"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("data")
+              .withDataType(CHARACTER_11)
+              .withSelectExpression("data"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("value")
+              .withDataType(DOUBLE)
+              .withSelectExpression("value"));
 
   @Test
   void testGetTableNameDataValue() {
@@ -108,11 +120,39 @@ class AnalyticsTableTest {
   void testGetDimensionAndFactColumns() {
     List<AnalyticsTableColumn> columns =
         List.of(
-            new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, DIMENSION, "de.uid"),
-            new AnalyticsTableColumn("co", CHARACTER_11, NOT_NULL, "co.uid"),
-            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"),
-            new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "value"),
-            new AnalyticsTableColumn("textvalue", TEXT, NULL, FACT, "textvalue"));
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("dx")
+                .withDataType(CHARACTER_11)
+                .withNullable(NOT_NULL)
+                .withValueType(DIMENSION)
+                .withSelectExpression("de.uid"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("co")
+                .withDataType(CHARACTER_11)
+                .withNullable(NOT_NULL)
+                .withSelectExpression("co.uid"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("ou")
+                .withDataType(CHARACTER_11)
+                .withNullable(NOT_NULL)
+                .withSelectExpression("ou.uid"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("value")
+                .withDataType(DOUBLE)
+                .withNullable(NULL)
+                .withValueType(FACT)
+                .withSelectExpression("value"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("textvalue")
+                .withDataType(TEXT)
+                .withNullable(NULL)
+                .withValueType(FACT)
+                .withSelectExpression("textvalue"));
 
     AnalyticsTable table =
         new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
