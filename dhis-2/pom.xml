@@ -2107,8 +2107,6 @@ jasperreports.version=${jasperreports.version}
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>org.springframework.security:spring-security-core</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>com.fasterxml.jackson.core:jackson-databind</ignoredNonTestScopedDependency>
-              <ignoredNonTestScopedDependency>org.geotools:gt-main</ignoredNonTestScopedDependency>
-              <ignoredNonTestScopedDependency>net.postgis:postgis-jdbc</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>
