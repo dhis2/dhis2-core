@@ -362,7 +362,7 @@ public class JdbcEventStore implements EventStore {
   @Override
   public List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> getEvents(
       EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     setAccessiblePrograms(isSuper(currentUser), params);
 
@@ -578,7 +578,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<Map<String, String>> getEventsGrid(EventSearchParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     setAccessiblePrograms(isSuper(currentUser), params);
 
@@ -614,7 +614,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public List<EventRow> getEventRows(EventSearchParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     setAccessiblePrograms(isSuper(currentUser), params);
 
@@ -822,7 +822,7 @@ public class JdbcEventStore implements EventStore {
 
   @Override
   public int getEventCount(EventSearchParams params) {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     setAccessiblePrograms(isSuper(currentUser), params);
 
@@ -862,7 +862,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String buildGridSql(
-      EventSearchParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+      EventSearchParams params, UserDetails user, MapSqlParameterSource mapSqlParameterSource) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -892,7 +892,7 @@ public class JdbcEventStore implements EventStore {
    * on events.
    */
   private String buildSql(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, UserDetails user) {
     StringBuilder sqlBuilder = new StringBuilder().append("select * from (");
 
     sqlBuilder.append(getEventSelectQuery(params, mapSqlParameterSource, user));
@@ -1011,7 +1011,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getEventSelectQuery(
-      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, User user) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, UserDetails user) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -1076,7 +1076,7 @@ public class JdbcEventStore implements EventStore {
   private StringBuilder getFromWhereClause(
       EventSearchParams params,
       MapSqlParameterSource mapSqlParameterSource,
-      User user,
+      UserDetails user,
       SqlHelper hlp,
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
@@ -1462,7 +1462,7 @@ public class JdbcEventStore implements EventStore {
 
   private String getFromWhereClause(
       EventSearchParams params,
-      User user,
+      UserDetails user,
       StringBuilder dataElementAndFiltersSql,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp) {
@@ -1723,7 +1723,7 @@ public class JdbcEventStore implements EventStore {
    *   <li>A user must have access to all COs of the events COC to have access to an event.
    * </ul>
    */
-  private String getCategoryOptionComboQuery(User user) {
+  private String getCategoryOptionComboQuery(UserDetails user) {
     String joinCondition =
         "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + " inner join lateral (select coc.categoryoptioncomboid as id,"
@@ -1739,7 +1739,7 @@ public class JdbcEventStore implements EventStore {
           joinCondition
               + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", UserDetails.fromUser(user), AclService.LIKE_READ_DATA)
+                  "co.sharing", user, AclService.LIKE_READ_DATA)
               + " then true else false end) = True ";
     }
 
@@ -1841,7 +1841,7 @@ public class JdbcEventStore implements EventStore {
         + "inner join trackedentityattribute ta on pav.trackedentityattributeid=ta.trackedentityattributeid ";
   }
 
-  private boolean isSuper(User user) {
+  private boolean isSuper(UserDetails user) {
     return user == null || user.isSuper();
   }
 
@@ -2109,7 +2109,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getOrgUnitSql(
-      EventSearchParams params, User user, MapSqlParameterSource mapSqlParameterSource) {
+      EventSearchParams params, UserDetails user, MapSqlParameterSource mapSqlParameterSource) {
     switch (params.getOrgUnitSelectionMode()) {
       case CAPTURE:
         return createCaptureSql(user, mapSqlParameterSource);
@@ -2126,12 +2126,12 @@ public class JdbcEventStore implements EventStore {
     }
   }
 
-  private String createCaptureSql(User user, MapSqlParameterSource mapSqlParameterSource) {
+  private String createCaptureSql(UserDetails user, MapSqlParameterSource mapSqlParameterSource) {
     return createCaptureScopeQuery(user, mapSqlParameterSource, "");
   }
 
   private String createAccessibleSql(
-      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
 
     if (isProgramRestricted(params.getProgram()) || isUserSearchScopeNotSet(user)) {
       return createCaptureSql(user, mapSqlParameterSource);
@@ -2142,7 +2142,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String createDescendantsSql(
-      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
     if (isProgramRestricted(params.getProgram())) {
@@ -2155,7 +2155,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String createChildrenSql(
-      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
     String customChildrenQuery =
@@ -2178,7 +2178,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String createSelectedSql(
-      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
 
     String orgUnitPathEqualsMatchQuery =
@@ -2201,12 +2201,12 @@ public class JdbcEventStore implements EventStore {
     return program != null && (program.isProtected() || program.isClosed());
   }
 
-  private boolean isUserSearchScopeNotSet(User user) {
-    return user.getTeiSearchOrganisationUnits().isEmpty();
+  private boolean isUserSearchScopeNotSet(UserDetails user) {
+    return user.getUserSearchOrgUnitIds().isEmpty();
   }
 
   private String createCaptureScopeQuery(
-      User user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
+      UserDetails user, MapSqlParameterSource mapSqlParameterSource, String customClause) {
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
 
     return " exists(select cs.organisationunitid "
