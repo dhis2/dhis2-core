@@ -109,6 +109,9 @@ public class DateUtils {
       ObjectArrays.concat(
           SUPPORTED_DATE_ONLY_PARSERS, SUPPORTED_DATE_TIME_FORMAT_PARSERS, DateTimeParser.class);
 
+  private static final DateTimeFormatter ONLY_DATE_FORMATTER =
+      new DateTimeFormatterBuilder().append(null, SUPPORTED_DATE_ONLY_PARSERS).toFormatter();
+
   private static final DateTimeFormatter DATE_FORMATTER =
       new DateTimeFormatterBuilder().append(null, SUPPORTED_DATE_FORMAT_PARSERS).toFormatter();
 
@@ -662,13 +665,30 @@ public class DateUtils {
   }
 
   /**
-   * Parses the given string into a Date using the supported date formats. Returns null if the
-   * string cannot be parsed.
+   * Parses the given string into a Date using the supported date formats. Add time at the beginning
+   * of the day if no time was provided. Returns null if the string cannot be parsed.
    *
    * @param dateString the date string.
    * @return a date.
    */
   public static Date parseDate(String dateString) {
+    return safeParseDateTime(dateString, DATE_FORMATTER);
+  }
+
+  /**
+   * Parses the given string into a Date using the supported date formats. Add time at the end of
+   * the day if no time was provided. Returns null if the string cannot be parsed.
+   *
+   * @param dateString the date string.
+   * @return a date.
+   */
+  public static Date parseDateEndOfTheDay(String dateString) {
+    try {
+      DateTime dateTime = ONLY_DATE_FORMATTER.parseDateTime(dateString);
+      return dateTime.withMillisOfDay(dateTime.millisOfDay().getMaximumValue()).toDate();
+    } catch (IllegalInstantException e) {
+      // dateString has time defined
+    }
     return safeParseDateTime(dateString, DATE_FORMATTER);
   }
 

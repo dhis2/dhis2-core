@@ -87,6 +87,8 @@ import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
+import org.hisp.dhis.webapi.webdomain.EndDate;
+import org.hisp.dhis.webapi.webdomain.StartDate;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
@@ -150,6 +152,13 @@ public class CrudControllerAdvice {
 
   @InitBinder
   protected void initBinder(WebDataBinder binder) {
+    binder.registerCustomEditor(
+        StartDate.class,
+        new FromTextPropertyEditor(dateString -> new StartDate(DateUtils.parseDate(dateString))));
+    binder.registerCustomEditor(
+        EndDate.class,
+        new FromTextPropertyEditor(
+            dateString -> new EndDate(DateUtils.parseDateEndOfTheDay(dateString))));
     binder.registerCustomEditor(Date.class, new FromTextPropertyEditor(DateUtils::parseDate));
     binder.registerCustomEditor(
         IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
