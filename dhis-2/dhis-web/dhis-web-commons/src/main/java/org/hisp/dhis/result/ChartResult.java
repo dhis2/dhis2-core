@@ -41,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.util.ContextUtils;
 import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 
 /**
