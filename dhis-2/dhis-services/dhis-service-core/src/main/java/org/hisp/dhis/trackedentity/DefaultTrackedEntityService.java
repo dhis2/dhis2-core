@@ -222,10 +222,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   // TODO lower index on attribute value?
-
-  @Override
-  @Transactional(readOnly = true)
-  public void decideAccess(TrackedEntityQueryParams params) {
+  private void decideAccess(TrackedEntityQueryParams params) {
     User user = params.getUser();
     if (params.isOrganisationUnitMode(ALL)
         && !(user != null
@@ -262,8 +259,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  @Override
-  public void validate(TrackedEntityQueryParams params) throws IllegalQueryException {
+  private void validate(TrackedEntityQueryParams params) throws IllegalQueryException {
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
     }
@@ -330,9 +326,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public void validateSearchScope(TrackedEntityQueryParams params) throws IllegalQueryException {
+  private void validateSearchScope(TrackedEntityQueryParams params) throws IllegalQueryException {
     if (params == null) {
       throw new IllegalQueryException("Params cannot be null");
     }
