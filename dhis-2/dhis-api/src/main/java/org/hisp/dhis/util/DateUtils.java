@@ -691,7 +691,7 @@ public class DateUtils {
       Date date = safeParseDateTime(dateString, ONLY_DATE_FORMATTER);
       org.joda.time.LocalDateTime localDateTime = org.joda.time.LocalDateTime.fromDateFields(date);
       return localDateTime.withMillisOfDay(localDateTime.millisOfDay().getMaximumValue()).toDate();
-    } catch (IllegalInstantException e) {
+    } catch (IllegalArgumentException e) {
       // dateString has time defined
     }
     return safeParseDateTime(dateString, DATE_FORMATTER);
