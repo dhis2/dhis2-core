@@ -244,31 +244,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   /**
-   * Gets a tracked entity based on the TE registration org unit This method is meant to be used
-   * when fetching relationship items only, because it won't throw an exception if the TE is not
-   * accessible.
-   *
-   * @return the TE object if found and accessible by the current user or null otherwise
-   * @throws NotFoundException if uid does not exist
-   */
-  private TrackedEntity getTrackedEntity(
-      String uid, TrackedEntityParams params, boolean includeDeleted) throws NotFoundException {
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-    UserDetails currentUser = getCurrentUserDetails();
-
-    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
-    if (!errors.isEmpty()) {
-      return null;
-    }
-
-    return mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted);
-  }
-
-  /**
    * Gets a tracked entity based on the program and org unit ownership
    *
    * @return the TE object if found and accessible by the current user
@@ -322,6 +297,35 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return trackedEntity;
+  }
+
+  /**
+   * Gets a tracked entity that's part of a relationship item. This method is meant to be used when
+   * fetching relationship items only, because it won't throw an exception if the TE is not
+   * accessible.
+   *
+   * @return the TE object if found and accessible by the current user or null otherwise
+   * @throws NotFoundException if uid does not exist
+   */
+  private RelationshipItem getTrackedEntityInRelationshipItem(
+      String uid, TrackedEntityParams params, boolean includeDeleted) throws NotFoundException {
+    RelationshipItem relationshipItem = new RelationshipItem();
+
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(trackedEntity, CurrentUserUtil.getCurrentUsername());
+    if (trackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+    UserDetails currentUser = getCurrentUserDetails();
+
+    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+    if (!errors.isEmpty()) {
+      return null;
+    }
+
+    relationshipItem.setTrackedEntity(
+        mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted));
+    return relationshipItem;
   }
 
   private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {
@@ -431,15 +435,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         // this is just mapping the TE
         result.setTrackedEntity(trackedEntity);
       } else {
-        TrackedEntity relationshipTE =
-            getTrackedEntity(
+        result =
+            getTrackedEntityInRelationshipItem(
                 item.getTrackedEntity().getUid(),
                 TrackedEntityParams.TRUE.withIncludeRelationships(false),
                 includeDeleted);
-        if (relationshipTE == null) {
-          return null;
-        }
-        result.setTrackedEntity(relationshipTE);
       }
     } else if (item.getEnrollment() != null) {
       result.setEnrollment(
