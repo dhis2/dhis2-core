@@ -642,7 +642,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   // -------------------------------
   @Test
   @DisplayName(
-      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are not deleted")
+      "ProgramNotificationTemplate references for DataElement are replaced as expected, source DataElements are not deleted")
   void programNotificationTemplateMergeTest() throws ConflictException {
     // given
     ProgramNotificationTemplate pnt1 = createProgramNotificationTemplate("pnt1", 1, null, null);
@@ -674,19 +674,19 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
 
   @Test
   @DisplayName(
-      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are deleted")
+      "ProgramNotificationTemplate references for DataElement are replaced as expected, source DataElements are deleted")
   void programNotificationTemplateDeleteSourcesMergeTest() throws ConflictException {
     // given
-    ProgramStageSection pss1 = createProgramStageSection('d', 1);
-    pss1.getDataElements().add(deSource1);
-    ProgramStageSection pss2 = createProgramStageSection('e', 2);
-    pss2.getDataElements().add(deSource2);
-    ProgramStageSection pss3 = createProgramStageSection('F', 3);
-    pss3.getDataElements().add(deTarget);
+    ProgramNotificationTemplate pnt1 = createProgramNotificationTemplate("pnt1", 1, null, null);
+    pnt1.setRecipientDataElement(deSource1);
+    ProgramNotificationTemplate pnt2 = createProgramNotificationTemplate("pnt2", 1, null, null);
+    pnt2.setRecipientDataElement(deSource2);
+    ProgramNotificationTemplate pnt3 = createProgramNotificationTemplate("pnt3", 1, null, null);
+    pnt3.setRecipientDataElement(deTarget);
 
-    programStageSectionService.saveProgramStageSection(pss1);
-    programStageSectionService.saveProgramStageSection(pss2);
-    programStageSectionService.saveProgramStageSection(pss3);
+    programNotificationTemplateService.save(pnt1);
+    programNotificationTemplateService.save(pnt2);
+    programNotificationTemplateService.save(pnt3);
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -696,13 +696,13 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     MergeReport report = mergeProcessor.processMerge(mergeParams);
 
     // then
-    List<ProgramStageSection> pssSources =
-        programStageSectionService.getAllByDataElement(List.of(deSource1, deSource2));
-    List<ProgramStageSection> pssTarget =
-        programStageSectionService.getAllByDataElement(List.of(deTarget));
+    List<ProgramNotificationTemplate> pntSources =
+        programNotificationTemplateService.getByDataElement(List.of(deSource1, deSource2));
+    List<ProgramNotificationTemplate> pntTarget =
+        programNotificationTemplateService.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
-    assertMergeSuccessfulSourcesDeleted(report, pssSources, pssTarget, allDataElements);
+    assertMergeSuccessfulSourcesDeleted(report, pntSources, pntTarget, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
