@@ -70,9 +70,10 @@ public class MetadataSyncPreProcessor {
   private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
   public void setUp(MetadataRetryContext context, JobProgress progress) {
-    progress.startingStage("Setting up metadata synchronisation");
+    progress.startingProcess("Setting up metadata synchronisation");
     progress.runStage(
         () -> systemSettingManager.saveSystemSetting(SettingKey.METADATAVERSION_ENABLED, true));
+    progress.completedProcess("finished setting up metadata synchronisation");
   }
 
   public void handleDataValuePush(
@@ -88,19 +89,19 @@ public class MetadataSyncPreProcessor {
 
   public List<MetadataVersion> handleMetadataVersionsList(
       MetadataRetryContext context, MetadataVersion version, JobProgress progress) {
-    progress.startingStage(
+    progress.startingProcess(
         "Fetching the list of remote versions"
             + (version == null ? "There is no initial version in the system" : ""));
     try {
       List<MetadataVersion> versions = metadataVersionDelegate.getMetaDataDifference(version);
 
       if (isRemoteVersionEmpty(version, versions)) {
-        progress.completedStage("There are no metadata versions created in the remote instance");
+        progress.completedProcess("There are no metadata versions created in the remote instance");
         return versions;
       }
 
       if (isUsingLatestVersion(version, versions)) {
-        progress.completedStage("Your instance is already using the latest version:" + version);
+        progress.completedProcess("Your instance is already using the latest version:" + version);
         return versions;
       }
 
@@ -109,7 +110,7 @@ public class MetadataSyncPreProcessor {
 
       systemSettingManager.saveSystemSetting(
           SettingKey.REMOTE_METADATA_VERSION, latestVersion.getName());
-      progress.completedStage("Remote system is at version: " + latestVersion.getName());
+      progress.completedProcess("Remote system is at version: " + latestVersion.getName());
       return versions;
     } catch (MetadataVersionServiceException e) {
       String message = setVersionListErrorInfoInContext(context, version, e);
@@ -149,11 +150,11 @@ public class MetadataSyncPreProcessor {
 
   public MetadataVersion handleCurrentMetadataVersion(
       MetadataRetryContext context, JobProgress progress) {
-    progress.startingStage("Getting the current version of the system");
+    progress.startingProcess("Getting the current version of the system");
 
     try {
       MetadataVersion version = metadataVersionService.getCurrentVersion();
-      progress.completedStage("Current Metadata Version of the system: {}", version);
+      progress.completedProcess("Current Metadata Version of the system: {}", version);
       return version;
     } catch (MetadataVersionServiceException ex) {
       context.updateRetryContext(MetadataSyncJob.GET_METADATAVERSION, ex.getMessage(), null, null);
