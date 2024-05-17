@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.programrule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -33,47 +33,66 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramNotificationStoreTest extends SingleSetupIntegrationTestBase {
+class ProgramRuleVariableStoreTest extends SingleSetupIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
-  @Autowired private ProgramNotificationTemplateStore programNotificationTemplateStore;
+  @Autowired private ProgramRuleVariableStore programRuleVariableStore;
+  @Autowired private ProgramStore programStore;
 
   @Test
-  @DisplayName("retrieving Program Notification Templates by data element returns expected entries")
-  void getProgramNotificationTemplatesByDataElementTest() {
+  @DisplayName("retrieving Program Rule Variables by data element returns expected entries")
+  void getProgramRuleVariablesByDataElementTest() {
     // given
     DataElement deA = createDataElementAndSave('A');
     DataElement deB = createDataElementAndSave('B');
     DataElement deC = createDataElementAndSave('C');
 
-    ProgramNotificationTemplate pnt1 = createProgramNotificationTemplate("temp 1", 2, null, null);
-    pnt1.setRecipientDataElement(deA);
-    ProgramNotificationTemplate pnt2 = createProgramNotificationTemplate("temp 2", 2, null, null);
-    pnt2.setRecipientDataElement(deB);
-    ProgramNotificationTemplate pnt3 = createProgramNotificationTemplate("temp 3", 2, null, null);
-    pnt3.setRecipientDataElement(deC);
-    ProgramNotificationTemplate pnt4 = createProgramNotificationTemplate("temp 4", 2, null, null);
-    programNotificationTemplateStore.save(pnt1);
-    programNotificationTemplateStore.save(pnt2);
-    programNotificationTemplateStore.save(pnt3);
-    programNotificationTemplateStore.save(pnt4);
+    Program program = createProgram('p');
+    programStore.save(program);
+
+    ProgramRuleVariable prv1 = createProgramRuleVariable('a', program);
+    prv1.setDataElement(deA);
+    ProgramRuleVariable prv2 = createProgramRuleVariable('b', program);
+    prv2.setDataElement(deB);
+    ProgramRuleVariable prv3 = createProgramRuleVariable('c', program);
+    prv3.setDataElement(deC);
+    ProgramRuleVariable prv4 = createProgramRuleVariable('d', program);
+
+    programRuleVariableStore.save(prv1);
+    programRuleVariableStore.save(prv2);
+    programRuleVariableStore.save(prv3);
+    programRuleVariableStore.save(prv4);
 
     // when
-    List<ProgramNotificationTemplate> programNotificationTemplates =
-        programNotificationTemplateStore.getByDataElement(List.of(deA, deB, deC));
+    List<ProgramRuleVariable> programRuleVariables =
+        programRuleVariableStore.getByDataElement(List.of(deA, deB, deC));
 
     // then
-    assertEquals(3, programNotificationTemplates.size());
+    assertEquals(3, programRuleVariables.size());
     assertTrue(
-        programNotificationTemplates.stream()
-            .map(ProgramNotificationTemplate::getRecipientDataElement)
+        programRuleVariables.stream()
+            .map(ProgramRuleVariable::getDataElement)
             .toList()
             .containsAll(List.of(deA, deB, deC)));
+  }
+
+  @Test
+  @DisplayName(
+      "retrieving Program Rule Variables by data element with empty list returns expected entries")
+  void getProgramRuleVariablesByDataElementEmptyListTest() {
+    // when
+    List<ProgramRuleVariable> programRuleVariables =
+        programRuleVariableStore.getByDataElement(List.of());
+
+    // then
+    assertTrue(programRuleVariables.isEmpty());
   }
 
   private DataElement createDataElementAndSave(char c) {

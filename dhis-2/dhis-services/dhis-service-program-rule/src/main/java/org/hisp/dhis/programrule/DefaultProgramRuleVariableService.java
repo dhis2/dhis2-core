@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -122,5 +123,10 @@ public class DefaultProgramRuleVariableService implements ProgramRuleVariableSer
   @Transactional(readOnly = true)
   public List<ProgramRuleVariable> getVariablesWithNoAttribute() {
     return programRuleVariableStore.getVariablesWithNoAttribute();
+  }
+
+  @Override
+  public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
+    return programRuleVariableStore.getByDataElement(dataElements);
   }
 }

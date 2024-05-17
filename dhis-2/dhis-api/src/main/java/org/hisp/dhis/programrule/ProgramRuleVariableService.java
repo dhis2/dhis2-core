@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -98,4 +99,6 @@ public interface ProgramRuleVariableService {
    *     org.hisp.dhis.trackedentity.TrackedEntityAttribute}
    */
   List<ProgramRuleVariable> getVariablesWithNoAttribute();
+
+  List<ProgramRuleVariable> getByDataElement(Collection<DataElement> deSource1);
 }

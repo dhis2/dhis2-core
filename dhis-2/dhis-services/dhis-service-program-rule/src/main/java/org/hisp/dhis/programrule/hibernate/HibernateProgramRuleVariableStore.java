@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.hibernate;
 
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -90,5 +91,19 @@ public class HibernateProgramRuleVariableStore
             "FROM ProgramRuleVariable prv WHERE prv.sourceType IN ( :attributeTypes ) AND prv.attribute IS NULL")
         .setParameter("attributeTypes", ProgramRuleVariableSourceType.getAttributeTypes())
         .getResultList();
+  }
+
+  @Override
+  public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
+    String sql =
+        """
+          select * from programrulevariable prv
+          where prv.dataelementid in :dataElements
+        """;
+
+    return getSession()
+        .createNativeQuery(sql, ProgramRuleVariable.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }
