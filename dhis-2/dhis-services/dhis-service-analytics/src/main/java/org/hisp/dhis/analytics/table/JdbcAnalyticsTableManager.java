@@ -157,7 +157,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
               .build()
               .withName("oulevel")
               .withDataType(INTEGER)
-              .withNullable(NOT_NULL)
               .withSelectExpression("ous.level as oulevel"));
 
   public JdbcAnalyticsTableManager(
