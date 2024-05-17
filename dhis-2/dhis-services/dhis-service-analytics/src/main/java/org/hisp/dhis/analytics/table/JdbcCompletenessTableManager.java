@@ -81,6 +81,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
               .build()
               .withName("dx")
               .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
               .withSelectExpression("ds.uid"),
           AnalyticsTableColumn.builder()
               .build()
