@@ -28,7 +28,9 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -61,6 +63,7 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase {
   void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setOrgUnitMode(OrganisationUnitSelectionMode.ALL);
+
     IllegalQueryException exception =
         assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
     assertEquals(
@@ -85,14 +88,14 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase {
     params.addAttribute(nonUniq1);
     params.addAttribute(nonUniq2);
     params.addAttribute(uniq1);
-    assertEquals(params.hasUniqueFilter(), false);
+    assertFalse(params.hasUniqueFilter());
     uniq1.getFilters().add(qf);
-    assertEquals(params.hasUniqueFilter(), true);
+    assertTrue(params.hasUniqueFilter());
     params.getAttributes().clear();
     params.addFilter(nonUniq1);
     params.addFilter(nonUniq2);
-    assertEquals(params.hasUniqueFilter(), false);
+    assertFalse(params.hasUniqueFilter());
     params.addFilter(uniq1);
-    assertEquals(params.hasUniqueFilter(), true);
+    assertTrue(params.hasUniqueFilter());
   }
 }

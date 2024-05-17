@@ -184,7 +184,6 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>xerces</groupId>
       <artifactId>xercesImpl</artifactId>

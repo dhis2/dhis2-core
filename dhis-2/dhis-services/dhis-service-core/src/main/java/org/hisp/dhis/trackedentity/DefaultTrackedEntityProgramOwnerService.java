@@ -125,32 +125,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
   @Override
   @Transactional
   public void createOrUpdateTrackedEntityProgramOwner(
-      long teUid, long programUid, long orgUnitUid) {
-    TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(teUid);
-    Program program = programService.getProgram(programUid);
-    if (entityInstance == null) {
-      return;
-    }
-    TrackedEntityProgramOwner teProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(
-            entityInstance.getId(), program.getId());
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitUid);
-    if (ou == null) {
-      return;
-    }
-
-    if (teProgramOwner == null) {
-      trackedEntityProgramOwnerStore.save(
-          buildTrackedEntityProgramOwner(entityInstance, program, ou));
-    } else {
-      teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, ou);
-      trackedEntityProgramOwnerStore.update(teProgramOwner);
-    }
-  }
-
-  @Override
-  @Transactional
-  public void createOrUpdateTrackedEntityProgramOwner(
       TrackedEntity entityInstance, Program program, OrganisationUnit ou) {
     if (entityInstance == null || program == null || ou == null) {
       return;
@@ -219,40 +193,6 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     teProgramOwner = updateTrackedEntityProgramOwner(teProgramOwner, ou);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
-  }
-
-  @Override
-  @Transactional
-  public void createTrackedEntityProgramOwner(long teId, long programId, long orgUnitId) {
-    TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(teId);
-    if (entityInstance == null) {
-      return;
-    }
-    Program program = programService.getProgram(programId);
-    if (program == null) {
-      return;
-    }
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitId);
-    if (ou == null) {
-      return;
-    }
-    trackedEntityProgramOwnerStore.save(
-        buildTrackedEntityProgramOwner(entityInstance, program, ou));
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityProgramOwner(long teId, long programId, long orgUnitId) {
-    TrackedEntityProgramOwner teProgramOwner =
-        trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(teId, programId);
-    if (teProgramOwner == null) {
-      return;
-    }
-    OrganisationUnit ou = orgUnitService.getOrganisationUnit(orgUnitId);
-    if (ou == null) {
-      return;
-    }
-    trackedEntityProgramOwnerStore.update(updateTrackedEntityProgramOwner(teProgramOwner, ou));
   }
 
   @Override
