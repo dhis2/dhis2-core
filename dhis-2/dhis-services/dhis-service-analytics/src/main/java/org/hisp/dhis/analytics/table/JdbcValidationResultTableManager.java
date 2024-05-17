@@ -90,7 +90,7 @@ public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
               .build()
               .withName("peenddate")
               .withDataType(TIMESTAMP)
-              .withSelectExpression("pe.peenddate"),
+              .withSelectExpression("pe.enddate"),
           AnalyticsTableColumn.builder()
               .build()
               .withName("year")
