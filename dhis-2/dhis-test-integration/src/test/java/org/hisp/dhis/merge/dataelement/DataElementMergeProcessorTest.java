@@ -64,6 +64,8 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -85,6 +87,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private CategoryService categoryService;
   @Autowired private ProgramStageDataElementService programStageDataElementService;
   @Autowired private ProgramStageSectionService programStageSectionService;
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   private DataElement deSource1;
@@ -577,8 +580,6 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     ProgramStageSection pss1 = createProgramStageSection('a', 1);
     pss1.getDataElements().add(deSource1);
     ProgramStageSection pss2 = createProgramStageSection('b', 2);
-    //    DataElement deNonSource = createDataElement('F');
-    //    dataElementService.addDataElement(deNonSource);
     pss2.getDataElements().add(deSource2);
     ProgramStageSection pss3 = createProgramStageSection('c', 3);
     pss3.getDataElements().add(deTarget);
@@ -607,6 +608,74 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @DisplayName(
       "ProgramStageSection references for DataElement are replaced as expected, source DataElements are deleted")
   void programStageSectionMergeDeleteSourcesTest() throws ConflictException {
+    // given
+    ProgramStageSection pss1 = createProgramStageSection('d', 1);
+    pss1.getDataElements().add(deSource1);
+    ProgramStageSection pss2 = createProgramStageSection('e', 2);
+    pss2.getDataElements().add(deSource2);
+    ProgramStageSection pss3 = createProgramStageSection('F', 3);
+    pss3.getDataElements().add(deTarget);
+
+    programStageSectionService.saveProgramStageSection(pss1);
+    programStageSectionService.saveProgramStageSection(pss2);
+    programStageSectionService.saveProgramStageSection(pss3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramStageSection> pssSources =
+        programStageSectionService.getAllByDataElement(List.of(deSource1, deSource2));
+    List<ProgramStageSection> pssTarget =
+        programStageSectionService.getAllByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, pssSources, pssTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- ProgramNotificationTemplate --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are not deleted")
+  void programNotificationTemplateMergeTest() throws ConflictException {
+    // given
+    ProgramNotificationTemplate pnt1 = createProgramNotificationTemplate("pnt1", 1, null, null);
+    pnt1.setRecipientDataElement(deSource1);
+    ProgramNotificationTemplate pnt2 = createProgramNotificationTemplate("pnt2", 1, null, null);
+    pnt2.setRecipientDataElement(deSource2);
+    ProgramNotificationTemplate pnt3 = createProgramNotificationTemplate("pnt3", 1, null, null);
+    pnt3.setRecipientDataElement(deTarget);
+
+    programNotificationTemplateService.save(pnt1);
+    programNotificationTemplateService.save(pnt2);
+    programNotificationTemplateService.save(pnt3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramNotificationTemplate> pntSources =
+        programNotificationTemplateService.getByDataElement(List.of(deSource1, deSource2));
+    List<ProgramNotificationTemplate> pntTarget =
+        programNotificationTemplateService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, pntSources, pntTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramStageSection references for DataElement are replaced as expected, source DataElements are deleted")
+  void programNotificationTemplateDeleteSourcesMergeTest() throws ConflictException {
     // given
     ProgramStageSection pss1 = createProgramStageSection('d', 1);
     pss1.getDataElements().add(deSource1);

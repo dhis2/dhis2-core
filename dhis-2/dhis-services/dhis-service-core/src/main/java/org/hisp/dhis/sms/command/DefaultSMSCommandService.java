@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -70,7 +69,7 @@ public class DefaultSMSCommandService implements SMSCommandService {
   }
 
   @Override
-  @NonTransactional
+  @Transactional(readOnly = true)
   public List<SMSCode> getSmsCodesByDataElement(Collection<DataElement> dataElements) {
     return smsCommandStore.getCodesByDataElement(dataElements);
   }

@@ -40,6 +40,8 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.springframework.stereotype.Service;
@@ -59,6 +61,7 @@ public class DefaultDataElementMergeHandler {
   private final PredictorService predictorService;
   private final ProgramStageDataElementService programStageDataElementService;
   private final ProgramStageSectionService programStageSectionService;
+  private final ProgramNotificationTemplateService programNotificationTemplateService;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -156,5 +159,22 @@ public class DefaultDataElementMergeHandler {
                   pss.getDataElements().remove(source);
                   pss.getDataElements().add(target);
                 }));
+  }
+
+  /**
+   * Method retrieving {@link ProgramNotificationTemplate}s by source {@link DataElement}
+   * references. All retrieved {@link ProgramNotificationTemplate}s will have their {@link
+   * DataElement} replaced with the target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link
+   *     ProgramNotificationTemplate}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     ProgramNotificationTemplate}
+   */
+  public void handleProgramNotificationTemplate(List<DataElement> sources, DataElement target) {
+    List<ProgramNotificationTemplate> programNotificationTemplates =
+        programNotificationTemplateService.getByDataElement(sources);
+
+    programNotificationTemplates.forEach(pnt -> pnt.setRecipientDataElement(target));
   }
 }

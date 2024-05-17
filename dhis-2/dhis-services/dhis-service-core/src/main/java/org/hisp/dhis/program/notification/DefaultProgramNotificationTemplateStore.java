@@ -28,12 +28,14 @@
 package org.hisp.dhis.program.notification;
 
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
@@ -155,5 +157,19 @@ public class DefaultProgramNotificationTemplateStore
     query.setParameter(PROGRAM_ID, param.hasProgram() ? param.getProgram().getId() : 0);
 
     return query.getResultList();
+  }
+
+  @Override
+  public List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements) {
+    String sql =
+        """
+          select * from programnotificationtemplate pnt
+          where pnt.dataelementid in :dataElements
+        """;
+
+    return getSession()
+        .createNativeQuery(sql, ProgramNotificationTemplate.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }
