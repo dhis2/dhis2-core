@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -49,7 +50,6 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -424,15 +424,15 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
             programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
-    assertEquals(2, rules.size());
-    assertTrue(rules.contains(ruleD));
+
+    assertContainsOnly(rules, List.of(ruleD, ruleG));
 
     List<ProgramRuleAction> ruleActions =
         rules.stream()
             .flatMap(r -> r.getProgramRuleActions().stream())
             .collect(Collectors.toList());
 
-    Assertions.assertContainsOnly(
+    assertContainsOnly(
         ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
   }
 

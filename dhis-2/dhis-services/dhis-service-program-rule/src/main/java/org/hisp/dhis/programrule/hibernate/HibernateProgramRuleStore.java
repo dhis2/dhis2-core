@@ -114,40 +114,50 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
     String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
-            + "LEFT JOIN FETCH pr.programStage ps "
-            + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
-            + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
+        """
+            SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra
+            LEFT JOIN FETCH pr.programStage ps
+            WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )
+            AND (pr.programStage IS NULL OR ps.uid = :programStageUid )
+            """;
 
-    List<ProgramRule> rules =
+    List<ProgramRule> programRules =
         getQuery(hql)
             .setParameter("programId", program)
             .setParameter("implementableTypes", types)
             .setParameter("programStageUid", programStageUid)
             .getResultList();
 
+    if (programRules.isEmpty()) {
+      return programRules;
+    }
+
     hql =
         """
             SELECT distinct pra FROM ProgramRuleAction pra JOIN FETCH pra.programRule pr
-                        WHERE pra.programRule in ( :programRuleIds ) AND pra.programRuleActionType IN ( :implementableTypes )
+            WHERE pra.programRule in ( :programRuleIds ) AND pra.programRuleActionType IN ( :implementableTypes )
             """;
 
     Map<ProgramRule, List<ProgramRuleAction>> ruleActions =
         getSession()
             .createQuery(hql, ProgramRuleAction.class)
-            .setParameter("programRuleIds", rules)
+            .setParameter("programRuleIds", programRules)
             .setParameter("implementableTypes", types)
             .getResultList()
             .stream()
             .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule));
 
-    for (ProgramRule programRule : rules) {
+    if (ruleActions.isEmpty()) {
+      return programRules;
+    }
+
+    for (ProgramRule programRule : programRules) {
       if (ruleActions.containsKey(programRule)) {
         programRule.setProgramRuleActions(new HashSet<>(ruleActions.get(programRule)));
       }
     }
 
-    return rules;
+    return programRules;
   }
 
   @Override
