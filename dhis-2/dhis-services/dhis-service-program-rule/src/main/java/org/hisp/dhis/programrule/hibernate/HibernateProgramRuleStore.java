@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.hibernate;
 
 import java.math.BigInteger;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -138,14 +137,14 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
             WHERE pra.programRule in ( :programRuleIds ) AND pra.programRuleActionType IN ( :implementableTypes )
             """;
 
-    Map<ProgramRule, List<ProgramRuleAction>> ruleActions =
+    Map<ProgramRule, Set<ProgramRuleAction>> ruleActions =
         getSession()
             .createQuery(hql, ProgramRuleAction.class)
             .setParameter("programRuleIds", programRules)
             .setParameter("implementableTypes", types)
             .getResultList()
             .stream()
-            .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule));
+            .collect(Collectors.groupingBy(ProgramRuleAction::getProgramRule, Collectors.toSet()));
 
     if (ruleActions.isEmpty()) {
       return programRules;
@@ -153,7 +152,8 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
 
     for (ProgramRule programRule : programRules) {
       if (ruleActions.containsKey(programRule)) {
-        programRule.setProgramRuleActions(new HashSet<>(ruleActions.get(programRule)));
+        programRule.getProgramRuleActions().clear();
+        programRule.getProgramRuleActions().addAll(ruleActions.get(programRule));
       }
     }
 
