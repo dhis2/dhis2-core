@@ -49,6 +49,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.utils.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -360,7 +361,7 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void testGetProgramRulesByActionTypes() {
+  void testGetProgramRulesByImplementableActionTypes() {
     ProgramRule ruleD =
         new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
     ProgramRule ruleE = new ProgramRule("RuleE", "descriptionE", programB, null, null, "$a < 1", 1);
@@ -382,6 +383,57 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     assertEquals(1, rules.size());
     assertTrue(rules.contains(ruleD));
     assertFalse(rules.contains(ruleG));
+  }
+
+  @Test
+  void testGetProgramRulesByServerActionTypes() {
+    ProgramRule ruleD =
+        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
+    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleD);
+    programRuleService.addProgramRule(ruleG);
+
+    ProgramRuleAction sendMessageActionA = createProgramRuleAction('D');
+    sendMessageActionA.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    sendMessageActionA.setProgramRule(ruleD);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('C');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setProgramRule(ruleD);
+
+    ProgramRuleAction sendMessageActionB = createProgramRuleAction('E');
+    sendMessageActionB.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    sendMessageActionB.setProgramRule(ruleG);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setProgramRule(ruleG);
+
+    programRuleActonService.addProgramRuleAction(sendMessageActionA);
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+
+    programRuleActonService.addProgramRuleAction(sendMessageActionB);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleD.setProgramRuleActions(Sets.newHashSet(sendMessageActionA, showWarningAction));
+    ruleG.setProgramRuleActions(Sets.newHashSet(sendMessageActionB, hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleD);
+    programRuleService.updateProgramRule(ruleG);
+
+    List<ProgramRule> rules =
+        programRuleService.getProgramRulesByActionTypes(
+            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
+    assertEquals(2, rules.size());
+    assertTrue(rules.contains(ruleD));
+
+    List<ProgramRuleAction> ruleActions =
+        rules.stream()
+            .flatMap(r -> r.getProgramRuleActions().stream())
+            .collect(Collectors.toList());
+
+    Assertions.assertContainsOnly(
+        ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
   }
 
   @Test
