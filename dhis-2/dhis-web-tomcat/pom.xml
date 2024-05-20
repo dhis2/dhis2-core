@@ -58,18 +58,6 @@
       <version>${tomcat.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-    </dependency>
-    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
@@ -186,12 +174,10 @@
                   <rule>
                     <glob>/opt/dhis2</glob>
                     <ownership>${jib.container.user}:${jib.container.user}</ownership>
-                    <!--                    <ownership>nobody:nobody</ownership>-->
                   </rule>
                   <rule>
                     <glob>/opt/dhis2/**</glob>
                     <ownership>${jib.container.user}:${jib.container.user}</ownership>
-                    <!--                    <ownership>nobody:nobody</ownership>-->
                   </rule>
                 </rules>
               </configuration>

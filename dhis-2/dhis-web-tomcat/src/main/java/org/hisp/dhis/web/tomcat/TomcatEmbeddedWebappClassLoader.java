@@ -31,9 +31,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.loader.ParallelWebappClassLoader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.tomcat.util.compat.JreCompat;
 
 /**
@@ -45,9 +44,8 @@ import org.apache.tomcat.util.compat.JreCompat;
  * @author Andy Clement
  * @since 2.0.0
  */
+@Slf4j
 public class TomcatEmbeddedWebappClassLoader extends ParallelWebappClassLoader {
-
-  private static final Log logger = LogFactory.getLog(TomcatEmbeddedWebappClassLoader.class);
 
   static {
     if (!JreCompat.isGraalAvailable()) {
@@ -109,8 +107,8 @@ public class TomcatEmbeddedWebappClassLoader extends ParallelWebappClassLoader {
   @Override
   protected void addURL(URL url) {
     // Ignore URLs added by the Tomcat 8 implementation (see gh-919)
-    if (logger.isTraceEnabled()) {
-      logger.trace("Ignoring request to add " + url + " to the tomcat classloader");
+    if (log.isTraceEnabled()) {
+      log.trace("Ignoring request to add " + url + " to the tomcat classloader");
     }
   }
 

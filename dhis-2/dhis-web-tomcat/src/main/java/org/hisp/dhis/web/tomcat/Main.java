@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,45 +69,61 @@ public class Main {
 
   private static final int PORT = 8080;
 
-  private static DocumentRoot documentRoot = new DocumentRoot(log);
+  public static void main(String[] args) throws Exception {
 
-  /**
-   * Returns the document root which will be used by the web context to serve static files.
-   *
-   * @return the document root
-   */
-  public static File getDocumentRoot() {
-    return documentRoot.getDirectory();
-  }
+    Tomcat tomcat = new Tomcat();
+    tomcat.setBaseDir(createTempDir());
+    tomcat.setPort(PORT);
 
-  //  private static void setDocumentRoot(File documentRoot) {
-  //    documentRoot.setDirectory(documentRoot);
-  //  }
+    Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
+    connector.setThrowOnFailure(true);
+    tomcat.getService().addConnector(connector);
+    connector.setPort(PORT);
+    tomcat.setConnector(connector);
+    registerConnectorExecutor(tomcat, connector);
 
-  protected static final File getValidDocumentRoot() {
-    return documentRoot.getValidDirectory();
-  }
+    Host host = tomcat.getHost();
+    host.setAutoDeploy(false);
 
-  private static Context findContext(Tomcat tomcat) {
-    for (Container child : tomcat.getHost().findChildren()) {
-      if (child instanceof Context) {
-        return (Context) child;
-      }
-    }
-    throw new IllegalStateException("The host does not contain a Context");
-  }
+    TomcatEmbeddedContext context = new TomcatEmbeddedContext();
+    TomcatStarter starter = new TomcatStarter();
+    context.setStarter(starter);
+    context.addServletContainerInitializer(starter, Collections.emptySet());
+    context.setName("/");
+    context.setDisplayName("/");
+    context.setPath("");
 
-  protected static final File createTempDir(String prefix) {
-    try {
-      File tempDir = Files.createTempDirectory(prefix + "." + "8081" + ".").toFile();
-      tempDir.deleteOnExit();
-      return tempDir;
-    } catch (IOException ex) {
-      throw new WebServerException(
-          "Unable to create tempDir. java.io.tmpdir is set to "
-              + System.getProperty("java.io.tmpdir"),
-          ex);
-    }
+    context.setResources(new LoaderHidingResourceRoot(context));
+    context.addLifecycleListener(new FixContextListener());
+    ClassLoader parentClassLoader = Main.class.getClassLoader();
+    context.setParentClassLoader(parentClassLoader);
+    configureTldPatterns(context);
+    WebappLoader loader = new WebappLoader();
+    loader.setLoaderInstance(new TomcatEmbeddedWebappClassLoader(parentClassLoader));
+    loader.setDelegate(true);
+    context.setLoader(loader);
+
+    addDefaultServlet(context);
+
+    context.addLifecycleListener(new StaticResourceConfigurer(context));
+
+    Thread.currentThread().setContextClassLoader(context.getParentClassLoader());
+
+    host.addChild(context);
+
+    tomcat.start();
+
+    Thread awaitThread =
+        new Thread("container-" + (1)) {
+          @Override
+          public void run() {
+            performDeferredLoadOnStartup(tomcat);
+            tomcat.getServer().await();
+          }
+        };
+    awaitThread.setContextClassLoader(Main.class.getClassLoader());
+    awaitThread.setDaemon(false);
+    awaitThread.start();
   }
 
   private static void configureTldPatterns(TomcatEmbeddedContext context) {
@@ -137,115 +152,10 @@ public class Main {
     }
   }
 
-  //  protected void customizeConnector(Connector connector) {
-  //    int port = Math.max(PORT, 0);
-  //    connector.setPort(port);
-  //    if (StringUtils.hasText(getServerHeader())) {
-  //      connector.setProperty("server", getServerHeader());
-  //    }
-  //    if (connector.getProtocolHandler() instanceof AbstractProtocol<?> abstractProtocol) {
-  //      customizeProtocol(abstractProtocol);
-  //    }
-  //    invokeProtocolHandlerCustomizers(connector.getProtocolHandler());
-  //    if (getUriEncoding() != null) {
-  //      connector.setURIEncoding(getUriEncoding().name());
-  //    }
-  //    if (getHttp2() != null && getHttp2().isEnabled()) {
-  //      connector.addUpgradeProtocol(new Http2Protocol());
-  //    }
-  //    if (Ssl.isEnabled(getSsl())) {
-  //      customizeSsl(connector);
-  //    }
-  //    TomcatConnectorCustomizer compression = new
-  // CompressionConnectorCustomizer(getCompression());
-  //    compression.customize(connector);
-  //    for (TomcatConnectorCustomizer customizer : this.tomcatConnectorCustomizers) {
-  //      customizer.customize(connector);
-  //    }
-  //  }
   private static void registerConnectorExecutor(Tomcat tomcat, Connector connector) {
     if (connector.getProtocolHandler().getExecutor() instanceof Executor executor) {
       tomcat.getService().addExecutor(executor);
     }
-  }
-
-  public static void main(String[] args) throws Exception {
-
-    String appBase = ".";
-    Tomcat tomcat = new Tomcat();
-    tomcat.setBaseDir(createTempDir());
-    tomcat.setPort(PORT);
-
-    Connector connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
-    connector.setThrowOnFailure(true);
-    tomcat.getService().addConnector(connector);
-    connector.setPort(PORT);
-    //    customizeConnector(connector);
-    tomcat.setConnector(connector);
-    registerConnectorExecutor(tomcat, connector);
-
-    Host host = tomcat.getHost();
-    host.setAutoDeploy(false);
-
-    //    File documentRoot = getValidDocumentRoot();
-    //    if (documentRoot == null) {
-    //      throw new Exception("Document root is not valid");
-    //    }
-
-    TomcatEmbeddedContext context = new TomcatEmbeddedContext();
-    TomcatStarter starter = new TomcatStarter();
-    context.setStarter(starter);
-    context.addServletContainerInitializer(starter, Collections.emptySet());
-    context.setName("/");
-    context.setDisplayName("/");
-    context.setPath("");
-
-    //    context.setDocBase(documentRoot.getAbsolutePath());
-
-    //    context.setDocBase(createTempDir("tomcat-docbase").getAbsolutePath());
-
-    context.setResources(new LoaderHidingResourceRoot(context));
-    //    context.setResources(new StandardRoot(context));
-    context.addLifecycleListener(new FixContextListener());
-    //    tomcat.getHost().setAppBase(appBase);
-    //    Context context = tomcat.addWebapp("", appBase);
-    ClassLoader parentClassLoader = Main.class.getClassLoader();
-    //    ClassLoader parentClassLoader = ClassUtils.getDefaultClassLoader();
-    context.setParentClassLoader(parentClassLoader);
-    configureTldPatterns(context);
-    WebappLoader loader = new WebappLoader();
-    loader.setLoaderInstance(new TomcatEmbeddedWebappClassLoader(parentClassLoader));
-    loader.setDelegate(true);
-    context.setLoader(loader);
-
-    addDefaultServlet(context);
-
-    context.addLifecycleListener(new StaticResourceConfigurer(context));
-
-    Thread.currentThread().setContextClassLoader(context.getParentClassLoader());
-
-    //    ClassLoader parentClassLoader = (this.resourceLoader != null) ?
-    // this.resourceLoader.getClassLoader()
-    //        : ClassUtils.getDefaultClassLoader();
-    host.addChild(context);
-
-    Context context1 = findContext(tomcat);
-    tomcat.start();
-
-    Thread awaitThread =
-        new Thread("container-" + (1)) {
-
-          @Override
-          public void run() {
-            performDeferredLoadOnStartup(tomcat);
-            tomcat.getServer().await();
-          }
-        };
-    awaitThread.setContextClassLoader(Main.class.getClassLoader());
-    awaitThread.setDaemon(false);
-    awaitThread.start();
-
-    //    tomcat.getServer().await();
   }
 
   private static void addDefaultServlet(Context context) {
@@ -261,7 +171,6 @@ public class Main {
     context.addServletMappingDecoded("/", "default");
   }
 
-  // based on AbstractEmbeddedServletContainerFactory
   private static String createTempDir() {
     try {
       File tempDir = File.createTempFile("tomcat.", "." + PORT);
@@ -278,7 +187,6 @@ public class Main {
   }
 
   private static final class LoaderHidingResourceRoot extends StandardRoot {
-
     private LoaderHidingResourceRoot(TomcatEmbeddedContext context) {
       super(context);
     }
@@ -321,7 +229,7 @@ public class Main {
     @Override
     public Set<String> listWebAppPaths(String path) {
       return this.delegate.listWebAppPaths(path).stream()
-          .filter((webAppPath) -> !webAppPath.startsWith("/org/springframework/boot"))
+          .filter(webAppPath -> !webAppPath.startsWith("/org/springframework/boot"))
           .collect(Collectors.toSet());
     }
 
