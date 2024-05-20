@@ -428,9 +428,7 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     assertContainsOnly(rules, List.of(ruleD, ruleG));
 
     List<ProgramRuleAction> ruleActions =
-        rules.stream()
-            .flatMap(r -> r.getProgramRuleActions().stream())
-            .collect(Collectors.toList());
+        rules.stream().flatMap(r -> r.getProgramRuleActions().stream()).toList();
 
     assertContainsOnly(
         ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
