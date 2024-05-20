@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -271,5 +272,45 @@ class ProgramRuleActionStoreTest extends SingleSetupIntegrationTestBase {
     actionStore.save(actionB);
     assertEquals(1, actionStore.getProgramActionsWithNoDataObject().size());
     assertTrue(actionStore.getProgramActionsWithNoDataObject().contains(actionB));
+  }
+
+  @Test
+  @DisplayName("retrieving Program Rule Actions by data element returns expected entries")
+  void getProgramRuleVariablesByDataElementTest() {
+    // given
+    DataElement deX = createDataElementAndSave('x');
+    DataElement deY = createDataElementAndSave('y');
+    DataElement deZ = createDataElementAndSave('z');
+
+    ProgramRuleAction pra1 = createProgramRuleAction('a');
+    pra1.setDataElement(deX);
+    ProgramRuleAction pra2 = createProgramRuleAction('b');
+    pra2.setDataElement(deY);
+    ProgramRuleAction pra3 = createProgramRuleAction('c');
+    pra3.setDataElement(deZ);
+    ProgramRuleAction pra4 = createProgramRuleAction('d');
+
+    actionStore.save(pra1);
+    actionStore.save(pra2);
+    actionStore.save(pra3);
+    actionStore.save(pra4);
+
+    // when
+    List<ProgramRuleAction> programRuleActions =
+        actionStore.getByDataElement(List.of(deX, deY, deZ));
+
+    // then
+    assertEquals(3, programRuleActions.size());
+    assertTrue(
+        programRuleActions.stream()
+            .map(ProgramRuleAction::getDataElement)
+            .toList()
+            .containsAll(List.of(deX, deY, deZ)));
+  }
+
+  private DataElement createDataElementAndSave(char c) {
+    DataElement de = createDataElement(c);
+    dataElementService.addDataElement(de);
+    return de;
   }
 }

@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,5 +107,11 @@ public class DefaultProgramRuleActionService implements ProgramRuleActionService
   public List<ProgramRuleAction> getProgramRuleActionsWithNoStageId() {
     return programRuleActionStore.getMalFormedRuleActionsByType(
         ProgramRuleActionType.HIDEPROGRAMSTAGE);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements) {
+    return programRuleActionStore.getByDataElement(dataElements);
   }
 }

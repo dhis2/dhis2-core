@@ -42,6 +42,8 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -65,6 +67,7 @@ public class DefaultDataElementMergeHandler {
   private final ProgramStageSectionService programStageSectionService;
   private final ProgramNotificationTemplateService programNotificationTemplateService;
   private final ProgramRuleVariableService programRuleVariableService;
+  private final ProgramRuleActionService programRuleActionService;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -195,5 +198,20 @@ public class DefaultDataElementMergeHandler {
         programRuleVariableService.getByDataElement(sources);
 
     programRuleVariables.forEach(prv -> prv.setDataElement(target));
+  }
+
+  /**
+   * Method retrieving {@link ProgramRuleAction}s by source {@link DataElement} references. All
+   * retrieved {@link ProgramRuleAction}s will have their {@link DataElement} replaced with the
+   * target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link ProgramRuleAction}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     ProgramRuleAction}
+   */
+  public void handleProgramRuleAction(List<DataElement> sources, DataElement target) {
+    List<ProgramRuleAction> programRuleActions = programRuleActionService.getByDataElement(sources);
+
+    programRuleActions.forEach(pra -> pra.setDataElement(target));
   }
 }

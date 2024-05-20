@@ -66,6 +66,8 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -91,6 +93,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private ProgramStageSectionService programStageSectionService;
   @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
   @Autowired private ProgramRuleVariableService programRuleVariableService;
+  @Autowired private ProgramRuleActionService programRuleActionService;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
   private DataElement deSource1;
@@ -775,6 +778,74 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
         programRuleVariableService.getByDataElement(List.of(deSource1, deSource2));
     List<ProgramRuleVariable> prvTarget =
         programRuleVariableService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, prvSources, prvTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- ProgramRuleAction --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "ProgramRuleAction references for DataElement are replaced as expected, source DataElements are not deleted")
+  void programRuleActionMergeTest() throws ConflictException {
+    // given
+    ProgramRuleAction pra1 = createProgramRuleAction('a');
+    pra1.setDataElement(deSource1);
+    ProgramRuleAction pra2 = createProgramRuleAction('b');
+    pra2.setDataElement(deSource2);
+    ProgramRuleAction pra3 = createProgramRuleAction('c');
+    pra3.setDataElement(deTarget);
+
+    programRuleActionService.addProgramRuleAction(pra1);
+    programRuleActionService.addProgramRuleAction(pra2);
+    programRuleActionService.addProgramRuleAction(pra3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramRuleAction> prvSources =
+        programRuleActionService.getByDataElement(List.of(deSource1, deSource2));
+    List<ProgramRuleAction> prvTarget =
+        programRuleActionService.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, prvSources, prvTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "ProgramRuleAction references for DataElement are replaced as expected, source DataElements are deleted")
+  void programRuleActionSourcesDeletedMergeTest() throws ConflictException {
+    // given
+    ProgramRuleAction pra1 = createProgramRuleAction('a');
+    pra1.setDataElement(deSource1);
+    ProgramRuleAction pra2 = createProgramRuleAction('b');
+    pra2.setDataElement(deSource2);
+    ProgramRuleAction pra3 = createProgramRuleAction('c');
+    pra3.setDataElement(deTarget);
+
+    programRuleActionService.addProgramRuleAction(pra1);
+    programRuleActionService.addProgramRuleAction(pra2);
+    programRuleActionService.addProgramRuleAction(pra3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<ProgramRuleAction> prvSources =
+        programRuleActionService.getByDataElement(List.of(deSource1, deSource2));
+    List<ProgramRuleAction> prvTarget =
+        programRuleActionService.getByDataElement(List.of(deTarget));
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, prvSources, prvTarget, allDataElements);

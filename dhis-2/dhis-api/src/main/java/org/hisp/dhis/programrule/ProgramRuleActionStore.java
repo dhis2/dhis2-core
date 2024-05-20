@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author markusbekken
@@ -47,4 +49,6 @@ public interface ProgramRuleActionStore extends IdentifiableObjectStore<ProgramR
   List<ProgramRuleAction> getProgramActionsWithNoNotification();
 
   List<ProgramRuleAction> getMalFormedRuleActionsByType(ProgramRuleActionType type);
+
+  List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements);
 }
