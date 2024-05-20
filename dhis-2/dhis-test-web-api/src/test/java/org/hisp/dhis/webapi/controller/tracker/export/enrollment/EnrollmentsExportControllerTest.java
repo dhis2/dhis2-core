@@ -164,13 +164,18 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   @Test
   void getEnrollmentByIdWithFields() {
     JsonEnrollment enrollment =
-        GET("/tracker/enrollments/{id}?fields=orgUnit,status", this.enrollment.getUid())
+        GET(
+                "/tracker/enrollments/{id}?fields=orgUnit,status,trackedEntityType",
+                this.enrollment.getUid())
             .content(HttpStatus.OK)
             .as(JsonEnrollment.class);
 
-    assertHasOnlyMembers(enrollment, "orgUnit", "status");
+    assertHasOnlyMembers(enrollment, "orgUnit", "status", "trackedEntityType");
     assertEquals(this.enrollment.getOrganisationUnit().getUid(), enrollment.getOrgUnit());
     assertEquals(this.enrollment.getStatus().toString(), enrollment.getStatus());
+    assertEquals(
+        this.enrollment.getTrackedEntity().getTrackedEntityType().getUid(),
+        enrollment.getTrackedEntityType());
   }
 
   @Test

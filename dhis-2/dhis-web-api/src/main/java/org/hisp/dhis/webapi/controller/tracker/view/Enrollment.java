@@ -65,6 +65,8 @@ public class Enrollment {
   @JsonProperty
   private String trackedEntity;
 
+  @JsonProperty private String trackedEntityType;
+
   @JsonProperty private String program;
 
   @JsonProperty private EnrollmentStatus status;

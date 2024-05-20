@@ -40,6 +40,10 @@ public interface JsonEnrollment extends JsonObject {
     return getString("trackedEntity").string();
   }
 
+  default String getTrackedEntityType() {
+    return getString("trackedEntityType").string();
+  }
+
   default String getProgram() {
     return getString("program").string();
   }

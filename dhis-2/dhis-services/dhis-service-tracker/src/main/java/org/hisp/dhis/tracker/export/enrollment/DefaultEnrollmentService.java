@@ -104,6 +104,7 @@ class DefaultEnrollmentService
     if (enrollment.getTrackedEntity() != null) {
       TrackedEntity trackedEntity = new TrackedEntity();
       trackedEntity.setUid(enrollment.getTrackedEntity().getUid());
+      trackedEntity.setTrackedEntityType(enrollment.getTrackedEntity().getTrackedEntityType());
       result.setTrackedEntity(trackedEntity);
     }
     result.setOrganisationUnit(enrollment.getOrganisationUnit());

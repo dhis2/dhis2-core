@@ -72,6 +72,7 @@ public interface EnrollmentMapper
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "trackedEntity", source = "trackedEntity.uid")
+  @Mapping(target = "trackedEntityType", source = "trackedEntity.trackedEntityType.uid")
   @Mapping(target = "program", source = "program.uid")
   @Mapping(target = "orgUnit", source = "organisationUnit.uid")
   @Mapping(target = "enrolledAt", source = "enrollmentDate")
