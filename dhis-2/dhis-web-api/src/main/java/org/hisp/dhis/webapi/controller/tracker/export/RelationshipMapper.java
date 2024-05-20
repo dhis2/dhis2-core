@@ -27,15 +27,94 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.stream.Collectors;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
+import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(uses = {RelationshipItemMapper.class, InstantMapper.class})
-interface RelationshipMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship> {
+public abstract class RelationshipMapper
+    implements ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship> {
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "updatedAt", source = "lastUpdated")
-  Relationship from(org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship);
+  public abstract Relationship from(
+      org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship);
+
+  @AfterMapping
+  protected Relationship afterMapping(
+      @MappingTarget Relationship.RelationshipBuilder builder,
+      org.hisp.dhis.relationship.Relationship relationshipDb) {
+    Relationship relationship = builder.build();
+    RelationshipItem from = relationship.getFrom();
+    RelationshipItem to = relationship.getTo();
+
+    RelationshipType relationshipType = relationshipDb.getRelationshipType();
+
+    RelationshipConstraint fromConstraint = relationshipType.getFromConstraint();
+    RelationshipConstraint toConstraint = relationshipType.getToConstraint();
+
+    return builder
+        .from(withConstraints(from, fromConstraint))
+        .to(withConstraints(to, toConstraint))
+        .build();
+  }
+
+  private RelationshipItem withConstraints(
+      RelationshipItem item, RelationshipConstraint constraint) {
+
+    // nothing to check
+    if (item == null || constraint == null || constraint.getTrackerDataView() == null) {
+      return item;
+    }
+
+    if (item.getTrackedEntity() != null) {
+      item.getTrackedEntity()
+          .setAttributes(
+              item.getTrackedEntity().getAttributes().stream()
+                  .filter(
+                      a ->
+                          constraint
+                              .getTrackerDataView()
+                              .getAttributes()
+                              .contains(a.getAttribute()))
+                  .collect(Collectors.toList()));
+      return item;
+    }
+
+    if (item.getEnrollment() != null) {
+      item.getEnrollment()
+          .setAttributes(
+              item.getEnrollment().getAttributes().stream()
+                  .filter(
+                      a ->
+                          constraint
+                              .getTrackerDataView()
+                              .getAttributes()
+                              .contains(a.getAttribute()))
+                  .collect(Collectors.toList()));
+      return item;
+    }
+
+    if (item.getEvent() != null) {
+      item.getEvent()
+          .setDataValues(
+              item.getEvent().getDataValues().stream()
+                  .filter(
+                      d ->
+                          constraint
+                              .getTrackerDataView()
+                              .getDataElements()
+                              .contains(d.getDataElement()))
+                  .collect(Collectors.toSet()));
+      return item;
+    }
+
+    return item;
+  }
 }

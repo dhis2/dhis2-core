@@ -43,12 +43,14 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -403,5 +405,108 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
     JsonResponse optionSet = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content(HttpStatus.OK);
     assertTrue(optionSet.get("createdBy").exists());
+  }
+
+  @Test()
+  @DisplayName("Should not return error E6305 when PATCH any property of an AggregateDataExchange")
+  void testPatchAggregateDataExchange() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    PATCH(
+            "/aggregateDataExchanges/PnWccbwCJLQ",
+            Body(
+                "[{'op': 'replace', 'path': '/name', 'value': 'External basic auth data exchange updated'}]"))
+        .content(HttpStatus.OK);
+
+    JsonObject object =
+        GET("/aggregateDataExchanges/PnWccbwCJLQ").content(HttpStatus.OK).as(JsonObject.class);
+    assertEquals("External basic auth data exchange updated", object.getString("name").string());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return error E6305 if create a new AggregateDataExchange without authentication details")
+  void testCreateAggregateDataExchangeWithoutAuthentication() {
+    JsonImportSummary report =
+        POST("/metadata/", Body("metadata/aggregate_data_exchange_no_auth.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals(
+        "Aggregate data exchange target API must specify either access token or username and password",
+        report
+            .find(
+                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E6305)
+            .getMessage());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return error if user doesn't have Data Write permission for given AggregateDataExchange")
+  void testAggregateDataExchangeFail() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    User userA = createAndAddUser("UserA");
+    PATCH(
+            "/aggregateDataExchanges/iFOyIpQciyk",
+            String.format(
+                "[{'op':'add', 'path':'/sharing',\n"
+                    + "            'value':{'owner': 'GOLswS44mh8',\n"
+                    + "              'public': 'rw------',\n"
+                    + "              'external': false,\n"
+                    + "              'users': {'%s': {'id': '%s', 'access': 'rw------'}}}}]",
+                userA.getUid(), userA.getUid()))
+        .content(HttpStatus.OK);
+    injectSecurityContext(userA);
+    JsonTypeReport typeReport =
+        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(
+        "User has no data write access for AggregateDataExchange: Internal data exchange",
+        report.getString("description").string());
+  }
+
+  @Test
+  void testAggregateDataExchangeSuccess() {
+    POST("/metadata/", Body("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    JsonTypeReport typeReport =
+        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
+            .content(HttpStatus.OK)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
+    assertEquals("SUCCESS", report.getStatus());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return error in import report if deleting object is referenced by other object")
+  void testDeleteWithException() {
+    POST(
+            "/metadata",
+            "{'optionSets':\n"
+                + "    [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]\n"
+                + ",'dataElements':\n"
+                + "[{'name':'test DataElement with OptionSet', 'shortName':'test DataElement', 'aggregationType':'SUM','domainType':'AGGREGATE','categoryCombo':{'id':'bjDvmb4bfuf'},'valueType':'NUMBER','optionSet':{'id':'RHqFlB1Wm4d'}\n"
+                + "}]}")
+        .content(HttpStatus.OK);
+    JsonImportSummary report =
+        POST(
+                "/metadata?importStrategy=DELETE",
+                "{'optionSets':\n"
+                    + "[{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]}")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals(0, report.getStats().getDeleted());
+    assertEquals(1, report.getStats().getIgnored());
+    assertEquals(
+        "Object could not be deleted because it is associated with another object: DataElement",
+        report
+            .find(
+                JsonErrorReport.class, errorReport -> errorReport.getErrorCode() == ErrorCode.E4030)
+            .getMessage());
   }
 }

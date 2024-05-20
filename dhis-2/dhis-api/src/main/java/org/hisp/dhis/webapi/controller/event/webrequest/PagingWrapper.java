@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
@@ -53,6 +54,28 @@ public class PagingWrapper<T> {
 
   public PagingWrapper(String identifier) {
     this.identifier = identifier;
+  }
+
+  public static <T> PagingWrapper<T> withoutPager(Collection<T> elements) {
+    PagingWrapper<T> pagingWrapper = new PagingWrapper<>();
+    pagingWrapper.elements.put("instances", elements);
+    return pagingWrapper;
+  }
+
+  public static <T> PagingWrapper<T> withPager(
+      Collection<T> elements, int page, int pageSize, long total) {
+    PagingWrapper<T> pagingWrapper = new PagingWrapper<>();
+    pagingWrapper.elements.put("instances", elements);
+    org.hisp.dhis.common.Pager pager = new org.hisp.dhis.common.Pager(page, total, pageSize);
+    pagingWrapper.pager = Pager.fromLegacyWithTotals(pager);
+    return pagingWrapper;
+  }
+
+  public static <T> PagingWrapper<T> withPager(List<T> elements, int page, int pageSize) {
+    PagingWrapper<T> pagingWrapper = new PagingWrapper<>();
+    pagingWrapper.elements.put("instances", elements);
+    pagingWrapper.pager = Pager.builder().page(page).pageSize(pageSize).build();
+    return pagingWrapper;
   }
 
   public PagingWrapper<T> withPager(Pager pager) {
@@ -93,6 +116,17 @@ public class PagingWrapper<T> {
           .pageSize(pager.getPageSize())
           .pageCount(pagingCriteria.isTotalPages() ? pager.getPageCount() : null)
           .total(pagingCriteria.isTotalPages() ? pager.getTotal() : null)
+          .nextPage(pager.getNextPage())
+          .build();
+    }
+
+    private static Pager fromLegacyWithTotals(org.hisp.dhis.common.Pager pager) {
+      return Pager.builder()
+          .prevPage(pager.getPrevPage())
+          .page(pager.getPage())
+          .pageSize(pager.getPageSize())
+          .pageCount(pager.getPageCount())
+          .total(pager.getTotal())
           .nextPage(pager.getNextPage())
           .build();
     }

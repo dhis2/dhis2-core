@@ -218,7 +218,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       return false;
     }
     JobType type = configuration.getJobType();
-    if (configuration.isLeaderOnlyJob() && !leaderManager.isLeader()) {
+    if (!configuration.isInMemoryJob()
+        && configuration.isLeaderOnlyJob()
+        && !leaderManager.isLeader()) {
       whenLeaderOnlyOnNonLeader(configuration);
       return false;
     }
@@ -230,7 +232,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
       whenAlreadyRunning(configuration);
       return false;
     }
-    if (!runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
+    if (!type.isRunOnAllNodes()
+        && !runningRemotely.putIfAbsent(type.name(), progress.getProcesses())) {
       runningLocally.remove(type);
       whenAlreadyRunning(configuration);
       return false;
@@ -260,26 +263,32 @@ public abstract class AbstractSchedulingManager implements SchedulingManager {
         // complected by calling completedProcess at the end of the job
         progress.completedProcess("(process completed implicitly)");
       }
-      boolean wasSuccessfulRun =
-          !progress.isCancellationRequested()
-              && progress.getProcesses().stream()
-                  .allMatch(p -> p.getStatus() == JobProgress.Status.SUCCESS);
-      if (configuration.getLastExecutedStatus() == RUNNING) {
-        JobStatus errorStatus =
-            progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
-        configuration.setLastExecutedStatus(wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus);
-      }
-      return wasSuccessfulRun;
+      return checkWasSuccessfulRun(configuration, progress);
     } catch (Exception ex) {
       progress.failedProcess(ex);
       whenRunThrewException(configuration, ex, progress);
       return false;
     } finally {
-      completedLocally.put(type, runningLocally.remove(type));
-      runningRemotely.invalidate(type.name());
+      ControlledJobProgress done = runningLocally.remove(type);
+      if (done != null) completedLocally.put(type, done);
+      if (!type.isRunOnAllNodes()) runningRemotely.invalidate(type.name());
       whenRunIsDone(configuration, clock);
       MDC.remove("sessionId");
     }
+  }
+
+  public boolean checkWasSuccessfulRun(
+      JobConfiguration configuration, ControlledJobProgress progress) {
+    boolean wasSuccessfulRun =
+        !progress.isCancellationRequested()
+            && progress.getProcesses().stream()
+                .allMatch(p -> p.getStatus() == JobProgress.Status.SUCCESS);
+    if (configuration.getLastExecutedStatus() == RUNNING) {
+      JobStatus errorStatus =
+          progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED;
+      configuration.setLastExecutedStatus(wasSuccessfulRun ? JobStatus.COMPLETED : errorStatus);
+    }
+    return wasSuccessfulRun;
   }
 
   private ControlledJobProgress createJobProgress(JobConfiguration configuration) {

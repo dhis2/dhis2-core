@@ -29,11 +29,13 @@ package org.hisp.dhis.user;
 
 import java.io.Serializable;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class CurrentUserUtil {
+
   private CurrentUserUtil() {
     throw new UnsupportedOperationException("Utility class");
   }
@@ -102,12 +104,28 @@ public class CurrentUserUtil {
       return null;
     }
 
-    Map<String, Serializable> userSettings = currentUser.getUserSettings();
-    if (userSettings == null) {
-      return null;
+    return (T) currentUser.getUserSettings().get(key.getName());
+  }
+
+  /**
+   * Return the value of the user setting referred to by 'key'.
+   *
+   * @param defaultValue the default value to return if the setting value is null.
+   * @param key the key of the user setting
+   * @return the value of the user setting
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T getUserSetting(UserSettingKey key, @Nonnull T defaultValue) {
+    CurrentUserDetails currentUser = getCurrentUserDetails();
+    if (currentUser == null) {
+      return defaultValue;
     }
 
-    return (T) userSettings.get(key.getName());
+    Map<String, Serializable> userSettings = currentUser.getUserSettings();
+
+    Serializable setting = userSettings.get(key.getName());
+
+    return setting != null ? (T) setting : defaultValue;
   }
 
   public static void setUserSetting(UserSettingKey key, Serializable value) {

@@ -36,7 +36,7 @@ public enum TrackerErrorCode {
   E1000("User: `{0}`, has no write access to OrganisationUnit: `{1}`."),
   E1001("User: `{0}`, has no data write access to TrackedEntityType: `{1}`."),
   E1002("TrackedEntityInstance: `{0}`, already exists."),
-  E1003("OrganisationUnit: `{0}` of TrackedEntity is outside search scope of User: `{1}`."),
+  E1003("User: `{0}`, has no write access to TrackedEntity: `{1}`."),
   E1005("Could not find TrackedEntityType: `{0}`."),
   E1006("Attribute: `{0}`, does not exist."),
   E1007("Error validating attribute value type: `{0}`; Error: `{1}`."),
@@ -177,6 +177,8 @@ public enum TrackerErrorCode {
   E4016("Relationship: `{0}`, do not exist."),
   E4017("Relationship: `{0}`, is already deleted and cannot be modified."),
   E4018("Relationship: `{0}`, linking {1}: `{2}` to {3}: `{4}` already exists."),
+  E4019("User: `{0}`, has no data write access to relationship type: `{1}`."),
+  E4020("User: `{0}`, has no write access to relationship: `{1}`."),
   E5000(
       "\"{0}\" `{1}` cannot be persisted because \"{2}\" `{3}` referenced by it cannot be persisted."),
   E5001(

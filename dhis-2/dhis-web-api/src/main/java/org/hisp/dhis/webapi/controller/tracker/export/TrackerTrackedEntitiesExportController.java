@@ -37,7 +37,6 @@ import java.util.Set;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -51,6 +50,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntity
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -98,8 +98,13 @@ public class TrackerTrackedEntitiesExportController {
 
   private final TrackedEntityFieldsParamMapper fieldsMapper;
 
-  @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getInstances(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<PagingWrapper<ObjectNode>> getInstances(
       TrackerTrackedEntityCriteria criteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws BadRequestException {
@@ -116,25 +121,35 @@ public class TrackerTrackedEntitiesExportController {
             trackedEntityInstanceService.getTrackedEntityInstances(
                 queryParams, trackedEntityInstanceParams, false, false));
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-
     if (criteria.isPagingRequest()) {
-      Long count = 0L;
-
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
       if (criteria.isTotalPages()) {
-        count =
-            (long)
-                trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+        long count =
+            trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                PagingWrapper.withPager(
+                    objectNodes,
+                    queryParams.getPageWithDefault(),
+                    queryParams.getPageSizeWithDefault(),
+                    count));
       }
 
-      Pager pager =
-          new Pager(criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(criteria, pager));
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              PagingWrapper.withPager(
+                  objectNodes,
+                  queryParams.getPageWithDefault(),
+                  queryParams.getPageSizeWithDefault()));
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(PagingWrapper.withoutPager(objectNodes));
   }
 
   @GetMapping(value = "{id}")

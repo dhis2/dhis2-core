@@ -239,7 +239,7 @@ class TrackerCsvEventServiceTest {
 
     List<Event> events = service.readEvents(inputStream, false);
 
-    service.writeZip(outputStream, events, false, "file.json.zip");
+    service.writeZip(outputStream, events, false, "file.json");
 
     ZipInputStream zipInputStream =
         new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
@@ -248,7 +248,7 @@ class TrackerCsvEventServiceTest {
     ZipEntry zipEntry = zipInputStream.getNextEntry();
 
     assertNotNull(zipEntry, "Events Zip file has no entry");
-    assertEquals("file.json.zip", zipEntry.getName(), "Events Zip file has a wrong name");
+    assertEquals("file.json", zipEntry.getName(), "Events Zip file entry has a wrong name");
 
     var csvStream = new ByteArrayOutputStream();
     int l;
@@ -257,7 +257,7 @@ class TrackerCsvEventServiceTest {
     }
 
     assertEquals(
-        "eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z\n",
+        "eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z\n",
         csvStream.toString(),
         "The event does not match or not exists in the Zip File.");
   }
@@ -285,7 +285,7 @@ class TrackerCsvEventServiceTest {
     }
 
     assertEquals(
-        "eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z\n",
+        "eventId,COMPLETED,programId,programStageId,enrollmentId,orgUnitId,,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z\n",
         csvStream.toString(),
         "The event does not match or not exists in the GZip File.");
   }

@@ -60,6 +60,8 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -83,6 +85,8 @@ public class AggregateDataExchangeService {
 
   private final DataValueSetService dataValueSetService;
 
+  private final AclService aclService;
+
   private final I18nManager i18nManager;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
@@ -101,22 +105,34 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummaries}.
    */
   @Transactional
-  public ImportSummaries exchangeData(String uid, JobProgress progress) {
+  public ImportSummaries exchangeData(User currentUser, String uid, JobProgress progress) {
     AggregateDataExchange exchange = aggregateDataExchangeStore.loadByUid(uid);
 
-    return exchangeData(exchange, progress);
+    return exchangeData(currentUser, exchange, progress);
   }
 
   /**
    * Runs the given analytics data exchange.
    *
+   * @param userDetails CurrentUser who executing the exchange.
    * @param exchange the {@link AggregateDataExchange}.
    * @param progress {@link JobProgress} to track progress when running in a job context
    * @return an {@link ImportSummaries}.
    */
   @Transactional
-  public ImportSummaries exchangeData(AggregateDataExchange exchange, JobProgress progress) {
+  public ImportSummaries exchangeData(
+      User currentUser, AggregateDataExchange exchange, JobProgress progress) {
     ImportSummaries summaries = new ImportSummaries();
+
+    if (!aclService.canDataWrite(currentUser, exchange)) {
+      summaries.addImportSummary(
+          new ImportSummary(
+              ImportStatus.ERROR,
+              String.format(
+                  "User has no data write access for AggregateDataExchange: %s",
+                  exchange.getDisplayName())));
+      return summaries;
+    }
 
     progress.startingStage(toStageDescription(exchange), FailurePolicy.SKIP_ITEM);
     progress.runStage(

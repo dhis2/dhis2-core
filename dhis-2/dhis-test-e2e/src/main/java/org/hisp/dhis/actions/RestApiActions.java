@@ -34,6 +34,7 @@ import com.google.gson.JsonArray;
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
+import io.restassured.http.Headers;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -99,6 +100,18 @@ public class RestApiActions {
     return post("", ContentType.JSON.toString(), object, queryParamsBuilder);
   }
 
+  /**
+   * Send POST request to specified resource with no body.
+   *
+   * @param resource resource
+   */
+  public ApiResponse postNoBody(String resource) {
+    Response response = this.given().when().post(resource);
+
+    addCoverage("POST", resource);
+    return new ApiResponse(response);
+  }
+
   public ApiResponse post(
       String resource, String contentType, Object object, QueryParamsBuilder queryParams) {
     String path = queryParams == null ? "" : queryParams.build();
@@ -159,6 +172,25 @@ public class RestApiActions {
     addCoverage("GET", resourceId + path);
 
     Response response = this.given().contentType(ContentType.TEXT).when().get(resourceId + path);
+
+    return new ApiResponse(response);
+  }
+
+  /**
+   * Sends get request with provided path, headers & queryParams appended to URL.
+   *
+   * @param resourceId Id of resource
+   * @param queryParamsBuilder Query params to append to url
+   * @param headers headers to send as part of the request
+   */
+  public ApiResponse getWithHeaders(
+      String resourceId, QueryParamsBuilder queryParamsBuilder, Headers headers) {
+    String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+
+    addCoverage("GET", resourceId + path);
+
+    Response response =
+        this.given().contentType(ContentType.TEXT).headers(headers).when().get(resourceId + path);
 
     return new ApiResponse(response);
   }

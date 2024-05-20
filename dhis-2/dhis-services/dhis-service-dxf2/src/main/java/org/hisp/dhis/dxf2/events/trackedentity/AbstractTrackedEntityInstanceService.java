@@ -308,6 +308,25 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     return getTei(daoTrackedEntityInstance, readableAttributes, params, user);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public TrackedEntityInstance getTrackedEntityInstanceExcludingACL(
+      String uid, TrackedEntityInstanceParams params) {
+
+    org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance =
+        teiService.getTrackedEntityInstance(uid);
+    if (daoTrackedEntityInstance == null) {
+      return null;
+    }
+
+    User user = currentUserService.getCurrentUser();
+
+    Set<TrackedEntityAttribute> readableAttributes =
+        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(user);
+
+    return getTei(daoTrackedEntityInstance, readableAttributes, params, user);
+  }
+
   private org.hisp.dhis.trackedentity.TrackedEntityInstance createDAOTrackedEntityInstance(
       TrackedEntityInstance dtoEntityInstance,
       ImportOptions importOptions,

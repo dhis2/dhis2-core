@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.39.5-SNAPSHOT</version>
+    <version>2.39.6-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-reporting</artifactId>
@@ -172,8 +172,16 @@
       <artifactId>jasperreports</artifactId>
     </dependency>
     <dependency>
+      <groupId>net.sf.jasperreports</groupId>
+      <artifactId>jasperreports-fonts</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.jfree</groupId>
       <artifactId>jfreechart</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jcommon</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

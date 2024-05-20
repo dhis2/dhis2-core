@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentityinstance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -37,6 +38,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -69,6 +71,44 @@ class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase {
         assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
     assertEquals(
         "Either Program or Tracked entity type should be specified", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfGivenStatusAndNotOccurredEventDates() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setEventStatus(EventStatus.ACTIVE);
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfGivenStatusAndOccurredAfterEventDateButNoOccurredBeforeEventDate() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setEventStatus(EventStatus.ACTIVE);
+    params.setEventEndDate(new Date());
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailIfGivenOccurredEventDatesAndNotEventStatus() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setEventStartDate(new Date());
+    params.setEventEndDate(new Date());
+
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "`eventOccurredAfter`, `eventOccurredBefore` and `eventStatus` must be specified together",
+        exception.getMessage());
   }
 
   @Test

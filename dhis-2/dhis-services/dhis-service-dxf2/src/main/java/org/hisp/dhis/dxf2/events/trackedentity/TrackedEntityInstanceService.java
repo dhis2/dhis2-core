@@ -93,6 +93,9 @@ public interface TrackedEntityInstanceService {
       TrackedEntityInstanceParams params,
       User user);
 
+  TrackedEntityInstance getTrackedEntityInstanceExcludingACL(
+      String uid, TrackedEntityInstanceParams params);
+
   // -------------------------------------------------------------------------
   // CREATE, UPDATE or DELETE
   // -------------------------------------------------------------------------

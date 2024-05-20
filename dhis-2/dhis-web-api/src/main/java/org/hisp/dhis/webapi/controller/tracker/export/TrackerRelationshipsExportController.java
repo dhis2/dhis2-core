@@ -48,7 +48,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -68,6 +67,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerRelations
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -124,8 +124,13 @@ public class TrackerRelationshipsExportController {
             .build();
   }
 
-  @GetMapping
-  PagingWrapper<ObjectNode> getInstances(
+  @GetMapping(
+      produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=text/html"
+      // use the text/html Accept header to default to a Json response when a generic request comes
+      // from a browser
+      )
+  ResponseEntity<PagingWrapper<ObjectNode>> getInstances(
       TrackerRelationshipCriteria criteria,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
       throws WebMessageException {
@@ -140,13 +145,10 @@ public class TrackerRelationshipsExportController {
             criteria,
             criteria.isIncludeDeleted());
 
-    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-
     if (criteria.isPagingRequest()) {
-      long count = 0L;
-
+      List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(relationships, fields);
       if (criteria.isTotalPages()) {
-        count =
+        long count =
             tryGetRelationshipFrom(
                     identifier,
                     criteria.getIdentifierClass(),
@@ -154,16 +156,27 @@ public class TrackerRelationshipsExportController {
                     null,
                     criteria.isIncludeDeleted())
                 .size();
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                PagingWrapper.withPager(
+                    objectNodes,
+                    criteria.getPageWithDefault(),
+                    criteria.getPageSizeWithDefault(),
+                    count));
       }
 
-      Pager pager =
-          new Pager(criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault());
-
-      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(criteria, pager));
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              PagingWrapper.withPager(
+                  objectNodes, criteria.getPageWithDefault(), criteria.getPageSizeWithDefault()));
     }
 
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(relationships, fields);
-    return pagingWrapper.withInstances(objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(PagingWrapper.withoutPager(objectNodes));
   }
 
   @GetMapping("{id}")

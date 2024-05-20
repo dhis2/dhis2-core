@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1000;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1001;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1003;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1091;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1104;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4020;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +49,9 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -61,15 +69,17 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.converter.RelationshipTrackerConverterService;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
@@ -108,6 +118,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
+  @Mock private TrackerAccessManager trackerAccessManager;
+
+  @Mock private RelationshipTrackerConverterService converterService;
+
   private User user;
 
   private ValidationErrorReporter reporter;
@@ -120,7 +134,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
   private ProgramStage programStage;
 
+  private Relationship relationship;
+
+  private org.hisp.dhis.relationship.Relationship convertedRelationship;
+
   private TrackerIdSchemeParams idSchemes;
+
+  private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
 
   @BeforeEach
   public void setUp() {
@@ -143,59 +163,82 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new ValidationErrorReporter(idSchemes);
 
+    relationship = new Relationship();
+    relationship.setRelationship("relationshipUid");
+
+    convertedRelationship = new org.hisp.dhis.relationship.Relationship();
+
+    TrackedEntityProgramOwnerOrgUnit owner =
+        new TrackedEntityProgramOwnerOrgUnit(TEI_ID, PROGRAM_ID, organisationUnit);
+    ownerOrgUnit = Map.of(TEI_ID, Map.of(PROGRAM_ID, owner));
+
     validatorToTest =
         new PreCheckSecurityOwnershipValidationHook(
-            aclService, ownershipAccessManager, organisationUnitService);
+            aclService,
+            ownershipAccessManager,
+            trackerAccessManager,
+            organisationUnitService,
+            converterService);
+  }
+
+  private void setUpUser(List<String> auths, Set<OrganisationUnit> units) {
+    User u = makeUser("A", auths);
+    u.setOrganisationUnits(units);
+    when(bundle.getUser()).thenReturn(user);
+  }
+
+  private void setUpUserWithOrgUnit(List<String> auths) {
+    setUpUser(auths, Set.of(organisationUnit));
+  }
+
+  private void setUpUserWithOrgUnit() {
+    setUpUserWithOrgUnit(List.of());
   }
 
   @Test
-  void verifyValidationSuccessForTrackedEntity() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
-        .thenReturn(trackedEntityType);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
-    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
-
-    assertFalse(reporter.hasErrors());
-  }
-
-  @Test
-  void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void shouldSuccessWhenUpdateTEAndUserHasWriteAccess() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithNoProgramInstances());
-
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
+    when(bundle.getPreheat()).thenReturn(preheat);
+    TrackedEntityInstance te = getTEIWithProgramInstances();
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void verifyCaptureScopeIsCheckedForTrackedEntityCreation() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void shouldSuccessWhenDeleteTEWithNoEnrollmentsAndUserHasWriteAccessAndOUInCaptureScope() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
+            .build();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    TrackedEntityInstance te = getTEINoProgramInstances();
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldSuccessWhenCreateTEAndUserCorrectCaptureScope() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
@@ -212,107 +255,67 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
     validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void verifySearchScopeIsCheckedForTrackedEntityUpdate() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void shouldSuccessWhenDeleteTEWithDeletedEnrollmentsAndUserHasWriteAccessAndOUInCaptureScope() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
     when(bundle.getPreheat()).thenReturn(preheat);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
-        .thenReturn(trackedEntityType);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
-    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
-
-    assertFalse(reporter.hasErrors());
-  }
-
-  @Test
-  void verifyCaptureScopeIsCheckedForTrackedEntityDeletion() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
-            .trackedEntity(TEI_ID)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
-            .build();
-
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithNoProgramInstances());
-
+    TrackedEntityInstance te = getTEIWithDeleteProgramInstances();
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
     validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void
+      shouldSuccessWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndOUInCaptureScopeAndDeleteCascadeAuthority() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithDeleteProgramInstances());
-
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-
-    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
-
-    assertFalse(reporter.hasErrors());
-  }
-
-  @Test
-  void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
-            .trackedEntity(TEI_ID)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
-            .build();
-
+    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithProgramInstances());
-
+    TrackedEntityInstance te = getTEIWithProgramInstances();
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
     validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
-  void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void shouldFailWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndNoDeleteCascadeAuthority() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
+    when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithProgramInstances());
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
+    TrackedEntityInstance te = getTEIWithProgramInstances();
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
 
     validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
@@ -320,9 +323,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void shouldFailWhenCreateTEAndUserHasNoCorrectCaptureScope() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
@@ -343,84 +346,27 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
+  void shouldFailWhenUpdateTEAndUserHasNoWriteAccess() {
+    org.hisp.dhis.tracker.domain.TrackedEntity trackedEntity =
+        org.hisp.dhis.tracker.domain.TrackedEntity.builder()
             .trackedEntity(TEI_ID)
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
     when(bundle.getPreheat()).thenReturn(preheat);
+    TrackedEntityInstance te = getTEINoProgramInstances();
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(te);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(false);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
+    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of("error"));
 
     validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
     hasTrackerError(reporter, E1003, TrackerType.TRACKED_ENTITY, trackedEntity.getUid());
-  }
-
-  @Test
-  void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess() {
-    TrackedEntity trackedEntity =
-        TrackedEntity.builder()
-            .trackedEntity(CodeGenerator.generateUid())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
-        .thenReturn(trackedEntityType);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
-        .thenReturn(true);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(false);
-
-    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
-
-    hasTrackerError(reporter, E1001, TrackerType.TRACKED_ENTITY, trackedEntity.getUid());
-  }
-
-  @Test
-  void verifyValidationSuccessForEnrollmentWhenProgramInstanceHasNoOrgUnitAssigned() {
-    Enrollment enrollment =
-        Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
-
-    ProgramInstance programInstance = getEnrollment(enrollment.getEnrollment());
-    programInstance.setOrganisationUnit(null);
-
-    when(bundle.getProgramInstance(enrollment.getEnrollment())).thenReturn(programInstance);
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-
-    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
-
-    assertFalse(reporter.hasErrors());
-    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
-
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-
-    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
-
-    assertFalse(reporter.hasErrors());
-    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
   }
 
   @Test
@@ -436,12 +382,15 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(TEI_ID);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntityInstance);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
@@ -457,6 +406,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(TEI_ID);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(trackedEntityInstance);
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
         .thenReturn(organisationUnit);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
@@ -465,7 +417,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
@@ -481,40 +433,20 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    when(ownershipAccessManager.hasAccess(
+            user, enrollment.getTrackedEntity(), organisationUnit, program))
+        .thenReturn(true);
+    setUpUserWithOrgUnit();
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-    assertFalse(reporter.hasErrors());
-  }
-
-  @Test
-  void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration() {
-    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    String enrollmentUid = CodeGenerator.generateUid();
-    Enrollment enrollment =
-        Enrollment.builder()
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TEI_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-
-    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
-
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
@@ -531,15 +463,19 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
         .thenReturn(Collections.emptyList());
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    when(ownershipAccessManager.hasAccess(
+            user, enrollment.getTrackedEntity(), organisationUnit, program))
+        .thenReturn(true);
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
@@ -557,15 +493,19 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getUser()).thenReturn(deleteEnrollmentAuthorisedUser());
     when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
         .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    when(ownershipAccessManager.hasAccess(
+            user, enrollment.getTrackedEntity(), organisationUnit, program))
+        .thenReturn(true);
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-    assertFalse(reporter.hasErrors());
+    assertIsEmpty(reporter.getErrors());
   }
 
   @Test
@@ -583,10 +523,11 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
         .thenReturn(Collections.emptyList());
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
@@ -608,11 +549,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
         .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
@@ -632,11 +574,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(false);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    setUpUserWithOrgUnit();
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
@@ -656,11 +600,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
+    setUpUserWithOrgUnit();
 
     validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
@@ -1010,6 +956,65 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
     verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
 
     assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void shouldCreateWhenUserHasWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(CREATE);
+    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailToCreateWhenUserHasNoWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(CREATE);
+    when(converterService.from(preheat, relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
+        .thenReturn(List.of("error"));
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    hasTrackerError(reporter, E4020, TrackerType.RELATIONSHIP, relationship.getUid());
+  }
+
+  @Test
+  void shouldDeleteWhenUserHasWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(DELETE);
+    when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship))).thenReturn(List.of());
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailToDeleteWhenUserHasNoWriteAccessToRelationship() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(relationship)).thenReturn(DELETE);
+    when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship)))
+        .thenReturn(List.of("error"));
+
+    validatorToTest.validateRelationship(reporter, bundle, relationship);
+
+    hasTrackerError(reporter, E4020, TrackerType.RELATIONSHIP, relationship.getUid());
+  }
+
+  private TrackedEntityInstance getTEINoProgramInstances() {
+    TrackedEntityInstance trackedEntity = createTrackedEntityInstance(organisationUnit);
+    trackedEntity.setUid(TEI_ID);
+    trackedEntity.setProgramInstances(Sets.newHashSet());
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+
+    return trackedEntity;
   }
 
   private TrackedEntityInstance getTEIWithNoProgramInstances() {

@@ -115,7 +115,8 @@ pipeline {
                             echo "Database: ${env.DATABASE_ID}"
 
                             dir('scripts/instances') {
-                                sh "(./findByName.sh play nightly${branch} && ./restart.sh play nightly${branch}) || ./deploy-dhis2.sh play nightly${branch}"
+                                description = "DHIS 2 nightly development branch ${env.GIT_BRANCH}"
+                                sh "./findByName.sh play nightly${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play nightly${branch} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play nightly${branch} ${description}"
                                 timeout(10) {
                                     waitFor.statusOk("${env.INSTANCE_URL}${branch}")
                                 }

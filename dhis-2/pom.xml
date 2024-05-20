@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.39.5-SNAPSHOT</version>
+  <version>2.39.6-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
 
@@ -150,7 +150,8 @@
 
     <!-- Reporting -->
     <jasperreports.version>6.20.0</jasperreports.version>
-    <jfreechart.version>1.5.4</jfreechart.version>
+    <jfreechart.version>1.0.19</jfreechart.version>
+    <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.4</poi.version>
@@ -1157,6 +1158,16 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>net.sf.jasperreports</groupId>
+        <artifactId>jasperreports-fonts</artifactId>
+        <version>${jasperreports.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jfree</groupId>
+        <artifactId>jcommon</artifactId>
+        <version>${jfreechart-common.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.jfree</groupId>
         <artifactId>jfreechart</artifactId>
         <version>${jfreechart.version}</version>
@@ -1995,6 +2006,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-core</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports-fonts</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
@@ -2192,7 +2204,7 @@ jasperreports.version=${jasperreports.version}
         </executions>
       </plugin>
     </plugins>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
+    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
       a custom property for overwriting it, see https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
@@ -2249,7 +2261,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit 
+    <!-- Integration test profile, runs all integrations tests, not unit
       tests -->
     <profile>
       <id>integration</id>
@@ -2275,7 +2287,7 @@ jasperreports.version=${jasperreports.version}
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, this runs all the integrations tests 
+    <!-- IntegrationH2 test profile, this runs all the integrations tests
       with H2, but not the unit tests -->
     <profile>
       <id>integrationH2</id>

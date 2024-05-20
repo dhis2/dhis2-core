@@ -72,10 +72,9 @@ public class PeriodCriteriaUtils {
    * @return true if the criteria contains a period dimension, (start and end date) or event date.
    *     False, otherwise.
    */
-  private static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
-    return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
-        || (criteria.getFilter() != null
-            && criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+  public static boolean hasPeriod(EventsAnalyticsQueryCriteria criteria) {
+    return (criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+        || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
         || !isBlank(criteria.getEventDate())
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
