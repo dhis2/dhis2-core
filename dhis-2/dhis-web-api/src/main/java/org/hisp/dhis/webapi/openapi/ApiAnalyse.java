@@ -41,6 +41,7 @@ import static org.hisp.dhis.webapi.openapi.OpenApiAnnotations.whenAnnotated;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Array;
@@ -63,8 +64,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -688,8 +687,10 @@ final class ApiAnalyse {
         && serialize.contentAs() != Void.class
         && type instanceof ParameterizedType pt) {
       Class<?> contentAs = serialize.contentAs();
-      Api.Property res = toProperty.apply(Api.Schema.ofArray(type, (Class<?>) pt.getRawType())
-              .withElements(analyseClassSchema(endpoint, contentAs)));
+      Api.Property res =
+          toProperty.apply(
+              Api.Schema.ofArray(type, (Class<?>) pt.getRawType())
+                  .withElements(analyseClassSchema(endpoint, contentAs)));
       res.getOriginalType().setValue(analyseTypeSchema(endpoint, type));
       return res;
     }

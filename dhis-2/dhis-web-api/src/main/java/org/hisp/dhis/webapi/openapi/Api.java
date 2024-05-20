@@ -49,7 +49,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -374,7 +373,7 @@ public class Api {
      * IdentifiableObject} only and this would capture the original type from the method signature,
      * like a UserRole.
      */
-    Maybe<Schema> originalType = new Maybe<>();
+    @ToString.Exclude Maybe<Schema> originalType = new Maybe<>();
 
     public Property(String name, Boolean required, Schema type) {
       this(name, required, type, new Maybe<>());

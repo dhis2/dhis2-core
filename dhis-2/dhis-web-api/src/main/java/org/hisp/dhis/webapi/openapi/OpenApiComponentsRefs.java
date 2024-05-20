@@ -102,7 +102,9 @@ class OpenApiComponentsRefs {
             "\t%2d (+%2d) %s %s %s%n",
             pr.to.size(),
             pr.additional(),
-            type.getType() == Api.Schema.Type.ARRAY ? "["+getSharedName(type)+"]" : getSharedName(type),
+            type.getType() == Api.Schema.Type.ARRAY
+                ? "[" + getSharedName(type) + "]"
+                : getSharedName(type),
             pr.name,
             pr.exclusive.isEmpty() ? "" : pr.exclusive.toString());
       }
@@ -132,9 +134,7 @@ class OpenApiComponentsRefs {
                             .filter(p2 -> isReferencing(p2.getType()))
                             .filter(p2 -> p != p2)
                             .forEach(
-                                p2 ->
-                                    unique.removeAll(
-                                        byName.get(getSharedName(p2.getType())).to));
+                                p2 -> unique.removeAll(byName.get(getSharedName(p2.getType())).to));
                         refs.properties.add(new PropertyRefs(p.getName(), p, all, unique));
                       });
               refs.properties.sort(
@@ -149,7 +149,8 @@ class OpenApiComponentsRefs {
   }
 
   private static boolean isReferencing(Api.Schema type) {
-    return type.isShared() || type.getType() == Api.Schema.Type.ARRAY && isReferencing(type.getElementType());
+    return type.isShared()
+        || type.getType() == Api.Schema.Type.ARRAY && isReferencing(type.getElementType());
   }
 
   private static String getSharedName(Api.Schema type) {
