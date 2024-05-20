@@ -97,11 +97,12 @@ class OpenApiComponentsRefs {
     for (SchemaRefs ref : refs) {
       out.printf("%2d %s%n", ref.impact(), ref.name);
       for (PropertyRefs pr : ref.properties) {
+        Api.Schema type = pr.of.getType();
         out.printf(
             "\t%2d (+%2d) %s %s %s%n",
             pr.to.size(),
             pr.additional(),
-            pr.of.getType().getSharedName().getValue(),
+            type.getType() == Api.Schema.Type.ARRAY ? "["+getSharedName(type)+"]" : getSharedName(type),
             pr.name,
             pr.exclusive.isEmpty() ? "" : pr.exclusive.toString());
       }
@@ -122,18 +123,18 @@ class OpenApiComponentsRefs {
         .forEach(
             refs -> {
               refs.of.getProperties().stream()
-                  .filter(p -> p.getType().isShared())
+                  .filter(p -> isReferencing(p.getType()))
                   .forEach(
                       p -> {
-                        Set<String> all = byName.get(p.getType().getSharedName().getValue()).to;
+                        Set<String> all = byName.get(getSharedName(p.getType())).to;
                         Set<String> unique = new HashSet<>(all);
                         refs.of.getProperties().stream()
-                            .filter(p2 -> p2.getType().isShared())
+                            .filter(p2 -> isReferencing(p2.getType()))
                             .filter(p2 -> p != p2)
                             .forEach(
                                 p2 ->
                                     unique.removeAll(
-                                        byName.get(p2.getType().getSharedName().getValue()).to));
+                                        byName.get(getSharedName(p2.getType())).to));
                         refs.properties.add(new PropertyRefs(p.getName(), p, all, unique));
                       });
               refs.properties.sort(
@@ -145,6 +146,16 @@ class OpenApiComponentsRefs {
     return byName.values().stream()
         .sorted(comparing(SchemaRefs::impact).reversed().thenComparing(SchemaRefs::name))
         .toList();
+  }
+
+  private static boolean isReferencing(Api.Schema type) {
+    return type.isShared() || type.getType() == Api.Schema.Type.ARRAY && isReferencing(type.getElementType());
+  }
+
+  private static String getSharedName(Api.Schema type) {
+    if (type.isShared()) return type.getSharedName().getValue();
+    if (type.getType() == Api.Schema.Type.ARRAY) return getSharedName(type.getElementType());
+    return null;
   }
 
   @Nonnull
