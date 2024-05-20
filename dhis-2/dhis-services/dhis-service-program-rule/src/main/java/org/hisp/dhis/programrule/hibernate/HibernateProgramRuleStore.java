@@ -157,7 +157,7 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
       }
     }
 
-    return programRules;
+    return List.copyOf(programRules);
   }
 
   @Override
