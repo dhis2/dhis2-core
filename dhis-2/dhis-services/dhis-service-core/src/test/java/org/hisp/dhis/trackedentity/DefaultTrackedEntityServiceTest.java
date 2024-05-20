@@ -69,8 +69,6 @@ class DefaultTrackedEntityServiceTest {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
-
   @Mock private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Mock private TrackedEntityAttributeValueChangeLogService attributeValueAuditService;
@@ -92,7 +90,6 @@ class DefaultTrackedEntityServiceTest {
             trackedEntityTypeService,
             organisationUnitService,
             aclService,
-            trackerOwnershipAccessManager,
             trackedEntityChangeLogService,
             attributeValueAuditService);
 
@@ -112,7 +109,7 @@ class DefaultTrackedEntityServiceTest {
 
   @Test
   void exceptionThrownWhenTeiLimitReached() {
-    when(trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(
+    when(trackedEntityStore.getTrackedEntityCountWithMaxTeLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(20);
 
@@ -122,7 +119,7 @@ class DefaultTrackedEntityServiceTest {
     IllegalQueryException expectedException =
         assertThrows(
             IllegalQueryException.class,
-            () -> teiService.validateSearchScope(params, true),
+            () -> teiService.validateSearchScope(params),
             "test message");
 
     assertEquals("maxteicountreached", expectedException.getMessage());
@@ -130,13 +127,13 @@ class DefaultTrackedEntityServiceTest {
 
   @Test
   void noExceptionThrownWhenTeiLimitNotReached() {
-    when(trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(
+    when(trackedEntityStore.getTrackedEntityCountWithMaxTeLimit(
             any(TrackedEntityQueryParams.class)))
         .thenReturn(0);
 
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     when(userService.getUserByUsername(currentUsername)).thenReturn(user);
 
-    teiService.validateSearchScope(params, true);
+    teiService.validateSearchScope(params);
   }
 }

@@ -107,8 +107,8 @@ public class TrackerExportTest extends TrackerApiTest {
         trackerImportExportActions.postAndGetJobReport(
             new File("src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
 
-    trackedEntityA = response.validateSuccessfulImport().extractImportedTeis().get(0);
-    trackedEntityB = response.validateSuccessfulImport().extractImportedTeis().get(1);
+    trackedEntityA = response.validateSuccessfulImport().extractImportedTrackedEntities().get(0);
+    trackedEntityB = response.validateSuccessfulImport().extractImportedTrackedEntities().get(1);
 
     enrollment = response.extractImportedEnrollments().get(0);
 
@@ -219,7 +219,7 @@ public class TrackerExportTest extends TrackerApiTest {
 
     trackerImportExportActions
         .getTrackedEntity(
-            response.extractImportedTeis().get(0),
+            response.extractImportedTrackedEntities().get(0),
             new QueryParamsBuilder().add("fields", "enrollments"))
         .validate()
         .statusCode(200)
@@ -265,12 +265,12 @@ public class TrackerExportTest extends TrackerApiTest {
                 .add("fields", "enrollments")
                 .add("program", "f1AyMswryyQ")
                 .add("orgUnit", "O6uvpzGd5pu")
-                .add("trackedEntity", response.extractImportedTeis().get(0)))
+                .add("trackedEntity", response.extractImportedTrackedEntities().get(0)))
         .validate()
         .statusCode(200)
         .body(
             "trackedEntities.enrollments.flatten().findAll { it.trackedEntity == '"
-                + response.extractImportedTeis().get(0)
+                + response.extractImportedTrackedEntities().get(0)
                 + "' }.events.flatten()",
             empty());
 
@@ -280,7 +280,7 @@ public class TrackerExportTest extends TrackerApiTest {
                 .add("fields", "enrollments")
                 .add("program", "f1AyMswryyQ")
                 .add("orgUnit", "O6uvpzGd5pu")
-                .add("trackedEntity", response.extractImportedTeis().get(0))
+                .add("trackedEntity", response.extractImportedTrackedEntities().get(0))
                 .add("includeDeleted", "true"))
         .validate()
         .statusCode(200)

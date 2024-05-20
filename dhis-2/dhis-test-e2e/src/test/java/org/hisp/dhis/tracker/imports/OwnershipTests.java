@@ -99,11 +99,11 @@ public class OwnershipTests extends TrackerApiTest {
 
     teiInCaptureScope =
         super.importTeisWithEnrollmentAndEvent(captureOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
     teiInSearchScope =
         super.importTeisWithEnrollmentAndEvent(searchOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
   }
 
@@ -116,7 +116,7 @@ public class OwnershipTests extends TrackerApiTest {
   public void shouldUpdateTrackedEntitiesInSearchScopeWhenGlassIsBroken() throws Exception {
     String teiId =
         importTeisWithEnrollmentAndEvent(searchOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObject updatePayload =
@@ -138,7 +138,7 @@ public class OwnershipTests extends TrackerApiTest {
       throws Exception {
     String teiId =
         importTeisWithEnrollmentAndEvent(searchOu, protectedProgram, protectedProgramStage)
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObject updatePayload =
@@ -162,7 +162,7 @@ public class OwnershipTests extends TrackerApiTest {
   public void shouldUpdateTrackedEntitiesOutsideCaptureScopeWhenProgramOpen() throws Exception {
     String teiId =
         importTeisWithEnrollmentAndEvent(searchOu, openProgram, openProgramStage)
-            .extractImportedTeis()
+            .extractImportedTrackedEntities()
             .get(0);
 
     JsonObject updatePayload =

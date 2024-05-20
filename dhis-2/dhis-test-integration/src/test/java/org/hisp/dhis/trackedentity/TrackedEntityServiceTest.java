@@ -27,23 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -60,7 +52,6 @@ import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -86,8 +77,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
-  @Autowired private UserService _userService;
-
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -111,8 +100,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private TrackedEntityType trackedEntityType;
 
   private TrackedEntityAttribute trackedEntityAttribute;
-
-  private static final String ATTRIBUTE_VALUE = "Value";
 
   private User superUser;
 
@@ -264,69 +251,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void testTrackedEntityAttributeFilter() {
-    injectSecurityContextUser(superUser);
-    trackedEntityAttribute.setDisplayInListNoProgram(true);
-    attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-
-    User user =
-        createAndAddUser(
-            false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContextUser(user);
-
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(entityInstanceA1);
-
-    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-
-    trackedEntityAttributeValue.setAttribute(trackedEntityAttribute);
-    trackedEntityAttributeValue.setTrackedEntity(entityInstanceA1);
-    trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
-
-    attributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValue);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    Grid grid = entityInstanceService.getTrackedEntitiesGrid(params);
-
-    assertEquals(1, grid.getHeight());
-  }
-
-  @Test
-  void testTrackedEntityGridWithNoFilterableAttributes() {
-    injectSecurityContextUser(superUser);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    assertThrows(
-        IllegalQueryException.class, () -> entityInstanceService.getTrackedEntitiesGrid(params));
-  }
-
-  @Test
-  void testTrackedEntityGridWithNoDisplayAttributes() {
-    injectSecurityContextUser(superUser);
-    trackedEntityAttribute.setDisplayInListNoProgram(false);
-    attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    assertThrows(
-        IllegalQueryException.class, () -> entityInstanceService.getTrackedEntitiesGrid(params));
-  }
-
-  @Test
   void shouldOrderEntitiesByCreatedInAscOrder() {
     injectSecurityContextUser(superUser);
 
@@ -339,7 +263,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
     params.setOrgUnits(Set.of(organisationUnit));
-    params.setOrders(List.of(new OrderParam("created", SortDirection.ASC)));
+    params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
@@ -365,7 +289,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
     params.setOrgUnits(Set.of(organisationUnit));
-    params.setOrders(List.of(new OrderParam("created", SortDirection.DESC)));
+    params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
     List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
@@ -376,62 +300,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceB1.getId(),
             entityInstanceC1.getId()),
         teiIdList);
-  }
-
-  @Test
-  void shouldOrderGridEntitiesByCreatedInAscOrder() {
-    injectSecurityContextUser(superUser);
-    trackedEntityAttribute.setDisplayInListNoProgram(true);
-    attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-
-    User user =
-        createAndAddUser(
-            false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContextUser(user);
-
-    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
-    entityInstanceB1.setCreated(DateTime.now().toDate());
-    initializeEntityInstance(entityInstanceA1);
-    initializeEntityInstance(entityInstanceB1);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-    params.setOrders(List.of(new OrderParam("created", SortDirection.ASC)));
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    Grid grid = entityInstanceService.getTrackedEntitiesGrid(params);
-    List<Object> uids = grid.getRows().stream().map(l -> l.get(0)).toList();
-
-    assertEquals(List.of("UID-B1", "UID-A1"), uids);
-  }
-
-  @Test
-  void shouldOrderGridEntitiesByCreatedInDescOrder() {
-    injectSecurityContextUser(superUser);
-    trackedEntityAttribute.setDisplayInListNoProgram(true);
-    attributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-
-    User user =
-        createAndAddUser(
-            false, "attributeFilterUser", Set.of(organisationUnit), Set.of(organisationUnit));
-    injectSecurityContextUser(user);
-
-    entityInstanceA1.setCreated(DateTime.now().plusDays(1).toDate());
-    entityInstanceB1.setCreated(DateTime.now().toDate());
-    initializeEntityInstance(entityInstanceA1);
-    initializeEntityInstance(entityInstanceB1);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-    params.setOrders(List.of(new OrderParam("created", SortDirection.DESC)));
-    params.setQuery(new QueryFilter(QueryOperator.LIKE, ATTRIBUTE_VALUE));
-
-    Grid grid = entityInstanceService.getTrackedEntitiesGrid(params);
-    List<Object> uids = grid.getRows().stream().map(l -> l.get(0)).toList();
-
-    assertEquals(List.of("UID-A1", "UID-B1"), uids);
   }
 
   @Test
@@ -797,96 +665,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceB1.getId()),
         teiIdList);
-  }
-
-  @Test
-  void shouldCountOneEntityWhenOnePresent() {
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(entityInstanceA1);
-
-    int counter =
-        entityInstanceService.getTrackedEntityCount(new TrackedEntityQueryParams(), true, true);
-
-    assertEquals(1, counter);
-  }
-
-  @Test
-  void shouldCountZeroEntitiesWhenNonePresent() {
-    int trackedEntitiesCounter =
-        entityInstanceService.getTrackedEntityCount(new TrackedEntityQueryParams(), true, true);
-
-    assertEquals(0, trackedEntitiesCounter);
-  }
-
-  @Test
-  void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime() {
-    Date oneHourBeforeLastUpdated =
-        Date.from(
-            entityInstanceA1
-                .getLastUpdated()
-                .toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
-                .minusHours(1)
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
-    injectSecurityContextUser(superUser);
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(entityInstanceA1);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-    params.setLastUpdatedStartDate(oneHourBeforeLastUpdated);
-
-    List<TrackedEntity> trackedEntities =
-        entityInstanceService.getTrackedEntities(params, true, true);
-
-    assertContainsOnly(List.of(entityInstanceA1), trackedEntities);
-  }
-
-  @Test
-  void shouldReturnEmptyIfTEWasUpdatedBeforePassedDateAndTime() {
-    Date oneHourAfterLastUpdated =
-        Date.from(
-            entityInstanceA1
-                .getLastUpdated()
-                .toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
-                .plusHours(1)
-                .atZone(ZoneId.systemDefault())
-                .toInstant());
-    injectSecurityContextUser(superUser);
-    entityInstanceA1.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(entityInstanceA1);
-
-    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-    params.setOrgUnits(Set.of(organisationUnit));
-    params.setTrackedEntityType(trackedEntityType);
-    params.setLastUpdatedStartDate(oneHourAfterLastUpdated);
-
-    List<TrackedEntity> trackedEntities =
-        entityInstanceService.getTrackedEntities(params, true, true);
-
-    assertIsEmpty(trackedEntities);
-  }
-
-  private void initializeEntityInstance(TrackedEntity entityInstance) {
-    entityInstance.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(entityInstance);
-    attributeValueService.addTrackedEntityAttributeValue(
-        createTrackedEntityAttributeValue(entityInstance));
-  }
-
-  private TrackedEntityAttributeValue createTrackedEntityAttributeValue(
-      TrackedEntity trackedEntity) {
-    TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-    trackedEntityAttributeValue.setAttribute(trackedEntityAttribute);
-    trackedEntityAttributeValue.setTrackedEntity(trackedEntity);
-    trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
-
-    return trackedEntityAttributeValue;
   }
 
   private void addEnrollment(TrackedEntity entityInstance, Date enrollmentDate, char programStage) {

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -44,7 +43,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
@@ -219,29 +217,6 @@ class EventStoreTest extends TransactionalIntegrationTest {
     assertTrue(eventStore.exists(eventB.getUid()));
     assertFalse(eventStore.exists("aaaabbbbccc"));
     assertFalse(eventStore.exists(null));
-  }
-
-  @Test
-  void testGetEventsByInstanceListComplete() {
-    eventA.setStatus(EventStatus.COMPLETED);
-    eventB.setStatus(EventStatus.ACTIVE);
-    eventC.setStatus(EventStatus.COMPLETED);
-    eventD1.setStatus(EventStatus.ACTIVE);
-    eventStore.save(eventA);
-    eventStore.save(eventB);
-    eventStore.save(eventC);
-    eventStore.save(eventD1);
-    List<Enrollment> enrollments = new ArrayList<>();
-    enrollments.add(enrollmentA);
-    enrollments.add(enrollmentB);
-    List<Event> stageInstances = eventStore.get(enrollments, EventStatus.COMPLETED);
-    assertEquals(2, stageInstances.size());
-    assertTrue(stageInstances.contains(eventA));
-    assertTrue(stageInstances.contains(eventC));
-    stageInstances = eventStore.get(enrollments, EventStatus.ACTIVE);
-    assertEquals(2, stageInstances.size());
-    assertTrue(stageInstances.contains(eventB));
-    assertTrue(stageInstances.contains(eventD1));
   }
 
   @Test

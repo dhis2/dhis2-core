@@ -125,11 +125,6 @@ class MetadataSyncJobParametersTest {
     verify(metadataSyncPreProcessor)
         .handleDataValuePush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
     verify(metadataSyncPreProcessor)
-        .handleEventProgramsDataPush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor)
-        .handleTrackerProgramsDataPush(
-            metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor)
         .handleCurrentMetadataVersion(metadataRetryContext, JOB_PROGRESS);
     verify(metadataSyncPreProcessor)
         .handleMetadataVersionsList(metadataRetryContext, metadataVersion, JOB_PROGRESS);
@@ -163,11 +158,6 @@ class MetadataSyncJobParametersTest {
     verify(metadataSyncPreProcessor)
         .handleDataValuePush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
     verify(metadataSyncPreProcessor)
-        .handleEventProgramsDataPush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor)
-        .handleTrackerProgramsDataPush(
-            metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor)
         .handleCurrentMetadataVersion(metadataRetryContext, JOB_PROGRESS);
     verify(metadataSyncPreProcessor)
         .handleMetadataVersionsList(metadataRetryContext, metadataVersion, JOB_PROGRESS);
@@ -200,11 +190,6 @@ class MetadataSyncJobParametersTest {
     verify(metadataSyncPreProcessor, times(1))
         .handleDataValuePush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
     verify(metadataSyncPreProcessor, times(1))
-        .handleEventProgramsDataPush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor, times(1))
-        .handleTrackerProgramsDataPush(
-            metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor, times(1))
         .handleCurrentMetadataVersion(metadataRetryContext, JOB_PROGRESS);
     verify(metadataSyncPreProcessor, times(1))
         .handleMetadataVersionsList(metadataRetryContext, metadataVersion, JOB_PROGRESS);
@@ -231,11 +216,6 @@ class MetadataSyncJobParametersTest {
     verify(metadataSyncPreProcessor, times(1)).setUp(metadataRetryContext, JOB_PROGRESS);
     verify(metadataSyncPreProcessor, times(1))
         .handleDataValuePush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor, times(1))
-        .handleEventProgramsDataPush(metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
-    verify(metadataSyncPreProcessor, times(1))
-        .handleTrackerProgramsDataPush(
-            metadataRetryContext, metadataSyncJobParameters, JOB_PROGRESS);
     verify(metadataSyncPreProcessor, times(1))
         .handleCurrentMetadataVersion(metadataRetryContext, JOB_PROGRESS);
     verify(metadataSyncPreProcessor, times(1))
