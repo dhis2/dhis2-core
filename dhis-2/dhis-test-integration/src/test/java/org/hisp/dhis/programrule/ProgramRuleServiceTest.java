@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -382,6 +383,57 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     assertEquals(1, rules.size());
     assertTrue(rules.contains(ruleD));
     assertFalse(rules.contains(ruleG));
+  }
+
+  @Test
+  void testGetProgramRulesByServerActionTypes() {
+    ProgramRule ruleD =
+        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
+    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleD);
+    programRuleService.addProgramRule(ruleG);
+
+    ProgramRuleAction sendMessageActionA = createProgramRuleAction('D');
+    sendMessageActionA.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    sendMessageActionA.setProgramRule(ruleD);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('C');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setProgramRule(ruleD);
+
+    ProgramRuleAction sendMessageActionB = createProgramRuleAction('E');
+    sendMessageActionB.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    sendMessageActionB.setProgramRule(ruleG);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setProgramRule(ruleG);
+
+    programRuleActonService.addProgramRuleAction(sendMessageActionA);
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+
+    programRuleActonService.addProgramRuleAction(sendMessageActionB);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleD.setProgramRuleActions(Sets.newHashSet(sendMessageActionA, showWarningAction));
+    ruleG.setProgramRuleActions(Sets.newHashSet(sendMessageActionB, hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleD);
+    programRuleService.updateProgramRule(ruleG);
+
+    List<ProgramRule> rules =
+        programRuleService.getProgramRulesByActionTypes(
+            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
+
+    assertContainsOnly(rules, List.of(ruleD, ruleG));
+
+    List<ProgramRuleAction> ruleActions =
+        rules.stream()
+            .flatMap(r -> r.getProgramRuleActions().stream())
+            .collect(Collectors.toList());
+
+    assertContainsOnly(
+        ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
   }
 
   @Test
