@@ -139,8 +139,14 @@ class EventRequestParamsMapper {
             .occurredBefore(eventRequestParams.getOccurredBefore())
             .scheduledAfter(eventRequestParams.getScheduledAfter())
             .scheduledBefore(eventRequestParams.getScheduledBefore())
-            .updatedAfter(eventRequestParams.getUpdatedAfter())
-            .updatedBefore(eventRequestParams.getUpdatedBefore())
+            .updatedAfter(
+                eventRequestParams.getUpdatedAfter() != null
+                    ? eventRequestParams.getUpdatedAfter().getDate()
+                    : null)
+            .updatedBefore(
+                eventRequestParams.getUpdatedBefore() != null
+                    ? eventRequestParams.getUpdatedBefore().getDate()
+                    : null)
             .updatedWithin(eventRequestParams.getUpdatedWithin())
             .enrollmentEnrolledBefore(eventRequestParams.getEnrollmentEnrolledBefore())
             .enrollmentEnrolledAfter(eventRequestParams.getEnrollmentEnrolledAfter())

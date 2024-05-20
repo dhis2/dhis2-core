@@ -28,7 +28,10 @@
 package org.hisp.dhis.webapi.webdomain;
 
 import java.util.Date;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * StartDate represents a lower limit date used to filter results in search APIs.
@@ -40,14 +43,12 @@ import lombok.RequiredArgsConstructor;
  * including start and end dates. startDate=2020-10-10&endDate=2020-10-12 will include anything
  * between 2020-10-10T00:00:00.000 and 2020-10-12T23:59:59.999.
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
 public class StartDate {
   private final Date date;
 
-  public static Date getDate(StartDate date) {
-    if (date == null) {
-      return null;
-    }
-    return date.date;
+  public static StartDate valueOf(String date) {
+    return new StartDate(DateUtils.parseDate(date));
   }
 }

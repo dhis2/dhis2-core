@@ -33,7 +33,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -689,8 +691,9 @@ public class DateUtils {
 
     try {
       Date date = safeParseDateTime(dateString, ONLY_DATE_FORMATTER);
-      org.joda.time.LocalDateTime localDateTime = org.joda.time.LocalDateTime.fromDateFields(date);
-      return localDateTime.withMillisOfDay(localDateTime.millisOfDay().getMaximumValue()).toDate();
+      LocalDateTime localDateTime =
+          LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).with(LocalTime.MAX);
+      return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
     } catch (IllegalArgumentException e) {
       // dateString has time defined
     }

@@ -54,10 +54,7 @@ class DatesBindingTest {
 
   @BeforeEach
   public void setUp() {
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(new BindingController())
-            .setControllerAdvice(new CrudControllerAdvice())
-            .build();
+    mockMvc = MockMvcBuilders.standaloneSetup(new BindingController()).build();
   }
 
   @Test
@@ -93,11 +90,11 @@ class DatesBindingTest {
   }
 
   @Controller
-  private class BindingController extends CrudControllerAdvice {
+  private class BindingController {
     @GetMapping(value = ENDPOINT)
     public @ResponseBody WebMessage getDefault(Criteria criteria) {
-      Date startDate = StartDate.getDate(criteria.getStartDate());
-      Date endDate = EndDate.getDate(criteria.getEndDate());
+      Date startDate = criteria.getStartDate() == null ? null : criteria.getStartDate().getDate();
+      Date endDate = criteria.getEndDate() == null ? null : criteria.getEndDate().getDate();
       return ok(DateUtils.toIso8601NoTz(startDate) + " - " + DateUtils.toIso8601NoTz(endDate));
     }
   }

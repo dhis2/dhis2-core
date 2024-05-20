@@ -77,6 +77,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -264,7 +265,7 @@ class EventImportRequestParamsMapperTest {
 
     Date updatedAfter = parseDate("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
-    Date updatedBefore = parseDate("2022-09-12");
+    EndDate updatedBefore = EndDate.valueOf("2022-09-12");
     eventRequestParams.setUpdatedBefore(updatedBefore);
 
     EventOperationParams params = mapper.map(eventRequestParams);
@@ -290,7 +291,7 @@ class EventImportRequestParamsMapperTest {
 
     Date updatedAfter = parseDate("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
-    Date updatedBefore = parseDate("2022-09-12");
+    EndDate updatedBefore = EndDate.valueOf("2022-09-12");
     eventRequestParams.setUpdatedBefore(updatedBefore);
     String updatedWithin = "P6M";
     eventRequestParams.setUpdatedWithin(updatedWithin);
