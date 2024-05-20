@@ -59,6 +59,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
@@ -69,6 +70,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -96,6 +98,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -117,6 +120,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(group = OpenApi.Document.Group.MANAGE)
 public abstract class AbstractCrudController<T extends IdentifiableObject>
     extends AbstractFullReadOnlyController<T> {
   @Autowired protected SchemaValidator schemaValidator;
@@ -376,6 +380,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return importReport.getFirstObjectReport();
   }
 
+  @OpenApi.Filter(
+      includes = {
+        Dashboard.class,
+        EventVisualization.class,
+        org.hisp.dhis.mapping.Map.class,
+        Visualization.class
+      })
   @PostMapping(value = "/{uid}/favorite")
   @ResponseBody
   public WebMessage setAsFavorite(
@@ -397,6 +408,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername()));
   }
 
+  @OpenApi.Filter(
+      includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @PostMapping(value = "/{uid}/subscriber")
   @ResponseBody
   public WebMessage subscribe(
@@ -582,6 +595,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     return objectReport(importReport);
   }
 
+  @OpenApi.Filter(
+      includes = {
+        Dashboard.class,
+        EventVisualization.class,
+        org.hisp.dhis.mapping.Map.class,
+        Visualization.class
+      })
   @DeleteMapping(value = "/{uid}/favorite")
   @ResponseBody
   public WebMessage removeAsFavorite(
@@ -603,6 +623,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername()));
   }
 
+  @OpenApi.Filter(
+      includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @DeleteMapping(value = "/{uid}/subscriber")
   @ResponseBody
   public WebMessage unsubscribe(

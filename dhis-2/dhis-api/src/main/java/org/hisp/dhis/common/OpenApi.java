@@ -137,6 +137,28 @@ public @interface OpenApi {
   }
 
   /**
+   * Can be used to annotate endpoint methods to constraint which concrete {@link EntityType}s will
+   * support the annotated endpoint method.
+   */
+  @Inherited
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.METHOD)
+  @interface Filter {
+
+    /**
+     * @return when present (non-empty) only endpoints with an {@link EntityType} contained in the
+     *     given set will be considered
+     */
+    Class<?>[] includes() default {};
+
+    /**
+     * @return when present (non-empty) only endpoints with an {@link EntityType} not contained in
+     *     the given set will be considered
+     */
+    Class<?>[] excludes() default {};
+  }
+
+  /**
    * When annotated on type level the tags are added to all endpoints of the controller.
    *
    * <p>When annotated on method level the tags are added to the annotated endpoint (operation).
@@ -150,16 +172,27 @@ public @interface OpenApi {
     String[] value();
   }
 
-  @Inherited
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {
 
+    @Getter
+    @RequiredArgsConstructor
     enum Group {
-      QUERY,
-      MANAGE,
-      CONFIG,
-      MISC
+      DEFAULT("Default"),
+      QUERY("Query"),
+      MANAGE("Management"),
+      CONFIG("Configuration"),
+      MISC("Miscellaneous");
+
+      private final String description;
+
+      /**
+       * @return the name of the OpenAPI tag used for this group
+       */
+      public String tag() {
+        return name().toLowerCase();
+      }
     }
 
     /**
@@ -185,7 +218,7 @@ public @interface OpenApi {
      *
      * @return type of group used
      */
-    Group group() default Group.MISC;
+    Group group() default Group.DEFAULT;
 
     /**
      * Optional. Description for the tag representing this {@link #group()}
@@ -200,13 +233,6 @@ public @interface OpenApi {
      * @return a tag external docs link URL
      */
     String externalDocs() default "";
-
-    /**
-     * @return The HTTP method names that are automatically assigned to this group when annotated on
-     *     type level (unless they are explicitly assigned to another group using a method level
-     *     annotation)
-     */
-    String[] methods() default {};
   }
 
   /**

@@ -68,6 +68,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Document.Group;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.webapi.openapi.Api.Parameter.In;
@@ -193,12 +194,12 @@ final class ApiExtractor {
     Api.Controller controller = new Api.Controller(api, source, entityClass, name);
     whenAnnotated(
         source, RequestMapping.class, a -> controller.getPaths().addAll(List.of(a.value())));
-    whenAnnotated(source, OpenApi.Tags.class, a -> controller.getTags().addAll(List.of(a.value())));
 
     methodsIn(source)
         .map(ApiExtractor::getMapping)
         .filter(Objects::nonNull)
         .map(mapping -> extractEndpoint(controller, mapping))
+        .filter(Objects::nonNull)
         .forEach(endpoint -> controller.getEndpoints().add(endpoint));
 
     return controller;
@@ -213,7 +214,16 @@ final class ApiExtractor {
   private static Api.Endpoint extractEndpoint(Api.Controller controller, EndpointMapping mapping) {
     Method source = mapping.source();
     String name = mapping.name().isEmpty() ? source.getName() : mapping.name();
-    Class<?> entityClass = OpenApiAnnotations.getEntityType(source, controller.getSource());
+    Class<?> entityType = OpenApiAnnotations.getEntityType(source, controller.getSource());
+
+    if (source.isAnnotationPresent(OpenApi.Filter.class)) {
+      // when the entity type is filtered return null to ignore
+      OpenApi.Filter filter = source.getAnnotation(OpenApi.Filter.class);
+      Set<Class<?>> includes = Set.of(filter.includes());
+      if (!includes.isEmpty() && !includes.contains(entityType)) return null;
+      Set<Class<?>> excludes = Set.of(filter.excludes());
+      if (!excludes.isEmpty() && excludes.contains(entityType)) return null;
+    }
 
     // request media types
     Set<MediaType> consumes =
@@ -227,10 +237,14 @@ final class ApiExtractor {
         ConsistentAnnotatedElement.of(source).isAnnotationPresent(Deprecated.class)
             ? Boolean.TRUE
             : null;
-    Api.Endpoint endpoint = new Api.Endpoint(controller, source, entityClass, name, deprecated);
+
+    Group group = getEndpointGroup(source);
+
+    Api.Endpoint endpoint =
+        new Api.Endpoint(controller, source, entityType, name, group, deprecated);
+
     endpoint.getDescription().setIfAbsent(extractDescription(source));
 
-    whenAnnotated(source, OpenApi.Tags.class, a -> endpoint.getTags().addAll(List.of(a.value())));
     mapping.path().stream()
         .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
         .forEach(path -> endpoint.getPaths().add(path));
@@ -243,6 +257,17 @@ final class ApiExtractor {
     endpoint.getResponses().putAll(extractResponses(endpoint, mapping, consumes));
 
     return endpoint;
+  }
+
+  private static Group getEndpointGroup(Method source) {
+    Group group = Group.DEFAULT;
+    if (source.getDeclaringClass().isAnnotationPresent(OpenApi.Document.class))
+      group = source.getDeclaringClass().getAnnotation(OpenApi.Document.class).group();
+    if (source.isAnnotationPresent(OpenApi.Document.class)) {
+      Group overlay = source.getAnnotation(OpenApi.Document.class).group();
+      if (overlay != Group.DEFAULT) group = overlay;
+    }
+    return group == Group.DEFAULT ? Group.MISC : group;
   }
 
   private static Map<HttpStatus, Api.Response> extractResponses(

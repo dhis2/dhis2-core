@@ -33,7 +33,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toCollection;
 import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.IN;
 import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.OUT;
 
@@ -41,12 +40,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -226,7 +223,7 @@ public class OpenApiGenerator extends JsonGenerator {
   }
 
   private void generatePathMethod(RequestMethod method, Api.Endpoint endpoint) {
-    Set<String> tags = mergeTags(endpoint.getIn().getTags(), endpoint.getTags());
+    Set<String> tags = Set.of(endpoint.getGroup().tag());
     addObjectMember(
         method.name().toLowerCase(),
         () -> {
@@ -536,22 +533,6 @@ public class OpenApiGenerator extends JsonGenerator {
         endpointsByBaseOperationId.computeIfAbsent(baseOperationId, key -> new ArrayList<>());
     endpoints.add(endpoint);
     return endpoints.size() == 1 ? baseOperationId : baseOperationId + endpoints.size();
-  }
-
-  /**
-   * The first controller level tag is used to split controllers into OpenAPI documents so it is
-   * added last since tools might give priority to the order of tags.
-   */
-  private static <E> Set<E> mergeTags(Set<E> controller, Set<E> endpoint) {
-    if (controller.isEmpty() && endpoint.isEmpty()) return new HashSet<>();
-    if (controller.isEmpty()) return endpoint;
-    Set<E> merged =
-        Stream.concat(controller.stream().skip(1), endpoint.stream())
-            .collect(toCollection(LinkedHashSet::new));
-    if (!controller.isEmpty()) {
-      merged.add(controller.iterator().next());
-    }
-    return merged;
   }
 
   /**

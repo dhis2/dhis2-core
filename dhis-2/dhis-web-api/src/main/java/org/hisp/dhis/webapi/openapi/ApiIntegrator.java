@@ -51,7 +51,6 @@ import javax.annotation.Nonnull;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.openapi.Api.Endpoint;
 import org.hisp.dhis.webapi.openapi.Api.Parameter;
@@ -113,7 +112,7 @@ public class ApiIntegrator {
     nameSharedParameters();
 
     // 3. Add description texts from markdown files to the Api model
-    describeTags();
+    aggregateTags();
     api.getControllers().forEach(ApiIntegrator::describeController);
     api.getSchemas().values().stream()
         .filter(Api.Schema::isShared)
@@ -383,16 +382,13 @@ public class ApiIntegrator {
    * 3. Add description texts from markdown files to the Api model
    */
 
-  private void describeTags() {
-    ApiDescriptions tags = ApiDescriptions.of(OpenApi.Tags.class);
-    api.getUsedTags()
+  private void aggregateTags() {
+    api.getUsedGroups()
         .forEach(
-            name -> {
+            group -> {
+              String name = group.tag();
               Api.Tag tag = new Api.Tag(name);
-              tag.getDescription().setValue(tags.get(name + ".description"));
-              tag.getExternalDocsUrl().setValue(tags.get(name + ".externalDocs.url"));
-              tag.getExternalDocsDescription()
-                  .setValue(tags.get(name + ".externalDocs.description"));
+              tag.getDescription().setValue(group.getDescription());
               api.getTags().put(name, tag);
             });
   }
@@ -635,9 +631,8 @@ public class ApiIntegrator {
             null,
             primary.getEntityType(),
             primary.getName() + "+" + secondary.getName(),
+            primary.getGroup(),
             primary.getDeprecated());
-    merged.getTags().addAll(primary.getTags());
-    merged.getTags().addAll(secondary.getTags());
     merged
         .getDescription()
         .setValue(primary.getDescription().orElse(secondary.getDescription().getValue()));

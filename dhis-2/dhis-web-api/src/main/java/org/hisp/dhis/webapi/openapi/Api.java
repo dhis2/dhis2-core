@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
@@ -125,15 +124,12 @@ public class Api {
       new ConcurrentSkipListMap<>(comparing(Class::getName));
 
   /**
-   * @return all tags used in the {@link Api}
+   * @return all {@link OpenApi.Document.Group}s used in the {@link Api}
    */
-  Set<String> getUsedTags() {
-    Set<String> used = new TreeSet<>();
+  Set<OpenApi.Document.Group> getUsedGroups() {
+    Set<OpenApi.Document.Group> used = EnumSet.noneOf(OpenApi.Document.Group.class);
     controllers.forEach(
-        controller -> {
-          used.addAll(controller.getTags());
-          controller.endpoints.forEach(endpoint -> used.addAll(endpoint.getTags()));
-        });
+        controller -> controller.endpoints.forEach(endpoint -> used.add(endpoint.getGroup())));
     return used;
   }
 
@@ -198,12 +194,11 @@ public class Api {
 
     @ToString.Exclude Api in;
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> source;
-    @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityClass;
+    @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityType;
 
     String name;
     List<String> paths = new ArrayList<>();
     List<Endpoint> endpoints = new ArrayList<>();
-    Set<String> tags = new LinkedHashSet<>();
   }
 
   @Value
@@ -215,8 +210,8 @@ public class Api {
     @ToString.Exclude Class<?> entityType;
 
     @EqualsAndHashCode.Include String name;
+    OpenApi.Document.Group group;
     Maybe<String> description = new Maybe<>();
-    Set<String> tags = new LinkedHashSet<>();
     Boolean deprecated;
 
     @EqualsAndHashCode.Include Set<RequestMethod> methods = EnumSet.noneOf(RequestMethod.class);
