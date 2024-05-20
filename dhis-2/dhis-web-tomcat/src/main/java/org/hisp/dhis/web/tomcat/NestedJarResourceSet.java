@@ -46,7 +46,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 
 /**
- * A {@link WebResourceSet} for a resource in a nested JAR.
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>A {@link WebResourceSet} for a resource in a nested JAR.
  *
  * @author Phillip Webb
  */

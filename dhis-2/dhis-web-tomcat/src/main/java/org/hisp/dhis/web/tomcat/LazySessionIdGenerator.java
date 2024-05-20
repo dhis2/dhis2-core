@@ -32,7 +32,9 @@ import org.apache.catalina.LifecycleState;
 import org.apache.catalina.util.StandardSessionIdGenerator;
 
 /**
- * A specialization of {@link StandardSessionIdGenerator} that initializes {@code SecureRandom}
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>A specialization of {@link StandardSessionIdGenerator} that initializes {@code SecureRandom}
  * lazily.
  *
  * @author Andy Wilkinson

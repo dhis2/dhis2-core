@@ -43,6 +43,12 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+/**
+ * This class is the main entry point for the embedded server. It starts an embedded Jetty server
+ * and deploys the DHIS2 API web application.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
   private static final int DEFAULT_HTTP_PORT = 9090;
 

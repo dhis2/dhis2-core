@@ -33,7 +33,9 @@ import org.springframework.web.SpringServletContainerInitializer;
 import org.springframework.web.WebApplicationInitializer;
 
 /**
- * Interface used to configure a Servlet 3.0+ {@link ServletContext context} programmatically.
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>Interface used to configure a Servlet 3.0+ {@link ServletContext context} programmatically.
  * Unlike {@link WebApplicationInitializer}, classes that implement this interface (and do not
  * implement {@link WebApplicationInitializer}) will <b>not</b> be detected by {@link
  * SpringServletContainerInitializer} and hence will not be automatically bootstrapped by the
@@ -42,7 +44,6 @@ import org.springframework.web.WebApplicationInitializer;
  * <p>For configuration examples see {@link WebApplicationInitializer}.
  *
  * @author Phillip Webb
- * @since 1.4.0
  * @see WebApplicationInitializer
  */
 @FunctionalInterface

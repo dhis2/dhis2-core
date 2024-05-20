@@ -43,7 +43,9 @@ import java.util.jar.JarFile;
 import java.util.stream.Stream;
 
 /**
- * Logic to extract URLs of static resource jars (those containing {@code "META-INF/resources"}
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>Logic to extract URLs of static resource jars (those containing {@code "META-INF/resources"}
  * directories).
  *
  * @author Andy Wilkinson

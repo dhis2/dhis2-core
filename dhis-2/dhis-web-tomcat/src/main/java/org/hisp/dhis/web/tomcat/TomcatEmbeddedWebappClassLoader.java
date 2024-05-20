@@ -36,13 +36,14 @@ import org.apache.catalina.loader.ParallelWebappClassLoader;
 import org.apache.tomcat.util.compat.JreCompat;
 
 /**
- * Extension of Tomcat's {@link ParallelWebappClassLoader} that does not consider the {@link
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>Extension of Tomcat's {@link ParallelWebappClassLoader} that does not consider the {@link
  * ClassLoader#getSystemClassLoader() system classloader}. This is required to ensure that any
  * custom context class loader is always used (as is the case with some executable archives).
  *
  * @author Phillip Webb
  * @author Andy Clement
- * @since 2.0.0
  */
 @Slf4j
 public class TomcatEmbeddedWebappClassLoader extends ParallelWebappClassLoader {

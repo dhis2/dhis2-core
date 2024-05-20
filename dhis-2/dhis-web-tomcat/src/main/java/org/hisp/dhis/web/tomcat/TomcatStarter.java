@@ -35,7 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.webapi.servlet.DhisWebApiWebAppInitializer;
 
 /**
- * {@link ServletContainerInitializer} used to trigger {@link ServletContextInitializer
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>{@link ServletContainerInitializer} used to trigger {@link ServletContextInitializer
  * ServletContextInitializers} and track startup errors.
  *
  * @author Phillip Webb

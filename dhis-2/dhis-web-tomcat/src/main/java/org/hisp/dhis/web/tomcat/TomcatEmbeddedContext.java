@@ -42,7 +42,9 @@ import org.apache.catalina.session.ManagerBase;
 import org.springframework.util.ClassUtils;
 
 /**
- * Tomcat {@link StandardContext} initialization.
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>Tomcat {@link StandardContext} initialization.
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
@@ -77,7 +79,7 @@ class TomcatEmbeddedContext extends StandardContext {
       Wrapper wrapper = (Wrapper) child;
       int order = wrapper.getLoadOnStartup();
       if (order >= 0) {
-        grouped.computeIfAbsent(order, (o) -> new ArrayList<>()).add(wrapper);
+        grouped.computeIfAbsent(order, o -> new ArrayList<>()).add(wrapper);
       }
     }
     return grouped.values().stream().flatMap(List::stream);

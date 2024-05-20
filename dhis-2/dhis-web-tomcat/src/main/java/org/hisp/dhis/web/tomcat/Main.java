@@ -64,6 +64,13 @@ import org.apache.tomcat.util.scan.StandardJarScanFilter;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
+/**
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * @author Phillip Webb
+ * @author Andy Wilkinson
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Slf4j
 public class Main {
 

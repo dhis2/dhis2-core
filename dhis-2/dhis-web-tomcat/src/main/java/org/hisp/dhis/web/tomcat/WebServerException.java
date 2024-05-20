@@ -28,10 +28,11 @@
 package org.hisp.dhis.web.tomcat;
 
 /**
- * Exceptions thrown by a web server.
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>Exceptions thrown by a web server.
  *
  * @author Phillip Webb
- * @since 2.0.0
  */
 @SuppressWarnings("serial")
 public class WebServerException extends RuntimeException {

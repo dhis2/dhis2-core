@@ -32,7 +32,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * TLD skip and scan patterns used by Spring Boot.
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>TLD skip and scan patterns used by Spring Boot.
  *
  * @author Phillip Webb
  * @author Andy Wilkinson
