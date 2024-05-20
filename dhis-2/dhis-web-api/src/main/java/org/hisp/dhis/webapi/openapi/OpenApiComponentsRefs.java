@@ -98,13 +98,15 @@ class OpenApiComponentsRefs {
       out.printf("%2d %s%n", ref.impact(), ref.name);
       for (PropertyRefs pr : ref.properties) {
         Api.Schema type = pr.of.getType();
+        String signature =
+            type.getType() == Api.Schema.Type.ARRAY
+                ? getSharedName(type) + "[]"
+                : getSharedName(type);
         out.printf(
             "\t%2d (+%2d) %s %s %s%n",
             pr.to.size(),
             pr.additional(),
-            type.getType() == Api.Schema.Type.ARRAY
-                ? "[" + getSharedName(type) + "]"
-                : getSharedName(type),
+            signature,
             pr.name,
             pr.exclusive.isEmpty() ? "" : pr.exclusive.toString());
       }

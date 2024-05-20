@@ -585,7 +585,7 @@ final class ApiAnalyse {
         getSharedName(of, of.getAnnotation(OpenApi.Shared.class), of.getSimpleName());
     return switch (type) {
       case UID -> "UID_" + sharedBaseName;
-      case ENUM -> sharedBaseName + "_" + genType.getSimpleName();
+      case ENUM -> sharedBaseName + genType.getSimpleName();
       default -> sharedBaseName;
     };
   }

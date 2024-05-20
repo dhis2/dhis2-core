@@ -182,7 +182,7 @@ public class OpenApiTool implements ToolProvider {
       ApiFinalise.finaliseApi(
           api, ApiFinalise.Configuration.builder().failOnNameClash(true).build());
 
-      OpenApiComponentsRefs.print(api, out);
+      // OpenApiComponentsRefs.print(api, out);
 
       Path file = Path.of(filename);
       String title =
