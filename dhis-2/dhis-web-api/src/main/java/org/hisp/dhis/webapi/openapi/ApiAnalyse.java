@@ -92,6 +92,9 @@ import org.springframework.web.servlet.ModelAndView;
  * Given a set of controller {@link Class}es this creates a {@link Api} model that describes all
  * relevant {@link Api.Endpoint}s and {@link Api.Schema}s.
  *
+ * <p>In simple terms it is a {@link Class} (reflection) information to {@link Api} model
+ * transformation.
+ *
  * @author Jan Bernitt
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

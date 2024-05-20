@@ -432,13 +432,15 @@ public class Api {
     }
 
     public enum Type {
+      // Note that schemas are generated in the order of types given here
+      // each type group being sorted alphabetically by shared name
       UNSUPPORTED,
       SIMPLE,
       ARRAY,
       OBJECT,
-      UID,
       ONE_OF,
-      ENUM;
+      ENUM,
+      UID
     }
 
     @EqualsAndHashCode.Include Type type;

@@ -32,6 +32,7 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.IN;
 import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.OUT;
@@ -343,11 +344,14 @@ public class OpenApiGenerator extends JsonGenerator {
     retainUsedSchemasOnly();
 
     // now only the actually used schemas remain in component/schemas
-    for (Map.Entry<String, Api.Schema> e : api.getComponents().getSchemas().entrySet()) {
-      String name = e.getKey();
-      Api.Schema schema = e.getValue();
-      addObjectMember(name, () -> generateSchema(schema, schema.getDirection().orElse(OUT)));
-    }
+    api.getComponents().getSchemas().values().stream()
+        .sorted(comparing(Api.Schema::getType).thenComparing(s -> s.getSharedName().getValue()))
+        .forEach(
+            schema -> {
+              String name = schema.getSharedName().getValue();
+              addObjectMember(
+                  name, () -> generateSchema(schema, schema.getDirection().orElse(OUT)));
+            });
   }
 
   private void generateSchemaOrRef(Api.Schema schema, Direction direction) {
@@ -593,11 +597,8 @@ public class OpenApiGenerator extends JsonGenerator {
     if (expanded.contains(name)) return; // done that
     pathSchemaRefs.add(name);
     expanded.add(name);
-    api.getComponents()
-        .getSchemas()
-        .get(name)
-        .getProperties()
-        .forEach(p -> addPathSchemaRefs(p.getType(), expanded));
+    Api.Schema schema = api.getComponents().getSchemas().get(name);
+    schema.getProperties().forEach(p -> addPathSchemaRefs(p.getType(), expanded));
   }
 
   private void addPathSchemaRefs(Api.Schema schema, Set<String> expanded) {

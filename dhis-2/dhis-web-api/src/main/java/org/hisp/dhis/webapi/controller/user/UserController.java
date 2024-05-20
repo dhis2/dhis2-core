@@ -67,6 +67,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -116,6 +117,7 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.openapi.Api;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -259,8 +261,8 @@ public class UserController extends AbstractCrudController<User> {
   @Override
   @GetMapping("/{uid}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @PathVariable("uid") String pvUid,
-      @PathVariable("property") String pvProperty,
+      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @OpenApi.Param(Api.PropertyNames.class) @PathVariable("property") String pvProperty,
       @RequestParam Map<String, String> rpParameters,
       TranslateParams translateParams,
       @CurrentUser UserDetails currentUser,

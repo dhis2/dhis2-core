@@ -74,7 +74,7 @@ class OpenApiAnnotations {
         OpenApi.EntityType.class,
         OpenApi.EntityType::value,
         c -> c != OpenApi.EntityType.class,
-        () -> controller);
+        () -> getEntityType(controller));
   }
 
   /*

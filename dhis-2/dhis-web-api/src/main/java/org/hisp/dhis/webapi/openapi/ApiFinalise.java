@@ -60,7 +60,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * {@link Api} finalisation is the second step in the OpenAPI generation process.
+ * {@link Api} finalisation is the second step in the OpenAPI generation process. In simple terms it
+ * is an {@link Api} model to an enriched {@link Api} model transformation that uses in place
+ * mutation of the existing {@link Api} model.
  *
  * <p>After the {@link Api} has been analysed by looking at the controller endpoints in the first
  * step the gathered information is completed and consolidated in this second step. This is the
@@ -88,7 +90,6 @@ public class ApiFinalise {
   }
 
   Api api;
-
   Configuration config;
 
   public static void finaliseApi(Api api, Configuration config) {
@@ -329,6 +330,7 @@ public class ApiFinalise {
     Class<?> schemaType = output.getRawType();
     if (output.getType() == Api.Schema.Type.ARRAY) {
       Api.Schema input = Api.Schema.ofArray(output.getSource(), schemaType);
+      output.getInput().setValue(input);
       input.getDirection().setValue(Api.Schema.Direction.IN);
       Api.Schema elementType = output.getElementType();
       input.withElements(generateInputReferenceSchema(elementType));
