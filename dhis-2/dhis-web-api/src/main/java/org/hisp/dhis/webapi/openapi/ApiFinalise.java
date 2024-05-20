@@ -332,8 +332,7 @@ public class ApiFinalise {
       Api.Schema input = Api.Schema.ofArray(output.getSource(), schemaType);
       output.getInput().setValue(input);
       input.getDirection().setValue(Api.Schema.Direction.IN);
-      Api.Schema elementType = output.getElementType();
-      input.withElements(generateInputReferenceSchema(elementType));
+      input.withElements(generateInputReferenceSchema(output.getProperties().get(0)));
       return input;
     }
     Api.Schema input = Api.Schema.ofObject(output.getSource(), schemaType);
@@ -351,16 +350,19 @@ public class ApiFinalise {
     output
         .getProperties()
         .forEach(
-            p -> input.getProperties().add(p.withType(generateInputReferenceSchema(p.getType()))));
+            p -> input.getProperties().add(p.withType(generateInputReferenceSchema(p))));
     return input;
   }
 
-  private Api.Schema generateInputReferenceSchema(Api.Schema type) {
-    return type.isIdentifiable() ? generateIdObject(type) : generateInputSchema(type);
+  private Api.Schema generateInputReferenceSchema(Api.Property property) {
+    if (property.getOriginalType().isPresent()) return generateInputSchema(property.getOriginalType().getValue());
+    Api.Schema type = property.getType();
+    if (type.isIdentifiable()) return generateIdObject(type);
+    return generateInputSchema(type);
   }
 
   private Api.Schema generateIdObject(Api.Schema of) {
-    Class<?> schemaType = of.getIdentifiableAs();
+    Class<?> schemaType = of.getIdentifyAs();
     Api.Schema object = Api.Schema.ofObject(of.getSource(), schemaType);
     Map<Class<?>, Api.Schema> idSchemas = api.getGeneratorSchemas().get(UID.class);
 

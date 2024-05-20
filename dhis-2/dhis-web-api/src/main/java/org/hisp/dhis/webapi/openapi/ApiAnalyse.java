@@ -58,10 +58,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -655,28 +658,42 @@ final class ApiAnalyse {
     Api.Schema schema = addShared.apply(Api.Schema.ofObject(type));
     // OOBS! It is important that at this point the schema for the current type is in
     // the schemas map so recursive types do resolve (unless they are inlined)
-    for (Property property : properties) {
-      Api.Property p =
-          new Api.Property(
-              getPropertyName(endpoint, property),
-              property.getRequired(),
-              analyseObjectPropertySchema(endpoint, property));
-      schema.addProperty(p);
+    for (Property p : properties) {
+      Function<Api.Schema, Api.Property> toProperty =
+          t -> new Api.Property(getPropertyName(endpoint, p), p.getRequired(), t);
+      schema.addProperty(analyseObjectProperty(endpoint, p, toProperty));
     }
     return schema;
   }
 
-  private static Api.Schema analyseObjectPropertySchema(Api.Endpoint endpoint, Property property) {
+  private static Api.Property analyseObjectProperty(
+      Api.Endpoint endpoint, Property property, Function<Api.Schema, Api.Property> toProperty) {
     AnnotatedElement member = (AnnotatedElement) property.getSource();
     if (member.isAnnotationPresent(JsonSubTypes.class)) {
-      return analyseSubTypeSchema(endpoint, member);
+      return toProperty.apply(analyseSubTypeSchema(endpoint, member));
     }
     Type type = getSubstitutedType(endpoint, property, member);
     OpenApi.Property annotated = member.getAnnotation(OpenApi.Property.class);
     if (type instanceof Class && isGeneratorType((Class<?>) type) && annotated != null) {
-      return analyseGeneratorSchema(endpoint, type, annotated.value());
+      return toProperty.apply(analyseGeneratorSchema(endpoint, type, annotated.value()));
     }
-    return analyseTypeSchema(endpoint, type);
+    JsonSerialize serialize = member.getAnnotation(JsonSerialize.class);
+    if (serialize != null && serialize.as() != Void.class) {
+      Class<?> as = serialize.as();
+      Api.Property res = toProperty.apply(analyseClassSchema(endpoint, as));
+      res.getOriginalType().setValue(analyseTypeSchema(endpoint, type));
+      return res;
+    }
+    if (serialize != null
+        && serialize.contentAs() != Void.class
+        && type instanceof ParameterizedType pt) {
+      Class<?> contentAs = serialize.contentAs();
+      Api.Property res = toProperty.apply(Api.Schema.ofArray(type, (Class<?>) pt.getRawType())
+              .withElements(analyseClassSchema(endpoint, contentAs)));
+      res.getOriginalType().setValue(analyseTypeSchema(endpoint, type));
+      return res;
+    }
+    return toProperty.apply(analyseTypeSchema(endpoint, type));
   }
 
   private static Api.Schema analyseSubTypeSchema(Api.Endpoint endpoint, AnnotatedElement baseType) {

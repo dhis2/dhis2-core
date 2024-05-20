@@ -49,6 +49,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -138,6 +139,8 @@ public class Api {
   }
 
   @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
   static final class Maybe<T> {
     T value;
 
@@ -362,6 +365,17 @@ public class Api {
 
     Maybe<String> description;
 
+    /**
+     * A property in a schema might limit the type visible in the API using annotations. In such
+     * cases the {@link #type} will reflect the limited type but the original type is captured here.
+     * This cannot be stored in the {@link #type}'s {@link Schema} as that is likely to be a
+     * singleton for the specific type. As such it cannot hold information that might differ for
+     * each use in a property. For example, many such properties are visible as a {@link
+     * IdentifiableObject} only and this would capture the original type from the method signature,
+     * like a UserRole.
+     */
+    Maybe<Schema> originalType = new Maybe<>();
+
     public Property(String name, Boolean required, Schema type) {
       this(name, required, type, new Maybe<>());
     }
@@ -449,7 +463,7 @@ public class Api {
 
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> rawType;
 
-    @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifiableAs;
+    @CheckForNull @ToString.Exclude Class<? extends IdentifiableObject> identifyAs;
 
     /** Is empty for primitive types */
     @EqualsAndHashCode.Include List<Property> properties = new ArrayList<>();
@@ -499,7 +513,7 @@ public class Api {
      * value.
      */
     public boolean isIdentifiable() {
-      return identifiableAs != null;
+      return identifyAs != null;
     }
 
     Set<String> getRequiredProperties() {
