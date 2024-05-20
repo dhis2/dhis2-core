@@ -27,20 +27,23 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -51,19 +54,6 @@ import org.hisp.dhis.schema.annotation.Property;
 @JacksonXmlRootElement(localName = "apiToken", namespace = DxfNamespaces.DXF_2_0)
 public class ApiToken extends BaseIdentifiableObject implements MetadataObject {
   public ApiToken() {}
-
-  public ApiToken(
-      String key,
-      Integer version,
-      ApiTokenType type,
-      Long expire,
-      List<ApiTokenAttribute> attributes) {
-    this.key = key;
-    this.version = version;
-    this.type = type;
-    this.expire = expire;
-    this.attributes = attributes;
-  }
 
   @JsonIgnore private String key;
 
@@ -84,6 +74,19 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private List<ApiTokenAttribute> attributes = new ArrayList<>();
+
+  public ApiToken(
+      String key,
+      Integer version,
+      ApiTokenType type,
+      Long expire,
+      List<ApiTokenAttribute> attributes) {
+    this.key = key;
+    this.version = version;
+    this.type = type;
+    this.expire = expire;
+    this.attributes = attributes;
+  }
 
   private ApiTokenAttribute findApiTokenAttribute(
       Class<? extends ApiTokenAttribute> attributeClass) {
