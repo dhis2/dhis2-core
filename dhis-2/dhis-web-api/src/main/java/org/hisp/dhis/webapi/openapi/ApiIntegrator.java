@@ -60,9 +60,10 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
- * {@link Api} finalisation is the second step in the OpenAPI generation process. In simple terms it
+ * {@link Api} integration is the second step in the OpenAPI generation process. In simple terms it
  * is an {@link Api} model to an enriched {@link Api} model transformation that uses in place
- * mutation of the existing {@link Api} model.
+ * mutation of the existing {@link Api} model. In contrast to the 1st step which is mostly local
+ * model building the 2nd step is a global model transformation.
  *
  * <p>After the {@link Api} has been analysed by looking at the controller endpoints in the first
  * step the gathered information is completed and consolidated in this second step. This is the
@@ -72,7 +73,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  */
 @Value
 @Slf4j
-public class ApiFinalise {
+public class ApiIntegrator {
   @Value
   @Builder(toBuilder = true)
   public static class Configuration {
@@ -92,15 +93,15 @@ public class ApiFinalise {
   Api api;
   Configuration config;
 
-  public static void finaliseApi(Api api, Configuration config) {
-    new ApiFinalise(api, config).finaliseApi();
+  public static void integrateApi(Api api, Configuration config) {
+    new ApiIntegrator(api, config).integrateApi();
   }
 
   /**
    * OBS! The order of steps in this is critical to produce a correct and complete {@link Api} model
    * ready for document generation.
    */
-  private void finaliseApi() {
+  private void integrateApi() {
     // 0. validation of the analysis result
     validateParameters();
 
@@ -113,13 +114,13 @@ public class ApiFinalise {
 
     // 3. Add description texts from markdown files to the Api model
     describeTags();
-    api.getControllers().forEach(ApiFinalise::describeController);
+    api.getControllers().forEach(ApiIntegrator::describeController);
     api.getSchemas().values().stream()
         .filter(Api.Schema::isShared)
-        .forEach(ApiFinalise::describeSchema);
+        .forEach(ApiIntegrator::describeSchema);
     api.getGeneratorSchemas().values().stream()
         .flatMap(schemas -> schemas.values().stream())
-        .forEach(ApiFinalise::describeSchema);
+        .forEach(ApiIntegrator::describeSchema);
 
     // 4. Group and merge endpoints by request path and method
     groupAndMergeEndpoints();
@@ -383,7 +384,7 @@ public class ApiFinalise {
    */
 
   private void describeTags() {
-    Descriptions tags = Descriptions.of(OpenApi.Tags.class);
+    ApiDescriptions tags = ApiDescriptions.of(OpenApi.Tags.class);
     api.getUsedTags()
         .forEach(
             name -> {
@@ -397,7 +398,7 @@ public class ApiFinalise {
   }
 
   private static void describeController(Api.Controller controller) {
-    Descriptions descriptions = Descriptions.of(controller.getSource());
+    ApiDescriptions descriptions = ApiDescriptions.of(controller.getSource());
 
     controller
         .getEndpoints()
@@ -481,7 +482,7 @@ public class ApiFinalise {
   }
 
   private static void describeSchema(Api.Schema schema) {
-    Descriptions descriptions = Descriptions.of(schema.getRawType());
+    ApiDescriptions descriptions = ApiDescriptions.of(schema.getRawType());
     String sharedName = schema.getSharedName().orElse("*");
     schema
         .getProperties()

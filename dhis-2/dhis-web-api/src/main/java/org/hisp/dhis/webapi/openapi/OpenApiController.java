@@ -182,11 +182,11 @@ public class OpenApiController {
       String contentType,
       BiFunction<Api, String, String> writer) {
     Api api =
-        ApiAnalyse.analyseApi(new ApiAnalyse.Scope(getAllControllerClasses(), paths, domains));
+        ApiExtractor.extractApi(new ApiExtractor.Scope(getAllControllerClasses(), paths, domains));
 
-    ApiFinalise.finaliseApi(
+    ApiIntegrator.integrateApi(
         api,
-        ApiFinalise.Configuration.builder()
+        ApiIntegrator.Configuration.builder()
             .failOnNameClash(failOnNameClash)
             .failOnInconsistency(failOnInconsistency)
             .build());

@@ -110,7 +110,7 @@ public class OpenApiTool implements ToolProvider {
     }
     out.println("Generated Documents");
     String filename = args[args.length - 1];
-    ApiAnalyse.Scope scope = new ApiAnalyse.Scope(controllers, paths, domains);
+    ApiExtractor.Scope scope = new ApiExtractor.Scope(controllers, paths, domains);
     if (!group) {
       return generateDocument(filename, out, err, scope);
     }
@@ -138,7 +138,7 @@ public class OpenApiTool implements ToolProvider {
   }
 
   private AtomicInteger generateDocumentsFromDocumentAnnotation(
-      String to, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
+      String to, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
     Map<String, Set<Class<?>>> byDoc = new TreeMap<>();
     scope.controllers().stream()
         .filter(scope::includes)
@@ -151,7 +151,7 @@ public class OpenApiTool implements ToolProvider {
       String to,
       PrintWriter out,
       PrintWriter err,
-      ApiAnalyse.Scope scope,
+      ApiExtractor.Scope scope,
       Map<String, Set<Class<?>>> groups) {
 
     String dir =
@@ -169,18 +169,18 @@ public class OpenApiTool implements ToolProvider {
                   filename,
                   out,
                   err,
-                  new ApiAnalyse.Scope(classes, scope.paths(), scope.domains())));
+                  new ApiExtractor.Scope(classes, scope.paths(), scope.domains())));
         });
     return errorCode;
   }
 
   private Integer generateDocument(
-      String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope) {
+      String filename, PrintWriter out, PrintWriter err, ApiExtractor.Scope scope) {
     try {
-      Api api = ApiAnalyse.analyseApi(scope);
+      Api api = ApiExtractor.extractApi(scope);
 
-      ApiFinalise.finaliseApi(
-          api, ApiFinalise.Configuration.builder().failOnNameClash(true).build());
+      ApiIntegrator.integrateApi(
+          api, ApiIntegrator.Configuration.builder().failOnNameClash(true).build());
 
       // OpenApiComponentsRefs.print(api, out);
 
