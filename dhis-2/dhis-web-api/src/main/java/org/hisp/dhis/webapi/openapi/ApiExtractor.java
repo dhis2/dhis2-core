@@ -111,7 +111,10 @@ final class ApiExtractor {
    * @param paths filter based on resource path (empty includes all)
    * @param domains filter based on {@link OpenApi.Document#domain()} (empty includes all)
    */
-  record Scope(Set<Class<?>> controllers, Set<String> paths, Set<String> domains) {
+  record Scope(
+      @Nonnull Set<Class<?>> controllers,
+      @Nonnull Set<String> paths,
+      @Nonnull Set<String> domains) {
 
     boolean includes(Class<?> controller) {
       if (!isControllerType(controller)) return false;
@@ -135,7 +138,12 @@ final class ApiExtractor {
       return a == null
           ? Stream.empty()
           : stream(firstNonEmpty(a.value(), a.path()))
-              .map(path -> path.startsWith("/api/") ? path.substring(4) : path);
+              .flatMap(path -> Stream.of(path, normalisePath(path)));
+    }
+
+    @Nonnull
+    private static String normalisePath(@Nonnull String path) {
+      return path.startsWith("/api/") ? path.substring(4) : path;
     }
 
     private static Class<?> domain(Class<?> controller) {
@@ -531,7 +539,7 @@ final class ApiExtractor {
     if (!shared.name().isEmpty()) return shared.name();
     if (shared.pattern() != OpenApi.Shared.Pattern.DEFAULT)
       return String.format(shared.pattern().getTemplate(), type.getSimpleName());
-    return defaultName;
+    return type.getSimpleName();
   }
 
   private static Api.Parameter extractParameter(Api.Endpoint endpoint, Property property) {

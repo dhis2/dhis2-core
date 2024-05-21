@@ -63,6 +63,7 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
+  @OpenApi.Identifiable(as = org.hisp.dhis.trackedentity.TrackedEntity.class)
   public static class TrackedEntity {
     @JsonProperty
     @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
@@ -91,7 +92,7 @@ public class RelationshipItem {
     @JsonProperty private Geometry geometry;
 
     @JsonProperty
-    @OpenApi.Property({UID.class, User.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
     private String storedBy;
 
     @JsonProperty private User createdBy;
@@ -110,6 +111,7 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
+  @OpenApi.Identifiable(as = org.hisp.dhis.program.Enrollment.class)
   public static class Enrollment {
     @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
     @JsonProperty
@@ -163,6 +165,7 @@ public class RelationshipItem {
   @NoArgsConstructor
   @AllArgsConstructor
   @OpenApi.Shared(value = false)
+  @OpenApi.Identifiable(as = org.hisp.dhis.program.Event.class)
   public static class Event {
     @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
     @JsonProperty
@@ -190,7 +193,7 @@ public class RelationshipItem {
 
     @JsonProperty private Instant scheduledAt;
 
-    @OpenApi.Property({UID.class, User.class})
+    @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
     @JsonProperty
     private String storedBy;
 

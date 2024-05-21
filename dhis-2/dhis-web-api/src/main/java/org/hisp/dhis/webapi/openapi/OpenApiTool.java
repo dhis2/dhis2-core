@@ -36,6 +36,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -199,9 +200,11 @@ public class OpenApiTool implements ToolProvider {
       int controllers = api.getControllers().size();
       int endpoints = api.getControllers().stream().mapToInt(c -> c.getEndpoints().size()).sum();
       int schemas = api.getComponents().getSchemas().size();
+      int parameters =
+          api.getComponents().getParameters().values().stream().mapToInt(List::size).sum();
       out.printf(
-          "  %-40s [%3d controllers, %3d endpoints, %3d schemas]%n",
-          output.getFileName(), controllers, endpoints, schemas);
+          "  %-40s [%3d controllers, %3d endpoints, %3d schemas, %3d parameters]%n",
+          output.getFileName(), controllers, endpoints, schemas, parameters);
     } catch (Exception ex) {
       ex.printStackTrace(err);
       return -1;

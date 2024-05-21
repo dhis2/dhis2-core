@@ -42,6 +42,7 @@ import org.hisp.dhis.common.ValueType;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.attribute.Attribute.class)
 @Data
 @Builder
 @NoArgsConstructor

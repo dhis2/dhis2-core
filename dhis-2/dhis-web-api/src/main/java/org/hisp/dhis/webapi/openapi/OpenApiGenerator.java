@@ -204,8 +204,8 @@ public class OpenApiGenerator extends JsonGenerator {
               "components",
               () -> {
                 addObjectMember("securitySchemes", this::generateSecuritySchemes);
-                addObjectMember("schemas", this::generateSharedSchemas);
                 addObjectMember("parameters", this::generateSharedParameters);
+                addObjectMember("schemas", this::generateSharedSchemas);
               });
         });
     log.info(
@@ -340,6 +340,7 @@ public class OpenApiGenerator extends JsonGenerator {
     // remove schemas that are not referenced by any of the schemas used so far
     retainUsedSchemasOnly();
 
+    // TODO if(debug)
     // OpenApiComponentsRefs.print(api, System.out);
 
     // now only the actually used schemas remain in component/schemas
@@ -364,6 +365,8 @@ public class OpenApiGenerator extends JsonGenerator {
       String name = schema.getSharedName().getValue();
       pathSchemaRefs.add(name);
       addStringMember("$ref", "#/components/schemas/" + name);
+      if (defaultValue != null && schema.getType() == Api.Schema.Type.ENUM)
+        addDefaultMember(schema.getRawType(), defaultValue, "string");
     } else {
       generateSchema(schema, direction, defaultValue);
     }
@@ -480,6 +483,13 @@ public class OpenApiGenerator extends JsonGenerator {
     addNumberMember("minLength", simpleType.minLength());
     addNumberMember("maxLength", simpleType.maxLength());
     addStringMember("pattern", simpleType.pattern());
+    addDefaultMember(source, defaultValue, type);
+    if (!simpleType.enums().isEmpty()) {
+      addInlineArrayMember("enum", simpleType.enums());
+    }
+  }
+
+  private void addDefaultMember(Class<?> source, String defaultValue, String type) {
     if (defaultValue != null) {
       switch (type) {
         case "string" -> addStringMember("default", defaultValue);
@@ -492,16 +502,6 @@ public class OpenApiGenerator extends JsonGenerator {
                     .formatted(type, source.getSimpleName(), defaultValue));
       }
     }
-    if (!simpleType.enums().isEmpty()) {
-      addInlineArrayMember("enum", simpleType.enums());
-    }
-  }
-
-  private void generateRefTypeSchema(Api.Schema schema) {
-    addStringMember("type", "object");
-    addInlineArrayMember("required", List.of("id"));
-    addObjectMember("properties", () -> addObjectMember("id", () -> generateUidSchema(schema)));
-    addTypeDescriptionMember(schema.getRawType(), "A UID reference to a %s  \n(Java name `%s`)");
   }
 
   private void generateUidSchema(Api.Schema schema) {

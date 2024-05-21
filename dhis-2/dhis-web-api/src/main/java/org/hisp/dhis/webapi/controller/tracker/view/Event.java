@@ -49,6 +49,7 @@ import org.locationtech.jts.geom.Geometry;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.program.Event.class)
 @Data
 @Builder
 @NoArgsConstructor
@@ -86,7 +87,7 @@ public class Event {
   @JsonProperty private Instant scheduledAt;
 
   @JsonProperty
-  @OpenApi.Property({UID.class, User.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.user.User.class})
   private String storedBy;
 
   @JsonProperty private boolean followUp;

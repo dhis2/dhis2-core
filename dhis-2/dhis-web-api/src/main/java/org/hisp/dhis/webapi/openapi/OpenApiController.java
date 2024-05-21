@@ -35,6 +35,7 @@ import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -175,14 +176,18 @@ public class OpenApiController {
   private void writeDocument(
       HttpServletRequest request,
       HttpServletResponse response,
-      Set<String> paths,
-      Set<String> domains,
+      @CheckForNull Set<String> paths,
+      @CheckForNull Set<String> domains,
       boolean failOnNameClash,
       boolean failOnInconsistency,
       String contentType,
       BiFunction<Api, String, String> writer) {
     Api api =
-        ApiExtractor.extractApi(new ApiExtractor.Scope(getAllControllerClasses(), paths, domains));
+        ApiExtractor.extractApi(
+            new ApiExtractor.Scope(
+                getAllControllerClasses(),
+                paths == null ? Set.of() : paths,
+                domains == null ? Set.of() : domains));
 
     ApiIntegrator.integrateApi(
         api,
