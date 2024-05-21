@@ -144,6 +144,10 @@ public class TrackerImportExportActions extends RestApiActions {
     return new TrackerApiResponse(this.get("/events/" + eventId));
   }
 
+  public TrackerApiResponse getEvents(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events/", queryParamsBuilder));
+  }
+
   public TrackerApiResponse getEventsJsonZip(QueryParamsBuilder queryParamsBuilder) {
     return new TrackerApiResponse(this.get("/events.json.zip", queryParamsBuilder));
   }
