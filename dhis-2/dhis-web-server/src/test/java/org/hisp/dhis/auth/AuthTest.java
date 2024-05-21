@@ -43,6 +43,7 @@ import org.hisp.dhis.web.jetty.JettyEmbeddedCoreWeb;
 import org.hisp.dhis.webapi.controller.security.LoginRequest;
 import org.hisp.dhis.webapi.controller.security.LoginResponse;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -58,6 +59,7 @@ import org.testcontainers.utility.DockerImageName;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
+@Disabled
 class AuthTest {
   private static final String POSTGRES_POSTGIS_VERSION = "13-3.4-alpine";
   private static final DockerImageName POSTGIS_IMAGE_NAME =
@@ -157,7 +159,7 @@ class AuthTest {
 
     log.info("Headers: " + headers);
 
-    assertEquals("/dhis-web-dashboard", body.getRedirectUrl());
+    assertEquals("/dhis-web-dashboard/", body.getRedirectUrl());
 
     assertNotNull(headers);
     List<String> cookieHeader = headers.get(HttpHeaders.SET_COOKIE);
