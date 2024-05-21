@@ -133,7 +133,7 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
 
     hql =
         """
-            SELECT distinct pra FROM ProgramRuleAction pra JOIN FETCH pra.programRule pr
+            SELECT distinct pra FROM ProgramRuleAction pra
             WHERE pra.programRule in ( :programRuleIds ) AND pra.programRuleActionType IN ( :implementableTypes )
             """;
 
