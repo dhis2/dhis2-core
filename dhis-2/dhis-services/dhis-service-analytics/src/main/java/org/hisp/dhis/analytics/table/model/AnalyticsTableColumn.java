@@ -76,8 +76,8 @@ public class AnalyticsTableColumn {
 
   /** Analytics column type. */
   @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.FIXED;
-  /** Date of creation of the underlying data dimension. */
 
+  /** Date of creation of the underlying data dimension. */
   @With private Date created;
 
   //  // -------------------------------------------------------------------------
