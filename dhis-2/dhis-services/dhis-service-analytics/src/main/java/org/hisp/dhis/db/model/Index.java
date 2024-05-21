@@ -121,7 +121,7 @@ public class Index {
   }
 
   /**
-   * Constructor. e
+   * Constructor.
    *
    * @param name the index name.
    * @param tableName the index table name.

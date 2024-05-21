@@ -74,7 +74,7 @@ public class AnalyticsTableColumn {
   /** Index column names, defaults to column name. */
   @With @Builder.Default private final List<String> indexColumns = List.of();
 
-  /** Analytics column type. */
+  /** The column type indicates the column origin. */
   @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.FIXED;
 
   /** Date of creation of the underlying data dimension. */

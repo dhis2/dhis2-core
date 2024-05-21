@@ -384,4 +384,17 @@ class PostgreSqlBuilderTest {
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }
+
+  @Test
+  void testCreateIndexWithDescNullsLast(){
+    // given
+    String expected = "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
+    Index index = new Index("index_a", "table_a", IndexType.BTREE, Unique.UNIQUE, List.of("column_a"), "desc nulls last");
+
+    // when
+    String createIndexStmt = sqlBuilder.createIndex(index);
+
+    // then
+    assertEquals(expected, createIndexStmt);
+  }
 }
