@@ -168,6 +168,16 @@ public class Index {
     this.sortOrder = null;
   }
 
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param tableName the index table name.
+   * @param indexType the index type.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   * @param sortOrder the sort order of index.
+   */
   public Index(
       String name,
       String tableName,
