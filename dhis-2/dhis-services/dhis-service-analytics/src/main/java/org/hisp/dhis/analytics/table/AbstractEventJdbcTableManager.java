@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.model.Skip;
@@ -202,6 +203,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
           AnalyticsTableColumn.builder()
               .build()
               .withName(attribute.getUid())
+              .withColumnType(AnalyticsColumnType.DYNAMIC)
               .withDataType(dataType)
               .withSelectExpression(sql)
               .withSkipIndex(skipIndex));

@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.model.AnalyticsColumnType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -523,6 +524,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
+                  .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("ougs." + quote(name))
                   .withSkipIndex(skipIndex)
@@ -540,6 +542,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
+                  .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("degs." + quote(name))
                   .withSkipIndex(skipIndex)
@@ -557,6 +560,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
+                  .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
                   .withSkipIndex(skipIndex)
@@ -574,6 +578,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
+                  .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
                   .withSkipIndex(skipIndex)
@@ -591,6 +596,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
+                  .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("dcs." + quote(name))
                   .withSkipIndex(skipIndex)
@@ -608,6 +614,7 @@ public abstract class AbstractJdbcTableManager implements AnalyticsTableManager 
               return AnalyticsTableColumn.builder()
                   .build()
                   .withName(name)
+                  .withColumnType(AnalyticsColumnType.DYNAMIC)
                   .withDataType(CHARACTER_11)
                   .withSelectExpression("acs." + quote(name))
                   .withSkipIndex(skipIndex)

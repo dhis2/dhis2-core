@@ -74,7 +74,10 @@ public class AnalyticsTableColumn {
   /** Index column names, defaults to column name. */
   @With @Builder.Default private final List<String> indexColumns = List.of();
 
+  /** Analytics column type. */
+  @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.FIXED;
   /** Date of creation of the underlying data dimension. */
+
   @With private Date created;
 
   //  // -------------------------------------------------------------------------
@@ -99,6 +102,11 @@ public class AnalyticsTableColumn {
   /** Indicates whether an index should not be created for this column. */
   public boolean isSkipIndex() {
     return Skip.SKIP == skipIndex;
+  }
+
+  /** Indicates column type. */
+  public boolean isDynamicColumn() {
+    return AnalyticsColumnType.DYNAMIC == columnType;
   }
 
   @Override

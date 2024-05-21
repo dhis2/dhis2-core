@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +81,7 @@ public final class AnalyticsIndexHelper {
           indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
+          maybeAddDateSortOrderIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }
@@ -147,7 +149,7 @@ public final class AnalyticsIndexHelper {
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
-    if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
+    if (column.getDataType() == TEXT && column.isDynamicColumn() && isValidUid(columnName) && isSingleColumn) {
       String name = indexName + "_lower";
       indexes.add(
           new Index(
@@ -160,11 +162,32 @@ public final class AnalyticsIndexHelper {
     }
   }
 
+  private static void maybeAddDateSortOrderIndex(
+          List<Index> indexes,
+          String indexName,
+          String tableName,
+          AnalyticsTableColumn column,
+          List<String> indexColumns) {
+
+    String columnName = RegExUtils.removeAll(column.getName(), "\"");
+    boolean isSingleColumn = indexColumns.size() == 1;
+
+    if (column.getDataType() == TIMESTAMP && ("lastupdated".equals(columnName) || !isValidUid(columnName)) && isSingleColumn) {
+      indexes.add(
+              new Index(
+                      indexName + "_desc",
+                      tableName,
+                      column.getIndexType(),
+                      Unique.NON_UNIQUE,
+                      indexColumns,
+                      "desc nulls last"));
+    }
+  }
   /**
    * Shortens the given table name.
    *
    * @param table the table name
-   * @param tableType the {@link AnayticsTableType}
+   * @param tableType the {@link AnalyticsTableType}
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
     table = table.replace(tableType.getTableName(), "ax");
