@@ -232,12 +232,6 @@ public class OpenApiTool implements ToolProvider {
     return type.getSimpleName();
   }
 
-  private static String getMainTag(Class<?> controller) {
-    return controller.isAnnotationPresent(OpenApi.Tags.class)
-        ? controller.getAnnotation(OpenApi.Tags.class).value()[0]
-        : "Misc";
-  }
-
   private static String toClassName(Path f) {
     return f.toString()
         .substring(f.toString().indexOf("org/hisp/"))

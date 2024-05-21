@@ -103,9 +103,9 @@ import org.springframework.web.servlet.ModelAndView;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class ApiExtractor {
   /**
-   * The included classes can be filtered based on REST API resource path or {@link OpenApi.Tags}
-   * present on the controller class level. Method level path and tags will not be considered for
-   * this filter.
+   * The included classes can be filtered based on REST API resource path or {@link
+   * OpenApi.Document#domain()} present on the controller class level. Method level path and tags
+   * will not be considered for this filter.
    *
    * @param controllers controllers all potential controllers
    * @param paths filter based on resource path (empty includes all)
