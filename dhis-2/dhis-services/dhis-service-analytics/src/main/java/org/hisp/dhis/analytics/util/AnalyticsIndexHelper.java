@@ -172,7 +172,6 @@ public class AnalyticsIndexHelper {
       AnalyticsTableColumn column,
       List<String> indexColumns) {
 
-    String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
     if (column.getDataType() == TIMESTAMP && !column.isDynamicColumn() && isSingleColumn) {
