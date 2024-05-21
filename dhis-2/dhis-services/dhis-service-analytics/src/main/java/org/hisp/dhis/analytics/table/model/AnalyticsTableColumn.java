@@ -75,7 +75,7 @@ public class AnalyticsTableColumn {
   @With @Builder.Default private final List<String> indexColumns = List.of();
 
   /** The column type indicates the column origin. */
-  @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.FIXED;
+  @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.STATIC;
 
   /** Date of creation of the underlying data dimension. */
   @With private Date created;
@@ -105,8 +105,8 @@ public class AnalyticsTableColumn {
   }
 
   /** Indicates whether the column type is set to a non-default value. */
-  public boolean isDynamicColumn() {
-    return AnalyticsColumnType.DYNAMIC == columnType;
+  public boolean isStatic() {
+    return AnalyticsColumnType.STATIC == columnType;
   }
 
   @Override
