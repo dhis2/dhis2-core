@@ -158,7 +158,11 @@ class JdbcEventAnalyticsTableManagerTest {
           .map(
               pt -> {
                 String column = pt.getName().toLowerCase();
-                return new AnalyticsTableColumn(column, TEXT, "dps" + "." + quote(column));
+                return AnalyticsTableColumn.builder()
+                    .build()
+                    .withName(column)
+                    .withDataType(TEXT)
+                    .withSelectExpression("dps" + "." + quote(column));
               })
           .toList();
 

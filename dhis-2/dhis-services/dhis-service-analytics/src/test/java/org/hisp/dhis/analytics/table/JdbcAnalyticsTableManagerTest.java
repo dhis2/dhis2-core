@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -55,7 +56,6 @@ import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -268,7 +268,12 @@ class JdbcAnalyticsTableManagerTest {
     AnalyticsTable table =
         new AnalyticsTable(
             AnalyticsTableType.DATA_VALUE,
-            List.of(new AnalyticsTableColumn("year", DataType.INTEGER, "")),
+            List.of(
+                AnalyticsTableColumn.builder()
+                    .build()
+                    .withName("year")
+                    .withDataType(INTEGER)
+                    .withSelectExpression("")),
             LOGGED);
     table.addTablePartition(List.of(), 2023, new DateTime(2023, 1, 1, 0, 0).toDate(), null);
     AnalyticsTableUpdateParams params =
