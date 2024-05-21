@@ -340,6 +340,8 @@ public class OpenApiGenerator extends JsonGenerator {
     // remove schemas that are not referenced by any of the schemas used so far
     retainUsedSchemasOnly();
 
+    // OpenApiComponentsRefs.print(api, System.out);
+
     // now only the actually used schemas remain in component/schemas
     api.getComponents().getSchemas().values().stream()
         .sorted(comparing(Api.Schema::getType).thenComparing(s -> s.getSharedName().getValue()))

@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
 
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -91,7 +91,7 @@ class OpenApiComponentsRefs {
     }
   }
 
-  public static void print(Api api, PrintWriter out) {
+  public static void print(Api api, PrintStream out) {
     List<SchemaRefs> refs = of(api);
 
     for (SchemaRefs ref : refs) {

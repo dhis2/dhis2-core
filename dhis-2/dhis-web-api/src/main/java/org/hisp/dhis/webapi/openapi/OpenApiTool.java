@@ -182,8 +182,6 @@ public class OpenApiTool implements ToolProvider {
       ApiIntegrator.integrateApi(
           api, ApiIntegrator.Configuration.builder().failOnNameClash(true).build());
 
-      // OpenApiComponentsRefs.print(api, out);
-
       Path file = Path.of(filename);
       String title =
           file.getFileName()

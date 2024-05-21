@@ -219,20 +219,6 @@ public @interface OpenApi {
      * @return type of group used
      */
     Group group() default Group.DEFAULT;
-
-    /**
-     * Optional. Description for the tag representing this {@link #group()}
-     *
-     * @return a tag description markdown
-     */
-    String description() default "";
-
-    /**
-     * Optional. A link URL for the tag representing this {@link #group()}.
-     *
-     * @return a tag external docs link URL
-     */
-    String externalDocs() default "";
   }
 
   /**

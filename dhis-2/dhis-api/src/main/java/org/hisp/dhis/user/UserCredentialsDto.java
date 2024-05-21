@@ -30,6 +30,7 @@ package org.hisp.dhis.user;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,11 +40,11 @@ import java.util.Set;
 import lombok.Data;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.sharing.Sharing;
 
-// FIXME this is a read-only object
 @Data
 @JacksonXmlRootElement(localName = "userCredentialsDto", namespace = DxfNamespaces.DXF_2_0)
 public class UserCredentialsDto {
@@ -67,9 +68,13 @@ public class UserCredentialsDto {
 
   @JsonProperty private Date passwordLastUpdated;
 
-  @JsonProperty private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
 
-  @JsonProperty private Set<Category> catDimensionConstraints = new HashSet<>();
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  private Set<Category> catDimensionConstraints = new HashSet<>();
 
   @JsonProperty private List<String> previousPasswords = new ArrayList<>();
 
@@ -93,7 +98,9 @@ public class UserCredentialsDto {
 
   @JsonProperty private Sharing sharing = new Sharing();
 
-  @JsonProperty private Set<UserRole> userRoles;
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  private Set<UserRole> userRoles;
 
   @JsonSetter(nulls = Nulls.SET)
   public void setUserRoles(Set<UserRole> userRoles) {

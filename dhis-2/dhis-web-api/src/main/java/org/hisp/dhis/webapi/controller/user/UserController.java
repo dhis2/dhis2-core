@@ -295,6 +295,8 @@ public class UserController extends AbstractCrudController<User> {
   // POST
   // -------------------------------------------------------------------------
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
   @ResponseBody
@@ -303,6 +305,8 @@ public class UserController extends AbstractCrudController<User> {
     return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
   }
 
+  @OpenApi.Params(MetadataImportParams.class)
+  @OpenApi.Param(OpenApi.EntityType.class)
   @Override
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @ResponseBody
