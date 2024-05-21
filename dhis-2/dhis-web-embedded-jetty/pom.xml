@@ -15,7 +15,7 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <mainClass>org.hisp.dhis.web.embeddedjetty.JettyEmbeddedCoreWeb</mainClass>
+    <mainClass>org.hisp.dhis.web.jetty.JettyEmbeddedCoreWeb</mainClass>
   </properties>
 
   <dependencies>
@@ -207,7 +207,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
-                    <Main-Class>${mainClass}</Main-Class>
+                    <Main-Class>org.hisp.dhis.web.jetty.JettyEmbeddedCoreWeb</Main-Class>
                     <Specification-Title>${project.artifactId}</Specification-Title>
                     <Specification-Version>${project.version}</Specification-Version>
                     <Specification-Vendor-Id>${project.groupId}</Specification-Vendor-Id>

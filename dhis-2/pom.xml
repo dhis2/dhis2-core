@@ -41,8 +41,7 @@
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
     <module>dhis-web-apps</module>
-    <module>dhis-web-tomcat</module>
-    <module>dhis-web-embedded-jetty</module>
+    <module>dhis-web-server</module>
   </modules>
 
   <scm>
