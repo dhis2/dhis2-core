@@ -149,7 +149,10 @@ public class AnalyticsIndexHelper {
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
-    if (column.getDataType() == TEXT && column.isDynamicColumn() && isValidUid(columnName) && isSingleColumn) {
+    if (column.getDataType() == TEXT
+        && column.isDynamicColumn()
+        && isValidUid(columnName)
+        && isSingleColumn) {
       String name = indexName + "_lower";
       indexes.add(
           new Index(
@@ -163,26 +166,29 @@ public class AnalyticsIndexHelper {
   }
 
   private static void maybeAddDateSortOrderIndex(
-          List<Index> indexes,
-          String indexName,
-          String tableName,
-          AnalyticsTableColumn column,
-          List<String> indexColumns) {
+      List<Index> indexes,
+      String indexName,
+      String tableName,
+      AnalyticsTableColumn column,
+      List<String> indexColumns) {
 
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
-    if (column.getDataType() == TIMESTAMP && ("lastupdated".equals(columnName) || !isValidUid(columnName)) && isSingleColumn) {
+    if (column.getDataType() == TIMESTAMP
+        && !column.isDynamicColumn()
+        && isSingleColumn) {
       indexes.add(
-              new Index(
-                      indexName + "_desc",
-                      tableName,
-                      column.getIndexType(),
-                      Unique.NON_UNIQUE,
-                      indexColumns,
-                      "desc nulls last"));
+          new Index(
+              indexName + "_desc",
+              tableName,
+              column.getIndexType(),
+              Unique.NON_UNIQUE,
+              indexColumns,
+              "desc nulls last"));
     }
   }
+
   /**
    * Shortens the given table name.
    *
