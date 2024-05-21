@@ -54,8 +54,8 @@ import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
-import org.hisp.dhis.webapi.webdomain.EndDate;
-import org.hisp.dhis.webapi.webdomain.StartDate;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * Represents query parameters sent to {@link EventsExportController}.
@@ -141,9 +141,9 @@ public class EventRequestParams implements PageRequestParams {
 
   private Date scheduledBefore;
 
-  private StartDate updatedAfter;
+  private StartDateTime updatedAfter;
 
-  private EndDate updatedBefore;
+  private EndDateTime updatedBefore;
 
   private String updatedWithin;
 

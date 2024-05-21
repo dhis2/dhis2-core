@@ -34,21 +34,20 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.util.DateUtils;
 
 /**
- * StartDate represents a lower limit date used to filter results in search APIs.
+ * EndDateTime represents an upper limit date and time used to filter results in search APIs.
  *
- * <p>StartDate accepts date and time to be defined. If no time is defined, then the time at the
- * beginning of the day is used by default.
+ * <p>EndDateTime accepts date and time to be defined. If no time is defined, then the time at the
+ * end of the day is used by default.
  *
- * <p>This behavior, combined with {@link EndDate}, allows to correctly implement an interval search
- * including start and end dates. startDate=2020-10-10&endDate=2020-10-12 will include anything
- * between 2020-10-10T00:00:00.000 and 2020-10-12T23:59:59.999.
+ * <p>This behavior, combined with {@link StartDateTime}, allows to correctly implement an interval
+ * search including start and end dates.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class StartDate {
+public class EndDateTime {
   private final Date date;
 
-  public static StartDate valueOf(String date) {
-    return new StartDate(DateUtils.parseDate(date));
+  public static EndDateTime valueOf(String date) {
+    return new EndDateTime(DateUtils.parseDateEndOfTheDay(date));
   }
 }

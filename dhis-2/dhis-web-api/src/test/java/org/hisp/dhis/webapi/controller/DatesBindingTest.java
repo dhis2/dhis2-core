@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hamcrest.core.StringContains.containsString;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Date;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.webdomain.EndDate;
-import org.hisp.dhis.webapi.webdomain.StartDate;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.stereotype.Controller;
@@ -51,6 +52,8 @@ class DatesBindingTest {
   private static final String ENDPOINT = "/binding";
 
   private MockMvc mockMvc;
+  private Date actualStartDateTime;
+  private Date actualEndDateTime;
 
   @BeforeEach
   public void setUp() {
@@ -59,51 +62,53 @@ class DatesBindingTest {
 
   @Test
   void shouldReturnADateAtTheEndOfTheDayWhenAnEndDateIsPassedWithoutTime() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT).param("endDate", "2001-06-17"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("2001-06-17T23:59:59.999")));
+    mockMvc.perform(get(ENDPOINT).param("before", "2001-06-17")).andExpect(status().isOk());
+
+    assertNull(actualStartDateTime);
+    assertEquals("2001-06-17T23:59:59", DateUtils.toLongDate(actualEndDateTime));
   }
 
   @Test
   void shouldReturnADateWithTimeWhenAnEndDateIsPassedWithTime() throws Exception {
     mockMvc
-        .perform(get(ENDPOINT).param("endDate", "2001-06-17T16:45:34"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("2001-06-17T16:45:34")));
+        .perform(get(ENDPOINT).param("before", "2001-06-17T16:45:34"))
+        .andExpect(status().isOk());
+
+    assertNull(actualStartDateTime);
+    assertEquals("2001-06-17T16:45:34", DateUtils.toLongDate(actualEndDateTime));
   }
 
   @Test
   void shouldReturnADateAtTheStartOfTheDayWhenAnStartDateIsPassedWithoutTime() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT).param("startDate", "2001-06-17"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("2001-06-17T00:00:00.000")));
+    mockMvc.perform(get(ENDPOINT).param("after", "2001-06-17")).andExpect(status().isOk());
+
+    assertEquals("2001-06-17T00:00:00", DateUtils.toLongDate(actualStartDateTime));
+    assertNull(actualEndDateTime);
   }
 
   @Test
   void shouldReturnADateWithTimeWhenAnStartDateIsPassedWithTime() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT).param("startDate", "2001-06-17T16:45:34"))
-        .andExpect(content().string(containsString("OK")))
-        .andExpect(content().string(containsString("2001-06-17T16:45:34")));
+    mockMvc.perform(get(ENDPOINT).param("after", "2001-06-17T16:45:34")).andExpect(status().isOk());
+
+    assertEquals("2001-06-17T16:45:34", DateUtils.toLongDate(actualStartDateTime));
+    assertNull(actualEndDateTime);
   }
 
   @Controller
   private class BindingController {
     @GetMapping(value = ENDPOINT)
-    public @ResponseBody WebMessage getDefault(Criteria criteria) {
-      Date startDate = criteria.getStartDate() == null ? null : criteria.getStartDate().getDate();
-      Date endDate = criteria.getEndDate() == null ? null : criteria.getEndDate().getDate();
-      return ok(DateUtils.toIso8601NoTz(startDate) + " - " + DateUtils.toIso8601NoTz(endDate));
+    public @ResponseBody WebMessage getDefault(Params params) {
+      actualStartDateTime = params.getAfter() == null ? null : params.getAfter().getDate();
+      actualEndDateTime = params.getBefore() == null ? null : params.getBefore().getDate();
+      return ok();
     }
   }
 
   @NoArgsConstructor
   @Data
-  private class Criteria {
-    private StartDate startDate;
+  private class Params {
+    private StartDateTime after;
 
-    private EndDate endDate;
+    private EndDateTime before;
   }
 }
