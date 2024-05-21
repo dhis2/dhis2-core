@@ -966,8 +966,19 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
    * @param sql the SQL query to execute
    * @return the {@link NativeQuery} instance
    */
-  protected NativeQuery nativeUpdateQuery(String sql) {
-    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
+  protected NativeQuery<T> nativeUpdateQuery(String sql) {
+    return getSession().createNativeQuery(sql, getClazz()).addSynchronizedEntityClass(getClazz());
+  }
+
+  /**
+   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
+   * current class. Use this to avoid all Hibernate second level caches from being invalidated.
+   *
+   * @param sql the SQL query to execute
+   * @return the {@link NativeQuery} instance
+   */
+  protected <U> NativeQuery<U> nativeUpdateQueryWithClass(String sql, Class<U> clazz) {
+    return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(clazz);
   }
 
   /**

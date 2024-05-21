@@ -102,6 +102,7 @@ public class DefaultEventVisualizationService
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<EventVisualization> getAllByDataElement(Collection<DataElement> dataElements) {
     return eventVisualizationStore.getEventVisualizationsByDataElement(dataElements);
   }

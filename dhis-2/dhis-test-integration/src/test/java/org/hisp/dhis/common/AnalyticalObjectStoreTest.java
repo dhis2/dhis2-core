@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Sorting;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -44,6 +45,7 @@ import org.hisp.dhis.mapping.MapViewRenderingStrategy;
 import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.visualization.Visualization;
@@ -82,6 +84,7 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private AnalyticalObjectStore<Visualization> visualizationStore;
   @Autowired private AnalyticalObjectStore<EventVisualization> eventVisualizationStore;
+  @Autowired private AnalyticalObjectStore<EventChart> eventChartStore;
 
   @Override
   public void setUpTest() {
@@ -216,6 +219,44 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
     assertTrue(
         allByDataElement.stream()
             .map(ev -> ev.getDataElementValueDimension().getUid())
+            .toList()
+            .containsAll(List.of(de1.getUid(), de2.getUid())));
+  }
+
+  @Test
+  @DisplayName("retrieving Event Charts by DataElement should return the correct results")
+  void retrievingEventChartsByDataElementShouldReturnTheCorrectResults() {
+    // given
+    DataElement de1 = createDataElementAndSave('1');
+    DataElement de2 = createDataElementAndSave('2');
+    DataElement de3 = createDataElementAndSave('3');
+
+    Program program = createProgram('p');
+    idObjectManager.save(program);
+
+    EventChart chart1 = createEventChart('1', program);
+    chart1.setDataElementValueDimension(de1);
+    EventChart chart2 = createEventChart('2', program);
+    chart2.setDataElementValueDimension(de2);
+    EventChart chart3 = createEventChart('3', program);
+    chart3.setDataElementValueDimension(de3);
+
+    idObjectManager.save(chart1);
+    idObjectManager.save(chart2);
+    idObjectManager.save(chart3);
+
+    // when
+    //    List<EventChart> eventCharts1 = eventChartStore.getEventChartsByDataElement(List.of(de1,
+    // de2));
+    List<EventChart> eventCharts = eventChartStore.getAll();
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    // then
+    assertEquals(2, eventCharts.size());
+    assertEquals(3, allDataElements.size());
+    assertTrue(
+        eventCharts.stream()
+            .map(ec -> ec.getDataElementValueDimension().getUid())
             .toList()
             .containsAll(List.of(de1.getUid(), de2.getUid())));
   }

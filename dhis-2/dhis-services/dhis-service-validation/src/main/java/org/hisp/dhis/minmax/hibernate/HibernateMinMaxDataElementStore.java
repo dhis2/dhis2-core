@@ -186,12 +186,13 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     // language=sql
     String sql =
         """
-            select * from minmaxdataelement m
-            where m.dataelementid in :dataElements
-          """;
+          select * from minmaxdataelement m
+          where m.dataelementid in :dataElements
+        """;
 
     return getSession()
-        .createNativeQuery(sql, MinMaxDataElement.class)
+        .createNativeQuery(sql, clazz)
+        .addSynchronizedEntityClass(clazz)
         .setParameter("dataElements", dataElements)
         .list();
   }

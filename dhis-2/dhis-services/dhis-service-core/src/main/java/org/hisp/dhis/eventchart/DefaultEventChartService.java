@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.eventchart;
 
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,5 +92,11 @@ public class DefaultEventChartService extends GenericAnalyticalObjectService<Eve
   @Transactional(readOnly = true)
   public List<EventChart> getAllEventCharts() {
     return eventChartStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<EventChart> getByDataElement(Collection<DataElement> dataElements) {
+    return eventChartStore.getEventChartsByDataElement(dataElements);
   }
 }

@@ -65,9 +65,6 @@ public class HibernateProgramStageSectionStore
           group by pss.programstagesectionid
         """;
 
-    return getSession()
-        .createNativeQuery(sql, ProgramStageSection.class)
-        .setParameter("dataElements", dataElements)
-        .list();
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

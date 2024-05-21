@@ -167,9 +167,6 @@ public class DefaultProgramNotificationTemplateStore
           where pnt.dataelementid in :dataElements
         """;
 
-    return getSession()
-        .createNativeQuery(sql, ProgramNotificationTemplate.class)
-        .setParameter("dataElements", dataElements)
-        .list();
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

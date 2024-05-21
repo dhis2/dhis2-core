@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.eventchart;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * DEPRECATED: THIS CLASS IS DEPRECATED IN FAVOUR OF THE EventVisualization MODEL. WE SHOULD AVOID
@@ -49,4 +51,6 @@ public interface EventChartService extends AnalyticalObjectService<EventChart> {
   void deleteEventChart(EventChart eventChart);
 
   List<EventChart> getAllEventCharts();
+
+  List<EventChart> getByDataElement(Collection<DataElement> dataElements);
 }

@@ -192,10 +192,10 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     // language=sql
     String sql =
         """
-    select v.* from visualization v, jsonb_array_elements(sorting) as sort
-    where sort->>'dimension' in :indicators
-    group by v.visualizationid
-    """;
+          select v.* from visualization v, jsonb_array_elements(sorting) as sort
+          where sort->>'dimension' in :indicators
+          group by v.visualizationid
+        """;
 
     return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
   }
@@ -204,14 +204,22 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   public List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements) {
     String sql =
         """
-            select * from eventvisualization ev
-            where ev.dataelementvaluedimensionid in :dataElements
-          """;
+          select * from eventvisualization ev
+          where ev.dataelementvaluedimensionid in :dataElements
+        """;
 
-    return getSession()
-        .createNativeQuery(sql, clazz)
-        .setParameter("dataElements", dataElements)
-        .list();
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+  }
+
+  @Override
+  public List<T> getEventChartsByDataElement(Collection<DataElement> dataElements) {
+    String sql =
+        """
+          select * from eventchart ec
+          where ec.dataelementvaluedimensionid in :dataElements
+        """;
+
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
   }
 
   @Override

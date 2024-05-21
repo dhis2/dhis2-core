@@ -91,9 +91,6 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
           where p.generatoroutput in :dataElements
         """;
 
-    return getSession()
-        .createNativeQuery(sql, Predictor.class)
-        .setParameter("dataElements", dataElements)
-        .list();
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

@@ -85,9 +85,6 @@ public class HibernateProgramStageDataElementStore
           where psde.dataelementid in :dataElements
         """;
 
-    return getSession()
-        .createNativeQuery(sql, ProgramStageDataElement.class)
-        .setParameter("dataElements", dataElements)
-        .list();
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

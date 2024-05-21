@@ -90,6 +90,7 @@ public class DefaultPredictorService implements PredictorService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
     return predictorStore.getAllByDataElement(dataElements);
   }

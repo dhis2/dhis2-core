@@ -32,6 +32,8 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
@@ -84,13 +86,20 @@ public interface AnalyticalObjectStore<T extends AnalyticalObject>
   List<T> getVisualizationsBySortingIndicator(List<String> indicators);
 
   /**
-   * Method that gets all {@link org.hisp.dhis.eventvisualization.EventVisualization}s by {@link
-   * DataElement}.
+   * Method that gets all {@link EventVisualization}s by {@link DataElement}.
    *
    * @param dataElements dataElements
-   * @return matching {@link org.hisp.dhis.eventvisualization.EventVisualization}s
+   * @return matching {@link EventVisualization}s
    */
   List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements);
+
+  /**
+   * Method that gets all {@link EventChart}s by {@link DataElement}.
+   *
+   * @param dataElements dataElements
+   * @return matching {@link EventChart}s
+   */
+  List<T> getEventChartsByDataElement(Collection<DataElement> dataElements);
 
   long countAnalyticalObjects(Indicator indicator);
 
