@@ -41,7 +41,7 @@ jobs:
 
       - name: Build core image
         run: |
-          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-dhis-test-integration,-dhis-test-coverage,-dhis-web-server
+          mvn clean install --threads 2C --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true --update-snapshots -f dhis-2/pom.xml -pl -dhis-test-integration,-dhis-test-coverage,-dhis-web-server
           mvn clean install -PjibDockerBuild -DactiveProfile=jibDockerBuild --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true -f ./dhis-2/dhis-web-server/pom.xml -Djib.to.image=$CORE_IMAGE_NAME
 
       - name: Get Sierra Leone DB from cache
