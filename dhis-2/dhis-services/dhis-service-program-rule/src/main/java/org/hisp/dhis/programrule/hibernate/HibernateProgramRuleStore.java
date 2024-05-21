@@ -113,7 +113,6 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   @Override
   public List<ProgramRule> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> types, String programStageUid) {
-
     List<String> actionTypeNames = types.stream().map(Enum::name).toList();
     String sql =
         """
