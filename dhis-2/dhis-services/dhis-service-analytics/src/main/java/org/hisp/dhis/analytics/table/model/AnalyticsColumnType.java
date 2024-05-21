@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.table.model;
 
 public enum AnalyticsColumnType {
   // Column with static name
-  FIXED,
+  STATIC,
   // Column with calculated name (uid)
   DYNAMIC
 }
