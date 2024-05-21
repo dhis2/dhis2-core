@@ -104,7 +104,7 @@ public class AnalyticsTableColumn {
     return Skip.SKIP == skipIndex;
   }
 
-  /** Indicates column type. */
+  /** Indicates whether the column type is set to a non-default value. */
   public boolean isDynamicColumn() {
     return AnalyticsColumnType.DYNAMIC == columnType;
   }
