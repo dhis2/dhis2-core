@@ -410,6 +410,7 @@ public enum ErrorCode {
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
   E7136("Program is not specified"),
+  E7137("Expression is not parsable: `{0}`"),
   E7143("Organisation unit or organisation unit level is not valid"),
   E7144(
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
