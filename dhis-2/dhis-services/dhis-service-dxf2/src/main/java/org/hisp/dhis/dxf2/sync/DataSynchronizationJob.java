@@ -25,47 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.synch;
+package org.hisp.dhis.dxf2.sync;
+
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
+ * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Jan Bernitt (job progress tracking)
  */
-public class SystemInstance {
-  private String url;
+@Component
+@RequiredArgsConstructor
+public class DataSynchronizationJob implements Job {
+  private final DataValueSynchronization dataValueSync;
 
-  private String username;
+  private final CompleteDataSetRegistrationSynchronization completenessSync;
 
-  private String password;
-
-  protected SystemInstance() {}
-
-  public SystemInstance(String url, String username, String password) {
-    this.url = url;
-    this.username = username;
-    this.password = password;
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_SYNC;
   }
 
-  public String getUrl() {
-    return url;
-  }
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    DataSynchronizationJobParameters params =
+        (DataSynchronizationJobParameters) config.getJobParameters();
 
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
+    dataValueSync.synchronizeData(params.getPageSize(), progress);
+    completenessSync.synchronizeData(progress);
   }
 }

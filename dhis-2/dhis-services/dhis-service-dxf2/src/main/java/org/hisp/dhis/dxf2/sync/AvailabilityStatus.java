@@ -25,41 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.synch;
+package org.hisp.dhis.dxf2.sync;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
-import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.springframework.http.HttpStatus;
 
 /**
  * @author Lars Helge Overland
- * @author David Katuscak <katuscak.d@gmail.com>
- * @author Jan Bernitt (job progress tracking)
  */
-@Component
-@RequiredArgsConstructor
-public class DataSynchronizationJob implements Job {
-  private final DataValueSynchronization dataValueSync;
+@JacksonXmlRootElement(localName = "availabilityStatus", namespace = DxfNamespaces.DXF_2_0)
+public class AvailabilityStatus {
+  private boolean available;
 
-  private final CompleteDataSetRegistrationSynchronization completenessSync;
+  private String message;
 
-  @Override
-  public JobType getJobType() {
-    return JobType.DATA_SYNC;
+  private HttpStatus httpStatus;
+
+  protected AvailabilityStatus() {}
+
+  public AvailabilityStatus(boolean available, String message, HttpStatus httpStatus) {
+    this.available = available;
+    this.message = message;
+    this.httpStatus = httpStatus;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isAvailable() {
+    return available;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getMessage() {
+    return message;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getStatusCode() {
+    return httpStatus != null ? httpStatus.value() : null;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getStatusPhrase() {
+    return httpStatus != null ? httpStatus.getReasonPhrase() : null;
   }
 
   @Override
-  public void execute(JobConfiguration config, JobProgress progress) {
-    DataSynchronizationJobParameters params =
-        (DataSynchronizationJobParameters) config.getJobParameters();
-
-    dataValueSync.synchronizeData(params.getPageSize(), progress);
-    completenessSync.synchronizeData(progress);
+  public String toString() {
+    return "[Available: "
+        + available
+        + ", message: "
+        + message
+        + ", HTTP status: "
+        + httpStatus
+        + "]";
   }
 }
