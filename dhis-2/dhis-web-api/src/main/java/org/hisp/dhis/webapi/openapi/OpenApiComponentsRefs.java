@@ -50,8 +50,6 @@ import javax.annotation.Nonnull;
  */
 class OpenApiComponentsRefs {
 
-  public static void main(String[] args) {}
-
   /**
    * Reference information for a {@link Api.Property}.
    *

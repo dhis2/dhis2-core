@@ -96,7 +96,6 @@ class DirectType {
     Integer minLength;
     Integer maxLength;
     List<String> enums;
-    // TODO defaultValue (for primitives)
   }
 
   private static final Map<Class<?>, DirectType> TYPES = new IdentityHashMap<>();

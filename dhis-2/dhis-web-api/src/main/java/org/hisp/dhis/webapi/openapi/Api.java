@@ -94,6 +94,9 @@ public class Api {
   @NoArgsConstructor
   public static final class PropertyNames {}
 
+  /** Can be set to enable debug mode */
+  Maybe<Boolean> debug = new Maybe<>(false);
+
   /** "Global" tag descriptions */
   Map<String, Tag> tags = new TreeMap<>();
 
@@ -488,9 +491,6 @@ public class Api {
      * This {@link Schema} but as used for input (that is using "shallow" object with just an ID
      * field for identifiable objects). Only needed for object schema that are not {@link
      * #direction}.
-     *
-     * <p>//FIXME also in an output case a circular reference (Attribute => AttributeValue =>
-     * Attribute) does need to use such a referencing object
      */
     Maybe<Schema> input = new Maybe<>();
 
