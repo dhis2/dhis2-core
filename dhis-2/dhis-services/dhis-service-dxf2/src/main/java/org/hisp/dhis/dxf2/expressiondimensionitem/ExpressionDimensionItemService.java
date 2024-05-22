@@ -27,18 +27,25 @@
  */
 package org.hisp.dhis.dxf2.expressiondimensionitem;
 
+import static java.util.regex.Pattern.compile;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.springframework.stereotype.Service;
 
 /**
@@ -48,17 +55,21 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ExpressionDimensionItemService {
-  // valid expressions fbfJHSPpUQD, fbfJHSPpUQD.pq2XI5kz2BY, fbfJHSPpUQD.pq2XI5kz2BY.pq2XI5kz2BZ
-  public static final Pattern pattern =
-      Pattern.compile("[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}");
+
+  /** Valid patterns: fbfJHSPpUQD, fbfJHSPpUQD.pq2XI5kz2BY, fbfJHSPpUQD.pq2XI5kz2BY.pq2XI5kz2BZ */
+  public static final Pattern EXPRESSION_PATTERN =
+      compile("[a-zA-Z0-9]{11}[.]?[a-zA-Z0-9]{0,11}[.]?[a-zA-Z0-9]{0,11}");
 
   private final IdentifiableObjectManager manager;
 
+  private final ExpressionService expressionService;
+
   /**
-   * Provides collection of selected item types inside the expression
+   * Returns a list of {@link BaseDimensionalItemObject} based on expressions defined in the given
+   * {@link DataDimensionItem}.
    *
    * @param dataDimensionItem {@link IdentifiableObjectManager} expression dimension item
-   * @return collection of selected item types
+   * @return list of {@link BaseDimensionalItemObject}
    */
   public List<BaseDimensionalItemObject> getExpressionItems(DataDimensionItem dataDimensionItem) {
     if (dataDimensionItem.getExpressionDimensionItem() == null) {
@@ -67,7 +78,7 @@ public class ExpressionDimensionItemService {
 
     String expression = dataDimensionItem.getExpressionDimensionItem().getExpression();
 
-    List<String> expressionTokens = getExpressionTokens(pattern, expression);
+    List<String> expressionTokens = getExpressionTokens(EXPRESSION_PATTERN, expression);
 
     List<BaseDimensionalItemObject> baseDimensionalItemObjects = new ArrayList<>();
 
@@ -89,53 +100,39 @@ public class ExpressionDimensionItemService {
   }
 
   /**
-   * Provides expression validation
+   * Provides expression validation.
    *
    * @param expression or indicator of expression dimension item
-   * @return true when expression is valid
+   * @return true when the expression is valid
    */
   public boolean isValidExpressionItems(String expression) {
-    if (StringUtils.isNumeric(expression)) {
-      return true;
+    if (trimToNull(expression) == null || trimToEmpty(expression).equalsIgnoreCase("null")) {
+      return false;
     }
 
-    List<String> expressionTokens = getExpressionTokens(pattern, expression);
+    ExpressionValidationOutcome result =
+        expressionService.expressionIsValid(expression, INDICATOR_EXPRESSION);
 
-    return expressionTokens.stream()
-        .allMatch(
-            et -> {
-              String[] uids = et.split(Pattern.quote("."));
-              if (uids.length > 2) {
-                return false;
-              } else if (uids.length > 1) {
-                IdentifiableObject de = manager.get(DataElement.class, uids[0]);
-
-                IdentifiableObject coc = manager.get(CategoryOptionCombo.class, uids[1]);
-
-                return de != null && coc != null;
-
-              } else if (uids.length > 0) {
-                IdentifiableObject de = manager.get(DataElement.class, uids[0]);
-
-                return de != null;
-              }
-
-              return false;
-            });
+    return result == VALID;
   }
 
   /**
-   * Expression parser for expression tokens of indicator ( data_element.category_option_combo or
-   * data_element only )
+   * Expression parser for expression tokens of indicator (data_element.category_option_combo or
+   * data_element only).
    *
-   * @param pattern compiled Patter object of regular expression
+   * @param pattern compiled {@link Pattern} object of regular expression
    * @param expression expression of indicator
    * @return collection of tokens
    */
   public List<String> getExpressionTokens(Pattern pattern, String expression) {
     List<String> expressionTokens = new ArrayList<>();
 
-    pattern.matcher(expression).results().map(mr -> mr.group(0)).forEach(expressionTokens::add);
+    pattern
+        .matcher(expression)
+        .results()
+        .map(mr -> mr.group(0))
+        .filter(mr -> !isNumeric(mr))
+        .forEach(expressionTokens::add);
 
     return expressionTokens;
   }

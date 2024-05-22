@@ -324,10 +324,27 @@ class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
   void testGetFixedColumns() {
     List<AnalyticsTableColumn> expected =
         List.of(
-            new AnalyticsTableColumn("teiuid", CHARACTER_11, "tei.uid"),
-            new AnalyticsTableColumn("startdate", DATE, "a.startdate"),
-            new AnalyticsTableColumn("enddate", DATE, "a.enddate"),
-            new AnalyticsTableColumn("ou", CHARACTER_11, NOT_NULL, "ou.uid"));
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("teiuid")
+                .withDataType(CHARACTER_11)
+                .withSelectExpression("tei.uid"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("startdate")
+                .withDataType(DATE)
+                .withSelectExpression("a.startdate"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("enddate")
+                .withDataType(DATE)
+                .withSelectExpression("a.enddate"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("ou")
+                .withDataType(CHARACTER_11)
+                .withNullable(NOT_NULL)
+                .withSelectExpression("ou.uid"));
 
     assertEquals(expected, JdbcOwnershipAnalyticsTableManager.FIXED_COLS);
   }

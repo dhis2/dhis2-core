@@ -68,11 +68,6 @@ public interface TrackedEntityStore extends IdentifiableObjectStore<TrackedEntit
    */
   List<TrackedEntity> getIncludingDeleted(List<String> uids);
 
-  /**
-   * @param trackedEntityUIDs
-   * @param lastUpdated
-   * @param userInfoSnapshot
-   */
   void updateTrackedEntityLastUpdated(
       Set<String> trackedEntityUIDs, Date lastUpdated, String userInfoSnapshot);
 }
