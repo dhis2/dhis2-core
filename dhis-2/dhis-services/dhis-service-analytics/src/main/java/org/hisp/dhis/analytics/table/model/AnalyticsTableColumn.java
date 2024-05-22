@@ -74,6 +74,9 @@ public class AnalyticsTableColumn {
   /** Index column names, defaults to column name. */
   @With @Builder.Default private final List<String> indexColumns = List.of();
 
+  /** The column type indicates the column origin. */
+  @With @Builder.Default private final AnalyticsColumnType columnType = AnalyticsColumnType.STATIC;
+
   /** Date of creation of the underlying data dimension. */
   @With private Date created;
 
@@ -99,6 +102,11 @@ public class AnalyticsTableColumn {
   /** Indicates whether an index should not be created for this column. */
   public boolean isSkipIndex() {
     return Skip.SKIP == skipIndex;
+  }
+
+  /** Indicates whether the column type is set to a non-default value. */
+  public boolean isStatic() {
+    return AnalyticsColumnType.STATIC == columnType;
   }
 
   @Override
