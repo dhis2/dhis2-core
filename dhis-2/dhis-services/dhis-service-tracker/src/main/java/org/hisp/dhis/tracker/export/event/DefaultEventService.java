@@ -141,16 +141,16 @@ class DefaultEventService implements EventService {
       throw new NotFoundException(Event.class, uid);
     }
 
-    return getEvent(event, eventParams);
-  }
-
-  public Event getEvent(@Nonnull Event event, EventParams eventParams) throws ForbiddenException {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
     if (!errors.isEmpty()) {
       throw new ForbiddenException(errors.toString());
     }
 
+    return getEvent(event, eventParams, currentUser);
+  }
+
+  private Event getEvent(@Nonnull Event event, EventParams eventParams, User currentUser) {
     Event result = new Event();
     result.setId(event.getId());
     result.setUid(event.getUid());
@@ -232,6 +232,25 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams);
     return eventStore.getEvents(queryParams, pageParams);
+  }
+
+  public RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
+      throws NotFoundException {
+    RelationshipItem relationshipItem = new RelationshipItem();
+
+    Event event = eventService.getEvent(uid);
+    if (event == null) {
+      throw new NotFoundException(Event.class, uid);
+    }
+
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, event, false);
+    if (!errors.isEmpty()) {
+      return null;
+    }
+
+    relationshipItem.setEvent(getEvent(event, eventParams, currentUser));
+    return relationshipItem;
   }
 
   @Override
