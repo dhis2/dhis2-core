@@ -37,11 +37,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
-import org.hisp.dhis.user.UserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,21 +53,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEnrollmentService implements EnrollmentService {
   private final EnrollmentStore enrollmentStore;
 
-  private final EventStore eventStore;
-
-  private final UserService userService;
-
   private final TrackedEntityService trackedEntityService;
 
   private final ApplicationEventPublisher eventPublisher;
 
   private final TrackerOwnershipManager trackerOwnershipAccessManager;
-
-  private final AclService aclService;
-
-  // -------------------------------------------------------------------------
-  // Implementation methods
-  // -------------------------------------------------------------------------
 
   @Override
   @Transactional
@@ -95,17 +83,13 @@ public class DefaultEnrollmentService implements EnrollmentService {
   @Override
   @Transactional(readOnly = true)
   public Enrollment getEnrollment(long id) {
-    Enrollment enrollment = enrollmentStore.get(id);
-
-    return enrollment;
+    return enrollmentStore.get(id);
   }
 
   @Override
   @Transactional(readOnly = true)
   public Enrollment getEnrollment(String uid) {
-    Enrollment enrollment = enrollmentStore.getByUid(uid);
-
-    return enrollment;
+    return enrollmentStore.getByUid(uid);
   }
 
   @Override
@@ -151,13 +135,9 @@ public class DefaultEnrollmentService implements EnrollmentService {
     return enrollmentStore.get(entityInstance, program, status);
   }
 
-  @Nonnull
-  @Override
-  @Transactional
-  public Enrollment prepareEnrollment(
+  private Enrollment prepareEnrollment(
       TrackedEntity trackedEntity,
       Program program,
-      ProgramStatus programStatus,
       Date enrollmentDate,
       Date occurredDate,
       OrganisationUnit organisationUnit,
@@ -185,7 +165,7 @@ public class DefaultEnrollmentService implements EnrollmentService {
       enrollment.setOccurredDate(new Date());
     }
 
-    enrollment.setStatus(programStatus);
+    enrollment.setStatus(ProgramStatus.ACTIVE);
 
     return enrollment;
   }
@@ -216,43 +196,16 @@ public class DefaultEnrollmentService implements EnrollmentService {
       Date occurredDate,
       OrganisationUnit organisationUnit,
       String uid) {
-    // ---------------------------------------------------------------------
-    // Add enrollment
-    // ---------------------------------------------------------------------
-
     Enrollment enrollment =
         prepareEnrollment(
-            trackedEntity,
-            program,
-            ProgramStatus.ACTIVE,
-            enrollmentDate,
-            occurredDate,
-            organisationUnit,
-            uid);
+            trackedEntity, program, enrollmentDate, occurredDate, organisationUnit, uid);
     addEnrollment(enrollment);
-
-    // ---------------------------------------------------------------------
-    // Add program owner and overwrite if already exists.
-    // ---------------------------------------------------------------------
-
     trackerOwnershipAccessManager.assignOwnership(
         trackedEntity, program, organisationUnit, true, true);
-
-    // -----------------------------------------------------------------
-    // Send enrollment notifications (if any)
-    // -----------------------------------------------------------------
-
     eventPublisher.publishEvent(new ProgramEnrollmentNotificationEvent(this, enrollment.getId()));
-
     eventPublisher.publishEvent(new EnrollmentEvaluationEvent(this, enrollment.getId()));
-
-    // -----------------------------------------------------------------
-    // Update Enrollment and TE
-    // -----------------------------------------------------------------
-
     updateEnrollment(enrollment);
     trackedEntityService.updateTrackedEntity(trackedEntity);
-
     return enrollment;
   }
 }

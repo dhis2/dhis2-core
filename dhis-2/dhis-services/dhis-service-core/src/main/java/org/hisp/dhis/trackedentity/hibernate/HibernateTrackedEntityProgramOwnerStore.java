@@ -67,25 +67,6 @@ public class HibernateTrackedEntityProgramOwnerStore
   }
 
   @Override
-  public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teIds) {
-    String hql = "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teIds)";
-    Query<TrackedEntityProgramOwner> q = getQuery(hql);
-    q.setParameterList("teIds", teIds);
-    return q.list();
-  }
-
-  @Override
-  public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
-      List<Long> teIds, long programId) {
-    String hql =
-        "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teIds) and tepo.program.id=(:programId) ";
-    Query<TrackedEntityProgramOwner> q = getQuery(hql);
-    q.setParameterList("teIds", teIds);
-    q.setParameter("programId", programId);
-    return q.list();
-  }
-
-  @Override
   public List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(
       Set<Long> teIds) {
     List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();

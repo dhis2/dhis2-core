@@ -40,16 +40,11 @@ import lombok.Getter;
 
 @Getter
 public class PagingWrapper<T> {
-  @JsonIgnore private String identifier;
+  @JsonIgnore private final String identifier;
 
   @JsonIgnore @JsonAnyGetter private Map<String, Collection<T>> elements = new LinkedHashMap<>();
 
   @JsonUnwrapped private Pager pager;
-
-  public PagingWrapper() {
-    this("instances");
-    this.identifier = "instances";
-  }
 
   public PagingWrapper(String identifier) {
     this.identifier = identifier;
@@ -59,13 +54,6 @@ public class PagingWrapper<T> {
     PagingWrapper<T> pagingWrapper = new PagingWrapper<>(identifier);
     pagingWrapper.pager = pager;
     pagingWrapper.elements = elements;
-    return pagingWrapper;
-  }
-
-  public PagingWrapper<T> withInstances(Collection<T> elements) {
-    PagingWrapper<T> pagingWrapper = new PagingWrapper<>(identifier);
-    pagingWrapper.pager = pager;
-    pagingWrapper.elements.put(identifier, elements);
     return pagingWrapper;
   }
 

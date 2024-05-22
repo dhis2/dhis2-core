@@ -171,26 +171,4 @@ public interface EnrollmentService {
       Date enrollmentDate,
       Date incidentDate,
       OrganisationUnit orgunit);
-
-  /**
-   * Prepare a Enrollment for storing
-   *
-   * @param trackedEntity TrackedEntity
-   * @param program Program
-   * @param programStatus ProgramStatus
-   * @param enrollmentDate The date of enrollment
-   * @param incidentDate The date of incident
-   * @param orgUnit Organisation Unit
-   * @param uid UID to use for new instance
-   * @return Enrollment
-   */
-  @Nonnull
-  Enrollment prepareEnrollment(
-      TrackedEntity trackedEntity,
-      Program program,
-      ProgramStatus programStatus,
-      Date enrollmentDate,
-      Date incidentDate,
-      OrganisationUnit orgUnit,
-      String uid);
 }
