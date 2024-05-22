@@ -33,7 +33,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.EventService;
+import org.hisp.dhis.tracker.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -46,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultEventChangeLogService implements EventChangeLogService {
 
-  private final org.hisp.dhis.program.EventService eventService;
+  private final EventService eventService;
 
   private final JdbcEventChangeLogStore jdbcEventChangeLogStore;
 

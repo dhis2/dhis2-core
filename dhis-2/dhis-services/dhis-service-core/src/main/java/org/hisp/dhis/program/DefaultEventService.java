@@ -49,6 +49,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
+import org.hisp.dhis.tracker.EventService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew
  */
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.program.EventService")
+@Service("org.hisp.dhis.tracker.EventService")
 public class DefaultEventService implements EventService {
   private final EventStore eventStore;
 

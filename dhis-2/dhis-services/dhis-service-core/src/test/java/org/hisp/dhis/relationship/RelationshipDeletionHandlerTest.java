@@ -42,6 +42,7 @@ import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.system.deletion.DefaultDeletionManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.RelationshipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

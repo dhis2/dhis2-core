@@ -36,6 +36,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.RelationshipService;
 import org.springframework.stereotype.Component;
 
 /**

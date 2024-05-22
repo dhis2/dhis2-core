@@ -46,6 +46,8 @@ import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.tracker.TrackedEntityService;
+import org.hisp.dhis.tracker.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -57,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed
  */
 @Slf4j
-@Service("org.hisp.dhis.trackedentity.TrackerOwnershipManager")
+@Service("org.hisp.dhis.tracker.TrackerOwnershipManager")
 public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 

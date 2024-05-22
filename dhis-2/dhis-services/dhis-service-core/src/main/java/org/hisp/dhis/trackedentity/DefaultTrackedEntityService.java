@@ -54,6 +54,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -68,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew Gizaw
  */
 @Slf4j
-@Service("org.hisp.dhis.trackedentity.TrackedEntityService")
+@Service("org.hisp.dhis.tracker.TrackedEntityService")
 public class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityStore trackedEntityStore;
 

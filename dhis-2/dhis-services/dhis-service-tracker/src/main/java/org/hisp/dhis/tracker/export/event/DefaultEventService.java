@@ -47,7 +47,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.tracker.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -67,7 +67,7 @@ class DefaultEventService implements EventService {
 
   private final EventStore eventStore;
 
-  private final org.hisp.dhis.program.EventService eventService;
+  private final org.hisp.dhis.tracker.EventService eventService;
 
   private final TrackerAccessManager trackerAccessManager;
 

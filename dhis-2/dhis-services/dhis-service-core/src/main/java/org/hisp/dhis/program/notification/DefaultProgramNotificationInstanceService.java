@@ -30,8 +30,8 @@ package org.hisp.dhis.program.notification;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.tracker.EnrollmentService;
+import org.hisp.dhis.tracker.EventService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -32,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
+import org.hisp.dhis.tracker.EventService;
 import org.springframework.stereotype.Component;
 
 /**
