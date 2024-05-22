@@ -127,7 +127,7 @@ public class DefaultProgramRuleVariableService implements ProgramRuleVariableSer
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRuleVariable> getByDataElement(Collection<Long> dataElements) {
+  public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
     return programRuleVariableStore.getByDataElement(dataElements);
   }
 }

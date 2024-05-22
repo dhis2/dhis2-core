@@ -100,5 +100,5 @@ public interface ProgramRuleVariableService {
    */
   List<ProgramRuleVariable> getVariablesWithNoAttribute();
 
-  List<ProgramRuleVariable> getByDataElement(Collection<Long> deSource1);
+  List<ProgramRuleVariable> getByDataElement(Collection<DataElement> deSource1);
 }

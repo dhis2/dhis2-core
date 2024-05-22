@@ -94,7 +94,7 @@ public class HibernateProgramRuleVariableStore
   }
 
   @Override
-  public List<ProgramRuleVariable> getByDataElement(Collection<Long> dataElements) {
+  public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
     String sql =
         """
           select * from programrulevariable prv

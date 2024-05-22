@@ -63,5 +63,5 @@ public interface ProgramRuleVariableStore extends IdentifiableObjectStore<Progra
    */
   List<ProgramRuleVariable> getVariablesWithNoAttribute();
 
-  List<ProgramRuleVariable> getByDataElement(Collection<Long> dataElements);
+  List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements);
 }

@@ -34,6 +34,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionStore;
@@ -103,7 +104,7 @@ public class HibernateProgramRuleActionStore
   }
 
   @Override
-  public List<ProgramRuleAction> getByDataElement(Collection<Long> dataElements) {
+  public List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements) {
     String sql =
         """
           select * from programruleaction pra

@@ -29,7 +29,6 @@ package org.hisp.dhis.merge.dataelement;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
@@ -199,8 +198,7 @@ public class DefaultDataElementMergeHandler {
    */
   public void handleProgramRuleVariable(List<DataElement> sources, DataElement target) {
     List<ProgramRuleVariable> programRuleVariables =
-        programRuleVariableService.getByDataElement(
-            sources.stream().map(BaseIdentifiableObject::getId).toList());
+        programRuleVariableService.getByDataElement(sources);
 
     programRuleVariables.forEach(prv -> prv.setDataElement(target));
   }
@@ -215,9 +213,7 @@ public class DefaultDataElementMergeHandler {
    *     ProgramRuleAction}
    */
   public void handleProgramRuleAction(List<DataElement> sources, DataElement target) {
-    List<ProgramRuleAction> programRuleActions =
-        programRuleActionService.getByDataElement(
-            sources.stream().map(BaseIdentifiableObject::getId).toList());
+    List<ProgramRuleAction> programRuleActions = programRuleActionService.getByDataElement(sources);
 
     programRuleActions.forEach(pra -> pra.setDataElement(target));
   }

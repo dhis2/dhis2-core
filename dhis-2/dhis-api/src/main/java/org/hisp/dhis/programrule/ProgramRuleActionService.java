@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
 
 import java.util.Collection;
 import java.util.List;
+import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author markusbekken
@@ -88,5 +89,5 @@ public interface ProgramRuleActionService {
 
   List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
 
-  List<ProgramRuleAction> getByDataElement(Collection<Long> dataElements);
+  List<ProgramRuleAction> getByDataElement(Collection<DataElement> dataElements);
 }
