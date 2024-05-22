@@ -46,14 +46,16 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * Represents query parameters sent to {@link EventsExportController}.
@@ -139,9 +141,9 @@ public class EventRequestParams implements PageRequestParams {
 
   private Date scheduledBefore;
 
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
-  private Date updatedBefore;
+  private EndDateTime updatedBefore;
 
   private String updatedWithin;
 
