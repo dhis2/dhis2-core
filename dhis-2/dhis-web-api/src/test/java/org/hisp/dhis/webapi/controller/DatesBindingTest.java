@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -98,8 +99,8 @@ class DatesBindingTest {
   private class BindingController {
     @GetMapping(value = ENDPOINT)
     public @ResponseBody WebMessage getDefault(Params params) {
-      actualStartDateTime = params.getAfter() == null ? null : params.getAfter().toDate();
-      actualEndDateTime = params.getBefore() == null ? null : params.getBefore().getDate();
+      actualStartDateTime = applyIfNotNull(params.getAfter(), StartDateTime::toDate);
+      actualEndDateTime = applyIfNotNull(params.getBefore(), EndDateTime::toDate);
       return ok();
     }
   }
