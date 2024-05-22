@@ -198,7 +198,13 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
                   getClosingParentheses(select),
                   "attributeUid",
                   quote(attribute.getUid())));
-      columns.add(new AnalyticsTableColumn(attribute.getUid(), dataType, sql, skipIndex));
+      columns.add(
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName(attribute.getUid())
+              .withDataType(dataType)
+              .withSelectExpression(sql)
+              .withSkipIndex(skipIndex));
     }
 
     return columns;
