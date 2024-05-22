@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.joining;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -38,10 +39,11 @@ import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * Reads CommonMark markdown files into key-value pairs.
@@ -73,28 +75,28 @@ import lombok.RequiredArgsConstructor;
  * @author Jan Bernitt
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-final class Descriptions {
+final class ApiDescriptions {
   /**
    * Note: This needs to use {@link ConcurrentSkipListMap} instead of the usual {@link
    * ConcurrentHashMap} map that does not support inserting a key while in the function to compute
    * the value for another insert.
    */
-  private static final Map<Class<?>, Descriptions> CACHE =
+  private static final Map<Class<?>, ApiDescriptions> CACHE =
       new ConcurrentSkipListMap<>(comparing(Class::getCanonicalName));
 
   private final Class<?> target;
 
   private final Map<String, String> entries = new HashMap<>();
 
-  static Descriptions of(Class<?> target) {
-    return CACHE.computeIfAbsent(target, Descriptions::ofUncached);
+  static ApiDescriptions of(Class<?> target) {
+    return CACHE.computeIfAbsent(target, ApiDescriptions::ofUncached);
   }
 
-  static Descriptions ofUncached(Class<?> target) {
-    Descriptions res = new Descriptions(target);
+  static ApiDescriptions ofUncached(Class<?> target) {
+    ApiDescriptions res = new ApiDescriptions(target);
     // most abstract are "global" descriptions
-    if (target != Descriptions.class) {
-      res.entries.putAll(of(Descriptions.class).entries);
+    if (target != ApiDescriptions.class) {
+      res.entries.putAll(of(ApiDescriptions.class).entries);
     }
     // next are all super-classes starting with the base class by doing parent first
     Class<?> parent = target.getSuperclass();
@@ -158,8 +160,8 @@ final class Descriptions {
   private static String toKey(String line) {
     return stream(line.split(" "))
         .map(String::trim)
-        .map(Descriptions::toKeySegment)
-        .collect(Collectors.joining("."));
+        .map(ApiDescriptions::toKeySegment)
+        .collect(joining("."));
   }
 
   private static String toKeySegment(String str) {
@@ -176,7 +178,7 @@ final class Descriptions {
   /**
    * Lookup a description text by key.
    *
-   * <p>{@link Descriptions} are per controller.
+   * <p>{@link ApiDescriptions} are per controller.
    *
    * <p>All text relevant for a specific controller are obtained by using {@link #of(Class)} with
    * the controller class as target.
@@ -250,5 +252,13 @@ final class Descriptions {
       }
     }
     return null;
+  }
+
+  static String toMarkdown(OpenApi.Description desc) {
+    if (desc == null) return null;
+    String[] items = desc.value();
+    if (items.length == 0) return null;
+    if (items.length == 1) return items[0];
+    return Stream.of(items).map(line -> "\n* " + line).collect(joining());
   }
 }

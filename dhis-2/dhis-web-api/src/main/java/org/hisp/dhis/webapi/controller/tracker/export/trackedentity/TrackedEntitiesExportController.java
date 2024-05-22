@@ -44,6 +44,7 @@ import java.io.OutputStream;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -70,7 +71,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -261,7 +261,8 @@ class TrackedEntitiesExportController {
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}")
   ResponseEntity<ObjectNode> getTrackedEntityByUid(
-      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+          UID uid,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
@@ -301,7 +302,8 @@ class TrackedEntitiesExportController {
 
   @GetMapping("/{trackedEntity}/attributes/{attribute}/file")
   ResponseEntity<InputStreamResource> getAttributeValueFile(
-      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+          UID trackedEntity,
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       HttpServletRequest request)
@@ -317,7 +319,8 @@ class TrackedEntitiesExportController {
 
   @GetMapping("/{trackedEntity}/attributes/{attribute}/image")
   ResponseEntity<InputStreamResource> getAttributeValueImage(
-      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+          UID trackedEntity,
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @RequestParam(required = false) ImageFileDimension dimension,
@@ -330,7 +333,8 @@ class TrackedEntitiesExportController {
 
   @GetMapping("/{trackedEntity}/changeLogs")
   Page<ObjectNode> getTrackedEntityAttributeChangeLog(
-      @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID trackedEntity,
+      @OpenApi.Param({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class}) @PathVariable
+          UID trackedEntity,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)

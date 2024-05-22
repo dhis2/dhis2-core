@@ -45,6 +45,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.AbstractPropertyTransformer;
 import org.hisp.dhis.user.User;
@@ -101,6 +102,7 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
 
   @Data
   @Builder
+  @OpenApi.Identifiable(as = User.class)
   public static class UserDto {
     private String id;
 

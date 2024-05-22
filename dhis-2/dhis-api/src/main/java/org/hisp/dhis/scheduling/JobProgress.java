@@ -61,6 +61,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.slf4j.helpers.MessageFormatter;
@@ -576,6 +577,7 @@ public interface JobProgress {
    * Model (for representing progress as data)
    */
 
+  @OpenApi.Shared(name = "JobProgressStatus")
   enum Status {
     RUNNING,
     SUCCESS,
