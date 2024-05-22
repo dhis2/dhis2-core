@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
@@ -55,6 +56,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -200,12 +203,12 @@ public class EnrollmentCriteriaMapper {
     return getFromUrl(
         TextUtils.splitToSet(trackerEnrollmentCriteria.getOrgUnit(), TextUtils.SEMICOLON),
         trackerEnrollmentCriteria.getOuMode(),
-        trackerEnrollmentCriteria.getUpdatedAfter(),
+        applyIfNotNull(trackerEnrollmentCriteria.getUpdatedAfter(), StartDateTime::toDate),
         trackerEnrollmentCriteria.getUpdatedWithin(),
         trackerEnrollmentCriteria.getProgram(),
         trackerEnrollmentCriteria.getProgramStatus(),
-        trackerEnrollmentCriteria.getEnrolledAfter(),
-        trackerEnrollmentCriteria.getEnrolledBefore(),
+        applyIfNotNull(trackerEnrollmentCriteria.getEnrolledAfter(), StartDateTime::toDate),
+        applyIfNotNull(trackerEnrollmentCriteria.getEnrolledBefore(), EndDateTime::toDate),
         trackerEnrollmentCriteria.getTrackedEntityType(),
         trackerEnrollmentCriteria.getTrackedEntity(),
         trackerEnrollmentCriteria.getFollowUp(),

@@ -29,10 +29,13 @@ package org.hisp.dhis.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -167,5 +170,49 @@ public class ObjectUtils {
     }
 
     return object;
+  }
+
+  /**
+   * If object is null return null, otherwise return function applied to object.
+   *
+   * @param object to check.
+   * @param <U> the function return type.
+   * @param <T> the object type.
+   * @param function the function to be applied to non-null object.
+   */
+  public static <T, U> U applyIfNotNull(T object, Function<T, U> function) {
+    if (object == null) {
+      return null;
+    }
+
+    return function.apply(object);
+  }
+
+  /**
+   * Util method that always returns a new Set, either instantiated from a non-null Set passed as an
+   * argument, or if a null arg is passed then returning an empty Set. This helps reduce possible
+   * NullPointerExceptions when trying to instantiate a Set with a null value.
+   *
+   * @param set
+   * @return
+   * @param <T>
+   */
+  @Nonnull
+  public static <T> Set<T> copyOf(Set<T> set) {
+    return set != null ? new HashSet<>(set) : new HashSet<>();
+  }
+
+  /**
+   * Util method that always returns a new List, either instantiated from a non-null Set passed as
+   * an argument, or if a null arg is passed then returning an empty Set. This helps reduce possible
+   * NullPointerExceptions when trying to instantiate a Set with a null value.
+   *
+   * @param list
+   * @return
+   * @param <T>
+   */
+  @Nonnull
+  public static <T> List<T> copyOf(List<T> list) {
+    return list != null ? new ArrayList<>(list) : new ArrayList<>();
   }
 }

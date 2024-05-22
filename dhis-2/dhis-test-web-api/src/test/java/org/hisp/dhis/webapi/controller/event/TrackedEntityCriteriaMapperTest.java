@@ -65,6 +65,8 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.TrackedEntityInstanceCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -146,17 +148,17 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     criteria.setProgram(programA.getUid());
     criteria.setProgramStatus(ProgramStatus.ACTIVE);
     criteria.setFollowUp(true);
-    criteria.setLastUpdatedStartDate(getDate(2019, 1, 1));
-    criteria.setLastUpdatedEndDate(getDate(2020, 1, 1));
+    criteria.setLastUpdatedStartDate(StartDateTime.of("2019-01-01"));
+    criteria.setLastUpdatedEndDate(EndDateTime.of("2020-01-01"));
     criteria.setLastUpdatedDuration("20");
-    criteria.setProgramEnrollmentStartDate(getDate(2019, 8, 5));
-    criteria.setProgramEnrollmentEndDate(getDate(2020, 8, 5));
-    criteria.setProgramIncidentStartDate(getDate(2019, 5, 5));
-    criteria.setProgramIncidentEndDate(getDate(2020, 5, 5));
+    criteria.setProgramEnrollmentStartDate(StartDateTime.of("2019-08-05"));
+    criteria.setProgramEnrollmentEndDate(EndDateTime.of("2020-08-05"));
+    criteria.setProgramIncidentStartDate(StartDateTime.of("2019-05-05"));
+    criteria.setProgramIncidentEndDate(EndDateTime.of("2020-05-05"));
     criteria.setTrackedEntityType(trackedEntityTypeA.getUid());
     criteria.setEventStatus(EventStatus.COMPLETED);
-    criteria.setEventStartDate(getDate(2019, 7, 7));
-    criteria.setEventEndDate(getDate(2020, 7, 7));
+    criteria.setEventStartDate(StartDateTime.of("2019-07-07"));
+    criteria.setEventEndDate(EndDateTime.of("2020-07-07"));
     criteria.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
     criteria.setAssignedUser(userIds);
     criteria.setSkipMeta(true);
@@ -195,18 +197,23 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest {
     assertThat(queryParams.isTotalPages(), is(false));
     assertThat(queryParams.getProgramStatus(), is(ProgramStatus.ACTIVE));
     assertThat(queryParams.getFollowUp(), is(true));
-    assertThat(queryParams.getLastUpdatedStartDate(), is(criteria.getLastUpdatedStartDate()));
-    assertThat(queryParams.getLastUpdatedEndDate(), is(criteria.getLastUpdatedEndDate()));
     assertThat(
-        queryParams.getProgramEnrollmentStartDate(), is(criteria.getProgramEnrollmentStartDate()));
+        queryParams.getLastUpdatedStartDate(), is(criteria.getLastUpdatedStartDate().toDate()));
+    assertThat(queryParams.getLastUpdatedEndDate(), is(criteria.getLastUpdatedEndDate().toDate()));
     assertThat(
-        queryParams.getProgramEnrollmentEndDate(), is(criteria.getProgramEnrollmentEndDate()));
+        queryParams.getProgramEnrollmentStartDate(),
+        is(criteria.getProgramEnrollmentStartDate().toDate()));
     assertThat(
-        queryParams.getProgramIncidentStartDate(), is(criteria.getProgramIncidentStartDate()));
-    assertThat(queryParams.getProgramIncidentEndDate(), is(criteria.getProgramIncidentEndDate()));
+        queryParams.getProgramEnrollmentEndDate(),
+        is(criteria.getProgramEnrollmentEndDate().toDate()));
+    assertThat(
+        queryParams.getProgramIncidentStartDate(),
+        is(criteria.getProgramIncidentStartDate().toDate()));
+    assertThat(
+        queryParams.getProgramIncidentEndDate(), is(criteria.getProgramIncidentEndDate().toDate()));
     assertThat(queryParams.getEventStatus(), is(EventStatus.COMPLETED));
-    assertThat(queryParams.getEventStartDate(), is(criteria.getEventStartDate()));
-    assertThat(queryParams.getEventEndDate(), is(criteria.getEventEndDate()));
+    assertThat(queryParams.getEventStartDate(), is(criteria.getEventStartDate().toDate()));
+    assertThat(queryParams.getEventEndDate(), is(criteria.getEventEndDate().toDate()));
     assertThat(queryParams.getAssignedUserSelectionMode(), is(AssignedUserSelectionMode.PROVIDED));
     assertTrue(queryParams.getAssignedUsers().stream().anyMatch(u -> u.equals(userId1)));
     assertTrue(queryParams.getAssignedUsers().stream().anyMatch(u -> u.equals(userId2)));

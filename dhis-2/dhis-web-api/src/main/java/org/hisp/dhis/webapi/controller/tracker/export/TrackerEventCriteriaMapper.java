@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.getOrgUnitMode;
 import static org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapperUtils.validateOrgUnitMode;
 
@@ -82,6 +83,8 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -205,17 +208,21 @@ class TrackerEventCriteriaMapper {
         .setOrgUnitSelectionMode(orgUnitMode)
         .setAssignedUserSelectionMode(criteria.getAssignedUserMode())
         .setAssignedUsers(assignedUserIds)
-        .setStartDate(criteria.getOccurredAfter())
-        .setEndDate(criteria.getOccurredBefore())
-        .setDueDateStart(criteria.getScheduledAfter())
-        .setDueDateEnd(criteria.getScheduledBefore())
-        .setLastUpdatedStartDate(criteria.getUpdatedAfter())
-        .setLastUpdatedEndDate(criteria.getUpdatedBefore())
+        .setStartDate(applyIfNotNull(criteria.getOccurredAfter(), StartDateTime::toDate))
+        .setEndDate(applyIfNotNull(criteria.getOccurredBefore(), EndDateTime::toDate))
+        .setDueDateStart(applyIfNotNull(criteria.getScheduledAfter(), StartDateTime::toDate))
+        .setDueDateEnd(applyIfNotNull(criteria.getScheduledBefore(), EndDateTime::toDate))
+        .setLastUpdatedStartDate(applyIfNotNull(criteria.getUpdatedAfter(), StartDateTime::toDate))
+        .setLastUpdatedEndDate(applyIfNotNull(criteria.getUpdatedBefore(), EndDateTime::toDate))
         .setLastUpdatedDuration(criteria.getUpdatedWithin())
-        .setEnrollmentEnrolledBefore(criteria.getEnrollmentEnrolledBefore())
-        .setEnrollmentEnrolledAfter(criteria.getEnrollmentEnrolledAfter())
-        .setEnrollmentOccurredBefore(criteria.getEnrollmentOccurredBefore())
-        .setEnrollmentOccurredAfter(criteria.getEnrollmentOccurredAfter())
+        .setEnrollmentEnrolledBefore(
+            applyIfNotNull(criteria.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+        .setEnrollmentEnrolledAfter(
+            applyIfNotNull(criteria.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+        .setEnrollmentOccurredBefore(
+            applyIfNotNull(criteria.getEnrollmentOccurredBefore(), EndDateTime::toDate))
+        .setEnrollmentOccurredAfter(
+            applyIfNotNull(criteria.getEnrollmentOccurredAfter(), StartDateTime::toDate))
         .setEventStatus(criteria.getStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
         .setIdSchemes(criteria.getIdSchemes())

@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -48,7 +47,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,6 +84,8 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -282,47 +282,47 @@ class TrackerEventCriteriaMapperTest {
   void testMappingOccurredAfterBefore() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    Date occurredAfter = parseDate("2020-01-01");
+    StartDateTime occurredAfter = StartDateTime.of("2020-01-01");
     criteria.setOccurredAfter(occurredAfter);
-    Date occurredBefore = parseDate("2020-09-12");
+    EndDateTime occurredBefore = EndDateTime.of("2020-09-12");
     criteria.setOccurredBefore(occurredBefore);
 
     EventQueryParams params = mapper.map(criteria);
 
-    assertEquals(occurredAfter, params.getStartDate());
-    assertEquals(occurredBefore, params.getEndDate());
+    assertEquals(occurredAfter.toDate(), params.getStartDate());
+    assertEquals(occurredBefore.toDate(), params.getEndDate());
   }
 
   @Test
   void testMappingScheduledAfterBefore() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    Date scheduledAfter = parseDate("2021-01-01");
+    StartDateTime scheduledAfter = StartDateTime.of("2021-01-01");
     criteria.setScheduledAfter(scheduledAfter);
-    Date scheduledBefore = parseDate("2021-09-12");
+    EndDateTime scheduledBefore = EndDateTime.of("2021-09-12");
     criteria.setScheduledBefore(scheduledBefore);
 
     EventQueryParams params = mapper.map(criteria);
 
-    assertEquals(scheduledAfter, params.getDueDateStart());
-    assertEquals(scheduledBefore, params.getDueDateEnd());
+    assertEquals(scheduledAfter.toDate(), params.getDueDateStart());
+    assertEquals(scheduledBefore.toDate(), params.getDueDateEnd());
   }
 
   @Test
   void testMappingUpdatedDates() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    Date updatedAfter = parseDate("2022-01-01");
+    StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     criteria.setUpdatedAfter(updatedAfter);
-    Date updatedBefore = parseDate("2022-09-12");
+    EndDateTime updatedBefore = EndDateTime.of("2022-09-12");
     criteria.setUpdatedBefore(updatedBefore);
     String updatedWithin = "P6M";
     criteria.setUpdatedWithin(updatedWithin);
 
     EventQueryParams params = mapper.map(criteria);
 
-    assertEquals(updatedAfter, params.getLastUpdatedStartDate());
-    assertEquals(updatedBefore, params.getLastUpdatedEndDate());
+    assertEquals(updatedAfter.toDate(), params.getLastUpdatedStartDate());
+    assertEquals(updatedBefore.toDate(), params.getLastUpdatedEndDate());
     assertEquals(updatedWithin, params.getLastUpdatedDuration());
   }
 
@@ -330,30 +330,30 @@ class TrackerEventCriteriaMapperTest {
   void testMappingEnrollmentEnrolledAtDates() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    Date enrolledBefore = parseDate("2022-01-01");
+    EndDateTime enrolledBefore = EndDateTime.of("2022-01-01");
     criteria.setEnrollmentEnrolledBefore(enrolledBefore);
-    Date enrolledAfter = parseDate("2022-02-01");
+    StartDateTime enrolledAfter = StartDateTime.of("2022-02-01");
     criteria.setEnrollmentEnrolledAfter(enrolledAfter);
 
     EventQueryParams params = mapper.map(criteria);
 
-    assertEquals(enrolledBefore, params.getEnrollmentEnrolledBefore());
-    assertEquals(enrolledAfter, params.getEnrollmentEnrolledAfter());
+    assertEquals(enrolledBefore.toDate(), params.getEnrollmentEnrolledBefore());
+    assertEquals(enrolledAfter.toDate(), params.getEnrollmentEnrolledAfter());
   }
 
   @Test
   void testMappingEnrollmentOcurredAtDates() throws BadRequestException {
     TrackerEventCriteria criteria = new TrackerEventCriteria();
 
-    Date enrolledBefore = parseDate("2022-01-01");
+    EndDateTime enrolledBefore = EndDateTime.of("2022-01-01");
     criteria.setEnrollmentOccurredBefore(enrolledBefore);
-    Date enrolledAfter = parseDate("2022-02-01");
+    StartDateTime enrolledAfter = StartDateTime.of("2022-02-01");
     criteria.setEnrollmentOccurredAfter(enrolledAfter);
 
     EventQueryParams params = mapper.map(criteria);
 
-    assertEquals(enrolledBefore, params.getEnrollmentOccurredBefore());
-    assertEquals(enrolledAfter, params.getEnrollmentOccurredAfter());
+    assertEquals(enrolledBefore.toDate(), params.getEnrollmentOccurredBefore());
+    assertEquals(enrolledAfter.toDate(), params.getEnrollmentOccurredAfter());
   }
 
   @Test
