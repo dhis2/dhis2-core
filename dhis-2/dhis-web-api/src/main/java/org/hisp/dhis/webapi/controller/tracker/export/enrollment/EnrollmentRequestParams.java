@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +46,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /** Represents query parameters sent to {@link EnrollmentsExportController}. */
 @OpenApi.Shared(name = "EnrollmentRequestParams")
@@ -109,13 +110,13 @@ public class EnrollmentRequestParams implements PageRequestParams {
 
   private Boolean followUp;
 
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   private String updatedWithin;
 
-  private Date enrolledAfter;
+  private StartDateTime enrolledAfter;
 
-  private Date enrolledBefore;
+  private EndDateTime enrolledBefore;
 
   @OpenApi.Property({UID.class, TrackedEntityType.class})
   private UID trackedEntityType;

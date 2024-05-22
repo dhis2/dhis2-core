@@ -472,7 +472,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnFilteredEvent() {
     trackerImportExportActions
         .get(
-            "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-20&event=ZwwuwNp6gVd")
+            "events?enrollmentOccurredAfter=2019-08-16&enrollmentOccurredBefore=2019-08-19&event=ZwwuwNp6gVd")
         .validate()
         .statusCode(200)
         .rootPath("events[0]")

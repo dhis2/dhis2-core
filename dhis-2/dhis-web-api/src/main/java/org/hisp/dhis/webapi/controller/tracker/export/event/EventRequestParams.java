@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -133,13 +132,13 @@ public class EventRequestParams implements PageRequestParams {
   @OpenApi.Property({UID[].class, User.class})
   private Set<UID> assignedUsers = new HashSet<>();
 
-  private Date occurredAfter;
+  private StartDateTime occurredAfter;
 
-  private Date occurredBefore;
+  private EndDateTime occurredBefore;
 
-  private Date scheduledAfter;
+  private StartDateTime scheduledAfter;
 
-  private Date scheduledBefore;
+  private EndDateTime scheduledBefore;
 
   private StartDateTime updatedAfter;
 
@@ -147,13 +146,13 @@ public class EventRequestParams implements PageRequestParams {
 
   private String updatedWithin;
 
-  private Date enrollmentEnrolledBefore;
+  private EndDateTime enrollmentEnrolledBefore;
 
-  private Date enrollmentEnrolledAfter;
+  private StartDateTime enrollmentEnrolledAfter;
 
-  private Date enrollmentOccurredBefore;
+  private EndDateTime enrollmentOccurredBefore;
 
-  private Date enrollmentOccurredAfter;
+  private StartDateTime enrollmentOccurredAfter;
 
   private EventStatus status;
 

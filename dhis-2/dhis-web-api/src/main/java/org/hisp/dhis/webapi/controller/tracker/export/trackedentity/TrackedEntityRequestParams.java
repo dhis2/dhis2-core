@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +49,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
 /**
  * Represents query parameters sent to {@link TrackedEntitiesExportController}.
@@ -136,25 +137,25 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private Boolean followUp;
 
   /** Start date for last updated. */
-  private Date updatedAfter;
+  private StartDateTime updatedAfter;
 
   /** End date for last updated. */
-  private Date updatedBefore;
+  private EndDateTime updatedBefore;
 
   /** The last updated duration filter. */
   private String updatedWithin;
 
   /** The given Program start date. */
-  private Date enrollmentEnrolledAfter;
+  private StartDateTime enrollmentEnrolledAfter;
 
   /** The given Program end date. */
-  private Date enrollmentEnrolledBefore;
+  private EndDateTime enrollmentEnrolledBefore;
 
   /** Start date for incident in the given program. */
-  private Date enrollmentOccurredAfter;
+  private StartDateTime enrollmentOccurredAfter;
 
   /** End date for incident in the given program. */
-  private Date enrollmentOccurredBefore;
+  private EndDateTime enrollmentOccurredBefore;
 
   /** Only returns Tracked Entity Instances of this type. */
   @OpenApi.Property({UID.class, TrackedEntityType.class})
@@ -195,10 +196,10 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private EventStatus eventStatus;
 
   /** Start date for Event for the given Program. */
-  private Date eventOccurredAfter;
+  private StartDateTime eventOccurredAfter;
 
   /** End date for Event for the given Program. */
-  private Date eventOccurredBefore;
+  private EndDateTime eventOccurredBefore;
 
   /** Indicates whether to include soft-deleted elements */
   private boolean includeDeleted = false;
