@@ -111,6 +111,6 @@ public class HibernateProgramRuleActionStore
           where pra.dataelementid in :dataElements
         """;
 
-    return getSession().createNativeQuery(sql).setParameter("dataElements", dataElements).list();
+    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

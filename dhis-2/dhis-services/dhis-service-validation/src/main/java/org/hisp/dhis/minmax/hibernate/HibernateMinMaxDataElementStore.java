@@ -182,7 +182,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   }
 
   @Override
-  public List<MinMaxDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
+  public List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements) {
     // language=sql
     String sql =
         """
@@ -191,8 +191,8 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         """;
 
     return getSession()
-        .createNativeQuery(sql, clazz)
-        .addSynchronizedEntityClass(clazz)
+        .createNativeQuery(sql, MinMaxDataElement.class)
+        .addSynchronizedEntityClass(MinMaxDataElement.class)
         .setParameter("dataElements", dataElements)
         .list();
   }

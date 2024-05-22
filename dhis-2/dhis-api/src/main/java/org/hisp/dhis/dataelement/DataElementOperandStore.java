@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataelement;
 
+import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -34,4 +36,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface DataElementOperandStore extends IdentifiableObjectStore<DataElementOperand> {
   String ID = DataElementOperand.class.getName();
+
+  List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements);
 }

@@ -123,6 +123,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   @Transactional(readOnly = true)
   public List<MinMaxDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
-    return minMaxDataElementStore.getAllByDataElement(dataElements);
+    return minMaxDataElementStore.getByDataElement(dataElements);
   }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.merge.dataelement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -62,7 +61,6 @@ public class DefaultDataElementMergeHandler {
 
   private final MinMaxDataElementService minMaxDataElementService;
   private final EventVisualizationService eventVisualizationService;
-  private final EventChartService eventChartService;
   private final SMSCommandService smsCommandService;
   private final PredictorService predictorService;
   private final ProgramStageDataElementService programStageDataElementService;

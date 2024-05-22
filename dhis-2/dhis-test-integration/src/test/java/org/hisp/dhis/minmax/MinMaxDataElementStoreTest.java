@@ -191,7 +191,7 @@ class MinMaxDataElementStoreTest extends SingleSetupIntegrationTestBase {
 
     // when
     List<MinMaxDataElement> allByDataElement =
-        minMaxDataElementStore.getAllByDataElement(List.of(deW, deX));
+        minMaxDataElementStore.getByDataElement(List.of(deW, deX));
 
     // then
     assertEquals(2, allByDataElement.size());

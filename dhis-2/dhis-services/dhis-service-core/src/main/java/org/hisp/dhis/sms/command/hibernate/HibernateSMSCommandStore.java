@@ -108,7 +108,8 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
           where s.dataelementid in :dataElements
         """;
 
-    return nativeUpdateQueryWithClass(sql, SMSCode.class)
+    return getSession()
+        .createNativeQuery(sql, SMSCode.class)
         .setParameter("dataElements", dataElements)
         .list();
   }
