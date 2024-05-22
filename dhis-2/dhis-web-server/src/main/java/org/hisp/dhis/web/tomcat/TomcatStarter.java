@@ -25,36 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.web.tomcat;
 
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import javax.servlet.ServletContainerInitializer;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.webapi.servlet.DhisWebApiWebAppInitializer;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+/**
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>{@link ServletContainerInitializer} used to trigger {@link ServletContextInitializer
+ * ServletContextInitializers} and track startup errors.
+ *
+ * @author Phillip Webb
+ * @author Andy Wilkinson
+ */
+@Slf4j
+class TomcatStarter implements ServletContainerInitializer {
 
-  /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  long countEnrollments(EnrollmentQueryParams params);
+  private volatile Exception startUpException;
 
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
+  @Override
+  public void onStartup(Set<Class<?>> classes, ServletContext servletContext)
+      throws ServletException {
+    try {
+      DhisWebApiWebAppInitializer dhisWebApiWebAppInitializer = new DhisWebApiWebAppInitializer();
+      dhisWebApiWebAppInitializer.onStartup(servletContext);
+    } catch (Exception ex) {
+      this.startUpException = ex;
+      // Prevent Tomcat from logging and re-throwing when we know we can
+      // deal with it in the main thread, but log for information here.
+      if (log.isErrorEnabled()) {
+        log.error(
+            "Error starting Tomcat context. Exception: "
+                + ex.getClass().getName()
+                + ". Message: "
+                + ex.getMessage());
+      }
+    }
+  }
 
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  Exception getStartUpException() {
+    return this.startUpException;
+  }
 }

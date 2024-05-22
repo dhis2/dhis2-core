@@ -25,36 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.web.jetty;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+import java.io.IOException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
-  /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  long countEnrollments(EnrollmentQueryParams params);
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class RootPageServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    Object springSecurityContext = session().getAttribute("SPRING_SECURITY_CONTEXT");
 
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
+    if (springSecurityContext != null) {
+      String referer = (String) req.getAttribute("origin");
+      req.setAttribute("origin", referer);
+      resp.sendRedirect("/dhis-web-dashboard/");
+    } else {
+      String content = getResourceFileAsString("login.html");
+      resp.setContentType("text/html");
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.getWriter().println(content);
+    }
+  }
 
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  public static HttpSession session() {
+    ServletRequestAttributes attr =
+        (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    return attr.getRequest().getSession(false); // true == allow create
+  }
 }

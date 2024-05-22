@@ -25,36 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.web.jetty;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Configuration
+@Order(100)
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+@Profile("embeddedJetty")
+public class SpringConfiguration {
 
-  /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  long countEnrollments(EnrollmentQueryParams params);
+  @Primary
+  @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
+  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
+    return Authorities::getAllAuthorities;
+  }
 
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
-
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  @Bean("org.hisp.dhis.web.embeddedjetty.StartupFinishedRoutine")
+  public StartupFinishedRoutine startupFinishedRoutine() {
+    StartupFinishedRoutine startupRoutine = new StartupFinishedRoutine();
+    startupRoutine.setName("StartupFinishedRoutine");
+    startupRoutine.setRunlevel(42);
+    startupRoutine.setSkipInTests(true);
+    return startupRoutine;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.web.tomcat;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleState;
+import org.apache.catalina.util.StandardSessionIdGenerator;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
+/**
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>A specialization of {@link StandardSessionIdGenerator} that initializes {@code SecureRandom}
+ * lazily.
+ *
+ * @author Andy Wilkinson
+ */
+class LazySessionIdGenerator extends StandardSessionIdGenerator {
 
-  /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  long countEnrollments(EnrollmentQueryParams params);
-
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
-
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+  @Override
+  protected void startInternal() throws LifecycleException {
+    setState(LifecycleState.STARTING);
+  }
 }

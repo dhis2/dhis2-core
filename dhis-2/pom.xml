@@ -38,12 +38,10 @@
     <module>dhis-support</module>
     <module>dhis-web-api</module>
     <module>dhis-test-web-api</module>
-    <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
-    <module>dhis-web-commons-resources</module>
     <module>dhis-web-apps</module>
-    <module>dhis-web-portal</module>
+    <module>dhis-web-server</module>
   </modules>
 
   <scm>
@@ -263,17 +261,6 @@
   <dependencyManagement>
     <dependencies>
       <!--DHIS -->
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-web-portal</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-web-commons-resources</artifactId>
-        <version>${project.version}</version>
-        <type>war</type>
-      </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-web-apps</artifactId>
@@ -2045,6 +2032,7 @@ jasperreports.version=${jasperreports.version}
             <ignoredUnusedDeclaredDependencies>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.postgis:postgis-jdbc</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.springframework.boot:spring-boot-starter-tomcat</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.flywaydb:flyway-database-postgresql</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
@@ -2082,7 +2070,6 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons-resources</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>

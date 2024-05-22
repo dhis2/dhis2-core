@@ -25,36 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.web.jetty;
 
-import java.util.List;
-import java.util.Set;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import java.util.concurrent.BlockingQueue;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
-  String ID = EnrollmentStore.class.getName();
-
-  /**
-   * Count all enrollments by enrollment query params.
-   *
-   * @param params EnrollmentQueryParams to use
-   * @return Count of matching enrollments
-   */
-  long countEnrollments(EnrollmentQueryParams params);
-
-  /** Get all enrollments matching given params. */
-  List<Enrollment> getEnrollments(EnrollmentQueryParams params);
-
-  /** Get a page of enrollments matching given params. */
-  Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams);
-
-  /**
-   * Fields the {@link #getEnrollments(EnrollmentQueryParams)} can order enrollments by. Ordering by
-   * fields other than these is considered a programmer error. Validation of user provided field
-   * names should occur before calling {@link #getEnrollments(EnrollmentQueryParams)}.
-   */
-  Set<String> getOrderableFields();
+/**
+ * DHIS2 specific implementation of {@link
+ * io.micrometer.core.instrument.binder.jetty.InstrumentedQueuedThreadPool} Created to implement
+ * support for more fine grained control over thread parameters
+ */
+public class InstrumentedQueuedThreadPool extends QueuedThreadPool {
+  public InstrumentedQueuedThreadPool(
+      int maxThreads, int minThreads, int idleTimeout, BlockingQueue<Runnable> queue) {
+    super(maxThreads, minThreads, idleTimeout, queue);
+  }
 }
