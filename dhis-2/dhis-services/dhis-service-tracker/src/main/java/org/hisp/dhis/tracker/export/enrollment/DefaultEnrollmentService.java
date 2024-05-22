@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -92,6 +93,27 @@ class DefaultEnrollmentService
     }
 
     return getEnrollment(enrollment, params, includeDeleted, currentUser);
+  }
+
+  @Override
+  public RelationshipItem getEnrollmentInRelationshipItem(
+      String uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException {
+
+    RelationshipItem relationshipItem = new RelationshipItem();
+    Enrollment enrollment = enrollmentStore.getByUid(uid);
+
+    if (enrollment == null) {
+      throw new NotFoundException(Enrollment.class, uid);
+    }
+
+    User currentUser = userService.getUserByUsername(getCurrentUsername());
+    List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
+    if (!errors.isEmpty()) {
+      return null;
+    }
+
+    relationshipItem.setEnrollment(getEnrollment(enrollment, params, includeDeleted, currentUser));
+    return relationshipItem;
   }
 
   @Override
