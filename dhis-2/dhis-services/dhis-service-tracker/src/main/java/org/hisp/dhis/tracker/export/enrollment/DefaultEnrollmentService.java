@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -105,7 +106,7 @@ class DefaultEnrollmentService
       throw new NotFoundException(Enrollment.class, uid);
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    User currentUser = userService.getUserByUsername(getCurrentUsername());
     List<String> errors = trackerAccessManager.canRead(currentUser, enrollment, false);
     if (!errors.isEmpty()) {
       return null;
