@@ -30,6 +30,8 @@ package org.hisp.dhis.merge.dataelement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -68,6 +70,7 @@ public class DefaultDataElementMergeHandler {
   private final ProgramNotificationTemplateService programNotificationTemplateService;
   private final ProgramRuleVariableService programRuleVariableService;
   private final ProgramRuleActionService programRuleActionService;
+  private final DataElementOperandStore dataElementOperandStore;
 
   /**
    * Method retrieving {@link MinMaxDataElement}s by source {@link DataElement} references. All
@@ -213,5 +216,21 @@ public class DefaultDataElementMergeHandler {
     List<ProgramRuleAction> programRuleActions = programRuleActionService.getByDataElement(sources);
 
     programRuleActions.forEach(pra -> pra.setDataElement(target));
+  }
+
+  /**
+   * Method retrieving {@link DataElementOperand}s by source {@link DataElement} references. All
+   * retrieved {@link DataElementOperand}s will have their {@link DataElement} replaced with the
+   * target {@link DataElement}.
+   *
+   * @param sources source {@link DataElement}s used to retrieve {@link DataElementOperand}s
+   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
+   *     DataElementOperand}
+   */
+  public void handleDataElementOperand(List<DataElement> sources, DataElement target) {
+    List<DataElementOperand> dataElementOperands =
+        dataElementOperandStore.getByDataElement(sources);
+
+    dataElementOperands.forEach(pra -> pra.setDataElement(target));
   }
 }

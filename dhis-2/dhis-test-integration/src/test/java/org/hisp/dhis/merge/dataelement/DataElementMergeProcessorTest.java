@@ -42,6 +42,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -95,6 +97,7 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
   @Autowired private ProgramRuleVariableService programRuleVariableService;
   @Autowired private ProgramRuleActionService programRuleActionService;
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
+  @Autowired private DataElementOperandStore dataElementOperandStore;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -849,6 +852,74 @@ class DataElementMergeProcessorTest extends TransactionalIntegrationTest {
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertMergeSuccessfulSourcesDeleted(report, prvSources, prvTarget, allDataElements);
+  }
+
+  // -------------------------------
+  // -- DataElementOperand --
+  // -------------------------------
+  @Test
+  @DisplayName(
+      "DataElementOperand references for DataElement are replaced as expected, source DataElements are not deleted")
+  void dataElementOperandMergeTest() throws ConflictException {
+    // given
+    DataElementOperand deo1 = new DataElementOperand();
+    deo1.setDataElement(deSource1);
+    DataElementOperand deo2 = new DataElementOperand();
+    deo2.setDataElement(deSource2);
+    DataElementOperand deo3 = new DataElementOperand();
+    deo3.setDataElement(deTarget);
+
+    identifiableObjectManager.save(deo1);
+    identifiableObjectManager.save(deo2);
+    identifiableObjectManager.save(deo3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataElementOperand> deoSources =
+        dataElementOperandStore.getByDataElement(List.of(deSource1, deSource2));
+    List<DataElementOperand> prvTarget =
+        dataElementOperandStore.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesNotDeleted(report, deoSources, prvTarget, allDataElements);
+  }
+
+  @Test
+  @DisplayName(
+      "DataElementOperand references for DataElement are replaced as expected, source DataElements are deleted")
+  void dataElementOperandSourcesDeletedMergeTest() throws ConflictException {
+    // given
+    DataElementOperand deo1 = new DataElementOperand();
+    deo1.setDataElement(deSource1);
+    DataElementOperand deo2 = new DataElementOperand();
+    deo2.setDataElement(deSource2);
+    DataElementOperand deo3 = new DataElementOperand();
+    deo3.setDataElement(deTarget);
+
+    identifiableObjectManager.save(deo1);
+    identifiableObjectManager.save(deo2);
+    identifiableObjectManager.save(deo3);
+
+    // params
+    MergeParams mergeParams = getMergeParams();
+    mergeParams.setDeleteSources(true);
+
+    // when
+    MergeReport report = mergeProcessor.processMerge(mergeParams);
+
+    // then
+    List<DataElementOperand> deoSources =
+        dataElementOperandStore.getByDataElement(List.of(deSource1, deSource2));
+    List<DataElementOperand> prvTarget =
+        dataElementOperandStore.getByDataElement(List.of(deTarget));
+    List<DataElement> allDataElements = dataElementService.getAllDataElements();
+
+    assertMergeSuccessfulSourcesDeleted(report, deoSources, prvTarget, allDataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
