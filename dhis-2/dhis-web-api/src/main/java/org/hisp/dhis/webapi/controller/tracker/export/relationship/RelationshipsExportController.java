@@ -58,7 +58,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.EntityType(Relationship.class)
+@OpenApi.EntityType(org.hisp.dhis.relationship.Relationship.class)
 @OpenApi.Tags("tracker")
 @RestController
 @RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
@@ -131,8 +131,10 @@ class RelationshipsExportController {
   }
 
   @GetMapping("/{uid}")
+  @OpenApi.Response(Relationship.class)
   ResponseEntity<ObjectNode> getRelationshipByUid(
-      @OpenApi.Param({UID.class, Relationship.class}) @PathVariable UID uid,
+      @OpenApi.Param({UID.class, org.hisp.dhis.relationship.Relationship.class}) @PathVariable
+          UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {

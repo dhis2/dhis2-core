@@ -28,12 +28,14 @@
 package org.hisp.dhis.query;
 
 import lombok.Getter;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class Junction extends Criteria implements Criterion {
+  @OpenApi.Shared(name = "JunctionType")
   public enum Type {
     AND,
     OR

@@ -44,12 +44,13 @@ import org.hisp.dhis.common.UID;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.note.Note.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Note {
-  @OpenApi.Property({UID.class, Note.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.note.Note.class})
   @JsonProperty
   private String note;
 

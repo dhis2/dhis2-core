@@ -250,6 +250,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
@@ -354,6 +355,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   @Override
   @Gist(included = Include.FALSE)
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
@@ -364,6 +366,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   @Override
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)

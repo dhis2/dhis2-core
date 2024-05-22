@@ -45,11 +45,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
  * Represents query parameters sent to {@link TrackedEntitiesExportController}.
