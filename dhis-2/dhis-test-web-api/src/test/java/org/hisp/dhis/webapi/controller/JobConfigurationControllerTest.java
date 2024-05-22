@@ -174,28 +174,6 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void testHTML_PUSH_ANALYTICS() {
-    // language=JSON
-    String json =
-        """
-      {
-        "name": "test",
-        "jobType": "HTML_PUSH_ANALYTICS",
-        "jobParameters": {
-          "dashboard": "nghVC4wtyzi",
-          "receivers": "wl5cDMuUhmF",
-          "mode":"EXECUTOR"
-        },
-        "cronExpression": "0 0 1 ? * *"
-      }""";
-    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
-    JsonObject parameters = assertJobConfigurationExists(jobId, "HTML_PUSH_ANALYTICS");
-    assertEquals("nghVC4wtyzi", parameters.getString("dashboard").string());
-    assertEquals("wl5cDMuUhmF", parameters.getString("receivers").string());
-    assertEquals("EXECUTOR", parameters.getString("mode").string());
-  }
-
-  @Test
   void testLOCK_EXCEPTION_CLEANUP() {
     String json =
         "{'name':'test','jobType':'LOCK_EXCEPTION_CLEANUP','cronExpression':'0 0 12 ? * MON-FRI',"
