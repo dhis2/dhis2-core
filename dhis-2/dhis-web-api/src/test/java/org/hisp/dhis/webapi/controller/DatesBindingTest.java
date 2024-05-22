@@ -63,7 +63,7 @@ class DatesBindingTest {
 
   @Test
   void shouldReturnADateAtTheEndOfTheDayWhenAnEndDateIsPassedWithoutTime() throws Exception {
-    mockMvc.perform(get(ENDPOINT).param("before", "2001-06-17")).andExpect(status().isOk());
+    mockMvc.perform(get(ENDPOINT).param("end", "2001-06-17")).andExpect(status().isOk());
 
     assertNull(actualStartDateTime);
     assertEquals("2001-06-17T23:59:59", DateUtils.toLongDate(actualEndDateTime));
@@ -71,9 +71,7 @@ class DatesBindingTest {
 
   @Test
   void shouldReturnADateWithTimeWhenAnEndDateIsPassedWithTime() throws Exception {
-    mockMvc
-        .perform(get(ENDPOINT).param("before", "2001-06-17T16:45:34"))
-        .andExpect(status().isOk());
+    mockMvc.perform(get(ENDPOINT).param("end", "2001-06-17T16:45:34")).andExpect(status().isOk());
 
     assertNull(actualStartDateTime);
     assertEquals("2001-06-17T16:45:34", DateUtils.toLongDate(actualEndDateTime));
@@ -81,7 +79,7 @@ class DatesBindingTest {
 
   @Test
   void shouldReturnADateAtTheStartOfTheDayWhenAnStartDateIsPassedWithoutTime() throws Exception {
-    mockMvc.perform(get(ENDPOINT).param("after", "2001-06-17")).andExpect(status().isOk());
+    mockMvc.perform(get(ENDPOINT).param("start", "2001-06-17")).andExpect(status().isOk());
 
     assertEquals("2001-06-17T00:00:00", DateUtils.toLongDate(actualStartDateTime));
     assertNull(actualEndDateTime);
@@ -89,7 +87,7 @@ class DatesBindingTest {
 
   @Test
   void shouldReturnADateWithTimeWhenAnStartDateIsPassedWithTime() throws Exception {
-    mockMvc.perform(get(ENDPOINT).param("after", "2001-06-17T16:45:34")).andExpect(status().isOk());
+    mockMvc.perform(get(ENDPOINT).param("start", "2001-06-17T16:45:34")).andExpect(status().isOk());
 
     assertEquals("2001-06-17T16:45:34", DateUtils.toLongDate(actualStartDateTime));
     assertNull(actualEndDateTime);
@@ -99,8 +97,8 @@ class DatesBindingTest {
   private class BindingController {
     @GetMapping(value = ENDPOINT)
     public @ResponseBody WebMessage getDefault(Params params) {
-      actualStartDateTime = applyIfNotNull(params.getAfter(), StartDateTime::toDate);
-      actualEndDateTime = applyIfNotNull(params.getBefore(), EndDateTime::toDate);
+      actualStartDateTime = applyIfNotNull(params.getStart(), StartDateTime::toDate);
+      actualEndDateTime = applyIfNotNull(params.getEnd(), EndDateTime::toDate);
       return ok();
     }
   }
@@ -108,8 +106,8 @@ class DatesBindingTest {
   @NoArgsConstructor
   @Data
   private class Params {
-    private StartDateTime after;
+    private StartDateTime start;
 
-    private EndDateTime before;
+    private EndDateTime end;
   }
 }
