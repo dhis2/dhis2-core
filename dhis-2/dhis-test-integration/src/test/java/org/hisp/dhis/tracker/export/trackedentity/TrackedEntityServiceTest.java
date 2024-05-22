@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
 import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams.FALSE;
+import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams.TRUE;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -1454,7 +1455,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnTrackedEntityRelationshipWhenFromItemNotAccessible()
+  void shouldNotReturnTrackedEntityRelationshipWhenTEFromItemNotAccessible()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(superuser);
     OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
@@ -1477,7 +1478,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnTrackedEntityRelationshipWhenToItemNotAccessible()
+  void shouldNotReturnTrackedEntityRelationshipWhenTEToItemNotAccessible()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(superuser);
     OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
@@ -1998,7 +1999,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         .organisationUnits(Set.of(orgUnit.getUid()))
         .orgUnitMode(SELECTED)
         .trackedEntityUids(Set.of(trackedEntity.getUid()))
-        .trackedEntityParams(new TrackedEntityParams(true, FALSE, false, false))
+        .trackedEntityParams(new TrackedEntityParams(true, TRUE, false, false))
         .user(user)
         .build();
   }

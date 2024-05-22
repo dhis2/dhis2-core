@@ -300,35 +300,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntity;
   }
 
-  /**
-   * Gets a tracked entity that's part of a relationship item. This method is meant to be used when
-   * fetching relationship items only, because it won't throw an exception if the TE is not
-   * accessible.
-   *
-   * @return the TE object if found and accessible by the current user or null otherwise
-   * @throws NotFoundException if uid does not exist
-   */
-  private RelationshipItem getTrackedEntityInRelationshipItem(
-      String uid, TrackedEntityParams params, boolean includeDeleted) throws NotFoundException {
-    RelationshipItem relationshipItem = new RelationshipItem();
-
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    addTrackedEntityAudit(trackedEntity, getCurrentUsername());
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-    User currentUser = userService.getUserByUsername(getCurrentUsername());
-
-    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
-    if (!errors.isEmpty()) {
-      return null;
-    }
-
-    relationshipItem.setTrackedEntity(
-        mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted));
-    return relationshipItem;
-  }
-
   private void mapTrackedEntityTypeAttributes(TrackedEntity trackedEntity) {
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
     if (trackedEntityType != null) {
@@ -443,11 +414,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 includeDeleted);
       }
     } else if (item.getEnrollment() != null) {
-      result.setEnrollment(
-          enrollmentService.getEnrollment(
+      result =
+          enrollmentService.getEnrollmentInRelationshipItem(
               item.getEnrollment().getUid(),
               EnrollmentParams.TRUE.withIncludeRelationships(false),
-              false));
+              false);
     } else if (item.getEvent() != null) {
       result =
           eventService.getEventInRelationshipItem(
@@ -455,6 +426,35 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return result;
+  }
+
+  /**
+   * Gets a tracked entity that's part of a relationship item. This method is meant to be used when
+   * fetching relationship items only, because it won't throw an exception if the TE is not
+   * accessible.
+   *
+   * @return the TE object if found and accessible by the current user or null otherwise
+   * @throws NotFoundException if uid does not exist
+   */
+  private RelationshipItem getTrackedEntityInRelationshipItem(
+      String uid, TrackedEntityParams params, boolean includeDeleted) throws NotFoundException {
+    RelationshipItem relationshipItem = new RelationshipItem();
+
+    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
+    addTrackedEntityAudit(trackedEntity, getCurrentUsername());
+    if (trackedEntity == null) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+    User currentUser = userService.getUserByUsername(getCurrentUsername());
+
+    List<String> errors = trackerAccessManager.canRead(currentUser, trackedEntity);
+    if (!errors.isEmpty()) {
+      return null;
+    }
+
+    relationshipItem.setTrackedEntity(
+        mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted));
+    return relationshipItem;
   }
 
   @Override
