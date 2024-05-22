@@ -45,7 +45,7 @@ import org.hisp.dhis.util.DateUtils;
 public class EndDateTime {
   private final Date date;
 
-  public static EndDateTime valueOf(String date) {
+  public static EndDateTime of(String date) {
     return new EndDateTime(DateUtils.parseDateEndOfTheDay(date));
   }
 

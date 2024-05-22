@@ -264,9 +264,9 @@ class EventImportRequestParamsMapperTest {
   void shouldMapAfterAndBeforeDatesWhenSupplied() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    StartDateTime updatedAfter = StartDateTime.valueOf("2022-01-01");
+    StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
-    EndDateTime updatedBefore = EndDateTime.valueOf("2022-09-12");
+    EndDateTime updatedBefore = EndDateTime.of("2022-09-12");
     eventRequestParams.setUpdatedBefore(updatedBefore);
 
     EventOperationParams params = mapper.map(eventRequestParams);
@@ -290,9 +290,9 @@ class EventImportRequestParamsMapperTest {
   void shouldFailWithBadRequestExceptionWhenTryingToMapAllUpdateDatesTogether() {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    StartDateTime updatedAfter = StartDateTime.valueOf("2022-01-01");
+    StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
-    EndDateTime updatedBefore = EndDateTime.valueOf("2022-09-12");
+    EndDateTime updatedBefore = EndDateTime.of("2022-09-12");
     eventRequestParams.setUpdatedBefore(updatedBefore);
     String updatedWithin = "P6M";
     eventRequestParams.setUpdatedWithin(updatedWithin);

@@ -45,7 +45,7 @@ import org.hisp.dhis.util.DateUtils;
 public class StartDateTime {
   private final Date date;
 
-  public static StartDateTime valueOf(String date) {
+  public static StartDateTime of(String date) {
     return new StartDateTime(DateUtils.parseDate(date));
   }
 
