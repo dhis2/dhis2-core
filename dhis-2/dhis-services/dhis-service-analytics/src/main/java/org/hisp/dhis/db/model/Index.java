@@ -62,6 +62,8 @@ public class Index {
   /** SQL function to use for index columns. Optional, may be null. */
   private final IndexFunction function;
 
+  private final String sortOrder;
+
   /**
    * Constructor.
    *
@@ -77,6 +79,7 @@ public class Index {
     this.columns = columns;
     this.condition = null;
     this.function = null;
+    this.sortOrder = null;
   }
 
   /**
@@ -95,6 +98,7 @@ public class Index {
     this.columns = columns;
     this.condition = null;
     this.function = null;
+    this.sortOrder = null;
   }
 
   /**
@@ -113,6 +117,7 @@ public class Index {
     this.columns = columns;
     this.condition = null;
     this.function = null;
+    this.sortOrder = null;
   }
 
   /**
@@ -139,6 +144,7 @@ public class Index {
     this.columns = columns;
     this.condition = null;
     this.function = function;
+    this.sortOrder = null;
   }
 
   /**
@@ -159,6 +165,34 @@ public class Index {
     this.columns = columns;
     this.condition = condition;
     this.function = null;
+    this.sortOrder = null;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param name the index name.
+   * @param tableName the index table name.
+   * @param indexType the index type.
+   * @param unique the uniqueness property.
+   * @param columns the list of index column names.
+   * @param sortOrder the sort order of index.
+   */
+  public Index(
+      String name,
+      String tableName,
+      IndexType indexType,
+      Unique unique,
+      List<String> columns,
+      String sortOrder) {
+    this.name = name;
+    this.tableName = tableName;
+    this.indexType = indexType;
+    this.unique = unique;
+    this.columns = columns;
+    this.condition = null;
+    this.function = null;
+    this.sortOrder = sortOrder;
   }
 
   /**
