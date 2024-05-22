@@ -164,6 +164,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private Event eventB;
 
+  private Event eventC;
+
   private TrackedEntity trackedEntityA;
 
   private TrackedEntity trackedEntityB;
@@ -183,6 +185,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Relationship relationshipC;
 
   private Relationship relationshipD;
+
+  private Relationship relationshipE;
 
   private static List<String> uids(
       Collection<? extends BaseIdentifiableObject> identifiableObjects) {
@@ -383,6 +387,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     enrollmentC =
         enrollmentService.enrollTrackedEntity(
             trackedEntityB, programB, new Date(), new Date(), orgUnitB);
+    eventC = new Event();
+    eventC.setEnrollment(enrollmentC);
+    eventC.setProgramStage(programStageB1);
+    eventC.setOrganisationUnit(orgUnitB);
+    eventC.setAttributeOptionCombo(defaultCategoryOptionCombo);
+    manager.save(eventC, false);
+    enrollmentC.setEvents(Set.of(eventC));
+    manager.save(enrollmentC, false);
 
     TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
     trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
@@ -507,6 +519,33 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     relationshipD.setKey(RelationshipUtils.generateRelationshipKey(relationshipD));
     relationshipD.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipD));
     manager.save(relationshipD, false);
+
+    RelationshipType relationshipTypeE = createRelationshipType('E');
+    relationshipTypeE
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeE.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
+    relationshipTypeE
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    relationshipTypeE.getToConstraint().setProgram(programB);
+    relationshipTypeE.getSharing().setOwner(user);
+    manager.save(relationshipTypeE, false);
+
+    relationshipE = new Relationship();
+    relationshipE.setUid(generateUid());
+    relationshipE.setRelationshipType(relationshipTypeD);
+    RelationshipItem fromE = new RelationshipItem();
+    fromE.setTrackedEntity(trackedEntityA);
+    fromE.setRelationship(relationshipE);
+    relationshipE.setFrom(fromE);
+    RelationshipItem toE = new RelationshipItem();
+    toE.setEvent(eventC);
+    toE.setRelationship(relationshipE);
+    relationshipE.setTo(toE);
+    relationshipE.setKey(RelationshipUtils.generateRelationshipKey(relationshipE));
+    relationshipE.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipE));
+    manager.save(relationshipE, false);
 
     injectSecurityContextUser(user);
   }
@@ -1497,6 +1536,46 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     Optional<RelationshipItem> relOpt =
         trackedEntity.getRelationshipItems().stream()
             .filter(i -> i.getRelationship().getUid().equals(relationshipD.getUid()))
+            .findFirst();
+    assertTrue(relOpt.isEmpty());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityRelationshipWhenEventItemAccessible()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(superuser);
+    makeProgramMetadataInaccessible(programC);
+    TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
+
+    injectSecurityContextUser(user);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    Optional<RelationshipItem> relOpt =
+        trackedEntity.getRelationshipItems().stream()
+            .filter(i -> i.getRelationship().getUid().equals(relationshipE.getUid()))
+            .findFirst();
+    assertTrue(relOpt.isEmpty());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityRelationshipWhenEventItemNotAccessible()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(superuser);
+    OrganisationUnit inaccessibleOrgUnit = createOrganisationUnit('D');
+    manager.save(inaccessibleOrgUnit);
+    makeProgramMetadataInaccessible(programC);
+    trackerOwnershipManager.assignOwnership(
+        trackedEntityB, programB, inaccessibleOrgUnit, true, true);
+    TrackedEntityOperationParams operationParams = createOperationParams(orgUnitA, trackedEntityA);
+
+    injectSecurityContextUser(user);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    Optional<RelationshipItem> relOpt =
+        trackedEntity.getRelationshipItems().stream()
+            .filter(i -> i.getRelationship().getUid().equals(relationshipE.getUid()))
             .findFirst();
     assertTrue(relOpt.isEmpty());
   }
