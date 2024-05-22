@@ -420,9 +420,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               EnrollmentParams.TRUE.withIncludeRelationships(false),
               false);
     } else if (item.getEvent() != null) {
-      result.setEvent(
-          eventService.getEvent(
-              item.getEvent().getUid(), EventParams.TRUE.withIncludeRelationships(false)));
+      result =
+          eventService.getEventInRelationshipItem(
+              item.getEvent().getUid(), EventParams.TRUE.withIncludeRelationships(false));
     }
 
     return result;
