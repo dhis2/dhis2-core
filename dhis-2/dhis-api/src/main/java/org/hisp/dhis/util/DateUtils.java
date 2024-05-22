@@ -33,7 +33,9 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
@@ -108,6 +110,9 @@ public class DateUtils {
   private static final DateTimeParser[] SUPPORTED_DATE_FORMAT_PARSERS =
       ObjectArrays.concat(
           SUPPORTED_DATE_ONLY_PARSERS, SUPPORTED_DATE_TIME_FORMAT_PARSERS, DateTimeParser.class);
+
+  private static final DateTimeFormatter ONLY_DATE_FORMATTER =
+      new DateTimeFormatterBuilder().append(null, SUPPORTED_DATE_ONLY_PARSERS).toFormatter();
 
   private static final DateTimeFormatter DATE_FORMATTER =
       new DateTimeFormatterBuilder().append(null, SUPPORTED_DATE_FORMAT_PARSERS).toFormatter();
@@ -662,13 +667,36 @@ public class DateUtils {
   }
 
   /**
-   * Parses the given string into a Date using the supported date formats. Returns null if the
-   * string cannot be parsed.
+   * Parses the given string into a Date using the supported date formats. Add time at the beginning
+   * of the day if no time was provided. Returns null if the string cannot be parsed.
    *
    * @param dateString the date string.
    * @return a date.
    */
   public static Date parseDate(String dateString) {
+    return safeParseDateTime(dateString, DATE_FORMATTER);
+  }
+
+  /**
+   * Parses the given string into a Date using the supported date formats. Add time at the end of
+   * the day if no time was provided. Returns null if the string cannot be parsed.
+   *
+   * @param dateString the date string.
+   * @return a date.
+   */
+  public static Date parseDateEndOfTheDay(String dateString) {
+    if (StringUtils.isEmpty(dateString)) {
+      return null;
+    }
+
+    try {
+      Date date = safeParseDateTime(dateString, ONLY_DATE_FORMATTER);
+      LocalDateTime localDateTime =
+          LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()).with(LocalTime.MAX);
+      return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    } catch (IllegalArgumentException e) {
+      // dateString has time defined
+    }
     return safeParseDateTime(dateString, DATE_FORMATTER);
   }
 

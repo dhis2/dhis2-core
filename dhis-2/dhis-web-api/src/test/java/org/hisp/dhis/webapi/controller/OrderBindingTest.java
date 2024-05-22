@@ -61,10 +61,7 @@ class OrderBindingTest {
 
   @BeforeEach
   public void setUp() {
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(new OrderingController())
-            .setControllerAdvice(new CrudControllerAdvice())
-            .build();
+    mockMvc = MockMvcBuilders.standaloneSetup(new OrderingController()).build();
   }
 
   @Test
