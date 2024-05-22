@@ -790,6 +790,15 @@ public abstract class AbstractEventService
             // data elements
             .collect(Collectors.toSet());
 
+    for (DataValue dataValue : event.getDataValues()) {
+      // data element has been deleted
+      if (eventDataValues.stream()
+          .noneMatch(e -> e.getDataElement().equals(dataValue.getDataElement()))) {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement(dataValue.getDataElement());
+        eventDataValues.add(eventDataValue);
+      }
+    }
     return eventManager.updateEventDataValues(event, eventDataValues, context);
   }
 
