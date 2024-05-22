@@ -64,7 +64,7 @@ public class TrackerImportExportActions extends RestApiActions {
 
     with().atMost(20, TimeUnit.SECONDS).await().until(jobIsCompleted::call);
 
-    logger.info("Tracker job is completed. Message: " + getJob(jobId).extract("message"));
+    logger.info("Tracker job is completed. Message: {}", getJob(jobId).extract("message"));
   }
 
   public TrackerApiResponse postAndGetJobReport(File file) {
