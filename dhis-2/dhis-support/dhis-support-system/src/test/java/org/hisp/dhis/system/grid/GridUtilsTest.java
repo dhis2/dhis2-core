@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.system.grid;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.google.common.collect.Lists;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,5 +87,19 @@ class GridUtilsTest {
     // value
     row2.add(10.22D);
     assertEquals(2, GridUtils.getGridIndexByDimensionItem(row2, periods, 2));
+  }
+
+  @Test
+  void testToXls() throws Exception {
+    List<Grid> grids = new ArrayList<>();
+    Grid gridA = new ListGrid();
+    gridA.setTitle("Grid");
+    grids.add(gridA);
+    Grid gridB = new ListGrid();
+    gridB.setTitle("Grid");
+    grids.add(gridA);
+    grids.add(gridB);
+    OutputStream outputStream = new ByteArrayOutputStream();
+    assertDoesNotThrow(() -> GridUtils.toXls(grids, outputStream));
   }
 }

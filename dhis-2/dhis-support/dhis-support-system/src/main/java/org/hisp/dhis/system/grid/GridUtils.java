@@ -29,6 +29,7 @@ package org.hisp.dhis.system.grid;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.system.util.PDFUtils.addTableToDocument;
 import static org.hisp.dhis.system.util.PDFUtils.closeDocument;
 import static org.hisp.dhis.system.util.PDFUtils.getEmptyCell;
@@ -85,7 +86,6 @@ import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -107,6 +107,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 @Slf4j
 public class GridUtils {
+
   private static final String EMPTY = "";
 
   private static final char CSV_DELIMITER = ',';
@@ -261,12 +262,14 @@ public class GridUtils {
 
     for (int i = 0; i < grids.size(); i++) {
       Grid grid = grids.get(i);
-
       String sheetName =
-          CodecUtils.filenameEncode(
-              StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + (i + 1)));
+          filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + (i + 1)));
+      Sheet sheet = workbook.getSheet(sheetName);
+      if (sheet == null) {
+        sheet = workbook.createSheet(sheetName);
+      }
 
-      toXlsInternal(grid, workbook.createSheet(sheetName), headerCellStyle, cellStyle);
+      toXlsInternal(grid, sheet, headerCellStyle, cellStyle);
     }
 
     workbook.write(out);
@@ -278,8 +281,7 @@ public class GridUtils {
     Workbook workbook = new HSSFWorkbook();
 
     String sheetName =
-        CodecUtils.filenameEncode(
-            StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
+        filenameEncode(StringUtils.defaultIfEmpty(grid.getTitle(), XLS_SHEET_PREFIX + 1));
 
     toXlsInternal(
         grid,
