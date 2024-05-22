@@ -272,7 +272,7 @@ class EventImportRequestParamsMapperTest {
     EventOperationParams params = mapper.map(eventRequestParams);
 
     assertEquals(updatedAfter.toDate(), params.getUpdatedAfter());
-    assertEquals(updatedBefore.getDate(), params.getUpdatedBefore());
+    assertEquals(updatedBefore.toDate(), params.getUpdatedBefore());
   }
 
   @Test
