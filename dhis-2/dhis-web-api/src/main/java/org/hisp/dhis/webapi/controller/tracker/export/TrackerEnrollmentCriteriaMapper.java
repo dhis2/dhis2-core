@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
@@ -54,6 +55,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,10 +104,10 @@ public class TrackerEnrollmentCriteriaMapper {
     params.setProgram(program);
     params.setProgramStatus(criteria.getProgramStatus());
     params.setFollowUp(criteria.getFollowUp());
-    params.setLastUpdated(criteria.getUpdatedAfter());
+    params.setLastUpdated(applyIfNotNull(criteria.getUpdatedAfter(), StartDateTime::toDate));
     params.setLastUpdatedDuration(criteria.getUpdatedWithin());
-    params.setProgramStartDate(criteria.getEnrolledAfter());
-    params.setProgramEndDate(criteria.getEnrolledBefore());
+    params.setProgramStartDate(applyIfNotNull(criteria.getEnrolledAfter(), StartDateTime::toDate));
+    params.setProgramEndDate(applyIfNotNull(criteria.getEnrolledBefore(), EndDateTime::toDate));
     params.setTrackedEntityType(trackedEntityType);
     params.setTrackedEntityInstanceUid(
         Optional.ofNullable(trackedEntity).map(BaseIdentifiableObject::getUid).orElse(null));
