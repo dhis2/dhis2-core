@@ -29,11 +29,12 @@ package org.hisp.dhis.analytics.table.model;
 
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
+import static org.hisp.dhis.db.model.constraint.Nullable.NOT_NULL;
+import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.db.model.Collation;
-import org.hisp.dhis.db.model.constraint.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,8 +45,20 @@ class AnalyticsTableColumnTest {
   @Test
   void testIsNotNull() {
     AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Nullable.NOT_NULL, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("value", DOUBLE, Nullable.NULL, "value");
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("dx")
+            .withDataType(CHARACTER_11)
+            .withNullable(NOT_NULL)
+            .withSelectExpression("dx");
+
+    AnalyticsTableColumn colB =
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DOUBLE)
+            .withNullable(NULL)
+            .withSelectExpression("value");
 
     assertTrue(colA.isNotNull());
     assertFalse(colB.isNotNull());
@@ -54,9 +67,27 @@ class AnalyticsTableColumnTest {
   @Test
   void testHasCollation() {
     AnalyticsTableColumn colA =
-        new AnalyticsTableColumn("dx", CHARACTER_11, Collation.DEFAULT, "dx");
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, Collation.C, "ou");
-    AnalyticsTableColumn colC = new AnalyticsTableColumn("value", DOUBLE, "value");
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("dx")
+            .withDataType(CHARACTER_11)
+            .withCollation(Collation.DEFAULT)
+            .withSelectExpression("dx");
+
+    AnalyticsTableColumn colB =
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("ou")
+            .withDataType(CHARACTER_11)
+            .withCollation(Collation.C)
+            .withSelectExpression("ou");
+
+    AnalyticsTableColumn colC =
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DOUBLE)
+            .withSelectExpression("value");
 
     assertFalse(colA.hasCollation());
     assertTrue(colB.hasCollation());
@@ -65,8 +96,21 @@ class AnalyticsTableColumnTest {
 
   @Test
   void testIsSkipIndex() {
-    AnalyticsTableColumn colA = new AnalyticsTableColumn("value", DOUBLE, "value", Skip.SKIP);
-    AnalyticsTableColumn colB = new AnalyticsTableColumn("ou", CHARACTER_11, "ou", Skip.INCLUDE);
+    AnalyticsTableColumn colA =
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DOUBLE)
+            .withSelectExpression("value")
+            .withSkipIndex(Skip.SKIP);
+
+    AnalyticsTableColumn colB =
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("ou")
+            .withDataType(CHARACTER_11)
+            .withSelectExpression("ou")
+            .withSkipIndex(Skip.INCLUDE);
 
     assertTrue(colA.isSkipIndex());
     assertFalse(colB.isSkipIndex());

@@ -66,8 +66,16 @@ class AnalyticsTableServiceTest {
 
     List<AnalyticsTableColumn> columns =
         List.of(
-            new AnalyticsTableColumn("dx", TEXT, "dx"),
-            new AnalyticsTableColumn("value", DOUBLE, "value"));
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("dx")
+                .withDataType(TEXT)
+                .withSelectExpression("dx"),
+            AnalyticsTableColumn.builder()
+                .build()
+                .withName("value")
+                .withDataType(DOUBLE)
+                .withSelectExpression("value"));
 
     AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
     tA.addTablePartition(
