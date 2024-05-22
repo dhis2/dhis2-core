@@ -30,7 +30,6 @@ package org.hisp.dhis.merge.dataelement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -216,20 +215,5 @@ public class DefaultDataElementMergeHandler {
     List<ProgramRuleAction> programRuleActions = programRuleActionService.getByDataElement(sources);
 
     programRuleActions.forEach(pra -> pra.setDataElement(target));
-  }
-
-  /**
-   * Method retrieving {@link EventChart}s by source {@link DataElement} references. All retrieved
-   * {@link EventChart}s will have their {@link DataElement} replaced with the target {@link
-   * DataElement}.
-   *
-   * @param sources source {@link DataElement}s used to retrieve {@link EventChart}s
-   * @param target {@link DataElement} which will be set as the {@link DataElement} for an {@link
-   *     EventChart}
-   */
-  public void handleEventChart(List<DataElement> sources, DataElement target) {
-    List<EventChart> eventCharts = eventChartService.getByDataElement(sources);
-
-    eventCharts.forEach(ec -> ec.setDataElementValueDimension(target));
   }
 }

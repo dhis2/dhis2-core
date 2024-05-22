@@ -212,17 +212,6 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
   }
 
   @Override
-  public List<T> getEventChartsByDataElement(Collection<DataElement> dataElements) {
-    String sql =
-        """
-          select * from eventchart ec
-          where ec.dataelementvaluedimensionid in :dataElements
-        """;
-
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
-  }
-
-  @Override
   public long countAnalyticalObjects(Indicator indicator) {
     Query<Long> query =
         getTypedQuery(

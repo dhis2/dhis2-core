@@ -45,11 +45,9 @@ import org.hisp.dhis.mapping.MapViewRenderingStrategy;
 import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.visualization.Visualization;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,43 +218,6 @@ class AnalyticalObjectStoreTest extends TransactionalIntegrationTest {
     assertTrue(
         allByDataElement.stream()
             .map(ev -> ev.getDataElementValueDimension().getUid())
-            .toList()
-            .containsAll(List.of(de1.getUid(), de2.getUid())));
-  }
-
-  @Test
-  @Disabled("not working currently, need to revisit. Select query with DEs not returning results")
-  @DisplayName("retrieving Event Charts by DataElement should return the correct results")
-  void retrievingEventChartsByDataElementShouldReturnTheCorrectResults() {
-    // given
-    DataElement de1 = createDataElementAndSave('1');
-    DataElement de2 = createDataElementAndSave('2');
-    DataElement de3 = createDataElementAndSave('3');
-
-    Program program = createProgram('p');
-    idObjectManager.save(program);
-
-    EventChart chart1 = createEventChart('1', program);
-    chart1.setDataElementValueDimension(de1);
-    EventChart chart2 = createEventChart('2', program);
-    chart2.setDataElementValueDimension(de2);
-    EventChart chart3 = createEventChart('3', program);
-    chart3.setDataElementValueDimension(de3);
-
-    idObjectManager.save(chart1);
-    idObjectManager.save(chart2);
-    idObjectManager.save(chart3);
-
-    // when
-    List<EventChart> eventCharts = eventChartStore.getEventChartsByDataElement(List.of(de1, de2));
-    List<DataElement> allDataElements = dataElementStore.getAll();
-
-    // then
-    assertEquals(2, eventCharts.size());
-    assertEquals(3, allDataElements.size());
-    assertTrue(
-        eventCharts.stream()
-            .map(ec -> ec.getDataElementValueDimension().getUid())
             .toList()
             .containsAll(List.of(de1.getUid(), de2.getUid())));
   }
