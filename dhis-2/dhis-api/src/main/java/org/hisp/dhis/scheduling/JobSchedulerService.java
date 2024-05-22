@@ -33,6 +33,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobProgress.Progress;
 
@@ -67,8 +68,10 @@ public interface JobSchedulerService {
    * @param jobId the job to revert to scheduled status
    * @throws ConflictException when the job is not in running status
    * @throws NotFoundException when no such job configuration exists
+   * @throws ForbiddenException when the current user lacks the special authority for this operation
    */
-  void revertNow(@Nonnull UID jobId) throws ConflictException, NotFoundException;
+  void revertNow(@Nonnull UID jobId)
+      throws ConflictException, NotFoundException, ForbiddenException;
 
   /**
    * Request cancellation for job of given type. If no job of that type is currently running the

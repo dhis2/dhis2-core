@@ -143,7 +143,6 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void revertExecution(@PathVariable("uid") UID uid)
       throws NotFoundException, ForbiddenException, ConflictException {
-    checkExecutingUserOrAdmin(uid, false);
     jobSchedulerService.revertNow(uid);
   }
 
