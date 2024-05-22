@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
@@ -48,6 +49,8 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
 
 /**
@@ -114,22 +117,10 @@ class EventRequestParamsMapper {
 
     EventOperationParamsBuilder builder =
         EventOperationParams.builder()
-            .programUid(
-                eventRequestParams.getProgram() != null
-                    ? eventRequestParams.getProgram().getValue()
-                    : null)
-            .programStageUid(
-                eventRequestParams.getProgramStage() != null
-                    ? eventRequestParams.getProgramStage().getValue()
-                    : null)
-            .orgUnitUid(
-                eventRequestParams.getOrgUnit() != null
-                    ? eventRequestParams.getOrgUnit().getValue()
-                    : null)
-            .trackedEntityUid(
-                eventRequestParams.getTrackedEntity() != null
-                    ? eventRequestParams.getTrackedEntity().getValue()
-                    : null)
+            .programUid(applyIfNotNull(eventRequestParams.getProgram(), UID::getValue))
+            .programStageUid(applyIfNotNull(eventRequestParams.getProgramStage(), UID::getValue))
+            .orgUnitUid(applyIfNotNull(eventRequestParams.getOrgUnit(), UID::getValue))
+            .trackedEntityUid(applyIfNotNull(eventRequestParams.getTrackedEntity(), UID::getValue))
             .programStatus(eventRequestParams.getProgramStatus())
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
@@ -140,21 +131,16 @@ class EventRequestParamsMapper {
             .scheduledAfter(eventRequestParams.getScheduledAfter())
             .scheduledBefore(eventRequestParams.getScheduledBefore())
             .updatedAfter(
-                eventRequestParams.getUpdatedAfter() != null
-                    ? eventRequestParams.getUpdatedAfter().getDate()
-                    : null)
+                applyIfNotNull(eventRequestParams.getUpdatedAfter(), StartDateTime::toDate))
             .updatedBefore(
-                eventRequestParams.getUpdatedBefore() != null
-                    ? eventRequestParams.getUpdatedBefore().getDate()
-                    : null)
+                applyIfNotNull(eventRequestParams.getUpdatedBefore(), EndDateTime::toDate))
             .updatedWithin(eventRequestParams.getUpdatedWithin())
             .enrollmentEnrolledBefore(eventRequestParams.getEnrollmentEnrolledBefore())
             .enrollmentEnrolledAfter(eventRequestParams.getEnrollmentEnrolledAfter())
             .enrollmentOccurredBefore(eventRequestParams.getEnrollmentOccurredBefore())
             .enrollmentOccurredAfter(eventRequestParams.getEnrollmentOccurredAfter())
             .eventStatus(eventRequestParams.getStatus())
-            .attributeCategoryCombo(
-                attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
+            .attributeCategoryCombo(applyIfNotNull(attributeCategoryCombo, UID::getValue))
             .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
             .idSchemes(eventRequestParams.getIdSchemes())
             .includeAttributes(false)

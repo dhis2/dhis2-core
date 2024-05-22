@@ -98,7 +98,7 @@ class DatesBindingTest {
   private class BindingController {
     @GetMapping(value = ENDPOINT)
     public @ResponseBody WebMessage getDefault(Params params) {
-      actualStartDateTime = params.getAfter() == null ? null : params.getAfter().getDate();
+      actualStartDateTime = params.getAfter() == null ? null : params.getAfter().toDate();
       actualEndDateTime = params.getBefore() == null ? null : params.getBefore().getDate();
       return ok();
     }

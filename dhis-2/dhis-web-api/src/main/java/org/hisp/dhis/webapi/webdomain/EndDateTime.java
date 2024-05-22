@@ -29,25 +29,30 @@ package org.hisp.dhis.webapi.webdomain;
 
 import java.util.Date;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.util.DateUtils;
 
 /**
  * EndDateTime represents an upper limit date and time used to filter results in search APIs.
  *
- * <p>EndDateTime accepts date and time to be defined. If no time is defined, then the time at the
- * end of the day is used by default.
+ * <p>EndDateTime accepts any date and time in ISO8601 format. If no time is defined, then the time
+ * at the end of the day is used by default.
  *
  * <p>This behavior, combined with {@link StartDateTime}, allows to correctly implement an interval
  * search including start and end dates.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
 public class EndDateTime {
   private final Date date;
 
   public static EndDateTime valueOf(String date) {
     return new EndDateTime(DateUtils.parseDateEndOfTheDay(date));
+  }
+
+  public Date toDate() {
+    if (date == null) {
+      return null;
+    }
+    return new Date(date.getTime());
   }
 }

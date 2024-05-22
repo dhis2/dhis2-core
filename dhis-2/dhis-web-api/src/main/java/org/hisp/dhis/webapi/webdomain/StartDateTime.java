@@ -35,8 +35,8 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * StartDateTime represents a lower limit date and time used to filter results in search APIs.
  *
- * <p>StartDateTime accepts date and time to be defined. If no time is defined, then the time at the
- * beginning of the day is used by default.
+ * <p>StartDateTime accepts any date and time in ISO8601 format. If no time is defined, then the
+ * time at the beginning of the day is used by default.
  *
  * <p>This behavior, combined with {@link EndDateTime}, allows to correctly implement an interval
  * search including start and end dates.
@@ -49,7 +49,7 @@ public class StartDateTime {
     return new StartDateTime(DateUtils.parseDate(date));
   }
 
-  public Date getDate() {
+  public Date toDate() {
     if (date == null) {
       return null;
     }
