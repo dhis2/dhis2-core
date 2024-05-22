@@ -90,7 +90,7 @@ class GridUtilsTest {
   }
 
   @Test
-  void testToXls() throws Exception {
+  void testToXls() {
     List<Grid> grids = new ArrayList<>();
     Grid gridA = new ListGrid();
     gridA.setTitle("Grid");
