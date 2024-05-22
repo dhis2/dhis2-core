@@ -77,6 +77,8 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.webdomain.EndDateTime;
+import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -262,15 +264,15 @@ class EventImportRequestParamsMapperTest {
   void shouldMapAfterAndBeforeDatesWhenSupplied() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    Date updatedAfter = parseDate("2022-01-01");
+    StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
-    Date updatedBefore = parseDate("2022-09-12");
+    EndDateTime updatedBefore = EndDateTime.of("2022-09-12");
     eventRequestParams.setUpdatedBefore(updatedBefore);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(updatedAfter, params.getUpdatedAfter());
-    assertEquals(updatedBefore, params.getUpdatedBefore());
+    assertEquals(updatedAfter.toDate(), params.getUpdatedAfter());
+    assertEquals(updatedBefore.toDate(), params.getUpdatedBefore());
   }
 
   @Test
@@ -288,9 +290,9 @@ class EventImportRequestParamsMapperTest {
   void shouldFailWithBadRequestExceptionWhenTryingToMapAllUpdateDatesTogether() {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    Date updatedAfter = parseDate("2022-01-01");
+    StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
-    Date updatedBefore = parseDate("2022-09-12");
+    EndDateTime updatedBefore = EndDateTime.of("2022-09-12");
     eventRequestParams.setUpdatedBefore(updatedBefore);
     String updatedWithin = "P6M";
     eventRequestParams.setUpdatedWithin(updatedWithin);

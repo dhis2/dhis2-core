@@ -44,6 +44,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -132,6 +133,7 @@ public class MetadataProposal implements PrimaryKeyObject {
     return targetId;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
@@ -177,6 +179,7 @@ public class MetadataProposal implements PrimaryKeyObject {
     return finalised;
   }
 
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
   @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
   @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)

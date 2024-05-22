@@ -69,12 +69,38 @@ import org.springframework.transaction.annotation.Transactional;
 public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager {
   private static final List<AnalyticsTableColumn> FIXED_COLS =
       List.of(
-          new AnalyticsTableColumn("dx", CHARACTER_11, NOT_NULL, "ds.uid"),
-          new AnalyticsTableColumn("ao", CHARACTER_11, NOT_NULL, "ao.uid"),
-          new AnalyticsTableColumn("ouopeningdate", DATE, "ou.openingdate"),
-          new AnalyticsTableColumn("oucloseddate", DATE, "ou.closeddate"),
-          new AnalyticsTableColumn("costartdate", DATE, "doc.costartdate"),
-          new AnalyticsTableColumn("coenddate", DATE, "doc.coenddate"));
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("dx")
+              .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("ds.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("ao")
+              .withDataType(CHARACTER_11)
+              .withNullable(NOT_NULL)
+              .withSelectExpression("ao.uid"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("ouopeningdate")
+              .withDataType(DATE)
+              .withSelectExpression("ou.openingdate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("oucloseddate")
+              .withDataType(DATE)
+              .withSelectExpression("ou.closeddate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("costartdate")
+              .withDataType(DATE)
+              .withSelectExpression("doc.costartdate"),
+          AnalyticsTableColumn.builder()
+              .build()
+              .withName("coenddate")
+              .withDataType(DATE)
+              .withSelectExpression("doc.coenddate"));
 
   public JdbcCompletenessTargetTableManager(
       IdentifiableObjectManager idObjectManager,
@@ -170,7 +196,14 @@ public class JdbcCompletenessTargetTableManager extends AbstractJdbcTableManager
     columns.addAll(getOrganisationUnitLevelColumns());
     columns.addAll(getAttributeCategoryOptionGroupSetColumns());
     columns.addAll(getAttributeCategoryColumns());
-    columns.add(new AnalyticsTableColumn("value", DOUBLE, NULL, FACT, "1 as value"));
+    columns.add(
+        AnalyticsTableColumn.builder()
+            .build()
+            .withName("value")
+            .withDataType(DOUBLE)
+            .withNullable(NULL)
+            .withValueType(FACT)
+            .withSelectExpression("1 as value"));
 
     return filterDimensionColumns(columns);
   }

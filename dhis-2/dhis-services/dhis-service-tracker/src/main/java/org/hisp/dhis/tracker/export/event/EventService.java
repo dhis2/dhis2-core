@@ -35,6 +35,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.Page;
 import org.hisp.dhis.tracker.export.PageParams;
@@ -59,6 +60,9 @@ public interface EventService {
   /** Get a page of events matching given params. */
   Page<Event> getEvents(EventOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
+
+  RelationshipItem getEventInRelationshipItem(String uid, EventParams eventParams)
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,

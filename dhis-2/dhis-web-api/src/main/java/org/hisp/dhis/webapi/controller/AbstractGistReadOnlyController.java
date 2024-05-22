@@ -82,6 +82,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.EntityType(OpenApi.EntityType.class)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(group = OpenApi.Document.Group.QUERY)
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject> {
   @Autowired protected ObjectMapper jsonMapper;
 
