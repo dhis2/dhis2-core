@@ -121,6 +121,17 @@ import org.slf4j.helpers.MessageFormatter;
  * @author Jan Bernitt
  */
 public interface JobProgress {
+
+  /**
+   * Main use case are tests and use as NULL object for the tracker progress delegate.
+   *
+   * @return A {@link JobProgress} that literally does nothing, this includes any form of abort or
+   *     cancel logic
+   */
+  static JobProgress noop() {
+    return NoopJobProgress.INSTANCE;
+  }
+
   /*
    * Flow Control API:
    */

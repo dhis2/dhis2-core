@@ -80,7 +80,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -445,7 +445,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest {
     ValidationAnalysisParams params1 =
         validationService.newParamsBuilder(null, orgUnitA, startDate, endDate).build();
     Collection<ValidationResult> results =
-        validationService.validationAnalysis(params1, NoopJobProgress.INSTANCE);
+        validationService.validationAnalysis(params1, JobProgress.noop());
     assertResultsEquals(reference, results);
     // ---------------------------------------
     // Test validation rule expression details
