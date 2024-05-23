@@ -124,12 +124,11 @@ public class RecordingJobProgress implements JobProgress {
 
   public void requestCancellation() {
     if (cancellationRequested.compareAndSet(false, true)) {
-      if (!skipRecording)
-        progress.sequence.forEach(
-            p -> {
-              p.cancel();
-              logWarn(p, "cancelled", "cancellation requested by user");
-            });
+      progress.sequence.forEach(
+          p -> {
+            p.cancel();
+            logWarn(p, "cancelled", "cancellation requested by user");
+          });
     }
   }
 
@@ -387,8 +386,7 @@ public class RecordingJobProgress implements JobProgress {
         // if we already cancelled manually we do not abort but cancel
         && cancellationRequested.compareAndSet(false, true)
         && abortAfterFailure.compareAndSet(false, true)
-        && abortProcess
-        && !skipRecording) {
+        && abortProcess) {
       progress.sequence.forEach(
           process -> {
             if (!process.isComplete()) {
