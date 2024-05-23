@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
+import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
@@ -73,7 +74,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataStatistics.class)
 @Controller
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -70,7 +70,6 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Henning Håkonsen
  */
-@OpenApi.Tags("system")
 @RestController
 @RequestMapping("/api/jobConfigurations")
 @RequiredArgsConstructor

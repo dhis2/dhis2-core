@@ -93,7 +93,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("ui")
+@OpenApi.Document(domain = App.class)
 @Controller
 @RequestMapping("/api/apps")
 @Slf4j

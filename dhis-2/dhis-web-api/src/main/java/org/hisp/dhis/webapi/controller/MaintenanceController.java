@@ -67,7 +67,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @Controller
 @RequestMapping("/api/maintenance")
 @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)

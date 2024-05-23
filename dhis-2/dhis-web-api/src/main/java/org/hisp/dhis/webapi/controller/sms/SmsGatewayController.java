@@ -50,6 +50,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
+import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@OpenApi.Tags("messaging")
+@OpenApi.Document(domain = SmsGateway.class)
 @RestController
 @RequestMapping("/api/gateways")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

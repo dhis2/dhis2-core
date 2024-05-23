@@ -110,7 +110,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Joao Antunes
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = ValidationRule.class)
 @Controller
 @RequestMapping("/api/dataAnalysis")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -28,14 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.common.OpenApi;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("analytics")
 @Controller
 @RequestMapping("/api/analyticsTableHooks")
 public class AnalyticsTableHookController extends AbstractCrudController<AnalyticsTableHook> {}

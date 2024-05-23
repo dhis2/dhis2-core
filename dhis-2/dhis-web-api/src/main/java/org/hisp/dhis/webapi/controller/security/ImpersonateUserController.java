@@ -46,6 +46,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Conditional;
@@ -79,7 +80,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"user", "login"})
+@OpenApi.Document(domain = User.class)
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

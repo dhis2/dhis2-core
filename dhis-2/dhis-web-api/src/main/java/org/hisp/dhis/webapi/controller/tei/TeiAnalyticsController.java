@@ -65,6 +65,7 @@ import org.hisp.dhis.analytics.tei.TeiQueryRequestMapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
@@ -81,7 +82,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller class responsible exclusively for querying operations on top of tracker entity
  * instances objects. Methods in this controller should not change any state.
  */
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = DataValue.class)
 @ApiVersion({DEFAULT, ALL})
 @RestController
 @RequiredArgsConstructor
