@@ -39,6 +39,7 @@ import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
