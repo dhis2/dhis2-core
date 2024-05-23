@@ -352,30 +352,27 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   // ------------------------------------------------------------------------------------------
 
   /**
-   * Creates a SqlQuery.
+   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
+   * current class of the store. Use this to avoid all Hibernate second level caches from being
+   * invalidated.
    *
-   * @param sql the SQL query String.
-   * @return a NativeQuery<T> instance.
+   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
+   * native query is the one table belonging to the store.
+   *
+   * @param sql the SQL query to execute
+   * @return the {@link NativeQuery} instance
    */
-  @SuppressWarnings("unchecked")
-  protected final NativeQuery<T> getSqlQuery(String sql) {
-    return getSession()
-        .createNativeQuery(sql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+  @SuppressWarnings("rawtypes")
+  protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
   }
 
   /**
-   * Creates a untyped SqlQuery.
-   *
-   * @param sql the SQL query String.
-   * @return a NativeQuery<T> instance.
+   * Same as {@link #nativeSynchronizedQuery(String)} just with the return type being specified as
+   * the store entity type. Use only when the result is a of the store entity type or a list of it.
    */
-  protected final NativeQuery<?> getUntypedSqlQuery(String sql) {
-    return getSession()
-        .createNativeQuery(sql)
-        .setCacheable(cacheable)
-        .setHint(QueryHints.CACHEABLE, cacheable);
+  protected NativeQuery<T> nativeSynchronizedTypedQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(getClazz());
   }
 
   // -------------------------------------------------------------------------
@@ -708,25 +705,5 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
               }
             })
         .collect(Collectors.toList());
-  }
-
-  /**
-   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
-   * current class of the store. Use this to avoid all Hibernate second level caches from being
-   * invalidated.
-   *
-   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
-   * native query is the one table belonging to the store.
-   *
-   * @param sql the SQL query to execute
-   * @return the {@link NativeQuery} instance
-   */
-  @SuppressWarnings("rawtypes")
-  protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
-    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
-  }
-
-  protected NativeQuery<T> nativeSynchronizedTypedQuery(@Language("SQL") String sql) {
-    return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(getClazz());
   }
 }
