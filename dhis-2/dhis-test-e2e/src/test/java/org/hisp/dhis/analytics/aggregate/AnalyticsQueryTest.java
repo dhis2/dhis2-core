@@ -492,7 +492,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
         .body("headerWidth", equalTo(8));
 
     // Assert metaData.
-    String expectedMetaData = "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"IpHINAT79UW.w75KJ2mc4zz\":{\"name\":\"Child Programme First name\"}},\"dimensions\":{\"dx\":[\"IpHINAT79UW.w75KJ2mc4zz\"],\"pe\":[\"2023\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[]}}";String actualMetaData = new JSONObject((Map)response.extract("metaData")).toString();
+    String expectedMetaData =
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"2023\":{\"name\":\"2023\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"IpHINAT79UW.w75KJ2mc4zz\":{\"name\":\"Child Programme First name\"}},\"dimensions\":{\"dx\":[\"IpHINAT79UW.w75KJ2mc4zz\"],\"pe\":[\"2023\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     JSONAssert.assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
