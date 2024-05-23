@@ -146,13 +146,13 @@ public class EventRequestParams implements PageRequestParams {
 
   private String updatedWithin;
 
-  private EndDateTime enrollmentEnrolledBefore;
-
   private StartDateTime enrollmentEnrolledAfter;
 
-  private EndDateTime enrollmentOccurredBefore;
+  private EndDateTime enrollmentEnrolledBefore;
 
   private StartDateTime enrollmentOccurredAfter;
+
+  private EndDateTime enrollmentOccurredBefore;
 
   private EventStatus status;
 
