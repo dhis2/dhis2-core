@@ -364,7 +364,8 @@ public class ApiIntegrator {
   private Api.Schema generateIdObject(Api.Schema of) {
     Class<?> schemaType = of.getIdentifyAs();
     Api.Schema object = Api.Schema.ofObject(of.getSource(), schemaType);
-    Map<Class<?>, Api.Schema> idSchemas = api.getGeneratorSchemas().get(UID.class);
+    Map<Class<?>, Api.Schema> idSchemas =
+        api.getGeneratorSchemas().computeIfAbsent(UID.class, key -> new ConcurrentHashMap<>());
 
     Api.Schema idType =
         idSchemas.computeIfAbsent(

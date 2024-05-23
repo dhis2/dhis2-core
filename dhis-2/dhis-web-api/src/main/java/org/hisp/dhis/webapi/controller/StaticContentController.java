@@ -89,7 +89,7 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author Stian Sandvold
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @RestController
 @RequestMapping("/api/staticContent")
 @Slf4j

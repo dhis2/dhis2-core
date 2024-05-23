@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.programstagefilter.EventFilter;
-import org.hisp.dhis.programstagefilter.EventFilterService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 /**
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * This is just a namespace to group some controller that do not fit with a particular domain
+ *
+ * @author Jan Bernitt
  */
-@RestController
-@RequestMapping("/api/eventFilters")
-@ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
-public class EventFilterController extends AbstractCrudController<EventFilter> {
-  private final EventFilterService eventFilterService;
-
-  public EventFilterController(EventFilterService eventFilterService) {
-    this.eventFilterService = eventFilterService;
-  }
-
-  @Override
-  public void preCreateEntity(EventFilter eventFilter) {
-    List<String> errors = eventFilterService.validate(eventFilter);
-    if (!errors.isEmpty()) {
-      throw new IllegalQueryException(errors.toString());
-    }
-  }
-
-  @Override
-  public void preUpdateEntity(EventFilter oldEventFilter, EventFilter newEventFilter) {
-    List<String> errors = eventFilterService.validate(newEventFilter);
-    if (!errors.isEmpty()) {
-      throw new IllegalQueryException(errors.toString());
-    }
-  }
-}
+public final class Server {}

@@ -76,7 +76,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = DataElementOperand.class)
 @Controller
 @RequestMapping("/api/dataElementOperands")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

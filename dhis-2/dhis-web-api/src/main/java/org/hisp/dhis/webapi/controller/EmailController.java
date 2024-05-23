@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@OpenApi.Tags("messaging")
+@OpenApi.Document(domain = Email.class)
 @Controller
 @RequestMapping("/api/email")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

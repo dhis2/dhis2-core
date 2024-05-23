@@ -158,20 +158,6 @@ public @interface OpenApi {
     Class<?>[] excludes() default {};
   }
 
-  /**
-   * When annotated on type level the tags are added to all endpoints of the controller.
-   *
-   * <p>When annotated on method level the tags are added to the annotated endpoint (operation).
-   *
-   * <p>Tags can be used to split generation into multiple OpenAPI document.
-   */
-  @Inherited
-  @Target({ElementType.METHOD, ElementType.TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @interface Tags {
-    String[] value();
-  }
-
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Document {

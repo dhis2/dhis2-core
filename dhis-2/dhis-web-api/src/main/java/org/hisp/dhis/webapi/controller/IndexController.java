@@ -35,6 +35,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -47,7 +48,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = SystemSetting.class)
 @Controller
 public class IndexController {
 

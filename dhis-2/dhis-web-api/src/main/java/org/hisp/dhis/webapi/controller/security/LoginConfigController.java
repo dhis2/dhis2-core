@@ -46,6 +46,7 @@ import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,7 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags({"login"})
+@OpenApi.Document(domain = Server.class)
 @RestController
 @RequestMapping("/api/loginConfig")
 @RequiredArgsConstructor

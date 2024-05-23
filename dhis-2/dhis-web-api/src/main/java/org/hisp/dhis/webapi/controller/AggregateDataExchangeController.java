@@ -35,6 +35,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchangeService;
 import org.hisp.dhis.dataexchange.aggregate.SourceDataQueryParams;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -54,7 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataValue.class)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/aggregateDataExchanges")

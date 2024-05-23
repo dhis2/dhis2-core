@@ -37,6 +37,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.leader.election.LeaderNodeInfo;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,7 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = Server.class)
 @RestController
 @RequestMapping("/api/cluster")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
