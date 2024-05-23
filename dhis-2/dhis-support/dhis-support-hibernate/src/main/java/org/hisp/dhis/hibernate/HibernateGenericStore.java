@@ -61,6 +61,7 @@ import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -707,5 +708,25 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
               }
             })
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Create a Hibernate {@link NativeQuery} instance with {@code SynchronizedEntityClass} set to the
+   * current class of the store. Use this to avoid all Hibernate second level caches from being
+   * invalidated.
+   *
+   * <p>Be aware that it is only correct to use this if and only if the only table touched by the
+   * native query is the one table belonging to the store.
+   *
+   * @param sql the SQL query to execute
+   * @return the {@link NativeQuery} instance
+   */
+  @SuppressWarnings("rawtypes")
+  protected NativeQuery nativeSynchronizedQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql).addSynchronizedEntityClass(getClazz());
+  }
+
+  protected NativeQuery<T> nativeSynchronizedTypedQuery(@Language("SQL") String sql) {
+    return getSession().createNativeQuery(sql, clazz).addSynchronizedEntityClass(getClazz());
   }
 }

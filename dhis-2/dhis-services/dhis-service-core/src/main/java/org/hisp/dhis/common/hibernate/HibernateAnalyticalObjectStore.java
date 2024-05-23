@@ -196,7 +196,7 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     group by v.visualizationid
     """;
 
-    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("indicators", indicators).list();
   }
 
   @Override
