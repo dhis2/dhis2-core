@@ -390,7 +390,7 @@ public class HibernateJobConfigurationStore
             else enabled end,
           jobstatus = case
             when enabled = false
-              or (schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
+              or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
             else 'SCHEDULED' end,
           schedulingtype = case
             when cronexpression is not null then 'CRON'
@@ -502,12 +502,11 @@ public class HibernateJobConfigurationStore
         update jobconfiguration
         set
           lastupdated = now(),
-          jobstatus = 'SCHEDULED',
-          enabled = case
-            when cronexpression is not null then true
-            when delay is not null then true
-            when queueposition is not null then true
-            else false end,
+          jobstatus = case
+            when enabled = false
+              or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
+            else 'SCHEDULED' end,
+          enabled = cronexpression is not null or delay is not null or queueposition is not null,
           cancel = false,
           lastexecutedstatus = 'FAILED',
           lastfinished = now(),
@@ -518,10 +517,37 @@ public class HibernateJobConfigurationStore
             when queueposition is not null then 'CRON'
             else schedulingtype end
         where jobstatus = 'RUNNING'
-        and enabled = true
         and now() > lastalive + :timeout * interval '1 minute'
         """;
     return nativeUpdateQuery(sql).setParameter("timeout", max(1, timeoutMinutes)).executeUpdate();
+  }
+
+  @Override
+  public boolean tryRevertNow(@Nonnull String jobId) {
+    // language=SQL
+    String sql =
+        """
+        update jobconfiguration
+        set
+          lastupdated = now(),
+          jobstatus = case
+            when enabled = false
+              or (queueposition is null and schedulingtype = 'ONCE_ASAP' and cronexpression is null and delay is null) then 'DISABLED'
+            else 'SCHEDULED' end,
+          enabled = cronexpression is not null or delay is not null or queueposition is not null,
+          cancel = false,
+          lastexecutedstatus = 'FAILED',
+          lastfinished = now(),
+          lastalive = null,
+          schedulingtype = case
+            when cronexpression is not null then 'CRON'
+            when delay is not null then 'FIXED_DELAY'
+            when queueposition is not null then 'CRON'
+            else schedulingtype end
+        where jobstatus = 'RUNNING'
+        and uid = :id
+      """;
+    return nativeUpdateQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
   private NativeQuery<?> nativeQuery(String sql) {
