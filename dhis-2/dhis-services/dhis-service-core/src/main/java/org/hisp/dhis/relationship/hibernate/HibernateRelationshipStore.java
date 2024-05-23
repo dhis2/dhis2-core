@@ -220,7 +220,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
   @SuppressWarnings("unchecked")
   public boolean existsIncludingDeleted(String uid) {
     Query<String> query =
-        getSession().createNativeQuery("select uid from relationship where uid=:uid limit 1;");
+        nativeSynchronizedQuery("select uid from relationship where uid=:uid limit 1;");
     query.setParameter("uid", uid);
 
     return !query.list().isEmpty();
@@ -286,17 +286,17 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
       return Collections.emptyList();
     }
 
+    String sql =
+        """
+        SELECT R.uid
+        FROM relationship R
+        INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid
+        WHERE R.deleted = false AND (R.key IN (:keys)
+        OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE))
+        """;
     List<Object> c =
-        getSession()
-            .createNativeQuery(
-                new StringBuilder()
-                    .append("SELECT R.uid ")
-                    .append("FROM relationship R ")
-                    .append(
-                        "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid ")
-                    .append("WHERE R.deleted = false AND (R.key IN (:keys) ")
-                    .append("OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE))")
-                    .toString())
+        nativeSynchronizedQuery(sql)
+            .addSynchronizedEntityClass(RelationshipType.class)
             .setParameter("keys", relationshipKeyList)
             .getResultList();
 
