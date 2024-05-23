@@ -50,7 +50,6 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
 
   @Override
   public List<DataDimensionItem> getIndicatorDataDimensionItems(List<Indicator> indicators) {
-    // language=sql
     String sql =
         """
       select * from datadimensionitem d

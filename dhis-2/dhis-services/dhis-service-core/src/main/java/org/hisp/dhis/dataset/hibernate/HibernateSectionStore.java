@@ -67,7 +67,6 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
 
   @Override
   public List<Section> getSectionsByDataElement(String dataElementUid) {
-    // language=SQL
     String sql =
         "select * from section s"
             + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
@@ -80,7 +79,6 @@ public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Sect
 
   @Override
   public List<Section> getSectionsByIndicators(List<Indicator> indicators) {
-    // language=sql
     String sql =
         """
             select s.* from section s

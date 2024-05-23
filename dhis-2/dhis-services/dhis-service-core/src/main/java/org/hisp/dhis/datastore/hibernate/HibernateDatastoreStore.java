@@ -166,14 +166,12 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public void deleteNamespace(String ns) {
-    // language=SQL
     String sql = "delete from keyjsonvalue ds where ds.namespace = :ns";
     nativeSynchronizedQuery(sql).setParameter("ns", ns).executeUpdate();
   }
 
   @Override
   public int countKeysInNamespace(String ns) {
-    // language=SQL
     String sql = "select count(*) from keyjsonvalue v where v.namespace = :ns";
     Object count = nativeSynchronizedQuery(sql).setParameter("ns", ns).uniqueResult();
     if (count == null) return 0;

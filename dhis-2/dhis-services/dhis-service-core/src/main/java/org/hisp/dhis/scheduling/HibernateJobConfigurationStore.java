@@ -69,7 +69,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public String getLastRunningId(@Nonnull JobType type) {
-    // language=SQL
     String sql =
         """
       select uid from jobconfiguration
@@ -80,7 +79,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public String getLastCompletedId(@Nonnull JobType type) {
-    // language=SQL
     String sql =
         """
       select uid from jobconfiguration
@@ -91,7 +89,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public String getProgress(@Nonnull String jobId) {
-    // language=SQL
     String sql =
         """
       select
@@ -107,7 +104,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public String getErrors(@Nonnull String jobId) {
-    // language=SQL
     String sql =
         """
           select
@@ -122,28 +118,24 @@ public class HibernateJobConfigurationStore
 
   @Override
   public Set<String> getAllIds() {
-    // language=SQL
     String sql = "select uid from jobconfiguration";
     return getResultSet(nativeSynchronizedQuery(sql), Object::toString);
   }
 
   @Override
   public Set<String> getAllCancelledIds() {
-    // language=SQL
     String sql = "select uid from jobconfiguration where cancel = true";
     return getResultSet(nativeSynchronizedQuery(sql), Object::toString);
   }
 
   @Override
   public Set<JobType> getRunningTypes() {
-    // language=SQL
     String sql = "select distinct jobtype from jobconfiguration where jobstatus = 'RUNNING'";
     return getResultSet(nativeSynchronizedQuery(sql), JobType::valueOf);
   }
 
   @Override
   public Set<JobType> getCompletedTypes() {
-    // language=SQL
     String sql =
         """
       select distinct jobtype from jobconfiguration
@@ -156,14 +148,12 @@ public class HibernateJobConfigurationStore
 
   @Override
   public Set<String> getAllQueueNames() {
-    // language=SQL
     String sql = "select distinct queuename from jobconfiguration where queuename is not null";
     return getResultSet(nativeSynchronizedQuery(sql), Object::toString);
   }
 
   @Override
   public List<JobConfiguration> getJobsInQueue(@Nonnull String queue) {
-    // language=SQL
     String sql = "select * from jobconfiguration where queuename = :queue order by queueposition;";
     return nativeSynchronizedTypedQuery(sql).setParameter("queue", queue).list();
   }
@@ -171,7 +161,6 @@ public class HibernateJobConfigurationStore
   @Override
   @CheckForNull
   public JobConfiguration getNextInQueue(@Nonnull String queue, int fromPosition) {
-    // language=SQL
     String sql = "select * from jobconfiguration where queuename = :queue and queueposition = :pos";
     List<JobConfiguration> res =
         nativeSynchronizedTypedQuery(sql)
@@ -205,7 +194,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public Stream<JobConfiguration> getDueJobConfigurations(boolean includeWaiting) {
-    // language=SQL
     String sql =
         """
         select * from jobconfiguration j1
@@ -226,7 +214,6 @@ public class HibernateJobConfigurationStore
   @Nonnull
   @Override
   public Stream<String> findJobRunErrors(@Nonnull JobRunErrorsParams params) {
-    // language=SQL
     String sql =
         """
     select jsonb_build_object(
@@ -285,7 +272,6 @@ public class HibernateJobConfigurationStore
   @Override
   @Transactional(propagation = REQUIRES_NEW)
   public boolean tryExecuteNow(@Nonnull String jobId) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -304,7 +290,6 @@ public class HibernateJobConfigurationStore
   @Override
   public boolean tryStart(@Nonnull String jobId) {
     // only flip from SCHEDULED to RUNNING if no other job of same type is RUNNING
-    // language=SQL
     String sql =
         """
         update jobconfiguration j1
@@ -330,7 +315,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public boolean tryCancel(@Nonnull String jobId) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -360,7 +344,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public boolean tryFinish(@Nonnull String jobId, JobStatus status) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -393,7 +376,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public boolean trySkip(@Nonnull String queue) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -418,7 +400,6 @@ public class HibernateJobConfigurationStore
   @Override
   public void updateProgress(
       @Nonnull String jobId, @CheckForNull String progressJson, @CheckForNull String errorCodes) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -437,7 +418,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public int updateDisabledJobs() {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -452,7 +432,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public int deleteFinishedJobs(int ttlMinutes) {
-    // language=SQL
     String sql =
         """
         delete from jobconfiguration
@@ -481,7 +460,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public int rescheduleStaleJobs(int timeoutMinutes) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
@@ -511,7 +489,6 @@ public class HibernateJobConfigurationStore
 
   @Override
   public boolean tryRevertNow(@Nonnull String jobId) {
-    // language=SQL
     String sql =
         """
         update jobconfiguration
