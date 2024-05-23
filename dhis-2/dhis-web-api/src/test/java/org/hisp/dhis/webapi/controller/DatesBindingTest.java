@@ -66,30 +66,34 @@ class DatesBindingTest {
     mockMvc.perform(get(ENDPOINT).param("end", "2001-06-17")).andExpect(status().isOk());
 
     assertNull(actualStartDateTime);
-    assertEquals("2001-06-17T23:59:59", DateUtils.toLongDateWithMillis(actualEndDateTime));
+    assertEquals("2001-06-17T23:59:59.999", DateUtils.toLongDateWithMillis(actualEndDateTime));
   }
 
   @Test
   void shouldReturnADateWithTimeWhenAnEndDateIsPassedWithTime() throws Exception {
-    mockMvc.perform(get(ENDPOINT).param("end", "2001-06-17T16:45:34")).andExpect(status().isOk());
+    mockMvc
+        .perform(get(ENDPOINT).param("end", "2001-06-17T16:45:34.324"))
+        .andExpect(status().isOk());
 
     assertNull(actualStartDateTime);
-    assertEquals("2001-06-17T16:45:34", DateUtils.toLongDateWithMillis(actualEndDateTime));
+    assertEquals("2001-06-17T16:45:34.324", DateUtils.toLongDateWithMillis(actualEndDateTime));
   }
 
   @Test
   void shouldReturnADateAtTheStartOfTheDayWhenAnStartDateIsPassedWithoutTime() throws Exception {
     mockMvc.perform(get(ENDPOINT).param("start", "2001-06-17")).andExpect(status().isOk());
 
-    assertEquals("2001-06-17T00:00:00", DateUtils.toLongDateWithMillis(actualStartDateTime));
+    assertEquals("2001-06-17T00:00:00.000", DateUtils.toLongDateWithMillis(actualStartDateTime));
     assertNull(actualEndDateTime);
   }
 
   @Test
   void shouldReturnADateWithTimeWhenAnStartDateIsPassedWithTime() throws Exception {
-    mockMvc.perform(get(ENDPOINT).param("start", "2001-06-17T16:45:34")).andExpect(status().isOk());
+    mockMvc
+        .perform(get(ENDPOINT).param("start", "2001-06-17T16:45:34.324"))
+        .andExpect(status().isOk());
 
-    assertEquals("2001-06-17T16:45:34", DateUtils.toLongDateWithMillis(actualStartDateTime));
+    assertEquals("2001-06-17T16:45:34.324", DateUtils.toLongDateWithMillis(actualStartDateTime));
     assertNull(actualEndDateTime);
   }
 
