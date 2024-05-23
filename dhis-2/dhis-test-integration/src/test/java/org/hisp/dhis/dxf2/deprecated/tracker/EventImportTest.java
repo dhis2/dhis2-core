@@ -337,6 +337,56 @@ class EventImportTest extends TransactionalIntegrationTest {
   }
 
   @Test
+  void shouldDeleteDataElementFromEventDataValues_whenSetDataValueToNull() throws IOException {
+    InputStream is =
+        createEventJsonInputStream(
+            programB.getUid(),
+            programStageB.getUid(),
+            organisationUnitB.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+            dataElementB,
+            "10");
+    String uid = eventService.addEventsJson(is, null).getImportSummaries().get(0).getReference();
+
+    org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent(uid);
+
+    Event ev = programStageInstanceService.getEvent(event.getUid());
+
+    assertNotNull(ev);
+    assertEquals(1, ev.getEventDataValues().size());
+
+    // delete data Element in Event Data Values by setting its value to null
+
+    DataValue dataValueB = new DataValue();
+    dataValueB.setValue(null);
+    dataValueB.setDataElement(dataElementB.getUid());
+    dataValueB.setStoredBy(superUser.getName());
+
+    event.setDataValues(Set.of(dataValueB));
+
+    Date now = new Date();
+
+    eventService.updateEventDataValues(event);
+
+    manager.clear();
+
+    ev = programStageInstanceService.getEvent(event.getUid());
+
+    EventDataValue eventDataValueB =
+        ev.getEventDataValues().stream()
+            .filter(edv -> edv.getDataElement().equals(dataValueB.getDataElement()))
+            .findFirst()
+            .orElse(null);
+
+    assertNull(eventDataValueB);
+
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(
+            trackedEntityInstanceMaleA.getTrackedEntityInstance());
+    assertTrue(trackedEntityInstance.getLastUpdated().compareTo(toIso8601NoTz(now)) > 0);
+  }
+
+  @Test
   void testAddEventOnProgramWithoutRegistration() throws IOException {
     InputStream is =
         createEventJsonInputStream(
