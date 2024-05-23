@@ -126,19 +126,31 @@ class EventRequestParamsMapper {
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())
             .assignedUsers(UID.toValueSet(assignedUsers))
-            .occurredAfter(eventRequestParams.getOccurredAfter())
-            .occurredBefore(eventRequestParams.getOccurredBefore())
-            .scheduledAfter(eventRequestParams.getScheduledAfter())
-            .scheduledBefore(eventRequestParams.getScheduledBefore())
+            .occurredAfter(
+                applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
+            .occurredBefore(
+                applyIfNotNull(eventRequestParams.getOccurredBefore(), EndDateTime::toDate))
+            .scheduledAfter(
+                applyIfNotNull(eventRequestParams.getScheduledAfter(), StartDateTime::toDate))
+            .scheduledBefore(
+                applyIfNotNull(eventRequestParams.getScheduledBefore(), EndDateTime::toDate))
             .updatedAfter(
                 applyIfNotNull(eventRequestParams.getUpdatedAfter(), StartDateTime::toDate))
             .updatedBefore(
                 applyIfNotNull(eventRequestParams.getUpdatedBefore(), EndDateTime::toDate))
             .updatedWithin(eventRequestParams.getUpdatedWithin())
-            .enrollmentEnrolledBefore(eventRequestParams.getEnrollmentEnrolledBefore())
-            .enrollmentEnrolledAfter(eventRequestParams.getEnrollmentEnrolledAfter())
-            .enrollmentOccurredBefore(eventRequestParams.getEnrollmentOccurredBefore())
-            .enrollmentOccurredAfter(eventRequestParams.getEnrollmentOccurredAfter())
+            .enrollmentEnrolledBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledBefore(), EndDateTime::toDate))
+            .enrollmentEnrolledAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentEnrolledAfter(), StartDateTime::toDate))
+            .enrollmentOccurredBefore(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
+            .enrollmentOccurredAfter(
+                applyIfNotNull(
+                    eventRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(applyIfNotNull(attributeCategoryCombo, UID::getValue))
             .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
