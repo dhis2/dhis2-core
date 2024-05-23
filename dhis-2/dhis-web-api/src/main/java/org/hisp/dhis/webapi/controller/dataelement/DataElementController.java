@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
+import static org.hisp.dhis.security.Authorities.F_DATA_ELEMENT_MERGE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -51,6 +54,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping("/api/dataElements")
 @RequiredArgsConstructor

@@ -156,7 +156,7 @@ public class DefaultProgramNotificationTemplateStore
     String hql =
         """
           from ProgramNotificationTemplate pnt
-          where pnt.dataElement in :dataElements
+          where pnt.recipientDataElement in :dataElements
         """;
 
     return getQuery(hql).setParameter("dataElements", dataElements).list();

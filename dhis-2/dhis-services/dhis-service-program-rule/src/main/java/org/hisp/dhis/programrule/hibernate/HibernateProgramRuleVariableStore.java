@@ -38,6 +38,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -95,15 +96,13 @@ public class HibernateProgramRuleVariableStore
 
   @Override
   public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
-    String hql =
+    @Language("SQL")
+    String sql =
         """
-          from ProgramRuleVariable prv
-          where prv.dataElement in :dataElements
+        select * from programrulevariable prv
+        where prv.dataelementid in :dataElements
         """;
 
-    return getQuery(hql, ProgramRuleVariable.class)
-        .setParameter("dataElements", dataElements)
-        .list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

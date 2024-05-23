@@ -35,6 +35,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -56,15 +57,15 @@ public class HibernateProgramStageSectionStore
 
   @Override
   public List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
-    String hql =
+    @Language("SQL")
+    String sql =
         """
-          from ProgramStageSection pss
-          join ProgramStageSectionDataElement pssde on pss.programStageSection = pssde.programStageSection
-          where pssde.dataElement in :dataElements
-          group by pss.programStageSection
+        select pss.* from programstagesection pss
+        join programstagesection_dataelements pssde on pss.programstagesectionid = pssde.programstagesectionid
+        where pssde.dataelementid in :dataElements
+        group by pss.programstagesectionid
         """;
 
-    return getQuery(hql).setParameter("dataElements", dataElements).list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }

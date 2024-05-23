@@ -39,6 +39,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -84,13 +85,13 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
 
   @Override
   public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
-    // language=hql
-    String hql =
+    @Language("SQL")
+    String sql =
         """
-          from Predictor p
-          where p.generatorOutput in :dataElements
+        select * from predictor p
+        where p.generatoroutput in :dataElements
         """;
 
-    return getQuery(hql).setParameter("dataElements", dataElements).list();
+    return nativeSynchronizedTypedQuery(sql).setParameter("dataElements", dataElements).list();
   }
 }
