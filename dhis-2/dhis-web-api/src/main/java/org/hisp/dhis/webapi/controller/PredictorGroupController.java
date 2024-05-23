@@ -33,7 +33,6 @@ import static org.hisp.dhis.security.Authorities.F_PREDICTOR_RUN;
 
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
@@ -52,7 +51,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/predictorGroups")
 public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {

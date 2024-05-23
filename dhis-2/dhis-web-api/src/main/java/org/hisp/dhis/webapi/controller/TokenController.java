@@ -50,7 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags({"user", "login"})
+@OpenApi.Document(domain = Server.class)
 @Controller
 @RequestMapping("/api/tokens")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

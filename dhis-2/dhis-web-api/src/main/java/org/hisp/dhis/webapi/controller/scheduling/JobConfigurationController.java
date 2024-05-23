@@ -70,7 +70,6 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Henning Håkonsen
  */
-@OpenApi.Tags("system")
 @RestController
 @RequestMapping("/api/jobConfigurations")
 @RequiredArgsConstructor
@@ -137,6 +136,13 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
       throws NotFoundException, ForbiddenException {
     checkExecutingUserOrAdmin(uid, false);
     jobSchedulerService.requestCancel(uid.getValue());
+  }
+
+  @PostMapping("{uid}/revert")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void revertExecution(@PathVariable("uid") UID uid)
+      throws NotFoundException, ForbiddenException, ConflictException {
+    jobSchedulerService.revertNow(uid);
   }
 
   @GetMapping("{uid}/progress")

@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("data")
+@OpenApi.Document(domain = DataSet.class)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/validation")

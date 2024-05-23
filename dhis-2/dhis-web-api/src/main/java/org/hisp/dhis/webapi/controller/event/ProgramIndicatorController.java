@@ -32,7 +32,6 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.expression.Expression;
@@ -52,7 +51,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("tracker")
 @Controller
 @RequestMapping("/api/programIndicators")
 @RequiredArgsConstructor

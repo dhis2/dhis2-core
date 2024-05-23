@@ -28,13 +28,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.programstageworkinglist.ProgramStageWorkingList;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@OpenApi.Tags("tracker")
 @Controller
 @RequestMapping("/api/programStageWorkingLists")
 @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
