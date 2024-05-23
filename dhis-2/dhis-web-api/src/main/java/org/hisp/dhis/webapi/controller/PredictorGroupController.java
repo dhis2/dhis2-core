@@ -38,7 +38,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictorGroup;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -68,8 +67,7 @@ public class PredictorGroupController extends AbstractCrudController<PredictorGr
       TranslateParams translateParams) {
     try {
       PredictionSummary predictionSummary =
-          predictionService.predictAll(
-              startDate, endDate, null, List.of(uid), NoopJobProgress.INSTANCE);
+          predictionService.predictAll(startDate, endDate, null, List.of(uid), JobProgress.noop());
 
       return ok("Generated " + predictionSummary.getPredictions() + " predictions");
     } catch (Exception ex) {

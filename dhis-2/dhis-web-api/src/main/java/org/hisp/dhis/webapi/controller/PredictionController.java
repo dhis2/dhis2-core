@@ -46,7 +46,6 @@ import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobSchedulerService;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
@@ -103,7 +102,7 @@ public class PredictionController {
     }
     PredictionSummary predictionSummary =
         predictionService.predictTask(
-            startDate, endDate, predictors, predictorGroups, NoopJobProgress.INSTANCE);
+            startDate, endDate, predictors, predictorGroups, JobProgress.noop());
 
     return new WebMessage(Status.OK, HttpStatus.OK)
         .setResponse(predictionSummary)

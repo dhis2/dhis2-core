@@ -58,7 +58,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.notification.DefaultValidationNotificationService;
@@ -152,7 +151,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
   @Test
   void testNoValidationResultsCausesNoNotificationsSent() {
     Set<ValidationResult> emptyResultsSet = Collections.emptySet();
-    subject.sendNotifications(emptyResultsSet, NoopJobProgress.INSTANCE);
+    subject.sendNotifications(emptyResultsSet, JobProgress.noop());
     assertTrue(
         sentMessages.isEmpty(), "No messages should have been sent but was " + sentMessages.size());
   }
@@ -161,7 +160,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
   void testValidationResultGeneratesNotification() {
     setUpEntitiesA();
     ValidationResult validationResult = createValidationResultA();
-    subject.sendNotifications(Sets.newHashSet(validationResult), NoopJobProgress.INSTANCE);
+    subject.sendNotifications(Sets.newHashSet(validationResult), JobProgress.noop());
     assertEquals(1, sentMessages.size(), "A single message should have been sent");
   }
 
@@ -171,7 +170,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
     User userB = makeUser("B");
     userGroupA.addUser(userB);
     ValidationResult validationResult = createValidationResultA();
-    subject.sendNotifications(Sets.newHashSet(validationResult), NoopJobProgress.INSTANCE);
+    subject.sendNotifications(Sets.newHashSet(validationResult), JobProgress.noop());
     assertEquals(1, sentMessages.size());
     assertEquals(2, sentMessages.get(0).recipients.size());
   }
@@ -185,7 +184,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
             .boxed()
             .map(i -> createValidationResultA())
             .collect(Collectors.toSet());
-    subject.sendNotifications(results, NoopJobProgress.INSTANCE);
+    subject.sendNotifications(results, JobProgress.noop());
     assertEquals(
         1, sentMessages.size(), "The validation results should form a single summarized message");
     String text = sentMessages.iterator().next().text;
@@ -225,7 +224,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
     template.addValidationRule(rule);
     template.setRecipientUserGroups(Sets.newHashSet(groupA));
     final ValidationResult validationResult = createValidationResult(lvlOneLeft, rule);
-    subject.sendNotifications(Sets.newHashSet(validationResult), NoopJobProgress.INSTANCE);
+    subject.sendNotifications(Sets.newHashSet(validationResult), JobProgress.noop());
     assertEquals(1, sentMessages.size());
     Collection<User> rcpt = sentMessages.iterator().next().recipients;
     assertEquals(1, rcpt.size());
@@ -284,7 +283,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
     final ValidationResult resultFromMiddleLeft = createValidationResult(lvlOneLeft, rule);
     // Perform tests
     // One
-    subject.sendNotifications(Sets.newHashSet(resultFromMiddleLeft), NoopJobProgress.INSTANCE);
+    subject.sendNotifications(Sets.newHashSet(resultFromMiddleLeft), JobProgress.noop());
     assertEquals(1, sentMessages.size());
     Collection<User> rcpt = sentMessages.iterator().next().recipients;
     assertEquals(2, rcpt.size());
@@ -293,7 +292,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
     sentMessages = new ArrayList<>();
     // Add the second group (with user F) to the recipients
     template.getRecipientUserGroups().add(ugB);
-    subject.sendNotifications(Sets.newHashSet(resultFromMiddleLeft), NoopJobProgress.INSTANCE);
+    subject.sendNotifications(Sets.newHashSet(resultFromMiddleLeft), JobProgress.noop());
     assertEquals(1, sentMessages.size());
     rcpt = sentMessages.iterator().next().recipients;
     // We now expect user A, which is on the root org unit and in group B to
@@ -305,7 +304,7 @@ class ValidationNotificationServiceTest extends DhisConvenienceTest {
     // Keep the hierarchy as is, but spread out the validation result from
     // the bottom left of the tree
     final ValidationResult resultFromBottomLeft = createValidationResult(lvlTwoLeftLeft, rule);
-    subject.sendNotifications(Sets.newHashSet(resultFromBottomLeft), NoopJobProgress.INSTANCE);
+    subject.sendNotifications(Sets.newHashSet(resultFromBottomLeft), JobProgress.noop());
     assertEquals(1, sentMessages.size());
     rcpt = sentMessages.iterator().next().recipients;
     assertEquals(4, rcpt.size());

@@ -67,7 +67,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -619,7 +618,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
 
-    programNotificationService.sendScheduledNotifications(NoopJobProgress.INSTANCE);
+    programNotificationService.sendScheduledNotifications(JobProgress.noop());
 
     assertEquals(1, sentProgramMessages.size());
   }
@@ -628,7 +627,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
   void testScheduledNotificationsWithDateInPast() {
     sentInternalMessages.clear();
 
-    programNotificationService.sendScheduledNotifications(NoopJobProgress.INSTANCE);
+    programNotificationService.sendScheduledNotifications(JobProgress.noop());
 
     assertEquals(0, sentProgramMessages.size());
   }

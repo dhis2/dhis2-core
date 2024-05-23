@@ -71,7 +71,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -86,7 +85,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 class PredictionServiceTest extends IntegrationTestBase {
-  private final JobProgress progress = NoopJobProgress.INSTANCE;
+  private final JobProgress progress = JobProgress.noop();
 
   @Autowired private PredictionService predictionService;
 

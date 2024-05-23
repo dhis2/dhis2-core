@@ -57,12 +57,28 @@ import org.hisp.dhis.user.UserDetails;
 @Slf4j
 public class RecordingJobProgress implements JobProgress {
 
-  private final MessageService messageService;
+  /**
+   * To get the same behaviour the state still needs to be tracked, but it does not need to be
+   * accumulated. Thus, when recoding completed objects can be discarded. This means as soon as a
+   * new object on the same level is started the previous one is discarded.
+   *
+   * @param configuration the job processed
+   * @return progress instance that behaves like the recording one except that it discards completed
+   *     recoding objects
+   */
+  public static JobProgress discardingRecorderOf(JobConfiguration configuration) {
+    return new RecordingJobProgress(
+        null, configuration, JobProgress.noop(), true, () -> {}, false, true);
+  }
+
+  @CheckForNull private final MessageService messageService;
   private final JobConfiguration configuration;
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
   private final boolean logOnDebug;
+  private final boolean skipRecording;
+  private final UserDetails user;
 
   private final AtomicBoolean cancellationRequested = new AtomicBoolean();
   private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
@@ -74,24 +90,27 @@ public class RecordingJobProgress implements JobProgress {
   private final boolean usingErrorNotification;
 
   public RecordingJobProgress(JobConfiguration configuration) {
-    this(null, configuration, NoopJobProgress.INSTANCE, true, () -> {}, false);
+    this(null, configuration, JobProgress.noop(), true, () -> {}, false, false);
   }
 
   public RecordingJobProgress(
-      MessageService messageService,
+      @CheckForNull MessageService messageService,
       JobConfiguration configuration,
       JobProgress tracker,
       boolean abortOnFailure,
       Runnable observer,
-      boolean logOnDebug) {
+      boolean logOnDebug,
+      boolean skipRecording) {
     this.messageService = messageService;
     this.configuration = configuration;
     this.tracker = tracker;
     this.abortOnFailure = abortOnFailure;
     this.observer = observer;
     this.logOnDebug = logOnDebug;
+    this.skipRecording = skipRecording;
     this.usingErrorNotification =
         messageService != null && configuration.getJobType().isUsingErrorNotification();
+    this.user = CurrentUserUtil.getCurrentUserDetails();
   }
 
   /**
@@ -105,11 +124,12 @@ public class RecordingJobProgress implements JobProgress {
 
   public void requestCancellation() {
     if (cancellationRequested.compareAndSet(false, true)) {
-      progress.sequence.forEach(
-          p -> {
-            p.cancel();
-            logWarn(p, "cancelled", "cancellation requested by user");
-          });
+      if (!skipRecording)
+        progress.sequence.forEach(
+            p -> {
+              p.cancel();
+              logWarn(p, "cancelled", "cancellation requested by user");
+            });
     }
   }
 
@@ -177,11 +197,12 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void startingProcess(String description, Object... args) {
+    observer.run();
+
     if (isCancelled()) {
       throw new CancellationException();
     }
     String message = format(description, args);
-    observer.run();
     tracker.startingProcess(format(message, args));
     incompleteProcess.set(null);
     incompleteStage.set(null);
@@ -192,8 +213,9 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void completedProcess(String summary, Object... args) {
-    String message = format(summary, args);
     observer.run();
+
+    String message = format(summary, args);
     tracker.completedProcess(message);
     Process process = getOrAddLastIncompleteProcess();
     process.complete(message);
@@ -202,8 +224,9 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void failedProcess(String error, Object... args) {
-    String message = format(error, args);
     observer.run();
+
+    String message = format(error, args);
     tracker.failedProcess(message);
     Process process = progress.sequence.peekLast();
     if (process == null || process.getCompletedTime() != null) {
@@ -221,6 +244,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void failedProcess(Exception cause) {
     observer.run();
+
     tracker.failedProcess(cause);
     Process process = progress.sequence.peekLast();
     if (process == null || process.getCompletedTime() != null) {
@@ -241,6 +265,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void startingStage(String description, int workItems, FailurePolicy onFailure) {
     observer.run();
+
     if (isCancelled()) {
       throw new CancellationException();
     }
@@ -253,8 +278,9 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void completedStage(String summary, Object... args) {
-    String message = format(summary, args);
     observer.run();
+
+    String message = format(summary, args);
     tracker.completedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
     stage.complete(message);
@@ -263,8 +289,9 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void failedStage(String error, Object... args) {
-    String message = format(error, args);
     observer.run();
+
+    String message = format(error, args);
     tracker.failedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
     stage.completeExceptionally(message, null);
@@ -277,6 +304,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void failedStage(Exception cause) {
     observer.run();
+
     cause = cancellationAsAbort(cause);
     tracker.failedStage(cause);
     String message = getMessage(cause);
@@ -292,6 +320,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void startingWorkItem(String description, FailurePolicy onFailure) {
     observer.run();
+
     tracker.startingWorkItem(description, onFailure);
     Item item = addItemRecord(getOrAddLastIncompleteStage(), description, onFailure);
     logDebug(item, "started", description);
@@ -299,8 +328,9 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void completedWorkItem(String summary, Object... args) {
-    String message = format(summary, args);
     observer.run();
+
+    String message = format(summary, args);
     tracker.completedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
     item.complete(message);
@@ -309,8 +339,9 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void failedWorkItem(String error, Object... args) {
-    String message = format(error, args);
     observer.run();
+
+    String message = format(error, args);
     tracker.failedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
     item.completeExceptionally(message, null);
@@ -323,6 +354,7 @@ public class RecordingJobProgress implements JobProgress {
   @Override
   public void failedWorkItem(Exception cause) {
     observer.run();
+
     tracker.failedWorkItem(cause);
     String message = getMessage(cause);
     Item item = getOrAddLastIncompleteItem();
@@ -355,7 +387,8 @@ public class RecordingJobProgress implements JobProgress {
         // if we already cancelled manually we do not abort but cancel
         && cancellationRequested.compareAndSet(false, true)
         && abortAfterFailure.compareAndSet(false, true)
-        && abortProcess) {
+        && abortProcess
+        && !skipRecording) {
       progress.sequence.forEach(
           process -> {
             if (!process.isComplete()) {
@@ -376,11 +409,11 @@ public class RecordingJobProgress implements JobProgress {
     if (configuration != null) {
       process.setJobId(configuration.getUid());
     }
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     if (user != null) {
       process.setUserId(user.getUid());
     }
     incompleteProcess.set(process);
+    if (skipRecording) progress.sequence.clear();
     progress.sequence.add(process);
     return process;
   }
@@ -400,6 +433,7 @@ public class RecordingJobProgress implements JobProgress {
             description,
             totalItems,
             onFailure == FailurePolicy.PARENT ? FailurePolicy.FAIL : onFailure);
+    if (skipRecording) stages.clear();
     stages.addLast(stage);
     incompleteStage.set(stage);
     return stage;
@@ -416,6 +450,7 @@ public class RecordingJobProgress implements JobProgress {
     Deque<Item> items = stage.getItems();
     Item item =
         new Item(description, onFailure == FailurePolicy.PARENT ? stage.getOnFailure() : onFailure);
+    if (skipRecording) items.clear();
     items.addLast(item);
     incompleteItem.set(item);
     return item;

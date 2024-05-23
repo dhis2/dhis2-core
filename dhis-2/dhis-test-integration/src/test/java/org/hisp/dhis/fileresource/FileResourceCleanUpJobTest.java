@@ -49,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -132,7 +131,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
 
     dataValueService.deleteDataValue(dataValueA);
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNull(fileResourceService.getFileResource(dataValueA.getValue()));
   }
@@ -162,7 +161,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     audit.setCreated(getDate(2000, 1, 1));
     dataValueAuditStore.updateDataValueAudit(audit);
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNotNull(fileResourceService.getFileResource(dataValueA.getValue()));
     assertTrue(fileResourceService.getFileResource(dataValueA.getValue()).isAssigned());
@@ -196,7 +195,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     assertNotNull(fileResourceService.getFileResource(uidA));
     assertNotNull(fileResourceService.getFileResource(uidB));
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNull(fileResourceService.getFileResource(uidA));
     assertNotNull(fileResourceService.getFileResource(uidB));
@@ -222,7 +221,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     ex.getFileResource().setAssigned(false);
     fileResourceService.updateFileResource(ex.getFileResource());
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNotNull(
         externalFileResourceService.getExternalFileResourceByAccessToken(ex.getAccessToken()));
@@ -243,7 +242,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase {
     ex.getFileResource().setStorageStatus(FileResourceStorageStatus.PENDING);
     fileResourceService.updateFileResource(ex.getFileResource());
 
-    cleanUpJob.execute(null, NoopJobProgress.INSTANCE);
+    cleanUpJob.execute(null, JobProgress.noop());
 
     assertNull(
         externalFileResourceService.getExternalFileResourceByAccessToken(ex.getAccessToken()));
