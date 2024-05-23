@@ -33,6 +33,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.webapi.controller.Server;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
