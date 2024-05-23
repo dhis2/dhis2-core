@@ -31,12 +31,15 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,6 +50,14 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class AccountControllerTest extends DhisControllerConvenienceTest {
   @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private DhisConfigurationProvider configurationProvider;
+
+  @BeforeEach
+  final void setupHere() {
+    configurationProvider
+        .getProperties()
+        .put(ConfigurationKey.SERVER_BASE_URL.getKey(), "http://localhost:8080");
+  }
 
   @Test
   void testRecoverAccount_NotEnabled() {
@@ -68,6 +79,14 @@ class AccountControllerTest extends DhisControllerConvenienceTest {
         "ERROR",
         "Account recovery failed",
         POST("/account/restore?token=xyz&password=secret").content(HttpStatus.CONFLICT));
+  }
+
+  @Test
+  void testResetPasswordNoBaseUrl() {
+    configurationProvider.getProperties().put(ConfigurationKey.SERVER_BASE_URL.getKey(), "");
+    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, true);
+    clearSecurityContext();
+    POST("/account/recovery?username=userA").content(HttpStatus.CONFLICT);
   }
 
   @Test
