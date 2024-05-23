@@ -1284,7 +1284,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.DATE);
+      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1705,7 +1705,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.DATE);
+      mapSqlParameterSource.addValue("startDate", params.getStartDate(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
@@ -1744,7 +1744,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getDueDateStart() != null) {
-      mapSqlParameterSource.addValue("startDueDate", params.getDueDateStart(), Types.DATE);
+      mapSqlParameterSource.addValue("startDueDate", params.getDueDateStart(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
@@ -1754,7 +1754,7 @@ public class JdbcEventStore implements EventStore {
     }
 
     if (params.getDueDateEnd() != null) {
-      mapSqlParameterSource.addValue("endDueDate", params.getDueDateEnd(), Types.DATE);
+      mapSqlParameterSource.addValue("endDueDate", params.getDueDateEnd(), Types.TIMESTAMP);
 
       sqlBuilder
           .append(hlp.whereAnd())
