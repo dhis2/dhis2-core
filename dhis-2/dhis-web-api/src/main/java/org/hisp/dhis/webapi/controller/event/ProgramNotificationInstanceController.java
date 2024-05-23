@@ -54,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Tags("tracker")
+@OpenApi.Document(domain = ProgramNotificationInstance.class)
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

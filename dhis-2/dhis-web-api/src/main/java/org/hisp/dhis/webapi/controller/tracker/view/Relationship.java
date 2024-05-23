@@ -42,12 +42,13 @@ import org.hisp.dhis.relationship.RelationshipType;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Shared(pattern = Pattern.TRACKER)
+@OpenApi.Identifiable(as = org.hisp.dhis.relationship.Relationship.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Relationship {
-  @OpenApi.Property({UID.class, Relationship.class})
+  @OpenApi.Property({UID.class, org.hisp.dhis.relationship.Relationship.class})
   @JsonProperty
   private String relationship;
 

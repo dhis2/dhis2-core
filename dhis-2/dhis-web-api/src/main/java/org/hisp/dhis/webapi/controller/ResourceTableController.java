@@ -75,7 +75,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland. This is the AnalyticsExportController
  */
 @Slf4j
-@OpenApi.Tags("analytics")
+@OpenApi.Document(domain = Server.class)
 @Controller
 @RequestMapping("/api/resourceTables")
 @ApiVersion({DEFAULT, ALL})

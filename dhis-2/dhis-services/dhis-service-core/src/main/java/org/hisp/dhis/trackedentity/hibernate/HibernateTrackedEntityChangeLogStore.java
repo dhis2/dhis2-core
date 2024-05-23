@@ -100,7 +100,7 @@ public class HibernateTrackedEntityChangeLogStore
     final String values =
         trackedEntityChangeLog.stream().map(mapToString).collect(Collectors.joining(","));
 
-    getSession().createNativeQuery(sql + values).executeUpdate();
+    nativeSynchronizedQuery(sql + values).executeUpdate();
   }
 
   @Override

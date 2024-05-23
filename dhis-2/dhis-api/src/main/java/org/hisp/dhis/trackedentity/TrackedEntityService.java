@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
@@ -112,32 +111,6 @@ public interface TrackedEntityService {
       TrackedEntityQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation);
-
-  /**
-   * Decides whether current user is authorized to perform the given query. IllegalQueryException is
-   * thrown if not.
-   *
-   * @param params the TrackedEntityQueryParams.
-   */
-  void decideAccess(TrackedEntityQueryParams params);
-
-  /**
-   * Validates scope of given TrackedEntityQueryParams. The params is considered valid if no
-   * exception are thrown and the method returns normally.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @throws IllegalQueryException if the given params is invalid.
-   */
-  void validateSearchScope(TrackedEntityQueryParams params) throws IllegalQueryException;
-
-  /**
-   * Validates the given TrackedEntityQueryParams. The params is considered valid if no exception
-   * are thrown and the method returns normally.
-   *
-   * @param params the TrackedEntityQueryParams.
-   * @throws IllegalQueryException if the given params is invalid.
-   */
-  void validate(TrackedEntityQueryParams params) throws IllegalQueryException;
 
   /**
    * Adds an {@link TrackedEntity}

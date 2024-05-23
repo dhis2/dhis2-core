@@ -42,8 +42,8 @@ import org.hisp.dhis.schema.annotation.Property;
  */
 @JacksonXmlRootElement(localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0)
 public class AttributeValue implements Serializable, EmbeddedObject {
-  private Attribute attribute;
 
+  private Attribute attribute;
   private String value;
 
   public AttributeValue() {}

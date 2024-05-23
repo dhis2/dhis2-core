@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.hisp.dhis.webapi.controller.Server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.oauth2.common.exceptions.OAuth2Exception;
@@ -44,7 +45,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.util.HtmlUtils;
 
-@OpenApi.Tags({"user", "login"})
+@OpenApi.Document(domain = Server.class)
 @Controller
 @SessionAttributes("authorizationRequest")
 public class OAuth2ConfirmAccessController {

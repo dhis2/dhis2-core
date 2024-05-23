@@ -54,7 +54,7 @@ function start_dhis2() {
     -Ddhis2.home=$DHIS2_HOME_DIR \
     -Djetty.host=$DHIS2_HOSTNAME \
     -Djetty.http.port=$DHIS2_PORT \
-    -jar "$(dirname "$0")/dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar"
+    -jar "$(dirname "$0")/dhis-web-server/target/dhis.war"
 }
 
 # Build and install DHIS 2 source code without running tests

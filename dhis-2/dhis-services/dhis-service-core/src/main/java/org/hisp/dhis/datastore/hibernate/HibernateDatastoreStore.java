@@ -166,16 +166,14 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   @Override
   public void deleteNamespace(String ns) {
-    // language=SQL
     String sql = "delete from keyjsonvalue ds where ds.namespace = :ns";
-    getSession().createNativeQuery(sql).setParameter("ns", ns).executeUpdate();
+    nativeSynchronizedQuery(sql).setParameter("ns", ns).executeUpdate();
   }
 
   @Override
   public int countKeysInNamespace(String ns) {
-    // language=SQL
     String sql = "select count(*) from keyjsonvalue v where v.namespace = :ns";
-    Object count = getSession().createNativeQuery(sql).setParameter("ns", ns).uniqueResult();
+    Object count = nativeSynchronizedQuery(sql).setParameter("ns", ns).uniqueResult();
     if (count == null) return 0;
     if (count instanceof Number n) return n.intValue();
     throw new IllegalStateException("Count did not return a number but: " + count);
@@ -221,8 +219,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
             else jsonb_set(jbvalue, cast(:path as text[]), to_jsonb(ARRAY[cast(:value as jsonb)]))
             end
           where namespace = :ns and namespacekey = :key""";
-    return getSession()
-            .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -247,8 +244,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
         else cast(:value as jsonb)
         end
       where namespace = :ns and namespacekey = :key""";
-    return getSession()
-            .createNativeQuery(sql)
+    return nativeSynchronizedQuery(sql)
             .setParameter("ns", ns)
             .setParameter("key", key)
             .setParameter("value", value)
@@ -259,8 +255,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   private boolean updateEntryPathSetToValue(
       @Nonnull String ns, @Nonnull String key, @Nonnull String value, @Nonnull String path) {
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), cast(:value as jsonb), false) where namespace = :ns and namespacekey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -272,8 +267,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   private boolean updateEntryRootSetToValue(
       @Nonnull String ns, @Nonnull String key, @Nonnull String value) {
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "update keyjsonvalue set jbvalue = cast(:value as jsonb) where namespace = :ns and namespacekey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -284,8 +278,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   private boolean updateEntryPathSetToNull(
       @Nonnull String ns, @Nonnull String key, @Nonnull String path) {
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "update keyjsonvalue set jbvalue = jsonb_set(jbvalue, cast(:path as text[]), 'null', false) where namespace = :ns and namespacekey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
@@ -296,8 +289,7 @@ public class HibernateDatastoreStore extends HibernateIdentifiableObjectStore<Da
 
   private boolean updateEntryRootDelete(@Nonnull String ns, @Nonnull String key) {
     // delete
-    return getSession()
-            .createNativeQuery(
+    return nativeSynchronizedQuery(
                 "delete from keyjsonvalue where namespace = :ns and namespacekey = :key")
             .setParameter("ns", ns)
             .setParameter("key", key)
