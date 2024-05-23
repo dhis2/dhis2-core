@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -44,7 +43,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -234,30 +232,30 @@ class EventImportRequestParamsMapperTest {
   void testMappingOccurredAfterBefore() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    Date occurredAfter = parseDate("2020-01-01");
+    StartDateTime occurredAfter = StartDateTime.of("2020-01-01");
     eventRequestParams.setOccurredAfter(occurredAfter);
-    Date occurredBefore = parseDate("2020-09-12");
+    EndDateTime occurredBefore = EndDateTime.of("2020-09-12");
     eventRequestParams.setOccurredBefore(occurredBefore);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(occurredAfter, params.getOccurredAfter());
-    assertEquals(occurredBefore, params.getOccurredBefore());
+    assertEquals(occurredAfter.toDate(), params.getOccurredAfter());
+    assertEquals(occurredBefore.toDate(), params.getOccurredBefore());
   }
 
   @Test
   void testMappingScheduledAfterBefore() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    Date scheduledAfter = parseDate("2021-01-01");
+    StartDateTime scheduledAfter = StartDateTime.of("2021-01-01");
     eventRequestParams.setScheduledAfter(scheduledAfter);
-    Date scheduledBefore = parseDate("2021-09-12");
+    EndDateTime scheduledBefore = EndDateTime.of("2021-09-12");
     eventRequestParams.setScheduledBefore(scheduledBefore);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(scheduledAfter, params.getScheduledAfter());
-    assertEquals(scheduledBefore, params.getScheduledBefore());
+    assertEquals(scheduledAfter.toDate(), params.getScheduledAfter());
+    assertEquals(scheduledBefore.toDate(), params.getScheduledBefore());
   }
 
   @Test
@@ -309,30 +307,30 @@ class EventImportRequestParamsMapperTest {
   void testMappingEnrollmentEnrolledAtDates() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    Date enrolledBefore = parseDate("2022-01-01");
+    EndDateTime enrolledBefore = EndDateTime.of("2022-01-01");
     eventRequestParams.setEnrollmentEnrolledBefore(enrolledBefore);
-    Date enrolledAfter = parseDate("2022-02-01");
+    StartDateTime enrolledAfter = StartDateTime.of("2022-02-01");
     eventRequestParams.setEnrollmentEnrolledAfter(enrolledAfter);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(enrolledBefore, params.getEnrollmentEnrolledBefore());
-    assertEquals(enrolledAfter, params.getEnrollmentEnrolledAfter());
+    assertEquals(enrolledBefore.toDate(), params.getEnrollmentEnrolledBefore());
+    assertEquals(enrolledAfter.toDate(), params.getEnrollmentEnrolledAfter());
   }
 
   @Test
   void testMappingEnrollmentOccurredAtDates() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
 
-    Date enrolledBefore = parseDate("2022-01-01");
+    EndDateTime enrolledBefore = EndDateTime.of("2022-01-01");
     eventRequestParams.setEnrollmentOccurredBefore(enrolledBefore);
-    Date enrolledAfter = parseDate("2022-02-01");
+    StartDateTime enrolledAfter = StartDateTime.of("2022-02-01");
     eventRequestParams.setEnrollmentOccurredAfter(enrolledAfter);
 
     EventOperationParams params = mapper.map(eventRequestParams);
 
-    assertEquals(enrolledBefore, params.getEnrollmentOccurredBefore());
-    assertEquals(enrolledAfter, params.getEnrollmentOccurredAfter());
+    assertEquals(enrolledBefore.toDate(), params.getEnrollmentOccurredBefore());
+    assertEquals(enrolledAfter.toDate(), params.getEnrollmentOccurredAfter());
   }
 
   @Test
