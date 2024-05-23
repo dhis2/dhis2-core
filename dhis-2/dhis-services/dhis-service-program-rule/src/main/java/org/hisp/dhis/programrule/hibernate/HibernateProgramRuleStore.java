@@ -176,12 +176,12 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
       ProgramRuleActionEvaluationEnvironment environment) {
     List<BigInteger> bigIntegerList =
-        getSession()
-            .createNativeQuery(
+        nativeSynchronizedQuery(
                 "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
                     + "where environments@> '[\""
                     + environment
                     + "\"]';")
+            .addSynchronizedEntityClass(ProgramRuleAction.class)
             .list();
     List<Long> idList =
         bigIntegerList.stream()
