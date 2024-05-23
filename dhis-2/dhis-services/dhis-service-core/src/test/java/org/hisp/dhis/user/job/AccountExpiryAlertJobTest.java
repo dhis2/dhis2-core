@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import java.sql.Date;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
