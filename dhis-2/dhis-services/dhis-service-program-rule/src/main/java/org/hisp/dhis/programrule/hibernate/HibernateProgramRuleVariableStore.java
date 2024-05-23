@@ -95,12 +95,15 @@ public class HibernateProgramRuleVariableStore
 
   @Override
   public List<ProgramRuleVariable> getByDataElement(Collection<DataElement> dataElements) {
-    String sql =
+    // language=hql
+    String hql =
         """
-          select * from programrulevariable prv
-          where prv.dataelementid in :dataElements
+          from ProgramRuleVariable prv
+          where prv.dataElement in :dataElements
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(hql, ProgramRuleVariable.class)
+        .setParameter("dataElements", dataElements)
+        .list();
   }
 }

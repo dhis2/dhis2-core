@@ -78,13 +78,13 @@ public class HibernateProgramStageDataElementStore
 
   @Override
   public List<ProgramStageDataElement> getAllByDataElement(Collection<DataElement> dataElements) {
-    // language=sql
-    String sql =
+    // language=hql
+    String hql =
         """
-          select * from programstagedataelement psde
-          where psde.dataelementid in :dataElements
+          from ProgramStageDataElement psde
+          where psde.dataElement in :dataElements
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(hql).setParameter("dataElements", dataElements).list();
   }
 }

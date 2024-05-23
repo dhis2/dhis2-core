@@ -200,15 +200,23 @@ public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
   }
 
-  @Override
-  public List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements) {
+  public List<T> getDeleteObject(List<String> indicators) {
+    // language=hql
     String sql =
         """
-          select * from eventvisualization ev
-          where ev.dataelementvaluedimensionid in :dataElements
+          from DeletedObject do
+          where do.deletedAt in :indicators
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getSession().createNativeQuery(sql, clazz).setParameter("indicators", indicators).list();
+  }
+
+  @Override
+  public List<T> getEventVisualizationsByDataElement(Collection<DataElement> dataElements) {
+    // language=hql
+    String hql = "from EventVisualization ev where ev.dataElementValueDimension in :dataElements";
+
+    return getQuery(hql, clazz).setParameter("dataElements", dataElements).list();
   }
 
   @Override

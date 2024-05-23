@@ -161,12 +161,13 @@ public class DefaultProgramNotificationTemplateStore
 
   @Override
   public List<ProgramNotificationTemplate> getByDataElement(Collection<DataElement> dataElements) {
-    String sql =
+    // language=hql
+    String hql =
         """
-          select * from programnotificationtemplate pnt
-          where pnt.dataelementid in :dataElements
+          from ProgramNotificationTemplate pnt
+          where pnt.dataElement in :dataElements
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(hql).setParameter("dataElements", dataElements).list();
   }
 }

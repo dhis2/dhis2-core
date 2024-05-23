@@ -56,15 +56,15 @@ public class HibernateProgramStageSectionStore
 
   @Override
   public List<ProgramStageSection> getAllByDataElement(Collection<DataElement> dataElements) {
-    // language=sql
-    String sql =
+    // language=hql
+    String hql =
         """
-          select pss.* from programstagesection pss
-          join programstagesection_dataelements pssde on pss.programstagesectionid = pssde.programstagesectionid
-          where pssde.dataelementid in :dataElements
-          group by pss.programstagesectionid
+          from ProgramStageSection pss
+          join ProgramStageSectionDataElement pssde on pss.programStageSection = pssde.programStageSection
+          where pssde.dataElement in :dataElements
+          group by pss.programStageSection
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(hql).setParameter("dataElements", dataElements).list();
   }
 }

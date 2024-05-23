@@ -84,13 +84,13 @@ public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Pr
 
   @Override
   public List<Predictor> getAllByDataElement(Collection<DataElement> dataElements) {
-    // language=sql
-    String sql =
+    // language=hql
+    String hql =
         """
-          select * from predictor p
-          where p.generatoroutput in :dataElements
+          from Predictor p
+          where p.generatorOutput in :dataElements
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(hql).setParameter("dataElements", dataElements).list();
   }
 }

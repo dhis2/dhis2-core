@@ -71,12 +71,13 @@ public class HibernateDataElementOperandStore
 
   @Override
   public List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements) {
-    String sql =
+    // language=hql
+    String hql =
         """
-          select * from dataelementoperand deo
-          where deo.dataelementid in :dataElements
+          from DataElementOperand deo
+          where deo.dataElement in :dataElements
         """;
 
-    return nativeUpdateQuery(sql).setParameter("dataElements", dataElements).list();
+    return getQuery(hql).setParameter("dataElements", dataElements).list();
   }
 }
