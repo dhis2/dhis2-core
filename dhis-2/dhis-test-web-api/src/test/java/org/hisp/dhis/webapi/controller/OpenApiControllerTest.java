@@ -99,7 +99,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest {
                 "/api/users/invites",
                 "/api/users/sharing"));
     assertLessOrEqual(151, doc.getObject("paths").size());
-    assertLessOrEqual(70, doc.getObject("components.schemas").size());
+    assertLessOrEqual(80, doc.getObject("components.schemas").size());
   }
 
   @Test
