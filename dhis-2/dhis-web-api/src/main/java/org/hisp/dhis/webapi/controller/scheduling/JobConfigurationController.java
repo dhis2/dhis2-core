@@ -139,6 +139,13 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     jobSchedulerService.requestCancel(uid.getValue());
   }
 
+  @PostMapping("{uid}/revert")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void revertExecution(@PathVariable("uid") UID uid)
+      throws NotFoundException, ForbiddenException, ConflictException {
+    jobSchedulerService.revertNow(uid);
+  }
+
   @GetMapping("{uid}/progress")
   public Progress getProgress(@PathVariable("uid") UID uid)
       throws ForbiddenException, NotFoundException {
