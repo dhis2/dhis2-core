@@ -30,8 +30,8 @@ layers:
       files:
         - src: ${unarchivedWarDir}
           dest: ${imageAppRoot}
-        - src: "dhis-2/dhis-web-server/src/main/jib/usr/local/tomcat/conf/Catalina/server.xml"
-          dest: "/usr/local/tomcat/conf/Catalina/server.xml"
+        - src: "dhis-2/dhis-web-server/src/main/jib/usr/local/tomcat/conf/server.xml"
+          dest: "/usr/local/tomcat/conf/server.xml"
         - src: "dhis-2/dhis-web-server/src/main/jib/usr/local/tomcat/conf/Catalina/localhost"
           dest: "/usr/local/tomcat/conf/Catalina/localhost"
         - src: "dhis-2/dhis-web-server/src/main/jib/opt/dhis2"
