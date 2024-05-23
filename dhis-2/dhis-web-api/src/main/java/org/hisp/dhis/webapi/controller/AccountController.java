@@ -54,6 +54,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.PasswordManager;
@@ -73,7 +74,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -114,6 +114,8 @@ public class AccountController {
 
   private final PasswordValidationService passwordValidationService;
 
+  private final DhisConfigurationProvider configurationProvider;
+
   @PostMapping("/recovery")
   @ResponseBody
   public WebMessage recoverAccount(@RequestParam String username, HttpServletRequest request)
@@ -130,6 +132,11 @@ public class AccountController {
       return conflict("User does not exist: " + username);
     }
 
+    String baseUrl = configurationProvider.getServerBaseUrl();
+    if (StringUtils.isEmpty(baseUrl)) {
+      return conflict("Server base URL is not configured");
+    }
+
     ErrorCode errorCode = securityService.validateRestore(user);
 
     if (errorCode != null) {
@@ -137,7 +144,7 @@ public class AccountController {
     }
 
     if (!securityService.sendRestoreOrInviteMessage(
-        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION)) {
+        user, baseUrl, RestoreOptions.RECOVER_PASSWORD_OPTION)) {
       return conflict("Account could not be recovered");
     }
 
