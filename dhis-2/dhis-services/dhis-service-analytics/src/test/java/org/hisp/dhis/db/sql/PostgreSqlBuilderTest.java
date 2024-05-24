@@ -63,16 +63,28 @@ class PostgreSqlBuilderTest {
 
   private List<Index> getIndexesA() {
     return List.of(
-        new Index("in_immunization_data", "immunization", List.of("data")),
-        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
-        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-        new Index(
-            "in_immunization_data_period",
-            "immunization",
-            IndexType.BTREE,
-            Unique.NON_UNIQUE,
-            List.of("data", "period"),
-            IndexFunction.LOWER));
+        Index.builder()
+            .build()
+            .withName("in_immunization_data")
+            .withTableName("immunization")
+            .withColumns(List.of("data")),
+        Index.builder()
+            .build()
+            .withName("in_immunization_period_created")
+            .withTableName("immunization")
+            .withColumns(List.of("period", "created")),
+        Index.builder()
+            .build()
+            .withName("in_immunization_user")
+            .withTableName("immunization")
+            .withIndexType(IndexType.GIN)
+            .withColumns(List.of("user")),
+        Index.builder()
+            .build()
+            .withName("in_immunization_data_period")
+            .withTableName("immunization")
+            .withColumns(List.of("data", "period"))
+            .withFunction(IndexFunction.LOWER));
   }
 
   private Table getTableB() {
@@ -391,13 +403,13 @@ class PostgreSqlBuilderTest {
     String expected =
         "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
     Index index =
-        new Index(
-            "index_a",
-            "table_a",
-            IndexType.BTREE,
-            Unique.UNIQUE,
-            List.of("column_a"),
-            "desc nulls last");
+        Index.builder()
+            .build()
+            .withName("index_a")
+            .withTableName("table_a")
+            .withUnique(Unique.UNIQUE)
+            .withColumns(List.of("column_a"))
+            .withSortOrder("desc nulls last");
 
     // when
     String createIndexStmt = sqlBuilder.createIndex(index);
