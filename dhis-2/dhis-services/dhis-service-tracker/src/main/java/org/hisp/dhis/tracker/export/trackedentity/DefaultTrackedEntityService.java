@@ -236,7 +236,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UserDetails userDetails = getCurrentUserDetails();
 
       trackedEntity =
-          mapTrackedEntity(getTrackedEntity(uid, userDetails), params, userDetails, includeDeleted);
+          mapTrackedEntity(getTrackedEntity(uid, userDetails), params, userDetails, null, includeDeleted);
 
       mapTrackedEntityTypeAttributes(trackedEntity);
     }
@@ -273,7 +273,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throw new ForbiddenException(error);
     }
 
-    return mapTrackedEntity(trackedEntity, params, userDetails, includeDeleted);
+    return mapTrackedEntity(trackedEntity, params, userDetails, program, includeDeleted);
   }
 
   /**
@@ -318,6 +318,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntity trackedEntity,
       TrackedEntityParams params,
       UserDetails currentUser,
+      Program program,
       boolean includeDeleted) {
     TrackedEntity result = new TrackedEntity();
     result.setId(trackedEntity.getId());
@@ -458,7 +459,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     relationshipItem.setTrackedEntity(
-        mapTrackedEntity(trackedEntity, params, currentUser, includeDeleted));
+        mapTrackedEntity(trackedEntity, params, currentUser, null, includeDeleted));
     return relationshipItem;
   }
 
