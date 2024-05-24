@@ -1428,7 +1428,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldReturnTrackedEntityWithRelationshipsTei2Tei()
+  void shouldReturnTrackedEntityWithRelationshipsTe2Te()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
     TrackedEntityOperationParams operationParams =
@@ -1581,7 +1581,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void returnTrackedEntityRelationshipsWithTei2Enrollment()
+  void returnTrackedEntityRelationshipsWithTe2Enrollment()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
     TrackedEntityOperationParams operationParams =
@@ -1608,7 +1608,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldReturnTrackedEntityRelationshipsWithTei2Event()
+  void shouldReturnTrackedEntityRelationshipsWithTe2Event()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
         new TrackedEntityParams(true, TrackedEntityEnrollmentParams.TRUE, false, false);

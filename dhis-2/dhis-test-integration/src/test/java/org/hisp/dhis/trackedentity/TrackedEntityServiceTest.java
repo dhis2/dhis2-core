@@ -182,16 +182,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void testDeleteTrackedEntity() {
     long idA = entityInstanceService.addTrackedEntity(entityInstanceA1);
     long idB = entityInstanceService.addTrackedEntity(entityInstanceB1);
-    TrackedEntity teiA = entityInstanceService.getTrackedEntity(idA);
-    TrackedEntity teiB = entityInstanceService.getTrackedEntity(idB);
-    assertNotNull(teiA);
-    assertNotNull(teiB);
+    TrackedEntity trackedEntityA = entityInstanceService.getTrackedEntity(idA);
+    TrackedEntity trackedEntityB = entityInstanceService.getTrackedEntity(idB);
+    assertNotNull(trackedEntityA);
+    assertNotNull(trackedEntityB);
     entityInstanceService.deleteTrackedEntity(entityInstanceA1);
-    assertNull(entityInstanceService.getTrackedEntity(teiA.getUid()));
-    assertNotNull(entityInstanceService.getTrackedEntity(teiB.getUid()));
+    assertNull(entityInstanceService.getTrackedEntity(trackedEntityA.getUid()));
+    assertNotNull(entityInstanceService.getTrackedEntity(trackedEntityB.getUid()));
     entityInstanceService.deleteTrackedEntity(entityInstanceB1);
-    assertNull(entityInstanceService.getTrackedEntity(teiA.getUid()));
-    assertNull(entityInstanceService.getTrackedEntity(teiB.getUid()));
+    assertNull(entityInstanceService.getTrackedEntity(trackedEntityA.getUid()));
+    assertNull(entityInstanceService.getTrackedEntity(trackedEntityB.getUid()));
   }
 
   @Test
@@ -203,14 +203,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     entityInstanceA1.setEnrollments(Set.of(enrollment));
     enrollmentService.updateEnrollment(enrollment);
     entityInstanceService.updateTrackedEntity(entityInstanceA1);
-    TrackedEntity teiA = entityInstanceService.getTrackedEntity(idA);
+    TrackedEntity trackedEntityA = entityInstanceService.getTrackedEntity(idA);
     Enrollment psA = enrollmentService.getEnrollment(psIdA);
     Event eventA = eventService.getEvent(eventIdA);
-    assertNotNull(teiA);
+    assertNotNull(trackedEntityA);
     assertNotNull(psA);
     assertNotNull(eventA);
     entityInstanceService.deleteTrackedEntity(entityInstanceA1);
-    assertNull(entityInstanceService.getTrackedEntity(teiA.getUid()));
+    assertNull(entityInstanceService.getTrackedEntity(trackedEntityA.getUid()));
     assertNull(enrollmentService.getEnrollment(psIdA));
     assertNull(eventService.getEvent(eventIdA));
   }
@@ -246,8 +246,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void testStoredByColumnForTrackedEntity() {
     entityInstanceA1.setStoredBy("test");
     entityInstanceService.addTrackedEntity(entityInstanceA1);
-    TrackedEntity tei = entityInstanceService.getTrackedEntity(entityInstanceA1.getUid());
-    assertEquals("test", tei.getStoredBy());
+    TrackedEntity trackedEntity = entityInstanceService.getTrackedEntity(entityInstanceA1.getUid());
+    assertEquals("test", trackedEntity.getStoredBy());
   }
 
   @Test
@@ -265,7 +265,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -273,7 +273,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceB1.getId(),
             entityInstanceA1.getId(),
             entityInstanceD1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -291,7 +291,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -299,7 +299,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceA1.getId(),
             entityInstanceB1.getId(),
             entityInstanceC1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -317,7 +317,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.ASC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -325,7 +325,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceB1.getId(),
             entityInstanceA1.getId(),
             entityInstanceD1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -346,7 +346,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("createdAt", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -354,7 +354,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceA1.getId(),
             entityInstanceB1.getId(),
             entityInstanceC1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -377,7 +377,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.ASC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -385,7 +385,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceB1.getId(),
             entityInstanceC1.getId(),
             entityInstanceA1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -409,7 +409,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAt", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -417,7 +417,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceB1.getId(),
             entityInstanceD1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -431,7 +431,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("trackedEntity", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -439,7 +439,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceB1.getId(),
             entityInstanceA1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -457,7 +457,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("updatedAtClient", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -465,7 +465,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceA1.getId(),
             entityInstanceB1.getId(),
             entityInstanceC1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -483,7 +483,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam("enrolledAt", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -491,7 +491,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceD1.getId(),
             entityInstanceC1.getId(),
             entityInstanceA1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -516,7 +516,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             new OrderParam("inactive", SortDirection.DESC),
             new OrderParam("enrolledAt", SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -524,7 +524,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceA1.getId(),
             entityInstanceD1.getId(),
             entityInstanceC1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -535,7 +535,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setOrgUnits(Set.of(organisationUnit));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -543,7 +543,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceB1.getId(),
             entityInstanceC1.getId(),
             entityInstanceD1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -562,7 +562,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrders(List.of(new OrderParam(trackedEntityAttribute.getUid(), SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(trackedEntityAttribute)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -570,7 +570,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceD1.getId(),
             entityInstanceA1.getId(),
             entityInstanceC1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -598,7 +598,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             new OrderParam("inactive", SortDirection.ASC)));
     params.setAttributes(List.of(new QueryItem(trackedEntityAttribute)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -606,7 +606,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceA1.getId(),
             entityInstanceD1.getId(),
             entityInstanceC1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -627,7 +627,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), SortDirection.DESC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -635,7 +635,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceC1.getId(),
             entityInstanceD1.getId(),
             entityInstanceA1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   @Test
@@ -656,7 +656,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     params.setOrgUnits(Set.of(organisationUnit));
     params.setOrders(List.of(new OrderParam(tea.getUid(), SortDirection.ASC)));
 
-    List<Long> teiIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
+    List<Long> trackedEntityIdList = entityInstanceService.getTrackedEntityIds(params, true, true);
 
     assertEquals(
         List.of(
@@ -664,7 +664,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             entityInstanceD1.getId(),
             entityInstanceC1.getId(),
             entityInstanceB1.getId()),
-        teiIdList);
+        trackedEntityIdList);
   }
 
   private void addEnrollment(TrackedEntity entityInstance, Date enrollmentDate, char programStage) {

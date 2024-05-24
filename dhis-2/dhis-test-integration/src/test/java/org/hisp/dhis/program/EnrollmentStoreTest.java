@@ -216,10 +216,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     programNotificationStore.save(a2);
     programNotificationStore.save(a3);
     // TEI
-    TrackedEntity teiX = createTrackedEntity(organisationUnitA);
-    TrackedEntity teiY = createTrackedEntity(organisationUnitA);
-    entityInstanceService.addTrackedEntity(teiX);
-    entityInstanceService.addTrackedEntity(teiY);
+    TrackedEntity trackedEntityX = createTrackedEntity(organisationUnitA);
+    TrackedEntity trackedEntityY = createTrackedEntity(organisationUnitA);
+    entityInstanceService.addTrackedEntity(trackedEntityX);
+    entityInstanceService.addTrackedEntity(trackedEntityY);
     // Program
     programA.setNotificationTemplates(Sets.newHashSet(a1, a2, a3));
     programService.updateProgram(programA);
@@ -234,9 +234,9 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     cal.add(Calendar.DATE, -6);
     Date aWeekAgo = cal.getTime();
     // Enrollments
-    Enrollment enrollmentA = new Enrollment(today, tomorrow, teiX, programA);
+    Enrollment enrollmentA = new Enrollment(today, tomorrow, trackedEntityX, programA);
     enrollmentStore.save(enrollmentA);
-    Enrollment enrollmentB = new Enrollment(aWeekAgo, yesterday, teiY, programA);
+    Enrollment enrollmentB = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
     enrollmentStore.save(enrollmentB);
     // Queries
     List<Enrollment> results;
