@@ -236,7 +236,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UserDetails userDetails = getCurrentUserDetails();
 
       trackedEntity =
-          mapTrackedEntity(getTrackedEntity(uid, userDetails), params, userDetails, null, includeDeleted);
+          mapTrackedEntity(
+              getTrackedEntity(uid, userDetails), params, userDetails, null, includeDeleted);
 
       mapTrackedEntityTypeAttributes(trackedEntity);
     }
