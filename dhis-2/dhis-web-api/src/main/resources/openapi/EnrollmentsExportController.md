@@ -26,11 +26,13 @@ for how to use it.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledAfter`
 
-Get enrollments with an enrollment date after the given date.
+Get enrollments enrolled after the given date and time. If no time is specified, 
+first millisecond of the day is used.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
-Get enrollments with an enrollment date before the given date.
+Get enrollments enrolled before the given date and time. If no time is specified,
+last millisecond of the day is used.
 
 ### `*.parameter.EnrollmentRequestParams.enrollments`
 
@@ -117,7 +119,8 @@ Get enrollments of tracked entity with the given UID.
 
 ### `*.parameter.EnrollmentRequestParams.updatedAfter`
 
-Get enrollments updated after the given date.
+Get enrollments updated after the given date and time. If no time is specified, 
+first millisecond of the day is used.
 
 ### `*.parameter.EnrollmentRequestParams.updatedWithin`
 
