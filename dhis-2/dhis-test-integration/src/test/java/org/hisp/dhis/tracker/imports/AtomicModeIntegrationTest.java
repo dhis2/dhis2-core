@@ -57,7 +57,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
   }
 
   @Test
-  void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
+  void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
@@ -67,12 +67,12 @@ class AtomicModeIntegrationTest extends TrackerTest {
     assertNotNull(trackerImportTeReport);
     assertEquals(Status.OK, trackerImportTeReport.getStatus());
     assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
-    assertNotNull(trackedEntityService.getTrackedEntity("VALIDTEIAAA"));
-    assertNull(trackedEntityService.getTrackedEntity("INVALIDTEIA"));
+    assertNotNull(trackedEntityService.getTrackedEntity("VALIDTEAAAA"));
+    assertNull(trackedEntityService.getTrackedEntity("INVALIDTEAA"));
   }
 
   @Test
-  void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
+  void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params = TrackerImportParams.builder().atomicMode(AtomicMode.ALL).build();
 
@@ -80,7 +80,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
     assertNotNull(trackerImportTeReport);
     assertEquals(Status.ERROR, trackerImportTeReport.getStatus());
     assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
-    assertNull(trackedEntityService.getTrackedEntity("VALIDTEIAAA"));
-    assertNull(trackedEntityService.getTrackedEntity("INVALIDTEIA"));
+    assertNull(trackedEntityService.getTrackedEntity("VALIDTEAAAA"));
+    assertNull(trackedEntityService.getTrackedEntity("INVALIDTEAA"));
   }
 }

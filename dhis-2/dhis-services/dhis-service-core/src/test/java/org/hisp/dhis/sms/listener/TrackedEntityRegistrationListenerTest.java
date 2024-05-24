@@ -78,11 +78,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
-  private static final String TEI_REGISTRATION_COMMAND = "te";
+  private static final String TE_REGISTRATION_COMMAND = "te";
 
   private static final String ATTRIBUTE_VALUE = "TEST";
 
-  private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
+  private static final String SMS_TEXT = TE_REGISTRATION_COMMAND + " " + "attr=sample";
 
   private static final String ORIGINATOR = "47400000";
 
@@ -239,7 +239,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
     smsCode.setTrackedEntityAttribute(trackedEntityAttribute);
 
     teRegistrationCommand = new SMSCommand();
-    teRegistrationCommand.setName(TEI_REGISTRATION_COMMAND);
+    teRegistrationCommand.setName(TE_REGISTRATION_COMMAND);
     teRegistrationCommand.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
     teRegistrationCommand.setProgram(program);
     teRegistrationCommand.setCodes(Sets.newHashSet(smsCode));

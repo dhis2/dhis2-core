@@ -39,13 +39,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class RelationshipUtilsTest {
-  private static final String TEIA_UID = "TEIA_UID";
+  private static final String TE_A_UID = "TE_A_UID";
 
-  private static final String TEIB_UID = "TEIB_UID";
+  private static final String TE_B_UID = "TE_B_UID";
 
-  private static final String PI_UID = "PI_UID";
+  private static final String ENROLLMENT_UID = "ENROLLMENT_UID";
 
-  private static final String PSI_UID = "PSI_UID";
+  private static final String EVENT_UID = "EVENT_UID";
 
   private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
 
@@ -60,13 +60,13 @@ class RelationshipUtilsTest {
   @BeforeEach
   void setup() {
     teA = new TrackedEntity();
-    teA.setUid(TEIA_UID);
+    teA.setUid(TE_A_UID);
     teB = new TrackedEntity();
-    teB.setUid(TEIB_UID);
+    teB.setUid(TE_B_UID);
     enrollmentA = new Enrollment();
-    enrollmentA.setUid(PI_UID);
+    enrollmentA.setUid(ENROLLMENT_UID);
     eventA = new Event();
-    eventA.setUid(PSI_UID);
+    eventA.setUid(EVENT_UID);
     relationshipType = new RelationshipType();
     relationshipType.setUid(RELATIONSHIP_TYPE_UID);
   }

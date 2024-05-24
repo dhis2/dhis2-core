@@ -121,7 +121,7 @@ public class TrackedEntityImportTests extends TrackerApiTest {
         .body("TRACKED_ENTITY.objectReports", hasSize(1))
         .body("ENROLLMENT.objectReports", hasSize(1));
 
-    // assert that the TEI was imported
+    // assert that the TE was imported
     String teId = response.extractImportedTrackedEntities().get(0);
 
     ApiResponse teResponse = trackerImportExportActions.getTrackedEntity(teId);

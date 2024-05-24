@@ -87,33 +87,21 @@ public interface TrackedEntityProgramOwnerService {
   /**
    * Assign an orgUnit as the owner for a tracked entity for the given program. If another owner
    * already exist then it would be overwritten.
-   *
-   * @param entityInstance
-   * @param program
-   * @param ou
    */
   void createOrUpdateTrackedEntityProgramOwner(
-      TrackedEntity entityInstance, Program program, OrganisationUnit ou);
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 
   /**
    * Update the owner ou for a tracked entity for the given program. If no owner previously exist,
    * then this method will fail.
-   *
-   * @param entityInstance
-   * @param program
-   * @param ou
    */
   void updateTrackedEntityProgramOwner(
-      TrackedEntity entityInstance, Program program, OrganisationUnit ou);
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 
   /**
    * Create a new program owner ou for a tracked entity. If an owner previously exist, then this
    * method will fail.
-   *
-   * @param entityInstance
-   * @param program
-   * @param ou
    */
   void createTrackedEntityProgramOwner(
-      TrackedEntity entityInstance, Program program, OrganisationUnit ou);
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 }

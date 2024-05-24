@@ -91,7 +91,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
 
   private Program program;
 
-  private TrackedEntity tei;
+  private TrackedEntity trackedEntity;
 
   private Enrollment enrollment;
 
@@ -181,11 +181,11 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
     program.getProgramAttributes().add(pteaB);
     manager.update(program);
 
-    tei = createTrackedEntity(orgUnit);
-    tei.setTrackedEntityType(trackedEntityType);
-    manager.save(tei);
+    trackedEntity = createTrackedEntity(orgUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
+    manager.save(trackedEntity);
 
-    enrollment = new Enrollment(program, tei, orgUnit);
+    enrollment = new Enrollment(program, trackedEntity, orgUnit);
     enrollment.setAutoFields();
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
