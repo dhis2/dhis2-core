@@ -91,7 +91,7 @@ public class RelationshipsTests extends TrackerApiTest {
         new File("src/test/resources/tracker/relationshipTypes.json"));
 
     TrackerApiResponse importResponse =
-        importTeisWithEnrollmentAndEvent().validateSuccessfulImport();
+        importTrackedEntitiesWithEnrollmentAndEvent().validateSuccessfulImport();
     trackedEntities = importResponse.extractImportedTrackedEntities();
     events = importEvents();
   }
@@ -161,8 +161,8 @@ public class RelationshipsTests extends TrackerApiTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "src/test/resources/tracker/importer/teis/teisAndRelationship.json",
-        "src/test/resources/tracker/importer/teis/teisWithRelationship.json"
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesAndRelationship.json",
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesWithRelationship.json"
       })
   public void shouldImportObjectsWithRelationship(String file) throws Exception {
     JsonObject jsonObject = new FileReaderUtils().read(new File(file)).get(JsonObject.class);
@@ -201,8 +201,8 @@ public class RelationshipsTests extends TrackerApiTest {
   public void shouldNotDuplicateNonBidirectionalRelationship() throws Exception {
     // Given 2 existing tracked entities and a unidirectional relationship
     // between them
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject jsonObject =
         new RelationshipDataBuilder()
@@ -245,8 +245,8 @@ public class RelationshipsTests extends TrackerApiTest {
   public void shouldNotDuplicateBidirectionalRelationship() throws Exception {
     // Given 2 existing tracked entities and a bidirectional relationship
     // between them
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject jsonObject =
         new RelationshipDataBuilder()
@@ -286,7 +286,8 @@ public class RelationshipsTests extends TrackerApiTest {
     TrackerApiResponse response =
         trackerImportExportActions
             .postAndGetJobReport(
-                new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
+                new File(
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesAndRelationship.json"))
             .validateSuccessfulImport();
 
     List<String> trackedEntities = response.extractImportedTrackedEntities();
@@ -474,10 +475,10 @@ public class RelationshipsTests extends TrackerApiTest {
   @MethodSource
   @ParameterizedTest(name = "{index} {6}")
   public void shouldNotImportDuplicateRelationships(
-      String fromTei1,
-      String toTei1,
-      String fromTei2,
-      String toTei2,
+      String fromTrackedEntity1,
+      String toTrackedEntity1,
+      String fromTrackedEntity2,
+      String toTrackedEntity2,
       boolean bidirectional,
       int expectedCount,
       // do not remove used for the parametrized test name
@@ -497,15 +498,15 @@ public class RelationshipsTests extends TrackerApiTest {
     JsonObject relationship1 =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", relationshipTypeId)
-            .addObject("from", relationshipItem("trackedEntity", fromTei1))
-            .addObject("to", relationshipItem("trackedEntity", toTei1))
+            .addObject("from", relationshipItem("trackedEntity", fromTrackedEntity1))
+            .addObject("to", relationshipItem("trackedEntity", toTrackedEntity1))
             .build();
 
     JsonObject relationship2 =
         JsonObjectBuilder.jsonObject()
             .addProperty("relationshipType", relationshipTypeId)
-            .addObject("from", relationshipItem("trackedEntity", fromTei2))
-            .addObject("to", relationshipItem("trackedEntity", toTei2))
+            .addObject("from", relationshipItem("trackedEntity", fromTrackedEntity2))
+            .addObject("to", relationshipItem("trackedEntity", toTrackedEntity2))
             .build();
 
     JsonObject payload =
@@ -523,8 +524,8 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnErrorWhenUpdatingSoftDeletedEvent() throws Exception {
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject relationships =
         new RelationshipDataBuilder()
@@ -562,8 +563,8 @@ public class RelationshipsTests extends TrackerApiTest {
 
   @Test
   public void shouldSuccessfullyCreateHardDeletedRelationship() throws Exception {
-    String trackedEntity_1 = importTei();
-    String trackedEntity_2 = importTei();
+    String trackedEntity_1 = importTrackedEntity();
+    String trackedEntity_2 = importTrackedEntity();
 
     JsonObject relationships =
         new RelationshipDataBuilder()

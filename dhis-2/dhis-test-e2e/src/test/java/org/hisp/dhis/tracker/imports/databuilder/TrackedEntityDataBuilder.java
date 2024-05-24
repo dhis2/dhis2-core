@@ -34,41 +34,41 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiDataBuilder implements TrackerImporterDataBuilder {
+public class TrackedEntityDataBuilder implements TrackerImporterDataBuilder {
   private JsonObjectBuilder jsonObjectBuilder;
 
-  public TeiDataBuilder() {
+  public TrackedEntityDataBuilder() {
     jsonObjectBuilder = new JsonObjectBuilder();
-    setTeiType(Constants.TRACKED_ENTITY_TYPE);
+    setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE);
   }
 
-  public TeiDataBuilder setId(String id) {
+  public TrackedEntityDataBuilder setId(String id) {
     this.jsonObjectBuilder.addProperty("trackedEntity", id);
 
     return this;
   }
 
-  public TeiDataBuilder setOu(String ou) {
+  public TrackedEntityDataBuilder setOrgUnit(String ou) {
     jsonObjectBuilder.addProperty("orgUnit", ou);
     return this;
   }
 
-  public TeiDataBuilder setTeiType(String teiTypeId) {
-    jsonObjectBuilder.addProperty("trackedEntityType", teiTypeId);
+  public TrackedEntityDataBuilder setTrackedEntityType(String teTypeId) {
+    jsonObjectBuilder.addProperty("trackedEntityType", teTypeId);
 
     return this;
   }
 
-  public TeiDataBuilder addEnrollment(EnrollmentDataBuilder enrollmentDataBuilder) {
+  public TrackedEntityDataBuilder addEnrollment(EnrollmentDataBuilder enrollmentDataBuilder) {
     jsonObjectBuilder.addOrAppendToArray("enrollments", enrollmentDataBuilder.single());
     return this;
   }
 
-  public TeiDataBuilder addEnrollment(String programId, String ouId) {
-    return addEnrollment(new EnrollmentDataBuilder().setProgram(programId).setOu(ouId));
+  public TrackedEntityDataBuilder addEnrollment(String programId, String ouId) {
+    return addEnrollment(new EnrollmentDataBuilder().setProgram(programId).setOrgUnit(ouId));
   }
 
-  public TeiDataBuilder addAttribute(String attributeId, String value) {
+  public TrackedEntityDataBuilder addAttribute(String attributeId, String value) {
     this.jsonObjectBuilder.addOrAppendToArray(
         "attributes",
         new JsonObjectBuilder()
@@ -79,31 +79,31 @@ public class TeiDataBuilder implements TrackerImporterDataBuilder {
     return this;
   }
 
-  public TeiDataBuilder addRelationship(RelationshipDataBuilder builder) {
+  public TrackedEntityDataBuilder addRelationship(RelationshipDataBuilder builder) {
     jsonObjectBuilder.addOrAppendToArray("relationships", builder.build());
 
     return this;
   }
 
   public JsonObject array(String trackedEntityType, String ou) {
-    this.setOu(ou).setTeiType(trackedEntityType);
+    this.setOrgUnit(ou).setTrackedEntityType(trackedEntityType);
     return array();
   }
 
   public JsonObject buildWithEnrollment(String ou, String program) {
-    this.setOu(ou).addEnrollment(program, ou);
+    this.setOrgUnit(ou).addEnrollment(program, ou);
 
     return array();
   }
 
   public JsonObject buildWithEnrollment(String trackedEntityType, String ou, String program) {
-    this.setOu(ou).setTeiType(trackedEntityType).addEnrollment(program, ou);
+    this.setOrgUnit(ou).setTrackedEntityType(trackedEntityType).addEnrollment(program, ou);
 
     return array();
   }
 
   /**
-   * Builds a tei with enrollment and event
+   * Builds a te with enrollment and event
    *
    * @param trackedEntityType
    * @param ou
@@ -113,10 +113,13 @@ public class TeiDataBuilder implements TrackerImporterDataBuilder {
    */
   public JsonObject buildWithEnrollmentAndEvent(
       String trackedEntityType, String ou, String program, String programStage) {
-    this.setOu(ou)
-        .setTeiType(trackedEntityType)
+    this.setOrgUnit(ou)
+        .setTrackedEntityType(trackedEntityType)
         .addEnrollment(
-            new EnrollmentDataBuilder().setProgram(program).setOu(ou).addEvent(programStage, ou));
+            new EnrollmentDataBuilder()
+                .setProgram(program)
+                .setOrgUnit(ou)
+                .addEvent(programStage, ou));
 
     return array();
   }
@@ -127,17 +130,17 @@ public class TeiDataBuilder implements TrackerImporterDataBuilder {
       String program,
       String programStage,
       String eventStatus) {
-    this.setOu(ou)
-        .setTeiType(trackedEntityType)
+    this.setOrgUnit(ou)
+        .setTrackedEntityType(trackedEntityType)
         .addEnrollment(
             new EnrollmentDataBuilder()
                 .setProgram(program)
-                .setOu(ou)
+                .setOrgUnit(ou)
                 .addEvent(
                     new EventDataBuilder()
                         .setProgramStage(programStage)
                         .setStatus(eventStatus)
-                        .setOu(ou)));
+                        .setOrgUnit(ou)));
 
     return array();
   }

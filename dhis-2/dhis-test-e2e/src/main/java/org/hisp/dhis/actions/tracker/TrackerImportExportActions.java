@@ -168,19 +168,19 @@ public class TrackerImportExportActions extends RestApiActions {
     return new TrackerApiResponse(this.get("/relationships/" + relationshipId));
   }
 
-  public void overrideOwnership(String tei, String program, String reason) {
+  public void overrideOwnership(String te, String program, String reason) {
     this.post(
             String.format(
                 "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s",
-                tei, program, reason),
+                te, program, reason),
             new JsonObject())
         .validateStatus(200);
   }
 
-  public void transferOwnership(String tei, String program, String ou) {
+  public void transferOwnership(String te, String program, String ou) {
     this.update(
             String.format(
-                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", tei, program, ou),
+                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", te, program, ou),
             new JsonObject())
         .validateStatus(200);
   }

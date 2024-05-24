@@ -151,14 +151,14 @@ class EventsTests extends TrackerApiTest {
                         "filter=repeatable:eq:" + repeatableStage))
             .extractString("programStages.id[0]");
 
-    TrackerApiResponse response = importTeiWithEnrollment(program);
-    String teiId = response.extractImportedTrackedEntities().get(0);
+    TrackerApiResponse response = importTrackedEntityWithEnrollment(program);
+    String teId = response.extractImportedTrackedEntities().get(0);
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
     JsonObject event =
         new EventDataBuilder()
             .setEnrollment(enrollmentId)
-            .setTei(teiId)
+            .setTrackedEntity(teId)
             .array(OU_ID, program, programStage)
             .getAsJsonArray("events")
             .get(0)
@@ -182,7 +182,7 @@ class EventsTests extends TrackerApiTest {
     String programId = Constants.TRACKER_PROGRAM_ID;
     String programStageId = "nlXNK4b7LVr";
 
-    TrackerApiResponse response = importTeiWithEnrollment(programId);
+    TrackerApiResponse response = importTrackedEntityWithEnrollment(programId);
 
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
@@ -221,11 +221,11 @@ class EventsTests extends TrackerApiTest {
   }
 
   @Test
-  void shouldAddEventsToExistingTei() throws Exception {
+  void shouldAddEventsToExistingTrackedEntity() throws Exception {
     String programId = Constants.TRACKER_PROGRAM_ID;
     String programStageId = "nlXNK4b7LVr";
 
-    TrackerApiResponse response = importTeiWithEnrollment(programId);
+    TrackerApiResponse response = importTrackedEntityWithEnrollment(programId);
 
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
@@ -264,7 +264,7 @@ class EventsTests extends TrackerApiTest {
         new EventDataBuilder()
             .setProgram(programId)
             .setAttributeCategoryOptions(category)
-            .setOu(OU_ID)
+            .setOrgUnit(OU_ID)
             .array();
 
     trackerImportExportActions.postAndGetJobReport(object).validateSuccessfulImport();

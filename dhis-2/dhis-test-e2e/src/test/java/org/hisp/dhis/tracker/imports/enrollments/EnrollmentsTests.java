@@ -51,7 +51,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.imports.databuilder.EventDataBuilder;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.hisp.dhis.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -101,8 +101,8 @@ public class EnrollmentsTests extends TrackerApiTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "src/test/resources/tracker/importer/teis/teiWithEnrollments.json",
-        "src/test/resources/tracker/importer/teis/teiAndEnrollment.json"
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntityWithEnrollments.json",
+        "src/test/resources/tracker/importer/trackedEntities/trackedEntityAndEnrollment.json"
       })
   public void shouldImportTrackedEntitiesWithEnrollments(String file) {
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(new File(file));
@@ -139,19 +139,19 @@ public class EnrollmentsTests extends TrackerApiTest {
             .build();
 
     programActions.update(multipleEnrollmentsProgram, object).validateStatus(200);
-    String teiId = importTei();
+    String teId = importTrackedEntity();
     // act
 
     String enrollmentDate = LocalDate.now().plus(2, ChronoUnit.DAYS).toString();
 
     JsonObject enrollment =
         new EnrollmentDataBuilder()
-            .setTei(teiId)
+            .setTrackedEntity(teId)
             .setEnrollmentDate(enrollmentDate)
             .addEvent(
                 new EventDataBuilder()
                     .setProgram(multipleEnrollmentsProgram)
-                    .setOu(Constants.ORG_UNIT_IDS[0])
+                    .setOrgUnit(Constants.ORG_UNIT_IDS[0])
                     .setProgramStage(multipleEnrollmentsProgramStage))
             .array(multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0]);
 
@@ -178,7 +178,7 @@ public class EnrollmentsTests extends TrackerApiTest {
     String enrollmentId =
         trackerImportExportActions
             .postAndGetJobReport(
-                new TeiDataBuilder()
+                new TrackedEntityDataBuilder()
                     .buildWithEnrollment(Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID))
             .extractImportedEnrollments()
             .get(0);
@@ -230,12 +230,12 @@ public class EnrollmentsTests extends TrackerApiTest {
 
     programActions.update(program, object).validateStatus(200);
 
-    String tei = super.importTei();
+    String te = super.importTrackedEntity();
 
     JsonObject enrollment =
         new EnrollmentDataBuilder()
             .setId(new IdGenerator().generateUniqueId())
-            .array(program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED");
+            .array(program, Constants.ORG_UNIT_IDS[2], te, "COMPLETED");
 
     trackerImportExportActions.postAndGetJobReport(enrollment).validateSuccessfulImport();
 
@@ -243,7 +243,7 @@ public class EnrollmentsTests extends TrackerApiTest {
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().array(program, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE"));
+            new EnrollmentDataBuilder().array(program, Constants.ORG_UNIT_IDS[2], te, "ACTIVE"));
 
     // assert
     if (Boolean.parseBoolean(shouldEnrollOnce)) {
@@ -253,19 +253,19 @@ public class EnrollmentsTests extends TrackerApiTest {
 
     response.validateSuccessfulImport();
     trackerImportExportActions
-        .getTrackedEntity(tei + "?fields=enrollments")
+        .getTrackedEntity(te + "?fields=enrollments")
         .validate()
         .body("enrollments", hasSize(2));
   }
 
   @Test
-  public void shouldImportEnrollmentToExistingTei() throws Exception {
-    String teiId = importTei();
+  public void shouldImportEnrollmentToExistingTrackedEntity() throws Exception {
+    String teId = importTrackedEntity();
 
     JsonObject enrollmentPayload =
         new FileReaderUtils()
             .read(new File("src/test/resources/tracker/importer/enrollments/enrollment.json"))
-            .replacePropertyValuesWith("trackedEntity", teiId)
+            .replacePropertyValuesWith("trackedEntity", teId)
             .get(JsonObject.class);
 
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(enrollmentPayload);
@@ -289,11 +289,11 @@ public class EnrollmentsTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnErrorWhenUpdatingSoftDeletedEnrollment() throws Exception {
-    String teiId = importTei();
+    String teId = importTrackedEntity();
     JsonObject enrollments =
         new EnrollmentDataBuilder()
-            .setTei(teiId)
-            .setOu(OU_ID)
+            .setTrackedEntity(teId)
+            .setOrgUnit(OU_ID)
             .setProgram(multipleEnrollmentsProgram)
             .array();
 
@@ -315,8 +315,8 @@ public class EnrollmentsTests extends TrackerApiTest {
     JsonObject enrollmentsToImportAgain =
         new EnrollmentDataBuilder()
             .setId(enrollmentId)
-            .setTei(teiId)
-            .setOu(OU_ID)
+            .setTrackedEntity(teId)
+            .setOrgUnit(OU_ID)
             .setProgram(multipleEnrollmentsProgram)
             .array();
 
