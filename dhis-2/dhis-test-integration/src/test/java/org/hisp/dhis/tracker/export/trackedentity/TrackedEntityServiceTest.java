@@ -158,13 +158,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private Enrollment enrollmentB;
 
-  private Enrollment enrollmentC;
-
   private Event eventA;
 
   private Event eventB;
-
-  private Event eventC;
 
   private TrackedEntity trackedEntityA;
 
@@ -384,10 +380,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
-    enrollmentC =
+    Enrollment enrollmentC =
         enrollmentService.enrollTrackedEntity(
             trackedEntityB, programB, new Date(), new Date(), orgUnitB);
-    eventC = new Event();
+    Event eventC = new Event();
     eventC.setEnrollment(enrollmentC);
     eventC.setProgramStage(programStageB1);
     eventC.setOrganisationUnit(orgUnitB);
@@ -605,6 +601,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .user(user)
             .build();
 
+    TrackedEntity te =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false);
+    assertEquals(1, te.getEnrollments().size());
+    assertEquals(enrollmentA.getUid(), te.getEnrollments().stream().findFirst().get().getUid());
+
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams);
 
@@ -670,6 +672,37 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertContainsOnly(
         Set.of("A", "B", "C"),
         attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
+  }
+
+  @Test
+  void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Enrollment enrollmentProgramB =
+        enrollmentService.enrollTrackedEntity(
+            trackedEntityA, programB, new Date(), new Date(), orgUnitA);
+    manager.save(enrollmentProgramB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false);
+
+    assertContainsOnly(Set.of(enrollmentA), trackedEntity.getEnrollments());
+  }
+
+  @Test
+  void shouldReturnAllEnrollmentsWhenRequestingSingleTrackedEntityAndNoProgramSpecified()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    Enrollment enrollmentProgramB =
+        enrollmentService.enrollTrackedEntity(
+            trackedEntityA, programB, new Date(), new Date(), orgUnitA);
+    manager.save(enrollmentProgramB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.TRUE, false);
+
+    assertContainsOnly(
+        Set.of(enrollmentA, enrollmentB, enrollmentProgramB), trackedEntity.getEnrollments());
   }
 
   @Test
