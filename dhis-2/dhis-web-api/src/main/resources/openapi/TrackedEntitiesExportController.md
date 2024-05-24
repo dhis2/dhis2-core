@@ -70,11 +70,11 @@ Get tracked entities and enrollments owned by given orgUnits relative to the `or
 no program is provided, the registration orgUnit for the tracked entity would be used to determine
 ownership.
 
-- When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the tracked entity or
+- When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the tracked entities or
   enrollments owned by the `orgUnits` are returned.
-- When `orgUnitMode=CHILDREN` the tracked entity or enrollments owned by the orgUnits or by the
+- When `orgUnitMode=CHILDREN` the tracked entities or enrollments owned by the orgUnits or by the
   orgUnits direct children is returned.
-- When `orgUnitMode=DESCENDANTS` the tracked entity or enrollments owned by the orgUnits or any of
+- When `orgUnitMode=DESCENDANTS` the tracked entities or enrollments owned by the orgUnits or any of
   its descendants are returned.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
   is not allowed.
@@ -95,13 +95,13 @@ Get tracked entities and enrollments using given `orgUnitMode` and `program` par
 the registration organisation unit for the tracked entity would be used to determine ownership.
 
 - When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
-  parameter is required to specify which tracked entity or enrollments to return.
-- When `orgUnitMode=ALL` tracked entity or enrollments will be downloaded irrespective of the
+  parameter is required to specify which tracked entities or enrollments to return.
+- When `orgUnitMode=ALL` tracked entities or enrollments will be downloaded irrespective of the
   organization unit they are owned by. To use this parameter, the user needs the `Search Tracked
   entity in all org units` authority.
-- When `orgUnitMode=ACCESSIBLE` tracked entity or enrollments owned by any organisation unit in the
+- When `orgUnitMode=ACCESSIBLE` tracked entities or enrollments owned by any organisation unit in the
   users capture scope will be returned.
-- When `orgUnitMode=CAPTURE` tracked entity or enrollments that has an enrollment organisation unit
+- When `orgUnitMode=CAPTURE` tracked entities or enrollments that has an enrollment organisation unit
   in the users capture scope will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.ouMode`
@@ -152,8 +152,7 @@ specified in `enrollmentEnrolledBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
-Get tracked entities that has at least one enrollment with an occurred date after the date specified
-in `enrollmentOccurredAfter`.
+Get tracked entities that has at least one enrollment with an occurred date this date.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
