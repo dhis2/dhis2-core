@@ -93,7 +93,7 @@ public class TrackedEntityAggregate implements Aggregate {
 
   private Cache<Set<TrackedEntityAttribute>> teAttributesCache;
 
-  private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache;
+  private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeAttributesCache;
 
   private Cache<List<String>> userGroupUIDCache;
 
@@ -101,8 +101,8 @@ public class TrackedEntityAggregate implements Aggregate {
 
   @PostConstruct
   protected void init() {
-    teAttributesCache = cacheProvider.createTeiAttributesCache();
-    programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
+    teAttributesCache = cacheProvider.createTeAttributesCache();
+    programTeAttributesCache = cacheProvider.createProgramTeAttributesCache();
     userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
     securityCache = cacheProvider.createSecurityCache();
   }
@@ -256,7 +256,7 @@ public class TrackedEntityAggregate implements Aggregate {
                                     s ->
                                         trackedEntityAttributeService
                                             .getTrackedEntityAttributesByTrackedEntityTypes()),
-                                programTeiAttributesCache.get(
+                                programTeAttributesCache.get(
                                     "ATTRIBUTES_BY_PROGRAM",
                                     s ->
                                         trackedEntityAttributeService
