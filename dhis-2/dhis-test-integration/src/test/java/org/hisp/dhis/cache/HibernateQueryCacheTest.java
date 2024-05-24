@@ -39,7 +39,7 @@ import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -102,7 +102,7 @@ class HibernateQueryCacheTest extends HibernateCacheBaseTest {
     setUpData();
     createSelectQuery(10);
     assertEquals(9, sessionFactory.getStatistics().getQueryCacheHitCount());
-    housekeepingJob.execute(null, NoopJobProgress.INSTANCE);
+    housekeepingJob.execute(null, JobProgress.noop());
     createSelectQuery(1);
     assertEquals(
         10,

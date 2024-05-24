@@ -85,8 +85,10 @@ import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -161,12 +163,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry
         .setOrder(Ordered.LOWEST_PRECEDENCE)
         .addResourceHandler("/**")
-        .addResourceLocations(
-            "/resources/",
-            "/dhis/",
-            "classpath:/static/",
-            "file:./dhis-web-apps/target/dhis-web-apps/",
-            "file:./dhis-web-commons-resources/src/main/webapp/")
+        .addResourceLocations("classpath:/static/", "file:./dhis-web-apps/target/dhis-web-apps/")
         // .setCachePeriod(3600)
         .resourceChain(false)
         .addResolver(new IndexFallbackResourceResolver());
@@ -285,6 +282,22 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(new UserContextInterceptor(userSettingService));
     registry.addInterceptor(new RequestInfoInterceptor(requestInfoService));
     registry.addInterceptor(authorityInterceptor);
+  }
+
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer config) {
+    config
+        .favorPathExtension(true)
+        .favorParameter(false)
+        .ignoreAcceptHeader(false)
+        .defaultContentType(MediaType.APPLICATION_JSON)
+        .mediaType("json", MediaType.APPLICATION_JSON)
+        .mediaType("xml", MediaType.APPLICATION_XML);
+  }
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer config) {
+    config.setUseSuffixPatternMatch(true);
   }
 
   private Map<String, MediaType> mediaTypeMap =
