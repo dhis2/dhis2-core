@@ -58,30 +58,28 @@ class AtomicModeIntegrationTest extends TrackerTest {
 
   @Test
   void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/one_valid_tei_and_one_invalid.json");
+    TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
 
-    ImportReport trackerImportTeiReport =
-        trackerImportService.importTracker(params, trackerObjects);
+    ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertNotNull(trackerImportTeiReport);
-    assertEquals(Status.OK, trackerImportTeiReport.getStatus());
-    assertEquals(1, trackerImportTeiReport.getValidationReport().getErrors().size());
+    assertNotNull(trackerImportTeReport);
+    assertEquals(Status.OK, trackerImportTeReport.getStatus());
+    assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
     assertNotNull(trackedEntityService.getTrackedEntity("VALIDTEIAAA"));
     assertNull(trackedEntityService.getTrackedEntity("INVALIDTEIA"));
   }
 
   @Test
   void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/one_valid_tei_and_one_invalid.json");
+    TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params = TrackerImportParams.builder().atomicMode(AtomicMode.ALL).build();
 
-    ImportReport trackerImportTeiReport =
-        trackerImportService.importTracker(params, trackerObjects);
-    assertNotNull(trackerImportTeiReport);
-    assertEquals(Status.ERROR, trackerImportTeiReport.getStatus());
-    assertEquals(1, trackerImportTeiReport.getValidationReport().getErrors().size());
+    ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);
+    assertNotNull(trackerImportTeReport);
+    assertEquals(Status.ERROR, trackerImportTeReport.getStatus());
+    assertEquals(1, trackerImportTeReport.getValidationReport().getErrors().size());
     assertNull(trackedEntityService.getTrackedEntity("VALIDTEIAAA"));
     assertNull(trackedEntityService.getTrackedEntity("INVALIDTEIA"));
   }

@@ -70,13 +70,13 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
   private TrackedEntityAttribute atD;
 
-  private TrackedEntity teiA;
+  private TrackedEntity trackedEntityA;
 
-  private TrackedEntity teiB;
+  private TrackedEntity trackedEntityB;
 
-  private TrackedEntity teiC;
+  private TrackedEntity trackedEntityC;
 
-  private TrackedEntity teiD;
+  private TrackedEntity trackedEntityD;
 
   private TrackedEntityAttributeValue avA;
 
@@ -90,14 +90,14 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
   public void setUpTest() {
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
-    teiA = createTrackedEntity(organisationUnit);
-    teiB = createTrackedEntity(organisationUnit);
-    teiC = createTrackedEntity(organisationUnit);
-    teiD = createTrackedEntity(organisationUnit);
-    entityInstanceService.addTrackedEntity(teiA);
-    entityInstanceService.addTrackedEntity(teiB);
-    entityInstanceService.addTrackedEntity(teiC);
-    entityInstanceService.addTrackedEntity(teiD);
+    trackedEntityA = createTrackedEntity(organisationUnit);
+    trackedEntityB = createTrackedEntity(organisationUnit);
+    trackedEntityC = createTrackedEntity(organisationUnit);
+    trackedEntityD = createTrackedEntity(organisationUnit);
+    entityInstanceService.addTrackedEntity(trackedEntityA);
+    entityInstanceService.addTrackedEntity(trackedEntityB);
+    entityInstanceService.addTrackedEntity(trackedEntityC);
+    entityInstanceService.addTrackedEntity(trackedEntityD);
     atA = createTrackedEntityAttribute('A');
     atB = createTrackedEntityAttribute('B');
     atC = createTrackedEntityAttribute('C');
@@ -106,10 +106,10 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     attributeService.addTrackedEntityAttribute(atB);
     attributeService.addTrackedEntityAttribute(atC);
     attributeService.addTrackedEntityAttribute(atD);
-    avA = new TrackedEntityAttributeValue(atA, teiA, "A");
-    avB = new TrackedEntityAttributeValue(atB, teiA, "B");
-    avC = new TrackedEntityAttributeValue(atC, teiB, "C");
-    avD = new TrackedEntityAttributeValue(atD, teiB, "D");
+    avA = new TrackedEntityAttributeValue(atA, trackedEntityA, "A");
+    avB = new TrackedEntityAttributeValue(atB, trackedEntityA, "B");
+    avC = new TrackedEntityAttributeValue(atC, trackedEntityB, "C");
+    avD = new TrackedEntityAttributeValue(atD, trackedEntityB, "D");
     avA.setAutoFields();
     avB.setAutoFields();
     avC.setAutoFields();
@@ -120,8 +120,8 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
   void testSaveTrackedEntityAttributeValue() {
     attributeValueStore.saveVoid(avA);
     attributeValueStore.saveVoid(avB);
-    assertNotNull(attributeValueStore.get(teiA, atA));
-    assertNotNull(attributeValueStore.get(teiA, atA));
+    assertNotNull(attributeValueStore.get(trackedEntityA, atA));
+    assertNotNull(attributeValueStore.get(trackedEntityA, atA));
   }
 
   @Test
@@ -129,25 +129,25 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     attributeValueStore.saveVoid(avA);
     attributeValueStore.saveVoid(avB);
     attributeValueStore.saveVoid(avC);
-    assertNotNull(attributeValueStore.get(teiA, atA));
-    assertNotNull(attributeValueStore.get(teiA, atB));
-    assertNotNull(attributeValueStore.get(teiB, atC));
-    attributeValueStore.deleteByTrackedEntity(teiA);
-    assertNull(attributeValueStore.get(teiA, atA));
-    assertNull(attributeValueStore.get(teiA, atB));
-    assertNotNull(attributeValueStore.get(teiB, atC));
-    attributeValueStore.deleteByTrackedEntity(teiB);
-    assertNull(attributeValueStore.get(teiA, atA));
-    assertNull(attributeValueStore.get(teiA, atB));
-    assertNull(attributeValueStore.get(teiB, atC));
+    assertNotNull(attributeValueStore.get(trackedEntityA, atA));
+    assertNotNull(attributeValueStore.get(trackedEntityA, atB));
+    assertNotNull(attributeValueStore.get(trackedEntityB, atC));
+    attributeValueStore.deleteByTrackedEntity(trackedEntityA);
+    assertNull(attributeValueStore.get(trackedEntityA, atA));
+    assertNull(attributeValueStore.get(trackedEntityA, atB));
+    assertNotNull(attributeValueStore.get(trackedEntityB, atC));
+    attributeValueStore.deleteByTrackedEntity(trackedEntityB);
+    assertNull(attributeValueStore.get(trackedEntityA, atA));
+    assertNull(attributeValueStore.get(trackedEntityA, atB));
+    assertNull(attributeValueStore.get(trackedEntityB, atC));
   }
 
   @Test
   void testGetTrackedEntityAttributeValue() {
     attributeValueStore.saveVoid(avA);
     attributeValueStore.saveVoid(avC);
-    assertEquals(avA, attributeValueStore.get(teiA, atA));
-    assertEquals(avC, attributeValueStore.get(teiB, atC));
+    assertEquals(avA, attributeValueStore.get(trackedEntityA, atA));
+    assertEquals(avC, attributeValueStore.get(trackedEntityB, atC));
   }
 
   @Test
@@ -155,9 +155,9 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     attributeValueStore.saveVoid(avA);
     attributeValueStore.saveVoid(avB);
     attributeValueStore.saveVoid(avC);
-    List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get(teiA);
+    List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get(trackedEntityA);
     assertContainsOnly(List.of(avA, avB), attributeValues);
-    attributeValues = attributeValueStore.get(teiB);
+    attributeValues = attributeValueStore.get(trackedEntityB);
     assertContainsOnly(List.of(avC), attributeValues);
   }
 
@@ -187,7 +187,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     TrackedEntityAttributeValueChangeLogQueryParams params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
             .setTrackedEntityAttributes(List.of(atA))
-            .setTrackedEntities(List.of(teiA))
+            .setTrackedEntities(List.of(trackedEntityA))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
 
     assertContainsOnly(
@@ -195,7 +195,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
     params =
         new TrackedEntityAttributeValueChangeLogQueryParams()
-            .setTrackedEntities(List.of(teiA))
+            .setTrackedEntities(List.of(trackedEntityA))
             .setAuditTypes(List.of(ChangeLogType.UPDATE));
 
     assertContainsOnly(

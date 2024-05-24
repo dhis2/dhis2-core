@@ -209,7 +209,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
             .setOrganisationUnits(Sets.newHashSet(orgUnit, organisationUnitA));
     userService.addUser(user);
     injectSecurityContextUser(user);
-    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-tei.json");
+    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-te.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);
@@ -272,7 +272,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
   }
 
   @Test
-  void testUserHasNoAccessToProgramTeiType() throws IOException {
+  void testUserHasNoAccessToProgramTeType() throws IOException {
     clearSecurityContext();
 
     setup();
@@ -284,7 +284,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_program-teitype-missmatch.json");
+        fromJson("tracker/validations/enrollments_program-tetype-missmatch.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setUserId(user.getUid());
     params.setImportStrategy(CREATE);

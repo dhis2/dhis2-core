@@ -151,11 +151,11 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     dataElementService.addDataElement(deA);
     dataElementService.addDataElement(deB);
 
-    TrackedEntity teiA = createTrackedEntity(ouA);
-    entityInstanceService.addTrackedEntity(teiA);
+    TrackedEntity teA = createTrackedEntity(ouA);
+    entityInstanceService.addTrackedEntity(teA);
 
     Enrollment enrollmentA =
-        enrollmentService.enrollTrackedEntity(teiA, pA, new Date(), new Date(), ouA);
+        enrollmentService.enrollTrackedEntity(teA, pA, new Date(), new Date(), ouA);
 
     dvA = new EventDataValue(deA.getUid(), "A", USER_SNAP_A);
     dvB = new EventDataValue(deB.getUid(), "B", USER_SNAP_A);
