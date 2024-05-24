@@ -99,10 +99,10 @@ the registration organisation unit for the tracked entity would be used to deter
 - When `orgUnitMode=ALL` tracked entity or enrollments will be downloaded irrespective of the
   organization unit they are owned by. To use this parameter, the user needs the `Search Tracked
   entity in all org units` authority.
-- When `orgUnitMode=ACCESSIBLE` tracked entity or enrollments owned by any organisation unit in the users
-  capture scope will be returned.
-- When `orgUnitMode=CAPTURE` tracked entity or enrollments that has an enrollment organisation unit in the
+- When `orgUnitMode=ACCESSIBLE` tracked entity or enrollments owned by any organisation unit in the
   users capture scope will be returned.
+- When `orgUnitMode=CAPTURE` tracked entity or enrollments that has an enrollment organisation unit
+  in the users capture scope will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.ouMode`
 
@@ -152,8 +152,8 @@ specified in `enrollmentEnrolledBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
-Get tracked entities that has at least one enrollment with an occurred date after the date
-specified in `enrollmentOccurredAfter`.
+Get tracked entities that has at least one enrollment with an occurred date after the date specified
+in `enrollmentOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
@@ -184,13 +184,16 @@ Get tracked entities with given UID(s).
 Get tracked entities and enrollments based on the user assignment in the events of these
 enrollments.
 
-- When `assignedUserMode=ME` tracked entities and enrollments that has at least one event assigned
-  to the logged in user will be returned.
-- When `assignedUserMode=ANYONE` tracked entities and enrollments that has at least one event with
+- When `assignedUserMode=ALL` or no `assingedUserMode`(default) is given, tracked entities and
+  enrollments are returned irrespective of wether they contain events assigned to a user or not.
+  This is the default org unit mode. 
+- When `assignedUserMode=CURRENT` tracked entities and enrollments that has at least one event
+  assigned to the logged in user will be returned.
+- When `assignedUserMode=ANY` tracked entities and enrollments that has at least one event with
   an assigned user will be returned.
 - When `assignedUserMode=NONE` tracked entities with no events assigned to any user will be
   returned. 
-- When `assignedUserMode=SELECTED` The `assignedUsers` parameter will be required, and the tracked
+- When `assignedUserMode=PROVIDED` The `assignedUsers` parameter will be required, and the tracked
   entities and enrollments that has any events assigned to the users specified will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
