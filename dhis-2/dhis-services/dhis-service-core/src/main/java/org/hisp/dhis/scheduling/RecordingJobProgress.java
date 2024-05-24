@@ -62,17 +62,15 @@ public class RecordingJobProgress implements JobProgress {
    * accumulated. Thus, when recoding completed objects can be discarded. This means as soon as a
    * new object on the same level is started the previous one is discarded.
    *
-   * @param configuration the job processed
    * @return progress instance that behaves like the recording one except that it discards completed
    *     recoding objects
    */
-  public static JobProgress discardingRecorderOf(JobConfiguration configuration) {
-    return new RecordingJobProgress(
-        null, configuration, JobProgress.noop(), true, () -> {}, false, true);
+  public static JobProgress transitory() {
+    return new RecordingJobProgress(null, null, JobProgress.noop(), true, () -> {}, false, true);
   }
 
   @CheckForNull private final MessageService messageService;
-  private final JobConfiguration configuration;
+  @CheckForNull private final JobConfiguration configuration;
   private final JobProgress tracker;
   private final boolean abortOnFailure;
   private final Runnable observer;
@@ -95,7 +93,7 @@ public class RecordingJobProgress implements JobProgress {
 
   public RecordingJobProgress(
       @CheckForNull MessageService messageService,
-      JobConfiguration configuration,
+      @CheckForNull JobConfiguration configuration,
       JobProgress tracker,
       boolean abortOnFailure,
       Runnable observer,
@@ -109,7 +107,9 @@ public class RecordingJobProgress implements JobProgress {
     this.logOnDebug = logOnDebug;
     this.skipRecording = skipRecording;
     this.usingErrorNotification =
-        messageService != null && configuration.getJobType().isUsingErrorNotification();
+        messageService != null
+            && configuration != null
+            && configuration.getJobType().isUsingErrorNotification();
     this.user = CurrentUserUtil.getCurrentUserDetails();
   }
 
@@ -513,13 +513,9 @@ public class RecordingJobProgress implements JobProgress {
             : "";
     String msg = message == null ? "" : ": " + message;
     String type = source instanceof Stage ? "" : source.getClass().getSimpleName() + " ";
-    return format(
-        "[{} {}] {}{}{}{}",
-        configuration.getJobType().name(),
-        configuration.getUid(),
-        type,
-        action,
-        duration,
-        msg);
+    if (configuration == null) return format("{}{}{}{}", type, action, duration, msg);
+    String jobType = configuration.getJobType().name();
+    String uid = configuration.getUid();
+    return format("[{} {}] {}{}{}{}", jobType, uid, type, action, duration, msg);
   }
 }
