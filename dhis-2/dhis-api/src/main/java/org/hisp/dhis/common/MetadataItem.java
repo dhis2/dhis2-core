@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -54,6 +55,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -189,7 +191,7 @@ public class MetadataItem implements Serializable {
     this.code = dimensionalItemObject.getCode();
     this.description = dimensionalItemObject.getDescription();
     this.dimensionItemType = dimensionalItemObject.getDimensionItemType();
-    this.valueType = ValueType.NUMBER; // Default value
+    this.valueType = getValueType(dimensionalItemObject);
     this.aggregationType = dimensionalItemObject.getAggregationType();
     this.totalAggregationType = dimensionalItemObject.getTotalAggregationType();
 
@@ -199,33 +201,52 @@ public class MetadataItem implements Serializable {
 
     // TODO common interface
 
-    if (dimensionalItemObject instanceof DataElement) {
-      DataElement dataElement = (DataElement) dimensionalItemObject;
-      this.valueType = dataElement.getValueType().toSimplifiedValueType();
-    } else if (dimensionalItemObject instanceof DataElementOperand) {
-      DataElementOperand operand = (DataElementOperand) dimensionalItemObject;
-      this.valueType = operand.getValueType().toSimplifiedValueType();
-    } else if (dimensionalItemObject instanceof TrackedEntityAttribute) {
-      TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
-      this.valueType = attribute.getValueType().toSimplifiedValueType();
-    } else if (dimensionalItemObject instanceof Period) {
+    if (dimensionalItemObject instanceof Period) {
       Period period = (Period) dimensionalItemObject;
       this.startDate = period.getStartDate();
       this.endDate = period.getEndDate();
-      this.valueType = TEXT;
     } else if (dimensionalItemObject instanceof Indicator) {
       Indicator indicator = (Indicator) dimensionalItemObject;
-
       if (indicator.getIndicatorType() != null) {
         this.indicatorType = HibernateProxyUtils.unproxy(indicator.getIndicatorType());
       }
+    }
+  }
+
+  /**
+   * Gets the {@link ValueType} related to the instance of the given {@link DimensionalItemObject}.
+   * If there is no match, {@link NUMBER} is returned as default.
+   *
+   * @param dimensionalItemObject the {@link DimensionalItemObject}.
+   * @return the respective {@link ValueType}.
+   */
+  private ValueType getValueType(DimensionalItemObject dimensionalItemObject) {
+    if (dimensionalItemObject instanceof DataElement) {
+      DataElement dataElement = (DataElement) dimensionalItemObject;
+      return dataElement.getValueType().toSimplifiedValueType();
+    } else if (dimensionalItemObject instanceof DataElementOperand) {
+      DataElementOperand operand = (DataElementOperand) dimensionalItemObject;
+      return operand.getValueType().toSimplifiedValueType();
+    } else if (dimensionalItemObject instanceof TrackedEntityAttribute) {
+      TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
+      return attribute.getValueType().toSimplifiedValueType();
+    } else if (dimensionalItemObject instanceof Period) {
+      return TEXT;
     } else if (dimensionalItemObject instanceof ProgramDataElementDimensionItem) {
       ProgramDataElementDimensionItem programDataElementDimensionItem =
           (ProgramDataElementDimensionItem) dimensionalItemObject;
-      this.valueType = programDataElementDimensionItem.getValueType();
+      return programDataElementDimensionItem.getValueType();
     } else if (dimensionalItemObject instanceof OrganisationUnit) {
-      this.valueType = TEXT;
+      return TEXT;
+    } else if (dimensionalItemObject instanceof ProgramTrackedEntityAttributeDimensionItem) {
+      ProgramTrackedEntityAttributeDimensionItem item =
+          (ProgramTrackedEntityAttributeDimensionItem) dimensionalItemObject;
+      if (item.getAttribute() != null) {
+        return item.getAttribute().getValueType().toSimplifiedValueType();
+      }
     }
+
+    return NUMBER;
   }
 
   private void setDataItem(DimensionalObject dimensionalObject) {
