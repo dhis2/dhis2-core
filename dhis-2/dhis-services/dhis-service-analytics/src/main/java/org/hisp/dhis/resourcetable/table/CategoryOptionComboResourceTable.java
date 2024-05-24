@@ -77,10 +77,11 @@ public class CategoryOptionComboResourceTable implements ResourceTable {
   @Override
   public List<Index> getIndexes() {
     return List.of(
-        new Index(
-            appendRandom("in_dataelementcategoryoptioncombo"),
-            toStaging(TABLE_NAME),
-            List.of("dataelementuid", "categoryoptioncombouid")));
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_dataelementcategoryoptioncombo"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withColumns(List.of("dataelementuid", "categoryoptioncombouid")));
   }
 
   @Override

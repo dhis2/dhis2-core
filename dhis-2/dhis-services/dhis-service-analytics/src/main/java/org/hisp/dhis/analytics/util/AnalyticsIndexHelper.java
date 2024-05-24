@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
-import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -77,7 +76,13 @@ public final class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
+          indexes.add(
+              Index.builder()
+                  .build()
+                  .withName(name)
+                  .withTableName(partition.getName())
+                  .withIndexType(col.getIndexType())
+                  .withColumns(columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
         }
@@ -95,8 +100,7 @@ public final class AnalyticsIndexHelper {
    * @param columns the index column names.
    * @param tableType the {@link AnalyticsTableType}
    */
-  protected static String getIndexName(
-      String tableName, List<String> columns, AnalyticsTableType tableType) {
+  static String getIndexName(String tableName, List<String> columns, AnalyticsTableType tableType) {
     String columnName = join(columns, "_");
 
     return PREFIX_INDEX
@@ -150,13 +154,13 @@ public final class AnalyticsIndexHelper {
     if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
       String name = indexName + "_lower";
       indexes.add(
-          new Index(
-              name,
-              tableName,
-              column.getIndexType(),
-              Unique.NON_UNIQUE,
-              indexColumns,
-              IndexFunction.LOWER));
+          Index.builder()
+              .build()
+              .withName(name)
+              .withTableName(tableName)
+              .withIndexType(column.getIndexType())
+              .withColumns(indexColumns)
+              .withFunction(IndexFunction.LOWER));
     }
   }
 
@@ -164,7 +168,7 @@ public final class AnalyticsIndexHelper {
    * Shortens the given table name.
    *
    * @param table the table name
-   * @param tableType the {@link AnayticsTableType}
+   * @param tableType the {@link AnalyticsTableType}
    */
   private static String shortenTableName(String table, AnalyticsTableType tableType) {
     table = table.replace(tableType.getTableName(), "ax");
