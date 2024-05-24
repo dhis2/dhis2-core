@@ -371,8 +371,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted, Program program) {
     return trackedEntity.getEnrollments().stream()
         .filter(e -> program == null || program.getUid().equals(e.getProgram().getUid()))
-        .filter(e -> trackerAccessManager.canRead(user, e, false).isEmpty())
         .filter(e -> includeDeleted || !e.isDeleted())
+        .filter(e -> trackerAccessManager.canRead(user, e, false).isEmpty())
         .map(
             e -> {
               Set<Event> filteredEvents =
