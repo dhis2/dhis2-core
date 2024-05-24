@@ -142,13 +142,11 @@ or on one of the tracked entity attributes, enrollments or events for that track
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
-Get tracked entities that has at least one enrollment with an enrollment date after the date
-specified in `enrollmentEnrolledAfter`.
+Get tracked entities that has at least one enrollment with an enrollment date after this date.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
-Get tracked entities that has at least one enrollment with an enrollment date before the date
-specified in `enrollmentEnrolledBefore`.
+Get tracked entities that has at least one enrollment with an enrollment date before this date.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
@@ -156,8 +154,7 @@ Get tracked entities that has at least one enrollment with an occurred date this
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
-Get tracked entities that has at least one enrollment with an occurred date before the date
-specified in `enrollmentOccurredBefore`.
+Get tracked entities that has at least one enrollment with an occurred date before this date.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
