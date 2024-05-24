@@ -74,13 +74,13 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
   private Program program;
 
-  private TrackedEntity tei1;
+  private TrackedEntity trackedEntity1;
 
-  private TrackedEntity tei2;
+  private TrackedEntity trackedEntity2;
 
-  private TrackedEntity tei3;
+  private TrackedEntity trackedEntity3;
 
-  private TrackedEntity tei4;
+  private TrackedEntity trackedEntity4;
 
   private User user;
 
@@ -92,7 +92,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     Enrollment enrollment3;
     Enrollment enrollment4;
 
-    TrackedEntityType teiType;
+    TrackedEntityType trackedEntityType;
 
     userService = _userService;
     user = createAndInjectAdminUser();
@@ -102,46 +102,50 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
     user.getOrganisationUnits().add(orgUnitA);
 
-    teiType = createTrackedEntityType('P');
-    trackedEntityTypeService.addTrackedEntityType(teiType);
+    trackedEntityType = createTrackedEntityType('P');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
 
     program = createProgram('P');
     programService.addProgram(program);
 
-    tei1 = createTrackedEntity(orgUnitA);
-    tei2 = createTrackedEntity(orgUnitA);
-    tei3 = createTrackedEntity(orgUnitA);
-    tei4 = createTrackedEntity(orgUnitA);
-    tei1.setTrackedEntityType(teiType);
-    tei2.setTrackedEntityType(teiType);
-    tei3.setTrackedEntityType(teiType);
-    tei4.setTrackedEntityType(teiType);
+    trackedEntity1 = createTrackedEntity(orgUnitA);
+    trackedEntity2 = createTrackedEntity(orgUnitA);
+    trackedEntity3 = createTrackedEntity(orgUnitA);
+    trackedEntity4 = createTrackedEntity(orgUnitA);
+    trackedEntity1.setTrackedEntityType(trackedEntityType);
+    trackedEntity2.setTrackedEntityType(trackedEntityType);
+    trackedEntity3.setTrackedEntityType(trackedEntityType);
+    trackedEntity4.setTrackedEntityType(trackedEntityType);
 
-    trackedEntityService.addTrackedEntity(tei1);
-    trackedEntityService.addTrackedEntity(tei2);
-    trackedEntityService.addTrackedEntity(tei3);
-    trackedEntityService.addTrackedEntity(tei4);
+    trackedEntityService.addTrackedEntity(trackedEntity1);
+    trackedEntityService.addTrackedEntity(trackedEntity2);
+    trackedEntityService.addTrackedEntity(trackedEntity3);
+    trackedEntityService.addTrackedEntity(trackedEntity4);
 
-    enrollment1 = createEnrollment(program, tei1, orgUnitA);
-    enrollment2 = createEnrollment(program, tei2, orgUnitA);
-    enrollment3 = createEnrollment(program, tei3, orgUnitA);
-    enrollment4 = createEnrollment(program, tei4, orgUnitA);
+    enrollment1 = createEnrollment(program, trackedEntity1, orgUnitA);
+    enrollment2 = createEnrollment(program, trackedEntity2, orgUnitA);
+    enrollment3 = createEnrollment(program, trackedEntity3, orgUnitA);
+    enrollment4 = createEnrollment(program, trackedEntity4, orgUnitA);
 
     enrollmentService.addEnrollment(enrollment1);
     enrollmentService.addEnrollment(enrollment2);
     enrollmentService.addEnrollment(enrollment3);
     enrollmentService.addEnrollment(enrollment4);
 
-    enrollmentService.enrollTrackedEntity(tei1, program, new Date(), new Date(), orgUnitA);
-    enrollmentService.enrollTrackedEntity(tei2, program, new Date(), new Date(), orgUnitA);
-    enrollmentService.enrollTrackedEntity(tei3, program, new Date(), new Date(), orgUnitA);
-    enrollmentService.enrollTrackedEntity(tei4, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(
+        trackedEntity1, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(
+        trackedEntity2, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(
+        trackedEntity3, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(
+        trackedEntity4, program, new Date(), new Date(), orgUnitA);
 
     userService.addUser(user);
   }
 
   @Test
-  void testConfiguredDifferentPositiveMaxTeiLimit() {
+  void testConfiguredDifferentPositiveMaxTrackedEntityLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 4);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3);
 
@@ -164,7 +168,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
-  void testConfiguredSamePositiveMaxTeiLimit() {
+  void testConfiguredSamePositiveMaxTrackedEntityLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 2);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 2);
 
@@ -175,14 +179,14 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertNotEmpty(teis);
-    assertEquals(2, teis.size());
+    assertNotEmpty(trackedEntities);
+    assertEquals(2, trackedEntities.size());
   }
 
   @Test
-  void testConfiguredNegativeMaxTeiLimit() {
+  void testConfiguredNegativeMaxTrackedEntityLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, -1);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
 
@@ -193,13 +197,19 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+    assertContainsOnly(
+        List.of(
+            trackedEntity1.getId(),
+            trackedEntity2.getId(),
+            trackedEntity3.getId(),
+            trackedEntity4.getId()),
+        trackedEntities);
   }
 
   @Test
-  void testDefaultMaxTeiLimit() {
+  void testDefaultMaxTrackedEntityLimit() {
     TrackedEntityQueryParams params = new TrackedEntityQueryParams();
     params.setProgram(program);
     params.setOrgUnits(Set.of(orgUnitA));
@@ -207,13 +217,19 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+    assertContainsOnly(
+        List.of(
+            trackedEntity1.getId(),
+            trackedEntity2.getId(),
+            trackedEntity3.getId(),
+            trackedEntity4.getId()),
+        trackedEntities);
   }
 
   @Test
-  void testDisabledMaxTeiLimit() {
+  void testDisabledMaxTrackedEntityLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 0);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0);
 
@@ -224,13 +240,19 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+    assertContainsOnly(
+        List.of(
+            trackedEntity1.getId(),
+            trackedEntity2.getId(),
+            trackedEntity3.getId(),
+            trackedEntity4.getId()),
+        trackedEntities);
   }
 
   @Test
-  void testConfiguredNewTeiMaxLimit() {
+  void testConfiguredNewTrackedEntityMaxLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, -1);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 2);
 
@@ -241,14 +263,14 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertNotEmpty(teis);
-    assertEquals(2, teis.size());
+    assertNotEmpty(trackedEntities);
+    assertEquals(2, trackedEntities.size());
   }
 
   @Test
-  void testConfiguredDeprecatedTeiMaxLimit() {
+  void testConfiguredDeprecatedTrackedEntityMaxLimit() {
     systemSettingManager.saveSystemSetting(SettingKey.DEPRECATED_TRACKED_ENTITY_MAX_LIMIT, 2);
     systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
 
@@ -259,9 +281,9 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
     params.setUserWithAssignedUsers(null, user, null);
     params.setSkipPaging(true);
 
-    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
+    List<Long> trackedEntities = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-    assertNotEmpty(teis);
-    assertEquals(2, teis.size());
+    assertNotEmpty(trackedEntities);
+    assertEquals(2, trackedEntities.size());
   }
 }

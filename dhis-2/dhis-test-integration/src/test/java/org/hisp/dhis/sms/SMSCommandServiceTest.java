@@ -99,7 +99,7 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
 
   private SMSCommand unregisteredParserCommand;
 
-  private SMSCommand teiRegistrationCommand;
+  private SMSCommand teRegistrationCommand;
 
   private SMSCommand eventRegistrationCommand;
 
@@ -113,7 +113,7 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
 
   private String eventRegistrationCommandName = "event";
 
-  private String teiCommandName = "alert";
+  private String teCommandName = "alert";
 
   private String success = "Command Processed Successfully";
 
@@ -131,9 +131,9 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
 
   private SMSCode smsCodeC;
 
-  private SMSCode smsCodeTeiA;
+  private SMSCode smsCodeTeA;
 
-  private SMSCode smsCodeTeiB;
+  private SMSCode smsCodeTeB;
 
   private SMSCode smsCodeEvent;
 
@@ -197,7 +197,7 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
   protected void setUpTest() throws Exception {
     createKeyValueCommands();
     createAlertParserCommand();
-    createTeiCommand();
+    createTeCommand();
     createUnregisteredParserCommand();
     createEventRegistrationParserCommand();
   }
@@ -229,19 +229,19 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testSaveTeiRegistrationParser() {
-    smsCommandService.save(teiRegistrationCommand);
-    SMSCommand teiCommand = smsCommandService.getSMSCommand(teiCommandName);
-    assertEquals(teiCommandName, teiCommand.getName());
-    assertEquals(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER, teiCommand.getParserType());
-    assertEquals(programA, teiCommand.getProgram());
-    testDefaults(teiCommand, defaultMessagesC);
-    Set<TrackedEntityAttribute> teiAttributes =
-        teiCommand.getCodes().stream()
+  void testSaveTeRegistrationParser() {
+    smsCommandService.save(teRegistrationCommand);
+    SMSCommand teCommand = smsCommandService.getSMSCommand(teCommandName);
+    assertEquals(teCommandName, teCommand.getName());
+    assertEquals(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER, teCommand.getParserType());
+    assertEquals(programA, teCommand.getProgram());
+    testDefaults(teCommand, defaultMessagesC);
+    Set<TrackedEntityAttribute> teAttributes =
+        teCommand.getCodes().stream()
             .map(c -> c.getTrackedEntityAttribute())
             .collect(Collectors.toSet());
-    assertTrue(teiAttributes.contains(trackedEntityAttributeA));
-    assertTrue(teiAttributes.contains(trackedEntityAttributeB));
+    assertTrue(teAttributes.contains(trackedEntityAttributeA));
+    assertTrue(teAttributes.contains(trackedEntityAttributeB));
   }
 
   @Test
@@ -440,26 +440,26 @@ class SMSCommandServiceTest extends TransactionalIntegrationTest {
     keyValueCommandB.setCodes(Sets.newHashSet(smsCodeB1, smsCodeB2));
   }
 
-  private void createTeiCommand() {
+  private void createTeCommand() {
     trackedEntityAttributeA = createTrackedEntityAttribute('A');
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeA);
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
     programA = createProgram('A');
     programService.addProgram(programA);
-    smsCodeTeiA = new SMSCode();
-    smsCodeTeiA.setCode("a");
-    smsCodeTeiA.setTrackedEntityAttribute(trackedEntityAttributeA);
-    smsCodeTeiB = new SMSCode();
-    smsCodeTeiB.setCode("b");
-    smsCodeTeiB.setTrackedEntityAttribute(trackedEntityAttributeB);
-    teiRegistrationCommand = new SMSCommand();
-    teiRegistrationCommand.setName(teiCommandName);
-    teiRegistrationCommand.setProgram(programA);
-    teiRegistrationCommand.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
-    teiRegistrationCommand.setCodes(Sets.newHashSet(smsCodeTeiA, smsCodeTeiB));
-    teiRegistrationCommand.setSuccessMessage(success);
-    teiRegistrationCommand.setNoUserMessage(noUserMessage);
+    smsCodeTeA = new SMSCode();
+    smsCodeTeA.setCode("a");
+    smsCodeTeA.setTrackedEntityAttribute(trackedEntityAttributeA);
+    smsCodeTeB = new SMSCode();
+    smsCodeTeB.setCode("b");
+    smsCodeTeB.setTrackedEntityAttribute(trackedEntityAttributeB);
+    teRegistrationCommand = new SMSCommand();
+    teRegistrationCommand.setName(teCommandName);
+    teRegistrationCommand.setProgram(programA);
+    teRegistrationCommand.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
+    teRegistrationCommand.setCodes(Sets.newHashSet(smsCodeTeA, smsCodeTeB));
+    teRegistrationCommand.setSuccessMessage(success);
+    teRegistrationCommand.setNoUserMessage(noUserMessage);
     defaultMessagesC.put(SUCCESS_MESSAGE, success);
     defaultMessagesC.put(NO_USER_MESSAGE, noUserMessage);
   }

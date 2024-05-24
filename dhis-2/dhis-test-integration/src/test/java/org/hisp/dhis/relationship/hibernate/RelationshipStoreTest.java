@@ -98,13 +98,13 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetByTrackedEntity() {
-    Relationship teiRelationship = addTeiToTeiRelationship();
+    Relationship teRelationship = addTeToTeRelationship();
 
     List<Relationship> relationshipList =
         relationshipService.getRelationshipsByTrackedEntity(trackedEntityA, false);
 
     assertEquals(1, relationshipList.size());
-    assertTrue(relationshipList.contains(teiRelationship));
+    assertTrue(relationshipList.contains(teRelationship));
   }
 
   @Test
@@ -120,7 +120,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
     trackedEntityA = createTrackedEntity(organisationUnit);
     trackedEntityService.addTrackedEntity(trackedEntityA);
 
-    Relationship relationshipA = addTeiToEventRelationship(trackedEntityA, event);
+    Relationship relationshipA = addTeToEventRelationship(trackedEntityA, event);
 
     List<Relationship> relationshipList = relationshipService.getRelationshipsByEvent(event, false);
 
@@ -139,7 +139,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
     Enrollment enrollment = addEnrollment(programA);
 
-    Relationship relationshipA = addTeiToEnrollmentRelationship(trackedEntityA, enrollment);
+    Relationship relationshipA = addTeToEnrollmentRelationship(trackedEntityA, enrollment);
 
     List<Relationship> relationshipList =
         relationshipService.getRelationshipsByEnrollment(enrollment, false);
@@ -152,21 +152,21 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetByRelationshipType() {
-    Relationship teiRelationship = addTeiToTeiRelationship();
+    Relationship teRelationship = addTeToTeRelationship();
 
     List<Relationship> relationshipList =
         relationshipService.getRelationshipsByRelationshipType(relationshipType);
 
     assertEquals(1, relationshipList.size());
-    assertTrue(relationshipList.contains(teiRelationship));
+    assertTrue(relationshipList.contains(teRelationship));
   }
 
   @Test
   void testGetByRelationship() {
-    Relationship teiRelationship = addTeiToTeiRelationship();
+    Relationship teRelationship = addTeToTeRelationship();
 
     Optional<Relationship> existing =
-        relationshipService.getRelationshipByRelationship(teiRelationship);
+        relationshipService.getRelationshipByRelationship(teRelationship);
 
     assertTrue(existing.isPresent());
   }
@@ -186,31 +186,31 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
     assertEquals("test", saved.getAttributeValue(attribute).getValue());
   }
 
-  private Relationship addTeiToTeiRelationship() {
+  private Relationship addTeToTeRelationship() {
     trackedEntityA = createTrackedEntity(organisationUnit);
     trackedEntityB = createTrackedEntity(organisationUnit);
 
     trackedEntityService.addTrackedEntity(trackedEntityA);
     trackedEntityService.addTrackedEntity(trackedEntityB);
 
-    Relationship teiRelationship = new Relationship();
+    Relationship teRelationship = new Relationship();
 
     RelationshipItem relationshipItemFrom = new RelationshipItem();
     RelationshipItem relationshipItemTo = new RelationshipItem();
     relationshipItemFrom.setTrackedEntity(trackedEntityA);
     relationshipItemTo.setTrackedEntity(trackedEntityB);
 
-    teiRelationship.setRelationshipType(relationshipType);
-    teiRelationship.setFrom(relationshipItemFrom);
-    teiRelationship.setTo(relationshipItemTo);
-    teiRelationship.setKey(RelationshipUtils.generateRelationshipKey(teiRelationship));
-    teiRelationship.setInvertedKey(
-        RelationshipUtils.generateRelationshipInvertedKey(teiRelationship));
-    relationshipService.addRelationship(teiRelationship);
-    return teiRelationship;
+    teRelationship.setRelationshipType(relationshipType);
+    teRelationship.setFrom(relationshipItemFrom);
+    teRelationship.setTo(relationshipItemTo);
+    teRelationship.setKey(RelationshipUtils.generateRelationshipKey(teRelationship));
+    teRelationship.setInvertedKey(
+        RelationshipUtils.generateRelationshipInvertedKey(teRelationship));
+    relationshipService.addRelationship(teRelationship);
+    return teRelationship;
   }
 
-  private Relationship addTeiToEventRelationship(TrackedEntity entityInstance, Event event) {
+  private Relationship addTeToEventRelationship(TrackedEntity entityInstance, Event event) {
     RelationshipItem relationshipItemFrom = new RelationshipItem();
     relationshipItemFrom.setTrackedEntity(entityInstance);
     RelationshipItem relationshipItemTo = new RelationshipItem();
@@ -227,7 +227,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
     return relationshipA;
   }
 
-  private Relationship addTeiToEnrollmentRelationship(
+  private Relationship addTeToEnrollmentRelationship(
       TrackedEntity entityInstance, Enrollment enrollment) {
     RelationshipItem relationshipItemFrom = new RelationshipItem();
     relationshipItemFrom.setTrackedEntity(entityInstance);

@@ -65,7 +65,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   private Enrollment enrollmentA;
 
-  private TrackedEntity teiA;
+  private TrackedEntity trackedEntityA;
 
   private TrackedEntity entityInstanceA;
 
@@ -114,7 +114,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
 
   @Autowired private OrganisationUnitService orgUnitService;
 
-  @Autowired private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private ProgramService programService;
 
@@ -163,17 +163,17 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     Set<String> ouUids = new HashSet<>();
     ouUids.add(ouA.getUid());
     // ouSet.add( ouB );
-    teiA = createTrackedEntity(ouA);
-    teiService.addTrackedEntity(teiA);
+    trackedEntityA = createTrackedEntity(ouA);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
     recipientsA = new ProgramMessageRecipients();
     recipientsA.setOrganisationUnit(ouA);
-    recipientsA.setTrackedEntity(teiA);
+    recipientsA.setTrackedEntity(trackedEntityA);
     recipientsB = new ProgramMessageRecipients();
     recipientsB.setOrganisationUnit(ouA);
-    recipientsB.setTrackedEntity(teiA);
+    recipientsB.setTrackedEntity(trackedEntityA);
     recipientsC = new ProgramMessageRecipients();
     recipientsC.setOrganisationUnit(ouA);
-    recipientsC.setTrackedEntity(teiA);
+    recipientsC.setTrackedEntity(trackedEntityA);
     Set<String> phoneNumberListA = new HashSet<>();
     phoneNumberListA.add(msisdn);
     recipientsA.setPhoneNumbers(phoneNumberListA);
