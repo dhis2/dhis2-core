@@ -345,7 +345,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
     }
-    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity));
+
+    result.setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(trackedEntity, program));
 
     return result;
   }
@@ -386,9 +387,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity) {
+      TrackedEntity trackedEntity, Program program) {
     Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes();
+        new HashSet<>(trackedEntity.getTrackedEntityType().getTrackedEntityAttributes());
+
+    if (program != null) {
+      readableAttributes.addAll(program.getTrackedEntityAttributes());
+    }
+
     return trackedEntity.getTrackedEntityAttributeValues().stream()
         .filter(av -> readableAttributes.contains(av.getAttribute()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
