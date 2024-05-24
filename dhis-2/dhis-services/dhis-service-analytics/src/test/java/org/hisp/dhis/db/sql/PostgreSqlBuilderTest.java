@@ -40,7 +40,6 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
-import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
 class PostgreSqlBuilderTest {
@@ -63,16 +62,28 @@ class PostgreSqlBuilderTest {
 
   private List<Index> getIndexesA() {
     return List.of(
-        new Index("in_immunization_data", "immunization", List.of("data")),
-        new Index("in_immunization_period_created", "immunization", List.of("period", "created")),
-        new Index("in_immunization_user", "immunization", IndexType.GIN, List.of("user")),
-        new Index(
-            "in_immunization_data_period",
-            "immunization",
-            IndexType.BTREE,
-            Unique.NON_UNIQUE,
-            List.of("data", "period"),
-            IndexFunction.LOWER));
+        Index.builder()
+            .build()
+            .withName("in_immunization_data")
+            .withTableName("immunization")
+            .withColumns(List.of("data")),
+        Index.builder()
+            .build()
+            .withName("in_immunization_period_created")
+            .withTableName("immunization")
+            .withColumns(List.of("period", "created")),
+        Index.builder()
+            .build()
+            .withName("in_immunization_user")
+            .withTableName("immunization")
+            .withIndexType(IndexType.GIN)
+            .withColumns(List.of("user")),
+        Index.builder()
+            .build()
+            .withName("in_immunization_data_period")
+            .withTableName("immunization")
+            .withColumns(List.of("data", "period"))
+            .withFunction(IndexFunction.LOWER));
   }
 
   private Table getTableB() {

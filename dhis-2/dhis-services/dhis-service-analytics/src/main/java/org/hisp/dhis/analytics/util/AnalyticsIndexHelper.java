@@ -46,7 +46,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
-import org.hisp.dhis.db.model.constraint.Unique;
 
 /**
  * Helper class that encapsulates methods responsible for supporting the creation of analytics
@@ -78,7 +77,13 @@ public class AnalyticsIndexHelper {
           List<String> columns =
               col.hasIndexColumns() ? col.getIndexColumns() : List.of(col.getName());
 
-          indexes.add(new Index(name, partition.getName(), col.getIndexType(), columns));
+          indexes.add(
+              Index.builder()
+                  .build()
+                  .withName(name)
+                  .withTableName(partition.getName())
+                  .withIndexType(col.getIndexType())
+                  .withColumns(columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
           maybeAddDateSortOrderIndex(indexes, name, partition.getName(), col, columns);
@@ -97,8 +102,7 @@ public class AnalyticsIndexHelper {
    * @param columns the index column names.
    * @param tableType the {@link AnalyticsTableType}
    */
-  protected static String getIndexName(
-      String tableName, List<String> columns, AnalyticsTableType tableType) {
+  static String getIndexName(String tableName, List<String> columns, AnalyticsTableType tableType) {
     String columnName = join(columns, "_");
 
     return PREFIX_INDEX
@@ -155,13 +159,13 @@ public class AnalyticsIndexHelper {
         && isSingleColumn) {
       String name = indexName + "_lower";
       indexes.add(
-          new Index(
-              name,
-              tableName,
-              column.getIndexType(),
-              Unique.NON_UNIQUE,
-              indexColumns,
-              IndexFunction.LOWER));
+          Index.builder()
+              .build()
+              .withName(name)
+              .withTableName(tableName)
+              .withIndexType(column.getIndexType())
+              .withColumns(indexColumns)
+              .withFunction(IndexFunction.LOWER));
     }
   }
 
