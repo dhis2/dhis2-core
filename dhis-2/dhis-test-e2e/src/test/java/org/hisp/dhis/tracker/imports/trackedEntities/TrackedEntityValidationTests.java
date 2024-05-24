@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.tei;
+package org.hisp.dhis.tracker.imports.trackedEntities;
 
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
@@ -45,7 +45,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.EnrollmentDataBuilder;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiValidationTests extends TrackerApiTest {
+public class TrackedEntityValidationTests extends TrackerApiTest {
   private String trackedEntityType;
 
   private String program;
@@ -80,7 +80,7 @@ public class TeiValidationTests extends TrackerApiTest {
     String value = DataGenerator.randomString();
 
     JsonObject payload =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .addAttribute(uniqueTetAttribute, value)
             .addAttribute(mandatoryTetAttribute, value)
             .array(trackedEntityType, Constants.ORG_UNIT_IDS[0]);
@@ -98,7 +98,8 @@ public class TeiValidationTests extends TrackerApiTest {
   @Test
   public void shouldReturnErrorReportsWhenTetIncorrect() {
     // arrange
-    JsonObject trackedEntities = new TeiDataBuilder().array("", Constants.ORG_UNIT_IDS[0]);
+    JsonObject trackedEntities =
+        new TrackedEntityDataBuilder().array("", Constants.ORG_UNIT_IDS[0]);
 
     // act
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(trackedEntities);
@@ -109,7 +110,7 @@ public class TeiValidationTests extends TrackerApiTest {
 
   @Test
   public void shouldNotReturnErrorWhenMandatoryTetAttributeIsPresent() {
-    JsonObject trackedEntities = buildTeiWithMandatoryAttribute().array();
+    JsonObject trackedEntities = buildTrackedEntityWithMandatoryAttribute().array();
 
     // assert
     trackerImportExportActions.postAndGetJobReport(trackedEntities).validateSuccessfulImport();
@@ -119,7 +120,7 @@ public class TeiValidationTests extends TrackerApiTest {
   public void shouldReturnErrorWhenMandatoryAttributesMissing() {
     // arrange
     JsonObject trackedEntities =
-        new TeiDataBuilder().array(trackedEntityType, Constants.ORG_UNIT_IDS[0]);
+        new TrackedEntityDataBuilder().array(trackedEntityType, Constants.ORG_UNIT_IDS[0]);
 
     // assert
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(trackedEntities);
@@ -129,7 +130,7 @@ public class TeiValidationTests extends TrackerApiTest {
 
   @Test
   public void shouldReturnErrorWhenRemovingMandatoryAttributes() {
-    JsonObject object = buildTeiWithEnrollmentAndMandatoryAttributes().array();
+    JsonObject object = buildTrackedEntityWithEnrollmentAndMandatoryAttributes().array();
 
     TrackerApiResponse response =
         trackerImportExportActions.postAndGetJobReport(
@@ -167,7 +168,7 @@ public class TeiValidationTests extends TrackerApiTest {
 
   @Test
   public void shouldNotReturnErrorWhenRemovingNotMandatoryAttributes() {
-    JsonObject payload = buildTeiWithMandatoryAndOptionSetAttribute().array();
+    JsonObject payload = buildTrackedEntityWithMandatoryAndOptionSetAttribute().array();
 
     String teiId =
         trackerImportExportActions
@@ -191,7 +192,7 @@ public class TeiValidationTests extends TrackerApiTest {
   public void shouldReturnErrorWhenMandatoryProgramAttributeMissing() {
     // arrange
     JsonObject trackedEntities =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .buildWithEnrollment(trackedEntityType, Constants.ORG_UNIT_IDS[0], program);
 
     // assert
@@ -206,7 +207,7 @@ public class TeiValidationTests extends TrackerApiTest {
   @Test
   public void shouldReturnErrorWhenAttributeWithOptionSetInvalid() {
     JsonObject trackedEntities =
-        buildTeiWithMandatoryAttribute()
+        buildTrackedEntityWithMandatoryAttribute()
             .addAttribute(attributeWithOptionSet, DataGenerator.randomString())
             .array();
 
@@ -220,7 +221,7 @@ public class TeiValidationTests extends TrackerApiTest {
   @Test
   public void shouldReturnSuccessWhenAttributeMultiTextIsValid() {
     JsonObject trackedEntities =
-        buildTeiWithMandatoryAttribute()
+        buildTrackedEntityWithMandatoryAttribute()
             .addAttribute(attributeWithMultiText, "TA_NO,TA_YES")
             .array();
 
@@ -234,9 +235,9 @@ public class TeiValidationTests extends TrackerApiTest {
   @Test
   public void shouldReturnErrorWhenUpdatingSoftDeletedTEI() {
     JsonObject trackedEntities =
-        new TeiDataBuilder()
-            .setTeiType(Constants.TRACKED_ENTITY_TYPE)
-            .setOu(Constants.ORG_UNIT_IDS[0])
+        new TrackedEntityDataBuilder()
+            .setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE)
+            .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .array();
 
     // create TEI
@@ -245,7 +246,7 @@ public class TeiValidationTests extends TrackerApiTest {
     response.validateSuccessfulImport();
 
     String teiId = response.extractImportedTrackedEntities().get(0);
-    JsonObject trackedEntitiesToDelete = new TeiDataBuilder().setId(teiId).array();
+    JsonObject trackedEntitiesToDelete = new TrackedEntityDataBuilder().setId(teiId).array();
 
     // delete TEI
     TrackerApiResponse deleteResponse =
@@ -255,10 +256,10 @@ public class TeiValidationTests extends TrackerApiTest {
     deleteResponse.validateSuccessfulImport();
 
     JsonObject trackedEntitiesToImportAgain =
-        new TeiDataBuilder()
+        new TrackedEntityDataBuilder()
             .setId(teiId)
-            .setTeiType(Constants.TRACKED_ENTITY_TYPE)
-            .setOu(Constants.ORG_UNIT_IDS[0])
+            .setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE)
+            .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .array();
 
     // Update TEI
@@ -270,29 +271,30 @@ public class TeiValidationTests extends TrackerApiTest {
 
   @Test
   public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent() {
-    JsonObject trackedEntities = buildTeiWithMandatoryAndOptionSetAttribute().array();
+    JsonObject trackedEntities = buildTrackedEntityWithMandatoryAndOptionSetAttribute().array();
 
     trackerImportExportActions.postAndGetJobReport(trackedEntities).validateSuccessfulImport();
   }
 
-  private TeiDataBuilder buildTeiWithMandatoryAndOptionSetAttribute() {
-    return buildTeiWithMandatoryAttribute().addAttribute(attributeWithOptionSet, "TA_YES");
+  private TrackedEntityDataBuilder buildTrackedEntityWithMandatoryAndOptionSetAttribute() {
+    return buildTrackedEntityWithMandatoryAttribute()
+        .addAttribute(attributeWithOptionSet, "TA_YES");
   }
 
-  private TeiDataBuilder buildTeiWithMandatoryAttribute() {
-    return new TeiDataBuilder()
-        .setTeiType(trackedEntityType)
-        .setOu(Constants.ORG_UNIT_IDS[0])
+  private TrackedEntityDataBuilder buildTrackedEntityWithMandatoryAttribute() {
+    return new TrackedEntityDataBuilder()
+        .setTrackedEntityType(trackedEntityType)
+        .setOrgUnit(Constants.ORG_UNIT_IDS[0])
         .addAttribute(mandatoryTetAttribute, DataGenerator.randomString());
   }
 
-  private TeiDataBuilder buildTeiWithEnrollmentAndMandatoryAttributes() {
-    return buildTeiWithMandatoryAttribute()
+  private TrackedEntityDataBuilder buildTrackedEntityWithEnrollmentAndMandatoryAttributes() {
+    return buildTrackedEntityWithMandatoryAttribute()
         .addEnrollment(
             new EnrollmentDataBuilder()
                 .addAttribute(mandatoryProgramAttribute, DataGenerator.randomString())
                 .setProgram(program)
-                .setOu(Constants.ORG_UNIT_IDS[0]));
+                .setOrgUnit(Constants.ORG_UNIT_IDS[0]));
   }
 
   private void setupData() {

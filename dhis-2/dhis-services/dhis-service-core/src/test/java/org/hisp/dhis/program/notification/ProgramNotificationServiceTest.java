@@ -162,7 +162,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   private OrganisationUnit lvlTwoLeftRight;
 
-  private TrackedEntity tei;
+  private TrackedEntity te;
 
   private DataElement dataElement;
 
@@ -252,7 +252,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
     assertEquals(TrackedEntity.class, programMessage.getRecipients().getTrackedEntity().getClass());
-    assertEquals(tei, programMessage.getRecipients().getTrackedEntity());
+    assertEquals(te, programMessage.getRecipients().getTrackedEntity());
   }
 
   @Test
@@ -278,7 +278,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
     assertEquals(TrackedEntity.class, programMessage.getRecipients().getTrackedEntity().getClass());
-    assertEquals(tei, programMessage.getRecipients().getTrackedEntity());
+    assertEquals(te, programMessage.getRecipients().getTrackedEntity());
   }
 
   @Test
@@ -751,22 +751,22 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
     dataElementEmail.setValueType(ValueType.EMAIL);
 
     // Enrollment & TEI
-    tei = new TrackedEntity();
-    tei.setAutoFields();
-    tei.setOrganisationUnit(lvlTwoLeftLeft);
+    te = new TrackedEntity();
+    te.setAutoFields();
+    te.setOrganisationUnit(lvlTwoLeftLeft);
 
-    attributeValue = createTrackedEntityAttributeValue('P', tei, trackedEntityAttribute);
-    attributeValueEmail = createTrackedEntityAttributeValue('E', tei, trackedEntityAttribute);
+    attributeValue = createTrackedEntityAttributeValue('P', te, trackedEntityAttribute);
+    attributeValueEmail = createTrackedEntityAttributeValue('E', te, trackedEntityAttribute);
     attributeValue.setValue(ATT_PHONE_NUMBER);
     attributeValueEmail.setValue(ATT_EMAIL);
-    tei.getTrackedEntityAttributeValues().add(attributeValue);
-    tei.getTrackedEntityAttributeValues().add(attributeValueEmail);
+    te.getTrackedEntityAttributeValues().add(attributeValue);
+    te.getTrackedEntityAttributeValues().add(attributeValueEmail);
 
     Enrollment enrollment = new Enrollment();
     enrollment.setAutoFields();
     enrollment.setProgram(programA);
     enrollment.setOrganisationUnit(lvlTwoLeftLeft);
-    enrollment.setTrackedEntity(tei);
+    enrollment.setTrackedEntity(te);
 
     Event event = new Event();
     event.setAutoFields();

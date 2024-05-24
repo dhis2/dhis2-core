@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.tei;
+package org.hisp.dhis.tracker.imports.trackedEntities;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -50,7 +50,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
-import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TrackedEntityDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,23 +60,23 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiImportTests extends TrackerApiTest {
-  private String teiId;
+public class TrackedEntityImportTests extends TrackerApiTest {
+  private String teId;
 
   @BeforeAll
   public void beforeAll() throws Exception {
     loginActions.loginAsSuperUser();
 
-    teiId = super.importTei();
+    teId = super.importTrackedEntity();
   }
 
   @Test
-  public void shouldImportTei() {
+  public void shouldImportTrackedEntity() {
     // arrange
     JsonObject trackedEntities =
-        new TeiDataBuilder()
-            .setTeiType(Constants.TRACKED_ENTITY_TYPE)
-            .setOu(Constants.ORG_UNIT_IDS[0])
+        new TrackedEntityDataBuilder()
+            .setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE)
+            .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .array();
 
     // act
@@ -89,28 +89,28 @@ public class TeiImportTests extends TrackerApiTest {
         .body("objectReports", notNullValue())
         .body("objectReports[0].errorReports", empty());
 
-    // assert that the tei was imported
-    String teiId = response.extractImportedTrackedEntities().get(0);
+    // assert that the te was imported
+    String teId = response.extractImportedTrackedEntities().get(0);
 
-    ApiResponse teiResponse = trackerImportExportActions.getTrackedEntity(teiId);
+    ApiResponse teResponse = trackerImportExportActions.getTrackedEntity(teId);
 
-    teiResponse.validate().statusCode(200);
+    teResponse.validate().statusCode(200);
 
     assertThat(
-        teiResponse.getBody(),
+        teResponse.getBody(),
         matchesJSON(trackedEntities.get("trackedEntities").getAsJsonArray().get(0)));
   }
 
   @Test
-  public void shouldImportTeiAndEnrollmentWithAttributes() throws Exception {
-    JsonObject teiBody =
+  public void shouldImportTrackedEntityAndEnrollmentWithAttributes() throws Exception {
+    JsonObject teBody =
         new FileReaderUtils()
             .readJsonAndGenerateData(
                 new File(
-                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndAttributes.json"));
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntityWithEnrollmentAndAttributes.json"));
 
     // act
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(teiBody);
+    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(teBody);
 
     // assert
     response
@@ -122,29 +122,30 @@ public class TeiImportTests extends TrackerApiTest {
         .body("ENROLLMENT.objectReports", hasSize(1));
 
     // assert that the TEI was imported
-    String teiId = response.extractImportedTrackedEntities().get(0);
+    String teId = response.extractImportedTrackedEntities().get(0);
 
-    ApiResponse teiResponse = trackerImportExportActions.getTrackedEntity(teiId);
+    ApiResponse teResponse = trackerImportExportActions.getTrackedEntity(teId);
 
-    teiResponse.validate().statusCode(200);
+    teResponse.validate().statusCode(200);
   }
 
   @Test
-  public void shouldImportTeisWithEnrollmentsEventsAndRelationship() throws Exception {
-    JsonObject teiPayload =
+  public void shouldImportTrackedEntitysWithEnrollmentsEventsAndRelationship() throws Exception {
+    JsonObject tePayload =
         new FileReaderUtils()
             .readJsonAndGenerateData(
                 new File(
-                    "src/test/resources/tracker/importer/teis/tesWithEnrollmentsEventsAndRelationships.json"));
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntitiesWithEnrollmentsEventsAndRelationships.json"));
 
-    JsonObject teiToTeiRelationship =
+    JsonObject teToTrackedEntityRelationship =
         new RelationshipDataBuilder()
             .buildTrackedEntityRelationship("v4LGvFNxdYH", "bXanyK15d68", "xLmPUYJX8Ks");
 
-    JsonObjectBuilder.jsonObject(teiPayload).addArray("relationships", teiToTeiRelationship);
+    JsonObjectBuilder.jsonObject(tePayload)
+        .addArray("relationships", teToTrackedEntityRelationship);
 
     // act
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(teiPayload);
+    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(tePayload);
 
     response
         .validateSuccessfulImport()
@@ -156,18 +157,17 @@ public class TeiImportTests extends TrackerApiTest {
         .body("EVENT.objectReports", hasSize(2))
         .body("RELATIONSHIP.objectReports", hasSize(1));
 
-    JsonObject teiBody =
-        teiPayload.get("trackedEntities").getAsJsonArray().get(0).getAsJsonObject();
+    JsonObject teBody = tePayload.get("trackedEntities").getAsJsonArray().get(0).getAsJsonObject();
 
     ApiResponse trackedEntityResponse =
         trackerImportExportActions
-            .getTrackedEntity(teiBody.get("trackedEntity").getAsString() + "?fields=*")
+            .getTrackedEntity(teBody.get("trackedEntity").getAsString() + "?fields=*")
             .validateStatus(200);
 
-    // Compare Tei Relationship
+    // Compare TrackedEntity Relationship
     assertThat(
         trackedEntityResponse.getBody().getAsJsonArray("relationships").get(0),
-        matchesJSON(teiToTeiRelationship));
+        matchesJSON(teToTrackedEntityRelationship));
 
     // Compare Enrollment attributes and events
     JsonArray enrollmentsAttributes =
@@ -184,12 +184,12 @@ public class TeiImportTests extends TrackerApiTest {
         ea -> expectedAttributes.add(ea.getAsJsonObject().get("attribute").getAsString()));
 
     assertThat(
-        teiBody.getAsJsonObject("events"),
+        teBody.getAsJsonObject("events"),
         equalTo(trackedEntityResponse.getBody().getAsJsonObject("events")));
     assertThat(expectedAttributes, containsInAnyOrder("kZeSYCgaHTk", "dIVt4l5vIOa"));
   }
 
-  Stream<Arguments> shouldImportTeiAttributes() {
+  Stream<Arguments> shouldImportTrackedEntityAttributes() {
     return Stream.of(
         Arguments.of("xuAl9UIMcmI", Constants.ORG_UNIT_IDS[1], "ORGANISATION_UNIT"),
         Arguments.of("kZeSYCgaHTk", "TEXT_ATTRIBUTE_VALUE", "TEXT"),
@@ -199,19 +199,20 @@ public class TeiImportTests extends TrackerApiTest {
   }
 
   @MethodSource()
-  @ParameterizedTest(name = "update tei with attribute value type {2}")
-  public void shouldImportTeiAttributes(String teaId, String attributeValue, String attValueType) {
+  @ParameterizedTest(name = "update te with attribute value type {2}")
+  public void shouldImportTrackedEntityAttributes(
+      String teaId, String attributeValue, String attValueType) {
     JsonObject payload =
-        new TeiDataBuilder()
-            .setId(teiId)
-            .setOu(Constants.ORG_UNIT_IDS[0])
+        new TrackedEntityDataBuilder()
+            .setId(teId)
+            .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .addAttribute(teaId, attributeValue)
             .array();
 
     trackerImportExportActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
     trackerImportExportActions
-        .getTrackedEntity(teiId + "?fields=attributes")
+        .getTrackedEntity(teId + "?fields=attributes")
         .validate()
         .body("attributes.value", hasItem(attributeValue));
   }
@@ -226,7 +227,7 @@ public class TeiImportTests extends TrackerApiTest {
         new FileReaderUtils()
             .read(
                 new File(
-                    "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json"))
+                    "src/test/resources/tracker/importer/trackedEntities/trackedEntityWithEnrollmentAndEventsNested.json"))
             .get(JsonObject.class);
     String teUID =
         trackerImportExportActions
