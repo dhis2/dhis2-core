@@ -73,7 +73,7 @@ class IndexTest {
     assertNull(index.getFunction());
     assertNull(index.getColumns());
     assertNull(index.getSortOrder());
-    assertSame(index.getIndexType(), IndexType.BTREE);
+    assertSame(IndexType.BTREE, index.getIndexType());
     assertFalse(index.isUnique());
   }
 }
