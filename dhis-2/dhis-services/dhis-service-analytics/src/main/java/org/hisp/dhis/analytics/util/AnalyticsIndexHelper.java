@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.db.model.DataType.TEXT;
+import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +86,7 @@ public final class AnalyticsIndexHelper {
                   .withColumns(columns));
 
           maybeAddTextLowerIndex(indexes, name, partition.getName(), col, columns);
+          maybeAddDateSortOrderIndex(indexes, name, partition.getName(), col, columns);
         }
       }
     }
@@ -151,7 +153,10 @@ public final class AnalyticsIndexHelper {
     String columnName = RegExUtils.removeAll(column.getName(), "\"");
     boolean isSingleColumn = indexColumns.size() == 1;
 
-    if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
+    if (column.getDataType() == TEXT
+        && !column.isStatic()
+        && isValidUid(columnName)
+        && isSingleColumn) {
       String name = indexName + "_lower";
       indexes.add(
           Index.builder()
@@ -161,6 +166,27 @@ public final class AnalyticsIndexHelper {
               .withIndexType(column.getIndexType())
               .withColumns(indexColumns)
               .withFunction(IndexFunction.LOWER));
+    }
+  }
+
+  private static void maybeAddDateSortOrderIndex(
+      List<Index> indexes,
+      String indexName,
+      String tableName,
+      AnalyticsTableColumn column,
+      List<String> indexColumns) {
+
+    boolean isSingleColumn = indexColumns.size() == 1;
+
+    if (column.getDataType() == TIMESTAMP && column.isStatic() && isSingleColumn) {
+      indexes.add(
+          new Index(
+              indexName + "_desc",
+              tableName,
+              column.getIndexType(),
+              Unique.NON_UNIQUE,
+              indexColumns,
+              "desc nulls last"));
     }
   }
 

@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -38,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/dataElements")
 @AllArgsConstructor

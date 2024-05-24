@@ -1056,9 +1056,8 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   @Override
   public boolean exists(String uid) {
     Query<?> query =
-        getSession()
-            .createNativeQuery(
-                "select count(*) from trackedentity where uid=:uid and deleted is false");
+        nativeSynchronizedQuery(
+            "select count(*) from trackedentity where uid=:uid and deleted is false");
     query.setParameter("uid", uid);
     int count = ((Number) query.getSingleResult()).intValue();
 
@@ -1067,8 +1066,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
 
   @Override
   public boolean existsIncludingDeleted(String uid) {
-    Query<?> query =
-        getSession().createNativeQuery("select count(*) from trackedentity where uid=:uid");
+    Query<?> query = nativeSynchronizedQuery("select count(*) from trackedentity where uid=:uid");
     query.setParameter("uid", uid);
     int count = ((Number) query.getSingleResult()).intValue();
 

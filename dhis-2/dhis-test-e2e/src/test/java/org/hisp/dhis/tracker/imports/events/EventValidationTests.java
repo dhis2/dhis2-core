@@ -41,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.deprecated.tracker.EventActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -79,8 +78,6 @@ public class EventValidationTests extends TrackerApiTest {
 
   private ProgramActions programActions;
 
-  private EventActions eventActions;
-
   private String enrollment;
 
   private static Stream<Arguments> provideValidationArguments() {
@@ -95,7 +92,6 @@ public class EventValidationTests extends TrackerApiTest {
   @BeforeAll
   public void beforeAll() {
     programActions = new ProgramActions();
-    eventActions = new EventActions();
 
     loginActions.loginAsSuperUser();
     setupData();

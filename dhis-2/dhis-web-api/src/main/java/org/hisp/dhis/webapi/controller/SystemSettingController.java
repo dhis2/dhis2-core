@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -79,7 +80,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@OpenApi.Tags("system")
+@OpenApi.Document(domain = SystemSetting.class)
 @Controller
 @RequestMapping("/api/systemSettings")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -75,7 +75,6 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author Halvdan Hoem Grelland
  */
-@OpenApi.Tags("system")
 @RestController
 @RequestMapping("/api/fileResources")
 @Slf4j

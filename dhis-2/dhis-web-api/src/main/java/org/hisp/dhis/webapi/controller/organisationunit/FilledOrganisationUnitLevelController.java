@@ -59,7 +59,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("metadata")
+@OpenApi.Document(domain = OrganisationUnitLevel.class)
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/filledOrganisationUnitLevels")

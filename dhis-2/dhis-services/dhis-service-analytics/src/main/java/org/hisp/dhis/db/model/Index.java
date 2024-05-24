@@ -61,8 +61,8 @@ public class Index {
   @With private final String condition;
 
   /** SQL function to use for index columns. Optional, may be null. */
-  @With private final IndexFunction function;
 
+  @With private final IndexFunction function;
   /**
    * Indicates whether the index is unique.
    *

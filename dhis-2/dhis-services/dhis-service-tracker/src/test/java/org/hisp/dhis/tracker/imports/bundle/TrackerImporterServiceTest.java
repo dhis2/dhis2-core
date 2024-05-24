@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -130,7 +130,7 @@ class TrackerImporterServiceTest {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(parameters, objects, new User()));
 
-    subject.importTracker(parameters, trackerObjects, NoopJobProgress.INSTANCE);
+    subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
     verify(trackerBundleService, times(0)).handleTrackerSideEffects(anyList());
   }
@@ -143,7 +143,7 @@ class TrackerImporterServiceTest {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(params, trackerObjects, new User()));
 
-    subject.importTracker(params, trackerObjects, NoopJobProgress.INSTANCE);
+    subject.importTracker(params, trackerObjects, JobProgress.noop());
 
     verify(trackerBundleService, times(1)).handleTrackerSideEffects(anyList());
   }

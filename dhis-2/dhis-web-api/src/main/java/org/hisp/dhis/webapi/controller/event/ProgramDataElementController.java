@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -62,7 +63,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags("tracker")
+@OpenApi.Document(domain = DimensionalItemObject.class)
 @Controller
 @RequestMapping("/api/programDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

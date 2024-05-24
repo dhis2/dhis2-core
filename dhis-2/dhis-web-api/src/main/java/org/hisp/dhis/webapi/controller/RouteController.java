@@ -32,7 +32,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -51,7 +50,6 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Morten Olav Hansen
  */
 @RestController
-@OpenApi.Tags("integration")
 @RequiredArgsConstructor
 @RequestMapping("/api/routes")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
