@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4018;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -109,10 +109,10 @@ class DuplicationValidatorTest {
     relType.setUid(CodeGenerator.generateUid());
 
     RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-    relationshipConstraintFrom.setRelationshipEntity(TRACKED_ENTITY_INSTANCE);
+    relationshipConstraintFrom.setRelationshipEntity(TRACKED_ENTITY);
 
     RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-    relationshipConstraintTo.setRelationshipEntity(TRACKED_ENTITY_INSTANCE);
+    relationshipConstraintTo.setRelationshipEntity(TRACKED_ENTITY);
 
     relType.setFromConstraint(relationshipConstraintFrom);
     relType.setToConstraint(relationshipConstraintTo);

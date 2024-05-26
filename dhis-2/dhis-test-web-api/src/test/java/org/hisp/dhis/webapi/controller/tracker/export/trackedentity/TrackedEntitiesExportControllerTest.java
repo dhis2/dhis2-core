@@ -1091,8 +1091,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   private RelationshipType relationshipTypeNotAccessible() {
-    return relationshipType(
-        RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    return relationshipType(RelationshipEntity.TRACKED_ENTITY, RelationshipEntity.TRACKED_ENTITY);
   }
 
   private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
@@ -1108,14 +1107,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private Relationship relationship(TrackedEntity from, TrackedEntity to) {
     RelationshipType type =
         relationshipTypeAccessible(
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+            RelationshipEntity.TRACKED_ENTITY, RelationshipEntity.TRACKED_ENTITY);
     return relationship(type, fromTrackedEntity(from), toTrackedEntity(to));
   }
 
   private Relationship relationship(TrackedEntity from, Event to) {
     RelationshipType type =
-        relationshipTypeAccessible(
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+        relationshipTypeAccessible(RelationshipEntity.TRACKED_ENTITY, RelationshipEntity.EVENT);
     RelationshipItem fromItem = fromTrackedEntity(from);
     RelationshipItem toItem = toEvent(to);
     Relationship relationship = relationship(type, fromItem, toItem);

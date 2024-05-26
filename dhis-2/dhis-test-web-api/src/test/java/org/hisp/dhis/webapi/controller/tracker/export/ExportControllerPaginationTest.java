@@ -391,8 +391,8 @@ class ExportControllerPaginationTest extends DhisControllerConvenienceTest {
 
   private RelationshipType relationshipType() {
     RelationshipType type = createRelationshipType('A');
-    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
-    type.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
+    type.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     type.getSharing().setOwner(owner);
     type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(type, false);

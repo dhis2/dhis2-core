@@ -604,8 +604,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
     ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
 
-    RelationshipType relationshipTypeA =
-        createRelationshipType(RelationshipEntity.PROGRAM_INSTANCE);
+    RelationshipType relationshipTypeA = createRelationshipType(RelationshipEntity.ENROLLMENT);
 
     EventQueryParams.Builder params =
         new EventQueryParams.Builder(createRequestParams(programIndicatorA, relationshipTypeA))
@@ -653,7 +652,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     RelationshipType relationshipTypeA = rnd.nextObject(RelationshipType.class);
 
     RelationshipConstraint from = new RelationshipConstraint();
-    from.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    from.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
 
     RelationshipConstraint to = new RelationshipConstraint();
     to.setRelationshipEntity(toConstraint);
@@ -664,7 +663,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   private RelationshipType createRelationshipType() {
-    return createRelationshipType(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    return createRelationshipType(RelationshipEntity.TRACKED_ENTITY);
   }
 
   private void assertSql(String actual, String expected) {

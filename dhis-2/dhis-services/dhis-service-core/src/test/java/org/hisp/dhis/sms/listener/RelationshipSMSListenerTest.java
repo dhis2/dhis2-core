@@ -182,7 +182,7 @@ class RelationshipSMSListenerTest extends CompressionSMSListenerTest {
     relationshipType = new RelationshipType();
     relationshipType.setAutoFields();
     RelationshipConstraint relConstraint = new RelationshipConstraint();
-    relConstraint.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    relConstraint.setRelationshipEntity(RelationshipEntity.ENROLLMENT);
     relationshipType.setToConstraint(relConstraint);
     relationshipType.setFromConstraint(relConstraint);
 

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.ENROLLMENT;
+import static org.hisp.dhis.relationship.RelationshipEntity.EVENT;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY;
 
 import com.google.common.collect.Sets;
 import java.util.HashSet;
@@ -155,13 +155,13 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
   private void validateRelationshipConstraint(
       RelationshipConstraint constraint, Consumer<ErrorReport> addReports) {
     switch (constraint.getRelationshipEntity()) {
-      case TRACKED_ENTITY_INSTANCE:
+      case TRACKED_ENTITY:
         validateTrackedEntityInstance(constraint, addReports, constraint.getTrackerDataView());
         break;
-      case PROGRAM_INSTANCE:
+      case ENROLLMENT:
         validateProgramInstance(constraint, addReports, constraint.getTrackerDataView());
         break;
-      case PROGRAM_STAGE_INSTANCE:
+      case EVENT:
         validateProgramStageInstance(constraint, addReports, constraint.getTrackerDataView());
         break;
     }
@@ -188,7 +188,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4023,
               PROGRAM_STAGE,
               RELATIONSHIP_ENTITY,
-              TRACKED_ENTITY_INSTANCE));
+              TRACKED_ENTITY));
     }
 
     // Should be not be null
@@ -199,7 +199,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4024,
               "trackedEntityType",
               RELATIONSHIP_ENTITY,
-              TRACKED_ENTITY_INSTANCE));
+              TRACKED_ENTITY));
     } else {
       trackedEntityType = trackedEntityTypeService.getTrackedEntityType(trackedEntityType.getUid());
 
@@ -273,7 +273,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4023,
               "trackedEntityType",
               RELATIONSHIP_ENTITY,
-              PROGRAM_INSTANCE));
+              ENROLLMENT));
     }
 
     if (constraint.getProgramStage() != null) {
@@ -283,7 +283,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4023,
               PROGRAM_STAGE,
               RELATIONSHIP_ENTITY,
-              PROGRAM_INSTANCE));
+              ENROLLMENT));
     }
 
     // Should be not be null
@@ -294,7 +294,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4024,
               PROGRAM,
               RELATIONSHIP_ENTITY,
-              PROGRAM_INSTANCE));
+              ENROLLMENT));
     } else {
       Program program = programService.getProgram(constraint.getProgram().getUid());
 
@@ -332,7 +332,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4023,
               DATA_ELEMENT,
               RELATIONSHIP_ENTITY,
-              PROGRAM_INSTANCE));
+              ENROLLMENT));
     }
   }
 
@@ -356,7 +356,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4023,
               "trackedEntityType",
               RELATIONSHIP_ENTITY,
-              PROGRAM_STAGE_INSTANCE));
+              EVENT));
     }
 
     if (constraint.getProgramStage() == null) {
@@ -366,7 +366,7 @@ public class RelationshipTypeObjectBundleHook extends AbstractObjectBundleHook<R
               ErrorCode.E4024,
               PROGRAM_STAGE,
               RELATIONSHIP_ENTITY,
-              PROGRAM_STAGE_INSTANCE));
+              EVENT));
     }
 
     Program program =

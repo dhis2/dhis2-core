@@ -866,8 +866,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   private RelationshipType relationshipTypeNotAccessible() {
-    return relationshipType(
-        RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    return relationshipType(RelationshipEntity.TRACKED_ENTITY, RelationshipEntity.TRACKED_ENTITY);
   }
 
   private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
@@ -884,7 +883,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     RelationshipType type =
         relationshipTypeAccessible(
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+            RelationshipEntity.TRACKED_ENTITY, RelationshipEntity.TRACKED_ENTITY);
     return relationship(type, from, to);
   }
 
@@ -928,8 +927,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     toItem.setRelationship(r);
 
     RelationshipType type =
-        relationshipTypeAccessible(
-            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+        relationshipTypeAccessible(RelationshipEntity.EVENT, RelationshipEntity.TRACKED_ENTITY);
     r.setRelationshipType(type);
     r.setKey(type.getUid());
     r.setInvertedKey(type.getUid());
@@ -957,8 +955,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     toItem.setRelationship(r);
 
     RelationshipType type =
-        relationshipTypeAccessible(
-            RelationshipEntity.PROGRAM_INSTANCE, RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+        relationshipTypeAccessible(RelationshipEntity.ENROLLMENT, RelationshipEntity.EVENT);
     r.setRelationshipType(type);
     r.setKey(type.getUid());
     r.setInvertedKey(type.getUid());
@@ -988,7 +985,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     RelationshipType type =
         relationshipTypeAccessible(
-            RelationshipEntity.PROGRAM_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+            RelationshipEntity.ENROLLMENT, RelationshipEntity.TRACKED_ENTITY);
     r.setRelationshipType(type);
     r.setKey(type.getUid());
     r.setInvertedKey(type.getUid());

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.converter;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.ENROLLMENT;
+import static org.hisp.dhis.relationship.RelationshipEntity.EVENT;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY;
 
 import java.util.Collections;
 import java.util.Date;
@@ -139,42 +139,24 @@ public class RelationshipTrackerConverterService
     // FROM
     fromItem.setRelationship(toRelationship);
 
-    if (relationshipType
-        .getFromConstraint()
-        .getRelationshipEntity()
-        .equals(TRACKED_ENTITY_INSTANCE)) {
+    if (relationshipType.getFromConstraint().getRelationshipEntity().equals(TRACKED_ENTITY)) {
       fromItem.setTrackedEntity(
           preheat.getTrackedEntity(fromRelationship.getFrom().getTrackedEntity()));
-    } else if (relationshipType
-        .getFromConstraint()
-        .getRelationshipEntity()
-        .equals(PROGRAM_INSTANCE)) {
+    } else if (relationshipType.getFromConstraint().getRelationshipEntity().equals(ENROLLMENT)) {
       fromItem.setEnrollment(preheat.getEnrollment(fromRelationship.getFrom().getEnrollment()));
-    } else if (relationshipType
-        .getFromConstraint()
-        .getRelationshipEntity()
-        .equals(PROGRAM_STAGE_INSTANCE)) {
+    } else if (relationshipType.getFromConstraint().getRelationshipEntity().equals(EVENT)) {
       fromItem.setEvent(preheat.getEvent(fromRelationship.getFrom().getEvent()));
     }
 
     // TO
     toItem.setRelationship(toRelationship);
 
-    if (relationshipType
-        .getToConstraint()
-        .getRelationshipEntity()
-        .equals(TRACKED_ENTITY_INSTANCE)) {
+    if (relationshipType.getToConstraint().getRelationshipEntity().equals(TRACKED_ENTITY)) {
       toItem.setTrackedEntity(
           preheat.getTrackedEntity(fromRelationship.getTo().getTrackedEntity()));
-    } else if (relationshipType
-        .getToConstraint()
-        .getRelationshipEntity()
-        .equals(PROGRAM_INSTANCE)) {
+    } else if (relationshipType.getToConstraint().getRelationshipEntity().equals(ENROLLMENT)) {
       toItem.setEnrollment(preheat.getEnrollment(fromRelationship.getTo().getEnrollment()));
-    } else if (relationshipType
-        .getToConstraint()
-        .getRelationshipEntity()
-        .equals(PROGRAM_STAGE_INSTANCE)) {
+    } else if (relationshipType.getToConstraint().getRelationshipEntity().equals(EVENT)) {
       toItem.setEvent(preheat.getEvent(fromRelationship.getTo().getEvent()));
     }
 

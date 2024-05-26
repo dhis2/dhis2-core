@@ -417,13 +417,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         new TrackedEntityAttributeValue(teaE, trackedEntityA, "E"));
 
     RelationshipType relationshipTypeA = createRelationshipType('A');
-    relationshipTypeA
-        .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeA.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     relationshipTypeA.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
-    relationshipTypeA
-        .getToConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeA.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     relationshipTypeA.getToConstraint().setTrackedEntityType(trackedEntityTypeA);
     relationshipTypeA.getSharing().setOwner(user);
     manager.save(relationshipTypeA, false);
@@ -444,11 +440,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(relationshipA, false);
 
     RelationshipType relationshipTypeB = createRelationshipType('B');
-    relationshipTypeB
-        .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeB.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     relationshipTypeB.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
-    relationshipTypeB.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    relationshipTypeB.getToConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
     relationshipTypeB.getToConstraint().setProgram(programA);
     relationshipTypeB.getSharing().setOwner(user);
     manager.save(relationshipTypeB, false);
@@ -469,13 +463,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(relationshipB, false);
 
     RelationshipType relationshipTypeC = createRelationshipType('C');
-    relationshipTypeC
-        .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeC.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     relationshipTypeC.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
-    relationshipTypeC
-        .getToConstraint()
-        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    relationshipTypeC.getToConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
     relationshipTypeC.getToConstraint().setProgramStage(programStageA1);
     relationshipTypeC.getSharing().setOwner(user);
     manager.save(relationshipTypeC, false);
@@ -496,11 +486,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(relationshipC, false);
 
     RelationshipType relationshipTypeD = createRelationshipType('D');
-    relationshipTypeD
-        .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeD.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     relationshipTypeD.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
-    relationshipTypeD.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    relationshipTypeD.getToConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
     relationshipTypeD.getToConstraint().setProgram(programB);
     relationshipTypeD.getSharing().setOwner(user);
     manager.save(relationshipTypeD, false);
@@ -521,13 +509,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(relationshipD, false);
 
     RelationshipType relationshipTypeE = createRelationshipType('E');
-    relationshipTypeE
-        .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipTypeE.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
     relationshipTypeE.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
-    relationshipTypeE
-        .getToConstraint()
-        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    relationshipTypeE.getToConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
     relationshipTypeE.getToConstraint().setProgram(programB);
     relationshipTypeE.getSharing().setOwner(user);
     manager.save(relationshipTypeE, false);
