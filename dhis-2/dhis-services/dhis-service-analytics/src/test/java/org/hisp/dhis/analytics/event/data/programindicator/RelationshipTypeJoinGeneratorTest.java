@@ -51,25 +51,25 @@ class RelationshipTypeJoinGeneratorTest {
           + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
           + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
 
-  private static final String TEI_JOIN_START =
+  private static final String TE_JOIN_START =
       ALIAS
           + ".tei in (select tei.uid from trackedentity tei LEFT JOIN relationshipitem ri on tei.trackedentityid = ri.trackedentityid ";
 
-  private static final String PI_JOIN_START =
+  private static final String ENROLLMENT_JOIN_START =
       ALIAS
           + ".pi in (select pi.uid from enrollment pi LEFT JOIN relationshipitem ri on pi.enrollmentid = ri.enrollmentid ";
 
-  private static final String PSI_JOIN_START =
+  private static final String EVENT_JOIN_START =
       ALIAS
           + ".psi in (select psi.uid from event psi LEFT JOIN relationshipitem ri on psi.eventid = ri.eventid ";
 
-  private static final String TEI_RELTO_JOIN =
+  private static final String TE_RELTO_JOIN =
       "LEFT JOIN trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
 
-  private static final String PI_RELTO_JOIN =
+  private static final String ENROLLMENT_RELTO_JOIN =
       "LEFT JOIN enrollment pi on pi.enrollmentid = ri2.enrollmentid";
 
-  private static final String PSI_RELTO_JOIN = "LEFT JOIN event psi on psi.eventid = ri2.eventid";
+  private static final String EVENT_RELTO_JOIN = "LEFT JOIN event psi on psi.eventid = ri2.eventid";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -177,10 +177,12 @@ class RelationshipTypeJoinGeneratorTest {
       RelationshipEntity relationshipEntity, AnalyticsType programIndicatorType) {
     switch (relationshipEntity) {
       case TRACKED_ENTITY:
-        return TEI_JOIN_START;
+        return TE_JOIN_START;
       case EVENT:
       case ENROLLMENT:
-        return (programIndicatorType.equals(AnalyticsType.EVENT) ? PSI_JOIN_START : PI_JOIN_START);
+        return (programIndicatorType.equals(AnalyticsType.EVENT)
+            ? EVENT_JOIN_START
+            : ENROLLMENT_JOIN_START);
     }
     return "";
   }
@@ -188,11 +190,11 @@ class RelationshipTypeJoinGeneratorTest {
   private static String getToRelationshipEntity(RelationshipEntity relationshipEntity) {
     switch (relationshipEntity) {
       case TRACKED_ENTITY:
-        return TEI_RELTO_JOIN;
+        return TE_RELTO_JOIN;
       case EVENT:
-        return PSI_RELTO_JOIN;
+        return EVENT_RELTO_JOIN;
       case ENROLLMENT:
-        return PI_RELTO_JOIN;
+        return ENROLLMENT_RELTO_JOIN;
     }
     return "";
   }
