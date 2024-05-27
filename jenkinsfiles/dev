@@ -46,18 +46,6 @@ pipeline {
                 always {
                     implementIoBuildEnded(buildName: "${STAGE_NAME}")
                 }
-
-                failure {
-                    script {
-                        if (buildLog.getLines().contains('There are test failures')) {
-                            slack.sendMessage(
-                                '#ff0000',
-                                slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                                'team-backend'
-                            )
-                        }
-                    }
-                }
             }
         }
 
@@ -236,7 +224,11 @@ pipeline {
 
         failure {
             script {
-                slack.sendFailureMessage()
+                slack.sendMessage(
+                    '#ff0000',
+                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                    'team-backend'
+                )
             }
         }
 
