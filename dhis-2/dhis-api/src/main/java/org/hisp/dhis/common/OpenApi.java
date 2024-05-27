@@ -36,6 +36,7 @@ import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.intellij.lang.annotations.Language;
 
 /**
  * All annotations used to adjust the generation of OpenAPI document(s).
@@ -171,6 +172,7 @@ public @interface OpenApi {
       CONFIG("Configuration"),
       MISC("Miscellaneous");
 
+      @Language("markdown")
       private final String description;
 
       /**
@@ -395,6 +397,7 @@ public @interface OpenApi {
 
     Class<?> type() default String.class;
 
+    @Language("markdown")
     String description() default "";
   }
 
@@ -444,6 +447,13 @@ public @interface OpenApi {
   @Retention(RetentionPolicy.RUNTIME)
   @interface Description {
 
+    /**
+     * If multiple values are given these are turned into a bullet list. Each item in the list is
+     * left "as is" so it may use inline mark-down syntax.
+     *
+     * @return The description, might use mark-down syntax
+     */
+    @Language("markdown")
     String[] value();
   }
 
