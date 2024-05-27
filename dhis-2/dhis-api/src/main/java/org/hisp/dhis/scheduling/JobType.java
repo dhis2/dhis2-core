@@ -48,7 +48,6 @@ import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.GeoJsonImportJobParams;
-import org.hisp.dhis.scheduling.parameters.HtmlPushAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
@@ -86,7 +85,6 @@ public enum JobType {
   PROGRAM_NOTIFICATIONS(),
   MONITORING(MonitoringJobParameters.class),
   PUSH_ANALYSIS(PushAnalysisJobParameters.class),
-  HTML_PUSH_ANALYTICS(HtmlPushAnalyticsJobParameters.class),
   TRACKER_SEARCH_OPTIMIZATION(TrackerTrigramIndexJobParameters.class),
   PREDICTOR(PredictorJobParameters.class),
   MATERIALIZED_SQL_VIEW_UPDATE(SqlViewUpdateParameters.class),
@@ -193,7 +191,7 @@ public enum JobType {
    *     creation unless it was set explicitly
    */
   public boolean isDefaultExecutedByCreator() {
-    return this == HTML_PUSH_ANALYTICS;
+    return false;
   }
 
   /**
@@ -281,8 +279,6 @@ public enum JobType {
           Map.of(
               "predictors", "/api/predictors",
               "predictorGroups", "/api/predictorGroups");
-      case HTML_PUSH_ANALYTICS ->
-          Map.of("dashboard", "/api/dashboards", "receivers", "/api/userGroups");
       default -> Map.of();
     };
   }
