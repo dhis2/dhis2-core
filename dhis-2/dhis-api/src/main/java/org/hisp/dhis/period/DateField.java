@@ -33,26 +33,26 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public record DateAndField(Date date, String dateField) {
+public record DateField(Date date, String dateField) {
 
-  public static DateAndField withDefaultsIfNecessary(DateAndField dateAndField) {
-    if (Objects.isNull(dateAndField)) {
-      return new DateAndField(new Date(), "");
+  public static DateField withDefaultsIfNecessary(DateField dateField) {
+    if (Objects.isNull(dateField)) {
+      return new DateField(new Date(), "");
     }
-    return new DateAndField(
-        defaultIfNull(dateAndField.date(), Date::new),
-        defaultIfNull(dateAndField.dateField(), () -> EMPTY));
+    return new DateField(
+        defaultIfNull(dateField.date(), Date::new),
+        defaultIfNull(dateField.dateField(), () -> EMPTY));
   }
 
   private static <T> T defaultIfNull(T item, Supplier<T> itemSupplier) {
     return Objects.isNull(item) ? itemSupplier.get() : item;
   }
 
-  public static DateAndField withDefaults() {
-    return new DateAndField(new Date(), EMPTY);
+  public static DateField withDefaults() {
+    return new DateField(new Date(), EMPTY);
   }
 
-  public DateAndField withDate(Date date) {
-    return new DateAndField(date, dateField);
+  public DateField withDate(Date date) {
+    return new DateField(date, dateField);
   }
 }
