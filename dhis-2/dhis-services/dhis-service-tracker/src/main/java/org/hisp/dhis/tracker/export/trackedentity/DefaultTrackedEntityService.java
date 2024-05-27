@@ -342,7 +342,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       result.setRelationshipItems(getRelationshipItems(trackedEntity, currentUser, includeDeleted));
     }
     if (params.isIncludeEnrollments()) {
-      result.setEnrollments(getEnrollments(trackedEntity, currentUser, includeDeleted));
+      result.setEnrollments(getEnrollments(trackedEntity, currentUser, includeDeleted, program));
     }
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
@@ -369,23 +369,21 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted) {
-    Set<Enrollment> enrollments = new HashSet<>();
-
-    for (Enrollment enrollment : trackedEntity.getEnrollments()) {
-      if (trackerAccessManager.canRead(user, enrollment, false).isEmpty()
-          && (includeDeleted || !enrollment.isDeleted())) {
-        Set<Event> events = new HashSet<>();
-        for (Event event : enrollment.getEvents()) {
-          if (includeDeleted || !event.isDeleted()) {
-            events.add(event);
-          }
-        }
-        enrollment.setEvents(events);
-        enrollments.add(enrollment);
-      }
-    }
-    return enrollments;
+      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted, Program program) {
+    return trackedEntity.getEnrollments().stream()
+        .filter(e -> program == null || program.getUid().equals(e.getProgram().getUid()))
+        .filter(e -> includeDeleted || !e.isDeleted())
+        .filter(e -> trackerAccessManager.canRead(user, e, false).isEmpty())
+        .map(
+            e -> {
+              Set<Event> filteredEvents =
+                  e.getEvents().stream()
+                      .filter(event -> includeDeleted || !event.isDeleted())
+                      .collect(Collectors.toSet());
+              e.setEvents(filteredEvents);
+              return e;
+            })
+        .collect(Collectors.toSet());
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
