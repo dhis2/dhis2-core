@@ -49,7 +49,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.period.PeriodType;
@@ -1051,11 +1050,13 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
     dataElementGroup.addDataElement(dataElement);
     manager.save(dataElementGroup);
 
-    JsonMixed response =
-        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR"
-                .formatted(dataElementGroup.getUid()))
-            .content();
-    assertFalse(response.getArray("dataElements").isEmpty());
+    JsonList<JsonIdentifiableObject> response =
+        GET(String.format(
+                "/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR",
+                dataElementGroup.getUid()))
+            .content()
+            .getList("dataElements", JsonIdentifiableObject.class);
+    assertFalse(response.isEmpty());
   }
 
   private void assertUserGroupHasOnlyUser(String groupId, String userId) {
