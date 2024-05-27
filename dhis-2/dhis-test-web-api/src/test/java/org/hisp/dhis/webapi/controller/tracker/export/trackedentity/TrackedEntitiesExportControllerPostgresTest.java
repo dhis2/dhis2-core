@@ -100,7 +100,7 @@ class TrackedEntitiesExportControllerPostgresTest extends DhisControllerIntegrat
 
     TrackerImportParams params = TrackerImportParams.builder().userId(superUser.getUid()).build();
     assertNoDataErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_tei.json")));
+        trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
 
     trackedEntity = trackedEntityService.getTrackedEntity("IOR1AXXl24H");
 

@@ -76,9 +76,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TE_ID = "TEI_ID";
+  private static final String TE_ID = "TE_ID";
 
-  private static final String TE_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
   private static final String PROGRAM_ID = "PROGRAM_ID";
 

@@ -177,7 +177,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEIType() {
+  void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEType() {
     when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeA)).thenReturn(false);
 
     String hasUserAccess =
@@ -189,7 +189,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest {
   }
 
   @Test
-  void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEIType() {
+  void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEType() {
 
     when(aclService.canDataWrite(currentUserDetails, trackedEntityTypeB)).thenReturn(false);
     when(userService.getUserByUsername(user.getUsername())).thenReturn(user);

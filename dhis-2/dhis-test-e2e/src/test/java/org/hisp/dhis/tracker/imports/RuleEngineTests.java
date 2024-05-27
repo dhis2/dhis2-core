@@ -93,13 +93,13 @@ public class RuleEngineTests extends TrackerApiTest {
   public void shouldShowErrorOnEventWhenProgramRuleStageMatches(
       String programStage, boolean shouldReturnError) throws Exception {
     // arrange
-    String tei = importTrackedEntity();
+    String trackedEntity = importTrackedEntity();
 
     String enrollment =
         trackerImportExportActions
             .postAndGetJobReport(
                 new EnrollmentDataBuilder()
-                    .setTrackedEntity(tei)
+                    .setTrackedEntity(trackedEntity)
                     .setEnrollmentDate(Instant.now().plus(1, ChronoUnit.DAYS).toString())
                     .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]))
             .extractImportedEnrollments()
@@ -142,10 +142,10 @@ public class RuleEngineTests extends TrackerApiTest {
 
   @Test
   public void shouldShowErrorOnCompleteInTrackerEvents() throws Exception {
-    String tei = importTrackedEntity();
+    String trackedEntity = importTrackedEntity();
     JsonObject enrollment =
         new EnrollmentDataBuilder()
-            .setTrackedEntity(tei)
+            .setTrackedEntity(trackedEntity)
             .setEnrollmentDate(Instant.now().plus(1, ChronoUnit.DAYS).toString())
             .array(trackerProgramId, Constants.ORG_UNIT_IDS[0]);
 

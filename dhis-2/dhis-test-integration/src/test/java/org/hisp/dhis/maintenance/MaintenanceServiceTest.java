@@ -88,8 +88,6 @@ class MaintenanceServiceTest extends IntegrationTestBase {
 
   @Autowired private ProgramMessageService programMessageService;
 
-  @Autowired private TrackedEntityService entityInstanceService;
-
   @Autowired private TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
 
   @Autowired private DataElementService dataElementService;
@@ -165,10 +163,10 @@ class MaintenanceServiceTest extends IntegrationTestBase {
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(trackedEntity);
+    trackedEntityService.addTrackedEntity(trackedEntity);
     trackedEntityB = createTrackedEntity(organisationUnit);
     trackedEntityB.setTrackedEntityType(trackedEntityType);
-    entityInstanceService.addTrackedEntity(trackedEntityB);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
     trackedEntityWithAssociations = createTrackedEntity('T', organisationUnit);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
@@ -296,14 +294,14 @@ class MaintenanceServiceTest extends IntegrationTestBase {
             .recipients(programMessageRecipients)
             .deliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL))
             .build();
-    long idA = entityInstanceService.addTrackedEntity(trackedEntityB);
+    long idA = trackedEntityService.addTrackedEntity(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(entityInstanceService.getTrackedEntity(idA));
-    entityInstanceService.deleteTrackedEntity(trackedEntityB);
-    assertNull(entityInstanceService.getTrackedEntity(idA));
-    assertTrue(entityInstanceService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
+    assertNotNull(trackedEntityService.getTrackedEntity(idA));
+    trackedEntityService.deleteTrackedEntity(trackedEntityB);
+    assertNull(trackedEntityService.getTrackedEntity(idA));
+    assertTrue(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
-    assertFalse(entityInstanceService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
+    assertFalse(trackedEntityService.trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
   }
 
   @Test

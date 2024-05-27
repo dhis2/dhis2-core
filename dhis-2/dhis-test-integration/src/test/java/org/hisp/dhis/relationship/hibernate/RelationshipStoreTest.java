@@ -210,9 +210,9 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
     return teRelationship;
   }
 
-  private Relationship addTeToEventRelationship(TrackedEntity entityInstance, Event event) {
+  private Relationship addTeToEventRelationship(TrackedEntity trackedEntity, Event event) {
     RelationshipItem relationshipItemFrom = new RelationshipItem();
-    relationshipItemFrom.setTrackedEntity(entityInstance);
+    relationshipItemFrom.setTrackedEntity(trackedEntity);
     RelationshipItem relationshipItemTo = new RelationshipItem();
     relationshipItemTo.setEvent(event);
 
@@ -228,9 +228,9 @@ class RelationshipStoreTest extends TransactionalIntegrationTest {
   }
 
   private Relationship addTeToEnrollmentRelationship(
-      TrackedEntity entityInstance, Enrollment enrollment) {
+      TrackedEntity trackedEntity, Enrollment enrollment) {
     RelationshipItem relationshipItemFrom = new RelationshipItem();
-    relationshipItemFrom.setTrackedEntity(entityInstance);
+    relationshipItemFrom.setTrackedEntity(trackedEntity);
     RelationshipItem relationshipItemTo = new RelationshipItem();
     relationshipItemTo.setEnrollment(enrollment);
 

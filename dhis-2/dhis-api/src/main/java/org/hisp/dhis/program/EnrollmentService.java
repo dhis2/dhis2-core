@@ -127,14 +127,14 @@ public interface EnrollmentService {
   /**
    * Retrieve enrollments on a TrackedEntity with a status by a program
    *
-   * @param entityInstance TrackedEntity
+   * @param trackedEntity TrackedEntity
    * @param program Program
    * @param status Status of program-instance, include STATUS_ACTIVE, STATUS_COMPLETED and
    *     STATUS_CANCELLED
    * @return Enrollment list
    */
   List<Enrollment> getEnrollments(
-      TrackedEntity entityInstance, Program program, ProgramStatus status);
+      TrackedEntity trackedEntity, Program program, ProgramStatus status);
 
   /**
    * Enroll a TrackedEntity into a program. Must be run inside a transaction.

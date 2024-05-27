@@ -112,7 +112,7 @@ class EventImportRequestParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackedEntityService entityInstanceService;
+  @Mock private TrackedEntityService trackedEntityService;
 
   @Mock private TrackedEntityAttributeService attributeService;
 
@@ -147,7 +147,7 @@ class EventImportRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(entityInstanceService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
+    when(trackedEntityService.getTrackedEntity("qnR1RK4cTIZ")).thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -172,7 +172,7 @@ class EventImportRequestParamsMapperTest {
     verifyNoInteractions(programService);
     verifyNoInteractions(programStageService);
     verifyNoInteractions(organisationUnitService);
-    verifyNoInteractions(entityInstanceService);
+    verifyNoInteractions(trackedEntityService);
   }
 
   @Test
