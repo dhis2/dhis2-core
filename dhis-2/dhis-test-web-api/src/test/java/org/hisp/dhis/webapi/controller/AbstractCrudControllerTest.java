@@ -44,10 +44,12 @@ import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.period.PeriodType;
@@ -66,6 +68,7 @@ import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -1037,6 +1040,22 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest {
 
     HttpResponse response = GET("/organisationUnits.csv?fields=id,name,openingDate");
     assertTrue(response.content("text").contains("2020-01-01T00:00:00.000"));
+  }
+
+  @Test
+  @DisplayName("Should return dataElements that are part of a dataElementGroup")
+  void testRootJunctionOR() {
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+    DataElementGroup dataElementGroup = createDataElementGroup('A');
+    dataElementGroup.addDataElement(dataElement);
+    manager.save(dataElementGroup);
+
+    JsonMixed response =
+        GET("/dataElements?filter=dataElementGroups.id:in:[%s]&rootJunction=OR"
+                .formatted(dataElementGroup.getUid()))
+            .content();
+    assertFalse(response.getArray("dataElements").isEmpty());
   }
 
   private void assertUserGroupHasOnlyUser(String groupId, String userId) {
