@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.ENROLLMENT;
-import static org.hisp.dhis.relationship.RelationshipEntity.EVENT;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4010;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4012;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4014;
@@ -81,7 +81,8 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldBeValidWhenRelationshipTypeIsCorrectlySetAndEntitiesExist() {
-    RelationshipType relType = createRelTypeConstraint(TRACKED_ENTITY, TRACKED_ENTITY);
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     relType.getFromConstraint().setTrackedEntityType(trackedEntityType);
     relType.getToConstraint().setTrackedEntityType(trackedEntityType);
@@ -110,7 +111,8 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsTrackedEntityAndToConstraintIsSetToEnrollment() {
-    RelationshipType relType = createRelTypeConstraint(TRACKED_ENTITY, TRACKED_ENTITY);
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
     Relationship relationship =
         Relationship.builder()
@@ -134,7 +136,8 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsTrackedEntityAndEntityDoesNotExist() {
-    RelationshipType relType = createRelTypeConstraint(TRACKED_ENTITY, TRACKED_ENTITY);
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
     Relationship relationship =
         Relationship.builder()
@@ -160,7 +163,7 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsEventAndToConstraintIsSetToEnrollment() {
-    RelationshipType relType = createRelTypeConstraint(ENROLLMENT, EVENT);
+    RelationshipType relType = createRelTypeConstraint(PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE);
 
     Relationship relationship =
         Relationship.builder()
@@ -184,7 +187,8 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsTrackedEntityAndEntityTypeDoesNotMatch() {
-    RelationshipType relType = createRelTypeConstraint(TRACKED_ENTITY, TRACKED_ENTITY);
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setUid("madeUpUid");
     relType.getFromConstraint().setTrackedEntityType(trackedEntityType);
@@ -220,7 +224,7 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsEnrollmentAndEnrollmentDoesNotExist() {
-    RelationshipType relType = createRelTypeConstraint(ENROLLMENT, EVENT);
+    RelationshipType relType = createRelTypeConstraint(PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE);
 
     Relationship relationship =
         Relationship.builder()
@@ -246,7 +250,7 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsEnrollmentAndFromConstraintIsSetToEvent() {
-    RelationshipType relType = createRelTypeConstraint(ENROLLMENT, TRACKED_ENTITY);
+    RelationshipType relType = createRelTypeConstraint(PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
     Relationship relationship =
         Relationship.builder()
@@ -270,7 +274,8 @@ class ConstraintValidatorTest {
 
   @Test
   void shouldFailWhenRelationshipEntityIsEventAndEventDoesNotExist() {
-    RelationshipType relType = createRelTypeConstraint(EVENT, TRACKED_ENTITY);
+    RelationshipType relType =
+        createRelTypeConstraint(PROGRAM_STAGE_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
     Relationship relationship =
         Relationship.builder()

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4000;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
@@ -103,10 +103,10 @@ class LinkValidatorTest {
     relType.setUid(CodeGenerator.generateUid());
 
     RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-    relationshipConstraintFrom.setRelationshipEntity(TRACKED_ENTITY);
+    relationshipConstraintFrom.setRelationshipEntity(TRACKED_ENTITY_INSTANCE);
 
     RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-    relationshipConstraintTo.setRelationshipEntity(TRACKED_ENTITY);
+    relationshipConstraintTo.setRelationshipEntity(TRACKED_ENTITY_INSTANCE);
 
     relType.setFromConstraint(relationshipConstraintFrom);
     relType.setToConstraint(relationshipConstraintTo);

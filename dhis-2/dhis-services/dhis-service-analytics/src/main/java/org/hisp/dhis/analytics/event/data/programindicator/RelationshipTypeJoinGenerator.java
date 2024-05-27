@@ -81,11 +81,11 @@ public class RelationshipTypeJoinGenerator {
   private static String getToJoin(RelationshipEntity relationshipEntity) {
     String sql = "LEFT JOIN ";
     switch (relationshipEntity) {
-      case TRACKED_ENTITY:
+      case TRACKED_ENTITY_INSTANCE:
         return sql + "trackedentity tei on tei.trackedentityid = ri2.trackedentityid";
-      case EVENT:
+      case PROGRAM_STAGE_INSTANCE:
         return sql + "event psi on psi.eventid = ri2.eventid";
-      case ENROLLMENT:
+      case PROGRAM_INSTANCE:
         return sql + "enrollment pi on pi.enrollmentid = ri2.enrollmentid";
       default:
         throw new IllegalQueryException(
@@ -96,10 +96,10 @@ public class RelationshipTypeJoinGenerator {
   private static String getFromRelationshipEntity(
       String alias, RelationshipEntity relationshipEntity, AnalyticsType programIndicatorType) {
     switch (relationshipEntity) {
-      case TRACKED_ENTITY:
+      case TRACKED_ENTITY_INSTANCE:
         return getTei(alias);
-      case EVENT:
-      case ENROLLMENT:
+      case PROGRAM_STAGE_INSTANCE:
+      case PROGRAM_INSTANCE:
         return (programIndicatorType.equals(AnalyticsType.EVENT)
             ? getEvent(alias)
             : getEnrollment(alias));
@@ -137,11 +137,11 @@ public class RelationshipTypeJoinGenerator {
     sql += " AND ";
 
     switch (relationshipEntity) {
-      case TRACKED_ENTITY:
+      case TRACKED_ENTITY_INSTANCE:
         return sql + "tei.uid = ax.tei ";
-      case EVENT:
+      case PROGRAM_STAGE_INSTANCE:
         return sql + "psi.uid = ax.psi ";
-      case ENROLLMENT:
+      case PROGRAM_INSTANCE:
         return sql + "pi.uid = ax.pi ";
       default:
         throw new IllegalQueryException(

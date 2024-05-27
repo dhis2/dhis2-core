@@ -33,9 +33,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public enum RelationshipEntity {
-  TRACKED_ENTITY("tracked_entity"),
-  ENROLLMENT("enrollment"),
-  EVENT("event");
+  TRACKED_ENTITY_INSTANCE("tracked_entity"),
+  PROGRAM_INSTANCE("enrollment"),
+  PROGRAM_STAGE_INSTANCE("event");
 
   private String name;
 

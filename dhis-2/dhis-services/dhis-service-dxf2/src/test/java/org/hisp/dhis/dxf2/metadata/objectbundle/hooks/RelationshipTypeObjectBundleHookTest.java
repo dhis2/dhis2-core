@@ -134,7 +134,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
 
     personConstraint = new RelationshipConstraint();
     personConstraint.setTrackedEntityType(personTrackedEntityType);
-    personConstraint.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    personConstraint.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     personConstraint.setTrackerDataView(
         TrackerDataView.builder()
             .attributes(Sets.newLinkedHashSet(Sets.newHashSet(trackedEntityAttribute.getUid())))
@@ -142,13 +142,15 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
 
     personConstraintWithNoAttribute = new RelationshipConstraint();
     personConstraintWithNoAttribute.setTrackedEntityType(personTrackedEntityType);
-    personConstraintWithNoAttribute.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    personConstraintWithNoAttribute.setRelationshipEntity(
+        RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     personConstraintWithNoAttribute.setTrackerDataView(
         TrackerDataView.builder().attributes(Sets.newLinkedHashSet(Sets.newHashSet())).build());
 
     personConstraintWithMultipleAttribute = new RelationshipConstraint();
     personConstraintWithMultipleAttribute.setTrackedEntityType(personTrackedEntityType);
-    personConstraintWithMultipleAttribute.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    personConstraintWithMultipleAttribute.setRelationshipEntity(
+        RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     personConstraintWithMultipleAttribute.setTrackerDataView(
         TrackerDataView.builder()
             .attributes(
@@ -158,7 +160,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
 
     enrollmentConstraint = new RelationshipConstraint();
     enrollmentConstraint.setProgram(program);
-    enrollmentConstraint.setRelationshipEntity(RelationshipEntity.ENROLLMENT);
+    enrollmentConstraint.setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     enrollmentConstraint.setTrackerDataView(
         TrackerDataView.builder()
             .attributes(Sets.newLinkedHashSet(Sets.newHashSet(trackedEntityAttribute.getUid())))
@@ -166,7 +168,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest {
 
     eventConstraint = new RelationshipConstraint();
     eventConstraint.setProgramStage(programStage);
-    eventConstraint.setRelationshipEntity(RelationshipEntity.EVENT);
+    eventConstraint.setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     eventConstraint.setTrackerDataView(
         TrackerDataView.builder()
             .dataElements(Sets.newLinkedHashSet(Sets.newHashSet(dataElement.getUid())))

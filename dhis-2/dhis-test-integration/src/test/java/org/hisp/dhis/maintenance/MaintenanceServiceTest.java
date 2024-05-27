@@ -205,9 +205,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Test
   void testDeleteSoftDeletedTrackedEntityLinkedToARelationshipItem() {
     RelationshipType rType = createRelationshipType('A');
-    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
+    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     rType.getFromConstraint().setProgram(program);
-    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
     Relationship r = new Relationship();
@@ -331,10 +331,10 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Test
   void testDeleteSoftDeletedEventLinkedToARelationshipItem() {
     RelationshipType rType = createRelationshipType('A');
-    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
+    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     rType.getFromConstraint().setProgram(program);
     rType.getFromConstraint().setProgramStage(program.getProgramStageByStage(1));
-    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
@@ -367,9 +367,9 @@ class MaintenanceServiceTest extends IntegrationTestBase {
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToARelationshipItem() {
     RelationshipType rType = createRelationshipType('A');
-    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
+    rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     rType.getFromConstraint().setProgram(program);
-    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    rType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     rType.getFromConstraint().setTrackedEntityType(trackedEntity.getTrackedEntityType());
     relationshipTypeService.addRelationshipType(rType);
     Relationship r = new Relationship();

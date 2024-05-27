@@ -224,9 +224,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     manager.save(programB, false);
 
     relationshipTypeA = createRelationshipType('A');
-    relationshipTypeA.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    relationshipTypeA
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     relationshipTypeA.getFromConstraint().setTrackedEntityType(trackedEntityTypeA);
-    relationshipTypeA.getToConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
+    relationshipTypeA.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     relationshipTypeA.getToConstraint().setProgram(programA);
     relationshipTypeA.getSharing().setOwner(user);
     manager.save(relationshipTypeA, false);

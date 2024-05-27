@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.ENROLLMENT;
-import static org.hisp.dhis.relationship.RelationshipEntity.EVENT;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
@@ -76,7 +76,8 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyTeiToTei() {
     RelationshipType relationshipType =
-        createRelationshipType(TRACKED_ENTITY.getName(), TRACKED_ENTITY.getName());
+        createRelationshipType(
+            TRACKED_ENTITY_INSTANCE.getName(), TRACKED_ENTITY_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
     asserter(relationshipType, AnalyticsType.EVENT);
   }
@@ -84,14 +85,15 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyPiToPi() {
     RelationshipType relationshipType =
-        createRelationshipType(ENROLLMENT.getName(), ENROLLMENT.getName());
+        createRelationshipType(PROGRAM_INSTANCE.getName(), PROGRAM_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
 
   @Test
   void verifyPsiToPsi() {
-    RelationshipType relationshipType = createRelationshipType(EVENT.getName(), EVENT.getName());
+    RelationshipType relationshipType =
+        createRelationshipType(PROGRAM_STAGE_INSTANCE.getName(), PROGRAM_STAGE_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -99,7 +101,7 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyTeiToPi() {
     RelationshipType relationshipType =
-        createRelationshipType(TRACKED_ENTITY.getName(), ENROLLMENT.getName());
+        createRelationshipType(TRACKED_ENTITY_INSTANCE.getName(), PROGRAM_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -107,7 +109,7 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyTeiToPsi() {
     RelationshipType relationshipType =
-        createRelationshipType(TRACKED_ENTITY.getName(), EVENT.getName());
+        createRelationshipType(TRACKED_ENTITY_INSTANCE.getName(), PROGRAM_STAGE_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -115,7 +117,7 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyPiToTei() {
     RelationshipType relationshipType =
-        createRelationshipType(ENROLLMENT.getName(), TRACKED_ENTITY.getName());
+        createRelationshipType(PROGRAM_INSTANCE.getName(), TRACKED_ENTITY_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -123,7 +125,7 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyPiToPsi() {
     RelationshipType relationshipType =
-        createRelationshipType(ENROLLMENT.getName(), EVENT.getName());
+        createRelationshipType(PROGRAM_INSTANCE.getName(), PROGRAM_STAGE_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -131,7 +133,7 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyPsiToTei() {
     RelationshipType relationshipType =
-        createRelationshipType(EVENT.getName(), TRACKED_ENTITY.getName());
+        createRelationshipType(PROGRAM_STAGE_INSTANCE.getName(), TRACKED_ENTITY_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -139,7 +141,7 @@ class RelationshipTypeJoinGeneratorTest {
   @Test
   void verifyPsiToPi() {
     RelationshipType relationshipType =
-        createRelationshipType(EVENT.getName(), ENROLLMENT.getName());
+        createRelationshipType(PROGRAM_STAGE_INSTANCE.getName(), PROGRAM_INSTANCE.getName());
     asserter(relationshipType, AnalyticsType.EVENT);
     asserter(relationshipType, AnalyticsType.ENROLLMENT);
   }
@@ -167,19 +169,19 @@ class RelationshipTypeJoinGeneratorTest {
     expected += getToRelationshipEntity(to);
     expected += addWhere(relationshipType);
     expected +=
-        (to.equals(TRACKED_ENTITY)
+        (to.equals(TRACKED_ENTITY_INSTANCE)
             ? " AND tei.uid = ax.tei )"
-            : (to.equals(ENROLLMENT) ? " AND pi.uid = ax.pi )" : " AND psi.uid = ax.psi )"));
+            : (to.equals(PROGRAM_INSTANCE) ? " AND pi.uid = ax.pi )" : " AND psi.uid = ax.psi )"));
     assertEquals(expected, RelationshipTypeJoinGenerator.generate(ALIAS, relationshipType, type));
   }
 
   private static String getFromRelationshipEntity(
       RelationshipEntity relationshipEntity, AnalyticsType programIndicatorType) {
     switch (relationshipEntity) {
-      case TRACKED_ENTITY:
+      case TRACKED_ENTITY_INSTANCE:
         return TEI_JOIN_START;
-      case EVENT:
-      case ENROLLMENT:
+      case PROGRAM_STAGE_INSTANCE:
+      case PROGRAM_INSTANCE:
         return (programIndicatorType.equals(AnalyticsType.EVENT) ? PSI_JOIN_START : PI_JOIN_START);
     }
     return "";
@@ -187,11 +189,11 @@ class RelationshipTypeJoinGeneratorTest {
 
   private static String getToRelationshipEntity(RelationshipEntity relationshipEntity) {
     switch (relationshipEntity) {
-      case TRACKED_ENTITY:
+      case TRACKED_ENTITY_INSTANCE:
         return TEI_RELTO_JOIN;
-      case EVENT:
+      case PROGRAM_STAGE_INSTANCE:
         return PSI_RELTO_JOIN;
-      case ENROLLMENT:
+      case PROGRAM_INSTANCE:
         return PI_RELTO_JOIN;
     }
     return "";

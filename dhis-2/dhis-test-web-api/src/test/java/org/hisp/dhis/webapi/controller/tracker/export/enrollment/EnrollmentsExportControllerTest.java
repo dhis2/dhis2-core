@@ -317,8 +317,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     toItem.setRelationship(relationship);
 
     RelationshipType type = createRelationshipType('A');
-    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
-    type.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    type.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(type, false);
 

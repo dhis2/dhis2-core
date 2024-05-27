@@ -158,7 +158,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
     RelationshipEntity relEnt = dir == RelationshipDir.FROM ? fromEnt : toEnt;
 
     switch (relEnt) {
-      case TRACKED_ENTITY:
+      case TRACKED_ENTITY_INSTANCE:
         TrackedEntity te = trackedEntityService.getTrackedEntity(objId.getUid());
         if (te == null) {
           throw new SMSProcessingException(SmsResponse.INVALID_TEI.set(objId));
@@ -166,7 +166,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         relItem.setTrackedEntity(te);
         break;
 
-      case ENROLLMENT:
+      case PROGRAM_INSTANCE:
         Enrollment progInst = enrollmentService.getEnrollment(objId.getUid());
         if (progInst == null) {
           throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(objId));
@@ -174,7 +174,7 @@ public class RelationshipSMSListener extends CompressionSMSListener {
         relItem.setEnrollment(progInst);
         break;
 
-      case EVENT:
+      case PROGRAM_STAGE_INSTANCE:
         Event event = eventService.getEvent(objId.getUid());
         if (event == null) {
           throw new SMSProcessingException(SmsResponse.INVALID_EVENT.set(objId));

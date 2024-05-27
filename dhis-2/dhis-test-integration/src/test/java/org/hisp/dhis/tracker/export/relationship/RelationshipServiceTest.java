@@ -172,46 +172,58 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     inaccessibleEvent.setOrganisationUnit(orgUnitA);
     manager.save(inaccessibleEvent, false);
 
-    teToTeType.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    teToTeType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToTeType.getFromConstraint().setTrackedEntityType(trackedEntityType);
-    teToTeType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    teToTeType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToTeType.getToConstraint().setTrackedEntityType(trackedEntityType);
     manager.save(teToTeType, false);
 
     teToInaccessibleTeType
         .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToInaccessibleTeType.getFromConstraint().setTrackedEntityType(trackedEntityType);
     teToInaccessibleTeType
         .getToConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToInaccessibleTeType.getToConstraint().setTrackedEntityType(inaccessibleTrackedEntityType);
     manager.save(teToInaccessibleTeType, false);
 
-    teToEnType.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    teToEnType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToEnType.getFromConstraint().setTrackedEntityType(trackedEntityType);
-    teToEnType.getToConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
+    teToEnType.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     teToEnType.getToConstraint().setProgram(program);
     manager.save(teToEnType, false);
 
     teToInaccessibleEnType
         .getFromConstraint()
-        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToInaccessibleEnType.getFromConstraint().setTrackedEntityType(trackedEntityType);
-    teToInaccessibleEnType.getToConstraint().setRelationshipEntity(RelationshipEntity.ENROLLMENT);
+    teToInaccessibleEnType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     teToInaccessibleEnType.getToConstraint().setProgram(program);
     teToInaccessibleEnType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(teToInaccessibleEnType, false);
 
-    teToEvType.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    teToEvType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     teToEvType.getFromConstraint().setTrackedEntityType(trackedEntityType);
-    teToEvType.getToConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
+    teToEvType.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     teToEvType.getToConstraint().setProgramStage(programStage);
     manager.save(teToEvType, false);
 
-    eventToEventType.getFromConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
+    eventToEventType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     eventToEventType.getFromConstraint().setTrackedEntityType(trackedEntityType);
-    eventToEventType.getToConstraint().setRelationshipEntity(RelationshipEntity.EVENT);
+    eventToEventType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
     eventToEventType.getToConstraint().setProgramStage(programStage);
     manager.save(eventToEventType, false);
 

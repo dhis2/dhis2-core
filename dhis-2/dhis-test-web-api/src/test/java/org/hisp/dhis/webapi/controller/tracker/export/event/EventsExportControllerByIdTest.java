@@ -789,7 +789,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
   }
 
   private RelationshipType relationshipTypeNotAccessible() {
-    return relationshipType(RelationshipEntity.EVENT, RelationshipEntity.TRACKED_ENTITY);
+    return relationshipType(
+        RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
   }
 
   private RelationshipType relationshipType(RelationshipEntity from, RelationshipEntity to) {
@@ -804,7 +805,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
 
   private Relationship relationship(Event from, TrackedEntity to) {
     return relationship(
-        relationshipTypeAccessible(RelationshipEntity.EVENT, RelationshipEntity.TRACKED_ENTITY),
+        relationshipTypeAccessible(
+            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE),
         from,
         to);
   }
@@ -849,7 +851,8 @@ class EventsExportControllerByIdTest extends DhisControllerConvenienceTest {
     toItem.setRelationship(r);
 
     RelationshipType type =
-        relationshipTypeAccessible(RelationshipEntity.EVENT, RelationshipEntity.TRACKED_ENTITY);
+        relationshipTypeAccessible(
+            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.TRACKED_ENTITY_INSTANCE);
     r.setRelationshipType(type);
     r.setKey(type.getUid());
     r.setInvertedKey(type.getUid());

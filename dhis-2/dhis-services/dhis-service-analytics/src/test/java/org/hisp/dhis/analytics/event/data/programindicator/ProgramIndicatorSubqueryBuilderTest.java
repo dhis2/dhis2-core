@@ -146,8 +146,12 @@ class ProgramIndicatorSubqueryBuilderTest {
 
     // Create a TEI to TEI relationship
     RelationshipType relationshipType = rnd.nextObject(RelationshipType.class);
-    relationshipType.getFromConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
-    relationshipType.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY);
+    relationshipType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    relationshipType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
 
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
