@@ -86,6 +86,7 @@ public class Main {
     connector.setThrowOnFailure(true);
     tomcat.getService().addConnector(connector);
     connector.setPort(PORT);
+    connector.setProperty("relaxedQueryChars", "\\ { } | [ ]");
     tomcat.setConnector(connector);
     registerConnectorExecutor(tomcat, connector);
 
