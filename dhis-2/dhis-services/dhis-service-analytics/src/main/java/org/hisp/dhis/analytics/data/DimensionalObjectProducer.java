@@ -97,6 +97,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.DateAndField;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
@@ -201,8 +202,10 @@ public class DimensionalObjectProducer {
       if (RelativePeriodEnum.contains(isoPeriodHolder.getIsoPeriod())) {
         containsRelativePeriods = true;
 
+        String dateField = isoPeriodHolder.getDateField();
+        DateAndField dateAndField = new DateAndField(relativePeriodDate, dateField);
         addRelativePeriods(
-            relativePeriodDate, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
+            dateAndField, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
       } else {
         Period period = getPeriodFromIsoString(isoPeriodHolder.getIsoPeriod());
 
@@ -299,7 +302,7 @@ public class DimensionalObjectProducer {
    * @param isoPeriodHolder the object where the ISO period and date will be extracted from.
    */
   private void addRelativePeriods(
-      Date relativePeriodDate,
+      DateAndField relativePeriodDate,
       List<Period> periods,
       DimensionItemKeywords dimensionalKeywords,
       AnalyticsFinancialYearStartKey financialYearStart,
