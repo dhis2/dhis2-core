@@ -147,7 +147,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
   private long getEnrollmentCount(OrganisationUnit target) {
     return (Long)
         entityManager
-            .createQuery("select count(*) from Enrollment pi where pi.organisationUnit = :target")
+            .createQuery("select count(*) from Enrollment en where en.organisationUnit = :target")
             .setParameter("target", target)
             .getSingleResult();
   }

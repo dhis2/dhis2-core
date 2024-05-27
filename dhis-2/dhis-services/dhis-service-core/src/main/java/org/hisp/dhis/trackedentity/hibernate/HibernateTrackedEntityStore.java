@@ -37,6 +37,7 @@ import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.CREATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ENROLLMENT_QUERY_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.INACTIVE_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.LAST_UPDATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.MAIN_QUERY_ALIAS;
@@ -45,7 +46,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_NAME
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.ENROLLED_AT;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUPLICATE;
-import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_TYPE_ID;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
@@ -696,9 +696,9 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
   private String getFromSubQueryJoinEnrollmentConditions(TrackedEntityQueryParams params) {
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
       return new StringBuilder(" INNER JOIN enrollment ")
-          .append(PROGRAM_INSTANCE_ALIAS)
+          .append(ENROLLMENT_QUERY_ALIAS)
           .append(" ON ")
-          .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityid")
+          .append(ENROLLMENT_QUERY_ALIAS + "." + "trackedentityid")
           .append("= TE.trackedentityid ")
           .toString();
     }
