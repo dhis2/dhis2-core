@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
-import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
@@ -105,20 +104,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   // Paths where XML should still be allowed.
   public static final List<Pattern> XML_PATTERNS =
       List.of(
-          Pattern.compile("/api/(\\d\\d/)?relationships(.xml)?(.+)?"),
-          Pattern.compile("/api/(\\d\\d/)?enrollments(.xml)?(.+)?"),
-          Pattern.compile("/api/(\\d\\d/)?events(.xml)?(.+)?"),
-          Pattern.compile(
-              "/api/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?"), // TODO(tracker): remove with
-          // old
-          // tracker
           Pattern.compile("/api/(\\d\\d/)?dataValueSets(.xml)?(.+)?"),
           Pattern.compile("/api/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?"));
-
-  public static final List<Pattern> CSV_PATTERNS =
-      List.of(
-          Pattern.compile(
-              "/api/(\\d\\d/)?trackedEntityInstances.csv(.+)?")); // TODO(tracker): remove with old
 
   @Autowired
   public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -224,9 +211,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     Arrays.stream(Compression.values())
         .forEach(
             compression -> converters.add(new XmlMessageConverter(nodeService(), compression)));
-    Arrays.stream(Compression.values())
-        .forEach(
-            compression -> converters.add(new CsvMessageConverter(nodeService(), compression)));
 
     Arrays.stream(Compression.values())
         .forEach(
