@@ -142,8 +142,6 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest {
     programService.updateProgram(programA);
     trackedEntityB = createTrackedEntity(ouA);
     trackedEntityService.addTrackedEntity(trackedEntityB);
-    TrackedEntity entityInstanceB = createTrackedEntity(ouA);
-    trackedEntityService.addTrackedEntity(entityInstanceB);
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
