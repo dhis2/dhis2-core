@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -60,11 +59,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Zubair Asghar
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TrackerImporterServiceTest {
 
   @Mock private TrackerBundleService trackerBundleService;
@@ -154,10 +156,11 @@ class TrackerImporterServiceTest {
   @Test
   void shouldRaiseExceptionWhenExceptionWasThrownInsideAStage() {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-            .thenThrow(IllegalArgumentException.class);
+        .thenThrow(IllegalArgumentException.class);
 
-    assertThrows(IllegalArgumentException.class,
-            () -> subject.importTracker(params, trackerObjects, RecordingJobProgress.transitory()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> subject.importTracker(params, trackerObjects, RecordingJobProgress.transitory()));
   }
 
   private User getUser() {
