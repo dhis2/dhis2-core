@@ -99,7 +99,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
-  public static final String RESOURCE_PATH = "/apps";
+  public static final String RESOURCE_PATH = "/api/apps";
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 
