@@ -47,6 +47,7 @@ import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplate
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,8 +65,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   // -------------------------------------------------------------------------
 
   private final ProgramNotificationInstanceService programNotificationInstanceService;
-
   private final NotificationTemplateService notificationTemplateService;
+  private final AuthenticationService authenticationService;
 
   public RuleActionScheduleMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
@@ -73,7 +74,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
       EnrollmentService enrollmentService,
       EventService eventService,
       ProgramNotificationInstanceService programNotificationInstanceService,
-      NotificationTemplateService notificationTemplateService) {
+      NotificationTemplateService notificationTemplateService,
+      AuthenticationService authenticationService) {
     super(
         programNotificationTemplateService,
         notificationLoggingService,
@@ -81,6 +83,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         eventService);
     this.programNotificationInstanceService = programNotificationInstanceService;
     this.notificationTemplateService = notificationTemplateService;
+    this.authenticationService = authenticationService;
   }
 
   @Override
@@ -124,7 +127,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
     entry.setAllowMultiple(template.isSendRepeatable());
 
-    notificationLoggingService.save(entry);
+    saveExternalLogEntry(entry);
   }
 
   @Override
@@ -170,12 +173,17 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
     entry.setAllowMultiple(template.isSendRepeatable());
 
-    notificationLoggingService.save(entry);
+    saveExternalLogEntry(entry);
   }
 
   // -------------------------------------------------------------------------
   // Supportive Methods
   // -------------------------------------------------------------------------
+
+  private void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
+    authenticationService.obtainSystemAuthentication();
+    notificationLoggingService.save(entry);
+  }
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
     ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());

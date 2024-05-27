@@ -44,6 +44,7 @@ import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.user.AuthenticationService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,19 +69,22 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   // -------------------------------------------------------------------------
 
   private final ApplicationEventPublisher publisher;
+  private final AuthenticationService authenticationService;
 
   public RuleActionSendMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
       NotificationLoggingService notificationLoggingService,
       EnrollmentService enrollmentService,
       EventService eventService,
-      ApplicationEventPublisher publisher) {
+      ApplicationEventPublisher publisher,
+      AuthenticationService authenticationService) {
     super(
         programNotificationTemplateService,
         notificationLoggingService,
         enrollmentService,
         eventService);
     this.publisher = publisher;
+    this.authenticationService = authenticationService;
   }
 
   @Override
@@ -110,7 +114,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
     entry.setAllowMultiple(template.isSendRepeatable());
 
-    notificationLoggingService.save(entry);
+    saveExternalLogEntry(entry);
   }
 
   @Override
@@ -142,6 +146,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
     entry.setAllowMultiple(template.isSendRepeatable());
 
+    saveExternalLogEntry(entry);
+  }
+
+  private void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
+    authenticationService.obtainSystemAuthentication();
     notificationLoggingService.save(entry);
   }
 
