@@ -84,6 +84,7 @@ public interface TrackedEntityAttributeStore
   /**
    * Fetches all {@link TrackedEntityAttribute} and groups them by {@link Program}
    *
+   * @param program if present, it will return {@link TrackedEntityAttribute} from this program only
    * @return a Map, where the key is the {@link Program} and the values is a Set of {@link
    *     TrackedEntityAttribute} associated to the {@link Program} in the key
    */
