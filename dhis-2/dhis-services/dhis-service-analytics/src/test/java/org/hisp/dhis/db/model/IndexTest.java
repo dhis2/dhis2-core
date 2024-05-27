@@ -72,7 +72,7 @@ class IndexTest {
     assertNull(index.getCondition());
     assertNull(index.getFunction());
     assertNull(index.getColumns());
-    assertSame(index.getIndexType(), IndexType.BTREE);
+    assertSame(IndexType.BTREE, index.getIndexType());
     assertFalse(index.isUnique());
   }
 }
