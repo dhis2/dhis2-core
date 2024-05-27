@@ -189,6 +189,7 @@ class PredictionServiceTest extends IntegrationTestBase {
   public void setUpTest() throws Exception {
     this.userService = _userService;
 
+    PeriodType.invalidatePeriodCache();
     orgUnitLevel1 = new OrganisationUnitLevel(1, "Level1");
     orgUnitLevel2 = new OrganisationUnitLevel(2, "Level2");
     orgUnitLevel3 = new OrganisationUnitLevel(3, "Level3");

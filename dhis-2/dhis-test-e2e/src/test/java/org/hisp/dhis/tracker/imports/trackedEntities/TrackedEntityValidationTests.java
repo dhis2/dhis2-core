@@ -136,12 +136,13 @@ public class TrackedEntityValidationTests extends TrackerApiTest {
         trackerImportExportActions.postAndGetJobReport(
             object, new QueryParamsBuilder().add("async=false"));
 
-    String teiId = response.validateSuccessfulImport().extractImportedTrackedEntities().get(0);
+    String trackedEntityId =
+        response.validateSuccessfulImport().extractImportedTrackedEntities().get(0);
 
     String enrollmentId = response.extractImportedEnrollments().get(0);
 
     JsonObjectBuilder.jsonObject(object)
-        .addPropertyByJsonPath("trackedEntities[0].trackedEntity", teiId)
+        .addPropertyByJsonPath("trackedEntities[0].trackedEntity", trackedEntityId)
         .addPropertyByJsonPath("trackedEntities[0].attributes[0].value", null)
         .addPropertyByJsonPath("trackedEntities[0].enrollments[0].enrollment", enrollmentId)
         .addPropertyByJsonPath("trackedEntities[0].enrollments[0].attributes[0].value", null);
@@ -170,7 +171,7 @@ public class TrackedEntityValidationTests extends TrackerApiTest {
   public void shouldNotReturnErrorWhenRemovingNotMandatoryAttributes() {
     JsonObject payload = buildTrackedEntityWithMandatoryAndOptionSetAttribute().array();
 
-    String teiId =
+    String trackedEntityId =
         trackerImportExportActions
             .postAndGetJobReport(payload, new QueryParamsBuilder().add("async=false"))
             .validateSuccessfulImport()
@@ -178,14 +179,17 @@ public class TrackedEntityValidationTests extends TrackerApiTest {
             .get(0);
 
     JsonObjectBuilder.jsonObject(payload)
-        .addPropertyByJsonPath("trackedEntities[0]", "trackedEntity", teiId)
+        .addPropertyByJsonPath("trackedEntities[0]", "trackedEntity", trackedEntityId)
         .addPropertyByJsonPath("trackedEntities[0].attributes[1]", "value", null);
 
     trackerImportExportActions
         .postAndGetJobReport(payload, new QueryParamsBuilder().add("async=false"))
         .validateSuccessfulImport();
 
-    trackerImportExportActions.getTrackedEntity(teiId).validate().body("attributes", hasSize(1));
+    trackerImportExportActions
+        .getTrackedEntity(trackedEntityId)
+        .validate()
+        .body("attributes", hasSize(1));
   }
 
   @Test
@@ -233,22 +237,23 @@ public class TrackedEntityValidationTests extends TrackerApiTest {
   }
 
   @Test
-  public void shouldReturnErrorWhenUpdatingSoftDeletedTEI() {
+  public void shouldReturnErrorWhenUpdatingSoftDeletedTE() {
     JsonObject trackedEntities =
         new TrackedEntityDataBuilder()
             .setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE)
             .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .array();
 
-    // create TEI
+    // create TE
     TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(trackedEntities);
 
     response.validateSuccessfulImport();
 
-    String teiId = response.extractImportedTrackedEntities().get(0);
-    JsonObject trackedEntitiesToDelete = new TrackedEntityDataBuilder().setId(teiId).array();
+    String trackedEntityId = response.extractImportedTrackedEntities().get(0);
+    JsonObject trackedEntitiesToDelete =
+        new TrackedEntityDataBuilder().setId(trackedEntityId).array();
 
-    // delete TEI
+    // delete TE
     TrackerApiResponse deleteResponse =
         trackerImportExportActions.postAndGetJobReport(
             trackedEntitiesToDelete, new QueryParamsBuilder().add("importStrategy=DELETE"));
@@ -257,12 +262,12 @@ public class TrackedEntityValidationTests extends TrackerApiTest {
 
     JsonObject trackedEntitiesToImportAgain =
         new TrackedEntityDataBuilder()
-            .setId(teiId)
+            .setId(trackedEntityId)
             .setTrackedEntityType(Constants.TRACKED_ENTITY_TYPE)
             .setOrgUnit(Constants.ORG_UNIT_IDS[0])
             .array();
 
-    // Update TEI
+    // Update TE
     TrackerApiResponse responseImportAgain =
         trackerImportExportActions.postAndGetJobReport(trackedEntitiesToImportAgain);
 

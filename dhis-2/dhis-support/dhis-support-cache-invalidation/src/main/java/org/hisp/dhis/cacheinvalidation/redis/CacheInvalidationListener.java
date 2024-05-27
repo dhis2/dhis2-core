@@ -213,17 +213,17 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
         dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
   }
 
-  private Serializable getTrackedEntityAttributeValueId(String entityIds) {
-    String[] parts = entityIds.split(";");
+  private Serializable getTrackedEntityAttributeValueId(String trackedEntityIds) {
+    String[] parts = trackedEntityIds.split(";");
 
     long trackedEntityAttributeId = Long.parseLong(parts[0]);
-    long entityInstanceId = Long.parseLong(parts[1]);
+    long trackedEntityId = Long.parseLong(parts[1]);
 
     TrackedEntityAttribute trackedEntityAttribute =
         trackedEntityAttributeService.getTrackedEntityAttribute(trackedEntityAttributeId);
-    TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(entityInstanceId);
+    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityId);
 
-    return new TrackedEntityAttributeValue(trackedEntityAttribute, entityInstance);
+    return new TrackedEntityAttributeValue(trackedEntityAttribute, trackedEntity);
   }
 
   @Override

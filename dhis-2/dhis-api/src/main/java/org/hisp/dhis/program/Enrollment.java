@@ -408,7 +408,7 @@ public class Enrollment extends SoftDeletableObject {
         + occurredDate
         + ", enrollmentDate="
         + enrollmentDate
-        + ", entityInstance="
+        + ", trackedEntity="
         + (trackedEntity != null ? trackedEntity.getUid() : "null")
         + ", program="
         + program

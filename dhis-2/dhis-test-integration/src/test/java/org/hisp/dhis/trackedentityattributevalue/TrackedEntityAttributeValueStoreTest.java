@@ -52,7 +52,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
   @Autowired private TrackedEntityAttributeValueStore attributeValueStore;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -94,10 +94,10 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     trackedEntityB = createTrackedEntity(organisationUnit);
     trackedEntityC = createTrackedEntity(organisationUnit);
     trackedEntityD = createTrackedEntity(organisationUnit);
-    entityInstanceService.addTrackedEntity(trackedEntityA);
-    entityInstanceService.addTrackedEntity(trackedEntityB);
-    entityInstanceService.addTrackedEntity(trackedEntityC);
-    entityInstanceService.addTrackedEntity(trackedEntityD);
+    trackedEntityService.addTrackedEntity(trackedEntityA);
+    trackedEntityService.addTrackedEntity(trackedEntityB);
+    trackedEntityService.addTrackedEntity(trackedEntityC);
+    trackedEntityService.addTrackedEntity(trackedEntityD);
     atA = createTrackedEntityAttribute('A');
     atB = createTrackedEntityAttribute('B');
     atC = createTrackedEntityAttribute('C');

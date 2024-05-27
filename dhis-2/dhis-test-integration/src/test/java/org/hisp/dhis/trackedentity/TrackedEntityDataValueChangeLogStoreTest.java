@@ -67,7 +67,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
 
   @Autowired private TrackedEntityDataValueChangeLogStore auditStore;
 
-  @Autowired private TrackedEntityService entityInstanceService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -152,7 +152,7 @@ class TrackedEntityDataValueChangeLogStoreTest extends SingleSetupIntegrationTes
     dataElementService.addDataElement(deB);
 
     TrackedEntity teA = createTrackedEntity(ouA);
-    entityInstanceService.addTrackedEntity(teA);
+    trackedEntityService.addTrackedEntity(teA);
 
     Enrollment enrollmentA =
         enrollmentService.enrollTrackedEntity(teA, pA, new Date(), new Date(), ouA);

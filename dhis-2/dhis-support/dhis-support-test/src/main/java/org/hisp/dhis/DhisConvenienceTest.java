@@ -2138,9 +2138,9 @@ public abstract class DhisConvenienceTest {
   }
 
   public static TrackedEntityAttributeValue createTrackedEntityAttributeValue(
-      char uniqueChar, TrackedEntity entityInstance, TrackedEntityAttribute attribute) {
+      char uniqueChar, TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-    attributeValue.setTrackedEntity(entityInstance);
+    attributeValue.setTrackedEntity(trackedEntity);
     attributeValue.setAttribute(attribute);
     attributeValue.setValue("Attribute" + uniqueChar);
 

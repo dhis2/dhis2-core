@@ -188,7 +188,7 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   @OpenApi.Property({UID[].class, User.class})
   private Set<UID> assignedUsers = new HashSet<>();
 
-  /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
+  /** Program Stage UID, used for filtering TEs based on the selected Program Stage */
   @OpenApi.Property({UID.class, ProgramStage.class})
   private UID programStage;
 
@@ -205,8 +205,8 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private boolean includeDeleted = false;
 
   /**
-   * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
-   * potentialDuplicate or not
+   * Potential Duplicate value for TE. If null, we don't check whether a TE is a potentialDuplicate
+   * or not
    */
   private Boolean potentialDuplicate;
 

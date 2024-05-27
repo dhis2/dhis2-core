@@ -482,7 +482,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Relationship r = relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}", to.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -583,7 +583,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getRelationshipsByTe() {
+  void getRelationshipsByDeprecatedTei() {
     TrackedEntity to = trackedEntity();
     Enrollment from = enrollment(to);
     Relationship r = relationship(from, to);
@@ -607,7 +607,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[enrollments[enrollment,trackedEntity]]",
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=to[trackedEntity[enrollments[enrollment,trackedEntity]]",
                 to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
@@ -648,7 +648,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={tei}&fields=from[enrollment[attributes[attribute,value]]],to[trackedEntity[attributes[attribute,value]]]",
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[enrollment[attributes[attribute,value]]],to[trackedEntity[attributes[attribute,value]]]",
                 to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
@@ -673,7 +673,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     JsonList<JsonRelationship> relationships =
         GET(
-                "/tracker/relationships?trackedEntity={tei}&fields=to[trackedEntity[programOwners]",
+                "/tracker/relationships?trackedEntity={trackedEntity}&fields=to[trackedEntity[programOwners]",
                 to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
@@ -692,7 +692,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Relationship r = relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -709,7 +709,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     Relationship r = relationship(from, to);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -727,7 +727,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
+            .content(HttpStatus.OK));
   }
 
   @Test
@@ -738,7 +739,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
     this.switchContextToUser(user);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).content(HttpStatus.OK));
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid())
+            .content(HttpStatus.OK));
   }
 
   @Test
@@ -750,7 +752,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     assertEquals(
         HttpStatus.FORBIDDEN,
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid()).status());
   }
 
   @Test
@@ -764,7 +766,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest {
 
     assertEquals(
         HttpStatus.FORBIDDEN,
-        GET("/tracker/relationships?trackedEntity={tei}", from.getUid()).status());
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", from.getUid()).status());
   }
 
   @Test

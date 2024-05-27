@@ -63,7 +63,7 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   }
 
   @Test
-  void testStatsCountForOneCreatedTEI() throws IOException {
+  void testStatsCountForOneCreatedTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
@@ -78,7 +78,7 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   }
 
   @Test
-  void testStatsCountForOneCreatedAndOneUpdatedTEI() throws IOException {
+  void testStatsCountForOneCreatedAndOneUpdatedTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
@@ -100,7 +100,7 @@ class ReportSummaryIntegrationTest extends TrackerTest {
   }
 
   @Test
-  void testStatsCountForOneCreatedAndOneUpdatedTEIAndOneInvalidTEI() throws IOException {
+  void testStatsCountForOneCreatedAndOneUpdatedTEAndOneInvalidTE() throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).userId(userA.getUid()).build();
