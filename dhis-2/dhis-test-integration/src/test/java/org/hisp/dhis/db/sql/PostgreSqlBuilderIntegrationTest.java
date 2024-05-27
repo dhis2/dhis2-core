@@ -81,7 +81,7 @@ class PostgreSqlBuilderIntegrationTest extends IntegrationTestBase {
             .withColumns(List.of("period", "created")),
         Index.builder()
             .build()
-            .withName("in_immunization_period_created")
+            .withName("in_immunization_user")
             .withTableName("immunization")
             .withIndexType(IndexType.GIN)
             .withColumns(List.of("user")),

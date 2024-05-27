@@ -40,6 +40,7 @@ import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
+import org.hisp.dhis.db.model.constraint.Unique;
 import org.junit.jupiter.api.Test;
 
 class PostgreSqlBuilderTest {
@@ -402,13 +403,13 @@ class PostgreSqlBuilderTest {
     String expected =
         "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
     Index index =
-        new Index(
-            "index_a",
-            "table_a",
-            IndexType.BTREE,
-            Unique.UNIQUE,
-            List.of("column_a"),
-            "desc nulls last");
+        Index.builder()
+            .build()
+            .withName("index_a")
+            .withTableName("table_a")
+            .withUnique(Unique.UNIQUE)
+            .withColumns(List.of("column_a"))
+            .withSortOrder("desc nulls last");
 
     // when
     String createIndexStmt = sqlBuilder.createIndex(index);

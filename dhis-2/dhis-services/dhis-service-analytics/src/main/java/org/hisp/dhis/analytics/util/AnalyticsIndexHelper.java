@@ -180,13 +180,13 @@ public class AnalyticsIndexHelper {
 
     if (column.getDataType() == TIMESTAMP && column.isStatic() && isSingleColumn) {
       indexes.add(
-          new Index(
-              indexName + "_desc",
-              tableName,
-              column.getIndexType(),
-              Unique.NON_UNIQUE,
-              indexColumns,
-              "desc nulls last"));
+          Index.builder()
+              .build()
+              .withName(indexName + "_desc")
+              .withTableName(tableName)
+              .withIndexType(column.getIndexType())
+              .withColumns(indexColumns)
+              .withSortOrder("desc nulls last"));
     }
   }
 

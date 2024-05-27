@@ -63,6 +63,9 @@ public class Index {
   /** SQL function to use for index columns. Optional, may be null. */
   @With private final IndexFunction function;
 
+  /** SQL function to use for index sort order. Optional, may be null. */
+  @With private final String sortOrder;
+
   /**
    * Indicates whether the index is unique.
    *
