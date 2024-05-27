@@ -41,7 +41,9 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.Assert;
 
 /**
- * Simple server-independent abstraction for mime mappings. Roughly equivalent to the {@literal
+ * This code is a modified version of the original code from Spring Boot project.
+ *
+ * <p>Simple server-independent abstraction for mime mappings. Roughly equivalent to the {@literal
  * &lt;mime-mapping&gt;} element traditionally found in web.xml.
  *
  * @author Phillip Webb
