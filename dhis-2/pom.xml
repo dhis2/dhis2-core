@@ -872,6 +872,13 @@
         <version>${aerogear-otp-java.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.jetbrains</groupId>
+        <artifactId>annotations</artifactId>
+        <version>24.1.0</version>
+        <scope>compile</scope>
+      </dependency>
+
       <!-- Apache Commons -->
       <dependency>
         <groupId>org.apache.commons</groupId>
