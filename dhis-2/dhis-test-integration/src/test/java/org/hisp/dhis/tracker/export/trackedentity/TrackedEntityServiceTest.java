@@ -146,6 +146,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntityAttribute teaC;
 
+  private TrackedEntityAttributeValue trackedEntityAttributeValueA;
+
+  private TrackedEntityAttributeValue trackedEntityAttributeValueB;
+
+  private TrackedEntityAttributeValue trackedEntityAttributeValueC;
+
   private TrackedEntityType trackedEntityTypeA;
 
   private Program programA;
@@ -333,8 +339,17 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
                 new ProgramTrackedEntityAttribute(programB, teaE)));
     manager.update(programB);
 
+    trackedEntityAttributeValueA = new TrackedEntityAttributeValue(teaA, trackedEntityA, "A");
+    trackedEntityAttributeValueB = new TrackedEntityAttributeValue(teaB, trackedEntityA, "B");
+    trackedEntityAttributeValueC = new TrackedEntityAttributeValue(teaC, trackedEntityA, "C");
+
     trackedEntityA = createTrackedEntity(orgUnitA);
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityA.setTrackedEntityAttributeValues(
+        Set.of(
+            trackedEntityAttributeValueA,
+            trackedEntityAttributeValueB,
+            trackedEntityAttributeValueC));
     manager.save(trackedEntityA, false);
 
     trackedEntityChildA = createTrackedEntity(orgUnitChildA);
@@ -1953,6 +1968,33 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertEquals(
         String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnProgramAttributesWhenSingleTERequestedAndProgramSpecified()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false);
+
+    assertContainsOnly(
+        Set.of(
+            trackedEntityAttributeValueA,
+            trackedEntityAttributeValueB,
+            trackedEntityAttributeValueC),
+        trackedEntity.getTrackedEntityAttributeValues());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityTypeAttributesWhenSingleTERequestedAndNoProgramSpecified()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityA.getUid(), null, TrackedEntityParams.TRUE, false);
+
+    assertContainsOnly(
+        Set.of(trackedEntityAttributeValueA, trackedEntityAttributeValueB),
+        trackedEntity.getTrackedEntityAttributeValues());
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
