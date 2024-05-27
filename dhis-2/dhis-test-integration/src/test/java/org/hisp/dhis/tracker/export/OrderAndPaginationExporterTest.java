@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -47,7 +46,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -75,14 +73,10 @@ import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -363,66 +357,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldExcludeEnrollmentWhoseProgramIsNotRequestedAndOrderTrackedEntitiesByEnrolledAt()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-
-    String oldEnrollment = "nxP7UnKhomJ";
-    String newEnrollment = CodeGenerator.generateUid();
-
-    // enroll a tracked entity to a new program. This enrollment will be excluded because it has not
-    // the requested program
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        new org.hisp.dhis.tracker.imports.domain.Enrollment();
-    enrollment.setEnrollment(newEnrollment);
-    enrollment.setTrackedEntity("QS6w44flWAf");
-    enrollment.setProgram(
-        MetadataIdentifier.ofUid("shPjYNifvMK")); // enroll to another program with registration
-    enrollment.setOrgUnit(MetadataIdentifier.ofUid("uoNW0E3xXUy"));
-    enrollment.setEnrolledAt(Instant.now());
-    enrollment.setOccurredAt(Instant.now());
-
-    assertNoErrors(
-        trackerImportService.importTracker(
-            TrackerImportParams.builder().build(),
-            TrackerObjects.builder().enrollments(List.of(enrollment)).build()));
-
-    manager.flush();
-    manager.clear();
-
-    TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
-    assertContainsOnly(
-        List.of(newEnrollment, oldEnrollment),
-        QS6w44flWAf.getEnrollments().stream().map(BaseIdentifiableObject::getUid).toList());
-
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(orgUnit.getUid()))
-            .orgUnitMode(SELECTED)
-            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
-            .programUid("BFcipDERJnf")
-            .user(importUser)
-            .trackedEntityParams(
-                TrackedEntityParams.FALSE.withTeEnrollmentParams(
-                    TrackedEntityEnrollmentParams.TRUE)) // include enrollments
-            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
-            .build();
-
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(params);
-
-    assertAll(
-        () -> assertEquals(List.of("dUE514NMOlo", "QS6w44flWAf"), uids(trackedEntities)),
-        () ->
-            assertContainsOnly(
-                List.of(oldEnrollment),
-                trackedEntities.stream()
-                    .filter(t -> t.getUid().equals("QS6w44flWAf"))
-                    .flatMap(t -> t.getEnrollments().stream())
-                    .map(BaseIdentifiableObject::getUid)
-                    .toList()));
-  }
-
-  @Test
-  void shouldOrderTrackedEntitiesByEnrolledAtDesc()
+  void shouldOrderTrackedEntitiesByEnrolledAtDescWithNoProgramInParams()
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -430,6 +365,28 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityTypeUid(trackedEntityType.getUid())
+            .user(importUser)
+            .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
+            .build();
+
+    List<String> trackedEntities = getTrackedEntities(params);
+
+    assertEquals(
+        List.of("QS6w44flWAf", "dUE514NMOlo"),
+        trackedEntities); // QS6w44flWAf has 2 enrollments, one of which has an enrollment with
+    // enrolled date greater than the enrollment in dUE514NMOlo
+  }
+
+  @Test
+  void shouldOrderTrackedEntitiesByEnrolledAtDescWithProgramInParams()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnit.getUid()))
+            .orgUnitMode(SELECTED)
+            .trackedEntityUids(Set.of("QS6w44flWAf", "dUE514NMOlo"))
+            .trackedEntityTypeUid(trackedEntityType.getUid())
+            .programUid("BFcipDERJnf")
             .user(importUser)
             .orderBy("enrollment.enrollmentDate", SortDirection.DESC)
             .build();
