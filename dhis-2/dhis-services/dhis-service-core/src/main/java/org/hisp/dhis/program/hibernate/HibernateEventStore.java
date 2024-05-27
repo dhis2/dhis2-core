@@ -117,9 +117,8 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
     }
 
     Query<?> query =
-        getSession()
-            .createNativeQuery(
-                "select exists(select 1 from event where uid=:uid and deleted is false)");
+        nativeSynchronizedQuery(
+            "select exists(select 1 from event where uid=:uid and deleted is false)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
@@ -131,8 +130,7 @@ public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
       return false;
     }
 
-    Query<?> query =
-        getSession().createNativeQuery("select exists(select 1 from event where uid=:uid)");
+    Query<?> query = nativeSynchronizedQuery("select exists(select 1 from event where uid=:uid)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
