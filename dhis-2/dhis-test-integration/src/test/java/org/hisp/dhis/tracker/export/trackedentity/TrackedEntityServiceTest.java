@@ -144,13 +144,13 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntityAttribute teaA;
 
-  private TrackedEntityAttribute teaC;
+  private TrackedEntityAttribute teaProgramA;
 
   private TrackedEntityAttributeValue trackedEntityAttributeValueA;
 
   private TrackedEntityAttributeValue trackedEntityAttributeValueB;
 
-  private TrackedEntityAttributeValue trackedEntityAttributeValueC;
+  private TrackedEntityAttributeValue trackedEntityAttributeValueProgramA;
 
   private TrackedEntityType trackedEntityTypeA;
 
@@ -249,12 +249,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     manager.save(teaA, false);
     TrackedEntityAttribute teaB = createTrackedEntityAttribute('B', ValueType.TEXT);
     manager.save(teaB, false);
-    teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
-    manager.save(teaC, false);
     TrackedEntityAttribute teaD = createTrackedEntityAttribute('D', ValueType.TEXT);
     manager.save(teaD, false);
     TrackedEntityAttribute teaE = createTrackedEntityAttribute('E', ValueType.TEXT);
     manager.save(teaE, false);
+    teaProgramA = createTrackedEntityAttribute('P', ValueType.TEXT);
+    manager.save(teaProgramA, false);
 
     trackedEntityTypeA = createTrackedEntityType('A');
     trackedEntityTypeA
@@ -289,7 +289,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     programA.getSharing().setOwner(superuser);
     programA.getSharing().setPublicAccess(AccessStringHelper.FULL);
     ProgramTrackedEntityAttribute programTrackedEntityAttribute =
-        new ProgramTrackedEntityAttribute(programA, teaC);
+        new ProgramTrackedEntityAttribute(programA, teaProgramA);
     programTrackedEntityAttribute.setSearchable(true);
     programA.getProgramAttributes().add(programTrackedEntityAttribute);
     manager.update(programA);
@@ -337,15 +337,13 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     trackedEntityAttributeValueA = new TrackedEntityAttributeValue(teaA, trackedEntityA, "A");
     trackedEntityAttributeValueB = new TrackedEntityAttributeValue(teaB, trackedEntityA, "B");
-    trackedEntityAttributeValueC = new TrackedEntityAttributeValue(teaC, trackedEntityA, "C");
+    trackedEntityAttributeValueProgramA =
+        new TrackedEntityAttributeValue(teaProgramA, trackedEntityA, "P");
 
     trackedEntityA = createTrackedEntity(orgUnitA);
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
     trackedEntityA.setTrackedEntityAttributeValues(
-        Set.of(
-            trackedEntityAttributeValueA,
-            trackedEntityAttributeValueB,
-            trackedEntityAttributeValueC));
+        Set.of(trackedEntityAttributeValueA, trackedEntityAttributeValueB));
     manager.save(trackedEntityA, false);
 
     trackedEntityChildA = createTrackedEntity(orgUnitChildA);
@@ -423,9 +421,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
     attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaC, trackedEntityA, "C"));
-    attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaE, trackedEntityA, "E"));
+    attributeValueService.addTrackedEntityAttributeValue(
+        new TrackedEntityAttributeValue(teaProgramA, trackedEntityA, "P"));
 
     RelationshipType relationshipTypeA = createRelationshipType('A');
     relationshipTypeA
@@ -671,8 +669,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldTrackedEntityIncludeSpecificOpenProgram()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void
+      shouldReturnTrackedEntityTypeAndProgramAttributesWhenMultipleTEsRequestedAndProgramSpecified()
+          throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -685,8 +684,35 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
     assertContainsOnly(
-        Set.of("A", "B", "C"),
+        Set.of(
+            trackedEntityAttributeValueA.getValue(),
+            trackedEntityAttributeValueB.getValue(),
+            trackedEntityAttributeValueProgramA.getValue()),
         attributeNames(trackedEntities.get(0).getTrackedEntityAttributeValues()));
+  }
+
+  @Test
+  void shouldReturnOnlyTrackedEntityTypeAttributesWhenMultipleTEsRequestedAndNoProgramSpecified()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(SELECTED)
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .trackedEntityTypeUid(trackedEntityTypeA.getUid())
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(Set.of(trackedEntityA.getUid()), uids(trackedEntities));
+    assertContainsOnly(
+        Set.of(
+            trackedEntityAttributeValueA.getAttribute().getUid(),
+            trackedEntityAttributeValueB.getAttribute().getUid()),
+        uids(
+            trackedEntities.get(0).getTrackedEntityAttributeValues().stream()
+                .map(TrackedEntityAttributeValue::getAttribute)
+                .toList()));
   }
 
   @Test
@@ -1260,7 +1286,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
     assertContainsOnly(
-        Set.of("C"),
+        Set.of(trackedEntityAttributeValueProgramA.getValue()),
         attributeNames(enrollmentA.get().getTrackedEntity().getTrackedEntityAttributeValues()));
   }
 
@@ -1693,7 +1719,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
             .orgUnitMode(ALL)
             .user(superuser)
             .programUid(programA.getUid())
-            .filters(Map.of(teaC.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "C"))))
+            .filters(
+                Map.of(
+                    teaProgramA.getUid(),
+                    List.of(
+                        new QueryFilter(
+                            QueryOperator.LIKE, trackedEntityAttributeValueProgramA.getValue()))))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -2004,17 +2035,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void shouldReturnProgramAttributesWhenSingleTERequestedAndProgramSpecified()
+  void shouldReturnTrackedEntityTypeAndProgramAttributesWhenSingleTERequestedAndProgramSpecified()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
             trackedEntityA.getUid(), programA.getUid(), TrackedEntityParams.TRUE, false);
 
     assertContainsOnly(
-        Set.of(
-            trackedEntityAttributeValueA,
-            trackedEntityAttributeValueB,
-            trackedEntityAttributeValueC),
+        Set.of(trackedEntityAttributeValueA, trackedEntityAttributeValueB),
         trackedEntity.getTrackedEntityAttributeValues());
   }
 

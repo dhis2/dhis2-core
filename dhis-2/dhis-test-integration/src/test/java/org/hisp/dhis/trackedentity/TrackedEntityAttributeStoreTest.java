@@ -221,7 +221,7 @@ class TrackedEntityAttributeStoreTest extends IntegrationTestBase {
   @Test
   void verifyGetTrackedEntityAttributesByProgram() {
     Map<Program, Set<TrackedEntityAttribute>> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesByProgram();
+        attributeService.getTrackedEntityAttributesByProgram(null);
     assertThat(trackedEntityAttributes.size(), is(1));
     assertThat(trackedEntityAttributes.get(programB), hasSize(20));
   }

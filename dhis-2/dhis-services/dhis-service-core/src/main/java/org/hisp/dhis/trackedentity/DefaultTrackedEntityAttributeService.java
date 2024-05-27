@@ -287,12 +287,6 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes() {
-    return getAllUserReadableTrackedEntityAttributes(CurrentUserUtil.getCurrentUserDetails());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
       UserDetails userDetails) {
     List<Program> programs = programService.getAllPrograms();
@@ -376,8 +370,9 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
-    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
+  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram(
+      Program program) {
+    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram(program);
   }
 
   private String validateImage(String uid) {

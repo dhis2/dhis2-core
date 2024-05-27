@@ -260,7 +260,8 @@ public class TrackedEntityAggregate implements Aggregate {
                                     "ATTRIBUTES_BY_PROGRAM",
                                     s ->
                                         trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByProgram()),
+                                            .getTrackedEntityAttributesByProgram(
+                                                queryParams.getProgram())),
                                 ctx));
                         te.setRelationshipItems(new HashSet<>(relationships.get(uid)));
                         te.setEnrollments(

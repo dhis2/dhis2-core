@@ -195,10 +195,17 @@ public class HibernateTrackedEntityAttributeStore
 
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
+  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram(
+      Program program) {
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-    Query query = getSession().createQuery("select p.programAttributes from Program p");
+    Query query;
+    if (program == null) {
+      query = getSession().createQuery("select p.programAttributes from Program p");
+    } else {
+      String hql = "select p.programAttributes from Program p where p.uid = :programUid";
+      query = getSession().createQuery(hql).setParameter("programUid", program.getUid());
+    }
 
     List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
 

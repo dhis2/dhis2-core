@@ -87,5 +87,5 @@ public interface TrackedEntityAttributeStore
    * @return a Map, where the key is the {@link Program} and the values is a Set of {@link
    *     TrackedEntityAttribute} associated to the {@link Program} in the key
    */
-  Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
+  Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram(Program program);
 }
