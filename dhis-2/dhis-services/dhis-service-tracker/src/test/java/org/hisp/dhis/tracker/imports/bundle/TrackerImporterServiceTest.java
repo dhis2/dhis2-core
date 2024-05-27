@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,9 +38,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
@@ -146,6 +149,15 @@ class TrackerImporterServiceTest {
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
     verify(trackerBundleService, times(1)).handleTrackerSideEffects(anyList());
+  }
+
+  @Test
+  void shouldRaiseExceptionWhenExceptionWasThrownInsideAStage() {
+    when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
+            .thenThrow(IllegalArgumentException.class);
+
+    assertThrows(IllegalArgumentException.class,
+            () -> subject.importTracker(params, trackerObjects, RecordingJobProgress.transitory()));
   }
 
   private User getUser() {
