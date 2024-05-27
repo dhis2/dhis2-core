@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static org.hisp.dhis.security.Authorities.F_JOB_LOG_READ;
-import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -107,7 +105,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   public void revertNow(@Nonnull UID jobId)
       throws ConflictException, NotFoundException, ForbiddenException {
     UserDetails currentUser = getCurrentUserDetails();
-    if (currentUser == null || !currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
+    if (currentUser == null || !currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
       throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
     if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
       JobConfiguration job = jobConfigurationStore.getByUid(jobId.getValue());
@@ -145,7 +143,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     Progress progress = mapToProgress(json);
     if (progress == null) return null;
     UserDetails user = getCurrentUserDetails();
-    if (user == null || !(user.isSuper() || user.isAuthorized(F_JOB_LOG_READ)))
+    if (user == null || !(user.isSuper() || user.isAuthorized("F_JOB_LOG_READ")))
       return progress.withoutErrors();
     return progress;
   }
