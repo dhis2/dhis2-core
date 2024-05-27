@@ -102,11 +102,12 @@ public class PeriodResourceTable implements ResourceTable {
   @Override
   public List<Index> getIndexes() {
     return List.of(
-        new Index(
-            appendRandom("in_periodstructure_iso"),
-            toStaging(TABLE_NAME),
-            Unique.UNIQUE,
-            List.of("iso")));
+        Index.builder()
+            .build()
+            .withName(appendRandom("in_periodstructure_iso"))
+            .withTableName(toStaging(TABLE_NAME))
+            .withUnique(Unique.UNIQUE)
+            .withColumns(List.of("iso")));
   }
 
   @Override
