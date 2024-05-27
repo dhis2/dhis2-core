@@ -240,14 +240,14 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject> implements Que
   }
 
   private <Y> Predicate buildPredicates(CriteriaBuilder builder, Root<Y> root, Query query) {
-    Predicate junction = getJpaJunction(builder, query.getRootJunctionType());
-
-    for (org.hisp.dhis.query.Criterion criterion : query.getCriterions()) {
-      addPredicate(builder, root, junction, criterion);
+    Predicate junction = builder.conjunction();
+    if (!query.getCriterions().isEmpty()) {
+      junction = getJpaJunction(builder, query.getRootJunctionType());
+      for (org.hisp.dhis.query.Criterion criterion : query.getCriterions()) {
+        addPredicate(builder, root, junction, criterion);
+      }
     }
-
     query.getAliases().forEach(alias -> root.get(alias).alias(alias));
-
     return junction;
   }
 
