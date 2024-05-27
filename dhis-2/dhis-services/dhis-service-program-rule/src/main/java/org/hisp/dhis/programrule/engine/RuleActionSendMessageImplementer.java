@@ -69,7 +69,6 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
   // -------------------------------------------------------------------------
 
   private final ApplicationEventPublisher publisher;
-  private final AuthenticationService authenticationService;
 
   public RuleActionSendMessageImplementer(
       ProgramNotificationTemplateService programNotificationTemplateService,
@@ -82,9 +81,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         programNotificationTemplateService,
         notificationLoggingService,
         enrollmentService,
-        eventService);
+        eventService,
+        authenticationService);
     this.publisher = publisher;
-    this.authenticationService = authenticationService;
   }
 
   @Override
@@ -147,11 +146,6 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     entry.setAllowMultiple(template.isSendRepeatable());
 
     saveExternalLogEntry(entry);
-  }
-
-  private void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
-    authenticationService.obtainSystemAuthentication();
-    notificationLoggingService.save(entry);
   }
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {

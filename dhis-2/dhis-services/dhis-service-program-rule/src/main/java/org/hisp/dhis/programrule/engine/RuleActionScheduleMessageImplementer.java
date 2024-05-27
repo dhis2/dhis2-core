@@ -80,10 +80,10 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         programNotificationTemplateService,
         notificationLoggingService,
         enrollmentService,
-        eventService);
+        eventService,
+        authenticationService);
     this.programNotificationInstanceService = programNotificationInstanceService;
     this.notificationTemplateService = notificationTemplateService;
-    this.authenticationService = authenticationService;
   }
 
   @Override
@@ -179,11 +179,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
   // -------------------------------------------------------------------------
   // Supportive Methods
   // -------------------------------------------------------------------------
-
-  private void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
-    authenticationService.obtainSystemAuthentication();
-    notificationLoggingService.save(entry);
-  }
 
   private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
     ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.getRuleAction());
