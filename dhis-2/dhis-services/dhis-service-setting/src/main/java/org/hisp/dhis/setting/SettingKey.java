@@ -59,7 +59,7 @@ import org.hisp.dhis.sms.config.SmsConfiguration;
  */
 public enum SettingKey {
   UI_LOCALE("keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class),
-  DB_LOCALE("keyDbLocale", Locale.class),
+  DB_LOCALE("keyDbLocale", LocaleManager.DEFAULT_LOCALE, Locale.class),
   ANALYSIS_DISPLAY_PROPERTY(
       "keyAnalysisDisplayProperty", DisplayProperty.NAME, DisplayProperty.class),
   ANALYSIS_DIGIT_GROUP_SEPARATOR(
