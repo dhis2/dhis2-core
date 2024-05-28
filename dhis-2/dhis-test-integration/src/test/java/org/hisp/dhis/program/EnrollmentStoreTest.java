@@ -177,7 +177,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testGetEnrollmentsByEntityInstanceProgramStatus() {
+  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
     enrollmentStore.save(enrollmentA);
     enrollmentStore.save(enrollmentB);
     enrollmentStore.save(enrollmentC);

@@ -345,7 +345,7 @@ public abstract class CompressionSMSListener extends BaseSMSListener {
     }
   }
 
-  protected EnrollmentStatus getCoreProgramStatus(SmsEnrollmentStatus enrollmentStatus) {
+  protected EnrollmentStatus getCoreEnrollmentStatus(SmsEnrollmentStatus enrollmentStatus) {
     switch (enrollmentStatus) {
       case ACTIVE:
         return EnrollmentStatus.ACTIVE;

@@ -119,7 +119,7 @@ class EventOperationParamsMapper {
         .setProgramStage(programStage)
         .setOrgUnit(orgUnit)
         .setTrackedEntity(trackedEntity)
-        .setProgramStatus(operationParams.getProgramStatus())
+        .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(

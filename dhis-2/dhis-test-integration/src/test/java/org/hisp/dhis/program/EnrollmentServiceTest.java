@@ -239,7 +239,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
   }
 
   @Test
-  void testGetEnrollmentsByEntityInstanceProgramStatus() {
+  void testGetEnrollmentsByTrackedEntityProgramAndEnrollmentStatus() {
     enrollmentService.addEnrollment(enrollmentA);
     Enrollment enrollment1 =
         enrollmentService.enrollTrackedEntity(

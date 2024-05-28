@@ -78,7 +78,7 @@ class EnrollmentOperationParamsMapper {
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setProgram(program);
-    params.setProgramStatus(operationParams.getProgramStatus());
+    params.setEnrollmentStatus(operationParams.getEnrollmentStatus());
     params.setFollowUp(operationParams.getFollowUp());
     params.setLastUpdated(operationParams.getLastUpdated());
     params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());

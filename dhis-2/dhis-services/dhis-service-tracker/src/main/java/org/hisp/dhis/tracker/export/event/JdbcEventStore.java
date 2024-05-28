@@ -909,8 +909,8 @@ class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    if (params.getProgramStatus() != null) {
-      mapSqlParameterSource.addValue("program_status", params.getProgramStatus().name());
+    if (params.getEnrollmentStatus() != null) {
+      mapSqlParameterSource.addValue("program_status", params.getEnrollmentStatus().name());
 
       fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
     }
