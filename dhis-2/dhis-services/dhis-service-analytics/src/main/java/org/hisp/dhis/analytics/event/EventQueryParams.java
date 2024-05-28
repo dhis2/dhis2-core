@@ -87,11 +87,11 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.OrganisationUnitCriteriaUtils;
@@ -206,7 +206,7 @@ public class EventQueryParams extends DataQueryParams {
   private boolean includeClusterPoints;
 
   /** Indicates the program status. */
-  private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
+  private Set<EnrollmentStatus> programStatus = new LinkedHashSet<>();
 
   /** flag to enable row context in grid response */
   private boolean rowContext = false;
@@ -615,7 +615,7 @@ public class EventQueryParams extends DataQueryParams {
   }
 
   /** Gets program status */
-  public Set<ProgramStatus> getProgramStatus() {
+  public Set<EnrollmentStatus> getProgramStatus() {
     return programStatus;
   }
 
@@ -1285,7 +1285,7 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
-    public Builder withProgramStatuses(Set<ProgramStatus> programStatuses) {
+    public Builder withProgramStatuses(Set<EnrollmentStatus> programStatuses) {
       if (isNotEmpty(programStatuses)) {
         this.params.programStatus.addAll(programStatuses);
       }

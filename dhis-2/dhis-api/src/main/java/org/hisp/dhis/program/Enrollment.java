@@ -63,7 +63,7 @@ public class Enrollment extends SoftDeletableObject {
 
   private Date lastUpdatedAtClient;
 
-  private ProgramStatus status = ProgramStatus.ACTIVE;
+  private EnrollmentStatus status = EnrollmentStatus.ACTIVE;
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
@@ -148,7 +148,7 @@ public class Enrollment extends SoftDeletableObject {
   }
 
   public boolean isCompleted() {
-    return this.status == ProgramStatus.COMPLETED;
+    return this.status == EnrollmentStatus.COMPLETED;
   }
 
   // -------------------------------------------------------------------------
@@ -268,11 +268,11 @@ public class Enrollment extends SoftDeletableObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getStatus() {
+  public EnrollmentStatus getStatus() {
     return status;
   }
 
-  public void setStatus(ProgramStatus status) {
+  public void setStatus(EnrollmentStatus status) {
     this.status = status;
   }
 

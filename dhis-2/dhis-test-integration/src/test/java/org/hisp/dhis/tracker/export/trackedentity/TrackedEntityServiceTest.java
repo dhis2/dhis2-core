@@ -82,11 +82,11 @@ import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
@@ -1408,7 +1408,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> assertEquals(orgUnitA.getUid(), enrollment.getOrganisationUnit().getUid()),
         () -> assertEquals(orgUnitA.getName(), enrollment.getOrganisationUnit().getName()),
         () -> assertEquals(programA.getUid(), enrollment.getProgram().getUid()),
-        () -> assertEquals(ProgramStatus.ACTIVE, enrollment.getStatus()),
+        () -> assertEquals(EnrollmentStatus.ACTIVE, enrollment.getStatus()),
         () -> assertFalse(enrollment.isDeleted()),
         () -> assertTrue(enrollment.getFollowup()),
         () -> checkDate(currentTime, enrollment.getCreated()),
@@ -1455,7 +1455,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         () -> assertEquals(orgUnitA.getName(), event.getOrganisationUnit().getName()),
         () -> assertEquals(enrollmentA.getUid(), event.getEnrollment().getUid()),
         () -> assertEquals(programA.getUid(), event.getEnrollment().getProgram().getUid()),
-        () -> assertEquals(ProgramStatus.ACTIVE, event.getEnrollment().getStatus()),
+        () -> assertEquals(EnrollmentStatus.ACTIVE, event.getEnrollment().getStatus()),
         () ->
             assertEquals(
                 trackedEntityA.getUid(), event.getEnrollment().getTrackedEntity().getUid()),

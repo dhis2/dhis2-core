@@ -34,8 +34,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
-import static org.hisp.dhis.program.ProgramStatus.ACTIVE;
-import static org.hisp.dhis.program.ProgramStatus.COMPLETED;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;

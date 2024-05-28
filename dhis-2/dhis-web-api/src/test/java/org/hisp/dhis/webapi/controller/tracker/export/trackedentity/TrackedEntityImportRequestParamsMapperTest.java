@@ -50,7 +50,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.User;
@@ -98,7 +98,7 @@ class TrackedEntityImportRequestParamsMapperTest {
   @Test
   void shouldMapCorrectlyWhenProgramAndSpecificUpdateDatesSupplied() throws BadRequestException {
     trackedEntityRequestParams.setOuMode(CAPTURE);
-    trackedEntityRequestParams.setProgramStatus(ProgramStatus.ACTIVE);
+    trackedEntityRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
     trackedEntityRequestParams.setProgram(UID.of(PROGRAM_UID));
     trackedEntityRequestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
     trackedEntityRequestParams.setFollowUp(true);

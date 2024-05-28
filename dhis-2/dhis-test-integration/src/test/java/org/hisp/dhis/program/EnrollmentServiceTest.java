@@ -151,11 +151,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     eventA.setOrganisationUnit(organisationUnitA);
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
-    enrollmentB.setStatus(ProgramStatus.CANCELLED);
+    enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentB.setOrganisationUnit(organisationUnitB);
     enrollmentC = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programC);
     enrollmentC.setUid("UID-C");
-    enrollmentC.setStatus(ProgramStatus.COMPLETED);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentC.setOrganisationUnit(organisationUnitA);
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
@@ -244,19 +244,20 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest {
     Enrollment enrollment1 =
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
-    enrollment1.setStatus(ProgramStatus.COMPLETED);
+    enrollment1.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentService.updateEnrollment(enrollment1);
     Enrollment enrollment2 =
         enrollmentService.enrollTrackedEntity(
             trackedEntityA, programA, enrollmentDate, incidentDate, organisationUnitA);
-    enrollment2.setStatus(ProgramStatus.COMPLETED);
+    enrollment2.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentService.updateEnrollment(enrollment2);
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(trackedEntityA, programA, ProgramStatus.COMPLETED);
+        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.COMPLETED);
     assertEquals(2, enrollments.size());
     assertTrue(enrollments.contains(enrollment1));
     assertTrue(enrollments.contains(enrollment2));
-    enrollments = enrollmentService.getEnrollments(trackedEntityA, programA, ProgramStatus.ACTIVE);
+    enrollments =
+        enrollmentService.getEnrollments(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
   }

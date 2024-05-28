@@ -122,7 +122,7 @@ public interface EnrollmentService {
    *     STATUS_CANCELLED
    * @return Enrollment list
    */
-  List<Enrollment> getEnrollments(Program program, ProgramStatus status);
+  List<Enrollment> getEnrollments(Program program, EnrollmentStatus status);
 
   /**
    * Retrieve enrollments on a TrackedEntity with a status by a program
@@ -134,7 +134,7 @@ public interface EnrollmentService {
    * @return Enrollment list
    */
   List<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, Program program, ProgramStatus status);
+      TrackedEntity trackedEntity, Program program, EnrollmentStatus status);
 
   /**
    * Enroll a TrackedEntity into a program. Must be run inside a transaction.

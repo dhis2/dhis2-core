@@ -30,14 +30,14 @@ package org.hisp.dhis.program;
 /**
  * @author Lars Helge Overland
  */
-public enum ProgramStatus {
+public enum EnrollmentStatus {
   ACTIVE(0),
   COMPLETED(1),
   CANCELLED(2);
 
   private int value;
 
-  ProgramStatus(int value) {
+  EnrollmentStatus(int value) {
     this.value = value;
   }
 
