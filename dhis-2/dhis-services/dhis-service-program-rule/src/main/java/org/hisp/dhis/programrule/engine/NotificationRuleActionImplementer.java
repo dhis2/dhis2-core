@@ -123,7 +123,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
   }
 
   @Transactional
-  protected void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
+  public void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
     authenticationService.obtainSystemAuthentication();
     notificationLoggingService.save(entry);
     authenticationService.clearAuthentication();
