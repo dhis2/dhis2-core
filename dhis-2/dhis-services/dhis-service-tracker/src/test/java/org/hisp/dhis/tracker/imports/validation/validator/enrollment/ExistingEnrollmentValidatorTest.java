@@ -39,12 +39,11 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.HashMap;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -86,7 +85,8 @@ class ExistingEnrollmentValidatorTest {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid(programUid));
     when(enrollment.getTrackedEntity()).thenReturn(trackedEntitUid);
-    when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
+    when(enrollment.getStatus())
+        .thenReturn(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE);
     when(enrollment.getEnrollment()).thenReturn(enrollmentUid);
     when(enrollment.getUid()).thenReturn(enrollmentUid);
     when(enrollment.getTrackerType()).thenCallRealMethod();
@@ -106,7 +106,8 @@ class ExistingEnrollmentValidatorTest {
 
   @Test
   void shouldExitCancelledStatus() {
-    when(enrollment.getStatus()).thenReturn(EnrollmentStatus.CANCELLED);
+    when(enrollment.getStatus())
+        .thenReturn(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.CANCELLED);
     validator.validate(reporter, bundle, enrollment);
 
     verify(preheat, times(0)).getProgram(programUid);
@@ -126,7 +127,8 @@ class ExistingEnrollmentValidatorTest {
     Program program = new Program();
     program.setOnlyEnrollOnce(false);
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-    when(enrollment.getStatus()).thenReturn(EnrollmentStatus.COMPLETED);
+    when(enrollment.getStatus())
+        .thenReturn(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -159,7 +161,7 @@ class ExistingEnrollmentValidatorTest {
 
   @Test
   void shouldFailActiveEnrollmentAlreadyInPayload() {
-    setEnrollmentInPayload(EnrollmentStatus.ACTIVE);
+    setEnrollmentInPayload(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.ACTIVE);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -173,7 +175,7 @@ class ExistingEnrollmentValidatorTest {
     program.setOnlyEnrollOnce(true);
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+    setEnrollmentInPayload(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -182,7 +184,7 @@ class ExistingEnrollmentValidatorTest {
 
   @Test
   void shouldPassNotActiveEnrollmentAlreadyInPayloadAndNotEnrollOnce() {
-    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+    setEnrollmentInPayload(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -205,7 +207,7 @@ class ExistingEnrollmentValidatorTest {
     program.setOnlyEnrollOnce(true);
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-    setTeInDb(ProgramStatus.COMPLETED);
+    setTeInDb(EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -214,7 +216,7 @@ class ExistingEnrollmentValidatorTest {
 
   @Test
   void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce() {
-    setTeInDb(ProgramStatus.COMPLETED);
+    setTeInDb(EnrollmentStatus.COMPLETED);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -228,7 +230,7 @@ class ExistingEnrollmentValidatorTest {
     program.setOnlyEnrollOnce(true);
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+    setEnrollmentInPayload(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED);
     setTeInDb();
 
     validator.validate(reporter, bundle, enrollment);
@@ -243,7 +245,7 @@ class ExistingEnrollmentValidatorTest {
     program.setOnlyEnrollOnce(false);
 
     when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
-    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+    setEnrollmentInPayload(org.hisp.dhis.tracker.imports.domain.EnrollmentStatus.COMPLETED);
     setTeInDb();
 
     validator.validate(reporter, bundle, enrollment);
@@ -252,10 +254,10 @@ class ExistingEnrollmentValidatorTest {
   }
 
   private void setTeInDb() {
-    setTeInDb(ProgramStatus.ACTIVE);
+    setTeInDb(EnrollmentStatus.ACTIVE);
   }
 
-  private void setTeInDb(ProgramStatus programStatus) {
+  private void setTeInDb(EnrollmentStatus programStatus) {
     when(preheat.getTrackedEntityToEnrollmentMap())
         .thenReturn(
             new HashMap<>() {
@@ -274,7 +276,8 @@ class ExistingEnrollmentValidatorTest {
             });
   }
 
-  private void setEnrollmentInPayload(EnrollmentStatus enrollmentStatus) {
+  private void setEnrollmentInPayload(
+      org.hisp.dhis.tracker.imports.domain.EnrollmentStatus enrollmentStatus) {
     org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle =
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment("another_enrollment")

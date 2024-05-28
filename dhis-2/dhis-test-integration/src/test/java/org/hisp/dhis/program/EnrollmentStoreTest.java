@@ -143,10 +143,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     enrollmentA.setUid("UID-A");
     enrollmentB = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programB);
     enrollmentB.setUid("UID-B");
-    enrollmentB.setStatus(ProgramStatus.CANCELLED);
+    enrollmentB.setStatus(EnrollmentStatus.CANCELLED);
     enrollmentC = new Enrollment(enrollmentDate, incidentDate, trackedEntityA, programC);
     enrollmentC.setUid("UID-C");
-    enrollmentC.setStatus(ProgramStatus.COMPLETED);
+    enrollmentC.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentD = new Enrollment(enrollmentDate, incidentDate, trackedEntityB, programA);
     enrollmentD.setUid("UID-D");
   }
@@ -183,10 +183,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest {
     enrollmentStore.save(enrollmentC);
     enrollmentStore.save(enrollmentD);
     List<Enrollment> enrollments =
-        enrollmentStore.get(trackedEntityA, programC, ProgramStatus.COMPLETED);
+        enrollmentStore.get(trackedEntityA, programC, EnrollmentStatus.COMPLETED);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentC));
-    enrollments = enrollmentStore.get(trackedEntityA, programA, ProgramStatus.ACTIVE);
+    enrollments = enrollmentStore.get(trackedEntityA, programA, EnrollmentStatus.ACTIVE);
     assertEquals(1, enrollments.size());
     assertTrue(enrollments.contains(enrollmentA));
   }

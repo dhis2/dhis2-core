@@ -43,9 +43,9 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -88,7 +88,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> get(Program program, ProgramStatus status) {
+  public List<Enrollment> get(Program program, EnrollmentStatus status) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(
@@ -99,7 +99,8 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
   }
 
   @Override
-  public List<Enrollment> get(TrackedEntity trackedEntity, Program program, ProgramStatus status) {
+  public List<Enrollment> get(
+      TrackedEntity trackedEntity, Program program, EnrollmentStatus status) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
     return getList(
@@ -184,7 +185,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
 
     return getQuery(hql)
         .setParameter("notificationTemplate", template)
-        .setParameter("activeEnrollmentStatus", ProgramStatus.ACTIVE)
+        .setParameter("activeEnrollmentStatus", EnrollmentStatus.ACTIVE)
         .setParameter("targetDate", targetDate)
         .list();
   }

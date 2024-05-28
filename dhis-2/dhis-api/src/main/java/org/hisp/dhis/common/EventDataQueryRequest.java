@@ -50,7 +50,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 
 @Builder
 @Getter
@@ -94,7 +94,7 @@ public class EventDataQueryRequest {
 
   private Set<EventStatus> eventStatus;
 
-  private Set<ProgramStatus> programStatus;
+  private Set<EnrollmentStatus> programStatus;
 
   private boolean collapseDataDimensions;
 

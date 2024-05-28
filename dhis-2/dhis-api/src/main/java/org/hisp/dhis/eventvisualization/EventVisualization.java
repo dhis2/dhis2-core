@@ -73,9 +73,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -151,7 +151,7 @@ public class EventVisualization extends BaseAnalyticalObject
   private boolean legacy;
 
   /** The program status. */
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   /** The event status. */
   private EventStatus eventStatus;
@@ -561,11 +561,11 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  public ProgramStatus getProgramStatus() {
+  public EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public void setProgramStatus(ProgramStatus programStatus) {
+  public void setProgramStatus(EnrollmentStatus programStatus) {
     this.programStatus = programStatus;
   }
 

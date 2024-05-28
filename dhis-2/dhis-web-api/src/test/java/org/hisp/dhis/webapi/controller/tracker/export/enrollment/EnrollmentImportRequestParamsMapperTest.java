@@ -47,7 +47,7 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -234,7 +234,7 @@ class EnrollmentImportRequestParamsMapperTest {
   @Test
   void shouldFailWhenProgramStatusProvidedAndProgramNotPresent() {
     EnrollmentRequestParams requestParams = new EnrollmentRequestParams();
-    requestParams.setProgramStatus(ProgramStatus.ACTIVE);
+    requestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
 
     Exception badRequestException =
         Assertions.assertThrows(BadRequestException.class, () -> mapper.map(requestParams));

@@ -47,9 +47,9 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -63,7 +63,7 @@ class EventQueryParams {
 
   private ProgramStage programStage;
 
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   private ProgramType programType;
 
@@ -202,11 +202,11 @@ class EventQueryParams {
     return this;
   }
 
-  public ProgramStatus getProgramStatus() {
+  public EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public EventQueryParams setProgramStatus(ProgramStatus programStatus) {
+  public EventQueryParams setProgramStatus(EnrollmentStatus programStatus) {
     this.programStatus = programStatus;
     return this;
   }

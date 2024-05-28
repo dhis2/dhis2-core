@@ -37,10 +37,10 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
@@ -128,7 +128,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
       enrollment.setEnrollmentDate(new Date());
       enrollment.setOccurredDate(new Date());
       enrollment.setProgram(program);
-      enrollment.setStatus(ProgramStatus.ACTIVE);
+      enrollment.setStatus(EnrollmentStatus.ACTIVE);
       enrollment.setStoredBy("system-process");
 
       this.enrollmentService.addEnrollment(enrollment);
@@ -136,7 +136,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   }
 
   private int getProgramInstancesCount(Program program) {
-    return enrollmentService.getEnrollments(program, ProgramStatus.ACTIVE).size();
+    return enrollmentService.getEnrollments(program, EnrollmentStatus.ACTIVE).size();
   }
 
   private void validateAttributeSecurity(

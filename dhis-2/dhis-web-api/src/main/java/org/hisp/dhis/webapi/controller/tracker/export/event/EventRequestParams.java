@@ -45,10 +45,10 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -100,7 +100,7 @@ public class EventRequestParams implements PageRequestParams {
   @OpenApi.Property({UID.class, ProgramStage.class})
   private UID programStage;
 
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   private Boolean followUp;
 

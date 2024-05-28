@@ -27,21 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared(name = "TrackerEnrollmentStatus")
 public enum EnrollmentStatus {
-  ACTIVE(0, ProgramStatus.ACTIVE),
-  COMPLETED(1, ProgramStatus.COMPLETED),
-  CANCELLED(2, ProgramStatus.CANCELLED);
+  ACTIVE(0, org.hisp.dhis.program.EnrollmentStatus.ACTIVE),
+  COMPLETED(1, org.hisp.dhis.program.EnrollmentStatus.COMPLETED),
+  CANCELLED(2, org.hisp.dhis.program.EnrollmentStatus.CANCELLED);
 
   private final int value;
 
-  private final ProgramStatus programStatus;
+  private final org.hisp.dhis.program.EnrollmentStatus programStatus;
 
-  EnrollmentStatus(int value, ProgramStatus programStatus) {
+  EnrollmentStatus(int value, org.hisp.dhis.program.EnrollmentStatus programStatus) {
     this.value = value;
     this.programStatus = programStatus;
   }
@@ -50,11 +51,12 @@ public enum EnrollmentStatus {
     return value;
   }
 
-  public ProgramStatus getProgramStatus() {
+  public org.hisp.dhis.program.EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public static EnrollmentStatus fromProgramStatus(ProgramStatus programStatus) {
+  public static EnrollmentStatus fromProgramStatus(
+      org.hisp.dhis.program.EnrollmentStatus programStatus) {
     switch (programStatus) {
       case ACTIVE:
         return ACTIVE;

@@ -61,9 +61,9 @@ import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
@@ -136,7 +136,7 @@ public class EventReport extends BaseAnalyticalObject
   private FontSize fontSize;
 
   /** The program status. */
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   /** The event status. */
   private EventStatus eventStatus;
@@ -441,11 +441,11 @@ public class EventReport extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getProgramStatus() {
+  public EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public void setProgramStatus(ProgramStatus programStatus) {
+  public void setProgramStatus(EnrollmentStatus programStatus) {
     this.programStatus = programStatus;
   }
 

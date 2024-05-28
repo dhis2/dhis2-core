@@ -41,9 +41,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -128,7 +128,7 @@ public class TrackedEntityRequestParams implements PageRequestParams {
   private UID program;
 
   /** The {@see ProgramStatus} of the Tracked Entity Instance in the given program. */
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   /**
    * Indicates whether the Tracked Entity Instance is marked for follow up for the specified

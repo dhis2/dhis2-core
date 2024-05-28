@@ -43,9 +43,9 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -138,7 +138,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
       Set<OrganisationUnit> ous) {
     List<Enrollment> enrollments =
         new ArrayList<>(
-            enrollmentService.getEnrollments(te, smsCommand.getProgram(), ProgramStatus.ACTIVE));
+            enrollmentService.getEnrollments(te, smsCommand.getProgram(), EnrollmentStatus.ACTIVE));
 
     register(enrollments, keyValue, smsCommand, sms, ous);
   }

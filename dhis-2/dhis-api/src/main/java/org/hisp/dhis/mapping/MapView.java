@@ -59,9 +59,9 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -115,7 +115,7 @@ public class MapView extends BaseAnalyticalObject
   /** Tracked entity instance layer. */
   private TrackedEntityType trackedEntityType;
 
-  private ProgramStatus programStatus;
+  private EnrollmentStatus programStatus;
 
   private Boolean followUp;
 
@@ -391,11 +391,11 @@ public class MapView extends BaseAnalyticalObject
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ProgramStatus getProgramStatus() {
+  public EnrollmentStatus getProgramStatus() {
     return programStatus;
   }
 
-  public void setProgramStatus(ProgramStatus programStatus) {
+  public void setProgramStatus(EnrollmentStatus programStatus) {
     this.programStatus = programStatus;
   }
 
