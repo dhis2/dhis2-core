@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
@@ -70,9 +71,10 @@ public interface ProgramRuleStore extends IdentifiableObjectStore<ProgramRule> {
    */
   List<ProgramRule> get(Program program, String key);
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+  Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> types);
 
-  List<ProgramRule> getProgramRulesByActionTypes(
+  Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
 
   List<ProgramRule> getProgramRulesWithNoCondition();

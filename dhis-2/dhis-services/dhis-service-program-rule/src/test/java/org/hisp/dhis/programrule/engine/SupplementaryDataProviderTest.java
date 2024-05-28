@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
@@ -103,10 +102,10 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
     assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
   }
 
-  private List<ProgramRule> getProgramRules() {
+  private Set<ProgramRule> getProgramRules() {
     ProgramRule programRule = createProgramRule('A', null);
     programRule.setCondition("d2:inOrgUnitGroup('OrgUnitGroupId')");
-    return Lists.newArrayList(programRule);
+    return Set.of(programRule);
   }
 
   private Set<String> getUserRoleUids() {

@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.api.RuleEngine;
@@ -74,7 +76,7 @@ public class ProgramRuleEngine {
 
   @Deprecated(forRemoval = true, since = "2.41")
   public List<RuleEffect> evaluateEvent(
-      Enrollment enrollment, Set<Event> events, List<ProgramRule> rules) {
+      Enrollment enrollment, Set<Event> events, Map<ProgramRule, List<ProgramRuleAction>> rules) {
     return evaluateProgramRules(
         enrollment,
         null,
@@ -86,7 +88,10 @@ public class ProgramRuleEngine {
 
   @Deprecated(forRemoval = true, since = "2.41")
   public List<RuleEffect> evaluateEvent(
-      Enrollment enrollment, Event event, Set<Event> events, List<ProgramRule> rules) {
+      Enrollment enrollment,
+      Event event,
+      Set<Event> events,
+      Map<ProgramRule, List<ProgramRuleAction>> rules) {
     return evaluateProgramRules(
         enrollment,
         event,
@@ -98,7 +103,7 @@ public class ProgramRuleEngine {
 
   @Deprecated(forRemoval = true, since = "2.41")
   public List<RuleEffect> evaluateProgramEvent(
-      Event event, Program program, List<ProgramRule> rules) {
+      Event event, Program program, Map<ProgramRule, List<ProgramRuleAction>> rules) {
     return evaluateProgramRules(
         null, null, program, List.of(), getRuleEvents(Set.of(event), null), rules);
   }
@@ -107,7 +112,7 @@ public class ProgramRuleEngine {
       Enrollment enrollment,
       Set<Event> events,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    List<ProgramRule> rules =
+    Map<ProgramRule, List<ProgramRuleAction>> rules =
         getProgramRules(
             enrollment.getProgram(),
             events.stream().map(Event::getProgramStage).distinct().toList());
@@ -119,7 +124,7 @@ public class ProgramRuleEngine {
   }
 
   public List<RuleEffects> evaluateProgramEvents(Set<Event> events, Program program) {
-    List<ProgramRule> rules = getProgramRules(program);
+    Map<ProgramRule, List<ProgramRuleAction>> rules = getProgramRules(program);
     return evaluateProgramRulesForMultipleTrackerObjects(
         null, program, getRuleEvents(events, null), rules);
   }
@@ -130,7 +135,7 @@ public class ProgramRuleEngine {
       Program program,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
       List<RuleEvent> ruleEvents,
-      List<ProgramRule> rules) {
+      Map<ProgramRule, List<ProgramRuleAction>> rules) {
 
     try {
       RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
@@ -147,7 +152,7 @@ public class ProgramRuleEngine {
       RuleEnrollment ruleEnrollment,
       Program program,
       List<RuleEvent> ruleEvents,
-      List<ProgramRule> rules) {
+      Map<ProgramRule, List<ProgramRuleAction>> rules) {
     try {
       RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules);
       return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
@@ -157,20 +162,28 @@ public class ProgramRuleEngine {
     }
   }
 
-  public List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRules(
+      Program program, List<ProgramStage> programStage) {
     if (programStage.isEmpty()) {
       return implementableRuleService.getProgramRules(program, null);
     }
 
-    Set<ProgramRule> programRules =
-        programStage.stream()
-            .flatMap(ps -> implementableRuleService.getProgramRules(program, ps.getUid()).stream())
-            .collect(Collectors.toSet());
+    Map<ProgramRule, List<ProgramRuleAction>> actions = new HashMap<>();
 
-    return List.copyOf(programRules);
+    for (ProgramStage ps : programStage) {
+      Map<ProgramRule, List<ProgramRuleAction>> programRules =
+          implementableRuleService.getProgramRules(program, ps.getUid());
+      for (ProgramRule programRule : programRules.keySet()) {
+        if (!actions.containsKey(programRule)) {
+          actions.put(programRule, programRules.get(programRule));
+        }
+      }
+    }
+
+    return actions;
   }
 
-  public List<ProgramRule> getProgramRules(Program program) {
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRules(Program program) {
     return implementableRuleService.getProgramRules(program, null);
   }
 
@@ -212,7 +225,8 @@ public class ProgramRuleEngine {
             programRuleVariableService.getProgramRuleVariable(program)));
   }
 
-  private RuleEngineContext getRuleEngineContext(Program program, List<ProgramRule> programRules) {
+  private RuleEngineContext getRuleEngineContext(
+      Program program, Map<ProgramRule, List<ProgramRuleAction>> programRules) {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 
@@ -222,7 +236,7 @@ public class ProgramRuleEngine {
                 Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
 
     Map<String, List<String>> supplementaryData =
-        supplementaryDataProvider.getSupplementaryData(programRules);
+        supplementaryDataProvider.getSupplementaryData(programRules.keySet());
 
     return new RuleEngineContext(
         programRuleEntityMapperService.toMappedProgramRules(programRules),

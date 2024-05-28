@@ -32,10 +32,10 @@ import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.anySet;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
@@ -43,11 +43,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -143,7 +143,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     setProgramRuleActionType_ShowError();
 
     verify(programRuleEngine, never())
-        .evaluateEvent(enrollment, Sets.newHashSet(), List.of(programRuleA));
+        .evaluateEvent(enrollment, Set.of(), Map.ofEntries(Map.entry(programRuleA, List.of())));
     assertEquals(0, ruleEffects.size());
   }
 
@@ -169,7 +169,10 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
 
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
     when(programRuleEngine.evaluateEvent(any(), any(), any())).thenReturn(effects);
-    when(programRuleEngine.getProgramRules(any())).thenReturn(List.of(programRuleA));
+    when(programRuleEngine.getProgramRules(any()))
+        .thenReturn(
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions()))));
 
     setProgramRuleActionType_SendMessage();
 
@@ -219,8 +222,11 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     when(eventService.getEvent(anyString())).thenReturn(event);
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
 
-    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(List.of(programRuleA));
-    when(programRuleEngine.evaluateEvent(any(), any(), anySet(), anyList())).thenReturn(effects);
+    when(programRuleEngine.getProgramRules(any(), any()))
+        .thenReturn(
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions()))));
+    when(programRuleEngine.evaluateEvent(any(), any(), anySet(), anyMap())).thenReturn(effects);
 
     setProgramRuleActionType_SendMessage();
 
@@ -229,7 +235,11 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     assertEquals(1, ruleEffects.size());
 
     verify(programRuleEngine, times(1))
-        .evaluateEvent(enrollment, event, enrollment.getEvents(), List.of(programRuleA));
+        .evaluateEvent(
+            enrollment,
+            event,
+            enrollment.getEvents(),
+            Map.ofEntries(Map.entry(programRuleA, List.of())));
 
     verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
     verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
@@ -267,8 +277,14 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     when(eventService.getEvent(programEvent.getUid())).thenReturn(programEvent);
 
     when(programRuleEngine.getProgramRules(program, List.of(programStage)))
-        .thenReturn(List.of(programRuleA));
-    when(programRuleEngine.evaluateProgramEvent(programEvent, program, List.of(programRuleA)))
+        .thenReturn(
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions()))));
+    when(programRuleEngine.evaluateProgramEvent(
+            programEvent,
+            program,
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions())))))
         .thenReturn(effects);
 
     setProgramRuleActionType_SendMessage();
@@ -278,7 +294,8 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     assertEquals(1, ruleEffects.size());
 
     verify(programRuleEngine, times(1))
-        .evaluateProgramEvent(programEvent, program, List.of(programRuleA));
+        .evaluateProgramEvent(
+            programEvent, program, Map.ofEntries(Map.entry(programRuleA, List.of())));
 
     verify(enrollmentService, never()).getEnrollment(any());
 
@@ -296,14 +313,14 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     when(eventService.getEvent(anyString())).thenReturn(event);
     when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
 
-    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(List.of());
+    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(Map.of());
 
     List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(event.getUid());
 
     assertEquals(0, ruleEffects.size());
 
-    verify(programRuleEngine, never()).evaluateProgramEvent(any(), any(), anyList());
-    verify(programRuleEngine, never()).evaluateEvent(any(), any(), anyList());
+    verify(programRuleEngine, never()).evaluateProgramEvent(any(), any(), anyMap());
+    verify(programRuleEngine, never()).evaluateEvent(any(), any(), anyMap());
     verify(enrollmentService, never()).getEnrollment(any());
   }
 

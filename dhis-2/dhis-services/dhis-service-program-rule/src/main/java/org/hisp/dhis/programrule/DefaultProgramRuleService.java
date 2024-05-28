@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
@@ -97,14 +98,14 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesByActionTypes(
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> actionTypes) {
     return programRuleStore.getProgramRulesByActionTypes(program, actionTypes);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesByActionTypes(
+  public Map<ProgramRule, List<ProgramRuleAction>> getProgramRulesByActionTypes(
       Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid) {
     return programRuleStore.getProgramRulesByActionTypes(
         program, serverSupportedTypes, programStageUid);

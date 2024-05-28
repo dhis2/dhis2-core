@@ -33,6 +33,7 @@ import java.util.Set;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.api.DataItem;
 import org.hisp.dhis.rules.models.Rule;
@@ -48,16 +49,11 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
  * <p>Created by zubair@dhis2.org on 19.10.17.
  */
 public interface ProgramRuleEntityMapperService {
-  /***
-   * @return A list of mapped Rules for all programs
-   */
-  List<Rule> toMappedProgramRules();
-
   /**
    * @param programRules The list of program rules to be mapped
    * @return A list of mapped Rules for list of programs.
    */
-  List<Rule> toMappedProgramRules(List<ProgramRule> programRules);
+  List<Rule> toMappedProgramRules(Map<ProgramRule, List<ProgramRuleAction>> rules);
 
   /***
    * @return A list of mapped RuleVariables for all programs.
