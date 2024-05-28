@@ -126,7 +126,6 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
   public void saveExternalLogEntry(ExternalNotificationLogEntry entry) {
     authenticationService.obtainSystemAuthentication();
     notificationLoggingService.save(entry);
-    authenticationService.clearAuthentication();
   }
 
   protected void checkNulls(RuleEffect ruleEffect, Event event) {
