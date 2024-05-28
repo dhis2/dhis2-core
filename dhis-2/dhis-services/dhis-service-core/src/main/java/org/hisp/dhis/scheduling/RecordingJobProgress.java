@@ -199,7 +199,7 @@ public class RecordingJobProgress implements JobProgress {
     observer.run();
 
     if (isCancelled()) {
-      throw newCancellationException();
+      throw cancellationException();
     }
     String message = format(description, args);
     tracker.startingProcess(format(message, args));
@@ -211,7 +211,7 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Nonnull
-  private RuntimeException newCancellationException() {
+  private RuntimeException cancellationException() {
     Exception cause = getCause();
     if (skipRecording && cause instanceof RuntimeException rex) throw rex;
     CancellationException ex = new CancellationException();
@@ -275,7 +275,7 @@ public class RecordingJobProgress implements JobProgress {
     observer.run();
 
     if (isCancelled()) {
-      throw newCancellationException();
+      throw cancellationException();
     }
     skipCurrentStage.set(false);
     tracker.startingStage(description, workItems);
