@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -38,10 +40,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -51,12 +59,18 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -74,6 +88,8 @@ class DefaultMetadataExportServiceTest {
   @Mock private ProgramRuleService programRuleService;
 
   @Mock private ProgramRuleVariableService programRuleVariableService;
+
+  @Mock private QueryService queryService;
 
   @InjectMocks private DefaultMetadataExportService service;
 
@@ -180,5 +196,57 @@ class DefaultMetadataExportServiceTest {
     assertNotNull(result.get(ProgramRuleAction.class));
     assertNotNull(result.get(OptionGroup.class));
     assertNotNull(result.get(OptionSet.class));
+  }
+
+  @Test
+  @DisplayName(
+      "Deprecated Analytic classes (EventChart and EventReport) should have their schemas removed from metadata export")
+  void deprecatedAnalyticClassesSchemaRemovedTest() {
+    // given
+    MetadataExportParams params = new MetadataExportParams();
+    List<Schema> schemas =
+        List.of(
+            new Schema(EventReport.class, "eventReport", "eventReports"),
+            new Schema(EventChart.class, "eventChart", "eventCharts"),
+            new Schema(EventVisualization.class, "eventVisualization", "eventVisualizations"),
+            new Schema(DataElement.class, "dataElement", "dataElements"),
+            new Schema(Program.class, "program", "programs"));
+    schemas.forEach(s -> s.setPersisted(true));
+
+    Query query = Query.from(new Schema(EventReport.class, "eventReport", "eventReports"));
+    when(queryService.getQueryFromUrl(any(), any(), any())).thenReturn(query);
+
+    // return 5 schemas, including the 2 for the deprecated classes EventChart & EventReport
+    when(schemaService.getMetadataSchemas()).thenReturn(schemas);
+
+    // when
+    service.getMetadata(params);
+
+    // then
+    assertEquals(
+        3, params.getClasses().size(), "EventChart and EventReport classes should not be present");
+  }
+
+  @ParameterizedTest
+  @MethodSource(value = "schemaSources")
+  @DisplayName("Deprecated Analytic schema predicate returns the correct result")
+  void deprecatedAnalyticSchemaPredicateTest(Schema schema, boolean expectedResult) {
+    // when
+    boolean actualResult = DefaultMetadataExportService.DEPRECATED_ANALYTICS_SCHEMAS.test(schema);
+
+    // then
+    assertEquals(expectedResult, actualResult, "expected result should match predicate result");
+  }
+
+  private static Stream<Arguments> schemaSources() {
+    return Stream.of(
+        arguments(new Schema(EventReport.class, "eventReport", "eventReports"), false),
+        arguments(new Schema(EventChart.class, "eventChart", "eventCharts"), false),
+        arguments(
+            new Schema(EventVisualization.class, "eventVisualization", "eventVisualizations"),
+            true),
+        arguments(new Schema(DataElement.class, "dataElement", "dataElements"), true),
+        arguments(new Schema(Program.class, "program", "programs"), true),
+        arguments(new Schema(CategoryCombo.class, "categoryCombo", "categoryCombos"), true));
   }
 }
