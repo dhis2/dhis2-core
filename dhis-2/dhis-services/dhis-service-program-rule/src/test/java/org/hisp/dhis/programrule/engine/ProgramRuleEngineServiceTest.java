@@ -28,16 +28,26 @@
 package org.hisp.dhis.programrule.engine;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
+import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,15 +58,18 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -125,175 +138,191 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     Mockito.when(config.isDisabled(SYSTEM_PROGRAM_RULE_SERVER_EXECUTION)).thenReturn(false);
   }
 
-  //  @Test
-  //  void testWhenNoImplementableActionExist_enrollment() {
-  //    setProgramRuleActionType_ShowError();
-  //
-  //    verify(programRuleEngine, never())
-  //        .evaluateEvent(enrollment, Sets.newHashSet(), List.of(programRuleA));
-  //    assertEquals(0, ruleEffects.size());
-  //  }
-  //
-  //  @Test
-  //  void testWithImplementableActionExist_enrollment() {
-  //    doAnswer(
-  //            invocationOnMock -> {
-  //              ruleEffects.add((RuleEffect) invocationOnMock.getArguments()[0]);
-  //              return ruleEffects;
-  //            })
-  //        .when(ruleActionSendMessage)
-  //        .implement(any(), any(Enrollment.class));
-  //
-  //    List<RuleEffect> effects = new ArrayList<>();
-  //    effects.add(
-  //        new RuleEffect(
-  //            "ruleId",
-  //            new RuleAction(
-  //                "",
-  //                ProgramRuleActionType.SENDMESSAGE.name(),
-  //                Map.of("notification", NOTIFICATION_UID)),
-  //            DATA));
-  //
-  //    when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
-  //    when(programRuleEngine.evaluateEvent(any(), any(), any())).thenReturn(effects);
-  //    when(programRuleEngine.getProgramRules(any())).thenReturn(List.of(programRuleA));
-  //
-  //    setProgramRuleActionType_SendMessage();
-  //
-  //    ArgumentCaptor<Enrollment> argumentCaptor = ArgumentCaptor.forClass(Enrollment.class);
-  //
-  //    List<RuleEffect> ruleEffects = service.evaluateEnrollmentAndRunEffects(enrollment.getId());
-  //
-  //    assertEquals(1, ruleEffects.size());
-  //
-  //    RuleAction action = ruleEffects.get(0).getRuleAction();
-  //    if (action.getType().equals(ProgramRuleActionType.SENDMESSAGE.name())) {
-  //      assertEquals(NOTIFICATION_UID, action.getValues().get(NOTIFICATION));
-  //    }
-  //
-  //    verify(programRuleEngine, times(1)).evaluateEvent(argumentCaptor.capture(), any(), any());
-  //    assertEquals(enrollment, argumentCaptor.getValue());
-  //
-  //    verify(ruleActionSendMessage).accept(action);
-  //    verify(ruleActionSendMessage).implement(any(RuleEffect.class), argumentCaptor.capture());
-  //
-  //    assertEquals(1, this.ruleEffects.size());
-  //    assertEquals(
-  //        ProgramRuleActionType.SENDMESSAGE.name(),
-  //        this.ruleEffects.get(0).getRuleAction().getType());
-  //  }
-  //
-  //  @Test
-  //  void testWithImplementableActionExist_event() {
-  //    doAnswer(
-  //            invocationOnMock -> {
-  //              ruleEffects.add((RuleEffect) invocationOnMock.getArguments()[0]);
-  //              return ruleEffects;
-  //            })
-  //        .when(ruleActionSendMessage)
-  //        .implement(any(), any(Event.class));
-  //
-  //    List<RuleEffect> effects = new ArrayList<>();
-  //    effects.add(
-  //        new RuleEffect(
-  //            "ruleId",
-  //            new RuleAction(
-  //                "",
-  //                ProgramRuleActionType.SENDMESSAGE.name(),
-  //                Map.of("notification", NOTIFICATION_UID)),
-  //            DATA));
-  //
-  //    when(eventService.getEvent(anyString())).thenReturn(event);
-  //    when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
-  //
-  //    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(List.of(programRuleA));
-  //    when(programRuleEngine.evaluateEvent(any(), any(), anySet(),
-  // anyList())).thenReturn(effects);
-  //
-  //    setProgramRuleActionType_SendMessage();
-  //
-  //    List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(event.getUid());
-  //
-  //    assertEquals(1, ruleEffects.size());
-  //
-  //    verify(programRuleEngine, times(1))
-  //        .evaluateEvent(enrollment, event, enrollment.getEvents(), List.of(programRuleA));
-  //
-  //    verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
-  //    verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
-  //
-  //    assertEquals(1, this.ruleEffects.size());
-  //    assertEquals(
-  //        ProgramRuleActionType.SENDMESSAGE.name(),
-  //        this.ruleEffects.get(0).getRuleAction().getType());
-  //  }
-  //
-  //  @Test
-  //  void shouldNotRetrieveEventsWhenEvaluatingAProgramEvent() {
-  //    doAnswer(
-  //            invocationOnMock -> {
-  //              ruleEffects.add((RuleEffect) invocationOnMock.getArguments()[0]);
-  //              return ruleEffects;
-  //            })
-  //        .when(ruleActionSendMessage)
-  //        .implement(any(), any(Event.class));
-  //
-  //    List<RuleEffect> effects = new ArrayList<>();
-  //    effects.add(
-  //        new RuleEffect(
-  //            "ruleId",
-  //            new RuleAction(
-  //                "",
-  //                ProgramRuleActionType.SENDMESSAGE.name(),
-  //                Map.of("notification", NOTIFICATION_UID)),
-  //            DATA));
-  //    Program program = createProgram('A');
-  //    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-  //    ProgramStage programStage = createProgramStage('A', program);
-  //    Event programEvent = createEvent(programStage, enrollment, createOrganisationUnit('A'));
-  //
-  //    when(eventService.getEvent(programEvent.getUid())).thenReturn(programEvent);
-  //
-  //    when(programRuleEngine.getProgramRules(program, List.of(programStage)))
-  //        .thenReturn(List.of(programRuleA));
-  //    when(programRuleEngine.evaluateProgramEvent(programEvent, program, List.of(programRuleA)))
-  //        .thenReturn(effects);
-  //
-  //    setProgramRuleActionType_SendMessage();
-  //
-  //    List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(programEvent.getUid());
-  //
-  //    assertEquals(1, ruleEffects.size());
-  //
-  //    verify(programRuleEngine, times(1))
-  //        .evaluateProgramEvent(programEvent, program, List.of(programRuleA));
-  //
-  //    verify(enrollmentService, never()).getEnrollment(any());
-  //
-  //    verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
-  //    verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
-  //
-  //    assertEquals(1, this.ruleEffects.size());
-  //    assertEquals(
-  //        ProgramRuleActionType.SENDMESSAGE.name(),
-  //        this.ruleEffects.get(0).getRuleAction().getType());
-  //  }
-  //
-  //  @Test
-  //  void shouldNotTryToEvaluateWhenThereAreNoRulesToRun() {
-  //    when(eventService.getEvent(anyString())).thenReturn(event);
-  //    when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
-  //
-  //    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(List.of());
-  //
-  //    List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(event.getUid());
-  //
-  //    assertEquals(0, ruleEffects.size());
-  //
-  //    verify(programRuleEngine, never()).evaluateProgramEvent(any(), any(), anyList());
-  //    verify(programRuleEngine, never()).evaluateEvent(any(), any(), anyList());
-  //    verify(enrollmentService, never()).getEnrollment(any());
-  //  }
+  @Test
+  void testWhenNoImplementableActionExist_enrollment() {
+    setProgramRuleActionType_ShowError();
+
+    verify(programRuleEngine, never())
+        .evaluateEvent(enrollment, Set.of(), Map.ofEntries(Map.entry(programRuleA, List.of())));
+    assertEquals(0, ruleEffects.size());
+  }
+
+  @Test
+  void testWithImplementableActionExist_enrollment() {
+    doAnswer(
+            invocationOnMock -> {
+              ruleEffects.add((RuleEffect) invocationOnMock.getArguments()[0]);
+              return ruleEffects;
+            })
+        .when(ruleActionSendMessage)
+        .implement(any(), any(Enrollment.class));
+
+    List<RuleEffect> effects = new ArrayList<>();
+    effects.add(
+        new RuleEffect(
+            "ruleId",
+            new RuleAction(
+                "",
+                ProgramRuleActionType.SENDMESSAGE.name(),
+                Map.of("notification", NOTIFICATION_UID)),
+            DATA));
+
+    when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
+    when(programRuleEngine.evaluateEvent(any(), any(), any())).thenReturn(effects);
+    when(programRuleEngine.getProgramRules(any()))
+        .thenReturn(
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions()))));
+
+    setProgramRuleActionType_SendMessage();
+
+    ArgumentCaptor<Enrollment> argumentCaptor = ArgumentCaptor.forClass(Enrollment.class);
+
+    List<RuleEffect> ruleEffects = service.evaluateEnrollmentAndRunEffects(enrollment.getId());
+
+    assertEquals(1, ruleEffects.size());
+
+    RuleAction action = ruleEffects.get(0).getRuleAction();
+    if (action.getType().equals(ProgramRuleActionType.SENDMESSAGE.name())) {
+      assertEquals(NOTIFICATION_UID, action.getValues().get(NOTIFICATION));
+    }
+
+    verify(programRuleEngine, times(1)).evaluateEvent(argumentCaptor.capture(), any(), any());
+    assertEquals(enrollment, argumentCaptor.getValue());
+
+    verify(ruleActionSendMessage).accept(action);
+    verify(ruleActionSendMessage).implement(any(RuleEffect.class), argumentCaptor.capture());
+
+    assertEquals(1, this.ruleEffects.size());
+    assertEquals(
+        ProgramRuleActionType.SENDMESSAGE.name(),
+        this.ruleEffects.get(0).getRuleAction().getType());
+  }
+
+  @Test
+  void testWithImplementableActionExist_event() {
+    doAnswer(
+            invocationOnMock -> {
+              ruleEffects.add((RuleEffect) invocationOnMock.getArguments()[0]);
+              return ruleEffects;
+            })
+        .when(ruleActionSendMessage)
+        .implement(any(), any(Event.class));
+
+    List<RuleEffect> effects = new ArrayList<>();
+    effects.add(
+        new RuleEffect(
+            "ruleId",
+            new RuleAction(
+                "",
+                ProgramRuleActionType.SENDMESSAGE.name(),
+                Map.of("notification", NOTIFICATION_UID)),
+            DATA));
+
+    when(eventService.getEvent(anyString())).thenReturn(event);
+    when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
+
+    when(programRuleEngine.getProgramRules(any(), any()))
+        .thenReturn(
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions()))));
+    when(programRuleEngine.evaluateEvent(any(), any(), anySet(), anyMap())).thenReturn(effects);
+
+    setProgramRuleActionType_SendMessage();
+
+    List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(event.getUid());
+
+    assertEquals(1, ruleEffects.size());
+
+    verify(programRuleEngine, times(1))
+        .evaluateEvent(
+            enrollment,
+            event,
+            enrollment.getEvents(),
+            Map.ofEntries(Map.entry(programRuleA, List.of())));
+
+    verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
+    verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
+
+    assertEquals(1, this.ruleEffects.size());
+    assertEquals(
+        ProgramRuleActionType.SENDMESSAGE.name(),
+        this.ruleEffects.get(0).getRuleAction().getType());
+  }
+
+  @Test
+  void shouldNotRetrieveEventsWhenEvaluatingAProgramEvent() {
+    doAnswer(
+            invocationOnMock -> {
+              ruleEffects.add((RuleEffect) invocationOnMock.getArguments()[0]);
+              return ruleEffects;
+            })
+        .when(ruleActionSendMessage)
+        .implement(any(), any(Event.class));
+
+    List<RuleEffect> effects = new ArrayList<>();
+    effects.add(
+        new RuleEffect(
+            "ruleId",
+            new RuleAction(
+                "",
+                ProgramRuleActionType.SENDMESSAGE.name(),
+                Map.of("notification", NOTIFICATION_UID)),
+            DATA));
+    Program program = createProgram('A');
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    ProgramStage programStage = createProgramStage('A', program);
+    Event programEvent = createEvent(programStage, enrollment, createOrganisationUnit('A'));
+
+    when(eventService.getEvent(programEvent.getUid())).thenReturn(programEvent);
+
+    when(programRuleEngine.getProgramRules(program, List.of(programStage)))
+        .thenReturn(
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions()))));
+    when(programRuleEngine.evaluateProgramEvent(
+            programEvent,
+            program,
+            Map.ofEntries(
+                Map.entry(programRuleA, new ArrayList<>(programRuleA.getProgramRuleActions())))))
+        .thenReturn(effects);
+
+    setProgramRuleActionType_SendMessage();
+
+    List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(programEvent.getUid());
+
+    assertEquals(1, ruleEffects.size());
+
+    verify(programRuleEngine, times(1))
+        .evaluateProgramEvent(
+            programEvent, program, Map.ofEntries(Map.entry(programRuleA, List.of())));
+
+    verify(enrollmentService, never()).getEnrollment(any());
+
+    verify(ruleActionSendMessage).accept(ruleEffects.get(0).getRuleAction());
+    verify(ruleActionSendMessage).implement(any(RuleEffect.class), any(Event.class));
+
+    assertEquals(1, this.ruleEffects.size());
+    assertEquals(
+        ProgramRuleActionType.SENDMESSAGE.name(),
+        this.ruleEffects.get(0).getRuleAction().getType());
+  }
+
+  @Test
+  void shouldNotTryToEvaluateWhenThereAreNoRulesToRun() {
+    when(eventService.getEvent(anyString())).thenReturn(event);
+    when(enrollmentService.getEnrollment(anyLong())).thenReturn(enrollment);
+
+    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(Map.of());
+
+    List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects(event.getUid());
+
+    assertEquals(0, ruleEffects.size());
+
+    verify(programRuleEngine, never()).evaluateProgramEvent(any(), any(), anyMap());
+    verify(programRuleEngine, never()).evaluateEvent(any(), any(), anyMap());
+    verify(enrollmentService, never()).getEnrollment(any());
+  }
 
   @Test
   void testGetDescription() {

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,8 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -359,84 +362,80 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     assertEquals(3, programRuleService.getProgramRules(programB, "rule").size());
   }
 
-  //  @Test
-  //  void testGetProgramRulesByImplementableActionTypes() {
-  //    ProgramRule ruleD =
-  //        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
-  //    ProgramRule ruleE = new ProgramRule("RuleE", "descriptionE", programB, null, null, "$a < 1",
-  // 1);
-  //    // Add a rule that is not part of programB
-  //    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programA, null, null, "!false",
-  // 0);
-  //    programRuleService.addProgramRule(ruleD);
-  //    programRuleService.addProgramRule(ruleE);
-  //    programRuleService.addProgramRule(ruleG);
-  //    ProgramRuleAction actionD = createProgramRuleAction('D');
-  //    actionD.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
-  //    actionD.setProgramRule(ruleD);
-  //    programRuleActonService.addProgramRuleAction(actionD);
-  //    ruleD.setProgramRuleActions(Sets.newHashSet(actionD));
-  //    programRuleService.updateProgramRule(ruleD);
-  //    // Get all the 3 rules for programB
-  //    List<ProgramRule> rules =
-  //        programRuleService.getProgramRulesByActionTypes(
-  //            programB, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
-  //    assertEquals(1, rules.size());
-  //    assertTrue(rules.contains(ruleD));
-  //    assertFalse(rules.contains(ruleG));
-  //  }
+  @Test
+  void testGetProgramRulesByImplementableActionTypes() {
+    ProgramRule ruleD =
+        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
+    ProgramRule ruleE = new ProgramRule("RuleE", "descriptionE", programB, null, null, "$a < 1", 1);
+    // Add a rule that is not part of programB
+    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programA, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleD);
+    programRuleService.addProgramRule(ruleE);
+    programRuleService.addProgramRule(ruleG);
+    ProgramRuleAction actionD = createProgramRuleAction('D');
+    actionD.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    actionD.setProgramRule(ruleD);
+    programRuleActonService.addProgramRuleAction(actionD);
+    ruleD.setProgramRuleActions(Sets.newHashSet(actionD));
+    programRuleService.updateProgramRule(ruleD);
+    // Get all the 3 rules for programB
 
-  //  @Test
-  //  void testGetProgramRulesByServerActionTypes() {
-  //    ProgramRule ruleD =
-  //        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
-  //    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programB, null, null, "!false",
-  // 0);
-  //    programRuleService.addProgramRule(ruleD);
-  //    programRuleService.addProgramRule(ruleG);
-  //
-  //    ProgramRuleAction sendMessageActionA = createProgramRuleAction('D');
-  //    sendMessageActionA.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
-  //    sendMessageActionA.setProgramRule(ruleD);
-  //
-  //    ProgramRuleAction showWarningAction = createProgramRuleAction('C');
-  //    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
-  //    showWarningAction.setProgramRule(ruleD);
-  //
-  //    ProgramRuleAction sendMessageActionB = createProgramRuleAction('E');
-  //    sendMessageActionB.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
-  //    sendMessageActionB.setProgramRule(ruleG);
-  //
-  //    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
-  //    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
-  //    hideFieldAction.setProgramRule(ruleG);
-  //
-  //    programRuleActonService.addProgramRuleAction(sendMessageActionA);
-  //    programRuleActonService.addProgramRuleAction(showWarningAction);
-  //
-  //    programRuleActonService.addProgramRuleAction(sendMessageActionB);
-  //    programRuleActonService.addProgramRuleAction(hideFieldAction);
-  //
-  //    ruleD.setProgramRuleActions(Sets.newHashSet(sendMessageActionA, showWarningAction));
-  //    ruleG.setProgramRuleActions(Sets.newHashSet(sendMessageActionB, hideFieldAction));
-  //
-  //    programRuleService.updateProgramRule(ruleD);
-  //    programRuleService.updateProgramRule(ruleG);
-  //
-  //    List<ProgramRule> rules =
-  //        programRuleService.getProgramRulesByActionTypes(
-  //            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
-  //
-  //    assertContainsOnly(rules, List.of(ruleD, ruleG));
-  //
-  //    List<ProgramRuleAction> ruleActions =
-  //        rules.stream()
-  //            .flatMap(r -> r.getProgramRuleActions().stream())
-  //            .collect(Collectors.toList());
-  //
-  //    assertContainsOnly(
-  //        ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
-  //  }
+    Map<ProgramRule, List<ProgramRuleAction>> rules =
+        programRuleService.getProgramRulesByActionTypes(
+            programB, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
+    assertEquals(1, rules.size());
+    assertTrue(rules.containsKey(ruleD));
+    assertFalse(rules.containsKey(ruleG));
+  }
+
+  @Test
+  void testGetProgramRulesByServerActionTypes() {
+    ProgramRule ruleD =
+        new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
+    ProgramRule ruleG = new ProgramRule("RuleG", "descriptionG", programB, null, null, "!false", 0);
+    programRuleService.addProgramRule(ruleD);
+    programRuleService.addProgramRule(ruleG);
+
+    ProgramRuleAction sendMessageActionA = createProgramRuleAction('D');
+    sendMessageActionA.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    sendMessageActionA.setProgramRule(ruleD);
+
+    ProgramRuleAction showWarningAction = createProgramRuleAction('C');
+    showWarningAction.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
+    showWarningAction.setProgramRule(ruleD);
+
+    ProgramRuleAction sendMessageActionB = createProgramRuleAction('E');
+    sendMessageActionB.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    sendMessageActionB.setProgramRule(ruleG);
+
+    ProgramRuleAction hideFieldAction = createProgramRuleAction('F');
+    hideFieldAction.setProgramRuleActionType(ProgramRuleActionType.HIDEFIELD);
+    hideFieldAction.setProgramRule(ruleG);
+
+    programRuleActonService.addProgramRuleAction(sendMessageActionA);
+    programRuleActonService.addProgramRuleAction(showWarningAction);
+
+    programRuleActonService.addProgramRuleAction(sendMessageActionB);
+    programRuleActonService.addProgramRuleAction(hideFieldAction);
+
+    ruleD.setProgramRuleActions(Sets.newHashSet(sendMessageActionA, showWarningAction));
+    ruleG.setProgramRuleActions(Sets.newHashSet(sendMessageActionB, hideFieldAction));
+
+    programRuleService.updateProgramRule(ruleD);
+    programRuleService.updateProgramRule(ruleG);
+
+    Map<ProgramRule, List<ProgramRuleAction>> rules =
+        programRuleService.getProgramRulesByActionTypes(
+            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
+
+    assertContainsOnly(rules.keySet(), List.of(ruleD, ruleG));
+
+    List<ProgramRuleAction> ruleActions =
+        rules.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+
+    assertContainsOnly(
+        ruleActions, List.of(showWarningAction, sendMessageActionA, sendMessageActionB));
+  }
 
   @Test
   void testUpdate() {
